@@ -212,9 +212,10 @@ export default function AiChat() {
         .eq('user_id', user.id)
         .single();
 
-      setUseOwnKey(profile?.use_own_api_key ?? true);
+      const useOwnApiKey = profile?.use_own_api_key ?? true;
+      setUseOwnKey(useOwnApiKey);
 
-      if (profile?.use_own_api_key ?? true) {
+      if (useOwnApiKey) {
         const apiKey = localStorage.getItem('openai_api_key');
         setHasApiKey(!!apiKey);
       } else {
@@ -226,11 +227,17 @@ export default function AiChat() {
         
         setHasApiKey(!!settings?.setting_value);
       }
+
+      // Connect after settings are loaded
+      connectToRealtimeChat(useOwnApiKey);
     };
 
-    initializeAudio();
-    fetchUserSettings();
-    connectToRealtimeChat();
+    const init = async () => {
+      initializeAudio();
+      await fetchUserSettings();
+    };
+
+    init();
 
     return () => {
       disconnectFromChat();
@@ -240,7 +247,7 @@ export default function AiChat() {
     };
   }, [user]);
 
-  const connectToRealtimeChat = async () => {
+  const connectToRealtimeChat = async (useOwnApiKey: boolean = useOwnKey) => {
     if (!user) return;
 
     try {
@@ -273,8 +280,8 @@ export default function AiChat() {
         setIsConnected(true);
         
         // Start session with API key
-        const apiKey = useOwnKey ? localStorage.getItem('openai_api_key') : undefined;
-        console.log('API Key available:', !!apiKey, 'Use own key:', useOwnKey);
+        const apiKey = useOwnApiKey ? localStorage.getItem('openai_api_key') : undefined;
+        console.log('API Key available:', !!apiKey, 'Use own key:', useOwnApiKey);
         ws.send(JSON.stringify({
           type: 'start_session',
           apiKey: apiKey
