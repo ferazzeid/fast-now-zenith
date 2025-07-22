@@ -247,15 +247,32 @@ export default function AiChat() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const wsUrl = `wss://texnkijwcygodtywgedm.functions.supabase.co/realtime-chat?token=${session.access_token}`;
+      // First, get a connection token
+      const { data: tokenData, error: tokenError } = await supabase.functions.invoke('connection-token', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (tokenError || !tokenData?.connection_token) {
+        console.error('Failed to get connection token:', tokenError);
+        toast({
+          title: "Connection Error",
+          description: "Failed to get connection token",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Use the connection token in the WebSocket URL
+      const wsUrl = `wss://texnkijwcygodtywgedm.functions.supabase.co/realtime-chat?token=${tokenData.connection_token}`;
       const ws = new WebSocket(wsUrl);
 
-      // Add auth header manually since WebSocket doesn't support custom headers in browser
       ws.addEventListener('open', () => {
         console.log('Connected to realtime chat');
         setIsConnected(true);
         
-        // Start session with auth token
+        // Start session with API key
         const apiKey = useOwnKey ? localStorage.getItem('openai_api_key') : undefined;
         ws.send(JSON.stringify({
           type: 'start_session',

@@ -19,12 +19,12 @@ serve(async (req) => {
   }
 
   try {
-    // Get auth token from query parameter since WebSocket can't send custom headers
+    // Get connection token from query parameter
     const url = new URL(req.url);
-    const token = url.searchParams.get('token');
+    const connectionToken = url.searchParams.get('token');
     
-    if (!token) {
-      return new Response("Unauthorized", { status: 401 });
+    if (!connectionToken) {
+      return new Response("Unauthorized - No connection token", { status: 401 });
     }
 
     const supabase = createClient(
@@ -32,18 +32,33 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Verify user and get their settings
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Verify connection token and get user
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('connection_tokens')
+      .select('user_id, expires_at')
+      .eq('token', connectionToken)
+      .single();
 
-    if (authError || !user) {
-      return new Response("Unauthorized", { status: 401 });
+    if (tokenError || !tokenData) {
+      return new Response("Unauthorized - Invalid connection token", { status: 401 });
+    }
+
+    // Check if token is expired
+    if (new Date(tokenData.expires_at) < new Date()) {
+      // Clean up expired token
+      await supabase
+        .from('connection_tokens')
+        .delete()
+        .eq('token', connectionToken);
+      
+      return new Response("Unauthorized - Connection token expired", { status: 401 });
     }
 
     // Get user profile with model preferences
     const { data: profile } = await supabase
       .from('profiles')
       .select('speech_model, use_own_api_key')
-      .eq('user_id', user.id)
+      .eq('user_id', tokenData.user_id)
       .single();
 
     // Get shared settings for default models
@@ -72,6 +87,12 @@ serve(async (req) => {
     if (!apiKey && !profile?.use_own_api_key) {
       return new Response("No API key configured", { status: 500 });
     }
+
+    // Delete the used connection token for security
+    await supabase
+      .from('connection_tokens')
+      .delete()
+      .eq('token', connectionToken);
 
     const { socket, response } = Deno.upgradeWebSocket(req);
     let openAISocket: WebSocket | null = null;
@@ -141,7 +162,7 @@ serve(async (req) => {
               const usage = data.response?.usage;
               if (usage) {
                 await supabase.from('ai_usage_logs').insert({
-                  user_id: user.id,
+                  user_id: tokenData.user_id,
                   request_type: 'realtime_chat',
                   model_used: speechModel,
                   tokens_used: (usage.input_tokens || 0) + (usage.output_tokens || 0),
