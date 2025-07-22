@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ImageUpload } from './ImageUpload';
 
 interface Motivator {
   id: string;
@@ -22,12 +23,14 @@ interface EditMotivatorModalProps {
 export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivatorModalProps) => {
   const [title, setTitle] = useState(motivator.title);
   const [description, setDescription] = useState(motivator.description || '');
+  const [imageUrl, setImageUrl] = useState(motivator.imageUrl || '');
 
   const handleSave = () => {
     onSave({
       ...motivator,
       title,
       description: description || undefined,
+      imageUrl: imageUrl || undefined,
     });
   };
 
@@ -72,6 +75,17 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
               onChange={(e) => setDescription(e.target.value)}
               className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
               placeholder="Enter motivator description"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-warm-text font-medium">
+              Image
+            </Label>
+            <ImageUpload
+              currentImageUrl={imageUrl}
+              onImageUpload={setImageUrl}
+              onImageRemove={() => setImageUrl('')}
             />
           </div>
         </div>

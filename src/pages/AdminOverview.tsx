@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff } from 'lucide-react';
+import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,13 @@ const AdminOverview = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [sharedApiKey, setSharedApiKey] = useState('');
   const [isKeyVisible, setIsKeyVisible] = useState(false);
+  const [pwaSettings, setPwaSettings] = useState({
+    app_name: '',
+    short_name: '',
+    description: '',
+    theme_color: '#8B7355',
+    background_color: '#F5F2EA'
+  });
   const [usageStats, setUsageStats] = useState<UsageStats>({
     total_users: 0,
     paid_users: 0,
@@ -76,6 +83,27 @@ const AdminOverview = () => {
 
       if (settingsData) {
         setSharedApiKey(settingsData.setting_value || '');
+      }
+
+      // Fetch PWA settings
+      const { data: pwaData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['pwa_app_name', 'pwa_short_name', 'pwa_description', 'pwa_theme_color', 'pwa_background_color']);
+
+      if (pwaData) {
+        const pwaMap = pwaData.reduce((acc, setting) => {
+          acc[setting.setting_key] = setting.setting_value;
+          return acc;
+        }, {} as Record<string, string>);
+
+        setPwaSettings({
+          app_name: pwaMap.pwa_app_name || '',
+          short_name: pwaMap.pwa_short_name || '',
+          description: pwaMap.pwa_description || '',
+          theme_color: pwaMap.pwa_theme_color || '#8B7355',
+          background_color: pwaMap.pwa_background_color || '#F5F2EA'
+        });
       }
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -166,6 +194,55 @@ const AdminOverview = () => {
       toast({
         title: "Success",
         description: "Shared OpenAI API key cleared",
+      });
+    }
+  };
+
+  const savePwaSettings = async () => {
+    try {
+      const updates = Object.entries(pwaSettings).map(([key, value]) => ({
+        setting_key: `pwa_${key}`,
+        setting_value: value
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('shared_settings')
+          .update({ setting_value: update.setting_value })
+          .eq('setting_key', update.setting_key);
+      }
+
+      toast({
+        title: "Success",
+        description: "PWA settings saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save PWA settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const clearStorageStats = async () => {
+    try {
+      const { data: files, error } = await supabase.storage
+        .from('motivator-images')
+        .list();
+
+      const fileCount = files?.length || 0;
+      const totalSize = files?.reduce((acc, file) => acc + (file.metadata?.size || 0), 0) || 0;
+
+      toast({
+        title: "Storage Info",
+        description: `${fileCount} files, ${(totalSize / 1024 / 1024).toFixed(2)} MB used`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to get storage stats",
+        variant: "destructive",
       });
     }
   };
@@ -288,6 +365,101 @@ const AdminOverview = () => {
                   Paid users (150 requests/month), Admin (unlimited).
                 </p>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* PWA Settings */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Smartphone className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">PWA Settings</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="app-name" className="text-warm-text">App Name</Label>
+                <Input
+                  id="app-name"
+                  value={pwaSettings.app_name}
+                  onChange={(e) => setPwaSettings(prev => ({ ...prev, app_name: e.target.value }))}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="short-name" className="text-warm-text">Short Name</Label>
+                <Input
+                  id="short-name"
+                  value={pwaSettings.short_name}
+                  onChange={(e) => setPwaSettings(prev => ({ ...prev, short_name: e.target.value }))}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="theme-color" className="text-warm-text">Theme Color</Label>
+                <Input
+                  id="theme-color"
+                  value={pwaSettings.theme_color}
+                  onChange={(e) => setPwaSettings(prev => ({ ...prev, theme_color: e.target.value }))}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bg-color" className="text-warm-text">Background Color</Label>
+                <Input
+                  id="bg-color"
+                  value={pwaSettings.background_color}
+                  onChange={(e) => setPwaSettings(prev => ({ ...prev, background_color: e.target.value }))}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-warm-text">Description</Label>
+              <Input
+                id="description"
+                value={pwaSettings.description}
+                onChange={(e) => setPwaSettings(prev => ({ ...prev, description: e.target.value }))}
+                className="bg-ceramic-base border-ceramic-rim"
+              />
+            </div>
+            
+            <Button
+              onClick={savePwaSettings}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Save PWA Settings
+            </Button>
+          </div>
+        </Card>
+
+        {/* Storage Management */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Image className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Storage Management</h3>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                onClick={clearStorageStats}
+                variant="outline"
+                className="bg-ceramic-base border-ceramic-rim"
+              >
+                Check Storage Usage
+              </Button>
+            </div>
+            
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                Motivator images are stored in Supabase Storage. Users can upload images up to 5MB each.
+              </p>
             </div>
           </div>
         </Card>
