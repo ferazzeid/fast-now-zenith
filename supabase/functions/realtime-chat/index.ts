@@ -116,10 +116,13 @@ serve(async (req) => {
           // Use provided API key for own-key users
           const finalApiKey = message.apiKey || apiKey;
           
+          console.log('Start session - User API key:', !!message.apiKey, 'Shared API key:', !!apiKey, 'Final API key:', !!finalApiKey);
+          
           if (!finalApiKey) {
+            console.error('No API key available');
             socket.send(JSON.stringify({ 
               type: 'error', 
-              message: 'No API key provided' 
+              message: 'No API key provided. Please add your OpenAI API key in Settings.' 
             }));
             return;
           }
