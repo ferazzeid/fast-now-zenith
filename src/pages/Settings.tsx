@@ -20,6 +20,12 @@ const Settings = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Load saved API key on component mount
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setOpenAiKey(savedApiKey);
+    }
+
     const checkAdminRole = async () => {
       if (user) {
         const { data } = await supabase
