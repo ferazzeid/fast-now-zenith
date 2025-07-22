@@ -265,7 +265,7 @@ export default function AiChat() {
       }
 
       // Use the connection token in the WebSocket URL
-      const wsUrl = `wss://texnkijwcygodtywgedm.functions.supabase.co/realtime-chat?token=${tokenData.connection_token}`;
+      const wsUrl = `wss://texnkijwcygodtywgedm.functions.supabase.co/functions/v1/realtime-chat?token=${tokenData.connection_token}`;
       const ws = new WebSocket(wsUrl);
 
       ws.addEventListener('open', () => {
