@@ -16,7 +16,7 @@ const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [useOwnKey, setUseOwnKey] = useState(false);
+  const [useOwnKey, setUseOwnKey] = useState(true);
   const [speechModel, setSpeechModel] = useState('gpt-4o-mini-realtime');
   const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
   const [ttsModel, setTtsModel] = useState('tts-1');
@@ -53,7 +53,7 @@ const Settings = () => {
           .single();
 
         if (profile) {
-          setUseOwnKey(profile.use_own_api_key || false);
+          setUseOwnKey(profile.use_own_api_key ?? true);
           setSpeechModel(profile.speech_model || 'gpt-4o-mini-realtime');
           setTranscriptionModel(profile.transcription_model || 'whisper-1');
           setTtsModel(profile.tts_model || 'tts-1');
