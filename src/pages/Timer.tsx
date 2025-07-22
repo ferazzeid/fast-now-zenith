@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { Play, Square, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const Timer = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -62,21 +73,13 @@ const Timer = () => {
     });
   };
 
-  const handlePause = () => {
-    setIsRunning(false);
-    toast({
-      title: "⏸️ Fast Paused",
-      description: "Timer paused. Resume when ready!",
-    });
-  };
-
-  const handleReset = () => {
+  const handleStop = () => {
     setIsRunning(false);
     setTimeElapsed(0);
     setIsInEatingWindow(false);
     toast({
-      title: "🔄 Timer Reset",
-      description: "Ready for a fresh start!",
+      title: "🛑 Fast Stopped",
+      description: "Fast ended. Great effort on your journey!",
     });
   };
 
@@ -164,25 +167,38 @@ const Timer = () => {
               Start Fast
             </Button>
           ) : (
-            <Button
-              onClick={handlePause}
-              size="lg"
-              variant="outline"
-              className="bg-ceramic-plate border-ceramic-rim px-8"
-            >
-              <Pause className="w-5 h-5 mr-2" />
-              Pause
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="bg-ceramic-plate border-ceramic-rim px-8"
+                >
+                  <Square className="w-5 h-5 mr-2" />
+                  Stop Fast
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-ceramic-plate border-ceramic-rim">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-warm-text">Stop Your Fast?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to stop your fast? This will end your current fasting session and reset the timer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-ceramic-base border-ceramic-rim">
+                    Continue Fasting
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleStop}
+                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  >
+                    Stop Fast
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
-          
-          <Button
-            onClick={handleReset}
-            size="lg"
-            variant="outline"
-            className="bg-ceramic-plate border-ceramic-rim"
-          >
-            <RotateCcw className="w-5 h-5" />
-          </Button>
         </div>
 
         {/* Fast Info */}
@@ -210,13 +226,16 @@ const Timer = () => {
           currentType={fastType}
           currentDuration={fastDuration}
           currentEatingWindow={eatingWindow}
-          onSelect={(type, duration, eating) => {
-            setFastType(type);
-            setFastDuration(duration);
-            setEatingWindow(eating);
-            setShowFastSelector(false);
-            handleReset();
-          }}
+            onSelect={(type, duration, eating) => {
+              setFastType(type);
+              setFastDuration(duration);
+              setEatingWindow(eating);
+              setShowFastSelector(false);
+              // Reset timer when changing fast type
+              setIsRunning(false);
+              setTimeElapsed(0);
+              setIsInEatingWindow(false);
+            }}
           onClose={() => setShowFastSelector(false)}
         />
       )}

@@ -3,6 +3,7 @@ import { MessageCircle, Send, Mic, MicOff, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -16,6 +17,7 @@ const AiChat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if API key is available
@@ -105,7 +107,7 @@ const AiChat = () => {
             </div>
             
             <Button
-              onClick={() => window.location.href = '/settings'}
+              onClick={() => navigate('/settings')}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Go to Settings
