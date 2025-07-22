@@ -19,9 +19,11 @@ serve(async (req) => {
   }
 
   try {
-    // Get user from auth header
-    const authHeader = headers.get('authorization');
-    if (!authHeader) {
+    // Get auth token from query parameter since WebSocket can't send custom headers
+    const url = new URL(req.url);
+    const token = url.searchParams.get('token');
+    
+    if (!token) {
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -31,9 +33,7 @@ serve(async (req) => {
     );
 
     // Verify user and get their settings
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
       return new Response("Unauthorized", { status: 401 });

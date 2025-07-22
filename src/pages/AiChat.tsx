@@ -247,7 +247,7 @@ export default function AiChat() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const wsUrl = `wss://texnkijwcygodtywgedm.functions.supabase.co/realtime-chat`;
+      const wsUrl = `wss://texnkijwcygodtywgedm.functions.supabase.co/realtime-chat?token=${session.access_token}`;
       const ws = new WebSocket(wsUrl);
 
       // Add auth header manually since WebSocket doesn't support custom headers in browser
@@ -257,11 +257,6 @@ export default function AiChat() {
         
         // Start session with auth token
         const apiKey = useOwnKey ? localStorage.getItem('openai_api_key') : undefined;
-        ws.send(JSON.stringify({
-          type: 'auth',
-          token: session.access_token
-        }));
-        
         ws.send(JSON.stringify({
           type: 'start_session',
           apiKey: apiKey
