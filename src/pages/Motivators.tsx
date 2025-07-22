@@ -3,6 +3,7 @@ import { Plus, Camera, Edit3, Trash2, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { EditMotivatorModal } from '@/components/EditMotivatorModal';
 
 interface Motivator {
   id: string;
@@ -28,6 +29,7 @@ const Motivators = () => {
       createdAt: new Date()
     }
   ]);
+  const [editingMotivator, setEditingMotivator] = useState<Motivator | null>(null);
   const { toast } = useToast();
 
   const handleAddMotivator = () => {
@@ -51,6 +53,21 @@ const Motivators = () => {
     toast({
       title: "🗑️ Motivator Removed",
       description: "Motivator has been deleted.",
+    });
+  };
+
+  const handleEditMotivator = (motivator: Motivator) => {
+    setEditingMotivator(motivator);
+  };
+
+  const handleSaveMotivator = (updatedMotivator: Motivator) => {
+    setMotivators(prev => 
+      prev.map(m => m.id === updatedMotivator.id ? updatedMotivator : m)
+    );
+    setEditingMotivator(null);
+    toast({
+      title: "✨ Motivator Updated!",
+      description: "Your motivator has been saved successfully.",
     });
   };
 
@@ -123,6 +140,7 @@ const Motivators = () => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => handleEditMotivator(motivator)}
                       className="hover:bg-ceramic-rim"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -158,6 +176,15 @@ const Motivators = () => {
               </p>
             </div>
           </div>
+        )}
+
+        {/* Edit Modal */}
+        {editingMotivator && (
+          <EditMotivatorModal
+            motivator={editingMotivator}
+            onSave={handleSaveMotivator}
+            onClose={() => setEditingMotivator(null)}
+          />
         )}
       </div>
     </div>

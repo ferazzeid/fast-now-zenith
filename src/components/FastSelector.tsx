@@ -27,6 +27,22 @@ export const FastSelector = ({
     onSelect(selectedType, duration * 3600, eatingWindow * 3600);
   };
 
+  const handleDurationChange = (newDuration: number) => {
+    setDuration(newDuration);
+    if (selectedType === 'intermittent') {
+      // For intermittent fasting, ensure duration + eating window = 24 hours
+      setEatingWindow(24 - newDuration);
+    }
+  };
+
+  const handleEatingWindowChange = (newEatingWindow: number) => {
+    setEatingWindow(newEatingWindow);
+    if (selectedType === 'intermittent') {
+      // For intermittent fasting, ensure duration + eating window = 24 hours
+      setDuration(24 - newEatingWindow);
+    }
+  };
+
   const presets = {
     intermittent: [
       { name: '16:8 Fast', fast: 16, eating: 8 },
@@ -133,9 +149,9 @@ export const FastSelector = ({
             </Label>
             <Slider
               value={[duration]}
-              onValueChange={(value) => setDuration(value[0])}
+              onValueChange={(value) => handleDurationChange(value[0])}
               max={selectedType === 'intermittent' ? 23 : 168}
-              min={selectedType === 'intermittent' ? 12 : 24}
+              min={selectedType === 'intermittent' ? 1 : 24}
               step={1}
               className="w-full"
             />
@@ -148,8 +164,8 @@ export const FastSelector = ({
               </Label>
               <Slider
                 value={[eatingWindow]}
-                onValueChange={(value) => setEatingWindow(value[0])}
-                max={12}
+                onValueChange={(value) => handleEatingWindowChange(value[0])}
+                max={23}
                 min={1}
                 step={1}
                 className="w-full"

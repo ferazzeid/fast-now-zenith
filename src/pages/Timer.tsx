@@ -85,10 +85,8 @@ const Timer = () => {
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
     
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    // Always show hours for clarity
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const getDisplayTime = () => {
@@ -132,26 +130,26 @@ const Timer = () => {
           </Button>
         </div>
 
-        {/* Ceramic Timer */}
-        <div className="flex justify-center">
+        {/* Ceramic Timer with Count Direction Toggle */}
+        <div className="flex justify-center relative">
           <CeramicTimer
             progress={getProgress()}
             displayTime={getDisplayTime()}
             isActive={isRunning}
             isEatingWindow={isInEatingWindow}
           />
-        </div>
-
-        {/* Count Direction Toggle */}
-        <div className="flex items-center justify-center space-x-3 bg-ceramic-plate p-4 rounded-2xl border border-ceramic-rim">
-          <Label htmlFor="count-direction" className="text-warm-text font-medium">
-            Count {countDirection === 'up' ? 'Up' : 'Down'}
-          </Label>
-          <Switch
-            id="count-direction"
-            checked={countDirection === 'up'}
-            onCheckedChange={(checked) => setCountDirection(checked ? 'up' : 'down')}
-          />
+          {/* Discrete Count Direction Toggle */}
+          <div className="absolute top-0 right-0 flex items-center space-x-2 bg-ceramic-plate/80 backdrop-blur-sm px-3 py-1 rounded-full border border-ceramic-rim/50">
+            <Label htmlFor="count-direction" className="text-xs text-warm-text font-medium">
+              {countDirection === 'up' ? '↑' : '↓'}
+            </Label>
+            <Switch
+              id="count-direction"
+              checked={countDirection === 'up'}
+              onCheckedChange={(checked) => setCountDirection(checked ? 'up' : 'down')}
+              className="scale-75"
+            />
+          </div>
         </div>
 
         {/* Control Buttons */}
