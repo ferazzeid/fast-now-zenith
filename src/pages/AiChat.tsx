@@ -274,6 +274,7 @@ export default function AiChat() {
         
         // Start session with API key
         const apiKey = useOwnKey ? localStorage.getItem('openai_api_key') : undefined;
+        console.log('API Key available:', !!apiKey, 'Use own key:', useOwnKey);
         ws.send(JSON.stringify({
           type: 'start_session',
           apiKey: apiKey
