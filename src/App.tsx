@@ -7,8 +7,11 @@ import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import AiChat from "./pages/AiChat";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
+import { AuthProvider } from "./hooks/useAuth";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -18,16 +21,35 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="relative">
-          <Routes>
-            <Route path="/" element={<Timer />} />
-            <Route path="/motivators" element={<Motivators />} />
-            <Route path="/ai-chat" element={<AiChat />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Navigation />
-        </div>
+        <AuthProvider>
+          <div className="relative">
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Timer />
+                </ProtectedRoute>
+              } />
+              <Route path="/motivators" element={
+                <ProtectedRoute>
+                  <Motivators />
+                </ProtectedRoute>
+              } />
+              <Route path="/ai-chat" element={
+                <ProtectedRoute>
+                  <AiChat />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Navigation />
+          </div>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
