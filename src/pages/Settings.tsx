@@ -1,17 +1,38 @@
-import { useState } from 'react';
-import { Key, Bell, User, Info, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Key, Bell, User, Info, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';  
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const [openAiKey, setOpenAiKey] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
+        setIsAdmin(!!data);
+      }
+    };
+    checkAdminRole();
+  }, [user]);
 
   const handleSaveApiKey = () => {
     if (openAiKey.trim()) {
@@ -193,6 +214,16 @@ const Settings = () => {
                 Fast Now - Your mindful fasting companion
               </p>
             </div>
+            
+            {isAdmin && (
+              <Button
+                onClick={() => navigate('/admin')}
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Admin Dashboard
+              </Button>
+            )}
           </div>
         </Card>
       </div>

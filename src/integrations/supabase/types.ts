@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_logs: {
+        Row: {
+          created_at: string
+          id: string
+          request_type: string
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_type: string
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_type?: string
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       fasting_sessions: {
         Row: {
           created_at: string
@@ -85,25 +109,58 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_requests_reset_date: string | null
           created_at: string
           display_name: string | null
           id: string
+          is_paid_user: boolean | null
+          monthly_ai_requests: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_requests_reset_date?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          is_paid_user?: boolean | null
+          monthly_ai_requests?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_requests_reset_date?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          is_paid_user?: boolean | null
+          monthly_ai_requests?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      shared_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

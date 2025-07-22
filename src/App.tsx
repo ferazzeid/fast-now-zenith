@@ -8,6 +8,7 @@ import Motivators from "./pages/Motivators";
 import AiChat from "./pages/AiChat";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import AdminOverview from "./pages/AdminOverview";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./hooks/useAuth";
@@ -44,6 +45,11 @@ const App = () => (
                 <ProtectedRoute>
                   <Settings />
                 </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminOverview />
+                </ProtectedRoute>  
               } />
               <Route path="*" element={<NotFound />} />
             </Routes>
