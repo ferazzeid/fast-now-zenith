@@ -11,10 +11,17 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  console.log('Realtime chat function called');
+  console.log('Request method:', req.method);
+  console.log('Headers:', Object.fromEntries(req.headers.entries()));
+
   const { headers } = req;
   const upgradeHeader = headers.get("upgrade") || "";
 
+  console.log('Upgrade header:', upgradeHeader);
+
   if (upgradeHeader.toLowerCase() !== "websocket") {
+    console.log('Not a WebSocket request');
     return new Response("Expected WebSocket connection", { status: 400 });
   }
 
