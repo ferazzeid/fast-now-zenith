@@ -61,6 +61,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				ceramic: {
+					base: 'hsl(var(--ceramic-base))',
+					plate: 'hsl(var(--ceramic-plate))',
+					rim: 'hsl(var(--ceramic-rim))'
+				},
+				progress: {
+					active: 'hsl(var(--progress-active))',
+					bg: 'hsl(var(--progress-bg))'
+				},
+				warm: {
+					text: 'hsl(var(--warm-text))'
+				},
+				shadow: {
+					soft: 'hsl(var(--soft-shadow))'
 				}
 			},
 			borderRadius: {

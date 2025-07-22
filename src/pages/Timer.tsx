@@ -1,0 +1,229 @@
+import { useState, useEffect } from 'react';
+import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { CeramicTimer } from '@/components/CeramicTimer';
+import { FastSelector } from '@/components/FastSelector';
+import { useToast } from '@/hooks/use-toast';
+
+const Timer = () => {
+  const [isRunning, setIsRunning] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
+  const [fastDuration, setFastDuration] = useState(16 * 60 * 60); // 16 hours default
+  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('intermittent');
+  const [eatingWindow, setEatingWindow] = useState(8 * 60 * 60); // 8 hours
+  const [isInEatingWindow, setIsInEatingWindow] = useState(false);
+  const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
+  const [showFastSelector, setShowFastSelector] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isRunning) {
+      interval = setInterval(() => {
+        setTimeElapsed(prev => {
+          const newTime = prev + 1;
+          
+          // Check if we should switch to eating window for intermittent fasting
+          if (fastType === 'intermittent' && newTime >= fastDuration && !isInEatingWindow) {
+            setIsInEatingWindow(true);
+            toast({
+              title: "🍽️ Eating Window Started!",
+              description: "Time to break your fast. Enjoy your meal!",
+            });
+            return 0; // Reset timer for eating window
+          }
+          
+          // Check if eating window is over
+          if (fastType === 'intermittent' && isInEatingWindow && newTime >= eatingWindow) {
+            setIsInEatingWindow(false);
+            toast({
+              title: "✨ Fast Resumed!",
+              description: "Your eating window is over. Fast continues!",
+            });
+            return 0; // Reset timer for next fast cycle
+          }
+          
+          return newTime;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isRunning, fastDuration, eatingWindow, fastType, isInEatingWindow, toast]);
+
+  const handleStart = () => {
+    setIsRunning(true);
+    toast({
+      title: "🏃‍♀️ Fast Started!",
+      description: "Your fasting journey begins now. Stay strong!",
+    });
+  };
+
+  const handlePause = () => {
+    setIsRunning(false);
+    toast({
+      title: "⏸️ Fast Paused",
+      description: "Timer paused. Resume when ready!",
+    });
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setTimeElapsed(0);
+    setIsInEatingWindow(false);
+    toast({
+      title: "🔄 Timer Reset",
+      description: "Ready for a fresh start!",
+    });
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const getDisplayTime = () => {
+    if (countDirection === 'up') {
+      return formatTime(timeElapsed);
+    } else {
+      const targetDuration = isInEatingWindow ? eatingWindow : fastDuration;
+      const remaining = Math.max(0, targetDuration - timeElapsed);
+      return formatTime(remaining);
+    }
+  };
+
+  const getProgress = () => {
+    const targetDuration = isInEatingWindow ? eatingWindow : fastDuration;
+    return Math.min((timeElapsed / targetDuration) * 100, 100);
+  };
+
+  const getCurrentMode = () => {
+    if (fastType === 'longterm') return 'Extended Fast';
+    return isInEatingWindow ? 'Eating Window' : 'Fasting';
+  };
+
+  return (
+    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-20">
+      <div className="max-w-md mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-warm-text">Fast Now</h1>
+          <p className="text-muted-foreground">{getCurrentMode()}</p>
+        </div>
+
+        {/* Fast Type Selector */}
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => setShowFastSelector(true)}
+            className="bg-ceramic-plate border-ceramic-rim"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Change Fast Type
+          </Button>
+        </div>
+
+        {/* Ceramic Timer */}
+        <div className="flex justify-center">
+          <CeramicTimer
+            progress={getProgress()}
+            displayTime={getDisplayTime()}
+            isActive={isRunning}
+            isEatingWindow={isInEatingWindow}
+          />
+        </div>
+
+        {/* Count Direction Toggle */}
+        <div className="flex items-center justify-center space-x-3 bg-ceramic-plate p-4 rounded-2xl border border-ceramic-rim">
+          <Label htmlFor="count-direction" className="text-warm-text font-medium">
+            Count {countDirection === 'up' ? 'Up' : 'Down'}
+          </Label>
+          <Switch
+            id="count-direction"
+            checked={countDirection === 'up'}
+            onCheckedChange={(checked) => setCountDirection(checked ? 'up' : 'down')}
+          />
+        </div>
+
+        {/* Control Buttons */}
+        <div className="flex justify-center space-x-4">
+          {!isRunning ? (
+            <Button
+              onClick={handleStart}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Start Fast
+            </Button>
+          ) : (
+            <Button
+              onClick={handlePause}
+              size="lg"
+              variant="outline"
+              className="bg-ceramic-plate border-ceramic-rim px-8"
+            >
+              <Pause className="w-5 h-5 mr-2" />
+              Pause
+            </Button>
+          )}
+          
+          <Button
+            onClick={handleReset}
+            size="lg"
+            variant="outline"
+            className="bg-ceramic-plate border-ceramic-rim"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Fast Info */}
+        <div className="bg-ceramic-plate p-4 rounded-2xl border border-ceramic-rim space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Fast Duration:</span>
+            <span className="text-warm-text font-medium">
+              {Math.floor(fastDuration / 3600)}h
+            </span>
+          </div>
+          {fastType === 'intermittent' && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Eating Window:</span>
+              <span className="text-warm-text font-medium">
+                {Math.floor(eatingWindow / 3600)}h
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Fast Selector Modal */}
+      {showFastSelector && (
+        <FastSelector
+          currentType={fastType}
+          currentDuration={fastDuration}
+          currentEatingWindow={eatingWindow}
+          onSelect={(type, duration, eating) => {
+            setFastType(type);
+            setFastDuration(duration);
+            setEatingWindow(eating);
+            setShowFastSelector(false);
+            handleReset();
+          }}
+          onClose={() => setShowFastSelector(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default Timer;
