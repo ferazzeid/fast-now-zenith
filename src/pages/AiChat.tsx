@@ -214,7 +214,7 @@ export default function AiChat() {
 
       setUseOwnKey(profile?.use_own_api_key ?? true);
 
-      if (profile?.use_own_api_key) {
+      if (profile?.use_own_api_key ?? true) {
         const apiKey = localStorage.getItem('openai_api_key');
         setHasApiKey(!!apiKey);
       } else {
