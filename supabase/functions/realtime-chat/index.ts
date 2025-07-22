@@ -1,0 +1,221 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  const { headers } = req;
+  const upgradeHeader = headers.get("upgrade") || "";
+
+  if (upgradeHeader.toLowerCase() !== "websocket") {
+    return new Response("Expected WebSocket connection", { status: 400 });
+  }
+
+  try {
+    // Get user from auth header
+    const authHeader = headers.get('authorization');
+    if (!authHeader) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Verify user and get their settings
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    // Get user profile with model preferences
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('speech_model, use_own_api_key')
+      .eq('user_id', user.id)
+      .single();
+
+    // Get shared settings for default models
+    const { data: sharedSettings } = await supabase
+      .from('shared_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['default_speech_model', 'shared_openai_key']);
+
+    const settings = Object.fromEntries(
+      sharedSettings?.map(s => [s.setting_key, s.setting_value]) || []
+    );
+
+    // Determine which API key and model to use
+    let apiKey = '';
+    let speechModel = 'gpt-4o-mini-realtime'; // Most cost-effective default
+
+    if (profile?.use_own_api_key) {
+      // User should provide their own key via localStorage (handled in frontend)
+      speechModel = profile.speech_model || 'gpt-4o-mini-realtime';
+    } else {
+      // Use shared API key
+      apiKey = settings.shared_openai_key;
+      speechModel = settings.default_speech_model || 'gpt-4o-mini-realtime';
+    }
+
+    if (!apiKey && !profile?.use_own_api_key) {
+      return new Response("No API key configured", { status: 500 });
+    }
+
+    const { socket, response } = Deno.upgradeWebSocket(req);
+    let openAISocket: WebSocket | null = null;
+
+    socket.onopen = () => {
+      console.log('Client connected to relay');
+    };
+
+    socket.onmessage = async (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        
+        if (message.type === 'start_session') {
+          // Use provided API key for own-key users
+          const finalApiKey = message.apiKey || apiKey;
+          
+          if (!finalApiKey) {
+            socket.send(JSON.stringify({ 
+              type: 'error', 
+              message: 'No API key provided' 
+            }));
+            return;
+          }
+
+          // Connect to OpenAI Realtime API
+          openAISocket = new WebSocket(
+            `wss://api.openai.com/v1/realtime?model=${speechModel}`,
+            ['realtime', `Bearer.${finalApiKey}`]
+          );
+
+          openAISocket.onopen = () => {
+            console.log('Connected to OpenAI Realtime API');
+            
+            // Send session configuration after connection
+            const sessionConfig = {
+              type: "session.update",
+              session: {
+                modalities: ["text", "audio"],
+                instructions: `You are a helpful fasting companion AI assistant. You help users with their intermittent fasting journey by providing motivation, answering questions about fasting, and offering supportive guidance. Be encouraging, knowledgeable about fasting science, and personally supportive. Keep responses concise but warm.`,
+                voice: "alloy",
+                input_audio_format: "pcm16",
+                output_audio_format: "pcm16",
+                input_audio_transcription: {
+                  model: "whisper-1"
+                },
+                turn_detection: {
+                  type: "server_vad",
+                  threshold: 0.5,
+                  prefix_padding_ms: 300,
+                  silence_duration_ms: 1000
+                },
+                tools: [],
+                tool_choice: "auto",
+                temperature: 0.8,
+                max_response_output_tokens: "inf"
+              }
+            };
+            
+            openAISocket?.send(JSON.stringify(sessionConfig));
+          };
+
+          openAISocket.onmessage = async (event) => {
+            const data = JSON.parse(event.data);
+            
+            // Log usage for cost tracking
+            if (data.type === 'response.done') {
+              const usage = data.response?.usage;
+              if (usage) {
+                await supabase.from('ai_usage_logs').insert({
+                  user_id: user.id,
+                  request_type: 'realtime_chat',
+                  model_used: speechModel,
+                  tokens_used: (usage.input_tokens || 0) + (usage.output_tokens || 0),
+                  estimated_cost: calculateCost(usage, speechModel)
+                });
+              }
+            }
+            
+            // Forward message to client
+            socket.send(event.data);
+          };
+
+          openAISocket.onerror = (error) => {
+            console.error('OpenAI WebSocket error:', error);
+            socket.send(JSON.stringify({ 
+              type: 'error', 
+              message: 'Connection to AI service failed' 
+            }));
+          };
+
+          openAISocket.onclose = () => {
+            console.log('OpenAI WebSocket closed');
+            socket.send(JSON.stringify({ 
+              type: 'session_ended' 
+            }));
+          };
+
+        } else if (openAISocket && openAISocket.readyState === WebSocket.OPEN) {
+          // Forward other messages to OpenAI
+          openAISocket.send(event.data);
+        }
+      } catch (error) {
+        console.error('Error processing message:', error);
+        socket.send(JSON.stringify({ 
+          type: 'error', 
+          message: 'Failed to process message' 
+        }));
+      }
+    };
+
+    socket.onclose = () => {
+      console.log('Client disconnected');
+      if (openAISocket) {
+        openAISocket.close();
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      if (openAISocket) {
+        openAISocket.close();
+      }
+    };
+
+    return response;
+  } catch (error) {
+    console.error('Error in realtime-chat function:', error);
+    return new Response(`Error: ${error.message}`, { 
+      status: 500, 
+      headers: corsHeaders 
+    });
+  }
+});
+
+function calculateCost(usage: any, model: string): number {
+  // Cost calculation based on current OpenAI pricing
+  const costs: Record<string, { input: number; output: number }> = {
+    'gpt-4o-mini-realtime': { input: 0.000000150, output: 0.000000600 },
+    'gpt-4o-realtime': { input: 0.000005000, output: 0.000020000 }
+  };
+  
+  const modelCost = costs[model] || costs['gpt-4o-mini-realtime'];
+  const inputCost = (usage.input_tokens || 0) * modelCost.input;
+  const outputCost = (usage.output_tokens || 0) * modelCost.output;
+  
+  return inputCost + outputCost;
+}

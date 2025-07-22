@@ -14,24 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      ai_usage_logs: {
+      ai_model_costs: {
         Row: {
+          audio_cost_per_minute: number | null
           created_at: string
           id: string
+          input_cost_per_token: number | null
+          model_name: string
+          output_cost_per_token: number | null
+          updated_at: string
+        }
+        Insert: {
+          audio_cost_per_minute?: number | null
+          created_at?: string
+          id?: string
+          input_cost_per_token?: number | null
+          model_name: string
+          output_cost_per_token?: number | null
+          updated_at?: string
+        }
+        Update: {
+          audio_cost_per_minute?: number | null
+          created_at?: string
+          id?: string
+          input_cost_per_token?: number | null
+          model_name?: string
+          output_cost_per_token?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_usage_logs: {
+        Row: {
+          audio_duration_seconds: number | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          model_used: string | null
           request_type: string
           tokens_used: number | null
           user_id: string
         }
         Insert: {
+          audio_duration_seconds?: number | null
           created_at?: string
+          estimated_cost?: number | null
           id?: string
+          model_used?: string | null
           request_type: string
           tokens_used?: number | null
           user_id: string
         }
         Update: {
+          audio_duration_seconds?: number | null
           created_at?: string
+          estimated_cost?: number | null
           id?: string
+          model_used?: string | null
           request_type?: string
           tokens_used?: number | null
           user_id?: string
@@ -115,7 +154,12 @@ export type Database = {
           id: string
           is_paid_user: boolean | null
           monthly_ai_requests: number | null
+          speech_model: string | null
+          transcription_model: string | null
+          tts_model: string | null
+          tts_voice: string | null
           updated_at: string
+          use_own_api_key: boolean | null
           user_id: string
         }
         Insert: {
@@ -125,7 +169,12 @@ export type Database = {
           id?: string
           is_paid_user?: boolean | null
           monthly_ai_requests?: number | null
+          speech_model?: string | null
+          transcription_model?: string | null
+          tts_model?: string | null
+          tts_voice?: string | null
           updated_at?: string
+          use_own_api_key?: boolean | null
           user_id: string
         }
         Update: {
@@ -135,7 +184,12 @@ export type Database = {
           id?: string
           is_paid_user?: boolean | null
           monthly_ai_requests?: number | null
+          speech_model?: string | null
+          transcription_model?: string | null
+          tts_model?: string | null
+          tts_voice?: string | null
           updated_at?: string
+          use_own_api_key?: boolean | null
           user_id?: string
         }
         Relationships: []
