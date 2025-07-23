@@ -48,7 +48,7 @@ const Settings = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice')
+          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key')
           .eq('user_id', user.id)
           .single();
 
@@ -58,6 +58,11 @@ const Settings = () => {
           setTranscriptionModel(profile.transcription_model || 'whisper-1');
           setTtsModel(profile.tts_model || 'tts-1');
           setTtsVoice(profile.tts_voice || 'alloy');
+          
+          // Load API key from database if available
+          if (profile.openai_api_key) {
+            setOpenAiKey(profile.openai_api_key);
+          }
         }
       }
     };
@@ -84,7 +89,8 @@ const Settings = () => {
             speech_model: speechModel,
             transcription_model: transcriptionModel,
             tts_model: ttsModel,
-            tts_voice: ttsVoice
+            tts_voice: ttsVoice,
+            openai_api_key: useOwnKey ? openAiKey : null
           })
           .eq('user_id', user.id);
 

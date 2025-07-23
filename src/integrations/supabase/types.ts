@@ -178,6 +178,7 @@ export type Database = {
           id: string
           is_paid_user: boolean | null
           monthly_ai_requests: number | null
+          openai_api_key: string | null
           speech_model: string | null
           transcription_model: string | null
           tts_model: string | null
@@ -193,6 +194,7 @@ export type Database = {
           id?: string
           is_paid_user?: boolean | null
           monthly_ai_requests?: number | null
+          openai_api_key?: string | null
           speech_model?: string | null
           transcription_model?: string | null
           tts_model?: string | null
@@ -208,6 +210,7 @@ export type Database = {
           id?: string
           is_paid_user?: boolean | null
           monthly_ai_requests?: number | null
+          openai_api_key?: string | null
           speech_model?: string | null
           transcription_model?: string | null
           tts_model?: string | null
