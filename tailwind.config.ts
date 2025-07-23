@@ -63,9 +63,11 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				ceramic: {
+					light: 'hsl(var(--ceramic-light))',
 					base: 'hsl(var(--ceramic-base))',
-					plate: 'hsl(var(--ceramic-plate))',
-					rim: 'hsl(var(--ceramic-rim))'
+					warm: 'hsl(var(--ceramic-warm))',
+					shadow: 'hsl(var(--ceramic-shadow))',
+					deep: 'hsl(var(--ceramic-deep))'
 				},
 				progress: {
 					active: 'hsl(var(--progress-active))',
