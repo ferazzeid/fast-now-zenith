@@ -108,9 +108,11 @@ const AiChat = () => {
         setMessages(prev => [...prev, aiMessage]);
         conversationHistoryRef.current.push({ role: 'assistant', content: data.response });
 
-        // Optional: Convert to speech if audio is enabled
+        // Start voice response simultaneously (don't wait for it)
         if (audioEnabled) {
-          await playTextAsAudio(data.response);
+          playTextAsAudio(data.response).catch(error => {
+            console.error('Voice response failed:', error);
+          });
         }
       }
     } catch (error) {
