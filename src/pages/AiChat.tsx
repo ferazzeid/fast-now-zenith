@@ -300,9 +300,42 @@ export default function AiChat() {
 
       ws.addEventListener('message', async (event) => {
         const data = JSON.parse(event.data);
-        console.log('Received message:', data.type);
+        console.log('Received message:', data.type, data);
         
-        if (data.type === 'response.audio.delta') {
+        if (data.type === 'session.created') {
+          console.log('Session created, sending configuration...');
+          // Configure session for voice interaction
+          ws.send(JSON.stringify({
+            type: 'session.update',
+            session: {
+              modalities: ['text', 'audio'],
+              instructions: 'You are a helpful fasting companion AI assistant. You help users with their intermittent fasting journey by providing motivation, answering questions about fasting, and offering supportive guidance. Be encouraging, knowledgeable about fasting science, and personally supportive. Keep responses concise but warm.',
+              voice: 'alloy',
+              input_audio_format: 'pcm16',
+              output_audio_format: 'pcm16',
+              input_audio_transcription: {
+                model: 'whisper-1'
+              },
+              turn_detection: {
+                type: 'server_vad',
+                threshold: 0.5,
+                prefix_padding_ms: 300,
+                silence_duration_ms: 1000
+              },
+              tools: [],
+              tool_choice: 'auto',
+              temperature: 0.8,
+              max_response_output_tokens: 'inf'
+            }
+          }));
+        } else if (data.type === 'session.updated') {
+          console.log('Session configured successfully');
+        } else if (data.type === 'input_audio_buffer.speech_started') {
+          console.log('Speech started detected');
+        } else if (data.type === 'input_audio_buffer.speech_stopped') {
+          console.log('Speech stopped, generating response...');
+          // Don't manually send response.create - server VAD will handle this
+        } else if (data.type === 'response.audio.delta') {
           // Play audio chunk
           const binaryString = atob(data.delta);
           const bytes = new Uint8Array(binaryString.length);
@@ -326,10 +359,15 @@ export default function AiChat() {
             setMessages(prev => [...prev, aiMessage]);
             currentTranscriptRef.current = '';
           }
+        } else if (data.type === 'response.created') {
+          console.log('AI response started');
+        } else if (data.type === 'response.done') {
+          console.log('AI response completed');
         } else if (data.type === 'error') {
+          console.error('WebSocket error:', data);
           toast({
             title: "Error",
-            description: data.message,
+            description: data.message || "An error occurred",
             variant: "destructive"
           });
         }
@@ -426,8 +464,8 @@ export default function AiChat() {
         setIsListening(true);
         
         toast({
-          title: "Voice input started",
-          description: "Speak now... The AI will respond when you stop talking.",
+          title: "Voice input active",
+          description: "Speak naturally. The AI will automatically respond when you finish speaking.",
         });
       } catch (error) {
         console.error('Error starting voice input:', error);
@@ -445,8 +483,8 @@ export default function AiChat() {
       setIsListening(false);
       
       toast({
-        title: "Voice input ended",
-        description: "Processing your message...",
+        title: "Voice input stopped",
+        description: "Microphone turned off",
       });
     }
   };
