@@ -37,14 +37,14 @@ All colors MUST be HSL.
     --input: 35 12% 92%;
     --ring: 140 35% 45%;
 
-    /* Custom ceramic theme colors */
-    --ceramic-base: 35 20% 96%;
-    --ceramic-plate: 35 25% 94%;
-    --ceramic-rim: 35 15% 88%;
-    --progress-active: 140 35% 45%;
-    --progress-bg: 35 10% 85%;
-    --warm-text: 20 15% 35%;
-    --soft-shadow: 35 10% 75%;
+    /* Custom ceramic theme colors - Original clean design */
+    --ceramic-base: 0 0% 98%;        /* Clean white base */
+    --ceramic-plate: 0 0% 96%;       /* Slightly off-white plate surface */
+    --ceramic-rim: 0 0% 88%;         /* Light gray rim */
+    --progress-active: 140 35% 45%;  /* Green progress */
+    --progress-bg: 0 0% 85%;         /* Light gray progress background */
+    --warm-text: 0 0% 20%;           /* Dark text */
+    --soft-shadow: 0 0% 75%;         /* Soft shadows */
 
     --radius: 0.5rem;
 
@@ -94,14 +94,14 @@ All colors MUST be HSL.
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
     
-    /* Custom ceramic theme colors for dark mode */
-    --ceramic-base: 210 15% 25%;
-    --ceramic-plate: 215 20% 30%;
-    --ceramic-rim: 220 25% 35%;
-    --progress-active: 140 35% 55%;
-    --progress-bg: 215 15% 40%;
-    --warm-text: 210 25% 85%;
-    --soft-shadow: 220 15% 20%;
+    /* Custom ceramic theme colors for dark mode - Original design adapted */
+    --ceramic-base: 0 0% 18%;        /* Dark ceramic base */
+    --ceramic-plate: 0 0% 22%;       /* Slightly lighter plate surface */
+    --ceramic-rim: 0 0% 30%;         /* Visible dark rim */
+    --progress-active: 140 35% 55%;  /* Brighter green for dark mode */
+    --progress-bg: 0 0% 35%;         /* Dark gray progress background */
+    --warm-text: 0 0% 85%;           /* Light text for dark mode */
+    --soft-shadow: 0 0% 15%;         /* Dark shadows */
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

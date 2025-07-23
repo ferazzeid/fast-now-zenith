@@ -24,119 +24,98 @@ export const CeramicTimer = ({
 
   return (
     <div className="relative">
-      {/* Ceramic Plate Base - Outer Rim */}
+      {/* Ceramic Plate Base - Original Design */}
       <div 
-        className="relative w-80 h-80 rounded-full"
+        className="relative w-80 h-80 rounded-full shadow-2xl"
         style={{
-          background: `
-            radial-gradient(circle at 30% 30%, #ffffff, #f8f5ed 40%, #e8ddc7 70%, #d4c5a8 100%),
-            linear-gradient(135deg, #f5f2ea 0%, #e8ddc7 50%, #d4c5a8 100%)
-          `,
+          background: `radial-gradient(circle at 30% 30%, 
+            hsl(var(--ceramic-plate)), 
+            hsl(var(--ceramic-base)) 60%, 
+            hsl(var(--ceramic-rim)) 100%)`,
           boxShadow: `
-            0 20px 40px rgba(0,0,0,0.15),
-            0 8px 16px rgba(0,0,0,0.1),
-            inset 0 2px 4px rgba(255,255,255,0.8),
-            inset 0 -2px 8px rgba(0,0,0,0.1)
-          `,
-          border: '3px solid #c4b59a'
+            inset 0 8px 16px rgba(0,0,0,0.1),
+            inset 0 -8px 16px rgba(255,255,255,0.3),
+            0 16px 32px rgba(0,0,0,0.15),
+            0 0 0 3px hsl(var(--ceramic-rim))
+          `
         }}
       >
-        {/* Plate Rim - Raised Edge */}
+        {/* Inner Plate Depression - Original Design */}
         <div 
-          className="absolute inset-2 rounded-full"
+          className="absolute inset-4 rounded-full relative overflow-hidden"
           style={{
-            background: `
-              linear-gradient(135deg, #f8f5ed 0%, #e8ddc7 50%, #ddd0b8 100%),
-              radial-gradient(circle at 40% 40%, #ffffff, #f5f2ea 60%, #e8ddc7 100%)
-            `,
+            background: `radial-gradient(circle at 40% 40%, 
+              hsl(var(--ceramic-base)), 
+              hsl(var(--ceramic-plate)) 70%)`,
             boxShadow: `
-              inset 0 3px 6px rgba(255,255,255,0.9),
-              inset 0 -3px 6px rgba(0,0,0,0.15),
-              0 2px 4px rgba(0,0,0,0.1)
+              inset 0 4px 12px rgba(0,0,0,0.15),
+              inset 0 -2px 8px rgba(255,255,255,0.2)
             `
           }}
         >
-          {/* Inner Plate Depression - The actual eating surface */}
-          <div 
-            className="absolute inset-6 rounded-full relative overflow-hidden"
-            style={{
-              background: `
-                radial-gradient(circle at 35% 35%, #ffffff, #f8f5ed 30%, #f0ead6 60%, #e8ddc7 100%),
-                linear-gradient(145deg, #f5f2ea, #ebe6d7)
-              `,
-              boxShadow: `
-                inset 0 8px 20px rgba(0,0,0,0.2),
-                inset 0 4px 12px rgba(0,0,0,0.1),
-                inset 0 -2px 8px rgba(255,255,255,0.4),
-                0 1px 3px rgba(0,0,0,0.1)
-              `,
-              zIndex: 2
-            }}
+          {/* Motivator Slideshow - Behind ceramic textures */}
+          {showSlideshow && isActive && (
+            <MotivatorSlideshow isActive={showSlideshow && isActive} />
+          )}
+          
+          {/* Progress Ring */}
+          <svg
+            className="absolute inset-0 w-full h-full transform -rotate-90"
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', zIndex: 5 }}
           >
-            {/* Motivator Slideshow - Behind ceramic textures */}
-            {showSlideshow && isActive && (
-              <MotivatorSlideshow isActive={showSlideshow && isActive} />
-            )}
+            {/* Background Circle */}
+            <circle
+              stroke="hsl(var(--progress-bg))"
+              fill="transparent"
+              strokeWidth={strokeWidth}
+              r={normalizedRadius}
+              cx="50%"
+              cy="50%"
+              opacity={0.3}
+            />
             
-            {/* Progress Ring */}
-            <svg
-              className="absolute inset-0 w-full h-full transform -rotate-90"
-              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', zIndex: 5 }}
-            >
-              {/* Background Circle */}
-              <circle
-                stroke="#c4b59a"
-                fill="transparent"
-                strokeWidth={strokeWidth}
-                r={normalizedRadius}
-                cx="50%"
-                cy="50%"
-                opacity={0.3}
-              />
-              
-              {/* Progress Circle */}
-              <circle
-                stroke={isEatingWindow ? "#daa520" : "#22c55e"}
-                fill="transparent"
-                strokeWidth={strokeWidth}
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                r={normalizedRadius}
-                cx="50%"
-                cy="50%"
-                className={`transition-all duration-1000 ease-out ${
-                  isActive ? 'animate-pulse' : ''
-                }`}
-                style={{
-                  filter: `drop-shadow(0 0 8px ${
-                    isEatingWindow ? 'rgba(218, 165, 32, 0.5)' : 'rgba(34, 197, 94, 0.5)'
-                  })`
-                }}
-              />
-            </svg>
+            {/* Progress Circle */}
+            <circle
+              stroke={isEatingWindow ? "hsl(35 65% 55%)" : "hsl(var(--progress-active))"}
+              fill="transparent"
+              strokeWidth={strokeWidth}
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              r={normalizedRadius}
+              cx="50%"
+              cy="50%"
+              className={`transition-all duration-1000 ease-out ${
+                isActive ? 'animate-pulse' : ''
+              }`}
+              style={{
+                filter: `drop-shadow(0 0 8px ${
+                  isEatingWindow ? 'rgba(218, 165, 32, 0.5)' : 'rgba(34, 197, 94, 0.5)'
+                })`
+              }}
+            />
+          </svg>
 
-            {/* Center Time Display */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
-              <div className="text-center space-y-2">
-                <div 
-                  className="text-4xl font-bold tracking-wider"
-                  style={{ 
-                    color: '#3e332a',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {displayTime}
-                </div>
-                
-                <div className="text-sm font-medium text-muted-foreground">
-                  {isEatingWindow ? '🍽️ Eating' : '✨ Fasting'}
-                </div>
-                
-                {isActive && (
-                  <div className="w-2 h-2 bg-progress-active rounded-full animate-pulse mx-auto" />
-                )}
+          {/* Center Time Display */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
+            <div className="text-center space-y-2">
+              <div 
+                className="text-4xl font-bold tracking-wider"
+                style={{ 
+                  color: 'hsl(var(--warm-text))',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              >
+                {displayTime}
               </div>
+              
+              <div className="text-sm font-medium text-muted-foreground">
+                {isEatingWindow ? '🍽️ Eating' : '✨ Fasting'}
+              </div>
+              
+              {isActive && (
+                <div className="w-2 h-2 bg-progress-active rounded-full animate-pulse mx-auto" />
+              )}
             </div>
           </div>
         </div>
