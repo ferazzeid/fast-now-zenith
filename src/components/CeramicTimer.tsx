@@ -3,13 +3,17 @@ interface CeramicTimerProps {
   displayTime: string;
   isActive: boolean;
   isEatingWindow?: boolean;
+  showSlideshow?: boolean;
 }
+
+import { MotivatorSlideshow } from './MotivatorSlideshow';
 
 export const CeramicTimer = ({ 
   progress, 
   displayTime, 
   isActive, 
-  isEatingWindow = false 
+  isEatingWindow = false,
+  showSlideshow = false
 }: CeramicTimerProps) => {
   const radius = 120;
   const strokeWidth = 8;
@@ -38,7 +42,7 @@ export const CeramicTimer = ({
       >
         {/* Inner Plate Depression */}
         <div 
-          className="absolute inset-4 rounded-full"
+          className="absolute inset-4 rounded-full relative overflow-hidden"
           style={{
             background: `radial-gradient(circle at 40% 40%, 
               hsl(var(--ceramic-base)), 
@@ -49,6 +53,9 @@ export const CeramicTimer = ({
             `
           }}
         >
+          {/* Motivator Slideshow */}
+          <MotivatorSlideshow isActive={showSlideshow && isActive} />
+          
           {/* Progress Ring */}
           <svg
             className="absolute inset-0 w-full h-full transform -rotate-90"

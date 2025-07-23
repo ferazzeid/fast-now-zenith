@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders } from 'lucide-react';
+import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus } from 'lucide-react';
+import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +44,21 @@ interface AISettings {
   }>;
 }
 
+interface AIBehaviorSettings {
+  weak_moment_keywords: string[];
+  motivator_suggestion_frequency: number;
+  coaching_encouragement_level: number;
+  auto_motivator_triggers: boolean;
+  slideshow_transition_time: number;
+  admin_motivator_templates: Array<{
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    imageUrl?: string;
+  }>;
+}
+
 const AdminOverview = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [sharedApiKey, setSharedApiKey] = useState('');
@@ -68,6 +84,14 @@ const AdminOverview = () => {
     include_user_context: true,
     response_style: 'encouraging',
     prompt_templates: []
+  });
+  const [aiBehaviorSettings, setAiBehaviorSettings] = useState<AIBehaviorSettings>({
+    weak_moment_keywords: [],
+    motivator_suggestion_frequency: 3,
+    coaching_encouragement_level: 7,
+    auto_motivator_triggers: true,
+    slideshow_transition_time: 15,
+    admin_motivator_templates: []
   });
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -143,7 +167,13 @@ const AdminOverview = () => {
           'ai_max_tokens', 
           'ai_include_user_context', 
           'ai_response_style',
-          'ai_prompt_templates'
+          'ai_prompt_templates',
+          'ai_weak_moment_keywords',
+          'ai_motivator_suggestion_frequency',
+          'ai_coaching_encouragement_level',
+          'ai_auto_motivator_triggers',
+          'ai_slideshow_transition_time',
+          'ai_admin_motivator_templates'
         ]);
 
       if (aiData) {
@@ -160,6 +190,15 @@ const AdminOverview = () => {
           include_user_context: aiMap.ai_include_user_context === 'true',
           response_style: aiMap.ai_response_style || 'encouraging',
           prompt_templates: aiMap.ai_prompt_templates ? JSON.parse(aiMap.ai_prompt_templates) : []
+        });
+
+        setAiBehaviorSettings({
+          weak_moment_keywords: aiMap.ai_weak_moment_keywords ? JSON.parse(aiMap.ai_weak_moment_keywords) : [],
+          motivator_suggestion_frequency: parseInt(aiMap.ai_motivator_suggestion_frequency || '3'),
+          coaching_encouragement_level: parseInt(aiMap.ai_coaching_encouragement_level || '7'),
+          auto_motivator_triggers: aiMap.ai_auto_motivator_triggers === 'true',
+          slideshow_transition_time: parseInt(aiMap.ai_slideshow_transition_time || '15'),
+          admin_motivator_templates: aiMap.ai_admin_motivator_templates ? JSON.parse(aiMap.ai_admin_motivator_templates) : []
         });
       }
     } catch (error) {
@@ -309,6 +348,37 @@ const AdminOverview = () => {
       toast({
         title: "Error",
         description: "Failed to save AI settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveAiBehaviorSettings = async () => {
+    try {
+      const updates = [
+        { key: 'ai_weak_moment_keywords', value: JSON.stringify(aiBehaviorSettings.weak_moment_keywords) },
+        { key: 'ai_motivator_suggestion_frequency', value: aiBehaviorSettings.motivator_suggestion_frequency.toString() },
+        { key: 'ai_coaching_encouragement_level', value: aiBehaviorSettings.coaching_encouragement_level.toString() },
+        { key: 'ai_auto_motivator_triggers', value: aiBehaviorSettings.auto_motivator_triggers.toString() },
+        { key: 'ai_slideshow_transition_time', value: aiBehaviorSettings.slideshow_transition_time.toString() },
+        { key: 'ai_admin_motivator_templates', value: JSON.stringify(aiBehaviorSettings.admin_motivator_templates) }
+      ];
+
+      for (const update of updates) {
+        await supabase
+          .from('shared_settings')
+          .update({ setting_value: update.value })
+          .eq('setting_key', update.key);
+      }
+
+      toast({
+        title: "Success",
+        description: "AI behavior settings saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save AI behavior settings",
         variant: "destructive",
       });
     }
@@ -468,6 +538,111 @@ const AdminOverview = () => {
                   Paid users (150 requests/month), Admin (unlimited).
                 </p>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* AI Behavior Controls */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <Sliders className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">AI Behavior Controls</h3>
+            </div>
+
+            {/* Weak Moment Detection */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Weak Moment Keywords</Label>
+              <Textarea
+                placeholder="Enter keywords separated by commas (e.g., hungry, craving, struggling)"
+                value={aiBehaviorSettings.weak_moment_keywords.join(', ')}
+                onChange={(e) => setAiBehaviorSettings(prev => ({ 
+                  ...prev, 
+                  weak_moment_keywords: e.target.value.split(',').map(k => k.trim()).filter(k => k)
+                }))}
+                className="bg-ceramic-base border-ceramic-rim"
+              />
+              <div className="text-xs text-muted-foreground">
+                AI will detect these words in conversations to trigger motivational support
+              </div>
+            </div>
+
+            {/* Motivator Suggestion Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label className="text-warm-text">
+                  Motivator Suggestion Frequency: {aiBehaviorSettings.motivator_suggestion_frequency}
+                </Label>
+                <Slider
+                  value={[aiBehaviorSettings.motivator_suggestion_frequency]}
+                  onValueChange={([value]) => setAiBehaviorSettings(prev => ({ ...prev, motivator_suggestion_frequency: value }))}
+                  max={10}
+                  min={1}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="text-xs text-muted-foreground">
+                  How often AI suggests new motivators (1=rarely, 10=frequently)
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-warm-text">
+                  Coaching Encouragement Level: {aiBehaviorSettings.coaching_encouragement_level}
+                </Label>
+                <Slider
+                  value={[aiBehaviorSettings.coaching_encouragement_level]}
+                  onValueChange={([value]) => setAiBehaviorSettings(prev => ({ ...prev, coaching_encouragement_level: value }))}
+                  max={10}
+                  min={1}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="text-xs text-muted-foreground">
+                  Balance between encouragement and education (1=educational, 10=encouraging)
+                </div>
+              </div>
+            </div>
+
+            {/* Timer & Motivator Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="auto-triggers"
+                  checked={aiBehaviorSettings.auto_motivator_triggers}
+                  onCheckedChange={(checked) => setAiBehaviorSettings(prev => ({ ...prev, auto_motivator_triggers: checked }))}
+                />
+                <Label htmlFor="auto-triggers" className="text-warm-text">
+                  Auto-trigger motivators during fasting
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-warm-text">Slideshow Transition (seconds)</Label>
+                <Input
+                  type="number"
+                  min="5"
+                  max="60"
+                  value={aiBehaviorSettings.slideshow_transition_time}
+                  onChange={(e) => setAiBehaviorSettings(prev => ({ ...prev, slideshow_transition_time: parseInt(e.target.value) || 15 }))}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={saveAiBehaviorSettings}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Sliders className="w-4 h-4 mr-2" />
+              Save Behavior Settings
+            </Button>
+
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                These controls let you fine-tune how the AI detects user needs and provides motivational support.
+                All changes take effect immediately for new conversations.
+              </p>
             </div>
           </div>
         </Card>
@@ -686,6 +861,32 @@ const AdminOverview = () => {
             >
               Save PWA Settings
             </Button>
+          </div>
+        </Card>
+
+        {/* Admin Motivator Creation */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Plus className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Admin Motivator Creation</h3>
+            </div>
+            
+            <AdminMotivatorCreation
+              onTemplateCreated={(template) => {
+                setAiBehaviorSettings(prev => ({
+                  ...prev,
+                  admin_motivator_templates: [...prev.admin_motivator_templates, template]
+                }));
+              }}
+              existingTemplates={aiBehaviorSettings.admin_motivator_templates}
+            />
+            
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                Create motivator templates using voice input. These templates become available to all users as suggested motivators.
+              </p>
+            </div>
           </div>
         </Card>
 

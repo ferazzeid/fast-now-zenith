@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { useToast } from '@/hooks/use-toast';
+import { useFastingSession } from '@/hooks/useFastingSession';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +20,6 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Timer = () => {
-  const [isRunning, setIsRunning] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(16 * 60 * 60); // 16 hours default
   const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('intermittent');
@@ -28,59 +28,70 @@ const Timer = () => {
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
   const { toast } = useToast();
+  const { currentSession, startFastingSession, endFastingSession, cancelFastingSession, loadActiveSession } = useFastingSession();
+
+  const isRunning = !!currentSession;
+
+  useEffect(() => {
+    loadActiveSession();
+  }, [loadActiveSession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isRunning) {
+    if (isRunning && currentSession) {
       interval = setInterval(() => {
-        setTimeElapsed(prev => {
-          const newTime = prev + 1;
-          
-          // Check if we should switch to eating window for intermittent fasting
-          if (fastType === 'intermittent' && newTime >= fastDuration && !isInEatingWindow) {
-            setIsInEatingWindow(true);
-            toast({
-              title: "🍽️ Eating Window Started!",
-              description: "Time to break your fast. Enjoy your meal!",
-            });
-            return 0; // Reset timer for eating window
-          }
-          
-          // Check if eating window is over
-          if (fastType === 'intermittent' && isInEatingWindow && newTime >= eatingWindow) {
-            setIsInEatingWindow(false);
-            toast({
-              title: "✨ Fast Resumed!",
-              description: "Your eating window is over. Fast continues!",
-            });
-            return 0; // Reset timer for next fast cycle
-          }
-          
-          return newTime;
-        });
+        const startTime = new Date(currentSession.start_time);
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        
+        setTimeElapsed(elapsed);
+        
+        // Check if we should switch to eating window for intermittent fasting
+        if (fastType === 'intermittent' && elapsed >= fastDuration && !isInEatingWindow) {
+          setIsInEatingWindow(true);
+          toast({
+            title: "🍽️ Eating Window Started!",
+            description: "Time to break your fast. Enjoy your meal!",
+          });
+        }
+        
+        // Check if eating window is over
+        if (fastType === 'intermittent' && isInEatingWindow && elapsed >= (fastDuration + eatingWindow)) {
+          setIsInEatingWindow(false);
+          toast({
+            title: "✨ Fast Resumed!",
+            description: "Your eating window is over. Fast continues!",
+          });
+        }
       }, 1000);
     }
 
     return () => clearInterval(interval);
-  }, [isRunning, fastDuration, eatingWindow, fastType, isInEatingWindow, toast]);
+  }, [isRunning, currentSession, fastDuration, eatingWindow, fastType, isInEatingWindow, toast]);
 
-  const handleStart = () => {
-    setIsRunning(true);
-    toast({
-      title: "🏃‍♀️ Fast Started!",
-      description: "Your fasting journey begins now. Stay strong!",
-    });
+  const handleStart = async () => {
+    const session = await startFastingSession(fastDuration);
+    if (session) {
+      setTimeElapsed(0);
+      setIsInEatingWindow(false);
+      toast({
+        title: "🏃‍♀️ Fast Started!",
+        description: "Your fasting journey begins now. Stay strong!",
+      });
+    }
   };
 
-  const handleStop = () => {
-    setIsRunning(false);
-    setTimeElapsed(0);
-    setIsInEatingWindow(false);
-    toast({
-      title: "🛑 Fast Stopped",
-      description: "Fast ended. Great effort on your journey!",
-    });
+  const handleStop = async () => {
+    if (currentSession) {
+      await endFastingSession();
+      setTimeElapsed(0);
+      setIsInEatingWindow(false);
+      toast({
+        title: "🛑 Fast Stopped",
+        description: "Fast ended. Great effort on your journey!",
+      });
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -140,6 +151,7 @@ const Timer = () => {
             displayTime={getDisplayTime()}
             isActive={isRunning}
             isEatingWindow={isInEatingWindow}
+            showSlideshow={true}
           />
           {/* Discrete Count Direction Toggle */}
           <div className="absolute top-0 right-0 flex items-center space-x-2 bg-ceramic-plate/80 backdrop-blur-sm px-3 py-1 rounded-full border border-ceramic-rim/50">
@@ -226,13 +238,15 @@ const Timer = () => {
           currentType={fastType}
           currentDuration={fastDuration}
           currentEatingWindow={eatingWindow}
-            onSelect={(type, duration, eating) => {
+            onSelect={async (type, duration, eating) => {
               setFastType(type);
               setFastDuration(duration);
               setEatingWindow(eating);
               setShowFastSelector(false);
               // Reset timer when changing fast type
-              setIsRunning(false);
+              if (currentSession) {
+                await cancelFastingSession();
+              }
               setTimeElapsed(0);
               setIsInEatingWindow(false);
             }}
