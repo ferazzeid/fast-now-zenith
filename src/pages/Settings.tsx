@@ -82,7 +82,12 @@ const Settings = () => {
 
       // Save user preferences to database
       if (user) {
-        const { error } = await supabase
+        console.log('Saving settings for user:', user.id);
+        console.log('API key length:', openAiKey?.length || 0);
+        console.log('Use own key:', useOwnKey);
+        console.log('Will save openai_api_key as:', useOwnKey ? openAiKey : null);
+        
+        const { data, error } = await supabase
           .from('profiles')
           .update({
             use_own_api_key: useOwnKey,
@@ -94,8 +99,14 @@ const Settings = () => {
           })
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        console.log('Update result:', { data, error });
 
+        if (error) {
+          console.error('Settings save error:', error);
+          throw error;
+        }
+
+        console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",
           description: useOwnKey ? "Using your own API key with selected models" : "Using shared service with selected models",
