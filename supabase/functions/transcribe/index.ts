@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
 };
 
 serve(async (req) => {
@@ -21,45 +21,11 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
-    // Get user's API key preference
-    const authHeader = req.headers.get('Authorization');
-    let OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    console.log('Default API key available:', !!OPENAI_API_KEY);
+    // Get API key from request headers (client-side localStorage)
+    const clientApiKey = req.headers.get('X-OpenAI-API-Key');
+    console.log('Client API key provided:', !!clientApiKey);
     
-    if (authHeader) {
-      console.log('Authorization header found, checking user preferences');
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        { global: { headers: { Authorization: authHeader } } }
-      );
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('User lookup result:', { hasUser: !!user, userId: user?.id, userError });
-      
-      if (user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, openai_api_key')
-          .eq('user_id', user.id)
-          .single();
-
-        console.log('Profile query result:', { 
-          hasProfile: !!profile, 
-          useOwnKey: profile?.use_own_api_key,
-          hasApiKey: !!profile?.openai_api_key,
-          apiKeyLength: profile?.openai_api_key?.length || 0,
-          profileError 
-        });
-
-        if (profile?.use_own_api_key && profile?.openai_api_key) {
-          OPENAI_API_KEY = profile.openai_api_key;
-          console.log('Using user API key, length:', OPENAI_API_KEY.length);
-        } else {
-          console.log('Using default API key - user conditions not met');
-        }
-      }
-    }
+    const OPENAI_API_KEY = clientApiKey;
 
     if (!OPENAI_API_KEY) {
       console.error('No OpenAI API key available');

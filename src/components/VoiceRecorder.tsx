@@ -73,12 +73,22 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
 
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
+      // Get API key from localStorage
+      const apiKey = localStorage.getItem('openai_api_key');
+      
+      if (!apiKey) {
+        throw new Error('Please set your OpenAI API key in Settings first');
+      }
+
       // Convert blob to base64
       const arrayBuffer = await audioBlob.arrayBuffer();
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
       const response = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio }
+        body: { audio: base64Audio },
+        headers: {
+          'X-OpenAI-API-Key': apiKey
+        }
       });
 
       if (!response.data) {
