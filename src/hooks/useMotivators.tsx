@@ -12,12 +12,14 @@ export interface Motivator {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  imageUrl?: string;
 }
 
 export interface CreateMotivatorData {
   title: string;
   content: string;
   category: string;
+  imageUrl?: string;
 }
 
 export const useMotivators = () => {
@@ -32,13 +34,20 @@ export const useMotivators = () => {
     try {
       const { data, error } = await supabase
         .from('motivators')
-        .select('*')
+        .select('*, image_url')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMotivators(data || []);
+      
+      // Transform data to include imageUrl property
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        imageUrl: item.image_url
+      }));
+      
+      setMotivators(transformedData);
     } catch (error) {
       console.error('Error loading motivators:', error);
       toast({
@@ -62,6 +71,7 @@ export const useMotivators = () => {
           title: motivatorData.title,
           content: motivatorData.content,
           category: motivatorData.category,
+          image_url: motivatorData.imageUrl,
           is_active: true
         })
         .select()
