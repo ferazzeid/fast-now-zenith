@@ -25,12 +25,12 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorS
       setTimeout(() => {
         setCurrentIndex(prev => (prev + 1) % motivatorsWithImages.length);
         setIsVisible(true);
-      }, 500); // Fade out duration
+      }, 1000); // Fade out duration
       
     }, transitionTime * 1000);
 
-    // Initial show
-    setIsVisible(true);
+    // Initial show with delay to let plate render first
+    setTimeout(() => setIsVisible(true), 500);
 
     return () => clearInterval(interval);
   }, [isActive, motivatorsWithImages.length, transitionTime]);
@@ -42,30 +42,47 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorS
   const currentMotivator = motivatorsWithImages[currentIndex];
 
   return (
-    <div className="absolute inset-4 rounded-full overflow-hidden pointer-events-none">
+    <>
+      {/* Background Image Layer - Behind the ceramic plate textures */}
       <div 
-        className={`absolute inset-0 transition-opacity duration-500 ${
-          isVisible ? 'opacity-20' : 'opacity-0'
+        className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-1000 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{
-          backgroundImage: `url(${currentMotivator?.imageUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(1px) brightness(0.7)',
-        }}
-      />
-      
-      {/* Gradient overlay to ensure timer visibility */}
-      <div className="absolute inset-0 bg-gradient-to-b from-ceramic-plate/20 via-transparent to-ceramic-plate/20" />
-      
-      {/* Motivator text overlay */}
+        style={{ zIndex: 1 }}
+      >
+        <div 
+          className="absolute inset-0 animate-scale-in"
+          style={{
+            backgroundImage: `url(${currentMotivator?.imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(2px) brightness(0.4) saturate(1.2)',
+          }}
+        />
+        
+        {/* Ceramic overlay to maintain plate texture over image */}
+        <div 
+          className="absolute inset-0 mix-blend-multiply"
+          style={{
+            background: `radial-gradient(circle at 40% 40%, 
+              hsla(var(--ceramic-base), 0.8), 
+              hsla(var(--ceramic-plate), 0.6) 70%,
+              transparent 100%)`
+          }}
+        />
+      </div>
+
+      {/* Subtle motivator text hint at bottom of plate */}
       {isVisible && currentMotivator && (
-        <div className="absolute bottom-4 left-4 right-4 text-center">
-          <p className="text-xs text-warm-text/80 font-medium bg-ceramic-plate/60 backdrop-blur-sm rounded-full px-3 py-1">
+        <div 
+          className="absolute bottom-2 left-2 right-2 text-center transition-opacity duration-1000 animate-fade-in"
+          style={{ zIndex: 10 }}
+        >
+          <p className="text-xs text-warm-text/60 font-medium bg-ceramic-plate/40 backdrop-blur-sm rounded-full px-2 py-1 border border-ceramic-rim/20">
             {currentMotivator.title}
           </p>
         </div>
       )}
-    </div>
+    </>
   );
 };

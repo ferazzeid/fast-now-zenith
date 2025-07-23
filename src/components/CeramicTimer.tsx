@@ -50,16 +50,19 @@ export const CeramicTimer = ({
             boxShadow: `
               inset 0 4px 12px rgba(0,0,0,0.15),
               inset 0 -2px 8px rgba(255,255,255,0.2)
-            `
+            `,
+            zIndex: 2
           }}
         >
-          {/* Motivator Slideshow */}
-          <MotivatorSlideshow isActive={showSlideshow && isActive} />
+          {/* Motivator Slideshow - Behind ceramic textures */}
+          {showSlideshow && isActive && (
+            <MotivatorSlideshow isActive={showSlideshow && isActive} />
+          )}
           
           {/* Progress Ring */}
           <svg
             className="absolute inset-0 w-full h-full transform -rotate-90"
-            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', zIndex: 5 }}
           >
             {/* Background Circle */}
             <circle
@@ -95,7 +98,7 @@ export const CeramicTimer = ({
           </svg>
 
           {/* Center Time Display */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
             <div className="text-center space-y-2">
               <div 
                 className="text-4xl font-bold tracking-wider"
