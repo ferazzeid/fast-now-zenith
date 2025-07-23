@@ -12,6 +12,7 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversations, type Message } from '@/hooks/useConversations';
 import { useFastingContext } from '@/hooks/useFastingContext';
+import { useMotivators } from '@/hooks/useMotivators';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const AiChat = () => {
@@ -33,6 +34,7 @@ const AiChat = () => {
     loading: conversationsLoading 
   } = useConversations();
   const { context: fastingContext, buildContextString } = useFastingContext();
+  const { createMotivator } = useMotivators();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -133,6 +135,28 @@ const AiChat = () => {
       if (error) throw error;
 
       if (data?.response) {
+        // Handle function calls if present
+        if (data.function_calls) {
+          for (const functionCall of data.function_calls) {
+            if (functionCall.type === 'create_motivator') {
+              const motivatorData = functionCall.data;
+              await createMotivator({
+                title: motivatorData.title,
+                content: motivatorData.content,
+                category: motivatorData.category
+              });
+              
+              toast({
+                title: "✨ Motivator Created!",
+                description: `"${motivatorData.title}" has been added to your motivators.`,
+              });
+            } else if (functionCall.type === 'suggest_motivator_ideas') {
+              // Handle suggestions (could show in UI later)
+              console.log('Motivator suggestions:', functionCall.data.suggestions);
+            }
+          }
+        }
+
         const aiMessage: Message = {
           role: 'assistant',
           content: data.response,

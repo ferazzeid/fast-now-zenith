@@ -80,6 +80,64 @@ serve(async (req) => {
       }
     ];
 
+    // Define function tools for motivator management
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "create_motivator",
+          description: "Create a new motivator for the user's fasting journey",
+          parameters: {
+            type: "object",
+            properties: {
+              title: {
+                type: "string",
+                description: "A short, powerful title for the motivator"
+              },
+              content: {
+                type: "string", 
+                description: "The main motivational content or message"
+              },
+              category: {
+                type: "string",
+                enum: ["health", "appearance", "personal", "achievement", "relationship"],
+                description: "Category that best fits this motivator"
+              },
+              image_suggestion: {
+                type: "string",
+                description: "A specific suggestion for what image would make this motivator more powerful"
+              }
+            },
+            required: ["title", "content", "category"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "suggest_motivator_ideas",
+          description: "Suggest motivator ideas based on user's goals or conversation context",
+          parameters: {
+            type: "object",
+            properties: {
+              suggestions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    reason: { type: "string", description: "Why this motivator would be effective" },
+                    category: { type: "string" }
+                  }
+                }
+              }
+            },
+            required: ["suggestions"]
+          }
+        }
+      }
+    ];
+
     // Send to OpenAI Chat Completions API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -92,6 +150,8 @@ serve(async (req) => {
         messages: messages,
         max_tokens: maxTokens,
         temperature: temperature,
+        tools: tools,
+        tool_choice: "auto"
       }),
     });
 
@@ -104,9 +164,50 @@ serve(async (req) => {
     const result = await response.json();
     console.log('Chat completion result:', result.usage);
 
+    const choice = result.choices[0];
+    const message = choice.message;
+
+    // Handle function calls if present
+    if (message.tool_calls) {
+      const functionCalls = [];
+      
+      for (const toolCall of message.tool_calls) {
+        const functionName = toolCall.function.name;
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+        
+        if (functionName === 'create_motivator') {
+          // Handle motivator creation
+          functionCalls.push({
+            type: 'create_motivator',
+            data: functionArgs
+          });
+        } else if (functionName === 'suggest_motivator_ideas') {
+          // Handle motivator suggestions
+          functionCalls.push({
+            type: 'suggest_motivator_ideas',
+            data: functionArgs
+          });
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          response: message.content,
+          function_calls: functionCalls,
+          usage: result.usage 
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+
     return new Response(
       JSON.stringify({ 
-        response: result.choices[0].message.content,
+        response: message.content,
         usage: result.usage 
       }),
       { 
