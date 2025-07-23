@@ -24,19 +24,17 @@ export const CeramicTimer = ({
 
   return (
     <div className="relative">
-      {/* Ceramic Plate - Outer Rim */}
+      {/* DEBUG: Ceramic Plate - Outer Rim with OBVIOUS styling */}
       <div 
-        className="relative w-80 h-80 rounded-full"
+        className="relative w-80 h-80 rounded-full border-8 border-red-500"
         style={{
           background: `
-            radial-gradient(ellipse at 30% 20%, rgba(255,255,255,1) 0%, rgba(250,250,250,0.95) 20%, rgba(245,245,245,0.9) 50%, rgba(240,240,240,0.85) 100%)
+            radial-gradient(circle, #ff0000 0%, #00ff00 50%, #0000ff 100%)
           `,
           boxShadow: `
-            0 12px 40px rgba(0,0,0,0.15),
-            0 4px 12px rgba(0,0,0,0.1),
-            inset 0 3px 8px rgba(255,255,255,0.9),
-            inset 0 -2px 6px rgba(0,0,0,0.08),
-            inset 0 0 0 1px rgba(255,255,255,0.3)
+            0 20px 60px rgba(255,0,0,0.8),
+            0 10px 20px rgba(0,255,0,0.6),
+            inset 0 10px 20px rgba(0,0,255,0.4)
           `
         }}
       >
