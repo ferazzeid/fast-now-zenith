@@ -32,16 +32,24 @@ serve(async (req) => {
       );
 
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('User found:', !!user, user?.id);
       
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('use_own_api_key, openai_api_key')
           .eq('user_id', user.id)
           .single();
 
+        console.log('Profile query result:', { profile, profileError });
+        console.log('Profile use_own_api_key:', profile?.use_own_api_key);
+        console.log('Profile has openai_api_key:', !!profile?.openai_api_key);
+
         if (profile?.use_own_api_key && profile?.openai_api_key) {
           OPENAI_API_KEY = profile.openai_api_key;
+          console.log('Using user API key');
+        } else {
+          console.log('Not using user API key - conditions not met');
         }
       }
     }
