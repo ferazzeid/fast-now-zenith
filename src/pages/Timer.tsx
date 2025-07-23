@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Settings } from 'lucide-react';
+import { Play, Square, Settings, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { FastSelector } from '@/components/FastSelector';
+import { CrisisModal } from '@/components/CrisisModal';
 import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import {
@@ -27,6 +28,7 @@ const Timer = () => {
   const [isInEatingWindow, setIsInEatingWindow] = useState(false);
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
   const { toast } = useToast();
   const { currentSession, startFastingSession, endFastingSession, cancelFastingSession, loadActiveSession } = useFastingSession();
 
@@ -167,6 +169,20 @@ const Timer = () => {
           </div>
         </div>
 
+        {/* Panic Button - Only show when fasting is active */}
+        {isRunning && (
+          <div className="flex justify-center">
+            <Button
+              onClick={() => setShowCrisisModal(true)}
+              size="lg"
+              className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 font-semibold shadow-lg border-2 border-red-500 animate-pulse"
+            >
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              Help Me Stay Strong
+            </Button>
+          </div>
+        )}
+
         {/* Control Buttons */}
         <div className="flex justify-center space-x-4">
           {!isRunning ? (
@@ -253,6 +269,12 @@ const Timer = () => {
           onClose={() => setShowFastSelector(false)}
         />
       )}
+
+      {/* Crisis Modal */}
+      <CrisisModal 
+        isOpen={showCrisisModal}
+        onClose={() => setShowCrisisModal(false)}
+      />
     </div>
   );
 };

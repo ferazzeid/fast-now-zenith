@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus } from 'lucide-react';
+import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle } from 'lucide-react';
 import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -50,6 +50,7 @@ interface AIBehaviorSettings {
   coaching_encouragement_level: number;
   auto_motivator_triggers: boolean;
   slideshow_transition_time: number;
+  crisis_style?: 'direct' | 'motivational' | 'tough_love' | 'psychological';
   admin_motivator_templates: Array<{
     id: string;
     title: string;
@@ -173,6 +174,7 @@ const AdminOverview = () => {
           'ai_coaching_encouragement_level',
           'ai_auto_motivator_triggers',
           'ai_slideshow_transition_time',
+          'ai_crisis_style',
           'ai_admin_motivator_templates'
         ]);
 
@@ -198,6 +200,7 @@ const AdminOverview = () => {
           coaching_encouragement_level: parseInt(aiMap.ai_coaching_encouragement_level || '7'),
           auto_motivator_triggers: aiMap.ai_auto_motivator_triggers === 'true',
           slideshow_transition_time: parseInt(aiMap.ai_slideshow_transition_time || '15'),
+          crisis_style: (aiMap.ai_crisis_style as any) || 'psychological',
           admin_motivator_templates: aiMap.ai_admin_motivator_templates ? JSON.parse(aiMap.ai_admin_motivator_templates) : []
         });
       }
@@ -361,6 +364,7 @@ const AdminOverview = () => {
         { key: 'ai_coaching_encouragement_level', value: aiBehaviorSettings.coaching_encouragement_level.toString() },
         { key: 'ai_auto_motivator_triggers', value: aiBehaviorSettings.auto_motivator_triggers.toString() },
         { key: 'ai_slideshow_transition_time', value: aiBehaviorSettings.slideshow_transition_time.toString() },
+        { key: 'ai_crisis_style', value: aiBehaviorSettings.crisis_style || 'psychological' },
         { key: 'ai_admin_motivator_templates', value: JSON.stringify(aiBehaviorSettings.admin_motivator_templates) }
       ];
 
