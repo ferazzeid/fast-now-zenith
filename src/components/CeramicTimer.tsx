@@ -24,50 +24,53 @@ export const CeramicTimer = ({
 
   return (
     <div className="relative">
-      {/* Ceramic Plate - Outer Rim */}
+      {/* Ceramic Plate Base - Outer Shadow */}
       <div 
         className="relative w-80 h-80 rounded-full"
         style={{
-          background: `
-            radial-gradient(ellipse at 30% 30%, #faf8f4 0%, #f4f1eb 25%, #ede8de 50%, #e6e0d2 75%, #ddd6c5 100%)
-          `,
+          background: `linear-gradient(135deg, #e8dcc6 0%, #d4c4a8 50%, #c7b299 100%)`,
           boxShadow: `
-            0 15px 45px rgba(0,0,0,0.25),
-            0 5px 15px rgba(0,0,0,0.15),
-            inset 0 4px 12px rgba(250,248,244,0.9),
-            inset 0 -3px 8px rgba(0,0,0,0.15),
-            inset 0 0 0 2px rgba(250,248,244,0.4)
+            0 20px 60px rgba(0,0,0,0.3),
+            0 10px 30px rgba(0,0,0,0.2)
           `
         }}
       >
-        {/* Plate Rim - Raised Edge */}
+        {/* Plate Surface - Raised from base */}
         <div 
-          className="absolute inset-3 rounded-full relative"
+          className="absolute inset-2 rounded-full"
           style={{
-            background: `
-              radial-gradient(ellipse at 35% 25%, #f8f6f1 0%, #f2eee6 30%, #ebe6db 70%, #e3ddd0 100%)
-            `,
+            background: `radial-gradient(ellipse at 30% 30%, #f5f0e8 0%, #ede3d6 40%, #e2d5c4 100%)`,
             boxShadow: `
-              0 3px 12px rgba(0,0,0,0.12),
-              inset 0 3px 6px rgba(248,246,241,0.8),
-              inset 0 -2px 4px rgba(0,0,0,0.1)
+              0 8px 25px rgba(0,0,0,0.15),
+              inset 0 5px 15px rgba(255,255,255,0.6),
+              inset 0 -2px 8px rgba(0,0,0,0.1)
             `
           }}
         >
-          {/* Center Depressed Area */}
+          {/* Plate Rim - Inner raised edge */}
           <div 
-            className="absolute inset-6 rounded-full relative overflow-hidden"
+            className="absolute inset-4 rounded-full"
             style={{
-              background: `
-                radial-gradient(ellipse at 40% 35%, #f6f4ef 0%, #f0ede6 30%, #e9e5dc 60%, #e2ddd2 100%)
-              `,
+              background: `radial-gradient(ellipse at 35% 25%, #f8f4ec 0%, #f0e8db 50%, #e6d9c8 100%)`,
               boxShadow: `
-                inset 0 4px 15px rgba(0,0,0,0.12),
-                inset 0 2px 6px rgba(0,0,0,0.08),
-                inset 0 -1px 3px rgba(248,246,241,0.7)
+                inset 0 3px 10px rgba(255,255,255,0.7),
+                inset 0 -1px 5px rgba(0,0,0,0.08)
               `
             }}
           >
+            {/* Center Well - Depressed area */}
+            <div 
+              className="absolute inset-6 rounded-full relative overflow-hidden"
+              style={{
+                background: `radial-gradient(ellipse at 45% 40%, #f2ebe0 0%, #e8ddd0 60%, #ddd0bf 100%)`,
+                boxShadow: `
+                  inset 0 6px 20px rgba(0,0,0,0.15),
+                  inset 0 3px 10px rgba(0,0,0,0.1),
+                  inset 0 -1px 4px rgba(255,255,255,0.5)
+                `,
+                zIndex: 1
+              }}
+            >
             {/* Motivator Slideshow - Behind everything */}
             {showSlideshow && isActive && (
               <div className="absolute inset-0 rounded-full overflow-hidden" style={{ zIndex: 1 }}>
@@ -133,6 +136,7 @@ export const CeramicTimer = ({
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mx-auto" />
                 )}
               </div>
+            </div>
             </div>
           </div>
         </div>
