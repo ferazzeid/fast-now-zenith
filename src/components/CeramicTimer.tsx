@@ -24,35 +24,54 @@ export const CeramicTimer = ({
 
   return (
     <div className="relative">
-      {/* Ceramic Plate Base - Original Design */}
+      {/* Outer Ceramic Plate Base */}
       <div 
-        className="relative w-80 h-80 rounded-full shadow-2xl"
+        className="relative w-80 h-80 rounded-full"
         style={{
           background: `radial-gradient(circle at 30% 30%, 
-            hsl(var(--ceramic-plate)), 
-            hsl(var(--ceramic-base)) 60%, 
-            hsl(var(--ceramic-rim)) 100%)`,
+            #ffffff, 
+            #f8f8f8 40%, 
+            #e8e8e8 70%, 
+            #d5d5d5 100%)`,
           boxShadow: `
-            inset 0 8px 16px rgba(0,0,0,0.1),
-            inset 0 -8px 16px rgba(255,255,255,0.3),
-            0 16px 32px rgba(0,0,0,0.15),
-            0 0 0 3px hsl(var(--ceramic-rim))
+            0 20px 40px rgba(0,0,0,0.15),
+            0 10px 20px rgba(0,0,0,0.1),
+            inset 0 1px 0 rgba(255,255,255,0.8),
+            inset 0 -1px 0 rgba(0,0,0,0.1)
           `
         }}
       >
-        {/* Inner Plate Depression - Original Design */}
+        {/* Raised Rim */}
         <div 
-          className="absolute inset-4 rounded-full relative overflow-hidden"
+          className="absolute inset-2 rounded-full"
           style={{
-            background: `radial-gradient(circle at 40% 40%, 
-              hsl(var(--ceramic-base)), 
-              hsl(var(--ceramic-plate)) 70%)`,
+            background: `radial-gradient(circle at 30% 30%, 
+              #ffffff, 
+              #f5f5f5 50%, 
+              #e0e0e0 100%)`,
             boxShadow: `
-              inset 0 4px 12px rgba(0,0,0,0.15),
-              inset 0 -2px 8px rgba(255,255,255,0.2)
+              inset 0 3px 6px rgba(255,255,255,0.9),
+              inset 0 -3px 6px rgba(0,0,0,0.1),
+              0 2px 4px rgba(0,0,0,0.1)
             `
           }}
         >
+          {/* Deep Center Depression */}
+          <div 
+            className="absolute inset-6 rounded-full relative overflow-hidden"
+            style={{
+              background: `radial-gradient(circle at 35% 35%, 
+                #f8f8f8, 
+                #f0f0f0 40%, 
+                #e8e8e8 70%, 
+                #e0e0e0 100%)`,
+              boxShadow: `
+                inset 0 8px 16px rgba(0,0,0,0.15),
+                inset 0 4px 8px rgba(0,0,0,0.1),
+                inset 0 -2px 4px rgba(255,255,255,0.3)
+              `
+            }}
+          >
           {/* Motivator Slideshow - Behind ceramic textures */}
           {showSlideshow && isActive && (
             <MotivatorSlideshow isActive={showSlideshow && isActive} />
@@ -117,6 +136,7 @@ export const CeramicTimer = ({
                 <div className="w-2 h-2 bg-progress-active rounded-full animate-pulse mx-auto" />
               )}
             </div>
+          </div>
           </div>
         </div>
       </div>
