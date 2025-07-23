@@ -80,15 +80,15 @@ serve(async (req) => {
 
     // Determine which API key and model to use
     let apiKey = '';
-    let speechModel = 'gpt-4o-mini-realtime'; // Most cost-effective default
+    let speechModel = 'gpt-4o-realtime-preview-2024-12-17'; // Correct OpenAI Realtime model
 
     if (profile?.use_own_api_key) {
       // User should provide their own key via localStorage (handled in frontend)
-      speechModel = profile.speech_model || 'gpt-4o-mini-realtime';
+      speechModel = profile.speech_model || 'gpt-4o-realtime-preview-2024-12-17';
     } else {
       // Use shared API key
       apiKey = settings.shared_openai_key;
-      speechModel = settings.default_speech_model || 'gpt-4o-mini-realtime';
+      speechModel = settings.default_speech_model || 'gpt-4o-realtime-preview-2024-12-17';
     }
 
     if (!apiKey && !profile?.use_own_api_key) {
@@ -240,11 +240,10 @@ serve(async (req) => {
 function calculateCost(usage: any, model: string): number {
   // Cost calculation based on current OpenAI pricing
   const costs: Record<string, { input: number; output: number }> = {
-    'gpt-4o-mini-realtime': { input: 0.000000150, output: 0.000000600 },
-    'gpt-4o-realtime': { input: 0.000005000, output: 0.000020000 }
+    'gpt-4o-realtime-preview-2024-12-17': { input: 0.000005000, output: 0.000020000 }
   };
   
-  const modelCost = costs[model] || costs['gpt-4o-mini-realtime'];
+  const modelCost = costs[model] || costs['gpt-4o-realtime-preview-2024-12-17'];
   const inputCost = (usage.input_tokens || 0) * modelCost.input;
   const outputCost = (usage.output_tokens || 0) * modelCost.output;
   
