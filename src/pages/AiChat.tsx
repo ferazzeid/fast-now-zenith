@@ -27,6 +27,7 @@ const AiChat = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [apiKey, setApiKey] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversationHistoryRef = useRef<Array<{role: string, content: string}>>([]);
@@ -34,6 +35,12 @@ const AiChat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    // Load saved API key
+    const savedApiKey = localStorage.getItem('openai_api_key') || '';
+    setApiKey(savedApiKey);
+  }, []);
 
   useEffect(() => {
     // Add welcome message
@@ -121,8 +128,19 @@ const AiChat = () => {
   // Convert text to speech and play
   const playTextAsAudio = async (text: string) => {
     try {
+      // Get API key from localStorage
+      const apiKey = localStorage.getItem('openai_api_key');
+      
+      if (!apiKey) {
+        console.log('No API key found for text-to-speech');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text, voice: 'alloy' }
+        body: { text, voice: 'alloy' },
+        headers: {
+          'X-OpenAI-API-Key': apiKey
+        }
       });
 
       if (error) throw error;
@@ -172,6 +190,16 @@ const AiChat = () => {
     setInput('');
     
     await sendToAI(messageToSend);
+  };
+
+  // Save API key
+  const handleSaveApiKey = () => {
+    localStorage.setItem('openai_api_key', apiKey);
+    setShowApiKeyDialog(false);
+    toast({
+      title: "Success",
+      description: "OpenAI API key saved successfully",
+    });
   };
 
   return (
@@ -278,14 +306,30 @@ const AiChat = () => {
             <CardContent className="space-y-4">
               <Alert>
                 <AlertDescription>
-                  This app uses OpenAI's Whisper for speech recognition, GPT for conversations, and text-to-speech for voice responses.
-                  An OpenAI API key must be configured in the project settings.
+                  Enter your OpenAI API key to enable AI conversations, voice transcription, and text-to-speech responses.
                 </AlertDescription>
               </Alert>
               
+              <div className="space-y-2">
+                <Label htmlFor="api-key">OpenAI API Key</Label>
+                <Input
+                  id="api-key"
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="sk-..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your API key is stored locally on your device and never sent to our servers.
+                </p>
+              </div>
+              
               <div className="flex gap-2">
-                <Button onClick={() => setShowApiKeyDialog(false)}>
-                  Close
+                <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
+                  Save API Key
+                </Button>
+                <Button variant="outline" onClick={() => setShowApiKeyDialog(false)}>
+                  Cancel
                 </Button>
               </div>
             </CardContent>
