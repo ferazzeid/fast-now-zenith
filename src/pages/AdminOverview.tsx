@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image } from 'lucide-react';
+import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 
 interface User {
   id: string;
@@ -25,6 +28,19 @@ interface UsageStats {
   paid_users: number;
   total_ai_requests: number;
   monthly_ai_requests: number;
+}
+
+interface AISettings {
+  system_prompt: string;
+  model_name: string;
+  temperature: number;
+  max_tokens: number;
+  include_user_context: boolean;
+  response_style: string;
+  prompt_templates: Array<{
+    name: string;
+    prompt: string;
+  }>;
 }
 
 const AdminOverview = () => {
@@ -44,6 +60,16 @@ const AdminOverview = () => {
     total_ai_requests: 0,
     monthly_ai_requests: 0,
   });
+  const [aiSettings, setAiSettings] = useState<AISettings>({
+    system_prompt: '',
+    model_name: 'gpt-4o-mini',
+    temperature: 0.8,
+    max_tokens: 500,
+    include_user_context: true,
+    response_style: 'encouraging',
+    prompt_templates: []
+  });
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -103,6 +129,37 @@ const AdminOverview = () => {
           description: pwaMap.pwa_description || '',
           theme_color: pwaMap.pwa_theme_color || '#8B7355',
           background_color: pwaMap.pwa_background_color || '#F5F2EA'
+        });
+      }
+
+      // Fetch AI settings
+      const { data: aiData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', [
+          'ai_system_prompt', 
+          'ai_model_name', 
+          'ai_temperature', 
+          'ai_max_tokens', 
+          'ai_include_user_context', 
+          'ai_response_style',
+          'ai_prompt_templates'
+        ]);
+
+      if (aiData) {
+        const aiMap = aiData.reduce((acc, setting) => {
+          acc[setting.setting_key] = setting.setting_value;
+          return acc;
+        }, {} as Record<string, string>);
+
+        setAiSettings({
+          system_prompt: aiMap.ai_system_prompt || '',
+          model_name: aiMap.ai_model_name || 'gpt-4o-mini',
+          temperature: parseFloat(aiMap.ai_temperature || '0.8'),
+          max_tokens: parseInt(aiMap.ai_max_tokens || '500'),
+          include_user_context: aiMap.ai_include_user_context === 'true',
+          response_style: aiMap.ai_response_style || 'encouraging',
+          prompt_templates: aiMap.ai_prompt_templates ? JSON.parse(aiMap.ai_prompt_templates) : []
         });
       }
     } catch (error) {
@@ -221,6 +278,52 @@ const AdminOverview = () => {
         title: "Error",
         description: "Failed to save PWA settings",
         variant: "destructive",
+      });
+    }
+  };
+
+  const saveAiSettings = async () => {
+    try {
+      const updates = [
+        { key: 'ai_system_prompt', value: aiSettings.system_prompt },
+        { key: 'ai_model_name', value: aiSettings.model_name },
+        { key: 'ai_temperature', value: aiSettings.temperature.toString() },
+        { key: 'ai_max_tokens', value: aiSettings.max_tokens.toString() },
+        { key: 'ai_include_user_context', value: aiSettings.include_user_context.toString() },
+        { key: 'ai_response_style', value: aiSettings.response_style },
+        { key: 'ai_prompt_templates', value: JSON.stringify(aiSettings.prompt_templates) }
+      ];
+
+      for (const update of updates) {
+        await supabase
+          .from('shared_settings')
+          .update({ setting_value: update.value })
+          .eq('setting_key', update.key);
+      }
+
+      toast({
+        title: "Success",
+        description: "AI settings saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save AI settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadTemplate = (templateName: string) => {
+    const template = aiSettings.prompt_templates.find(t => t.name === templateName);
+    if (template) {
+      setAiSettings(prev => ({
+        ...prev,
+        system_prompt: template.prompt
+      }));
+      toast({
+        title: "Template Loaded",
+        description: `Applied "${templateName}" template to system prompt`,
       });
     }
   };
@@ -365,6 +468,154 @@ const AdminOverview = () => {
                   Paid users (150 requests/month), Admin (unlimited).
                 </p>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* AI Chat Configuration */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <Brain className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">AI Chat Configuration</h3>
+            </div>
+
+            {/* Template Selection */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Quick Templates</Label>
+              <div className="flex flex-wrap gap-2">
+                {aiSettings.prompt_templates.map((template) => (
+                  <Button
+                    key={template.name}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadTemplate(template.name)}
+                    className="bg-ceramic-base border-ceramic-rim hover:bg-ceramic-base/80"
+                  >
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* System Prompt */}
+            <div className="space-y-3">
+              <Label htmlFor="system-prompt" className="text-warm-text">
+                System Prompt
+              </Label>
+              <Textarea
+                id="system-prompt"
+                placeholder="Define the AI's personality and behavior..."
+                value={aiSettings.system_prompt}
+                onChange={(e) => setAiSettings(prev => ({ ...prev, system_prompt: e.target.value }))}
+                className="bg-ceramic-base border-ceramic-rim min-h-[120px]"
+              />
+              <div className="text-xs text-muted-foreground">
+                Characters: {aiSettings.system_prompt.length}/2000
+              </div>
+            </div>
+
+            {/* Model Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-warm-text">AI Model</Label>
+                <Select
+                  value={aiSettings.model_name}
+                  onValueChange={(value) => setAiSettings(prev => ({ ...prev, model_name: value }))}
+                >
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpt-4.1-2025-04-14">GPT-4.1 (Latest)</SelectItem>
+                    <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast)</SelectItem>
+                    <SelectItem value="gpt-4o">GPT-4o (Powerful)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-warm-text">Response Style</Label>
+                <Select
+                  value={aiSettings.response_style}
+                  onValueChange={(value) => setAiSettings(prev => ({ ...prev, response_style: value }))}
+                >
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="encouraging">Encouraging</SelectItem>
+                    <SelectItem value="scientific">Scientific</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="professional">Professional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Temperature & Max Tokens */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label className="text-warm-text">
+                  Creativity (Temperature): {aiSettings.temperature}
+                </Label>
+                <Slider
+                  value={[aiSettings.temperature]}
+                  onValueChange={([value]) => setAiSettings(prev => ({ ...prev, temperature: value }))}
+                  max={2}
+                  min={0.1}
+                  step={0.1}
+                  className="w-full"
+                />
+                <div className="text-xs text-muted-foreground">
+                  Lower = More focused, Higher = More creative
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="max-tokens" className="text-warm-text">Max Response Length</Label>
+                <Input
+                  id="max-tokens"
+                  type="number"
+                  min="100"
+                  max="4000"
+                  value={aiSettings.max_tokens}
+                  onChange={(e) => setAiSettings(prev => ({ ...prev, max_tokens: parseInt(e.target.value) || 500 }))}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <div className="text-xs text-muted-foreground">
+                  100-4000 tokens (shorter = faster responses)
+                </div>
+              </div>
+            </div>
+
+            {/* User Context Toggle */}
+            <div className="flex items-center space-x-3">
+              <Switch
+                id="include-context"
+                checked={aiSettings.include_user_context}
+                onCheckedChange={(checked) => setAiSettings(prev => ({ ...prev, include_user_context: checked }))}
+              />
+              <Label htmlFor="include-context" className="text-warm-text">
+                Include user fasting context in responses
+              </Label>
+            </div>
+
+            <div className="flex space-x-3">
+              <Button
+                onClick={saveAiSettings}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Save AI Settings
+              </Button>
+            </div>
+
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                These settings control how the AI companion behaves and responds to users. 
+                Changes take effect immediately for new conversations.
+              </p>
             </div>
           </div>
         </Card>

@@ -29,11 +29,49 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    // Initialize Supabase client to fetch AI settings
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch AI configuration from database
+    const { data: aiSettingsData } = await supabase
+      .from('shared_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', [
+        'ai_system_prompt',
+        'ai_model_name', 
+        'ai_temperature',
+        'ai_max_tokens',
+        'ai_include_user_context'
+      ]);
+
+    // Parse AI settings with fallbacks
+    const aiSettings = (aiSettingsData || []).reduce((acc, setting) => {
+      acc[setting.setting_key] = setting.setting_value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const systemPrompt = aiSettings.ai_system_prompt || 'You are a helpful fasting companion AI assistant. You help users with their fasting journey by providing motivation, answering questions about fasting, and offering supportive guidance. Be encouraging, knowledgeable about fasting science, and personally supportive. Keep responses concise but warm and conversational.';
+    const modelName = aiSettings.ai_model_name || 'gpt-4o-mini';
+    const temperature = parseFloat(aiSettings.ai_temperature || '0.8');
+    const maxTokens = parseInt(aiSettings.ai_max_tokens || '500');
+    const includeUserContext = aiSettings.ai_include_user_context === 'true';
+
+    // Build enhanced system prompt with optional user context
+    let enhancedSystemPrompt = systemPrompt;
+    
+    if (includeUserContext) {
+      const currentTime = new Date().toLocaleTimeString();
+      const currentDate = new Date().toLocaleDateString();
+      enhancedSystemPrompt += `\n\nCurrent context: It's ${currentTime} on ${currentDate}. Consider this timing when giving fasting advice (e.g., breaking fast times, meal planning, etc.).`;
+    }
+
     // Prepare messages for OpenAI
     const messages = [
       {
         role: 'system',
-        content: 'You are a helpful fasting companion AI assistant. You help users with their intermittent fasting journey by providing motivation, answering questions about fasting, and offering supportive guidance. Be encouraging, knowledgeable about fasting science, and personally supportive. Keep responses concise but warm and conversational.'
+        content: enhancedSystemPrompt
       },
       ...conversationHistory,
       {
@@ -50,10 +88,10 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: modelName,
         messages: messages,
-        max_tokens: 500,
-        temperature: 0.8,
+        max_tokens: maxTokens,
+        temperature: temperature,
       }),
     });
 
