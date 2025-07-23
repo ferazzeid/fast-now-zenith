@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +20,32 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    // Get user's API key preference
+    const authHeader = req.headers.get('Authorization');
+    let OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    
+    if (authHeader) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('use_own_api_key, openai_api_key')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.use_own_api_key && profile?.openai_api_key) {
+          OPENAI_API_KEY = profile.openai_api_key;
+        }
+      }
+    }
+
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
     }
