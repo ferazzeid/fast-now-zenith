@@ -15,6 +15,7 @@ serve(async (req) => {
 
   try {
     const { audio } = await req.json();
+    console.log('Received transcription request, audio data length:', audio?.length || 0);
     
     if (!audio) {
       throw new Error('No audio data provided');
@@ -23,16 +24,18 @@ serve(async (req) => {
     // Get user's API key preference
     const authHeader = req.headers.get('Authorization');
     let OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    console.log('Default API key available:', !!OPENAI_API_KEY);
     
     if (authHeader) {
+      console.log('Authorization header found, checking user preferences');
       const supabase = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         { global: { headers: { Authorization: authHeader } } }
       );
 
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('User found:', !!user, user?.id);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('User lookup result:', { hasUser: !!user, userId: user?.id, userError });
       
       if (user) {
         const { data: profile, error: profileError } = await supabase
@@ -41,20 +44,25 @@ serve(async (req) => {
           .eq('user_id', user.id)
           .single();
 
-        console.log('Profile query result:', { profile, profileError });
-        console.log('Profile use_own_api_key:', profile?.use_own_api_key);
-        console.log('Profile has openai_api_key:', !!profile?.openai_api_key);
+        console.log('Profile query result:', { 
+          hasProfile: !!profile, 
+          useOwnKey: profile?.use_own_api_key,
+          hasApiKey: !!profile?.openai_api_key,
+          apiKeyLength: profile?.openai_api_key?.length || 0,
+          profileError 
+        });
 
         if (profile?.use_own_api_key && profile?.openai_api_key) {
           OPENAI_API_KEY = profile.openai_api_key;
-          console.log('Using user API key');
+          console.log('Using user API key, length:', OPENAI_API_KEY.length);
         } else {
-          console.log('Not using user API key - conditions not met');
+          console.log('Using default API key - user conditions not met');
         }
       }
     }
 
     if (!OPENAI_API_KEY) {
+      console.error('No OpenAI API key available');
       throw new Error('OpenAI API key not configured');
     }
 
