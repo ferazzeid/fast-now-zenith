@@ -24,17 +24,19 @@ export const CeramicTimer = ({
 
   return (
     <div className="relative">
-      {/* DEBUG: Ceramic Plate - Outer Rim with OBVIOUS styling */}
+      {/* Ceramic Plate - Outer Rim */}
       <div 
-        className="relative w-80 h-80 rounded-full border-8 border-red-500"
+        className="relative w-80 h-80 rounded-full"
         style={{
           background: `
-            radial-gradient(circle, #ff0000 0%, #00ff00 50%, #0000ff 100%)
+            radial-gradient(ellipse at 30% 30%, #ffffff 0%, #f8f8f8 25%, #f0f0f0 50%, #e8e8e8 75%, #e0e0e0 100%)
           `,
           boxShadow: `
-            0 20px 60px rgba(255,0,0,0.8),
-            0 10px 20px rgba(0,255,0,0.6),
-            inset 0 10px 20px rgba(0,0,255,0.4)
+            0 15px 45px rgba(0,0,0,0.25),
+            0 5px 15px rgba(0,0,0,0.15),
+            inset 0 4px 12px rgba(255,255,255,0.9),
+            inset 0 -3px 8px rgba(0,0,0,0.15),
+            inset 0 0 0 2px rgba(255,255,255,0.4)
           `
         }}
       >
@@ -43,12 +45,12 @@ export const CeramicTimer = ({
           className="absolute inset-3 rounded-full relative"
           style={{
             background: `
-              radial-gradient(ellipse at 35% 25%, rgba(255,255,255,1) 0%, rgba(252,252,252,0.98) 30%, rgba(248,248,248,0.95) 70%, rgba(242,242,242,0.9) 100%)
+              radial-gradient(ellipse at 35% 25%, #ffffff 0%, #f4f4f4 30%, #eeeeee 70%, #e8e8e8 100%)
             `,
             boxShadow: `
-              0 2px 8px rgba(0,0,0,0.08),
-              inset 0 2px 4px rgba(255,255,255,0.8),
-              inset 0 -1px 3px rgba(0,0,0,0.06)
+              0 3px 12px rgba(0,0,0,0.12),
+              inset 0 3px 6px rgba(255,255,255,0.8),
+              inset 0 -2px 4px rgba(0,0,0,0.1)
             `
           }}
         >
@@ -57,12 +59,12 @@ export const CeramicTimer = ({
             className="absolute inset-6 rounded-full relative overflow-hidden"
             style={{
               background: `
-                radial-gradient(ellipse at 40% 30%, rgba(255,255,255,0.98) 0%, rgba(250,250,250,0.95) 40%, rgba(245,245,245,0.92) 80%, rgba(240,240,240,0.88) 100%)
+                radial-gradient(ellipse at 40% 35%, #ffffff 0%, #f6f6f6 30%, #eeeeee 60%, #e6e6e6 100%)
               `,
               boxShadow: `
-                inset 0 3px 12px rgba(0,0,0,0.08),
-                inset 0 1px 4px rgba(0,0,0,0.05),
-                inset 0 -1px 2px rgba(255,255,255,0.7)
+                inset 0 4px 15px rgba(0,0,0,0.12),
+                inset 0 2px 6px rgba(0,0,0,0.08),
+                inset 0 -1px 3px rgba(255,255,255,0.7)
               `
             }}
           >
