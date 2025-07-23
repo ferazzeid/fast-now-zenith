@@ -29,15 +29,16 @@ export const CeramicTimer = ({
         className="relative w-80 h-80 rounded-full shadow-2xl"
         style={{
           background: `radial-gradient(circle at 30% 30%, 
-            hsl(var(--ceramic-plate)), 
-            hsl(var(--ceramic-base)) 60%, 
-            hsl(var(--ceramic-rim)) 100%)`,
+            #f5f2ea, 
+            #ebe6d7 60%, 
+            #d4c5a8 100%)`,
           boxShadow: `
             inset 0 8px 16px rgba(0,0,0,0.1),
             inset 0 -8px 16px rgba(255,255,255,0.3),
             0 16px 32px rgba(0,0,0,0.15),
-            0 0 0 3px hsl(var(--ceramic-rim))
-          `
+            0 0 0 3px #d4c5a8
+          `,
+          border: '2px solid #c4b59a'
         }}
       >
         {/* Inner Plate Depression */}
@@ -45,13 +46,14 @@ export const CeramicTimer = ({
           className="absolute inset-4 rounded-full relative overflow-hidden"
           style={{
             background: `radial-gradient(circle at 40% 40%, 
-              hsl(var(--ceramic-base)), 
-              hsl(var(--ceramic-plate)) 70%)`,
+              #ebe6d7, 
+              #f5f2ea 70%)`,
             boxShadow: `
               inset 0 4px 12px rgba(0,0,0,0.15),
               inset 0 -2px 8px rgba(255,255,255,0.2)
             `,
-            zIndex: 2
+            zIndex: 2,
+            border: '1px solid #e0dbc9'
           }}
         >
           {/* Motivator Slideshow - Behind ceramic textures */}
@@ -66,7 +68,7 @@ export const CeramicTimer = ({
           >
             {/* Background Circle */}
             <circle
-              stroke="hsl(var(--progress-bg))"
+              stroke="#d4c5a8"
               fill="transparent"
               strokeWidth={strokeWidth}
               r={normalizedRadius}
@@ -77,7 +79,7 @@ export const CeramicTimer = ({
             
             {/* Progress Circle */}
             <circle
-              stroke={isEatingWindow ? "hsl(35 65% 55%)" : "hsl(var(--progress-active))"}
+              stroke={isEatingWindow ? "#daa520" : "#22c55e"}
               fill="transparent"
               strokeWidth={strokeWidth}
               strokeDasharray={strokeDasharray}
@@ -103,7 +105,7 @@ export const CeramicTimer = ({
               <div 
                 className="text-4xl font-bold tracking-wider"
                 style={{ 
-                  color: 'hsl(var(--warm-text))',
+                  color: '#3e332a',
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}
               >
