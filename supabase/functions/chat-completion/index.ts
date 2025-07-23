@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
 };
 
 serve(async (req) => {
@@ -20,31 +20,10 @@ serve(async (req) => {
       throw new Error('No message provided');
     }
 
-    // Get user's API key preference
-    const authHeader = req.headers.get('Authorization');
-    let OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    // Get API key from request headers (client-side localStorage)
+    const clientApiKey = req.headers.get('X-OpenAI-API-Key');
     
-    if (authHeader) {
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        { global: { headers: { Authorization: authHeader } } }
-      );
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, openai_api_key')
-          .eq('user_id', user.id)
-          .single();
-
-        if (profile?.use_own_api_key && profile?.openai_api_key) {
-          OPENAI_API_KEY = profile.openai_api_key;
-        }
-      }
-    }
+    const OPENAI_API_KEY = clientApiKey;
 
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');

@@ -67,15 +67,24 @@ const AiChat = () => {
     await sendToAI(transcribedText);
   };
 
-  // Send message to AI
   const sendToAI = async (message: string) => {
     setIsProcessing(true);
     
     try {
+      // Get API key from localStorage
+      const apiKey = localStorage.getItem('openai_api_key');
+      
+      if (!apiKey) {
+        throw new Error('Please set your OpenAI API key in Settings first');
+      }
+
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
           message, 
           conversationHistory: conversationHistoryRef.current.slice(-10) // Keep last 10 messages for context
+        },
+        headers: {
+          'X-OpenAI-API-Key': apiKey
         }
       });
 
