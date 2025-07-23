@@ -29,14 +29,14 @@ export const CeramicTimer = ({
         className="relative w-80 h-80 rounded-full"
         style={{
           background: `
-            radial-gradient(ellipse at 30% 30%, #ffffff 0%, #f8f8f8 25%, #f0f0f0 50%, #e8e8e8 75%, #e0e0e0 100%)
+            radial-gradient(ellipse at 30% 30%, #faf8f4 0%, #f4f1eb 25%, #ede8de 50%, #e6e0d2 75%, #ddd6c5 100%)
           `,
           boxShadow: `
             0 15px 45px rgba(0,0,0,0.25),
             0 5px 15px rgba(0,0,0,0.15),
-            inset 0 4px 12px rgba(255,255,255,0.9),
+            inset 0 4px 12px rgba(250,248,244,0.9),
             inset 0 -3px 8px rgba(0,0,0,0.15),
-            inset 0 0 0 2px rgba(255,255,255,0.4)
+            inset 0 0 0 2px rgba(250,248,244,0.4)
           `
         }}
       >
@@ -45,11 +45,11 @@ export const CeramicTimer = ({
           className="absolute inset-3 rounded-full relative"
           style={{
             background: `
-              radial-gradient(ellipse at 35% 25%, #ffffff 0%, #f4f4f4 30%, #eeeeee 70%, #e8e8e8 100%)
+              radial-gradient(ellipse at 35% 25%, #f8f6f1 0%, #f2eee6 30%, #ebe6db 70%, #e3ddd0 100%)
             `,
             boxShadow: `
               0 3px 12px rgba(0,0,0,0.12),
-              inset 0 3px 6px rgba(255,255,255,0.8),
+              inset 0 3px 6px rgba(248,246,241,0.8),
               inset 0 -2px 4px rgba(0,0,0,0.1)
             `
           }}
@@ -59,12 +59,12 @@ export const CeramicTimer = ({
             className="absolute inset-6 rounded-full relative overflow-hidden"
             style={{
               background: `
-                radial-gradient(ellipse at 40% 35%, #ffffff 0%, #f6f6f6 30%, #eeeeee 60%, #e6e6e6 100%)
+                radial-gradient(ellipse at 40% 35%, #f6f4ef 0%, #f0ede6 30%, #e9e5dc 60%, #e2ddd2 100%)
               `,
               boxShadow: `
                 inset 0 4px 15px rgba(0,0,0,0.12),
                 inset 0 2px 6px rgba(0,0,0,0.08),
-                inset 0 -1px 3px rgba(255,255,255,0.7)
+                inset 0 -1px 3px rgba(248,246,241,0.7)
               `
             }}
           >
