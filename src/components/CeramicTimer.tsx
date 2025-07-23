@@ -24,67 +24,45 @@ export const CeramicTimer = ({
 
   return (
     <div className="relative">
-      {/* Outer Ceramic Plate Base */}
+      {/* Simple Ceramic Plate - Clean White Design */}
       <div 
-        className="relative w-80 h-80 rounded-full"
+        className="relative w-80 h-80 rounded-full bg-white"
         style={{
-          background: `radial-gradient(circle at 30% 30%, 
-            #ffffff, 
-            #f8f8f8 40%, 
-            #e8e8e8 70%, 
-            #d5d5d5 100%)`,
+          background: '#ffffff',
           boxShadow: `
-            0 20px 40px rgba(0,0,0,0.15),
-            0 10px 20px rgba(0,0,0,0.1),
-            inset 0 1px 0 rgba(255,255,255,0.8),
-            inset 0 -1px 0 rgba(0,0,0,0.1)
+            0 8px 32px rgba(0,0,0,0.12),
+            0 2px 8px rgba(0,0,0,0.08),
+            inset 0 1px 0 rgba(255,255,255,1),
+            inset 0 0 0 1px rgba(0,0,0,0.03)
           `
         }}
       >
-        {/* Raised Rim */}
+        {/* Subtle Rim Effect */}
         <div 
-          className="absolute inset-2 rounded-full"
+          className="absolute inset-4 rounded-full bg-white relative overflow-hidden"
           style={{
-            background: `radial-gradient(circle at 30% 30%, 
-              #ffffff, 
-              #f5f5f5 50%, 
-              #e0e0e0 100%)`,
+            background: '#ffffff',
             boxShadow: `
-              inset 0 3px 6px rgba(255,255,255,0.9),
-              inset 0 -3px 6px rgba(0,0,0,0.1),
-              0 2px 4px rgba(0,0,0,0.1)
+              inset 0 2px 8px rgba(0,0,0,0.06),
+              inset 0 -1px 3px rgba(255,255,255,0.8)
             `
           }}
         >
-          {/* Deep Center Depression */}
-          <div 
-            className="absolute inset-6 rounded-full relative overflow-hidden"
-            style={{
-              background: `radial-gradient(circle at 35% 35%, 
-                #f8f8f8, 
-                #f0f0f0 40%, 
-                #e8e8e8 70%, 
-                #e0e0e0 100%)`,
-              boxShadow: `
-                inset 0 8px 16px rgba(0,0,0,0.15),
-                inset 0 4px 8px rgba(0,0,0,0.1),
-                inset 0 -2px 4px rgba(255,255,255,0.3)
-              `
-            }}
-          >
-          {/* Motivator Slideshow - Behind ceramic textures */}
+          {/* Motivator Slideshow - Behind everything */}
           {showSlideshow && isActive && (
-            <MotivatorSlideshow isActive={showSlideshow && isActive} />
+            <div className="absolute inset-0 rounded-full overflow-hidden" style={{ zIndex: 1 }}>
+              <MotivatorSlideshow isActive={showSlideshow && isActive} />
+            </div>
           )}
           
           {/* Progress Ring */}
           <svg
             className="absolute inset-0 w-full h-full transform -rotate-90"
-            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', zIndex: 5 }}
+            style={{ zIndex: 5 }}
           >
             {/* Background Circle */}
             <circle
-              stroke="hsl(var(--progress-bg))"
+              stroke="rgba(0,0,0,0.1)"
               fill="transparent"
               strokeWidth={strokeWidth}
               r={normalizedRadius}
@@ -95,7 +73,7 @@ export const CeramicTimer = ({
             
             {/* Progress Circle */}
             <circle
-              stroke={isEatingWindow ? "hsl(35 65% 55%)" : "hsl(var(--progress-active))"}
+              stroke={isEatingWindow ? "#D4A855" : "#22C55E"}
               fill="transparent"
               strokeWidth={strokeWidth}
               strokeDasharray={strokeDasharray}
@@ -108,8 +86,8 @@ export const CeramicTimer = ({
                 isActive ? 'animate-pulse' : ''
               }`}
               style={{
-                filter: `drop-shadow(0 0 8px ${
-                  isEatingWindow ? 'rgba(218, 165, 32, 0.5)' : 'rgba(34, 197, 94, 0.5)'
+                filter: `drop-shadow(0 0 6px ${
+                  isEatingWindow ? 'rgba(212, 168, 85, 0.4)' : 'rgba(34, 197, 94, 0.4)'
                 })`
               }}
             />
@@ -119,24 +97,22 @@ export const CeramicTimer = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
             <div className="text-center space-y-2">
               <div 
-                className="text-4xl font-bold tracking-wider"
+                className="text-4xl font-bold tracking-wider text-gray-800"
                 style={{ 
-                  color: 'hsl(var(--warm-text))',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                 }}
               >
                 {displayTime}
               </div>
               
-              <div className="text-sm font-medium text-muted-foreground">
+              <div className="text-sm font-medium text-gray-600">
                 {isEatingWindow ? '🍽️ Eating' : '✨ Fasting'}
               </div>
               
               {isActive && (
-                <div className="w-2 h-2 bg-progress-active rounded-full animate-pulse mx-auto" />
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mx-auto" />
               )}
             </div>
-          </div>
           </div>
         </div>
       </div>
