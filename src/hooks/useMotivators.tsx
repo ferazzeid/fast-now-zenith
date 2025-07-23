@@ -42,7 +42,7 @@ export const useMotivators = () => {
       if (error) throw error;
       
       // Transform data to include imageUrl property
-      const transformedData = (data || []).map(item => ({
+      const transformedData = (data || []).map((item: any) => ({
         ...item,
         imageUrl: item.image_url
       }));
@@ -80,7 +80,8 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        setMotivators(prev => [data, ...prev]);
+        const transformedData = { ...data, imageUrl: data.image_url };
+        setMotivators(prev => [transformedData as Motivator, ...prev]);
         toast({
           title: "✨ Motivator Created!",
           description: "Your new motivator has been saved.",
@@ -103,9 +104,16 @@ export const useMotivators = () => {
     if (!user) return false;
 
     try {
+      // Map imageUrl to image_url for database
+      const dbUpdates: any = { ...updates };
+      if (updates.imageUrl !== undefined) {
+        dbUpdates.image_url = updates.imageUrl;
+        delete dbUpdates.imageUrl;
+      }
+
       const { error } = await supabase
         .from('motivators')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .eq('user_id', user.id);
 

@@ -1,436 +1,153 @@
-# Fast Now - Feature Implementation Documentation
+# FastPal - Features Overview
 
-## Overview
-Fast Now is a comprehensive fasting companion app with AI-powered chat, motivational content, and intelligent storage management. This document details all implemented features, their architecture, and limitations.
+A comprehensive fasting companion app with AI-powered motivation and community support.
 
----
+## Core Features
 
-## 🤖 AI Chat System
+### 🕐 Smart Fasting Timer
+- **CeramicTimer Component**: Beautiful, plate-inspired design with ceramic textures
+- **Multiple Fast Types**: Support for intermittent fasting (16:8, 18:6, etc.) and extended fasts
+- **Database Integration**: All fasting sessions automatically saved to `fasting_sessions` table
+- **Progress Tracking**: Visual progress indicators with customizable count-up/count-down
+- **Eating Window Support**: Automatic transitions between fasting and eating periods
+- **Motivator Slideshow**: Background display of user's motivational images during fasting
+- **Real-time Sync**: Fasting data immediately available to AI for contextual support
 
-### Core Implementation
-- **Database Table**: `chat_conversations` - Stores persistent conversation history
-- **Edge Function**: `chat-completion` - Handles OpenAI API integration with configurable settings
-- **Real-time Context**: Integration with user's actual fasting data and session status
+### 🤖 AI-Powered Companion
+- **Advanced Function Calling**: AI can create, edit, and manage user motivators
+- **Contextual Coaching**: AI accesses real fasting data for personalized guidance
+- **Smart Conversation Memory**: Persistent chat history with automatic context building
+- **Multiple AI Models**: Support for GPT-4.1, GPT-4o-mini, and GPT-4o
+- **Voice Integration**: Text-to-speech responses and voice transcription
+- **Weak Moment Detection**: AI recognizes struggle keywords and provides targeted support
+- **Adaptive Suggestions**: Learning from user behavior to suggest better motivators
 
-### Features
-- ✅ **Persistent Conversations**: Chat history saved to database, accessible across sessions
-- ✅ **Conversation Management**: Create new chats, switch between conversations, delete old ones
-- ✅ **Voice Integration**: Voice-to-text input and text-to-speech responses
-- ✅ **Enhanced Context**: AI receives real fasting status, goals, duration, and history
-- ✅ **Admin Configuration**: Complete control over AI behavior via admin dashboard
+### 🎯 AI-Enhanced Motivator System
+- **Function-Based Creation**: AI can directly create motivators during conversations
+- **Onboarding Wizard**: Step-by-step guided setup with predefined templates
+- **AI Image Generation**: Automatic generation of motivational images using DALL-E
+- **Smart Categorization**: Automatic categorization based on content analysis
+- **Template Library**: Pre-built motivator templates for quick selection
+- **Context-Aware Suggestions**: AI suggests motivators based on fasting stage and user needs
+- **Admin Template Creation**: Voice-enabled admin tools for creating global templates
+- **Image Storage**: Support for motivator images with slideshow functionality
 
-### Configuration Options (Admin)
-- **System Prompts**: 4 built-in templates (Motivational Coach, Scientific Advisor, Casual Friend, Personal Trainer)
-- **Model Selection**: GPT-4.1, GPT-4o-mini, GPT-4o with automatic fallbacks
-- **Response Control**: Temperature (0.1-2.0), max tokens (100-4000), response style
-- **Context Toggle**: Enable/disable real fasting data inclusion
-- **Template Management**: Save and load custom prompt templates
+### 👤 User Management & Authentication
+- **Supabase Authentication**: Secure user registration and login
+- **User Profiles**: Customizable profiles with fasting preferences
+- **Role-Based Access**: Admin and user roles with appropriate permissions
+- **API Key Management**: Support for personal OpenAI keys or shared admin keys
+- **Usage Tracking**: Monitor AI request limits and user activity
 
-### Technical Architecture
-```
-User Input → Frontend → Supabase Edge Function → OpenAI API
-                    ↓
-Database (conversations) ← Fasting Context ← User Profile
-```
+### 📊 Advanced Analytics & Tracking
+- **Fasting Session History**: Complete database of all fasting sessions with start/end times
+- **Progress Visualization**: Real-time tracking of fasting progress and goals
+- **Achievement System**: Milestone tracking and celebration
+- **Usage Statistics**: AI request monitoring and performance metrics
+- **Real-time Context**: Live fasting data integration for AI conversations
 
-### Limitations
-- Conversations are user-specific (no sharing)
-- Voice features require OpenAI API key
-- Context limited to last 10 messages for performance
+### ⚙️ Admin Dashboard & Controls
+- **Comprehensive Admin Panel**: Full control over app configuration
+- **AI Behavior Controls**: Fine-tune AI responses and triggers
+  - Weak moment keyword configuration (customizable trigger words)
+  - Motivator suggestion frequency (1-10 scale)
+  - Coaching encouragement level (education vs. encouragement balance)
+  - Auto-trigger settings for motivators during fasting
+  - Slideshow transition timing (5-60 seconds)
+- **User Management**: Upgrade/downgrade users, reset usage limits
+- **API Key Management**: Shared OpenAI key configuration
+- **Voice-Enabled Admin Motivator Creation**: Create global template motivators using voice input
+- **Storage Management**: Monitor and manage uploaded images
+- **PWA Configuration**: Customize app appearance and behavior
 
----
+### 🔧 Technical Features
+- **Real-time Database Integration**: Live synchronization across all components
+- **Offline Support**: PWA capabilities for offline usage
+- **Responsive Design**: Optimized for mobile and desktop
+- **Modern Tech Stack**: React, TypeScript, Tailwind CSS, Supabase
+- **Image Storage**: Secure cloud storage for motivator images with `image_url` database field
+- **Edge Functions**: Server-side AI processing and integrations
 
-## 💾 Storage Management System
+## AI Integration Capabilities
 
-### Hybrid Storage Architecture
-The app implements a **two-tier storage system** based on user subscription status:
+### Function Calling System
+- **Motivator Management**: AI can create, update, and delete user motivators
+- **Image Generation**: AI can generate motivational images on demand
+- **Smart Suggestions**: Context-aware motivator recommendations
+- **Real-time Updates**: Immediate reflection of AI actions in the UI
 
-#### Free Users (Local Storage)
-- **Limit**: 10 images maximum
-- **Storage**: Browser localStorage using IndexedDB principles
-- **Compression**: Automatic image compression (max 1024px, 80% quality)
-- **Persistence**: Device-specific, lost on browser data clear
-- **Size Management**: Auto-cleanup when total size exceeds 50MB
+### Contextual Intelligence
+- **Fasting Data Integration**: AI has access to current and historical fasting data
+- **Conversation Memory**: Persistent chat history with smart context building
+- **User Behavior Learning**: AI adapts suggestions based on user patterns
+- **Weak Moment Support**: Automatic detection and response to user struggles
 
-#### Paid Users (Cloud Storage)
-- **Limit**: Unlimited
-- **Storage**: Supabase Storage bucket (`motivator-images`)
-- **Compression**: Same compression as free users
-- **Persistence**: Permanent cloud storage with CDN delivery
-- **Security**: RLS policies ensure user-specific access
+### Admin-Controlled AI Behavior
+- **Configurable Responses**: Admins can tune AI personality and behavior
+- **Template Management**: Voice-enabled creation of global motivator templates
+- **Usage Monitoring**: Track AI requests and optimize performance
+- **Safety Controls**: Configurable content filtering and response guidelines
 
-### Implementation Details
+## Implemented Features
 
-#### Database Settings
-```sql
-shared_settings table:
-- free_user_image_limit: '10'
-- max_image_size_mb: '5'  
-- image_compression_quality: '0.8'
-```
+### ✅ Timer-Database Integration
+- **useFastingSession Hook**: Connects timer to database with full CRUD operations
+- **Automatic Session Management**: Start/stop/cancel fasting sessions
+- **Real-time Progress Tracking**: Live calculation of fasting duration and goals
+- **AI Context Integration**: Immediate availability of fasting data to AI
 
-#### Storage Logic (`src/utils/imageUtils.ts`)
-```typescript
-// Hybrid upload logic
-if (isPaidUser) {
-  // Upload to Supabase Storage
-  return supabase.storage.from('motivator-images').upload()
-} else {
-  // Compress and save to localStorage
-  return saveImageLocally(compressed)
-}
-```
+### ✅ Motivator Slideshow
+- **Background Image Display**: Subtle slideshow of motivator images in timer background
+- **Configurable Transitions**: Admin-controlled timing (5-60 seconds)
+- **Visual Effects**: Blur, brightness, and gradient overlays for optimal timer visibility
+- **Smart Filtering**: Only shows motivators with images
 
-#### Local Storage Structure
-```typescript
-interface LocalImage {
-  id: string;
-  userId: string;
-  dataUrl: string;        // Base64 encoded image
-  originalName: string;
-  size: number;
-  uploadedAt: string;
-}
-```
+### ✅ Admin AI Behavior Controls
+- **Weak Moment Detection**: Configurable keywords that trigger AI support
+- **Suggestion Frequency**: 1-10 scale for how often AI suggests new motivators
+- **Coaching Style**: Balance between educational and encouraging responses
+- **Auto-triggers**: Enable/disable automatic motivator displays during fasting
 
-### Features
-- ✅ **Automatic Compression**: Reduces file sizes by ~70-80%
-- ✅ **Storage Indicators**: Visual progress bars showing usage
-- ✅ **Smart Cleanup**: Removes oldest images when storage full
-- ✅ **Seamless Switching**: Upgrading to paid automatically enables cloud storage
-- ✅ **Error Handling**: Graceful fallbacks and user notifications
+### ✅ Admin Motivator Creation
+- **Voice Input Support**: Create motivators using voice transcription
+- **Template Management**: Create global templates available to all users
+- **Image Upload**: Support for motivator images with secure storage
+- **Category Organization**: Structured categorization system
 
-### Limitations
-- **Free Users**: 10 image limit, device-specific storage
-- **Paid Users**: 10MB max file size, jpeg compression only
-- **Migration**: No automatic migration from local to cloud storage
+## Database Schema Updates
 
----
+### Motivators Table
+- Added `image_url` column for storing motivator images
+- Full support for image-based motivational content
+- Integrated with slideshow functionality
 
-## 🧠 Enhanced AI Context System
+### Shared Settings
+- AI behavior configuration settings
+- Weak moment keywords management
+- Suggestion frequency controls
+- Admin template storage
 
-### Fasting Context Integration
-The AI receives comprehensive fasting context for personalized responses:
+## Planned Enhancements
 
-#### Data Sources
-```sql
--- Current active session
-fasting_sessions WHERE status = 'active'
+### Smart Coaching System
+- **Contextual Motivator Triggers**: Location and time-based motivator display
+- **Predictive Support**: AI anticipates user needs based on patterns
+- **Achievement Celebrations**: Automatic milestone recognition and rewards
+- **Progressive Motivation**: Escalating support during difficult moments
 
--- Historical completed sessions  
-fasting_sessions WHERE status = 'completed'
+### Social Features
+- **Anonymous Buddy System**: Peer support without identity exposure
+- **Group Challenges**: Community-based fasting goals
+- **Success Story Sharing**: Inspirational content from the community
+- **Shared Template Library**: User-contributed motivator templates
 
--- User preferences and goals
-profiles (goal_duration_seconds, etc.)
-```
-
-#### Context Information Provided
-- **Current Status**: Whether user is actively fasting
-- **Duration**: Hours fasted in current session
-- **Goals**: Target fasting duration and progress
-- **History**: Total fasts completed, average duration
-- **Timing**: Current time for meal suggestions
-- **Suggestions**: Calculated optimal break-fast times
-
-#### Implementation (`src/hooks/useFastingContext.tsx`)
-```typescript
-interface FastingContext {
-  isCurrentlyFasting: boolean;
-  currentFastDuration: number;     // hours
-  fastingGoal: number;            // hours  
-  timeUntilGoal: number;          // hours remaining
-  lastFastCompleted: Date | null;
-  averageFastDuration: number;
-  totalFastsCompleted: number;
-  suggestedMealTime: string;
-}
-```
-
-### Context String Generation
-The system builds intelligent context for the AI:
-```
-"User is currently fasting for 14.2 hours. Fasting goal: 16 hours. 
-Time until goal: 1.8 hours (suggested meal time: 2:30 PM). 
-Total fasts completed: 23. Average fast duration: 15.3 hours."
-```
+### Advanced Analytics
+- **Health Integration**: Connect with fitness and health apps
+- **Pattern Recognition**: AI-powered insights into fasting success factors
+- **Personalized Recommendations**: Data-driven suggestions for optimal fasting
+- **Predictive Modeling**: Forecast fasting success and suggest improvements
 
 ---
 
-## 🏗️ Database Architecture
-
-### Tables Overview
-
-#### `chat_conversations`
-```sql
-- id: UUID (primary key)
-- user_id: UUID (foreign key)
-- title: TEXT (auto-generated from first message)
-- messages: JSONB (array of message objects)
-- last_message_at: TIMESTAMP
-- created_at/updated_at: TIMESTAMP
-```
-
-#### `fasting_sessions`
-```sql
-- id: UUID (primary key)
-- user_id: UUID (foreign key)
-- start_time: TIMESTAMP
-- end_time: TIMESTAMP (nullable)
-- status: TEXT (active/completed/cancelled)
-- goal_duration_seconds: INTEGER
-- duration_seconds: INTEGER (calculated)
-```
-
-#### `motivators`
-```sql
-- id: UUID (primary key)
-- user_id: UUID (foreign key)
-- title: TEXT
-- content: TEXT
-- category: TEXT (personal/health/motivation)
-- is_active: BOOLEAN
-- created_at/updated_at: TIMESTAMP
-```
-
-#### `profiles`
-```sql
-- id: UUID (primary key)
-- user_id: UUID (foreign key)
-- display_name: TEXT
-- is_paid_user: BOOLEAN (storage tier)
-- monthly_ai_requests: INTEGER
-- openai_api_key: TEXT (encrypted)
-- speech_model/tts_model/etc: TEXT (AI preferences)
-```
-
-#### `shared_settings`
-```sql
-- setting_key: TEXT (unique)
-- setting_value: TEXT
-- Examples: ai_system_prompt, ai_temperature, free_user_image_limit
-```
-
-### Security (RLS Policies)
-- **User Isolation**: All tables have RLS policies ensuring users only access their data
-- **Admin Access**: Admins can view all data for management purposes
-- **API Security**: Edge functions validate user authentication before data access
-
----
-
-## 🎨 User Interface Features
-
-### Responsive Design
-- **Mobile-First**: Optimized for mobile fasting companion usage
-- **Progressive Web App**: PWA configuration for native app experience
-- **Dark/Light Mode**: Automatic theme switching based on user preference
-
-### Navigation
-- **Bottom Navigation**: Fixed navigation with 4 main sections
-- **Route Protection**: Authentication-gated routes for user data
-- **Deep Linking**: Direct URLs to specific features and conversations
-
-### Component Architecture
-```
-src/
-├── components/
-│   ├── ui/           # shadcn/ui components
-│   ├── Navigation.tsx
-│   ├── VoiceRecorder.tsx
-│   └── ImageUpload.tsx
-├── pages/
-│   ├── Timer.tsx     # Fasting timer
-│   ├── AiChat.tsx    # AI conversation
-│   ├── Motivators.tsx # Motivational content
-│   └── Settings.tsx  # User preferences
-└── hooks/
-    ├── useAuth.tsx
-    ├── useConversations.tsx
-    └── useFastingContext.tsx
-```
-
----
-
-## 🔧 Admin Dashboard
-
-### User Management
-- **View All Users**: List with fasting stats and subscription status
-- **Toggle Paid Status**: Instantly upgrade/downgrade users
-- **Reset Usage**: Clear AI request limits and fasting data
-- **User Analytics**: Total users, paid conversion, AI usage stats
-
-### AI Configuration
-- **System Prompt Management**: Live editing with character counter
-- **Model Settings**: Temperature, tokens, model selection
-- **Template System**: Pre-built and custom prompt templates
-- **Context Controls**: Toggle fasting data inclusion
-- **Usage Monitoring**: Track AI requests and costs
-
-### System Settings
-- **PWA Configuration**: App name, colors, descriptions
-- **Storage Management**: Monitor bucket usage and costs
-- **API Key Management**: Shared OpenAI key for paid users
-- **Feature Flags**: Enable/disable experimental features
-
-### Analytics Dashboard
-```typescript
-interface UsageStats {
-  total_users: number;
-  paid_users: number;
-  total_ai_requests: number;
-  monthly_ai_requests: number;
-  storage_usage_mb: number;
-}
-```
-
----
-
-## 🔐 Authentication & Security
-
-### Authentication Provider
-- **Supabase Auth**: Email/password authentication
-- **Row Level Security**: Database-level access control
-- **Session Management**: Persistent login with automatic refresh
-- **Route Protection**: Frontend route guards for authenticated areas
-
-### API Security
-- **Edge Functions**: Server-side API key management
-- **User Isolation**: RLS policies prevent cross-user data access
-- **Input Validation**: Sanitization of all user inputs
-- **Rate Limiting**: Built-in Supabase protections
-
-### Data Privacy
-- **Local Storage**: Free users' images never leave their device
-- **Encryption**: API keys stored encrypted in database
-- **GDPR Compliance**: User data deletion capabilities
-- **Audit Trails**: Timestamp tracking for all user actions
-
----
-
-## 🚀 Performance Optimizations
-
-### Frontend Optimizations
-- **React Query**: Intelligent caching and background updates
-- **Lazy Loading**: Components loaded on demand
-- **Image Compression**: Automatic size reduction before storage
-- **Bundle Splitting**: Optimized build outputs for faster loading
-
-### Database Optimizations
-- **Indexing**: Strategic indexes on frequently queried columns
-- **Connection Pooling**: Supabase built-in connection management
-- **Query Optimization**: Efficient joins and selective data fetching
-- **RLS Performance**: Optimized security policies
-
-### Storage Optimizations
-- **CDN Delivery**: Supabase Storage includes global CDN
-- **Compression**: Automatic image optimization
-- **Cleanup Jobs**: Scheduled removal of orphaned files
-- **Local Caching**: Browser-based storage for free users
-
----
-
-## 📱 Progressive Web App (PWA)
-
-### PWA Features
-- **Installable**: Add to home screen on mobile devices
-- **Offline Capable**: Core features work without internet
-- **Push Notifications**: Fasting reminders and motivation (future)
-- **Native Feel**: App-like experience on all platforms
-
-### Configuration
-```json
-// manifest.json (admin configurable)
-{
-  "name": "Fast Now - Fasting Companion",
-  "short_name": "Fast Now",
-  "theme_color": "#8B7355",
-  "background_color": "#F5F2EA",
-  "display": "standalone"
-}
-```
-
----
-
-## 🔄 Edge Functions
-
-### Current Functions
-1. **`chat-completion`**: OpenAI API integration with context enhancement
-2. **`text-to-speech`**: Convert AI responses to audio
-3. **`transcribe`**: Voice-to-text conversion
-4. **`connection-token`**: Real-time chat session management
-
-### Function Features
-- **Environment Variables**: Secure API key management
-- **Error Handling**: Comprehensive error logging and user feedback
-- **CORS Support**: Cross-origin request handling
-- **Rate Limiting**: Built-in Supabase protections
-
----
-
-## 🎯 Roadmap & Future Features
-
-### Phase 1 (Current)
-- ✅ AI Chat with context
-- ✅ Hybrid storage system
-- ✅ Admin dashboard
-- ✅ Conversation persistence
-
-### Phase 2 (Planned)
-- 🔲 Push notifications for fasting reminders
-- 🔲 Social features (share progress, community)
-- 🔲 Advanced analytics and insights
-- 🔲 Integration with health apps (Apple Health, Google Fit)
-
-### Phase 3 (Future)
-- 🔲 Nutrition tracking integration
-- 🔲 Personalized fasting plan recommendations
-- 🔲 Wearable device integration
-- 🔲 Multi-language support
-
----
-
-## 🐛 Known Limitations
-
-### Technical Limitations
-- **API Dependencies**: Requires OpenAI API for full AI features
-- **Browser Storage**: Free users limited by browser storage quotas
-- **Real-time Sync**: Conversations don't sync in real-time across devices
-- **Image Formats**: Limited to JPEG compression for storage efficiency
-
-### Business Limitations
-- **Subscription Model**: Manual upgrade process (no payment integration yet)
-- **Usage Tracking**: AI request limits not automatically enforced
-- **Customer Support**: No built-in help desk or chat support
-- **Analytics**: Limited user behavior tracking
-
-### Scalability Considerations
-- **Database Size**: JSONB message storage may impact performance at scale
-- **Storage Costs**: Unlimited paid user storage could become expensive
-- **AI Costs**: No automatic budget controls for OpenAI usage
-- **Edge Function Limits**: Supabase function execution time limits
-
----
-
-## 🛠️ Development Guidelines
-
-### Code Organization
-- **TypeScript**: Strict typing throughout the application
-- **Component Structure**: Reusable UI components with shadcn/ui
-- **Hook Patterns**: Custom hooks for data management
-- **Error Boundaries**: Graceful error handling
-
-### Database Patterns
-- **RLS First**: Always implement Row Level Security
-- **Audit Trails**: Timestamp tracking on all tables
-- **Soft Deletes**: Preserve data integrity where possible
-- **Normalized Design**: Avoid data duplication
-
-### Deployment Process
-1. **Development**: Test locally with Supabase local development
-2. **Staging**: Deploy to Lovable preview environment
-3. **Production**: Deploy via GitHub integration
-4. **Monitoring**: Track performance and errors via Supabase dashboard
-
----
-
-*Last Updated: January 23, 2025*
-*Version: 1.0.0*
+*Last updated: January 2025*
+*Version: 2.1 - Complete Timer Integration & Admin Controls*
