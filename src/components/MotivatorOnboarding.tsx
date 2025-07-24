@@ -120,7 +120,7 @@ export const MotivatorOnboarding = ({ onComplete, onSkip }: MotivatorOnboardingP
 
   if (currentStep === 'intro') {
     return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 md:absolute md:inset-0">
         <Card className="bg-ceramic-plate/95 backdrop-blur-sm p-8 max-w-lg w-full border-ceramic-rim">
           <div className="text-center space-y-6">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
@@ -169,7 +169,7 @@ export const MotivatorOnboarding = ({ onComplete, onSkip }: MotivatorOnboardingP
 
   if (currentStep === 'selection') {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 md:absolute md:inset-0">
         <Card className="bg-ceramic-plate/95 backdrop-blur-sm p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border-ceramic-rim">
           <div className="space-y-6">
             <div className="text-center space-y-2">
@@ -256,7 +256,7 @@ export const MotivatorOnboarding = ({ onComplete, onSkip }: MotivatorOnboardingP
 
   if (currentStep === 'complete') {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 md:absolute md:inset-0">
         <Card className="bg-ceramic-plate/95 backdrop-blur-sm p-8 max-w-lg w-full border-ceramic-rim">
           <div className="text-center space-y-6">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">

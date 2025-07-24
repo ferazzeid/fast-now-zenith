@@ -268,11 +268,11 @@ const AiChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base flex">
-      {/* Sidebar with conversation history */}
-      <div className="w-80 bg-ceramic-plate border-r border-ceramic-rim p-4 hidden md:block">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-warm-text">Conversations</h2>
+    <div className="h-full bg-ceramic-base flex flex-col pb-20">
+      {/* Mobile conversation selector */}
+      <div className="md:hidden p-4 border-b border-ceramic-rim bg-ceramic-plate">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-semibold text-warm-text">AI Chat</h2>
           <Button
             onClick={startNewConversation}
             size="sm"
@@ -281,181 +281,337 @@ const AiChat = () => {
             <Plus className="w-4 h-4" />
           </Button>
         </div>
-        
-        <ScrollArea className="h-[calc(100vh-200px)]">
-          <div className="space-y-2">
-            {conversations.map((conversation) => (
-              <div
+        {conversations.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {conversations.slice(-3).map((conversation) => (
+              <Button
                 key={conversation.id}
-                className={`p-3 rounded-lg cursor-pointer transition-colors group ${
-                  currentConversation?.id === conversation.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-ceramic-base hover:bg-ceramic-rim'
-                }`}
+                variant={currentConversation?.id === conversation.id ? "default" : "outline"}
+                size="sm"
                 onClick={() => setCurrentConversation(conversation)}
+                className="whitespace-nowrap"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {conversation.title || 'Untitled'}
-                    </p>
-                    <p className="text-xs opacity-70">
-                      {new Date(conversation.last_message_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteConversation(conversation.id);
-                    }}
-                    size="sm"
-                    variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+                {conversation.title || 'Chat'}
+              </Button>
             ))}
           </div>
-        </ScrollArea>
+        )}
       </div>
 
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
-        <div className="px-4 pt-8 pb-4">
-          <div className="max-w-2xl mx-auto">
-            {/* Header */}
-            <div className="text-center space-y-2 mb-6">
-              <h1 className="text-3xl font-bold text-warm-text">AI Fasting Companion</h1>
-              <p className="text-muted-foreground">
-                {currentConversation?.id === 'welcome' || !currentConversation 
-                  ? 'Start a conversation with your AI fasting companion'
-                  : currentConversation.title || 'Continuing conversation'
-                }
-              </p>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="audio-toggle"
-                    checked={audioEnabled}
-                    onCheckedChange={setAudioEnabled}
-                  />
-                  <Label htmlFor="audio-toggle" className="text-sm text-warm-text">
-                    Voice responses
-                  </Label>
-                  {audioEnabled ? (
-                    <Volume2 className="w-4 h-4 text-primary" />
-                  ) : (
-                    <VolumeX className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-
-              <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4 mr-2" />
-                    API Settings
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>OpenAI API Configuration</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="api-key">OpenAI API Key</Label>
-                      <Input
-                        id="api-key"
-                        type="password"
-                        placeholder="sk-..."
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Your API key is stored locally and never sent to our servers.
+      {/* Desktop sidebar - hidden on mobile */}
+      <div className="hidden md:flex">
+        <div className="w-80 bg-ceramic-plate border-r border-ceramic-rim p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-warm-text">Conversations</h2>
+            <Button
+              onClick={startNewConversation}
+              size="sm"
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <ScrollArea className="h-[calc(100vh-200px)]">
+            <div className="space-y-2">
+              {conversations.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                    currentConversation?.id === conversation.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-ceramic-base hover:bg-ceramic-rim'
+                  }`}
+                  onClick={() => setCurrentConversation(conversation)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {conversation.title || 'Untitled'}
+                      </p>
+                      <p className="text-xs opacity-70">
+                        {new Date(conversation.last_message_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
-                      Save API Key
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteConversation(conversation.id);
+                      }}
+                      size="sm"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Main chat area - desktop */}
+        <div className="flex-1 flex flex-col">
+          <div className="px-4 pt-8 pb-4">
+            <div className="max-w-2xl mx-auto">
+              {/* Header */}
+              <div className="text-center space-y-2 mb-6">
+                <h1 className="text-3xl font-bold text-warm-text">AI Fasting Companion</h1>
+                <p className="text-muted-foreground">
+                  {currentConversation?.id === 'welcome' || !currentConversation 
+                    ? 'Start a conversation with your AI fasting companion'
+                    : currentConversation.title || 'Continuing conversation'
+                  }
+                </p>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="audio-toggle"
+                      checked={audioEnabled}
+                      onCheckedChange={setAudioEnabled}
+                    />
+                    <Label htmlFor="audio-toggle" className="text-sm text-warm-text">
+                      Voice responses
+                    </Label>
+                    {audioEnabled ? (
+                      <Volume2 className="w-4 h-4 text-primary" />
+                    ) : (
+                      <VolumeX className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+
+                <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Settings className="w-4 h-4 mr-2" />
+                      API Settings
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>OpenAI API Configuration</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="api-key">OpenAI API Key</Label>
+                        <Input
+                          id="api-key"
+                          type="password"
+                          placeholder="sk-..."
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Your API key is stored locally and never sent to our servers.
+                        </p>
+                      </div>
+                      <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
+                        Save API Key
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Messages */}
+              <Card className="bg-ceramic-plate border-ceramic-rim">
+                <div className="h-96 overflow-y-auto p-4 space-y-4">
+                  {getCurrentMessages().map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-ceramic-base text-warm-text border border-ceramic-rim'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <div className="flex items-center mt-1 space-x-2">
+                          <span className="text-xs opacity-70">
+                            {message.timestamp.toLocaleTimeString()}
+                          </span>
+                          {message.audioEnabled && (
+                            <Volume2 className="w-3 h-3 opacity-70" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {isProcessing && (
+                    <div className="flex justify-start">
+                      <div className="bg-ceramic-base text-warm-text border border-ceramic-rim px-4 py-2 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          <span className="text-sm">AI is thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </Card>
+
+              {/* Input area */}
+              <div className="mt-4 space-y-4">
+                <div className="flex space-x-2">
+                  <Input
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Type your message here..."
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    disabled={isProcessing}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || isProcessing}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex justify-center">
+                  <VoiceRecorder 
+                    onTranscription={handleVoiceTranscription}
+                    isDisabled={isProcessing}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile chat area */}
+      <div className="md:hidden flex-1 flex flex-col">
+        <div className="px-4 pt-4 flex-1 flex flex-col">
+          {/* Controls */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="audio-toggle-mobile"
+                checked={audioEnabled}
+                onCheckedChange={setAudioEnabled}
+              />
+              <Label htmlFor="audio-toggle-mobile" className="text-xs text-warm-text">
+                Voice
+              </Label>
+              {audioEnabled ? (
+                <Volume2 className="w-3 h-3 text-primary" />
+              ) : (
+                <VolumeX className="w-3 h-3 text-muted-foreground" />
+              )}
             </div>
 
-            {/* Messages */}
-            <Card className="bg-ceramic-plate border-ceramic-rim">
-              <div className="h-96 overflow-y-auto p-4 space-y-4">
-                {getCurrentMessages().map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-ceramic-base text-warm-text border border-ceramic-rim'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      <div className="flex items-center mt-1 space-x-2">
-                        <span className="text-xs opacity-70">
-                          {message.timestamp.toLocaleTimeString()}
-                        </span>
-                        {message.audioEnabled && (
-                          <Volume2 className="w-3 h-3 opacity-70" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {isProcessing && (
-                  <div className="flex justify-start">
-                    <div className="bg-ceramic-base text-warm-text border border-ceramic-rim px-4 py-2 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                        <span className="text-sm">AI is thinking...</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </Card>
-
-            {/* Input area */}
-            <div className="mt-4 space-y-4">
-              <div className="flex space-x-2">
-                <Input
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Type your message here..."
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  disabled={isProcessing}
-                  className="bg-ceramic-base border-ceramic-rim"
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isProcessing}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Send className="w-4 h-4" />
+            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings className="w-3 h-3" />
                 </Button>
-              </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>OpenAI API Configuration</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="api-key-mobile">OpenAI API Key</Label>
+                    <Input
+                      id="api-key-mobile"
+                      type="password"
+                      placeholder="sk-..."
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your API key is stored locally and never sent to our servers.
+                    </p>
+                  </div>
+                  <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
+                    Save API Key
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-              <div className="flex justify-center">
-                <VoiceRecorder 
-                  onTranscription={handleVoiceTranscription}
-                  isDisabled={isProcessing}
-                />
-              </div>
+          {/* Messages */}
+          <Card className="bg-ceramic-plate border-ceramic-rim flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {getCurrentMessages().map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[280px] px-3 py-2 rounded-lg ${
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-ceramic-base text-warm-text border border-ceramic-rim'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex items-center mt-1 space-x-2">
+                      <span className="text-xs opacity-70">
+                        {message.timestamp.toLocaleTimeString()}
+                      </span>
+                      {message.audioEnabled && (
+                        <Volume2 className="w-3 h-3 opacity-70" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {isProcessing && (
+                <div className="flex justify-start">
+                  <div className="bg-ceramic-base text-warm-text border border-ceramic-rim px-3 py-2 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                      <span className="text-sm">AI is thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </Card>
+
+          {/* Input area */}
+          <div className="mt-3 space-y-3">
+            <div className="flex space-x-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Type your message here..."
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                disabled={isProcessing}
+                className="bg-ceramic-base border-ceramic-rim text-sm"
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim() || isProcessing}
+                className="bg-primary hover:bg-primary/90"
+                size="sm"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="flex justify-center pb-2">
+              <VoiceRecorder 
+                onTranscription={handleVoiceTranscription}
+                isDisabled={isProcessing}
+              />
             </div>
           </div>
         </div>
