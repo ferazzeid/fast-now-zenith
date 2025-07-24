@@ -150,72 +150,97 @@ const Settings = () => {
             </div>
             
             <div className="space-y-4">
-              {/* API Key Source Selection */}
+              {/* AI Service Status */}
               <div className="space-y-3">
-                <Label className="text-warm-text">API Key Source</Label>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="use-shared"
-                      name="api-source"
-                      checked={!useOwnKey}
-                      onChange={() => setUseOwnKey(false)}
-                      className="text-primary"
-                    />
-                    <Label htmlFor="use-shared" className="text-sm">Use shared service</Label>
-                  </div>
-                  {subscription.can_use_own_api_key && (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="use-own"
-                        name="api-source"
-                        checked={useOwnKey}
-                        onChange={() => setUseOwnKey(true)}
-                        className="text-primary"
-                      />
-                      <Label htmlFor="use-own" className="text-sm">Use my own API key</Label>
+                {subscription.subscribed ? (
+                  <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Crown className="w-5 h-5 text-green-500" />
+                      <span className="font-medium text-green-600 dark:text-green-400">Premium AI Access</span>
                     </div>
-                  )}
-                </div>
-                {!subscription.can_use_own_api_key && (
-                  <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
-                    <p className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
-                      Own API key option requires premium subscription or unused free requests
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      You have unlimited access to our shared AI service. No setup required!
                     </p>
+                  </div>
+                ) : (
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreditCard className="w-5 h-5 text-blue-500" />
+                      <span className="font-medium text-blue-600 dark:text-blue-400">Free Tier AI Access</span>
+                    </div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      You get {subscription.request_limit} AI requests using our shared service. 
+                      Used: {subscription.requests_used}/{subscription.request_limit}
+                    </p>
+                    {subscription.requests_used >= subscription.request_limit && (
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                        Upgrade to premium for unlimited AI features, or use the app as a fasting tracker.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* API Key Input (only if using own key) */}
-              {useOwnKey && (
-                <div className="space-y-3">
-                  <Label htmlFor="api-key" className="text-warm-text">
-                    OpenAI API Key
-                  </Label>
-                  <div className="space-y-2">
-                    <Input
-                      id="api-key"
-                      type={isKeyVisible ? 'text' : 'password'}
-                      placeholder="sk-..."
-                      value={openAiKey}
-                      onChange={(e) => setOpenAiKey(e.target.value)}
-                      className="bg-ceramic-base border-ceramic-rim"
-                    />
+              {/* Advanced: Own API Key (Premium only, collapsible) */}
+              {subscription.subscribed && (
+                <details className="group">
+                  <summary className="cursor-pointer select-none">
+                    <div className="flex items-center justify-between p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
+                      <div className="flex items-center gap-2">
+                        <Key className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-warm-text">Advanced: Use my own API key</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+                    </div>
+                  </summary>
+                  
+                  <div className="mt-3 space-y-3 p-3 bg-ceramic-base/50 rounded-lg border border-ceramic-rim/50">
+                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Optional: Use your own OpenAI API key for custom model control. Most users don't need this.
+                      </p>
+                    </div>
+                    
                     <div className="flex items-center space-x-2">
                       <Switch
-                        id="show-key"
-                        checked={isKeyVisible}
-                        onCheckedChange={setIsKeyVisible}
+                        id="use-own-key"
+                        checked={useOwnKey}
+                        onCheckedChange={setUseOwnKey}
                       />
-                      <Label htmlFor="show-key" className="text-sm text-muted-foreground">
-                        Show API key
+                      <Label htmlFor="use-own-key" className="text-sm text-warm-text">
+                        Use my own API key instead of shared service
                       </Label>
                     </div>
+
+                    {useOwnKey && (
+                      <div className="space-y-3">
+                        <Label htmlFor="api-key" className="text-warm-text">
+                          OpenAI API Key
+                        </Label>
+                        <div className="space-y-2">
+                          <Input
+                            id="api-key"
+                            type={isKeyVisible ? 'text' : 'password'}
+                            placeholder="sk-..."
+                            value={openAiKey}
+                            onChange={(e) => setOpenAiKey(e.target.value)}
+                            className="bg-ceramic-base border-ceramic-rim"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="show-key"
+                              checked={isKeyVisible}
+                              onCheckedChange={setIsKeyVisible}
+                            />
+                            <Label htmlFor="show-key" className="text-sm text-muted-foreground">
+                              Show API key
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </details>
               )}
 
               {/* Model Selection */}
