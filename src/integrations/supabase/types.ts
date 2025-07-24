@@ -403,14 +403,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      decrypt_api_key: {
-        Args: { encrypted_key: string }
-        Returns: string
-      }
-      encrypt_api_key: {
-        Args: { api_key: string }
-        Returns: string
-      }
       has_role: {
         Args: {
           _user_id: string

@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { validateInput, obfuscateApiKey, deobfuscateApiKey } from '@/utils/inputValidation';
 
 const Settings = () => {
   const [openAiKey, setOpenAiKey] = useState('');
@@ -28,10 +29,11 @@ const Settings = () => {
   const subscription = useSubscription();
 
   useEffect(() => {
-    // Load saved API key on component mount
-    const savedApiKey = localStorage.getItem('openai_api_key');
+    // Load and deobfuscate saved API key on component mount
+    const savedApiKey = localStorage.getItem('openai_api_key_secure');
     if (savedApiKey) {
-      setOpenAiKey(savedApiKey);
+      const deobfuscated = deobfuscateApiKey(savedApiKey);
+      setOpenAiKey(deobfuscated);
     }
 
     const checkAdminRole = async () => {
@@ -75,10 +77,24 @@ const Settings = () => {
 
   const handleSaveSettings = async () => {
     try {
-      // Save API key locally if using own key
+      // Validate API key if provided
       if (useOwnKey && openAiKey.trim()) {
-        localStorage.setItem('openai_api_key', openAiKey);
+        const validation = validateInput('title', openAiKey); // Use title validation for API key format
+        if (!validation.isValid || !openAiKey.startsWith('sk-')) {
+          toast({
+            title: "Invalid API Key",
+            description: "Please enter a valid OpenAI API key starting with 'sk-'",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Store obfuscated key in localStorage
+        const obfuscated = obfuscateApiKey(openAiKey);
+        localStorage.setItem('openai_api_key_secure', obfuscated);
+        localStorage.removeItem('openai_api_key'); // Remove old insecure storage
       } else if (!useOwnKey) {
+        localStorage.removeItem('openai_api_key_secure');
         localStorage.removeItem('openai_api_key');
       }
 
@@ -125,7 +141,8 @@ const Settings = () => {
 
   const handleClearApiKey = () => {
     setOpenAiKey('');
-    localStorage.removeItem('openai_api_key');
+    localStorage.removeItem('openai_api_key_secure');
+    localStorage.removeItem('openai_api_key'); // Remove old insecure storage
     toast({
       title: "🗑️ API Key Removed",
       description: "AI features have been disabled.",
@@ -225,8 +242,12 @@ const Settings = () => {
                             type={isKeyVisible ? 'text' : 'password'}
                             placeholder="sk-..."
                             value={openAiKey}
-                            onChange={(e) => setOpenAiKey(e.target.value)}
+                            onChange={(e) => {
+                              const validation = validateInput('title', e.target.value);
+                              setOpenAiKey(validation.sanitizedValue);
+                            }}
                             className="bg-ceramic-base border-ceramic-rim"
+                            maxLength={100}
                           />
                           <div className="flex items-center space-x-2">
                             <Switch
@@ -287,8 +308,12 @@ const Settings = () => {
                             type={isKeyVisible ? 'text' : 'password'}
                             placeholder="sk-..."
                             value={openAiKey}
-                            onChange={(e) => setOpenAiKey(e.target.value)}
+                            onChange={(e) => {
+                              const validation = validateInput('title', e.target.value);
+                              setOpenAiKey(validation.sanitizedValue);
+                            }}
                             className="bg-ceramic-base border-ceramic-rim"
+                            maxLength={100}
                           />
                           <div className="flex items-center space-x-2">
                             <Switch

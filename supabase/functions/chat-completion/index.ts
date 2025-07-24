@@ -75,10 +75,16 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Initialize Supabase client to fetch AI settings
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Initialize Supabase client for logging and tracking usage
+    if (!profile.use_own_api_key) {
+      // Track usage for non-own-API-key users
+      await supabase
+        .from('profiles')
+        .update({ 
+          monthly_ai_requests: (profile.monthly_ai_requests || 0) + 1 
+        })
+        .eq('user_id', userId);
+    }
 
     // Fetch AI configuration from database
     const { data: aiSettingsData } = await supabase
@@ -265,11 +271,45 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in chat-completion function:', error);
+    console.error('Error in chat-completion function:', {
+      error: error.message,
+      timestamp: new Date().toISOString(),
+      userId: req.headers.get('Authorization') ? 'authenticated' : 'unauthenticated'
+    });
+    
+    // Log security event for suspicious activity
+    try {
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: userData } = await supabase.auth.getUser(token);
+        if (userData.user) {
+          await supabase.rpc('log_security_event', {
+            _user_id: userData.user.id,
+            _event_type: 'ai_request_error',
+            _details: { error: error.message, timestamp: new Date().toISOString() }
+          });
+        }
+      }
+    } catch (logError) {
+      console.error('Failed to log security event:', logError);
+    }
+    
+    // Return generic error message to prevent information leakage
+    const isAuthError = error.message.includes('authentication') || error.message.includes('authorization');
+    const isRateLimitError = error.message.includes('limit');
+    
+    let publicMessage = 'An unexpected error occurred. Please try again later.';
+    if (isAuthError) {
+      publicMessage = 'Authentication required. Please sign in and try again.';
+    } else if (isRateLimitError) {
+      publicMessage = error.message; // Rate limit messages are safe to show
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: publicMessage }),
       {
-        status: 500,
+        status: isAuthError ? 401 : 500,
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
