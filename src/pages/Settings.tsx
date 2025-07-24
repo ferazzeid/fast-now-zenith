@@ -671,7 +671,7 @@ const Settings = () => {
             
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground text-center">
-                Fast Now - Your mindful fasting companion
+                FastNow - Your mindful app
               </p>
             </div>
             

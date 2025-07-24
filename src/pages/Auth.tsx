@@ -51,9 +51,9 @@ const Auth = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              Fast Now
+              FastNow
             </h1>
-            <p className="text-muted-foreground">Your mindful fasting companion</p>
+            <p className="text-muted-foreground">Your mindful app</p>
           </div>
         </div>
 

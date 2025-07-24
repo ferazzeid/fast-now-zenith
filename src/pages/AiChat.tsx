@@ -53,7 +53,7 @@ const AiChat = () => {
     if (!currentConversation && conversations.length === 0 && !conversationsLoading) {
       const welcomeMessage: Message = {
         role: 'assistant',
-        content: "Hello! I'm your AI fasting companion. I'm here to support you on your fasting journey with motivation, guidance, and answers to your questions. How can I help you today?",
+        content: "Hello! I'm your AI companion. I'm here to support you on your fasting journey with motivation, guidance, and answers to your questions. How can I help you today?",
         timestamp: new Date()
       };
       // Don't save welcome message to database, just show it
@@ -357,10 +357,10 @@ const AiChat = () => {
             <div className="max-w-2xl mx-auto">
               {/* Header */}
               <div className="text-center space-y-2 mb-6">
-                <h1 className="text-3xl font-bold text-warm-text">AI Fasting Companion</h1>
+                <h1 className="text-3xl font-bold text-warm-text">AI Companion</h1>
                 <p className="text-muted-foreground">
                   {currentConversation?.id === 'welcome' || !currentConversation 
-                    ? 'Start a conversation with your AI fasting companion'
+                    ? 'Start a conversation with your AI companion'
                     : currentConversation.title || 'Continuing conversation'
                   }
                 </p>

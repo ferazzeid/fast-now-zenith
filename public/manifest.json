@@ -1,7 +1,7 @@
 {
-  "name": "Fast Now - Mindful Fasting",
-  "short_name": "Fast Now",
-  "description": "Your mindful fasting companion with AI-powered motivation",
+  "name": "FastNow - Mindful App",
+  "short_name": "FastNow",
+  "description": "Your mindful app with AI-powered motivation",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F5F2EA",

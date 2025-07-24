@@ -130,7 +130,7 @@ const Timer = () => {
       <div className="max-w-md mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-warm-text">Fast Now</h1>
+          <h1 className="text-3xl font-bold text-warm-text">FastNow</h1>
           <p className="text-muted-foreground">{getCurrentMode()}</p>
         </div>
 
