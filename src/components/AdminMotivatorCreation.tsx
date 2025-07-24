@@ -10,7 +10,7 @@ import { VoiceRecorder } from './VoiceRecorder';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { validateInput, validateJsonInput } from '@/utils/inputValidation';
+// Removed complex validation - using simple form validation
 
 interface AdminMotivatorTemplate {
   id: string;
@@ -49,30 +49,16 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
   ];
 
   const handleVoiceTranscription = (transcription: string) => {
-    // Validate and sanitize voice input
-    const titleValidation = validateInput('title', transcription);
-    if (!titleValidation.isValid) {
-      toast({
-        title: "Invalid Voice Input",
-        description: titleValidation.errors.join(', '),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Use AI to parse the voice input into title and description
-    const lines = titleValidation.sanitizedValue.split('\n').filter(line => line.trim());
+    // Simple parsing of voice input into title and description
+    const lines = transcription.split('\n').filter(line => line.trim());
     if (lines.length > 0) {
       const titleLine = lines[0].trim();
       const descriptionLine = lines.slice(1).join(' ').trim() || titleLine;
       
-      // Validate description
-      const descValidation = validateInput('description', descriptionLine);
-      
       setNewTemplate(prev => ({
         ...prev,
         title: titleLine,
-        description: descValidation.sanitizedValue
+        description: descriptionLine
       }));
     }
     setShowVoiceRecorder(false);
@@ -83,15 +69,11 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
   };
 
   const createTemplate = async () => {
-    // Validate inputs
-    const titleValidation = validateInput('title', newTemplate.title);
-    const descValidation = validateInput('description', newTemplate.description);
-    
-    if (!titleValidation.isValid || !descValidation.isValid) {
-      const allErrors = [...titleValidation.errors, ...descValidation.errors];
+    // Simple validation
+    if (!newTemplate.title.trim() || !newTemplate.description.trim()) {
       toast({
         title: "Validation Error",
-        description: allErrors.join(', '),
+        description: "Title and description are required",
         variant: "destructive",
       });
       return;
@@ -99,31 +81,26 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
 
     setIsCreating(true);
     try {
-      const sanitizedTemplate = {
+      const template = {
         ...newTemplate,
         id: crypto.randomUUID(),
-        title: titleValidation.sanitizedValue,
-        description: descValidation.sanitizedValue
+        title: newTemplate.title.trim(),
+        description: newTemplate.description.trim()
       };
 
-      // Validate and save to shared_settings as admin template
-      const currentTemplates = [...existingTemplates, sanitizedTemplate];
-      const jsonValidation = validateJsonInput(JSON.stringify(currentTemplates));
-      
-      if (!jsonValidation.isValid) {
-        throw new Error('Template data validation failed: ' + jsonValidation.errors.join(', '));
-      }
+      // Save to shared_settings as admin template
+      const currentTemplates = [...existingTemplates, template];
       
       const { error } = await supabase
         .from('shared_settings')
         .update({ 
-          setting_value: jsonValidation.sanitizedValue
+          setting_value: JSON.stringify(currentTemplates)
         })
         .eq('setting_key', 'ai_admin_motivator_templates');
 
       if (error) throw error;
 
-      onTemplateCreated(sanitizedTemplate);
+      onTemplateCreated(template);
       setNewTemplate({ id: '', title: '', description: '', category: 'health', imageUrl: '' });
       
       toast({
@@ -145,16 +122,11 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
   const deleteTemplate = async (templateId: string) => {
     try {
       const updatedTemplates = existingTemplates.filter(t => t.id !== templateId);
-      const jsonValidation = validateJsonInput(JSON.stringify(updatedTemplates));
-      
-      if (!jsonValidation.isValid) {
-        throw new Error('Template data validation failed: ' + jsonValidation.errors.join(', '));
-      }
       
       const { error } = await supabase
         .from('shared_settings')
         .update({ 
-          setting_value: jsonValidation.sanitizedValue
+          setting_value: JSON.stringify(updatedTemplates)
         })
         .eq('setting_key', 'ai_admin_motivator_templates');
 
@@ -200,10 +172,7 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
               <Input
                 id="template-title"
                 value={newTemplate.title}
-                onChange={(e) => {
-                  const validation = validateInput('title', e.target.value);
-                  setNewTemplate(prev => ({ ...prev, title: validation.sanitizedValue }));
-                }}
+                onChange={(e) => setNewTemplate(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="e.g., Look Amazing in Summer"
                 className="bg-ceramic-plate border-ceramic-rim"
                 maxLength={200}
@@ -235,10 +204,7 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
             <Textarea
               id="template-description"
               value={newTemplate.description}
-              onChange={(e) => {
-                const validation = validateInput('description', e.target.value);
-                setNewTemplate(prev => ({ ...prev, description: validation.sanitizedValue }));
-              }}
+              onChange={(e) => setNewTemplate(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Describe the motivational goal or outcome..."
               className="bg-ceramic-plate border-ceramic-rim min-h-[100px]"
               maxLength={1000}
