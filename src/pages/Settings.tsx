@@ -131,7 +131,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-20">
+    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32">
       <div className="max-w-md mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
