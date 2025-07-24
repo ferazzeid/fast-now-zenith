@@ -159,7 +159,7 @@ const Settings = () => {
                       <span className="font-medium text-green-600 dark:text-green-400">Premium AI Access</span>
                     </div>
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      You have unlimited access to our shared AI coaching service. No setup required!
+                      You have unlimited access to our AI-powered fasting assistant. No setup required!
                     </p>
                   </div>
                 ) : (
@@ -177,7 +177,7 @@ const Settings = () => {
                       className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
                     >
                       <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium - More access to AI Coach
+                      Upgrade to Premium - Enhanced fasting support
                     </Button>
                   </div>
                 )}
@@ -325,7 +325,7 @@ const Settings = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Choose your preferred AI coach voice. Speech and transcription models are optimized by our team.
+                    Choose your preferred assistant voice. Speech and transcription models are optimized by our team.
                   </p>
                 </div>
               )}
@@ -424,7 +424,7 @@ const Settings = () => {
                       OpenAI Platform
                     </a></>
                   ) : (
-                    'Using shared AI coaching service. Voice and models are optimized by our team for the best experience.'
+                    'Using shared fasting assistant service. Voice and models are optimized by our team for the best experience.'
                   )}
                 </p>
               </div>
