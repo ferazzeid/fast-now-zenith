@@ -78,6 +78,11 @@ const AdminOverview = () => {
     theme_color: '#8B7355',
     background_color: '#F5F2EA'
   });
+  const [brandColors, setBrandColors] = useState({
+    primary: '140 35% 45%',
+    primary_hover: '140 35% 40%',
+    accent: '140 25% 85%'
+  });
   const [usageStats, setUsageStats] = useState<UsageStats>({
     total_users: 0,
     paid_users: 0,
@@ -177,7 +182,7 @@ const AdminOverview = () => {
       const { data: pwaData } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['pwa_app_name', 'pwa_short_name', 'pwa_description', 'pwa_theme_color', 'pwa_background_color']);
+        .in('setting_key', ['pwa_app_name', 'pwa_short_name', 'pwa_description', 'pwa_theme_color', 'pwa_background_color', 'brand_primary_color', 'brand_primary_hover', 'brand_accent_color']);
 
       if (pwaData) {
         const pwaMap = pwaData.reduce((acc, setting) => {
@@ -191,6 +196,12 @@ const AdminOverview = () => {
           description: pwaMap.pwa_description || '',
           theme_color: pwaMap.pwa_theme_color || '#8B7355',
           background_color: pwaMap.pwa_background_color || '#F5F2EA'
+        });
+        
+        setBrandColors({
+          primary: pwaMap.brand_primary_color || '140 35% 45%',
+          primary_hover: pwaMap.brand_primary_hover || '140 35% 40%',
+          accent: pwaMap.brand_accent_color || '140 25% 85%'
         });
       }
 
@@ -420,6 +431,38 @@ const AdminOverview = () => {
     }
   };
 
+  const saveBrandColors = async () => {
+    try {
+      const updates = [
+        { setting_key: 'brand_primary_color', setting_value: brandColors.primary },
+        { setting_key: 'brand_primary_hover', setting_value: brandColors.primary_hover },
+        { setting_key: 'brand_accent_color', setting_value: brandColors.accent }
+      ];
+
+      for (const update of updates) {
+        await supabase
+          .from('shared_settings')
+          .upsert(update, { onConflict: 'setting_key' });
+      }
+
+      // Update CSS variables in real-time
+      const root = document.documentElement;
+      root.style.setProperty('--primary', brandColors.primary);
+      root.style.setProperty('--accent', brandColors.accent);
+
+      toast({
+        title: "Success",
+        description: "Brand colors updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save brand colors",
+        variant: "destructive",
+      });
+    }
+  };
+
   const saveAiSettings = async () => {
     try {
       const updates = [
@@ -550,14 +593,14 @@ const AdminOverview = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-20 flex items-center justify-center">
+      <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32 safe-bottom flex items-center justify-center">
         <div className="text-warm-text">Loading admin dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-20">
+    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32 safe-bottom">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -1193,6 +1236,79 @@ const AdminOverview = () => {
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Save PWA Settings
+            </Button>
+          </div>
+        </Card>
+
+        {/* Brand Colors */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Settings className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Brand Colors</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Customize the primary action button colors to match your brand across all pages.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="primary-color" className="text-warm-text">Primary Color (HSL)</Label>
+                <Input
+                  id="primary-color"
+                  value={brandColors.primary}
+                  onChange={(e) => setBrandColors(prev => ({ ...prev, primary: e.target.value }))}
+                  placeholder="140 35% 45%"
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <div 
+                  className="w-full h-8 rounded border-2 border-ceramic-rim"
+                  style={{ backgroundColor: `hsl(${brandColors.primary})` }}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="primary-hover" className="text-warm-text">Primary Hover (HSL)</Label>
+                <Input
+                  id="primary-hover"
+                  value={brandColors.primary_hover}
+                  onChange={(e) => setBrandColors(prev => ({ ...prev, primary_hover: e.target.value }))}
+                  placeholder="140 35% 40%"
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <div 
+                  className="w-full h-8 rounded border-2 border-ceramic-rim"
+                  style={{ backgroundColor: `hsl(${brandColors.primary_hover})` }}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="accent-color" className="text-warm-text">Accent Color (HSL)</Label>
+                <Input
+                  id="accent-color"
+                  value={brandColors.accent}
+                  onChange={(e) => setBrandColors(prev => ({ ...prev, accent: e.target.value }))}
+                  placeholder="140 25% 85%"
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <div 
+                  className="w-full h-8 rounded border-2 border-ceramic-rim"
+                  style={{ backgroundColor: `hsl(${brandColors.accent})` }}
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                💡 Use HSL format (e.g., "140 35% 45%") for better control. Changes apply immediately to buttons and action elements.
+              </p>
+            </div>
+            
+            <Button
+              onClick={saveBrandColors}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Save Brand Colors
             </Button>
           </div>
         </Card>

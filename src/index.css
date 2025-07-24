@@ -131,3 +131,13 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .safe-top {
+    padding-top: max(2rem, env(safe-area-inset-top));
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(6rem, env(safe-area-inset-bottom) + 4rem);
+  }
+}
