@@ -868,6 +868,72 @@ const AdminOverview = () => {
           </div>
         </Card>
 
+        {/* Crisis Intervention Controls */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <h3 className="text-lg font-semibold text-warm-text">Crisis Intervention Controls</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-warm-text">Crisis Intervention Style</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    How the AI responds to panic button presses
+                  </p>
+                  <Select
+                    value={aiBehaviorSettings.crisis_style || 'psychological'}
+                    onValueChange={(value) => setAiBehaviorSettings(prev => ({
+                      ...prev,
+                      crisis_style: value as any
+                    }))}
+                  >
+                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="direct">Direct - Straightforward and assertive</SelectItem>
+                      <SelectItem value="motivational">Motivational - Uplifting and encouraging</SelectItem>
+                      <SelectItem value="tough_love">Tough Love - Firm but caring</SelectItem>
+                      <SelectItem value="psychological">Psychological - Uses persuasive pressure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-warm-text">Crisis Response Preview</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Test what users will see during crisis intervention
+                  </p>
+                  <div className="bg-red-950/20 border border-red-800/30 p-3 rounded-lg">
+                    <p className="text-sm text-red-800">
+                      {aiBehaviorSettings.crisis_style === 'psychological' ? 
+                        "You've given up before, haven't you? This feeling will pass, but giving up lasts forever..." :
+                        aiBehaviorSettings.crisis_style === 'tough_love' ?
+                        "Stop right there! You're stronger than this craving. Don't throw away your progress now." :
+                        aiBehaviorSettings.crisis_style === 'motivational' ?
+                        "You've got this! This difficult moment is proof that your fast is working." :
+                        "This is temporary. Your goals are permanent. Push through this moment."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={saveAiBehaviorSettings}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Save Crisis Settings
+            </Button>
+          </div>
+        </Card>
+
         {/* Admin Motivator Creation */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
           <div className="space-y-4">

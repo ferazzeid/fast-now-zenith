@@ -42,17 +42,17 @@ export const CrisisModal: React.FC<CrisisModalProps> = ({ isOpen, onClose }) => 
         .select('setting_key, setting_value')
         .in('setting_key', ['ai_crisis_style', 'ai_coaching_encouragement_level']);
 
+      const settingsMap: Record<string, string> = {};
       if (data) {
-        const settingsMap = data.reduce((acc, setting) => {
-          acc[setting.setting_key] = setting.setting_value;
-          return acc;
-        }, {} as Record<string, string>);
-
-        setCrisisSettings({
-          style: (settingsMap.ai_crisis_style as any) || 'psychological',
-          intensity: parseInt(settingsMap.ai_coaching_encouragement_level || '7')
+        data.forEach(setting => {
+          settingsMap[setting.setting_key] = setting.setting_value;
         });
       }
+
+      setCrisisSettings({
+        style: (settingsMap.ai_crisis_style as CrisisSettings['style']) || 'psychological',
+        intensity: parseInt(settingsMap.ai_coaching_encouragement_level || '7')
+      });
     } catch (error) {
       console.error('Error loading crisis settings:', error);
     }
@@ -75,7 +75,7 @@ export const CrisisModal: React.FC<CrisisModalProps> = ({ isOpen, onClose }) => 
         .from('motivators')
         .select('title, content, category')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .eq('is_active', true)
         .limit(3);
 
       const userGoals = motivators?.map(m => `${m.title} (${m.category})`).join(', ') || 'your fasting goals';
