@@ -67,7 +67,9 @@ export default {
 					base: 'hsl(var(--ceramic-base))',
 					warm: 'hsl(var(--ceramic-warm))',
 					shadow: 'hsl(var(--ceramic-shadow))',
-					deep: 'hsl(var(--ceramic-deep))'
+					deep: 'hsl(var(--ceramic-deep))',
+					plate: 'hsl(var(--ceramic-plate))',
+					rim: 'hsl(var(--ceramic-rim))'
 				},
 				progress: {
 					active: 'hsl(var(--progress-active))',
