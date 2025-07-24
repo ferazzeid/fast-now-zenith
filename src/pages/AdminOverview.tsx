@@ -96,6 +96,9 @@ const AdminOverview = () => {
   });
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [monthlyRequestLimit, setMonthlyRequestLimit] = useState('1000');
+  const [freeRequestLimit, setFreeRequestLimit] = useState('15');
+  const [updateLimitsLoading, setUpdateLimitsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -155,6 +158,22 @@ const AdminOverview = () => {
           theme_color: pwaMap.pwa_theme_color || '#8B7355',
           background_color: pwaMap.pwa_background_color || '#F5F2EA'
         });
+      }
+
+      // Fetch request limits
+      const { data: limitsData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+
+      if (limitsData) {
+        const limitsMap = limitsData.reduce((acc, setting) => {
+          acc[setting.setting_key] = setting.setting_value;
+          return acc;
+        }, {} as Record<string, string>);
+
+        setMonthlyRequestLimit(limitsMap.monthly_request_limit || '1000');
+        setFreeRequestLimit(limitsMap.free_request_limit || '15');
       }
 
       // Fetch AI settings
@@ -402,6 +421,34 @@ const AdminOverview = () => {
     }
   };
 
+  const updateRequestLimits = async () => {
+    setUpdateLimitsLoading(true);
+    try {
+      await supabase
+        .from('shared_settings')
+        .update({ setting_value: monthlyRequestLimit })
+        .eq('setting_key', 'monthly_request_limit');
+
+      await supabase
+        .from('shared_settings')
+        .update({ setting_value: freeRequestLimit })
+        .eq('setting_key', 'free_request_limit');
+
+      toast({
+        title: "Success",
+        description: "Request limits updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update request limits",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdateLimitsLoading(false);
+    }
+  };
+
   const clearStorageStats = async () => {
     try {
       const { data: files, error } = await supabase.storage
@@ -485,6 +532,79 @@ const AdminOverview = () => {
             </div>
           </Card>
         </div>
+
+        {/* Subscription Settings */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <h3 className="text-lg font-semibold text-warm-text mb-4 flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Subscription Settings
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-warm-text">Monthly Request Limit (Premium Users)</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="number"
+                    value={monthlyRequestLimit}
+                    onChange={(e) => setMonthlyRequestLimit(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                    min="100"
+                    max="10000"
+                    step="100"
+                  />
+                  <Button
+                    onClick={updateRequestLimits}
+                    disabled={updateLimitsLoading}
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {updateLimitsLoading ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Current: {monthlyRequestLimit} requests per month
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-warm-text">Free Request Limit (New Users)</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="number"
+                    value={freeRequestLimit}
+                    onChange={(e) => setFreeRequestLimit(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                    min="5"
+                    max="100"
+                    step="5"
+                  />
+                  <Button
+                    onClick={updateRequestLimits}
+                    disabled={updateLimitsLoading}
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {updateLimitsLoading ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Current: {freeRequestLimit} free requests per account
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-accent/20 p-4 rounded-lg">
+              <h4 className="font-medium text-warm-text mb-2">Usage Guidelines</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Set generous limits to prevent user frustration</li>
+                <li>• Monitor usage analytics to adjust accordingly</li>
+                <li>• Free limits encourage upgrades without being restrictive</li>
+                <li>• Premium limits should feel unlimited for normal usage</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
 
         {/* Shared OpenAI Key Management */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
