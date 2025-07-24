@@ -36,7 +36,30 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
+    // Get Stripe key from shared settings or environment variables
+    let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    try {
+      const { data: stripeKeyData } = await supabaseClient
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'stripe_secret_key')
+        .single();
+      
+      if (stripeKeyData?.setting_value) {
+        stripeKey = stripeKeyData.setting_value;
+        logStep("Using Stripe key from admin dashboard");
+      } else {
+        logStep("Using Stripe key from environment variables");
+      }
+    } catch (error) {
+      logStep("Could not fetch Stripe key from shared settings, using environment", { error: error.message });
+    }
+
+    if (!stripeKey) {
+      throw new Error("No Stripe secret key configured");
+    }
+
+    const stripe = new Stripe(stripeKey, { 
       apiVersion: "2023-10-16" 
     });
 

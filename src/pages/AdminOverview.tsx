@@ -63,7 +63,9 @@ interface AIBehaviorSettings {
 const AdminOverview = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [sharedApiKey, setSharedApiKey] = useState('');
+  const [stripeApiKey, setStripeApiKey] = useState('');
   const [isKeyVisible, setIsKeyVisible] = useState(false);
+  const [isStripeKeyVisible, setIsStripeKeyVisible] = useState(false);
   const [pwaSettings, setPwaSettings] = useState({
     app_name: '',
     short_name: '',
@@ -137,6 +139,17 @@ const AdminOverview = () => {
 
       if (settingsData) {
         setSharedApiKey(settingsData.setting_value || '');
+      }
+
+      // Fetch shared Stripe key
+      const { data: stripeSettingsData } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'stripe_secret_key')
+        .single();
+
+      if (stripeSettingsData) {
+        setStripeApiKey(stripeSettingsData.setting_value || '');
       }
 
       // Fetch PWA settings
@@ -312,6 +325,49 @@ const AdminOverview = () => {
       toast({
         title: "Success",
         description: "Shared OpenAI API key cleared",
+      });
+    }
+  };
+
+  const saveStripeApiKey = async () => {
+    const { error } = await supabase
+      .from('shared_settings')
+      .upsert({ 
+        setting_key: 'stripe_secret_key',
+        setting_value: stripeApiKey 
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save Stripe API key",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Stripe API key saved successfully",
+      });
+    }
+  };
+
+  const clearStripeApiKey = async () => {
+    const { error } = await supabase
+      .from('shared_settings')
+      .update({ setting_value: null })
+      .eq('setting_key', 'stripe_secret_key');
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear Stripe API key",
+        variant: "destructive",
+      });
+    } else {
+      setStripeApiKey('');
+      toast({
+        title: "Success",
+        description: "Stripe API key cleared",
       });
     }
   };
@@ -660,6 +716,73 @@ const AdminOverview = () => {
                 <p className="text-xs text-muted-foreground">
                   This API key will be used for all paid users. Usage: Free users (0 requests), 
                   Paid users (150 requests/month), Admin (unlimited).
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Stripe Configuration */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <DollarSign className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Stripe Configuration</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <Label htmlFor="stripe-api-key" className="text-warm-text">
+                Stripe Secret Key (Test or Live)
+              </Label>
+              <div className="space-y-2">
+                <Input
+                  id="stripe-api-key"
+                  type={isStripeKeyVisible ? 'text' : 'password'}
+                  placeholder="sk_test_... or sk_live_..."
+                  value={stripeApiKey}
+                  onChange={(e) => setStripeApiKey(e.target.value)}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="show-stripe-key"
+                    checked={isStripeKeyVisible}
+                    onCheckedChange={setIsStripeKeyVisible}
+                  />
+                  <Label htmlFor="show-stripe-key" className="text-sm text-muted-foreground">
+                    Show API key
+                  </Label>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Button
+                  onClick={saveStripeApiKey}
+                  disabled={!stripeApiKey.trim()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Save Stripe Key
+                </Button>
+                <Button
+                  onClick={clearStripeApiKey}
+                  variant="outline"
+                  className="bg-ceramic-base border-ceramic-rim"
+                >
+                  Clear
+                </Button>
+              </div>
+              
+              <div className="bg-accent/20 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  {stripeApiKey.startsWith('sk_test_') ? (
+                    <span className="text-yellow-600">⚠️ Test mode: Use this for testing. No real payments will be processed.</span>
+                  ) : stripeApiKey.startsWith('sk_live_') ? (
+                    <span className="text-green-600">✅ Live mode: Real payments will be processed.</span>
+                  ) : stripeApiKey ? (
+                    <span className="text-red-600">❌ Invalid key format. Must start with sk_test_ or sk_live_</span>
+                  ) : (
+                    "Configure your Stripe secret key to enable subscription payments. Test keys start with sk_test_, live keys with sk_live_."
+                  )}
                 </p>
               </div>
             </div>
