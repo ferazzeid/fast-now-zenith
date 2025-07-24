@@ -23,37 +23,41 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <div className="relative">
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Timer />
-                </ProtectedRoute>
-              } />
-              <Route path="/motivators" element={
-                <ProtectedRoute>
-                  <Motivators />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-chat" element={
-                <ProtectedRoute>
-                  <AiChat />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <AdminOverview />
-                </ProtectedRoute>  
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Navigation />
+          {/* Desktop frame background */}
+          <div className="min-h-screen bg-frame-background">
+            {/* Mobile-first centered container with phone-like frame */}
+            <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Timer />
+                  </ProtectedRoute>
+                } />
+                <Route path="/motivators" element={
+                  <ProtectedRoute>
+                    <Motivators />
+                  </ProtectedRoute>
+                } />
+                <Route path="/ai-chat" element={
+                  <ProtectedRoute>
+                    <AiChat />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <AdminOverview />
+                  </ProtectedRoute>  
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Navigation />
+            </div>
           </div>
         </AuthProvider>
       </BrowserRouter>

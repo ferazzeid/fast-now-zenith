@@ -80,6 +80,9 @@ export default {
 				},
 				shadow: {
 					soft: 'hsl(var(--soft-shadow))'
+				},
+				frame: {
+					background: 'hsl(var(--frame-background))'
 				}
 			},
 			borderRadius: {
