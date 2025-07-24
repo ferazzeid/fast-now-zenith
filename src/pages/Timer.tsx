@@ -131,7 +131,7 @@ const Timer = () => {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-warm-text">FastNow</h1>
-          <p className="text-muted-foreground">{getCurrentMode()}</p>
+          <p className="text-muted-foreground">App</p>
         </div>
 
         {/* Fast Type Selector */}

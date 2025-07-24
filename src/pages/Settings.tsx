@@ -188,7 +188,7 @@ const Settings = () => {
                       className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
                     >
                       <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium - Enhanced fasting support
+                      Upgrade to Premium
                     </Button>
                   </div>
                 )}
