@@ -29,6 +29,11 @@ interface UsageStats {
   paid_users: number;
   total_ai_requests: number;
   monthly_ai_requests: number;
+  users_at_free_limit: number;
+  users_near_premium_limit: number;
+  conversion_opportunities: number;
+  free_users_exhausted: number;
+  premium_users_over_80_percent: number;
 }
 
 interface AISettings {
@@ -78,6 +83,11 @@ const AdminOverview = () => {
     paid_users: 0,
     total_ai_requests: 0,
     monthly_ai_requests: 0,
+    users_at_free_limit: 0,
+    users_near_premium_limit: 0,
+    conversion_opportunities: 0,
+    free_users_exhausted: 0,
+    premium_users_over_80_percent: 0,
   });
   const [aiSettings, setAiSettings] = useState<AISettings>({
     system_prompt: '',
@@ -120,12 +130,23 @@ const AdminOverview = () => {
       if (profilesData) {
         setUsers(profilesData);
         
-        // Calculate usage stats
+        // Calculate enhanced usage stats
+        const freeLimit = parseInt(freeRequestLimit || '15');
+        const premiumLimit = parseInt(monthlyRequestLimit || '1000');
+        
+        const freeUsers = profilesData.filter(u => !u.is_paid_user);
+        const premiumUsers = profilesData.filter(u => u.is_paid_user);
+        
         const stats = {
           total_users: profilesData.length,
-          paid_users: profilesData.filter(u => u.is_paid_user).length,
+          paid_users: premiumUsers.length,
           total_ai_requests: profilesData.reduce((sum, u) => sum + (u.monthly_ai_requests || 0), 0),
           monthly_ai_requests: profilesData.reduce((sum, u) => sum + (u.monthly_ai_requests || 0), 0),
+          users_at_free_limit: freeUsers.filter(u => (u.monthly_ai_requests || 0) >= freeLimit).length,
+          users_near_premium_limit: premiumUsers.filter(u => (u.monthly_ai_requests || 0) >= premiumLimit * 0.8).length,
+          conversion_opportunities: freeUsers.filter(u => (u.monthly_ai_requests || 0) >= freeLimit * 0.8).length,
+          free_users_exhausted: freeUsers.filter(u => (u.monthly_ai_requests || 0) >= freeLimit).length,
+          premium_users_over_80_percent: premiumUsers.filter(u => (u.monthly_ai_requests || 0) >= premiumLimit * 0.8).length,
         };
         setUsageStats(stats);
       }
@@ -588,6 +609,71 @@ const AdminOverview = () => {
             </div>
           </Card>
         </div>
+
+        {/* Enhanced Analytics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Users at Free Limit</p>
+                <p className="text-2xl font-bold text-warm-text">{usageStats.free_users_exhausted}</p>
+                <p className="text-xs text-orange-600">Ready for upgrade prompts</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
+            <div className="flex items-center space-x-3">
+              <BarChart3 className="w-5 h-5 text-yellow-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Premium Users Near Limit</p>
+                <p className="text-2xl font-bold text-warm-text">{usageStats.premium_users_over_80_percent}</p>
+                <p className="text-xs text-yellow-600">Over 80% of {monthlyRequestLimit} requests</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
+            <div className="flex items-center space-x-3">
+              <DollarSign className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Conversion Ready</p>
+                <p className="text-2xl font-bold text-warm-text">{usageStats.conversion_opportunities}</p>
+                <p className="text-xs text-green-600">Free users near {freeRequestLimit} limit</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Limit Recommendations */}
+        {(usageStats.free_users_exhausted / Math.max(usageStats.total_users - usageStats.paid_users, 1) > 0.2) && (
+          <Card className="p-4 bg-yellow-50 border-yellow-200">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              <div>
+                <p className="font-medium text-yellow-800">Recommendation: Consider Increasing Free Limit</p>
+                <p className="text-sm text-yellow-700">
+                  Over 20% of free users have hit their limit. Consider increasing from {freeRequestLimit} to {parseInt(freeRequestLimit) + 5} requests.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {(usageStats.premium_users_over_80_percent / Math.max(usageStats.paid_users, 1) > 0.1) && (
+          <Card className="p-4 bg-orange-50 border-orange-200">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="font-medium text-orange-800">Alert: Premium Users Approaching Limit</p>
+                <p className="text-sm text-orange-700">
+                  {usageStats.premium_users_over_80_percent} premium users are using over 80% of their {monthlyRequestLimit} monthly requests.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Subscription Settings */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
@@ -1247,7 +1333,7 @@ const AdminOverview = () => {
                           {userData.display_name || 'Anonymous User'}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          AI Usage: {userData.monthly_ai_requests || 0}/150 requests
+                          AI Usage: {userData.monthly_ai_requests || 0}/{userData.is_paid_user ? monthlyRequestLimit : freeRequestLimit} requests
                         </p>
                       </div>
                       <Badge variant={userData.is_paid_user ? "default" : "secondary"}>
