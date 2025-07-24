@@ -213,6 +213,10 @@ export type Database = {
           monthly_ai_requests: number | null
           openai_api_key: string | null
           speech_model: string | null
+          stripe_customer_id: string | null
+          subscription_end_date: string | null
+          subscription_status: string | null
+          subscription_tier: string | null
           transcription_model: string | null
           tts_model: string | null
           tts_voice: string | null
@@ -229,6 +233,10 @@ export type Database = {
           monthly_ai_requests?: number | null
           openai_api_key?: string | null
           speech_model?: string | null
+          stripe_customer_id?: string | null
+          subscription_end_date?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
           transcription_model?: string | null
           tts_model?: string | null
           tts_voice?: string | null
@@ -245,6 +253,10 @@ export type Database = {
           monthly_ai_requests?: number | null
           openai_api_key?: string | null
           speech_model?: string | null
+          stripe_customer_id?: string | null
+          subscription_end_date?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
           transcription_model?: string | null
           tts_model?: string | null
           tts_voice?: string | null
@@ -275,6 +287,33 @@ export type Database = {
           setting_key?: string
           setting_value?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      usage_analytics: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          requests_count: number | null
+          subscription_status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          requests_count?: number | null
+          subscription_status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          requests_count?: number | null
+          subscription_status?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -310,6 +349,15 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      track_usage_event: {
+        Args: {
+          _user_id: string
+          _event_type: string
+          _requests_count?: number
+          _subscription_status?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
