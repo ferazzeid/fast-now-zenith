@@ -17,7 +17,7 @@ const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [useOwnKey, setUseOwnKey] = useState(true);
+  const [useOwnKey, setUseOwnKey] = useState(false);
   const [speechModel, setSpeechModel] = useState('gpt-4o-mini-realtime');
   const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
   const [ttsModel, setTtsModel] = useState('tts-1');
@@ -133,7 +133,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32">
+    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32 safe-top">
       <div className="max-w-md mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -159,12 +159,12 @@ const Settings = () => {
                       <span className="font-medium text-green-600 dark:text-green-400">Premium AI Access</span>
                     </div>
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      You have unlimited access to our shared AI service. No setup required!
+                      You have unlimited access to our shared AI coaching service. No setup required!
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2">
                       <CreditCard className="w-5 h-5 text-blue-500" />
                       <span className="font-medium text-blue-600 dark:text-blue-400">Free Tier AI Access</span>
                     </div>
@@ -172,23 +172,25 @@ const Settings = () => {
                       You get {subscription.request_limit} AI requests using our shared service. 
                       Used: {subscription.requests_used}/{subscription.request_limit}
                     </p>
-                    {subscription.requests_used >= subscription.request_limit && (
-                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 font-medium">
-                        Upgrade to premium for unlimited AI features, or use the app as a fasting tracker.
-                      </p>
-                    )}
+                    <Button
+                      onClick={subscription.createSubscription}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      Upgrade to Premium - More access to AI Coach
+                    </Button>
                   </div>
                 )}
               </div>
 
-              {/* Advanced: Own API Key (Premium only, collapsible) */}
-              {subscription.subscribed && (
+              {/* Free Users: Own API Key Option */}
+              {!subscription.subscribed && (
                 <details className="group">
                   <summary className="cursor-pointer select-none">
                     <div className="flex items-center justify-between p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
                       <div className="flex items-center gap-2">
                         <Key className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-warm-text">Advanced: Use my own API key</span>
+                        <span className="text-sm font-medium text-warm-text">Alternative: Use my own API key</span>
                       </div>
                       <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
                     </div>
@@ -197,17 +199,17 @@ const Settings = () => {
                   <div className="mt-3 space-y-3 p-3 bg-ceramic-base/50 rounded-lg border border-ceramic-rim/50">
                     <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
                       <p className="text-xs text-amber-600 dark:text-amber-400">
-                        Optional: Use your own OpenAI API key for custom model control. Most users don't need this.
+                        Use your own OpenAI API key instead of upgrading. You'll get full model control but pay OpenAI directly.
                       </p>
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       <Switch
-                        id="use-own-key"
+                        id="use-own-key-free"
                         checked={useOwnKey}
                         onCheckedChange={setUseOwnKey}
                       />
-                      <Label htmlFor="use-own-key" className="text-sm text-warm-text">
+                      <Label htmlFor="use-own-key-free" className="text-sm text-warm-text">
                         Use my own API key instead of shared service
                       </Label>
                     </div>
@@ -243,51 +245,72 @@ const Settings = () => {
                 </details>
               )}
 
-              {/* Model Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-warm-text">Speech Model (Real-time)</Label>
-                  <Select value={speechModel} onValueChange={setSpeechModel}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-4o-mini-realtime">GPT-4o Mini (Cost-effective ⭐)</SelectItem>
-                      <SelectItem value="gpt-4o-realtime">GPT-4o (Premium)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    {speechModel === 'gpt-4o-mini-realtime' ? 'Most cost-effective for voice chat' : 'Higher quality but more expensive'}
-                  </p>
-                </div>
+              {/* Premium Users: Advanced Own API Key Option */}
+              {subscription.subscribed && (
+                <details className="group">
+                  <summary className="cursor-pointer select-none">
+                    <div className="flex items-center justify-between p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
+                      <div className="flex items-center gap-2">
+                        <Key className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-warm-text">Advanced: Use my own API key</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+                    </div>
+                  </summary>
+                  
+                  <div className="mt-3 space-y-3 p-3 bg-ceramic-base/50 rounded-lg border border-ceramic-rim/50">
+                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Optional: Use your own OpenAI API key for custom model control. Most users don't need this.
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="use-own-key-premium"
+                        checked={useOwnKey}
+                        onCheckedChange={setUseOwnKey}
+                      />
+                      <Label htmlFor="use-own-key-premium" className="text-sm text-warm-text">
+                        Use my own API key instead of shared service
+                      </Label>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label className="text-warm-text">Transcription Model</Label>
-                  <Select value={transcriptionModel} onValueChange={setTranscriptionModel}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="whisper-1">Whisper-1 (Recommended ⭐)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    {useOwnKey && (
+                      <div className="space-y-3">
+                        <Label htmlFor="api-key-premium" className="text-warm-text">
+                          OpenAI API Key
+                        </Label>
+                        <div className="space-y-2">
+                          <Input
+                            id="api-key-premium"
+                            type={isKeyVisible ? 'text' : 'password'}
+                            placeholder="sk-..."
+                            value={openAiKey}
+                            onChange={(e) => setOpenAiKey(e.target.value)}
+                            className="bg-ceramic-base border-ceramic-rim"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="show-key-premium"
+                              checked={isKeyVisible}
+                              onCheckedChange={setIsKeyVisible}
+                            />
+                            <Label htmlFor="show-key-premium" className="text-sm text-muted-foreground">
+                              Show API key
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </details>
+              )}
 
+              {/* Voice Selection (Always visible for shared service) */}
+              {!useOwnKey && (
                 <div className="space-y-2">
-                  <Label className="text-warm-text">Text-to-Speech Model</Label>
-                  <Select value={ttsModel} onValueChange={setTtsModel}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tts-1">TTS-1 (Cost-effective ⭐)</SelectItem>
-                      <SelectItem value="tts-1-hd">TTS-1 HD (Premium)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-warm-text">Voice</Label>
+                  <Label className="text-warm-text">AI Voice</Label>
                   <Select value={ttsVoice} onValueChange={setTtsVoice}>
                     <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
                       <SelectValue />
@@ -301,8 +324,84 @@ const Settings = () => {
                       <SelectItem value="shimmer">Shimmer (Soft)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Choose your preferred AI coach voice. Speech and transcription models are optimized by our team.
+                  </p>
                 </div>
-              </div>
+              )}
+
+              {/* Model Selection (Only when using own API key) */}
+              {useOwnKey && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-warm-text">Speech Model (Real-time)</Label>
+                      <Select value={speechModel} onValueChange={setSpeechModel}>
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gpt-4o-mini-realtime">GPT-4o Mini (Cost-effective ⭐)</SelectItem>
+                          <SelectItem value="gpt-4o-realtime">GPT-4o (Premium)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        {speechModel === 'gpt-4o-mini-realtime' ? 'Most cost-effective for voice chat' : 'Higher quality but more expensive'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-warm-text">Transcription Model</Label>
+                      <Select value={transcriptionModel} onValueChange={setTranscriptionModel}>
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="whisper-1">Whisper-1 (Recommended ⭐)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-warm-text">Text-to-Speech Model</Label>
+                      <Select value={ttsModel} onValueChange={setTtsModel}>
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="tts-1">TTS-1 (Cost-effective ⭐)</SelectItem>
+                          <SelectItem value="tts-1-hd">TTS-1 HD (Premium)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-warm-text">Voice</Label>
+                      <Select value={ttsVoice} onValueChange={setTtsVoice}>
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="alloy">Alloy (Balanced ⭐)</SelectItem>
+                          <SelectItem value="echo">Echo (Male)</SelectItem>
+                          <SelectItem value="fable">Fable (Expressive)</SelectItem>
+                          <SelectItem value="onyx">Onyx (Deep)</SelectItem>
+                          <SelectItem value="nova">Nova (Warm)</SelectItem>
+                          <SelectItem value="shimmer">Shimmer (Soft)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleClearApiKey}
+                    variant="outline"
+                    className="w-full bg-ceramic-base border-ceramic-rim"
+                  >
+                    Clear API Key
+                  </Button>
+                </>
+              )}
               
               <Button
                 onClick={handleSaveSettings}
@@ -310,16 +409,6 @@ const Settings = () => {
               >
                 Save AI Settings
               </Button>
-              
-              {useOwnKey && (
-                <Button
-                  onClick={handleClearApiKey}
-                  variant="outline"
-                  className="w-full bg-ceramic-base border-ceramic-rim"
-                >
-                  Clear API Key
-                </Button>
-              )}
               
               <div className="bg-accent/20 p-3 rounded-lg">
                 <p className="text-xs text-muted-foreground">
@@ -335,7 +424,7 @@ const Settings = () => {
                       OpenAI Platform
                     </a></>
                   ) : (
-                    'Using shared AI service. Models marked with ⭐ are the most cost-effective options.'
+                    'Using shared AI coaching service. Voice and models are optimized by our team for the best experience.'
                   )}
                 </p>
               </div>
