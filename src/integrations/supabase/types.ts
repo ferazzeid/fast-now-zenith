@@ -167,6 +167,36 @@ export type Database = {
         }
         Relationships: []
       }
+      input_validation_rules: {
+        Row: {
+          allowed_patterns: string[] | null
+          blocked_patterns: string[] | null
+          created_at: string | null
+          field_name: string
+          id: string
+          max_length: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_patterns?: string[] | null
+          blocked_patterns?: string[] | null
+          created_at?: string | null
+          field_name: string
+          id?: string
+          max_length?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_patterns?: string[] | null
+          blocked_patterns?: string[] | null
+          created_at?: string | null
+          field_name?: string
+          id?: string
+          max_length?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       motivators: {
         Row: {
           category: string | null
@@ -266,6 +296,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       shared_settings: {
         Row: {
           created_at: string
@@ -343,12 +403,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrypt_api_key: {
+        Args: { encrypted_key: string }
+        Returns: string
+      }
+      encrypt_api_key: {
+        Args: { api_key: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      log_security_event: {
+        Args: { _user_id: string; _event_type: string; _details?: Json }
+        Returns: undefined
       }
       track_usage_event: {
         Args: {
@@ -358,6 +430,10 @@ export type Database = {
           _subscription_status?: string
         }
         Returns: undefined
+      }
+      validate_input: {
+        Args: { field_name: string; input_value: string }
+        Returns: Json
       }
     }
     Enums: {
