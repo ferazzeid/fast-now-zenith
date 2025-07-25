@@ -14,6 +14,7 @@ import AdminOverview from "./pages/AdminOverview";
 import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
+import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -70,6 +71,7 @@ const App = () => (
                     <AdminOverview />
                   </ProtectedRoute>  
                 } />
+                <Route path="/health" element={<HealthCheck />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Navigation />

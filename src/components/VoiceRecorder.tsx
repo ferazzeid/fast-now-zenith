@@ -154,17 +154,17 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       disabled={isDisabled || isProcessing}
       variant={isRecording ? "destructive" : "default"}
       size="lg"
-      className="relative"
+      className="relative w-full max-w-xs"
     >
       {isProcessing ? (
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
       ) : isRecording ? (
-        <MicOff className="h-4 w-4" />
+        <MicOff className="h-5 w-5" />
       ) : (
-        <Mic className="h-4 w-4" />
+        <Mic className="h-5 w-5" />
       )}
       <span className="ml-2">
-        {isProcessing ? "Processing..." : isRecording ? "Send Message" : "Start Recording"}
+        {isProcessing ? "Processing..." : isRecording ? "Stop Recording" : "Record Message"}
       </span>
       {isRecording && (
         <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />

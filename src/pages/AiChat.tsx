@@ -294,15 +294,16 @@ const AiChat = () => {
       <div className="flex-shrink-0 border-b border-border p-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">AI Companion</h1>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 overflow-hidden">
+            <div className="flex items-center gap-1 shrink-0">
               <Switch
                 id="audio-mode"
                 checked={audioEnabled}
                 onCheckedChange={setAudioEnabled}
+                className="scale-75"
               />
               <Label htmlFor="audio-mode" className="text-sm">
-                {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
               </Label>
             </div>
             
@@ -310,25 +311,26 @@ const AiChat = () => {
               variant="outline"
               size="sm"
               onClick={handleClearConversation}
+              className="shrink-0 hidden sm:flex"
             >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Clear Chat
+              <RotateCcw className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Clear</span>
             </Button>
             
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowImageUpload(!showImageUpload)}
+              onClick={handleClearConversation}
+              className="shrink-0 sm:hidden"
             >
-              <Camera className="h-4 w-4 mr-2" />
-              Food Photo
+              <RotateCcw className="h-4 w-4" />
             </Button>
 
             <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
-                  API Settings
+                <Button variant="outline" size="sm" className="shrink-0">
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden md:inline ml-1">API</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -357,16 +359,6 @@ const AiChat = () => {
         </div>
       </div>
 
-      {/* Image Upload Section */}
-      {showImageUpload && (
-        <div className="p-4 border-b border-border">
-          <ImageUpload
-            currentImageUrl={uploadedImageUrl}
-            onImageUpload={handleImageUpload}
-            onImageRemove={handleImageRemove}
-          />
-        </div>
-      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -418,31 +410,56 @@ const AiChat = () => {
 
       {/* Input - CRITICAL: Add bottom padding to prevent overlap with navigation */}
       <div className="flex-shrink-0 border-t border-border p-4 pb-6 mb-16">{/* CRITICAL: mb-16 ensures input stays above navigation */}
-        <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask me anything about your health journey..."
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              disabled={isProcessing}
-              className="resize-none"
-            />
+        <div className="space-y-3">
+          {/* Image Upload Section */}
+          {showImageUpload && (
+            <div className="border border-border rounded-lg p-3 bg-ceramic-plate/50">
+              <ImageUpload
+                currentImageUrl={uploadedImageUrl}
+                onImageUpload={handleImageUpload}
+                onImageRemove={handleImageRemove}
+              />
+            </div>
+          )}
+          
+          {/* Input Area */}
+          <div className="flex gap-2 items-end">
+            <div className="flex-1 relative">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ask me anything about your health journey..."
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                disabled={isProcessing}
+                className="resize-none pr-10"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowImageUpload(!showImageUpload)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10"
+                title="Upload food photo"
+              >
+                <Camera className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isProcessing}
+              size="default"
+              className="flex-shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
           
-          <VoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            isDisabled={isProcessing}
-          />
-          
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isProcessing}
-            size="default"
-            className="flex-shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          {/* Voice Recording */}
+          <div className="flex justify-center">
+            <VoiceRecorder
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isProcessing}
+            />
+          </div>
         </div>
       </div>
     </div>
