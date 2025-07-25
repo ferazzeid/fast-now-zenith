@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useSubscription } from '@/hooks/useSubscription';
@@ -25,7 +26,7 @@ const Settings = () => {
   const [ttsModel, setTtsModel] = useState('tts-1');
   const [ttsVoice, setTtsVoice] = useState('alloy');
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const subscription = useSubscription();
 
@@ -145,13 +146,15 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-24 safe-top safe-bottom">
-      <div className="max-w-md mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-warm-text">Settings</h1>
-          <p className="text-muted-foreground">Customize your fasting experience</p>
-        </div>
+    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
+      <ScrollArea className="h-screen">
+        <div className="px-4 pt-8 pb-24">
+          <div className="max-w-md mx-auto space-y-6">
+            {/* Header */}
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-bold text-warm-text">Settings</h1>
+              <p className="text-muted-foreground">Customize your fasting experience</p>
+            </div>
 
         {/* AI Configuration */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
@@ -632,21 +635,30 @@ const Settings = () => {
             </div>
             
             <div className="space-y-3">
-              <div className="bg-accent/20 p-3 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  🔒 Google authentication integration coming soon. 
-                  Your data is currently stored locally on your device.
-                </p>
-              </div>
-              
-              <Button
-                variant="outline"
-                className="w-full bg-ceramic-base border-ceramic-rim"
-                disabled
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out (Coming Soon)
-              </Button>
+              {user ? (
+                <>
+                  <div className="bg-green-500/10 border border-green-500/20 p-3 rounded-lg">
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      ✅ Signed in as {user.email}
+                    </p>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive"
+                    onClick={signOut}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <div className="bg-accent/20 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Sign in to sync your data across devices and access premium features.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -687,9 +699,11 @@ const Settings = () => {
                 Admin Dashboard
               </Button>
             )}
+            </div>
+          </Card>
           </div>
-        </Card>
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   );
 };
