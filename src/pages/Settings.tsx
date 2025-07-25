@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { ClearCacheButton } from '@/components/ClearCacheButton';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -674,6 +675,8 @@ const Settings = () => {
                 FastNow - Your mindful app
               </p>
             </div>
+            
+            <ClearCacheButton />
             
             {isAdmin && (
               <Button

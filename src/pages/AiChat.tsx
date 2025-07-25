@@ -264,19 +264,18 @@ const AiChat = () => {
             <div className="flex items-center space-x-2">
               <Button 
                 variant="outline" 
-                size="sm"
+                size="icon"
                 onClick={handleClearConversation}
                 disabled={messages.length === 0}
+                title="Clear Chat"
               >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Clear Chat
+                <RotateCcw className="w-4 h-4" />
               </Button>
 
               <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4 mr-2" />
-                    API Settings
+                  <Button variant="outline" size="icon" title="API Settings">
+                    <Settings className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="md:absolute md:inset-0 md:m-auto">

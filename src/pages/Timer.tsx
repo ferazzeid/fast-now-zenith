@@ -136,14 +136,45 @@ const Timer = () => {
 
         {/* Fast Type Selector */}
         <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={() => setShowFastSelector(true)}
-            className="bg-ceramic-plate border-ceramic-rim"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Change Fast Type
-          </Button>
+          {!isRunning ? (
+            <Button
+              variant="outline"
+              onClick={() => setShowFastSelector(true)}
+              className="bg-ceramic-plate border-ceramic-rim"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Change Fast Type
+            </Button>
+          ) : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="bg-ceramic-plate border-ceramic-rim"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Change Fast Type
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Change Fast Type?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Changing the fast type will stop your current fast and start a new one. Your progress will be lost.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => {
+                    cancelFastingSession();
+                    setShowFastSelector(true);
+                  }}>
+                    Change Fast Type
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
 
         {/* Ceramic Timer with Count Direction Toggle */}
@@ -169,16 +200,16 @@ const Timer = () => {
           </div>
         </div>
 
-        {/* Panic Button - Only show when fasting is active */}
-        {isRunning && (
-          <div className="flex justify-center">
+        {/* Crisis Button - Only show after 24 hours */}
+        {isRunning && timeElapsed >= 24 * 60 * 60 && (
+          <div className="fixed bottom-20 right-4 z-40">
             <Button
               onClick={() => setShowCrisisModal(true)}
-              size="lg"
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 font-semibold shadow-lg border-2 border-red-500 animate-pulse"
+              size="icon"
+              className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg border-2 border-red-400"
+              title="Need help staying strong?"
             >
-              <AlertTriangle className="w-5 h-5 mr-2" />
-              Help Me Stay Strong
+              <AlertTriangle className="w-6 h-6" />
             </Button>
           </div>
         )}

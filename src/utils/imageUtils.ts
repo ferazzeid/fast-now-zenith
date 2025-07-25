@@ -73,7 +73,7 @@ export const compressImage = async (
  * Get user's image storage limit based on subscription status
  */
 export const getImageStorageLimit = (isPaidUser: boolean): number => {
-  return isPaidUser ? Infinity : 10; // 10 images for free users, unlimited for paid
+  return isPaidUser ? Infinity : 100; // 100 images for free users, unlimited for paid
 };
 
 /**

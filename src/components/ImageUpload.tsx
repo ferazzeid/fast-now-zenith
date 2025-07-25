@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { uploadImageHybrid } from '@/utils/imageUtils';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -18,6 +20,7 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { subscribed } = useSubscription();
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -89,24 +92,14 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
 
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from('motivator-images')
-        .upload(fileName, file);
-
-      if (error) {
-        throw error;
+      // Use hybrid upload system
+      const result = await uploadImageHybrid(file, user.id, subscribed, supabase);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('motivator-images')
-        .getPublicUrl(fileName);
-
-      onImageUpload(publicUrl);
+      onImageUpload(result.url);
       
       toast({
         title: "Success",
