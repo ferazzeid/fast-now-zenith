@@ -289,7 +289,7 @@ const AiChat = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-background">
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-background">{/* CRITICAL: Always subtract navigation height (80px) from h-screen to prevent layout issues */}
       {/* Header */}
       <div className="flex-shrink-0 border-b border-border p-4">
         <div className="flex items-center justify-between">
@@ -416,8 +416,8 @@ const AiChat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="flex-shrink-0 border-t border-border p-4">
+      {/* Input - CRITICAL: Add bottom padding to prevent overlap with navigation */}
+      <div className="flex-shrink-0 border-t border-border p-4 pb-6 mb-16">{/* CRITICAL: mb-16 ensures input stays above navigation */}
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <Input

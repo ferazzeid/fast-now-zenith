@@ -73,7 +73,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
 
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
-      // Get API key from localStorage
+      // CRITICAL: Always check for API key first to prevent transcription failures
+      // This check prevents the recurring "failed to transcribe" error
       const apiKey = localStorage.getItem('openai_api_key');
       
       if (!apiKey) {
