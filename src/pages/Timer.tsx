@@ -29,6 +29,7 @@ const Timer = () => {
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [showChangeConfirmation, setShowChangeConfirmation] = useState(false);
   const { toast } = useToast();
   const { currentSession, startFastingSession, endFastingSession, cancelFastingSession, loadActiveSession } = useFastingSession();
 
@@ -303,9 +304,30 @@ const Timer = () => {
 
       {/* Crisis Modal */}
       <CrisisModal 
-        isOpen={showCrisisModal}
-        onClose={() => setShowCrisisModal(false)}
+        isOpen={showCrisisModal} 
+        onClose={() => setShowCrisisModal(false)} 
       />
+
+      <AlertDialog open={showChangeConfirmation} onOpenChange={setShowChangeConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Fast Type</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have an active fasting session. Changing the fast type will end your current session. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              handleStop();
+              setShowChangeConfirmation(false);
+              setShowFastSelector(true);
+            }}>
+              Yes, Change Fast Type
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
