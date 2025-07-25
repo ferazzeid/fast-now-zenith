@@ -16,13 +16,12 @@ serve(async (req) => {
   try {
     console.log('Chat completion request received');
     const { message, conversationHistory = [] } = await req.json();
-    console.log('Message received:', message?.substring(0, 50) + '...');
     
     if (!message) {
       throw new Error('No message provided');
     }
 
-    // Initialize Supabase client using built-in environment variables
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
     
@@ -48,7 +47,7 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // Get user profile and check subscription status
+    // Get user profile
     console.log('Fetching user profile for user:', userId);
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -60,23 +59,6 @@ serve(async (req) => {
     if (profileError) {
       console.error('Profile error details:', profileError);
       throw new Error('Failed to fetch user profile');
-    }
-
-    // Get global settings for limits
-    const { data: settings } = await supabase
-      .from('shared_settings')
-      .select('setting_key, setting_value')
-      .in('setting_key', ['free_request_limit', 'monthly_request_limit']);
-
-    const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '50');
-    const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
-
-    // Check if user has reached their limit (unless using own API key)
-    if (profile && !profile.use_own_api_key) {
-      const userLimit = profile.subscription_status === 'active' ? monthlyLimit : freeLimit;
-      if (profile.monthly_ai_requests >= userLimit) {
-        throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription or use your own API key.`);
-      }
     }
 
     // Get API key - either from user's own key or from headers
@@ -94,8 +76,52 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    // Prepare messages for OpenAI
+    const systemPrompt = 'You are a helpful fasting companion AI assistant. You help users with their fasting journey by providing motivation, answering questions about fasting, and offering supportive guidance. Be encouraging, knowledgeable about fasting science, and personally supportive. Keep responses concise but warm and conversational.';
+    
+    const messages = [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      ...conversationHistory,
+      {
+        role: 'user',
+        content: message
+      }
+    ];
+
+    // Send to OpenAI Chat Completions API
+    console.log('Sending request to OpenAI');
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: messages,
+        max_tokens: 500,
+        temperature: 0.8
+      }),
+    });
+
+    console.log('OpenAI response status:', response.status);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const result = await response.json();
+    console.log('Chat completion successful');
+
+    const choice = result.choices[0];
+    const responseMessage = choice.message.content;
+
     // Track usage for non-own-API-key users
-    if (!profile?.use_own_api_key && profile) {
+    if (profile && !profile.use_own_api_key) {
       console.log('Updating usage counter');
       try {
         await supabase
@@ -110,182 +136,9 @@ serve(async (req) => {
       }
     }
 
-    // Fetch AI configuration from database
-    const { data: aiSettingsData } = await supabase
-      .from('shared_settings')
-      .select('setting_key, setting_value')
-      .in('setting_key', [
-        'ai_system_prompt',
-        'ai_model_name', 
-        'ai_temperature',
-        'ai_max_tokens',
-        'ai_include_user_context'
-      ]);
-
-    // Parse AI settings with fallbacks
-    const aiSettings = (aiSettingsData || []).reduce((acc, setting) => {
-      acc[setting.setting_key] = setting.setting_value;
-      return acc;
-    }, {} as Record<string, string>);
-
-    const systemPrompt = aiSettings.ai_system_prompt || 'You are a helpful fasting companion AI assistant. You help users with their fasting journey by providing motivation, answering questions about fasting, and offering supportive guidance. Be encouraging, knowledgeable about fasting science, and personally supportive. Keep responses concise but warm and conversational.';
-    const modelName = aiSettings.ai_model_name || 'gpt-4o-mini';
-    const temperature = parseFloat(aiSettings.ai_temperature || '0.8');
-    const maxTokens = parseInt(aiSettings.ai_max_tokens || '500');
-    const includeUserContext = aiSettings.ai_include_user_context === 'true';
-
-    // Build enhanced system prompt with optional user context
-    let enhancedSystemPrompt = systemPrompt;
-    
-    if (includeUserContext) {
-      const currentTime = new Date().toLocaleTimeString();
-      const currentDate = new Date().toLocaleDateString();
-      enhancedSystemPrompt += `\n\nCurrent context: It's ${currentTime} on ${currentDate}. Consider this timing when giving fasting advice (e.g., breaking fast times, meal planning, etc.).`;
-    }
-
-    // Prepare messages for OpenAI
-    const messages = [
-      {
-        role: 'system',
-        content: enhancedSystemPrompt
-      },
-      ...conversationHistory,
-      {
-        role: 'user',
-        content: message
-      }
-    ];
-
-    // Define function tools for motivator management
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "create_motivator",
-          description: "Create a new motivator for the user's fasting journey",
-          parameters: {
-            type: "object",
-            properties: {
-              title: {
-                type: "string",
-                description: "A short, powerful title for the motivator"
-              },
-              content: {
-                type: "string", 
-                description: "The main motivational content or message"
-              },
-              category: {
-                type: "string",
-                enum: ["health", "appearance", "personal", "achievement", "relationship"],
-                description: "Category that best fits this motivator"
-              },
-              image_suggestion: {
-                type: "string",
-                description: "A specific suggestion for what image would make this motivator more powerful"
-              }
-            },
-            required: ["title", "content", "category"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "suggest_motivator_ideas",
-          description: "Suggest motivator ideas based on user's goals or conversation context",
-          parameters: {
-            type: "object",
-            properties: {
-              suggestions: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    title: { type: "string" },
-                    reason: { type: "string", description: "Why this motivator would be effective" },
-                    category: { type: "string" }
-                  }
-                }
-              }
-            },
-            required: ["suggestions"]
-          }
-        }
-      }
-    ];
-
-    // Send to OpenAI Chat Completions API
-    console.log('Sending request to OpenAI with model:', modelName);
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: messages,
-        max_tokens: maxTokens,
-        temperature: temperature,
-        tools: tools,
-        tool_choice: "auto"
-      }),
-    });
-
-    console.log('OpenAI response status:', response.status);
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const result = await response.json();
-    console.log('Chat completion result:', result.usage);
-
-    const choice = result.choices[0];
-    const message = choice.message;
-
-    // Handle function calls if present
-    if (message.tool_calls) {
-      const functionCalls = [];
-      
-      for (const toolCall of message.tool_calls) {
-        const functionName = toolCall.function.name;
-        const functionArgs = JSON.parse(toolCall.function.arguments);
-        
-        if (functionName === 'create_motivator') {
-          // Handle motivator creation
-          functionCalls.push({
-            type: 'create_motivator',
-            data: functionArgs
-          });
-        } else if (functionName === 'suggest_motivator_ideas') {
-          // Handle motivator suggestions
-          functionCalls.push({
-            type: 'suggest_motivator_ideas',
-            data: functionArgs
-          });
-        }
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          response: message.content,
-          function_calls: functionCalls,
-          usage: result.usage 
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-    }
-
     return new Response(
       JSON.stringify({ 
-        response: message.content,
+        response: responseMessage,
         usage: result.usage 
       }),
       { 
@@ -299,37 +152,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in chat-completion function:', {
       error: error.message,
-      timestamp: new Date().toISOString(),
-      userId: req.headers.get('Authorization') ? 'authenticated' : 'unauthenticated'
+      timestamp: new Date().toISOString()
     });
     
-    // Log usage event for error tracking
-    try {
-      const authHeader = req.headers.get('Authorization');
-      if (authHeader) {
-        const token = authHeader.replace('Bearer ', '');
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
-        
-        if (supabaseUrl && supabaseServiceKey) {
-          const supabase = createClient(supabaseUrl, supabaseServiceKey);
-          const { data: userData } = await supabase.auth.getUser(token);
-          if (userData.user) {
-            // Track usage event instead of security event (since that function doesn't exist)
-            await supabase.rpc('track_usage_event', {
-              _user_id: userData.user.id,
-              _event_type: 'ai_request_error',
-              _requests_count: 1,
-              _subscription_status: 'unknown'
-            });
-          }
-        }
-      }
-    } catch (logError) {
-      console.error('Failed to log usage event:', logError);
-    }
-    
-    // Return generic error message to prevent information leakage
+    // Return user-friendly error message
     const isAuthError = error.message.includes('authentication') || error.message.includes('authorization');
     const isRateLimitError = error.message.includes('limit');
     
