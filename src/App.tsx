@@ -8,6 +8,8 @@ import Motivators from "./pages/Motivators";
 import AiChat from "./pages/AiChat";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import UpdatePassword from "./pages/UpdatePassword";
 import AdminOverview from "./pages/AdminOverview";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
@@ -29,6 +31,8 @@ const App = () => (
             <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/update-password" element={<UpdatePassword />} />
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Timer />
