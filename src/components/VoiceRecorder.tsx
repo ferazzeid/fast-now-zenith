@@ -51,7 +51,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       
       toast({
         title: "Recording...",
-        description: "Speak clearly, then click stop when finished",
+        description: "Speak your message, then click 'Send Message' when finished",
       });
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -99,8 +99,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
         }
       });
 
+      console.log('Transcription response:', response);
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Transcription failed');
+      }
+
       if (!response.data) {
-        throw new Error('Transcription failed');
+        throw new Error('No response data received from transcription service');
       }
 
       const { text, error } = response.data;
@@ -157,7 +163,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
         <Mic className="h-4 w-4" />
       )}
       <span className="ml-2">
-        {isProcessing ? "Processing..." : isRecording ? "Stop Recording" : "Start Recording"}
+        {isProcessing ? "Processing..." : isRecording ? "Send Message" : "Start Recording"}
       </span>
       {isRecording && (
         <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
