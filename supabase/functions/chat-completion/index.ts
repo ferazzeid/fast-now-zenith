@@ -22,9 +22,14 @@ serve(async (req) => {
       throw new Error('No message provided');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Initialize Supabase client using built-in environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase configuration not available');
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get user from auth header
@@ -298,23 +303,26 @@ serve(async (req) => {
       userId: req.headers.get('Authorization') ? 'authenticated' : 'unauthenticated'
     });
     
-    // Log security event for suspicious activity
+    // Log usage event for error tracking
     try {
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
         const token = authHeader.replace('Bearer ', '');
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const { data: userData } = await supabase.auth.getUser(token);
-        if (userData.user) {
-          // Track usage event instead of security event (since that function doesn't exist)
-          await supabase.rpc('track_usage_event', {
-            _user_id: userData.user.id,
-            _event_type: 'ai_request_error',
-            _requests_count: 1,
-            _subscription_status: 'unknown'
-          });
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+        
+        if (supabaseUrl && supabaseServiceKey) {
+          const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          const { data: userData } = await supabase.auth.getUser(token);
+          if (userData.user) {
+            // Track usage event instead of security event (since that function doesn't exist)
+            await supabase.rpc('track_usage_event', {
+              _user_id: userData.user.id,
+              _event_type: 'ai_request_error',
+              _requests_count: 1,
+              _subscription_status: 'unknown'
+            });
+          }
         }
       }
     } catch (logError) {
