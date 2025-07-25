@@ -57,9 +57,9 @@ export const ClearCacheButton = () => {
         description: "All cached data has been cleared. The page will reload to get the latest version.",
       });
 
-      // Reload the page after a short delay
+      // Navigate to home page after clearing cache instead of reload
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = window.location.origin;
       }, 1000);
       
     } catch (error) {

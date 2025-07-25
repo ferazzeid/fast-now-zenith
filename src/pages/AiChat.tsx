@@ -99,7 +99,10 @@ const AiChat = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       if (data?.response) {
         // Handle function calls if present
@@ -143,9 +146,20 @@ const AiChat = () => {
       }
     } catch (error) {
       console.error('Error sending message to AI:', error);
+      let errorMessage = "Failed to get AI response. Please check your API key and try again.";
+      
+      // Provide more specific error messages
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('timeout')) {
+        errorMessage = "The AI service is taking too long to respond. Please try again in a moment.";
+      } else if (error.message?.includes('authentication')) {
+        errorMessage = "Authentication failed. Please check your API key in settings.";
+      } else if (error.message?.includes('limit')) {
+        errorMessage = error.message; // Show limit messages directly
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please check your API key and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
