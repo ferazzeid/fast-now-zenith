@@ -14,7 +14,9 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Chat completion request received');
     const { message, conversationHistory = [] } = await req.json();
+    console.log('Message received:', message?.substring(0, 50) + '...');
     
     if (!message) {
       throw new Error('No message provided');
@@ -27,12 +29,14 @@ serve(async (req) => {
 
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
     if (!authHeader) {
       throw new Error('No authorization header provided');
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    console.log('User authentication result:', { success: !!userData.user, error: userError?.message });
     if (userError || !userData.user) {
       throw new Error('User not authenticated');
     }
@@ -40,13 +44,16 @@ serve(async (req) => {
     const userId = userData.user.id;
 
     // Get user profile and check subscription status
+    console.log('Fetching user profile for user:', userId);
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, ai_requests_reset_date, use_own_api_key, openai_api_key, subscription_status')
+      .select('monthly_ai_requests, use_own_api_key, openai_api_key, subscription_status')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
+    console.log('Profile fetch result:', { found: !!profile, error: profileError?.message });
     if (profileError) {
+      console.error('Profile error details:', profileError);
       throw new Error('Failed to fetch user profile');
     }
 
@@ -60,7 +67,7 @@ serve(async (req) => {
     const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
 
     // Check if user has reached their limit (unless using own API key)
-    if (!profile.use_own_api_key) {
+    if (profile && !profile.use_own_api_key) {
       const userLimit = profile.subscription_status === 'active' ? monthlyLimit : freeLimit;
       if (profile.monthly_ai_requests >= userLimit) {
         throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription or use your own API key.`);
@@ -69,21 +76,33 @@ serve(async (req) => {
 
     // Get API key - either from user's own key or from headers
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    const OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
+    const OPENAI_API_KEY = profile?.use_own_api_key ? profile.openai_api_key : clientApiKey;
+    
+    console.log('API key configuration:', { 
+      useOwnKey: profile?.use_own_api_key, 
+      hasClientKey: !!clientApiKey, 
+      hasProfileKey: !!profile?.openai_api_key,
+      finalKeyPresent: !!OPENAI_API_KEY 
+    });
 
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Initialize Supabase client for logging and tracking usage
-    if (!profile.use_own_api_key) {
-      // Track usage for non-own-API-key users
-      await supabase
-        .from('profiles')
-        .update({ 
-          monthly_ai_requests: (profile.monthly_ai_requests || 0) + 1 
-        })
-        .eq('user_id', userId);
+    // Track usage for non-own-API-key users
+    if (!profile?.use_own_api_key && profile) {
+      console.log('Updating usage counter');
+      try {
+        await supabase
+          .from('profiles')
+          .update({ 
+            monthly_ai_requests: (profile.monthly_ai_requests || 0) + 1 
+          })
+          .eq('user_id', userId);
+      } catch (usageError) {
+        console.error('Failed to update usage:', usageError);
+        // Don't fail the request for usage tracking errors
+      }
     }
 
     // Fetch AI configuration from database
@@ -191,6 +210,7 @@ serve(async (req) => {
     ];
 
     // Send to OpenAI Chat Completions API
+    console.log('Sending request to OpenAI with model:', modelName);
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -207,10 +227,11 @@ serve(async (req) => {
       }),
     });
 
+    console.log('OpenAI response status:', response.status);
     if (!response.ok) {
       const errorData = await response.json();
       console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const result = await response.json();
@@ -282,17 +303,22 @@ serve(async (req) => {
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
         const token = authHeader.replace('Bearer ', '');
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const { data: userData } = await supabase.auth.getUser(token);
         if (userData.user) {
-          await supabase.rpc('log_security_event', {
+          // Track usage event instead of security event (since that function doesn't exist)
+          await supabase.rpc('track_usage_event', {
             _user_id: userData.user.id,
             _event_type: 'ai_request_error',
-            _details: { error: error.message, timestamp: new Date().toISOString() }
+            _requests_count: 1,
+            _subscription_status: 'unknown'
           });
         }
       }
     } catch (logError) {
-      console.error('Failed to log security event:', logError);
+      console.error('Failed to log usage event:', logError);
     }
     
     // Return generic error message to prevent information leakage
