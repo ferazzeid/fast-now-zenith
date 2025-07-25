@@ -1,11 +1,12 @@
 import { useState, useRef, DragEvent } from 'react';
-import { Upload, Camera, X, Loader2 } from 'lucide-react';
+import { Upload, Camera, X, Loader2, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { uploadImageHybrid } from '@/utils/imageUtils';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -18,9 +19,11 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { subscribed } = useSubscription();
+  const isMobile = useIsMobile();
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -46,6 +49,10 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
 
   const handleFileSelect = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleCameraCapture = () => {
+    cameraInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,41 +153,90 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
           </Button>
         </div>
       ) : (
-        <div
-          className={`
-            border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-            ${isDragOver ? 'border-primary bg-primary/5' : 'border-ceramic-rim'}
-            ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
-          `}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={!isUploading ? handleFileSelect : undefined}
-        >
-          {isUploading ? (
-            <div className="flex flex-col items-center space-y-2">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">Uploading...</p>
+        <div className="space-y-4">
+          {/* Desktop: Drag & drop area */}
+          {!isMobile && (
+            <div
+              className={`
+                border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                ${isDragOver ? 'border-primary bg-primary/5' : 'border-ceramic-rim'}
+                ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
+              `}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={!isUploading ? handleFileSelect : undefined}
+            >
+              {isUploading ? (
+                <div className="flex flex-col items-center space-y-2">
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">Uploading...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-2">
+                  <Upload className="w-8 h-8 text-muted-foreground" />
+                  <p className="text-sm font-medium text-warm-text">
+                    Upload Photo
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Drag & drop or click to browse
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col items-center space-y-2">
-              <div className="flex items-center space-x-2">
-                <Upload className="w-6 h-6 text-muted-foreground" />
-                <Camera className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-medium text-warm-text">
-                Upload or Take Photo
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Drag & drop, click to browse, or use camera
-              </p>
+          )}
+
+          {/* Mobile: Separate buttons */}
+          {isMobile && (
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={handleFileSelect}
+                disabled={isUploading}
+                className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+              >
+                <Image className="w-6 h-6" />
+                <span className="text-sm">Choose from Gallery</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={handleCameraCapture}
+                disabled={isUploading}
+                className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+              >
+                <Camera className="w-6 h-6" />
+                <span className="text-sm">Take Photo</span>
+              </Button>
             </div>
+          )}
+
+          {/* Desktop: Additional button if no drag & drop used */}
+          {!isMobile && (
+            <Button
+              variant="outline"
+              onClick={handleFileSelect}
+              disabled={isUploading}
+              className="w-full bg-ceramic-base border-ceramic-rim"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Choose File
+            </Button>
           )}
         </div>
       )}
 
+      {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      
+      <input
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="environment"
