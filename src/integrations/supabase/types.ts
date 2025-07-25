@@ -167,6 +167,42 @@ export type Database = {
         }
         Relationships: []
       }
+      food_entries: {
+        Row: {
+          calories: number
+          carbs: number
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          serving_size: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories: number
+          carbs: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          serving_size?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          serving_size?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       motivators: {
         Row: {
           category: string | null
@@ -205,9 +241,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           ai_requests_reset_date: string | null
           created_at: string
+          daily_calorie_goal: number | null
+          daily_carb_goal: number | null
           display_name: string | null
+          height: number | null
           id: string
           is_paid_user: boolean | null
           monthly_ai_requests: number | null
@@ -223,11 +263,16 @@ export type Database = {
           updated_at: string
           use_own_api_key: boolean | null
           user_id: string
+          weight: number | null
         }
         Insert: {
+          age?: number | null
           ai_requests_reset_date?: string | null
           created_at?: string
+          daily_calorie_goal?: number | null
+          daily_carb_goal?: number | null
           display_name?: string | null
+          height?: number | null
           id?: string
           is_paid_user?: boolean | null
           monthly_ai_requests?: number | null
@@ -243,11 +288,16 @@ export type Database = {
           updated_at?: string
           use_own_api_key?: boolean | null
           user_id: string
+          weight?: number | null
         }
         Update: {
+          age?: number | null
           ai_requests_reset_date?: string | null
           created_at?: string
+          daily_calorie_goal?: number | null
+          daily_carb_goal?: number | null
           display_name?: string | null
+          height?: number | null
           id?: string
           is_paid_user?: boolean | null
           monthly_ai_requests?: number | null
@@ -263,6 +313,7 @@ export type Database = {
           updated_at?: string
           use_own_api_key?: boolean | null
           user_id?: string
+          weight?: number | null
         }
         Relationships: []
       }
@@ -317,6 +368,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_foods: {
+        Row: {
+          calories_per_100g: number
+          carbs_per_100g: number
+          created_at: string
+          id: string
+          is_favorite: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+          variations: Json | null
+        }
+        Insert: {
+          calories_per_100g: number
+          carbs_per_100g: number
+          created_at?: string
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+          variations?: Json | null
+        }
+        Update: {
+          calories_per_100g?: number
+          carbs_per_100g?: number
+          created_at?: string
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+          variations?: Json | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -334,6 +421,42 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      walking_sessions: {
+        Row: {
+          calories_burned: number | null
+          created_at: string
+          distance: number | null
+          end_time: string | null
+          id: string
+          start_time: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories_burned?: number | null
+          created_at?: string
+          distance?: number | null
+          end_time?: string | null
+          id?: string
+          start_time: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories_burned?: number | null
+          created_at?: string
+          distance?: number | null
+          end_time?: string | null
+          id?: string
+          start_time?: string
+          status?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

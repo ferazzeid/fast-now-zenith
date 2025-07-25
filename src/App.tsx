@@ -12,6 +12,8 @@ import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import AdminOverview from "./pages/AdminOverview";
 import NotFound from "./pages/NotFound";
+import Walking from "./pages/Walking";
+import FoodTracking from "./pages/FoodTracking";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -51,6 +53,16 @@ const App = () => (
                 <Route path="/settings" element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/walking" element={
+                  <ProtectedRoute>
+                    <Walking />
+                  </ProtectedRoute>
+                } />
+                <Route path="/food-tracking" element={
+                  <ProtectedRoute>
+                    <FoodTracking />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={

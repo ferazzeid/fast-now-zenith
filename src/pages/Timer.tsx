@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { CrisisModal } from '@/components/CrisisModal';
+import { ActivitySelector } from '@/components/ActivitySelector';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import {
   AlertDialog,
@@ -30,7 +32,9 @@ const Timer = () => {
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showChangeConfirmation, setShowChangeConfirmation] = useState(false);
+  const [showActivitySelector, setShowActivitySelector] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { currentSession, startFastingSession, endFastingSession, cancelFastingSession, loadActiveSession } = useFastingSession();
 
   const isRunning = !!currentSession;
@@ -126,6 +130,16 @@ const Timer = () => {
     return isInEatingWindow ? 'Eating Window' : 'Fasting';
   };
 
+  const handleActivitySelect = (activity: 'fasting' | 'walking' | 'food') => {
+    if (activity === 'fasting') {
+      handleStart();
+    } else if (activity === 'walking') {
+      navigate('/walking');
+    } else if (activity === 'food') {
+      navigate('/food-tracking');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-20">
       <div className="max-w-md mx-auto space-y-8">
@@ -219,12 +233,12 @@ const Timer = () => {
         <div className="flex justify-center space-x-4">
           {!isRunning ? (
             <Button
-              onClick={handleStart}
+              onClick={() => setShowActivitySelector(true)}
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
             >
               <Play className="w-5 h-5 mr-2" />
-              Start Fast
+              Start Timer
             </Button>
           ) : (
             <AlertDialog>
@@ -328,6 +342,13 @@ const Timer = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Activity Selector */}
+      <ActivitySelector
+        isOpen={showActivitySelector}
+        onClose={() => setShowActivitySelector(false)}
+        onSelectActivity={handleActivitySelect}
+      />
     </div>
   );
 };
