@@ -114,7 +114,7 @@ const Motivators = () => {
     id: m.id,
     title: m.title,
     description: m.content || undefined,
-    imageUrl: undefined, // TODO: Add image URL handling
+    imageUrl: m.imageUrl,
     createdAt: new Date(m.created_at)
   }));
 
@@ -153,7 +153,8 @@ const Motivators = () => {
       await createMotivator({
         title: motivator.title,
         content: motivator.content,
-        category: motivator.category
+        category: motivator.category,
+        imageUrl: motivator.imageUrl
       });
     }
     setShowWizard(false);
@@ -177,7 +178,8 @@ const Motivators = () => {
     await updateMotivator(updatedMotivator.id, {
       title: updatedMotivator.title,
       content: updatedMotivator.description || '',
-      category: 'personal' // Default category for manual edits
+      category: 'personal', // Default category for manual edits
+      imageUrl: updatedMotivator.imageUrl
     });
     setEditingMotivator(null);
   };
