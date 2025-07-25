@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSingleConversation, type Message } from '@/hooks/useSingleConversation';
 import { useFastingContext } from '@/hooks/useFastingContext';
 import { useMotivators } from '@/hooks/useMotivators';
+import { ImageUpload } from '@/components/ImageUpload';
 
 const AiChat = () => {
   const [inputMessage, setInputMessage] = useState('');
@@ -20,6 +21,8 @@ const AiChat = () => {
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [showApiDialog, setShowApiDialog] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -99,68 +102,65 @@ const AiChat = () => {
         }
       });
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data?.response) {
-        // Handle function calls if present
-        if (data.function_calls) {
-          for (const functionCall of data.function_calls) {
-            if (functionCall.type === 'create_motivator') {
-              const motivatorData = functionCall.data;
-              await createMotivator({
-                title: motivatorData.title,
-                content: motivatorData.content,
-                category: motivatorData.category
-              });
-              
-              toast({
-                title: "✨ Motivator Created!",
-                description: `"${motivatorData.title}" has been added to your motivators.`,
-              });
-            } else if (functionCall.type === 'suggest_motivator_ideas') {
-              // Handle suggestions (could show in UI later)
-              console.log('Motivator suggestions:', functionCall.data.suggestions);
-            }
-          }
-        }
-
+      // Handle potential function calls in the response
+      if (data.completion) {
         const aiMessage: Message = {
           role: 'assistant',
-          content: data.response,
+          content: data.completion,
           timestamp: new Date(),
-          audioEnabled: fromVoice
+          audioEnabled: audioEnabled && fromVoice
         };
 
-        // Save AI response to conversation
         await addMessage(aiMessage);
 
-        // Start voice response simultaneously (don't wait for it)
-        if (audioEnabled) {
-          playTextAsAudio(data.response).catch(error => {
-            console.error('Voice response failed:', error);
-          });
+        // Play audio if enabled and this was a voice message
+        if (audioEnabled && fromVoice) {
+          await playTextAsAudio(data.completion);
         }
       }
+
+      // Handle function call results
+      if (data.functionCall) {
+        const { name, result } = data.functionCall;
+        
+        switch (name) {
+          case 'create_motivator':
+            toast({
+              title: "Motivator Created",
+              description: "I've created a personalized motivator for you!",
+              duration: 3000,
+            });
+            break;
+          case 'start_walking_session':
+            if (result.includes('started')) {
+              toast({
+                title: "Walking Session Started",
+                description: "Your walking session has begun. Have a great walk!",
+                duration: 3000,
+              });
+            }
+            break;
+          case 'add_food_entry':
+            if (result.includes('Added')) {
+              toast({
+                title: "Food Logged",
+                description: "I've added this food to your nutrition log!",
+                duration: 3000,
+              });
+            }
+            break;
+        }
+      }
+
     } catch (error) {
       console.error('Error sending message to AI:', error);
-      let errorMessage = "Failed to get AI response. Please check your API key and try again.";
-      
-      // Provide more specific error messages
-      if (error.message?.includes('Failed to fetch') || error.message?.includes('timeout')) {
-        errorMessage = "The AI service is taking too long to respond. Please try again in a moment.";
-      } else if (error.message?.includes('authentication')) {
-        errorMessage = "Authentication failed. Please check your API key in settings.";
-      } else if (error.message?.includes('limit')) {
-        errorMessage = error.message; // Show limit messages directly
-      }
-      
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
+        duration: 3000,
       });
     } finally {
       setIsProcessing(false);
@@ -170,34 +170,14 @@ const AiChat = () => {
   const playTextAsAudio = async (text: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text, voice: 'alloy' },
-        headers: {
-          'X-OpenAI-API-Key': apiKey
-        }
+        body: { text, voice: 'alloy' }
       });
 
       if (error) throw error;
 
-      if (data?.audioContent) {
-        // Convert base64 to audio and play
-        const audioData = atob(data.audioContent);
-        const arrayBuffer = new ArrayBuffer(audioData.length);
-        const view = new Uint8Array(arrayBuffer);
-        
-        for (let i = 0; i < audioData.length; i++) {
-          view[i] = audioData.charCodeAt(i);
-        }
-
-        const blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
-        const audioUrl = URL.createObjectURL(blob);
-        const audio = new Audio(audioUrl);
-        
-        await audio.play();
-        
-        // Clean up
-        audio.addEventListener('ended', () => {
-          URL.revokeObjectURL(audioUrl);
-        });
+      if (data.audioUrl) {
+        const audio = new Audio(data.audioUrl);
+        audio.play();
       }
     } catch (error) {
       console.error('Error playing text as audio:', error);
@@ -219,7 +199,7 @@ const AiChat = () => {
 
     const messageToSend = inputMessage;
     setInputMessage('');
-    
+
     await sendToAI(messageToSend, getConversationHistory());
   };
 
@@ -227,167 +207,242 @@ const AiChat = () => {
     localStorage.setItem('openai_api_key', apiKey);
     setShowApiDialog(false);
     toast({
-      title: "✅ API Key Saved!",
-      description: "Your OpenAI API key has been saved securely.",
+      title: "API Key Saved",
+      description: "Your OpenAI API key has been saved locally.",
+      duration: 3000,
     });
   };
 
-  const handleClearConversation = () => {
-    clearConversation();
+  const handleImageUpload = async (imageUrl: string) => {
+    setUploadedImageUrl(imageUrl);
+    setShowImageUpload(false);
+    
+    // Analyze the food image
+    try {
+      setIsProcessing(true);
+      
+      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+        body: { 
+          imageUrl: imageUrl
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        const { nutritionData } = data;
+        
+        // Add the image and analysis to the conversation
+        const userMessage: Message = {
+          role: 'user',
+          content: `[Image uploaded: Food photo]`,
+          timestamp: new Date(),
+          imageUrl: imageUrl
+        };
+        
+        await addMessage(userMessage);
+
+        // Send analysis to AI for further processing
+        const analysisPrompt = `I've analyzed this food image and found: ${nutritionData.name} with ${nutritionData.calories_per_100g} calories per 100g and ${nutritionData.carbs_per_100g}g carbs per 100g. Estimated serving size: ${nutritionData.estimated_serving_size}g. Would you like me to add this to your food log?`;
+        
+        await sendToAI(analysisPrompt, getConversationHistory());
+      } else {
+        throw new Error(data.error || 'Failed to analyze image');
+      }
+    } catch (error) {
+      console.error('Error analyzing food image:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Could not analyze the food image. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Show welcome message if no messages exist
-  const displayMessages = messages.length === 0 ? [{
-    role: 'assistant' as const,
-    content: "Hello! I'm your AI companion. I'm here to support you on your fasting journey with motivation, guidance, and answers to your questions. How can I help you today?",
-    timestamp: new Date()
-  }] : messages;
+  const handleImageRemove = () => {
+    setUploadedImageUrl('');
+  };
+
+  const handleClearConversation = async () => {
+    await clearConversation();
+  };
+
+  // Display messages or show welcome message
+  const displayMessages = messages.length > 0 ? messages : [
+    {
+      role: 'assistant' as const,
+      content: "Hello! I'm your AI companion for health and wellness. I can help you with fasting guidance, walking sessions, food logging, and creating motivational content. How can I assist you today?",
+      timestamp: new Date(),
+      audioEnabled: false
+    }
+  ];
+
+  if (conversationLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full bg-ceramic-base flex flex-col pb-20">
-      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full">
-        <div className="px-4 pt-8 pb-4">
-          {/* Header */}
-          <div className="text-center space-y-2 mb-6">
-            <h1 className="text-3xl font-bold text-warm-text">AI Companion</h1>
-            <p className="text-muted-foreground">
-              Your personal companion for guidance and motivation
-            </p>
-          </div>
+    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-background">
+      {/* Header */}
+      <div className="flex-shrink-0 border-b border-border p-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">AI Companion</h1>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="audio-mode"
+                checked={audioEnabled}
+                onCheckedChange={setAudioEnabled}
+              />
+              <Label htmlFor="audio-mode" className="text-sm">
+                {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              </Label>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearConversation}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Clear Chat
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowImageUpload(!showImageUpload)}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Food Photo
+            </Button>
 
-          {/* Controls */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="audio-toggle"
-                  checked={audioEnabled}
-                  onCheckedChange={setAudioEnabled}
-                />
-                <Label htmlFor="audio-toggle" className="text-sm text-warm-text">
-                  Voice responses
-                </Label>
-                {audioEnabled ? (
-                  <Volume2 className="w-4 h-4 text-primary" />
-                ) : (
-                  <VolumeX className="w-4 h-4 text-muted-foreground" />
+            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  API Settings
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>OpenAI API Configuration</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="api-key">OpenAI API Key</Label>
+                    <Input
+                      id="api-key"
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="sk-..."
+                      className="mt-2"
+                    />
+                  </div>
+                  <Button onClick={handleSaveApiKey} className="w-full">
+                    Save API Key
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      </div>
+
+      {/* Image Upload Section */}
+      {showImageUpload && (
+        <div className="p-4 border-b border-border">
+          <ImageUpload
+            currentImageUrl={uploadedImageUrl}
+            onImageUpload={handleImageUpload}
+            onImageRemove={handleImageRemove}
+          />
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {displayMessages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <Card className={`max-w-[80%] p-3 ${
+              message.role === 'user' 
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-muted'
+            }`}>
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  {message.imageUrl && (
+                    <img 
+                      src={message.imageUrl} 
+                      alt="Uploaded food" 
+                      className="rounded-lg mb-2 max-w-full h-auto max-h-48 object-cover"
+                    />
+                  )}
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+                {message.audioEnabled && message.role === 'assistant' && (
+                  <Volume2 className="h-4 w-4 opacity-70" />
                 )}
               </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={handleClearConversation}
-                disabled={messages.length === 0}
-                title="Clear Chat"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-
-              <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="icon" title="API Settings">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="md:absolute md:inset-0 md:m-auto">
-                  <DialogHeader>
-                    <DialogTitle>OpenAI API Configuration</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="api-key">OpenAI API Key</Label>
-                      <Input
-                        id="api-key"
-                        type="password"
-                        placeholder="sk-..."
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Your API key is stored locally and never sent to our servers.
-                      </p>
-                    </div>
-                    <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
-                      Save API Key
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            </Card>
           </div>
-
-          {/* Messages */}
-          <Card className="bg-ceramic-plate border-ceramic-rim">
-            <div className="h-96 overflow-y-auto p-4 space-y-4">
-              {displayMessages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-ceramic-base text-warm-text border border-ceramic-rim'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <div className="flex items-center mt-1 space-x-2">
-                      <span className="text-xs opacity-70">
-                        {message.timestamp.toLocaleTimeString()}
-                      </span>
-                      {message.audioEnabled && (
-                        <Volume2 className="w-3 h-3 opacity-70" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {isProcessing && (
-                <div className="flex justify-start">
-                  <div className="bg-ceramic-base text-warm-text border border-ceramic-rim px-4 py-2 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                      <span className="text-sm">AI is thinking...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </Card>
-
-          {/* Input area */}
-          <div className="mt-4 space-y-4">
-            <div className="flex space-x-2">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type your message here..."
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                disabled={isProcessing}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isProcessing}
-                size="icon"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Voice input */}
-            <div className="flex justify-center">
-              <VoiceRecorder 
-                onTranscription={handleVoiceTranscription}
-                isDisabled={isProcessing}
-              />
-            </div>
+        ))}
+        
+        {isProcessing && (
+          <div className="flex justify-start">
+            <Card className="max-w-[80%] p-3 bg-muted">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <p className="text-sm">AI is thinking...</p>
+              </div>
+            </Card>
           </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="flex-shrink-0 border-t border-border p-4">
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="Ask me anything about your health journey..."
+              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+              disabled={isProcessing}
+              className="resize-none"
+            />
+          </div>
+          
+          <VoiceRecorder
+            onTranscription={handleVoiceTranscription}
+            isDisabled={isProcessing}
+          />
+          
+          <Button
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim() || isProcessing}
+            size="default"
+            className="flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

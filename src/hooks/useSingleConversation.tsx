@@ -8,6 +8,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   audioEnabled?: boolean;
+  imageUrl?: string;
 }
 
 export const useSingleConversation = () => {
