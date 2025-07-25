@@ -171,6 +171,29 @@ Important: Always ask for confirmation before taking actions like starting walki
           },
           required: ['name', 'calories', 'carbs', 'serving_size']
         }
+      },
+      {
+        name: 'get_user_profile',
+        description: 'Get user\'s profile information including goals, BMR, and current stats',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'calculate_bmr',
+        description: 'Calculate user\'s Basal Metabolic Rate based on their profile',
+        parameters: {
+          type: 'object',
+          properties: {
+            weight: { type: 'number', description: 'Weight in kg' },
+            height: { type: 'number', description: 'Height in cm' },
+            age: { type: 'number', description: 'Age in years' },
+            gender: { type: 'string', enum: ['male', 'female'], description: 'Gender for BMR calculation' }
+          },
+          required: ['weight', 'height', 'age', 'gender']
+        }
       }
     ];
 
@@ -276,6 +299,91 @@ Important: Always ask for confirmation before taking actions like starting walki
             } else {
               functionResult = `Added food entry: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
             }
+            break;
+
+          case 'get_user_profile':
+            // Get user profile and current stats
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('weight, height, age, daily_calorie_goal, daily_carb_goal')
+              .eq('user_id', userId)
+              .single();
+            
+            // Get today's food entries
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const { data: todayFood } = await supabase
+              .from('food_entries')
+              .select('calories, carbs')
+              .eq('user_id', userId)
+              .gte('created_at', today.toISOString())
+              .lt('created_at', tomorrow.toISOString());
+
+            const todayCalories = todayFood?.reduce((sum, entry) => sum + entry.calories, 0) || 0;
+            const todayCarbs = todayFood?.reduce((sum, entry) => sum + entry.carbs, 0) || 0;
+
+            // Get active walking session
+            const { data: walkingSession } = await supabase
+              .from('walking_sessions')
+              .select('*')
+              .eq('user_id', userId)
+              .eq('status', 'active')
+              .single();
+
+            // Calculate BMR if profile exists
+            let bmr = null;
+            if (profile?.weight && profile?.height && profile?.age) {
+              // Using Mifflin-St Jeor equation (assuming male, can be adjusted)
+              bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5);
+            }
+
+            functionResult = `Profile and stats:
+**Profile:**
+${profile?.weight ? `Weight: ${profile.weight} kg` : 'Weight: Not set'}
+${profile?.height ? `Height: ${profile.height} cm` : 'Height: Not set'}
+${profile?.age ? `Age: ${profile.age} years` : 'Age: Not set'}
+${bmr ? `Estimated BMR: ${bmr} calories/day` : ''}
+
+**Daily Goals:**
+${profile?.daily_calorie_goal ? `Calorie Goal: ${profile.daily_calorie_goal} cal` : 'Calorie Goal: Not set'}
+${profile?.daily_carb_goal ? `Carb Goal: ${profile.daily_carb_goal}g` : 'Carb Goal: Not set'}
+
+**Today's Progress:**
+Calories consumed: ${todayCalories} cal
+Carbs consumed: ${todayCarbs}g
+${walkingSession ? 'Currently on a walk! 🚶‍♂️' : 'No active walking session'}
+
+${!profile?.weight || !profile?.height || !profile?.age ? 
+  'Consider updating your profile in Settings to get personalized recommendations!' : 
+  bmr && profile?.daily_calorie_goal ? 
+    `Calorie balance: ${todayCalories - profile.daily_calorie_goal > 0 ? '+' : ''}${todayCalories - profile.daily_calorie_goal} from goal` : 
+    ''
+}`;
+            break;
+
+          case 'calculate_bmr':
+            const { weight, height, age, gender } = functionArgs;
+            
+            // Mifflin-St Jeor equation
+            let calculatedBmr;
+            if (gender === 'male') {
+              calculatedBmr = Math.round(10 * weight + 6.25 * height - 5 * age + 5);
+            } else {
+              calculatedBmr = Math.round(10 * weight + 6.25 * height - 5 * age - 161);
+            }
+
+            functionResult = `BMR calculation for ${weight}kg, ${height}cm, ${age} years old, ${gender}:
+
+**Basal Metabolic Rate (BMR): ${calculatedBmr} calories/day**
+
+Daily calorie needs based on activity level:
+- Sedentary (little/no exercise): ${Math.round(calculatedBmr * 1.2)} cal/day
+- Light activity (1-3 days/week): ${Math.round(calculatedBmr * 1.375)} cal/day  
+- Moderate activity (3-5 days/week): ${Math.round(calculatedBmr * 1.55)} cal/day
+- Very active (6-7 days/week): ${Math.round(calculatedBmr * 1.725)} cal/day`;
             break;
 
           default:

@@ -4,8 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@/components/ImageUpload';
+import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -14,13 +17,50 @@ const FoodTracking = () => {
   const [servingSize, setServingSize] = useState('100');
   const [imageUrl, setImageUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const { addFoodEntry, todayEntries, todayTotals } = useFoodEntries();
 
-  const handleImageUpload = (url: string) => {
+  const handleImageUpload = async (url: string) => {
     setImageUrl(url);
-    // TODO: Integrate AI to analyze the image and populate fields
     setShowForm(true);
+    
+    // Auto-analyze the food image
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+        body: { imageUrl: url }
+      });
+
+      if (error) {
+        console.error('Food analysis error:', error);
+        toast({
+          title: "Analysis failed",
+          description: "Please enter food details manually",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data?.nutrition) {
+        setFoodName(data.nutrition.name || '');
+        setCalories(data.nutrition.calories?.toString() || '');
+        setCarbs(data.nutrition.carbs?.toString() || '');
+        setServingSize(data.nutrition.serving_size?.toString() || '100');
+        
+        toast({
+          title: "Food analyzed!",
+          description: "Check the details and adjust if needed"
+        });
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis failed", 
+        description: "Please enter food details manually",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -59,7 +99,55 @@ const FoodTracking = () => {
       setServingSize('100');
       setImageUrl('');
       setShowForm(false);
+      
+      // Save to personal library if not already there
+      await saveToLibrary({
+        name: foodName,
+        calories: parseFloat(calories),
+        carbs: parseFloat(carbs),
+        serving_size: parseFloat(servingSize)
+      });
     }
+  };
+
+  const saveToLibrary = async (entry: { name: string; calories: number; carbs: number; serving_size: number }) => {
+    try {
+      // Check if food already exists in library
+      const { data: existing } = await supabase
+        .from('user_foods')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('name', entry.name)
+        .single();
+
+      if (!existing) {
+        // Calculate per 100g values
+        const caloriesPer100g = (entry.calories / entry.serving_size) * 100;
+        const carbsPer100g = (entry.carbs / entry.serving_size) * 100;
+
+        await supabase
+          .from('user_foods')
+          .insert({
+            user_id: user?.id,
+            name: entry.name,
+            calories_per_100g: caloriesPer100g,
+            carbs_per_100g: carbsPer100g
+          });
+      }
+    } catch (error) {
+      // Silent error - don't interrupt user flow
+      console.error('Error saving to library:', error);
+    }
+  };
+
+  const handleSelectFromLibrary = (food: any) => {
+    // Calculate values for 100g serving
+    setFoodName(food.name);
+    setCalories(food.calories_per_100g.toString());
+    setCarbs(food.carbs_per_100g.toString());
+    setServingSize('100');
+    setShowLibrary(false);
+    setShowForm(true);
   };
 
   return (
@@ -85,14 +173,14 @@ const FoodTracking = () => {
           </div>
         </div>
 
-        {/* Image Upload */}
-        {!showForm && (
+        {/* Image Upload and Library */}
+        {!showForm && !showLibrary && (
           <div className="mb-8">
             <ImageUpload 
               onImageUpload={handleImageUpload} 
               onImageRemove={() => setImageUrl('')}
             />
-            <div className="text-center mt-4">
+            <div className="grid grid-cols-2 gap-3 mt-4">
               <Button 
                 variant="outline" 
                 onClick={() => setShowForm(true)}
@@ -101,7 +189,25 @@ const FoodTracking = () => {
                 <Plus className="w-4 h-4 mr-2" />
                 Manual Entry
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLibrary(true)}
+                className="w-full"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                My Foods
+              </Button>
             </div>
+          </div>
+        )}
+
+        {/* Personal Food Library */}
+        {showLibrary && (
+          <div className="mb-8">
+            <PersonalFoodLibrary
+              onSelectFood={handleSelectFromLibrary}
+              onClose={() => setShowLibrary(false)}
+            />
           </div>
         )}
 

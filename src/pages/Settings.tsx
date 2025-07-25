@@ -25,6 +25,11 @@ const Settings = () => {
   const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
   const [ttsModel, setTtsModel] = useState('tts-1');
   const [ttsVoice, setTtsVoice] = useState('alloy');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [age, setAge] = useState('');
+  const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
+  const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -53,7 +58,7 @@ const Settings = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key')
+          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal')
           .eq('user_id', user.id)
           .single();
 
@@ -63,6 +68,11 @@ const Settings = () => {
           setTranscriptionModel(profile.transcription_model || 'whisper-1');
           setTtsModel(profile.tts_model || 'tts-1');
           setTtsVoice(profile.tts_voice || 'alloy');
+          setWeight(profile.weight?.toString() || '');
+          setHeight(profile.height?.toString() || '');
+          setAge(profile.age?.toString() || '');
+          setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
+          setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
           
           // Load API key from database if available
           if (profile.openai_api_key) {
@@ -110,7 +120,12 @@ const Settings = () => {
             transcription_model: transcriptionModel,
             tts_model: ttsModel,
             tts_voice: ttsVoice,
-            openai_api_key: useOwnKey ? openAiKey : null
+            openai_api_key: useOwnKey ? openAiKey : null,
+            weight: weight ? parseFloat(weight) : null,
+            height: height ? parseInt(height) : null,
+            age: age ? parseInt(age) : null,
+            daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
+            daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null
           })
           .eq('user_id', user.id);
 
@@ -622,6 +637,98 @@ const Settings = () => {
                   SMS and email notifications will be available in future updates
                 </p>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* User Profile */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <User className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Profile & Goals</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="weight" className="text-warm-text">Weight (kg)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    placeholder="70"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="height" className="text-warm-text">Height (cm)</Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    placeholder="175"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="age" className="text-warm-text">Age</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    placeholder="30"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>
+                  <Input
+                    id="dailyCalorieGoal"
+                    type="number"
+                    placeholder="2000"
+                    value={dailyCalorieGoal}
+                    onChange={(e) => setDailyCalorieGoal(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dailyCarbGoal" className="text-warm-text">Daily Carb Goal (g)</Label>
+                  <Input
+                    id="dailyCarbGoal"
+                    type="number"
+                    placeholder="150"
+                    value={dailyCarbGoal}
+                    onChange={(e) => setDailyCarbGoal(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+              </div>
+              
+              {weight && height && age && (
+                <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg">
+                  <p className="text-sm text-primary font-medium">
+                    Estimated BMR: {Math.round(
+                      parseFloat(weight) && parseFloat(height) && parseFloat(age) 
+                        ? 10 * parseFloat(weight) + 6.25 * parseFloat(height) - 5 * parseFloat(age) + 5
+                        : 0
+                    )} calories/day
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Basal Metabolic Rate - calories needed at rest
+                  </p>
+                </div>
+              )}
+              
+              <Button onClick={handleSaveSettings} className="w-full">
+                Save Profile
+              </Button>
             </div>
           </div>
         </Card>
