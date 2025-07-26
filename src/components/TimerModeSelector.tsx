@@ -90,8 +90,12 @@ export const TimerModeSelector = ({
               >
                 <Icon className={`w-5 h-5 ${color}`} />
                 <div className="flex-1">
-                  <div className="font-medium text-sm">{title}</div>
-                  <div className="text-xs text-muted-foreground">{description}</div>
+                  <div className={`font-medium text-sm ${currentMode === id ? 'text-primary-foreground' : 'text-foreground'}`}>
+                    {title}
+                  </div>
+                  <div className={`text-xs ${currentMode === id ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    {description}
+                  </div>
                 </div>
                 
                 {status.isActive && (

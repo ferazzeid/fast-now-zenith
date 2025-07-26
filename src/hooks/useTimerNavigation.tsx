@@ -27,28 +27,36 @@ export const useTimerNavigation = () => {
 
   // Update timer status based on active sessions
   useEffect(() => {
-    const fastingActive = !!fastingSession;
-    const walkingActive = !!walkingSession;
+    const updateTimerStatus = () => {
+      const fastingActive = !!fastingSession;
+      const walkingActive = !!walkingSession;
 
-    let fastingElapsed = 0;
-    let walkingElapsed = 0;
+      let fastingElapsed = 0;
+      let walkingElapsed = 0;
 
-    if (fastingSession) {
-      const startTime = new Date(fastingSession.start_time);
-      const now = new Date();
-      fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-    }
+      if (fastingSession) {
+        const startTime = new Date(fastingSession.start_time);
+        const now = new Date();
+        fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      }
 
-    if (walkingSession) {
-      const startTime = new Date(walkingSession.start_time);
-      const now = new Date();
-      walkingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-    }
+      if (walkingSession) {
+        const startTime = new Date(walkingSession.start_time);
+        const now = new Date();
+        walkingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      }
 
-    setTimerStatus({
-      fasting: { isActive: fastingActive, timeElapsed: fastingElapsed },
-      walking: { isActive: walkingActive, timeElapsed: walkingElapsed }
-    });
+      setTimerStatus({
+        fasting: { isActive: fastingActive, timeElapsed: fastingElapsed },
+        walking: { isActive: walkingActive, timeElapsed: walkingElapsed }
+      });
+    };
+
+    updateTimerStatus();
+    
+    // Only update every 5 seconds to reduce performance impact
+    const interval = setInterval(updateTimerStatus, 5000);
+    return () => clearInterval(interval);
   }, [fastingSession, walkingSession]);
 
   const switchMode = (mode: TimerMode) => {
