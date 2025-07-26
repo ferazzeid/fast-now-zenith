@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Plus, Settings, Edit, Trash2, Image, Sparkles } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
-import { MotivatorOnboarding } from '@/components/MotivatorOnboarding';
-import { MotivatorCreationWizard } from '@/components/MotivatorCreationWizard';
-import { EditMotivatorModal } from '@/components/EditMotivatorModal';
+import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -15,52 +13,30 @@ const Motivators = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { motivators, loading, createMotivator, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showCreationWizard, setShowCreationWizard] = useState(false);
-  const [selectedTemplates, setSelectedTemplates] = useState([]);
+  const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
 
-  useEffect(() => {
-    // Show onboarding if user has no motivators
-    if (!loading && motivators.length === 0) {
-      setShowOnboarding(true);
-    }
-  }, [loading, motivators.length]);
-
-  const handleOnboardingComplete = (templates) => {
-    setSelectedTemplates(templates);
-    setShowOnboarding(false);
-    setShowCreationWizard(true);
-  };
-
-  const handleOnboardingSkip = () => {
-    setShowOnboarding(false);
-  };
-
-  const handleCreationComplete = async (createdMotivators) => {
+  const handleCreateMotivator = async (motivatorData) => {
     try {
-      for (const motivator of createdMotivators) {
-        await createMotivator({
-          title: motivator.title,
-          content: motivator.content,
-          category: motivator.category,
-          imageUrl: motivator.imageUrl
-        });
-      }
+      await createMotivator({
+        title: motivatorData.title,
+        content: motivatorData.content,
+        category: 'personal',
+        imageUrl: motivatorData.imageUrl
+      });
       
-      setShowCreationWizard(false);
-      setSelectedTemplates([]);
+      setShowFormModal(false);
       
       toast({
-        title: "Success!",
-        description: `Created ${createdMotivators.length} motivator(s)`,
+        title: "✨ Motivator Created!",
+        description: "Your new motivator has been saved.",
       });
       
       refreshMotivators();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create motivators",
+        description: "Failed to create motivator",
         variant: "destructive"
       });
     }
@@ -74,15 +50,15 @@ const Motivators = () => {
     try {
       await updateMotivator(updatedMotivator.id, {
         title: updatedMotivator.title,
-        content: updatedMotivator.description,
+        content: updatedMotivator.content,
         imageUrl: updatedMotivator.imageUrl
       });
       
       setEditingMotivator(null);
       
       toast({
-        title: "Success!",
-        description: "Motivator updated successfully",
+        title: "✨ Motivator Updated!",
+        description: "Your changes have been saved.",
       });
       
       refreshMotivators();
@@ -100,8 +76,8 @@ const Motivators = () => {
       await deleteMotivator(motivatorId);
       
       toast({
-        title: "Success!",
-        description: "Motivator deleted successfully",
+        title: "🗑️ Motivator Removed",
+        description: "Motivator has been deleted.",
       });
       
       refreshMotivators();
@@ -114,39 +90,6 @@ const Motivators = () => {
     }
   };
 
-  const startCreatingMotivators = () => {
-    setShowOnboarding(true);
-  };
-
-  if (showOnboarding) {
-    return (
-      <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-        <MotivatorOnboarding 
-          onComplete={handleOnboardingComplete}
-          onSkip={handleOnboardingSkip}
-        />
-      </div>
-    );
-  }
-
-  if (showCreationWizard) {
-    return (
-      <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-        <div className="px-4 pt-8 pb-24">
-          <div className="max-w-md mx-auto">
-            <MotivatorCreationWizard
-              templates={selectedTemplates}
-              onComplete={handleCreationComplete}
-              onCancel={() => {
-                setShowCreationWizard(false);
-                setSelectedTemplates([]);
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
@@ -164,7 +107,7 @@ const Motivators = () => {
           {/* Action Buttons */}
           <div className="flex gap-3">
             <Button 
-              onClick={startCreatingMotivators}
+              onClick={() => setShowFormModal(true)}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -196,7 +139,7 @@ const Motivators = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Create your first motivator to stay inspired during your fasting journey
                   </p>
-                  <Button onClick={startCreatingMotivators} className="bg-primary">
+                  <Button onClick={() => setShowFormModal(true)} className="bg-primary">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Your First Motivator
                   </Button>
@@ -234,11 +177,13 @@ const Motivators = () => {
                                 {motivator.content}
                               </p>
                             )}
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {motivator.category}
-                              </Badge>
-                            </div>
+                            {motivator.category && (
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {motivator.category}
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                           
                           {/* Actions */}
@@ -281,9 +226,16 @@ const Motivators = () => {
             </div>
           )}
 
-          {/* Edit Modal */}
+          {/* Form Modals */}
+          {showFormModal && (
+            <MotivatorFormModal
+              onSave={handleCreateMotivator}
+              onClose={() => setShowFormModal(false)}
+            />
+          )}
+          
           {editingMotivator && (
-            <EditMotivatorModal
+            <MotivatorFormModal
               motivator={editingMotivator}
               onSave={handleSaveMotivator}
               onClose={() => setEditingMotivator(null)}
