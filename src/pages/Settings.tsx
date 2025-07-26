@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -204,6 +204,29 @@ const Settings = () => {
               <h1 className="text-3xl font-bold text-warm-text">Settings</h1>
               <p className="text-muted-foreground">Customize your fasting experience</p>
             </div>
+
+            {/* Motivators */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Heart className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Motivators</h3>
+                </div>
+                <div className="space-y-4">
+                  <Button
+                    onClick={() => navigate('/motivators')}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    Manage Motivators
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Create, edit, and organize your personal motivational content, images, and quotes.
+                  </p>
+                </div>
+              </div>
+            </Card>
 
         {/* AI Configuration */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
