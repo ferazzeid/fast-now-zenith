@@ -19,6 +19,7 @@ interface TimerStatus {
 export const useTimerNavigation = () => {
   const navigate = useNavigate();
   const [currentMode, setCurrentMode] = useState<TimerMode>('fasting');
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [timerStatus, setTimerStatus] = useState<TimerStatus>({
     fasting: { isActive: false, timeElapsed: 0 },
     walking: { isActive: false, timeElapsed: 0 }
@@ -63,6 +64,7 @@ export const useTimerNavigation = () => {
 
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);
+    setSheetOpen(false); // Auto-close the sheet
     // Navigate to the appropriate timer page using React Router
     if (mode === 'walking') {
       navigate('/walking');
@@ -85,6 +87,8 @@ export const useTimerNavigation = () => {
   return {
     currentMode,
     timerStatus,
+    sheetOpen,
+    setSheetOpen,
     switchMode,
     getActiveTimerCount,
     formatTime

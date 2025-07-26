@@ -6,6 +6,7 @@ import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { WalkingStats } from '@/components/WalkingStats';
 
 interface UserProfile {
   daily_calorie_goal?: number;
@@ -17,12 +18,10 @@ interface UserProfile {
 
 export const TodaysDashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [todayWalkingStats, setTodayWalkingStats] = useState({ minutes: 0, calories: 0 });
   const { user } = useAuth();
   const { todayTotals } = useFoodEntries();
   const { currentSession } = useWalkingSession();
-  
-  const todayWalkingMinutes = 0; // Simplified for now
-  const estimatedCaloriesBurned = Math.round(todayWalkingMinutes * 3.5); // Rough estimate: 3.5 cal/min
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -37,12 +36,43 @@ export const TodaysDashboard = () => {
       setProfile(data);
     };
 
+    const fetchTodayWalkingStats = async () => {
+      if (!user) return;
+      
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const { data } = await supabase
+        .from('walking_sessions')
+        .select('start_time, end_time, calories_burned')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .gte('start_time', startOfDay.toISOString());
+      
+      const stats = (data || []).reduce(
+        (acc, session) => {
+          const duration = session.end_time && session.start_time
+            ? Math.floor((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / (1000 * 60))
+            : 0;
+          
+          return {
+            minutes: acc.minutes + duration,
+            calories: acc.calories + (session.calories_burned || 0),
+          };
+        },
+        { minutes: 0, calories: 0 }
+      );
+      
+      setTodayWalkingStats(stats);
+    };
+
     fetchProfile();
+    fetchTodayWalkingStats();
   }, [user]);
 
   const calorieGoal = profile?.daily_calorie_goal || 2000;
   const carbGoal = profile?.daily_carb_goal || 150;
-  const netCalories = todayTotals.calories - estimatedCaloriesBurned;
+  const netCalories = todayTotals.calories - todayWalkingStats.calories;
 
   // Calculate BMR for more accurate estimates
   const bmr = profile?.weight && profile?.height && profile?.age 
@@ -116,9 +146,9 @@ export const TodaysDashboard = () => {
             <span className="text-sm font-medium">Walking</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl font-bold">{todayWalkingMinutes}min</div>
+            <div className="text-2xl font-bold">{todayWalkingStats.minutes}min</div>
             <p className="text-xs text-muted-foreground">
-              ~{estimatedCaloriesBurned} calories burned
+              ~{todayWalkingStats.calories} calories burned
             </p>
             {currentSession && (
               <p className="text-xs text-green-600">Currently walking! 🚶‍♂️</p>
@@ -161,9 +191,9 @@ export const TodaysDashboard = () => {
             <p>• Good calorie balance! Keep it up</p>
           )}
           
-          {todayWalkingMinutes === 0 ? (
+          {todayWalkingStats.minutes === 0 ? (
             <p>• Try a 10-minute walk to boost your mood and burn calories</p>
-          ) : todayWalkingMinutes >= 30 ? (
+          ) : todayWalkingStats.minutes >= 30 ? (
             <p>• Excellent! You've reached the recommended daily activity</p>
           ) : (
             <p>• Great start! Try to reach 30 minutes of walking today</p>
@@ -174,6 +204,9 @@ export const TodaysDashboard = () => {
           )}
         </div>
       </Card>
+
+      {/* Walking Statistics Section */}
+      <WalkingStats />
     </div>
   );
 };

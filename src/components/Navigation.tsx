@@ -5,7 +5,7 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 
 export const Navigation = () => {
   const location = useLocation();
-  const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
+  const { currentMode, timerStatus, sheetOpen, setSheetOpen, switchMode, formatTime } = useTimerNavigation();
 
   const navItems = [
     { icon: Heart, label: 'Motivators', path: '/motivators' },
@@ -24,6 +24,8 @@ export const Navigation = () => {
             onModeSelect={switchMode}
             timerStatus={timerStatus}
             formatTime={formatTime}
+            sheetOpen={sheetOpen}
+            onSheetOpenChange={setSheetOpen}
           />
           
           {navItems.map(({ icon: Icon, label, path }) => {

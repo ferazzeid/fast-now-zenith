@@ -18,13 +18,17 @@ interface TimerModeSelectorProps {
     walking: { isActive: boolean; timeElapsed: number };
   };
   formatTime: (seconds: number) => string;
+  sheetOpen: boolean;
+  onSheetOpenChange: (open: boolean) => void;
 }
 
 export const TimerModeSelector = ({ 
   currentMode, 
   onModeSelect, 
   timerStatus, 
-  formatTime 
+  formatTime,
+  sheetOpen,
+  onSheetOpenChange
 }: TimerModeSelectorProps) => {
   const timerModes = [
     {
@@ -48,7 +52,7 @@ export const TimerModeSelector = ({
   const activeCount = (timerStatus.fasting.isActive ? 1 : 0) + (timerStatus.walking.isActive ? 1 : 0);
 
   return (
-    <Sheet>
+    <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
       <SheetTrigger asChild>
         <div className="relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim">
           {/* Main Timer Button */}

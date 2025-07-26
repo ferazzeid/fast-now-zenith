@@ -333,6 +333,56 @@ Important: Always ask for confirmation before taking actions like starting walki
               .eq('status', 'active')
               .single();
 
+            // Get today's walking stats
+            const { data: todayWalking } = await supabase
+              .from('walking_sessions')
+              .select('start_time, end_time, calories_burned, distance')
+              .eq('user_id', userId)
+              .eq('status', 'completed')
+              .gte('start_time', today.toISOString())
+              .lt('start_time', tomorrow.toISOString());
+
+            const todayWalkingStats = todayWalking?.reduce(
+              (acc, session) => {
+                const duration = session.end_time && session.start_time
+                  ? Math.floor((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / (1000 * 60))
+                  : 0;
+                
+                return {
+                  minutes: acc.minutes + duration,
+                  calories: acc.calories + (session.calories_burned || 0),
+                  distance: acc.distance + (session.distance || 0),
+                };
+              },
+              { minutes: 0, calories: 0, distance: 0 }
+            ) || { minutes: 0, calories: 0, distance: 0 };
+
+            // Get weekly walking stats
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            
+            const { data: weeklyWalking } = await supabase
+              .from('walking_sessions')
+              .select('start_time, end_time, calories_burned, distance')
+              .eq('user_id', userId)
+              .eq('status', 'completed')
+              .gte('start_time', startOfWeek.toISOString());
+
+            const weeklyWalkingStats = weeklyWalking?.reduce(
+              (acc, session) => {
+                const duration = session.end_time && session.start_time
+                  ? Math.floor((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / (1000 * 60))
+                  : 0;
+                
+                return {
+                  minutes: acc.minutes + duration,
+                  calories: acc.calories + (session.calories_burned || 0),
+                  distance: acc.distance + (session.distance || 0),
+                };
+              },
+              { minutes: 0, calories: 0, distance: 0 }
+            ) || { minutes: 0, calories: 0, distance: 0 };
+
             // Calculate BMR if profile exists
             let bmr = null;
             if (profile?.weight && profile?.height && profile?.age) {
@@ -354,12 +404,21 @@ ${profile?.daily_carb_goal ? `Carb Goal: ${profile.daily_carb_goal}g` : 'Carb Go
 **Today's Progress:**
 Calories consumed: ${todayCalories} cal
 Carbs consumed: ${todayCarbs}g
+Walking: ${todayWalkingStats.minutes} minutes, ${todayWalkingStats.calories} cal burned, ${todayWalkingStats.distance.toFixed(1)} miles
 ${walkingSession ? 'Currently on a walk! 🚶‍♂️' : 'No active walking session'}
 
+**Weekly Walking Stats:**
+Total walking: ${weeklyWalkingStats.minutes} minutes
+Calories burned: ${weeklyWalkingStats.calories} cal
+Distance covered: ${weeklyWalkingStats.distance.toFixed(1)} miles
+${weeklyWalkingStats.minutes >= 150 ? '✅ WHO weekly activity goal achieved!' : `${150 - weeklyWalkingStats.minutes} minutes left for weekly goal`}
+
+**Calorie Balance:**
+Net calories: ${todayCalories - todayWalkingStats.calories} (consumed - burned walking)
 ${!profile?.weight || !profile?.height || !profile?.age ? 
   'Consider updating your profile in Settings to get personalized recommendations!' : 
   bmr && profile?.daily_calorie_goal ? 
-    `Calorie balance: ${todayCalories - profile.daily_calorie_goal > 0 ? '+' : ''}${todayCalories - profile.daily_calorie_goal} from goal` : 
+    `Daily balance: ${todayCalories - profile.daily_calorie_goal > 0 ? '+' : ''}${todayCalories - profile.daily_calorie_goal} from calorie goal` : 
     ''
 }`;
             break;
