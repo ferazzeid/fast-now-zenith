@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Settings } from 'lucide-react';
+import { Heart, MessageCircle, Settings, Utensils } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { TimerModeSelector } from './TimerModeSelector';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
@@ -9,6 +9,7 @@ export const Navigation = () => {
 
   const navItems = [
     { icon: Heart, label: 'Motivators', path: '/motivators' },
+    { icon: Utensils, label: 'Food', path: '/food-tracking' },
     { icon: MessageCircle, label: 'AI Chat', path: '/ai-chat' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
