@@ -69,7 +69,7 @@ export const TimerModeSelector = ({
           <span className="text-xs font-medium">Timer</span>
         </button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="h-auto max-w-md mx-auto rounded-t-xl border-x border-t bg-background/95 backdrop-blur-sm">
+      <SheetContent side="bottom" className="h-auto max-w-sm mx-auto rounded-t-xl border-x border-t bg-background/95 backdrop-blur-sm">
         <div className="w-full max-w-xs mx-auto">
           <SheetHeader className="pb-4">
             <SheetTitle className="text-center text-sm">Select Timer Mode</SheetTitle>
