@@ -8,9 +8,9 @@ export const Navigation = () => {
   const { currentMode, timerStatus, sheetOpen, setSheetOpen, switchMode, formatTime } = useTimerNavigation();
 
   const navItems = [
-    { icon: Heart, label: 'Motivators', path: '/motivators' },
     { icon: Utensils, label: 'Food', path: '/food-tracking' },
     { icon: MessageCircle, label: 'AI Chat', path: '/ai-chat' },
+    { icon: Heart, label: 'Motivators', path: '/motivators' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -18,16 +18,7 @@ export const Navigation = () => {
     <nav className="fixed bottom-0 left-0 right-0 bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
       <div className="max-w-md mx-auto">
         <div className="flex justify-around">
-          {/* Timer Mode Selector */}
-          <TimerModeSelector
-            currentMode={currentMode}
-            onModeSelect={switchMode}
-            timerStatus={timerStatus}
-            formatTime={formatTime}
-            sheetOpen={sheetOpen}
-            onSheetOpenChange={setSheetOpen}
-          />
-          
+          {/* Navigation Items */}
           {navItems.map(({ icon: Icon, label, path }) => {
             const isActive = location.pathname === path;
             
@@ -46,6 +37,16 @@ export const Navigation = () => {
               </Link>
             );
           })}
+          
+          {/* Timer Mode Selector */}
+          <TimerModeSelector
+            currentMode={currentMode}
+            onModeSelect={switchMode}
+            timerStatus={timerStatus}
+            formatTime={formatTime}
+            sheetOpen={sheetOpen}
+            onSheetOpenChange={setSheetOpen}
+          />
         </div>
       </div>
     </nav>

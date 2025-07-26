@@ -3,7 +3,7 @@ import { Camera, Plus, Save, History, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ImageUpload } from '@/components/ImageUpload';
+import { CompactImageUpload } from '@/components/CompactImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
@@ -210,30 +210,33 @@ const FoodTracking = () => {
           </div>
         </div>
 
-        {/* Image Upload and Library */}
+        {/* Quick Actions */}
         {!showForm && !showLibrary && (
-          <div className="mb-8">
-            <ImageUpload 
-              onImageUpload={handleImageUpload} 
-              onImageRemove={() => setImageUrl('')}
-            />
-            <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="mb-8 space-y-4">
+            {/* Primary Actions */}
+            <div className="grid grid-cols-2 gap-3">
               <Button 
                 variant="outline" 
                 onClick={() => setShowForm(true)}
-                className="w-full"
+                className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Manual Entry
+                <Plus className="w-5 h-5" />
+                <span className="text-sm">Manual Entry</span>
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => setShowLibrary(true)}
-                className="w-full"
+                className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
               >
-                <Camera className="w-4 h-4 mr-2" />
-                My Foods
+                <Camera className="w-5 h-5" />
+                <span className="text-sm">My Foods</span>
               </Button>
+            </div>
+            
+            {/* Image Upload - Compact */}
+            <div className="space-y-2">
+              <div className="text-sm text-muted-foreground text-center">Or scan food</div>
+              <CompactImageUpload onImageUpload={handleImageUpload} />
             </div>
           </div>
         )}
