@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Camera, Plus, Save, History } from 'lucide-react';
+import { Camera, Plus, Save, History, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@/components/ImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
+import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,7 @@ const FoodTracking = () => {
   const [showHistory, setShowHistory] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { addFoodEntry, todayEntries, todayTotals } = useFoodEntries();
+  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, todayEntries, todayTotals } = useFoodEntries();
 
   const handleImageUpload = async (url: string) => {
     setImageUrl(url);
@@ -150,6 +151,29 @@ const FoodTracking = () => {
     setServingSize('100');
     setShowLibrary(false);
     setShowForm(true);
+  };
+
+  const handleUpdateFoodEntry = async (id: string, updates: any) => {
+    const result = await updateFoodEntry(id, updates);
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+  };
+
+  const handleDeleteFoodEntry = async (id: string) => {
+    const result = await deleteFoodEntry(id);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Food deleted",
+        description: "Food entry has been removed"
+      });
+    }
   };
 
   return (
@@ -316,15 +340,30 @@ const FoodTracking = () => {
               {todayEntries.map((entry) => (
                 <div key={entry.id} className="p-3 rounded-lg bg-card border border-border">
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{entry.name}</div>
                       <div className="text-sm text-muted-foreground">
                         {entry.serving_size}g serving
                       </div>
                     </div>
-                    <div className="text-right text-sm">
-                      <div>{entry.calories} cal</div>
-                      <div>{entry.carbs}g carbs</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right text-sm">
+                        <div>{entry.calories} cal</div>
+                        <div>{entry.carbs}g carbs</div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <EditFoodEntryModal 
+                          entry={entry} 
+                          onUpdate={handleUpdateFoodEntry}
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteFoodEntry(entry.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -82,6 +82,33 @@ export const useFoodEntries = () => {
     }
   }, [user, loadTodayEntries]);
 
+  const updateFoodEntry = useCallback(async (entryId: string, updates: Partial<NewFoodEntry>) => {
+    if (!user) return { error: { message: 'User not authenticated' } };
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('food_entries')
+        .update(updates)
+        .eq('id', entryId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Refresh today's entries
+      await loadTodayEntries();
+      
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Error updating food entry:', error);
+      return { error, data: null };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, loadTodayEntries]);
+
   const deleteFoodEntry = useCallback(async (entryId: string) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
@@ -122,6 +149,7 @@ export const useFoodEntries = () => {
     todayTotals,
     loading,
     addFoodEntry,
+    updateFoodEntry,
     deleteFoodEntry,
     loadTodayEntries
   };

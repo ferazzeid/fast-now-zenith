@@ -3,6 +3,7 @@ import { Heart, Plus, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -75,6 +76,27 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
       ));
     } catch (error) {
       console.error('Error updating favorite:', error);
+    }
+  };
+
+  const updateFood = async (foodId: string, updates: Partial<UserFood>) => {
+    try {
+      const { error } = await supabase
+        .from('user_foods')
+        .update(updates)
+        .eq('id', foodId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setFoods(foods.map(food => 
+        food.id === foodId 
+          ? { ...food, ...updates }
+          : food
+      ));
+    } catch (error) {
+      console.error('Error updating food:', error);
+      throw error;
     }
   };
 
@@ -162,6 +184,11 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
                   >
                     <Heart className={`w-4 h-4 ${food.is_favorite ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
                   </Button>
+                  
+                  <EditLibraryFoodModal 
+                    food={food} 
+                    onUpdate={updateFood}
+                  />
                   
                   <Button
                     variant="ghost"
