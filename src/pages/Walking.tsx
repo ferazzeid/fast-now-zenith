@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CeramicTimer } from '@/components/CeramicTimer';
+import { WalkingTimer } from '@/components/WalkingTimer';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 
@@ -88,36 +88,15 @@ const Walking = () => {
 
         {/* Timer Display */}
         <div className="relative mb-8">
-          <CeramicTimer 
+          <WalkingTimer 
             displayTime={formatTime(timeElapsed)}
-            progress={0} // Walking doesn't have a target duration
             isActive={isRunning}
+            onStart={handleStart}
+            onStop={handleStop}
           />
         </div>
 
-        {/* Control Buttons */}
-        <div className="space-y-4">
-          {!isRunning ? (
-            <Button 
-              onClick={handleStart}
-              className="w-full h-16 text-lg font-medium"
-              size="lg"
-            >
-              <Play className="w-6 h-6 mr-2" />
-              Start Walking
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleStop}
-              variant="destructive"
-              className="w-full h-16 text-lg font-medium"
-              size="lg"
-            >
-              <Square className="w-6 h-6 mr-2" />
-              Stop Walking
-            </Button>
-          )}
-        </div>
+        {/* Control buttons are now integrated into WalkingTimer component */}
 
         {/* Session Info */}
         {isRunning && currentSession && (

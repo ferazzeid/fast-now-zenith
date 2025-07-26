@@ -5,6 +5,7 @@ import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { CrisisModal } from '@/components/CrisisModal';
+import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
@@ -20,6 +21,7 @@ const Timer = () => {
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
   const [walkingTime, setWalkingTime] = useState(0);
   
   const { toast } = useToast();
@@ -240,7 +242,7 @@ const Timer = () => {
               </Button>
             ) : (
               <Button 
-                onClick={handleFastingStop}
+                onClick={() => setShowStopConfirmDialog(true)}
                 variant="destructive"
                 className="w-full h-16 text-lg font-medium shadow-lg"
                 size="lg"
@@ -249,6 +251,33 @@ const Timer = () => {
                 Stop Fast
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Current Fast Info - Only show when running */}
+        {currentMode === 'fasting' && isRunning && (
+          <div className="mt-6 p-4 rounded-xl bg-ceramic-base/50 border border-ceramic-rim">
+            <h3 className="font-medium text-warm-text mb-4">Current Fast</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Type:</span>
+                <span className="font-medium">{fastType === 'intermittent' ? 'Intermittent Fasting' : 'Water Fast'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Goal:</span>
+                <span className="font-medium">{formatTimeFasting(fastDuration)}</span>
+              </div>
+              {fastType === 'intermittent' && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Eating Window:</span>
+                  <span className="font-medium">{formatTimeFasting(eatingWindow)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Elapsed:</span>
+                <span className="font-medium text-primary">{formatTimeFasting(timeElapsed)}</span>
+              </div>
+            </div>
           </div>
         )}
 
@@ -331,6 +360,17 @@ const Timer = () => {
       <CrisisModal 
         isOpen={showCrisisModal} 
         onClose={() => setShowCrisisModal(false)} 
+      />
+
+      {/* Stop Fast Confirmation Dialog */}
+      <StopFastConfirmDialog
+        open={showStopConfirmDialog}
+        onOpenChange={setShowStopConfirmDialog}
+        onConfirm={() => {
+          setShowStopConfirmDialog(false);
+          handleFastingStop();
+        }}
+        currentDuration={formatTimeFasting(timeElapsed)}
       />
     </div>
   );
