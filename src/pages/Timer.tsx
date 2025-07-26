@@ -25,7 +25,7 @@ import {
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(16 * 60 * 60); // 16 hours default
-  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('longterm');
+  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('intermittent');
   const [eatingWindow, setEatingWindow] = useState(8 * 60 * 60); // 8 hours
   const [isInEatingWindow, setIsInEatingWindow] = useState(false);
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
@@ -41,7 +41,18 @@ const Timer = () => {
 
   useEffect(() => {
     loadActiveSession();
-  }, [loadActiveSession]);
+    // Set fastType based on current session if available
+    if (currentSession?.goal_duration_seconds) {
+      const goalHours = Math.floor(currentSession.goal_duration_seconds / 3600);
+      if (goalHours <= 23) {
+        setFastType('intermittent');
+        setFastDuration(currentSession.goal_duration_seconds);
+      } else {
+        setFastType('longterm');
+        setFastDuration(currentSession.goal_duration_seconds);
+      }
+    }
+  }, [loadActiveSession, currentSession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

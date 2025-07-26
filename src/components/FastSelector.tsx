@@ -19,7 +19,7 @@ export const FastSelector = ({
   onSelect,
   onClose
 }: FastSelectorProps) => {
-  const [selectedType, setSelectedType] = useState<'intermittent' | 'longterm'>(currentType);
+  const [selectedType, setSelectedType] = useState<'intermittent' | 'longterm'>('longterm');
   const [duration, setDuration] = useState(Math.floor(currentDuration / 3600));
   const [eatingWindow, setEatingWindow] = useState(Math.floor(currentEatingWindow / 3600));
 
