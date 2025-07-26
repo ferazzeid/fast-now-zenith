@@ -28,7 +28,7 @@ export const WalkingHistory = () => {
       try {
         const { data, error } = await supabase
           .from('walking_sessions')
-          .select('id, start_time, end_time, calories_burned, distance, status')
+          .select('id, start_time, end_time, calories_burned, distance, speed_mph, status')
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .order('start_time', { ascending: false })
@@ -149,8 +149,8 @@ export const WalkingHistory = () => {
                 <div className="flex items-center gap-2">
                   <Gauge className="w-4 h-4 text-purple-500" />
                   <div>
-                    <p className="text-sm font-medium">3 mph</p>
-                    <p className="text-xs text-muted-foreground">Avg Speed</p>
+                    <p className="text-sm font-medium">{session.speed_mph || 3} mph</p>
+                    <p className="text-xs text-muted-foreground">Speed</p>
                   </div>
                 </div>
               </div>

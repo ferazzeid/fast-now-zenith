@@ -432,6 +432,7 @@ export type Database = {
           distance: number | null
           end_time: string | null
           id: string
+          speed_mph: number | null
           start_time: string
           status: string | null
           updated_at: string
@@ -443,6 +444,7 @@ export type Database = {
           distance?: number | null
           end_time?: string | null
           id?: string
+          speed_mph?: number | null
           start_time: string
           status?: string | null
           updated_at?: string
@@ -454,6 +456,7 @@ export type Database = {
           distance?: number | null
           end_time?: string | null
           id?: string
+          speed_mph?: number | null
           start_time?: string
           status?: string | null
           updated_at?: string

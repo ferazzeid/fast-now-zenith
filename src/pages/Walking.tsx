@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { SpeedSelector } from '@/components/SpeedSelector';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
+import { WalkingHistory } from '@/components/WalkingHistory';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
@@ -167,12 +168,17 @@ const Walking = () => {
           </div>
         )}
 
-        <ProfileCompletionPrompt
+        <ProfileCompletionPrompt 
           isOpen={showProfilePrompt}
-          onClose={() => setShowProfilePrompt(false)}
           onComplete={handleProfileComplete}
+          onClose={() => setShowProfilePrompt(false)}
           requiredFor="accurate calorie calculation during walking"
         />
+
+        {/* Walking History */}
+        <div className="mt-8">
+          <WalkingHistory />
+        </div>
       </div>
     </div>
   );
