@@ -50,57 +50,63 @@ export const TimerModeSelector = ({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button 
-          variant="ghost" 
-          className="relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim"
-        >
-          <div className="relative">
-            <Clock className="w-5 h-5 mb-1" />
-            {activeCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center text-xs p-0"
-              >
-                {activeCount}
-              </Badge>
-            )}
-          </div>
-          <span className="text-xs font-medium">Timer</span>
-          <ChevronUp className="w-3 h-3 opacity-60 mt-0.5" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="h-auto">
-        <SheetHeader>
-          <SheetTitle className="text-center">Select Timer Mode</SheetTitle>
-        </SheetHeader>
-        <div className="grid gap-3 mt-6 pb-6">
-          {timerModes.map(({ id, title, description, icon: Icon, color, status }) => (
-            <Button
-              key={id}
-              variant={currentMode === id ? "default" : "outline"}
-              className="h-auto p-4 flex items-center gap-4 text-left relative"
-              onClick={() => onModeSelect(id)}
-            >
-              <div className="flex items-center gap-3 flex-1">
-                <Icon className={`w-6 h-6 ${color}`} />
-                <div>
-                  <div className="font-medium">{title}</div>
-                  <div className="text-sm text-muted-foreground">{description}</div>
-                </div>
-              </div>
-              
-              {status.isActive && (
-                <div className="flex flex-col items-end">
-                  <Badge variant="secondary" className="mb-1">
-                    Active
+        <div className="relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim">
+          {/* Main Timer Button */}
+          <div className="relative flex items-center">
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <Clock className="w-5 h-5 mb-1" />
+                {activeCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center text-xs p-0"
+                  >
+                    {activeCount}
                   </Badge>
-                  <div className="text-sm font-mono">
-                    {formatTime(status.timeElapsed)}
-                  </div>
+                )}
+              </div>
+              <span className="text-xs font-medium">Timer</span>
+            </div>
+            
+            {/* Integrated Arrow Section */}
+            <div className="ml-1 pl-1 border-l border-muted-foreground/20">
+              <ChevronUp className="w-3 h-3 opacity-60" />
+            </div>
+          </div>
+        </div>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-auto max-w-md mx-auto rounded-t-xl border-x border-t bg-background/95 backdrop-blur-sm">
+        <div className="w-full max-w-xs mx-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle className="text-center text-sm">Select Timer Mode</SheetTitle>
+          </SheetHeader>
+          <div className="grid gap-2 pb-4">
+            {timerModes.map(({ id, title, description, icon: Icon, color, status }) => (
+              <Button
+                key={id}
+                variant={currentMode === id ? "default" : "outline"}
+                className="h-auto p-3 flex items-center gap-3 text-left relative justify-start"
+                onClick={() => onModeSelect(id)}
+              >
+                <Icon className={`w-5 h-5 ${color}`} />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{title}</div>
+                  <div className="text-xs text-muted-foreground">{description}</div>
                 </div>
-              )}
-            </Button>
-          ))}
+                
+                {status.isActive && (
+                  <div className="flex flex-col items-end">
+                    <Badge variant="secondary" className="mb-1 text-xs">
+                      Active
+                    </Badge>
+                    <div className="text-xs font-mono">
+                      {formatTime(status.timeElapsed)}
+                    </div>
+                  </div>
+                )}
+              </Button>
+            ))}
+          </div>
         </div>
       </SheetContent>
     </Sheet>

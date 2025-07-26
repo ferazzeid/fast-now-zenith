@@ -53,6 +53,8 @@ export const useTimerNavigation = () => {
 
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);
+    // Navigate to home page when switching modes
+    window.location.href = '/';
   };
 
   const getActiveTimerCount = () => {
