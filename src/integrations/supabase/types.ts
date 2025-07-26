@@ -429,6 +429,7 @@ export type Database = {
         Row: {
           calories_burned: number | null
           created_at: string
+          deleted_at: string | null
           distance: number | null
           end_time: string | null
           id: string
@@ -444,6 +445,7 @@ export type Database = {
         Insert: {
           calories_burned?: number | null
           created_at?: string
+          deleted_at?: string | null
           distance?: number | null
           end_time?: string | null
           id?: string
@@ -459,6 +461,7 @@ export type Database = {
         Update: {
           calories_burned?: number | null
           created_at?: string
+          deleted_at?: string | null
           distance?: number | null
           end_time?: string | null
           id?: string

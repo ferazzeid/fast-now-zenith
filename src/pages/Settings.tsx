@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useSubscription } from '@/hooks/useSubscription';
@@ -158,6 +159,32 @@ const Settings = () => {
       title: "🗑️ API Key Removed",
       description: "AI features have been disabled.",
     });
+  };
+
+  const handleClearWalkingHistory = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('walking_sessions')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
+
+      if (error) throw error;
+
+      toast({
+        title: "Walking History Cleared",
+        description: "All walking sessions have been removed from your history.",
+      });
+    } catch (error) {
+      console.error('Error clearing walking history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear walking history. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -729,6 +756,55 @@ const Settings = () => {
               <Button onClick={handleSaveSettings} className="w-full">
                 Save Profile
               </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Data Management */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Database className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Data Management</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="bg-accent/20 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  Manage your personal data and history. Cleared data is soft-deleted and may be recoverable.
+                </p>
+              </div>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Walking History
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Walking History</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to clear all your walking session history? 
+                      This will remove all walking sessions from your dashboard and statistics.
+                      Data is soft-deleted and may be recoverable by contacting support.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleClearWalkingHistory}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Clear History
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </Card>

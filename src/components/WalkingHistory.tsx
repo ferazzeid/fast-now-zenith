@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Zap, MapPin, Gauge } from 'lucide-react';
+import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 interface WalkingSession {
@@ -20,7 +23,10 @@ export const WalkingHistory = () => {
   const [sessions, setSessions] = useState<WalkingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchWalkingSessions = async () => {
@@ -28,16 +34,33 @@ export const WalkingHistory = () => {
 
       try {
         const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
+        
+        // First, get the sessions to display
         const { data, error } = await supabase
           .from('walking_sessions')
           .select('id, start_time, end_time, calories_burned, distance, speed_mph, status')
           .eq('user_id', user.id)
           .eq('status', 'completed')
+          .is('deleted_at', null) // Only get non-deleted sessions
           .order('start_time', { ascending: false })
           .limit(limit);
 
         if (error) throw error;
         setSessions(data || []);
+
+        // Check if there are more sessions available
+        if (!showAll) {
+          const { count } = await supabase
+            .from('walking_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'completed')
+            .is('deleted_at', null);
+          
+          setHasMore((count || 0) > 5);
+        } else {
+          setHasMore(false);
+        }
       } catch (error) {
         console.error('Error fetching walking sessions:', error);
       } finally {
@@ -47,6 +70,38 @@ export const WalkingHistory = () => {
 
     fetchWalkingSessions();
   }, [user, showAll]);
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!user) return;
+    
+    setDeletingId(sessionId);
+    try {
+      const { error } = await supabase
+        .from('walking_sessions')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Remove the session from the local state
+      setSessions(prev => prev.filter(session => session.id !== sessionId));
+      
+      toast({
+        title: "Session deleted",
+        description: "Walking session has been removed from your history.",
+      });
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete walking session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const calculateDuration = (startTime: string, endTime: string) => {
     const start = new Date(startTime);
@@ -118,9 +173,41 @@ export const WalkingHistory = () => {
                     {format(date, 'h:mm a')}
                   </span>
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  Completed
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    Completed
+                  </Badge>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                        disabled={deletingId === session.id}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Walking Session</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this walking session from {format(date, 'MMM d, yyyy')}? 
+                          This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteSession(session.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -160,6 +247,30 @@ export const WalkingHistory = () => {
           );
         })}
       </div>
+
+      {/* Load More / Show Less Button */}
+      {(hasMore || showAll) && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => setShowAll(!showAll)}
+            className="w-full"
+            disabled={loading}
+          >
+            {showAll ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-2" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-2" />
+                Load More ({hasMore ? 'more available' : 'no more'})
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
