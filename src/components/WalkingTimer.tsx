@@ -71,7 +71,7 @@ export const WalkingTimer = ({
                     {displayTime}
                   </div>
                   <div className={`text-lg font-medium transition-colors duration-300 ${
-                    isActive && !isPaused ? 'text-accent animate-pulse' : 
+                    isActive && !isPaused ? 'text-accent' : 
                     isPaused ? 'text-yellow-500' : 'text-muted-foreground'
                   }`}>
                     {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}

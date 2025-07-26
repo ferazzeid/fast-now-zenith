@@ -122,8 +122,10 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 {displayTime}
               </div>
               
-              <div className="text-sm font-medium text-muted-foreground">
-                {isEatingWindow ? '🍽️ Eating' : '✨ Fasting'}
+              <div className={`text-lg font-medium transition-colors duration-300 ${
+                isEatingWindow ? 'text-orange-600' : isActive ? 'text-accent' : 'text-muted-foreground'
+              }`}>
+                {isEatingWindow ? 'Eating' : isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
               
               {/* Separate eating window countdown */}

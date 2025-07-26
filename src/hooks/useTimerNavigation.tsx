@@ -31,8 +31,8 @@ export const useTimerNavigation = () => {
   // Update timer status based on active sessions
   useEffect(() => {
     const updateTimerStatus = () => {
-      const fastingActive = !!fastingSession;
-      const walkingActive = !!walkingSession;
+      const fastingActive = !!fastingSession && fastingSession.status === 'active';
+      const walkingActive = !!walkingSession && walkingSession.status === 'active';
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
