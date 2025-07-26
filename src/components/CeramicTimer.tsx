@@ -112,7 +112,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             <div className="text-center space-y-2">
               <div 
                 className={cn(
-                  "text-4xl font-bold tracking-wider transition-colors duration-300",
+                  "text-4xl font-mono font-bold tracking-wider transition-colors duration-300",
                   isActive ? "text-foreground" : "text-muted-foreground"
                 )}
                 style={{ 

@@ -51,7 +51,7 @@ const Timer = () => {
     let interval: NodeJS.Timeout;
     
     if (isRunning && fastingSession) {
-      interval = setInterval(() => {
+      const updateTimer = () => {
         const startTime = new Date(fastingSession.start_time);
         const now = new Date();
         const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
@@ -66,7 +66,13 @@ const Timer = () => {
         } else {
           setIsInEatingWindow(false);
         }
-      }, 1000);
+      };
+
+      // Update immediately
+      updateTimer();
+      
+      // Then update every second
+      interval = setInterval(updateTimer, 1000);
     } else {
       setTimeElapsed(0);
       setIsInEatingWindow(false);
@@ -75,7 +81,7 @@ const Timer = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, fastingSession, fastDuration, eatingWindow, fastType]);
+  }, [isRunning, fastingSession?.start_time, fastDuration, eatingWindow, fastType]);
 
   const handleFastingStart = async () => {
     const result = await startFastingSession(fastDuration);
