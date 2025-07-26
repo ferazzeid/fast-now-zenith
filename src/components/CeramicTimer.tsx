@@ -13,6 +13,8 @@ interface CeramicTimerProps {
   isEatingWindow?: boolean;
   /** Show motivator slideshow */
   showSlideshow?: boolean;
+  /** Eating window time remaining (only shown during eating window) */
+  eatingWindowTimeRemaining?: string | null;
   /** Additional className */
   className?: string;
 }
@@ -23,6 +25,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   isActive,
   isEatingWindow = false,
   showSlideshow = false,
+  eatingWindowTimeRemaining = null,
   className
 }) => {
   // Calculate stroke-dashoffset for progress ring
@@ -122,6 +125,13 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               <div className="text-sm font-medium text-muted-foreground">
                 {isEatingWindow ? '🍽️ Eating' : '✨ Fasting'}
               </div>
+              
+              {/* Separate eating window countdown */}
+              {isEatingWindow && eatingWindowTimeRemaining && (
+                <div className="text-xs text-orange-600 font-medium">
+                  Time left: {eatingWindowTimeRemaining}
+                </div>
+              )}
               
               {isActive && (
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse mx-auto" />

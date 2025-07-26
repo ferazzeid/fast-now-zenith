@@ -75,6 +75,19 @@ export const FastSelector = ({
         <div className="space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-3">
             <Button
+              variant={selectedType === 'longterm' ? 'default' : 'outline'}
+              onClick={() => setSelectedType('longterm')}
+              className={`h-20 flex-col space-y-2 ${
+                selectedType === 'longterm' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-ceramic-base border-ceramic-rim'
+              }`}
+            >
+              <Clock className="w-5 h-5" />
+              <span className="text-sm font-medium">Water Fast</span>
+            </Button>
+            
+            <Button
               variant={selectedType === 'intermittent' ? 'default' : 'outline'}
               onClick={() => setSelectedType('intermittent')}
               className={`h-20 flex-col space-y-2 ${
@@ -85,19 +98,6 @@ export const FastSelector = ({
             >
               <Utensils className="w-5 h-5" />
               <span className="text-sm font-medium">Intermittent</span>
-            </Button>
-            
-            <Button
-              variant={selectedType === 'longterm' ? 'default' : 'outline'}
-              onClick={() => setSelectedType('longterm')}
-              className={`h-20 flex-col space-y-2 ${
-                selectedType === 'longterm' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-ceramic-base border-ceramic-rim'
-              }`}
-            >
-              <Clock className="w-5 h-5" />
-              <span className="text-sm font-medium">Extended</span>
             </Button>
           </div>
         </div>

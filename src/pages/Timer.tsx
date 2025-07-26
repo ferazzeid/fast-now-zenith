@@ -25,7 +25,7 @@ import {
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(16 * 60 * 60); // 16 hours default
-  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('intermittent');
+  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('longterm');
   const [eatingWindow, setEatingWindow] = useState(8 * 60 * 60); // 8 hours
   const [isInEatingWindow, setIsInEatingWindow] = useState(false);
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
@@ -114,15 +114,32 @@ const Timer = () => {
     if (countDirection === 'up') {
       return formatTime(timeElapsed);
     } else {
-      const targetDuration = isInEatingWindow ? eatingWindow : fastDuration;
-      const remaining = Math.max(0, targetDuration - timeElapsed);
-      return formatTime(remaining);
+      if (isInEatingWindow) {
+        // For eating window, calculate time remaining based on when eating window started
+        const eatingStartTime = timeElapsed - fastDuration;
+        const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
+        return formatTime(eatingTimeRemaining);
+      } else {
+        const remaining = Math.max(0, fastDuration - timeElapsed);
+        return formatTime(remaining);
+      }
     }
   };
 
+  const getEatingWindowTimeRemaining = () => {
+    if (!isInEatingWindow) return null;
+    const eatingStartTime = timeElapsed - fastDuration;
+    const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
+    return formatTime(eatingTimeRemaining);
+  };
+
   const getProgress = () => {
-    const targetDuration = isInEatingWindow ? eatingWindow : fastDuration;
-    return Math.min((timeElapsed / targetDuration) * 100, 100);
+    if (isInEatingWindow) {
+      const eatingStartTime = timeElapsed - fastDuration;
+      return Math.min((eatingStartTime / eatingWindow) * 100, 100);
+    } else {
+      return Math.min((timeElapsed / fastDuration) * 100, 100);
+    }
   };
 
   const getCurrentMode = () => {
@@ -200,6 +217,7 @@ const Timer = () => {
             isActive={isRunning}
             isEatingWindow={isInEatingWindow}
             showSlideshow={true}
+            eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
           />
           {/* Discrete Count Direction Toggle */}
           <div className="absolute top-0 right-0 flex items-center space-x-2 bg-ceramic-plate/80 backdrop-blur-sm px-3 py-1 rounded-full border border-ceramic-rim/50">
