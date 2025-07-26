@@ -1,16 +1,26 @@
-import { Heart, MessageCircle, Settings, Utensils } from 'lucide-react';
+import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { TimerModeSelector } from './TimerModeSelector';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 
 export const Navigation = () => {
   const location = useLocation();
-  const { currentMode, timerStatus, sheetOpen, setSheetOpen, switchMode, formatTime } = useTimerNavigation();
+  const { timerStatus, formatTime } = useTimerNavigation();
 
   const navItems = [
+    { 
+      icon: Clock, 
+      label: 'Fasting', 
+      path: '/',
+      badge: timerStatus.fasting.isActive ? formatTime(timerStatus.fasting.timeElapsed) : null
+    },
+    { 
+      icon: Footprints, 
+      label: 'Walking', 
+      path: '/walking',
+      badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null
+    },
     { icon: Utensils, label: 'Food', path: '/food-tracking' },
     { icon: MessageCircle, label: 'AI Chat', path: '/ai-chat' },
-    { icon: Heart, label: 'Motivators', path: '/motivators' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -19,14 +29,14 @@ export const Navigation = () => {
       <div className="max-w-md mx-auto">
         <div className="flex justify-around">
           {/* Navigation Items */}
-          {navItems.map(({ icon: Icon, label, path }) => {
+          {navItems.map(({ icon: Icon, label, path, badge }) => {
             const isActive = location.pathname === path;
             
             return (
               <Link
                 key={path}
                 to={path}
-                className={`flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                className={`relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 ${
                   isActive 
                     ? 'bg-primary text-primary-foreground shadow-lg' 
                     : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim'
@@ -34,19 +44,14 @@ export const Navigation = () => {
               >
                 <Icon className="w-5 h-5 mb-1" />
                 <span className="text-xs font-medium">{label}</span>
+                {badge && (
+                  <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[2rem] text-center">
+                    {badge}
+                  </div>
+                )}
               </Link>
             );
           })}
-          
-          {/* Timer Mode Selector */}
-          <TimerModeSelector
-            currentMode={currentMode}
-            onModeSelect={switchMode}
-            timerStatus={timerStatus}
-            formatTime={formatTime}
-            sheetOpen={sheetOpen}
-            onSheetOpenChange={setSheetOpen}
-          />
         </div>
       </div>
     </nav>

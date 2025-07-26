@@ -31,6 +31,7 @@ const Settings = () => {
   const [age, setAge] = useState('');
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
+  const [activityLevel, setActivityLevel] = useState('sedentary');
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const Settings = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal')
+          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level')
           .eq('user_id', user.id)
           .single();
 
@@ -74,6 +75,7 @@ const Settings = () => {
           setAge(profile.age?.toString() || '');
           setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
+          setActivityLevel(profile.activity_level || 'sedentary');
           
           // Load API key from database if available
           if (profile.openai_api_key) {
@@ -126,7 +128,8 @@ const Settings = () => {
             height: height ? parseInt(height) : null,
             age: age ? parseInt(age) : null,
             daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
-            daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null
+            daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
+            activity_level: activityLevel
           })
           .eq('user_id', user.id);
 

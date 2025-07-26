@@ -241,6 +241,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activity_level: string | null
           age: number | null
           ai_requests_reset_date: string | null
           created_at: string
@@ -266,6 +267,7 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
           created_at?: string
@@ -291,6 +293,7 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
           created_at?: string

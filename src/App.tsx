@@ -18,6 +18,7 @@ import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { DailyStatsPanel } from "./components/DailyStatsPanel";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <div className="min-h-screen bg-frame-background">
             {/* Mobile-first centered container with phone-like frame */}
             <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
+              <DailyStatsPanel />
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
