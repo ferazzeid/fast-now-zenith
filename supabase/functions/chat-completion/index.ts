@@ -58,6 +58,16 @@ serve(async (req) => {
       console.error('Error fetching profile:', profileError);
     }
 
+    // Check if user is admin
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .single();
+    
+    const isAdmin = !!userRole;
+
     // Determine which API key to use
     let OPENAI_API_KEY;
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
@@ -81,6 +91,7 @@ You have access to the following functions to help users:
 1. create_motivator - Create personalized motivational content
 2. start_walking_session - Start a walking session for the user
 3. add_food_entry - Add a food entry to the user's log
+${isAdmin ? '4. save_admin_note - Save notes about bugs, improvements, or observations (admin only)\n5. get_admin_notes - Retrieve all saved admin notes (admin only)' : ''}
 
 You can help users with:
 - Fasting guidance and motivation
@@ -88,9 +99,11 @@ You can help users with:
 - Adding food entries to their log
 - Creating personalized motivational content
 - General nutrition advice and goal setting
+${isAdmin ? '- Saving development notes and feedback (admin only)\n- Retrieving saved notes for review (admin only)' : ''}
 
 When users mention starting a walk or wanting to go for a walk, offer to start a walking session for them.
 When users provide food information or ask to log food, offer to add it to their food log.
+${isAdmin ? 'When users say things like "save this to admin notes", "note for later", "add to notes", or similar phrases, use the save_admin_note function.\nWhen users ask to "show admin notes", "review notes", or "what notes do we have", use the get_admin_notes function.' : ''}
 Be supportive, encouraging, and provide practical advice. Keep responses concise but helpful.
 
 Important: Always ask for confirmation before taking actions like starting walking sessions or adding food entries.`;
@@ -196,6 +209,51 @@ Important: Always ask for confirmation before taking actions like starting walki
         }
       }
     ];
+
+    // Add admin-only functions if user is admin
+    if (isAdmin) {
+      functions.push(
+        {
+          name: 'save_admin_note',
+          description: 'Save an admin note for bug reports, feature suggestions, or development observations',
+          parameters: {
+            type: 'object',
+            properties: {
+              content: {
+                type: 'string',
+                description: 'The note content describing a bug, suggestion, or observation'
+              },
+              category: {
+                type: 'string',
+                enum: ['bug', 'improvement', 'feature', 'observation', 'general'],
+                description: 'The category of the note'
+              },
+              priority: {
+                type: 'string',
+                enum: ['low', 'medium', 'high', 'critical'],
+                description: 'Priority level of the note'
+              }
+            },
+            required: ['content', 'category', 'priority']
+          }
+        },
+        {
+          name: 'get_admin_notes',
+          description: 'Retrieve all saved admin notes for review and implementation planning',
+          parameters: {
+            type: 'object',
+            properties: {
+              category: {
+                type: 'string',
+                enum: ['bug', 'improvement', 'feature', 'observation', 'general', 'all'],
+                description: 'Filter notes by category, or "all" for all notes'
+              }
+            },
+            required: []
+          }
+        }
+      );
+    }
 
     // Send to OpenAI Chat Completions API
     console.log('Sending request to OpenAI');
@@ -443,6 +501,129 @@ Daily calorie needs based on activity level:
 - Light activity (1-3 days/week): ${Math.round(calculatedBmr * 1.375)} cal/day  
 - Moderate activity (3-5 days/week): ${Math.round(calculatedBmr * 1.55)} cal/day
 - Very active (6-7 days/week): ${Math.round(calculatedBmr * 1.725)} cal/day`;
+            break;
+
+          case 'save_admin_note':
+            if (!isAdmin) {
+              functionResult = 'Error: Admin access required for this function';
+              break;
+            }
+            
+            console.log('Saving admin note with args:', functionArgs);
+            const noteData = {
+              content: functionArgs.content,
+              category: functionArgs.category,
+              priority: functionArgs.priority,
+              timestamp: new Date().toISOString(),
+              user_id: userId
+            };
+            
+            // Create a unique key for this note
+            const noteKey = `admin_note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            const { error: noteError } = await supabase
+              .from('shared_settings')
+              .insert([{
+                setting_key: noteKey,
+                setting_value: JSON.stringify(noteData)
+              }]);
+            
+            if (noteError) {
+              functionResult = `Error saving admin note: ${noteError.message}`;
+            } else {
+              functionResult = `Admin note saved successfully!\n\n**Category:** ${functionArgs.category}\n**Priority:** ${functionArgs.priority}\n**Content:** ${functionArgs.content}\n\nNote ID: ${noteKey}`;
+            }
+            break;
+
+          case 'get_admin_notes':
+            if (!isAdmin) {
+              functionResult = 'Error: Admin access required for this function';
+              break;
+            }
+            
+            console.log('Retrieving admin notes with args:', functionArgs);
+            const { data: notes, error: notesError } = await supabase
+              .from('shared_settings')
+              .select('setting_key, setting_value')
+              .like('setting_key', 'admin_note_%');
+            
+            if (notesError) {
+              functionResult = `Error retrieving admin notes: ${notesError.message}`;
+              break;
+            }
+            
+            if (!notes || notes.length === 0) {
+              functionResult = 'No admin notes found.';
+              break;
+            }
+            
+            // Parse and filter notes
+            const parsedNotes = notes.map(note => {
+              try {
+                const data = JSON.parse(note.setting_value);
+                return {
+                  id: note.setting_key,
+                  ...data
+                };
+              } catch (e) {
+                return null;
+              }
+            }).filter(Boolean);
+            
+            // Filter by category if specified
+            const categoryFilter = functionArgs.category || 'all';
+            const filteredNotes = categoryFilter === 'all' 
+              ? parsedNotes 
+              : parsedNotes.filter(note => note.category === categoryFilter);
+            
+            if (filteredNotes.length === 0) {
+              functionResult = `No admin notes found for category: ${categoryFilter}`;
+              break;
+            }
+            
+            // Sort by priority and timestamp
+            const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+            filteredNotes.sort((a, b) => {
+              const priorityDiff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+              if (priorityDiff !== 0) return priorityDiff;
+              return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+            });
+            
+            // Format notes for display
+            let notesDisplay = `## Admin Notes Summary ${categoryFilter !== 'all' ? `(${categoryFilter})` : ''}\n\n`;
+            notesDisplay += `**Total Notes:** ${filteredNotes.length}\n\n`;
+            
+            // Group by category and priority
+            const categories = ['bug', 'improvement', 'feature', 'observation', 'general'];
+            const priorities = ['critical', 'high', 'medium', 'low'];
+            
+            categories.forEach(cat => {
+              const categoryNotes = filteredNotes.filter(note => note.category === cat);
+              if (categoryNotes.length > 0) {
+                notesDisplay += `### ${cat.toUpperCase()} (${categoryNotes.length} notes)\n\n`;
+                
+                priorities.forEach(pri => {
+                  const priorityNotes = categoryNotes.filter(note => note.priority === pri);
+                  if (priorityNotes.length > 0) {
+                    notesDisplay += `**${pri.toUpperCase()} Priority:**\n`;
+                    priorityNotes.forEach((note, index) => {
+                      const date = new Date(note.timestamp).toLocaleDateString();
+                      notesDisplay += `${index + 1}. ${note.content} *(${date})*\n`;
+                    });
+                    notesDisplay += '\n';
+                  }
+                });
+              }
+            });
+            
+            notesDisplay += `\n**Next Steps:**\n`;
+            notesDisplay += `- Critical/High priority items should be addressed first\n`;
+            notesDisplay += `- Consider grouping related improvements for efficient implementation\n`;
+            notesDisplay += `- Review and test each bug fix thoroughly\n`;
+            notesDisplay += `- Update user documentation for new features\n\n`;
+            notesDisplay += `*Use "save this to admin notes" to add new observations while testing.*`;
+            
+            functionResult = notesDisplay;
             break;
 
           default:
