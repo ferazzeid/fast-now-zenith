@@ -432,9 +432,12 @@ export type Database = {
           distance: number | null
           end_time: string | null
           id: string
+          pause_start_time: string | null
+          session_state: string | null
           speed_mph: number | null
           start_time: string
           status: string | null
+          total_pause_duration: number | null
           updated_at: string
           user_id: string
         }
@@ -444,9 +447,12 @@ export type Database = {
           distance?: number | null
           end_time?: string | null
           id?: string
+          pause_start_time?: string | null
+          session_state?: string | null
           speed_mph?: number | null
           start_time: string
           status?: string | null
+          total_pause_duration?: number | null
           updated_at?: string
           user_id: string
         }
@@ -456,9 +462,12 @@ export type Database = {
           distance?: number | null
           end_time?: string | null
           id?: string
+          pause_start_time?: string | null
+          session_state?: string | null
           speed_mph?: number | null
           start_time?: string
           status?: string | null
+          total_pause_duration?: number | null
           updated_at?: string
           user_id?: string
         }

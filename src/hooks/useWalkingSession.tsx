@@ -12,12 +12,16 @@ interface WalkingSession {
   distance?: number;
   status: string;
   speed_mph?: number;
+  pause_start_time?: string;
+  total_pause_duration?: number;
+  session_state?: string;
 }
 
 export const useWalkingSession = () => {
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedSpeed, setSelectedSpeed] = useState<number>(3); // Default to average speed
+  const [isPaused, setIsPaused] = useState(false);
   const { user } = useAuth();
   const { calculateWalkingCalories } = useProfile();
 
@@ -40,6 +44,7 @@ export const useWalkingSession = () => {
       }
 
       setCurrentSession(data || null);
+      setIsPaused(data?.session_state === 'paused');
     } catch (error) {
       console.error('Error loading active walking session:', error);
     } finally {
@@ -58,7 +63,9 @@ export const useWalkingSession = () => {
           user_id: user.id,
           start_time: new Date().toISOString(),
           status: 'active',
-          speed_mph: speedMph
+          speed_mph: speedMph,
+          session_state: 'active',
+          total_pause_duration: 0
         })
         .select()
         .single();
@@ -67,6 +74,7 @@ export const useWalkingSession = () => {
 
       setCurrentSession(data);
       setSelectedSpeed(speedMph);
+      setIsPaused(false);
       return { data, error: null };
     } catch (error: any) {
       console.error('Error starting walking session:', error);
@@ -76,6 +84,67 @@ export const useWalkingSession = () => {
     }
   }, [user, selectedSpeed]);
 
+  const pauseWalkingSession = useCallback(async () => {
+    if (!user || !currentSession) return { error: { message: 'No active session' } };
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({
+          session_state: 'paused',
+          pause_start_time: new Date().toISOString()
+        })
+        .eq('id', currentSession.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCurrentSession(data);
+      setIsPaused(true);
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Error pausing walking session:', error);
+      return { error, data: null };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentSession]);
+
+  const resumeWalkingSession = useCallback(async () => {
+    if (!user || !currentSession) return { error: { message: 'No active session' } };
+
+    setLoading(true);
+    try {
+      const pauseDuration = currentSession.pause_start_time 
+        ? Math.floor((new Date().getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000)
+        : 0;
+
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({
+          session_state: 'active',
+          pause_start_time: null,
+          total_pause_duration: (currentSession.total_pause_duration || 0) + pauseDuration
+        })
+        .eq('id', currentSession.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCurrentSession(data);
+      setIsPaused(false);
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Error resuming walking session:', error);
+      return { error, data: null };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentSession]);
+
   const endWalkingSession = useCallback(async () => {
     if (!user || !currentSession) return { error: { message: 'No active session' } };
 
@@ -83,22 +152,36 @@ export const useWalkingSession = () => {
     try {
       const endTime = new Date();
       const startTime = new Date(currentSession.start_time);
-      const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+      
+      // Calculate total active duration (excluding paused time)
+      let totalDurationMs = endTime.getTime() - startTime.getTime();
+      let totalPauseDuration = currentSession.total_pause_duration || 0;
+      
+      // If currently paused, add current pause duration
+      if (isPaused && currentSession.pause_start_time) {
+        const currentPauseDuration = Math.floor((endTime.getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000);
+        totalPauseDuration += currentPauseDuration;
+      }
+      
+      // Convert to minutes and subtract paused time
+      const activeDurationMinutes = (totalDurationMs / (1000 * 60)) - (totalPauseDuration / 60);
       const speedMph = currentSession.speed_mph || selectedSpeed || 3;
       
       // Calculate calories using profile data and speed
-      const calories = calculateWalkingCalories(durationMinutes, speedMph);
+      const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
       
-      // Calculate distance (time × speed)
-      const distance = (durationMinutes / 60) * speedMph; // Distance in miles
+      // Calculate distance (active time × speed)
+      const distance = (activeDurationMinutes / 60) * speedMph; // Distance in miles
 
       const { data, error } = await supabase
         .from('walking_sessions')
         .update({
           end_time: endTime.toISOString(),
           status: 'completed',
+          session_state: 'completed',
           calories_burned: calories,
-          distance: Math.round(distance * 100) / 100 // Round to 2 decimal places
+          distance: Math.round(distance * 100) / 100, // Round to 2 decimal places
+          total_pause_duration: totalPauseDuration
         })
         .eq('id', currentSession.id)
         .select()
@@ -107,6 +190,7 @@ export const useWalkingSession = () => {
       if (error) throw error;
 
       setCurrentSession(null);
+      setIsPaused(false);
       return { data, error: null };
     } catch (error: any) {
       console.error('Error ending walking session:', error);
@@ -114,7 +198,7 @@ export const useWalkingSession = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, currentSession, selectedSpeed, calculateWalkingCalories]);
+  }, [user, currentSession, selectedSpeed, calculateWalkingCalories, isPaused]);
 
   // Load active session on mount
   useEffect(() => {
@@ -126,7 +210,10 @@ export const useWalkingSession = () => {
     loading,
     selectedSpeed,
     setSelectedSpeed,
+    isPaused,
     startWalkingSession,
+    pauseWalkingSession,
+    resumeWalkingSession,
     endWalkingSession,
     loadActiveSession
   };

@@ -3,6 +3,7 @@ import { WalkingTimer } from '@/components/WalkingTimer';
 import { SpeedSelector } from '@/components/SpeedSelector';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { WalkingHistory } from '@/components/WalkingHistory';
+import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
@@ -12,48 +13,56 @@ const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [realTimeCalories, setRealTimeCalories] = useState(0);
   const [realTimeDistance, setRealTimeDistance] = useState(0);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
   const { toast } = useToast();
   const { 
     currentSession, 
-    selectedSpeed,
-    setSelectedSpeed,
+    loading, 
+    selectedSpeed, 
+    setSelectedSpeed, 
+    isPaused,
     startWalkingSession, 
-    endWalkingSession, 
-    loadActiveSession 
+    pauseWalkingSession,
+    resumeWalkingSession,
+    endWalkingSession 
   } = useWalkingSession();
   const { isProfileComplete, calculateWalkingCalories } = useProfile();
 
   const isRunning = !!currentSession;
 
-  useEffect(() => {
-    loadActiveSession();
-  }, [loadActiveSession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
-    if (isRunning && currentSession) {
+
+    if (currentSession && !isPaused) {
       interval = setInterval(() => {
         const startTime = new Date(currentSession.start_time);
         const now = new Date();
-        const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-        const elapsedMinutes = elapsed / 60;
+        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        
+        // Subtract paused time for accurate calculation
+        const pausedTime = currentSession.total_pause_duration || 0;
+        const activeElapsed = Math.max(0, totalElapsed - pausedTime);
+        setTimeElapsed(activeElapsed);
+
+        // Calculate real-time stats based on active time only
+        const activeDurationMinutes = activeElapsed / 60;
         const speedMph = currentSession.speed_mph || selectedSpeed || 3;
         
-        setTimeElapsed(elapsed);
-        setRealTimeCalories(calculateWalkingCalories(elapsedMinutes, speedMph));
-        setRealTimeDistance(Math.round((elapsedMinutes / 60) * speedMph * 100) / 100);
+        if (isProfileComplete()) {
+          const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
+          setRealTimeCalories(calories);
+        }
+        
+        const distance = (activeDurationMinutes / 60) * speedMph;
+        setRealTimeDistance(Math.round(distance * 100) / 100);
       }, 1000);
-    } else {
-      setTimeElapsed(0);
-      setRealTimeCalories(0);
-      setRealTimeDistance(0);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, currentSession, selectedSpeed, calculateWalkingCalories]);
+  }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories]);
 
   const handleStart = async () => {
     // Check if profile is complete for accurate calorie calculation
@@ -77,24 +86,42 @@ const Walking = () => {
     }
   };
 
-  const handleStop = async () => {
-    if (!currentSession) return;
-    
-    const result = await endWalkingSession();
+  const handlePause = async () => {
+    const result = await pauseWalkingSession();
     if (result.error) {
       toast({
         variant: "destructive",
-        title: "Error", 
+        title: "Error",
+        description: result.error.message
+      });
+    }
+  };
+
+  const handleResume = async () => {
+    const result = await resumeWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    }
+  };
+
+  const handleStopConfirm = async () => {
+    const result = await endWalkingSession();
+    setShowStopConfirm(false);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
         description: result.error.message
       });
     } else {
-      const calories = result.data?.calories_burned || 0;
-      const distance = result.data?.distance || 0;
       toast({
-        title: "Walking completed",
-        description: `Great job! You walked ${distance} miles and burned ${calories} calories.`
+        title: "Walking completed!",
+        description: `Great job! You walked for ${formatTime(timeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`
       });
-      setTimeElapsed(0);
     }
   };
 
@@ -135,16 +162,19 @@ const Walking = () => {
 
         {/* Timer Display */}
         <div className="relative mb-8">
-          <WalkingTimer 
+          <WalkingTimer
             displayTime={formatTime(timeElapsed)}
-            isActive={isRunning}
+            isActive={!!currentSession}
+            isPaused={isPaused}
             onStart={handleStart}
-            onStop={handleStop}
+            onPause={handlePause}
+            onResume={handleResume}
+            onStop={() => setShowStopConfirm(true)}
           />
         </div>
 
         {/* Real-time stats during walking */}
-        {isRunning && currentSession && (
+        {currentSession && (
           <div className="mt-8 p-4 rounded-xl bg-card border border-border space-y-2">
             <h3 className="font-medium mb-2">Current Session</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -176,6 +206,16 @@ const Walking = () => {
         />
 
         {/* Walking History */}
+        {/* Stop Walking Confirmation Dialog */}
+        <StopWalkingConfirmDialog
+          open={showStopConfirm}
+          onOpenChange={setShowStopConfirm}
+          onConfirm={handleStopConfirm}
+          currentDuration={formatTime(timeElapsed)}
+          calories={realTimeCalories}
+          distance={realTimeDistance}
+        />
+
         <div className="mt-8">
           <WalkingHistory />
         </div>

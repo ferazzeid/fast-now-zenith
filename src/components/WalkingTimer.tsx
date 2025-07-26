@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, FootprintsIcon } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface WalkingTimerProps {
   displayTime: string;
   isActive: boolean;
+  isPaused?: boolean;
   onStart: () => void;
+  onPause?: () => void;
+  onResume?: () => void;
   onStop: () => void;
   className?: string;
 }
@@ -13,20 +16,23 @@ interface WalkingTimerProps {
 export const WalkingTimer = ({ 
   displayTime, 
   isActive, 
+  isPaused = false,
   onStart, 
+  onPause,
+  onResume,
   onStop, 
   className = "" 
 }: WalkingTimerProps) => {
   const [stepAnimation, setStepAnimation] = useState(false);
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !isPaused) {
       const interval = setInterval(() => {
         setStepAnimation(prev => !prev);
       }, 800);
       return () => clearInterval(interval);
     }
-  }, [isActive]);
+  }, [isActive, isPaused]);
 
   return (
     <div className={`relative ${className}`}>
@@ -45,7 +51,7 @@ export const WalkingTimer = ({
                   <FootprintsIcon 
                     key={i}
                     className={`absolute w-4 h-4 text-accent/60 transition-all duration-800 ${
-                      isActive && stepAnimation ? 'opacity-100 scale-110' : 'opacity-40 scale-100'
+                      isActive && !isPaused && stepAnimation ? 'opacity-100 scale-110' : 'opacity-40 scale-100'
                     }`}
                     style={{
                       top: `${50 + 30 * Math.sin((i * Math.PI * 2) / 8)}%`,
@@ -65,15 +71,17 @@ export const WalkingTimer = ({
                     {displayTime}
                   </div>
                   <div className={`text-lg font-medium transition-colors duration-300 ${
-                    isActive ? 'text-accent animate-pulse' : 'text-muted-foreground'
+                    isActive && !isPaused ? 'text-accent animate-pulse' : 
+                    isPaused ? 'text-yellow-500' : 'text-muted-foreground'
                   }`}>
-                    {isActive ? 'Walking' : 'Ready to Walk'}
+                    {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
                   </div>
                 </div>
 
                 {/* Large Walking Icon */}
                 <FootprintsIcon className={`w-8 h-8 transition-all duration-500 ${
-                  isActive ? 'text-accent animate-bounce' : 'text-muted-foreground'
+                  isActive && !isPaused ? 'text-accent animate-bounce' : 
+                  isPaused ? 'text-yellow-500' : 'text-muted-foreground'
                 }`} />
               </div>
             </div>
@@ -81,32 +89,56 @@ export const WalkingTimer = ({
         </div>
 
         {/* Active Border Animation */}
-        {isActive && (
+        {isActive && !isPaused && (
           <div className="absolute inset-0 rounded-full border-2 border-accent/50 animate-pulse" />
+        )}
+        {/* Paused Border Animation */}
+        {isPaused && (
+          <div className="absolute inset-0 rounded-full border-2 border-yellow-500/50 animate-pulse" />
         )}
       </div>
 
-      {/* Control Button */}
-      <div className="mt-8 flex justify-center">
+      {/* Control Buttons */}
+      <div className="mt-8 space-y-3">
         {!isActive ? (
           <Button 
             onClick={onStart}
-            className="w-48 h-14 text-lg font-medium"
+            className="w-full h-14 text-lg font-medium"
             size="lg"
           >
             <Play className="w-6 h-6 mr-2" />
             Start Walking
           </Button>
         ) : (
-          <Button 
-            onClick={onStop}
-            variant="destructive"
-            className="w-48 h-14 text-lg font-medium"
-            size="lg"
-          >
-            <Square className="w-6 h-6 mr-2" />
-            Stop Walking
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={isPaused ? onResume : onPause}
+              variant={isPaused ? "default" : "outline"}
+              className="flex-1 h-14 text-lg font-medium"
+              size="lg"
+            >
+              {isPaused ? (
+                <>
+                  <Play className="w-6 h-6 mr-2" />
+                  Resume
+                </>
+              ) : (
+                <>
+                  <Pause className="w-6 h-6 mr-2" />
+                  Pause
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={onStop}
+              variant="destructive"
+              className="flex-1 h-14 text-lg font-medium"
+              size="lg"
+            >
+              <Square className="w-6 h-6 mr-2" />
+              Stop
+            </Button>
+          </div>
         )}
       </div>
     </div>

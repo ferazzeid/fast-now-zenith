@@ -19,7 +19,7 @@ export const FastSelector = ({
   onSelect,
   onClose
 }: FastSelectorProps) => {
-  const [selectedType, setSelectedType] = useState<'intermittent' | 'longterm'>('longterm');
+  const [selectedType, setSelectedType] = useState<'intermittent' | 'longterm'>(currentType);
   const [duration, setDuration] = useState(() => {
     // Fix default values based on type
     if (currentType === 'intermittent') {
@@ -27,7 +27,13 @@ export const FastSelector = ({
     }
     return Math.floor(currentDuration / 3600) || 72;
   });
-  const [eatingWindow, setEatingWindow] = useState(Math.floor(currentEatingWindow / 3600) || 8);
+  const [eatingWindow, setEatingWindow] = useState(() => {
+    // Fix default values based on type
+    if (currentType === 'intermittent') {
+      return Math.floor(currentEatingWindow / 3600) || 8;
+    }
+    return 8; // Default eating window for water fast (not used)
+  });
 
   const handleConfirm = () => {
     onSelect(selectedType, duration * 3600, eatingWindow * 3600);
@@ -82,7 +88,10 @@ export const FastSelector = ({
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant={selectedType === 'longterm' ? 'default' : 'outline'}
-              onClick={() => setSelectedType('longterm')}
+              onClick={() => {
+                setSelectedType('longterm');
+                setDuration(72); // Default to 72 hours for water fast
+              }}
               className={`h-20 flex-col space-y-2 ${
                 selectedType === 'longterm' 
                   ? 'bg-primary text-primary-foreground' 
@@ -95,7 +104,11 @@ export const FastSelector = ({
             
             <Button
               variant={selectedType === 'intermittent' ? 'default' : 'outline'}
-              onClick={() => setSelectedType('intermittent')}
+              onClick={() => {
+                setSelectedType('intermittent');
+                setDuration(16); // Default to 16 hours for intermittent
+                setEatingWindow(8); // Default to 8 hours eating window
+              }}
               className={`h-20 flex-col space-y-2 ${
                 selectedType === 'intermittent' 
                   ? 'bg-primary text-primary-foreground' 

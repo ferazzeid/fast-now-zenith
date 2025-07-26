@@ -46,7 +46,18 @@ export const useTimerNavigation = () => {
       if (walkingSession) {
         const startTime = new Date(walkingSession.start_time);
         const now = new Date();
-        walkingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        
+        // Subtract paused time
+        const pausedTime = walkingSession.total_pause_duration || 0;
+        let currentPauseTime = 0;
+        
+        // If currently paused, add current pause duration
+        if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
+          currentPauseTime = Math.floor((now.getTime() - new Date(walkingSession.pause_start_time).getTime()) / 1000);
+        }
+        
+        walkingElapsed = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
       }
 
       setTimerStatus({
@@ -57,8 +68,8 @@ export const useTimerNavigation = () => {
 
     updateTimerStatus();
     
-    // Only update every 5 seconds to reduce performance impact
-    const interval = setInterval(updateTimerStatus, 5000);
+    // Update every second for accurate display
+    const interval = setInterval(updateTimerStatus, 1000);
     return () => clearInterval(interval);
   }, [fastingSession, walkingSession]);
 

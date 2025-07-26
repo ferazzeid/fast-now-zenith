@@ -19,6 +19,7 @@ interface WalkingSession {
 export const WalkingHistory = () => {
   const [sessions, setSessions] = useState<WalkingSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -26,13 +27,14 @@ export const WalkingHistory = () => {
       if (!user) return;
 
       try {
+        const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
         const { data, error } = await supabase
           .from('walking_sessions')
           .select('id, start_time, end_time, calories_burned, distance, speed_mph, status')
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .order('start_time', { ascending: false })
-          .limit(10);
+          .limit(limit);
 
         if (error) throw error;
         setSessions(data || []);
@@ -44,7 +46,7 @@ export const WalkingHistory = () => {
     };
 
     fetchWalkingSessions();
-  }, [user]);
+  }, [user, showAll]);
 
   const calculateDuration = (startTime: string, endTime: string) => {
     const start = new Date(startTime);
