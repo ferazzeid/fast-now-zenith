@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Plus, Save, History, Edit, Trash2 } from 'lucide-react';
+import { Camera, Plus, Save, History, Edit, Trash2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,11 +19,12 @@ const FoodTracking = () => {
   const [servingSize, setServingSize] = useState('100');
   const [imageUrl, setImageUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [consumedNow, setConsumedNow] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, todayEntries, todayTotals } = useFoodEntries();
+  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
 
   const handleImageUpload = async (url: string) => {
     setImageUrl(url);
@@ -81,7 +82,8 @@ const FoodTracking = () => {
       calories: parseFloat(calories),
       carbs: parseFloat(carbs),
       serving_size: parseFloat(servingSize),
-      image_url: imageUrl
+      image_url: imageUrl,
+      consumed: consumedNow
     });
 
     if (result.error) {
@@ -101,6 +103,7 @@ const FoodTracking = () => {
       setCarbs('');
       setServingSize('100');
       setImageUrl('');
+      setConsumedNow(true);
       setShowForm(false);
       
       // Save to personal library if not already there
@@ -172,6 +175,17 @@ const FoodTracking = () => {
       toast({
         title: "Food deleted",
         description: "Food entry has been removed"
+      });
+    }
+  };
+
+  const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
+    const result = await toggleConsumption(entryId, consumed);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
       });
     }
   };
@@ -304,6 +318,33 @@ const FoodTracking = () => {
               />
             </div>
 
+            {/* Consumption Status */}
+            <div className="space-y-2">
+              <Label>Did you eat this now?</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={consumedNow ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setConsumedNow(true)}
+                  className="flex-1"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Yes, eaten
+                </Button>
+                <Button
+                  type="button"
+                  variant={!consumedNow ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setConsumedNow(false)}
+                  className="flex-1"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Just logging
+                </Button>
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <Button onClick={handleSave} className="flex-1">
                 <Save className="w-4 h-4 mr-2" />
@@ -318,6 +359,7 @@ const FoodTracking = () => {
                   setCalories('');
                   setCarbs('');
                   setServingSize('100');
+                  setConsumedNow(true);
                 }}
               >
                 Cancel
@@ -341,10 +383,15 @@ const FoodTracking = () => {
             <h3 className="font-semibold mb-4">Today's Foods</h3>
             <div className="space-y-2">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className="p-3 rounded-lg bg-card border border-border">
+                <div key={entry.id} className={`p-3 rounded-lg bg-card border ${entry.consumed ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/50' : 'border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/50'}`}>
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <div className="font-medium">{entry.name}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{entry.name}</div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${entry.consumed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'}`}>
+                          {entry.consumed ? 'Eaten' : 'Logged'}
+                        </div>
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {entry.serving_size}g serving
                       </div>
@@ -355,6 +402,19 @@ const FoodTracking = () => {
                         <div>{entry.carbs}g carbs</div>
                       </div>
                       <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                          className="p-1"
+                          title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                        >
+                          {entry.consumed ? (
+                            <X className="w-4 h-4 text-orange-500" />
+                          ) : (
+                            <Check className="w-4 h-4 text-green-500" />
+                          )}
+                        </Button>
                         <EditFoodEntryModal 
                           entry={entry} 
                           onUpdate={handleUpdateFoodEntry}

@@ -12,6 +12,7 @@ interface FoodEntry {
   carbs: number;
   serving_size: number;
   created_at: string;
+  consumed: boolean;
 }
 
 interface NewFoodEntry {
@@ -20,6 +21,7 @@ interface NewFoodEntry {
   carbs: number;
   serving_size: number;
   image_url?: string;
+  consumed?: boolean;
 }
 
 export const useFoodEntries = () => {
@@ -140,11 +142,15 @@ export const useFoodEntries = () => {
     }
   }, [user, loadTodayEntries]);
 
-  // Calculate today's totals
+  // Calculate today's totals (only consumed foods)
   const todayTotals = {
-    calories: todayEntries.reduce((sum, entry) => sum + entry.calories, 0),
-    carbs: todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)
+    calories: todayEntries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.calories, 0),
+    carbs: todayEntries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0)
   };
+
+  const toggleConsumption = useCallback(async (entryId: string, consumed: boolean) => {
+    return updateFoodEntry(entryId, { consumed });
+  }, [updateFoodEntry]);
 
   useEffect(() => {
     loadTodayEntries();
@@ -157,6 +163,7 @@ export const useFoodEntries = () => {
     addFoodEntry,
     updateFoodEntry,
     deleteFoodEntry,
+    toggleConsumption,
     loadTodayEntries
   };
 };

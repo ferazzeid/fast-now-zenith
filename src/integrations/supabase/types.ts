@@ -171,6 +171,7 @@ export type Database = {
         Row: {
           calories: number
           carbs: number
+          consumed: boolean
           created_at: string
           id: string
           image_url: string | null
@@ -182,6 +183,7 @@ export type Database = {
         Insert: {
           calories: number
           carbs: number
+          consumed?: boolean
           created_at?: string
           id?: string
           image_url?: string | null
@@ -193,6 +195,7 @@ export type Database = {
         Update: {
           calories?: number
           carbs?: number
+          consumed?: boolean
           created_at?: string
           id?: string
           image_url?: string | null

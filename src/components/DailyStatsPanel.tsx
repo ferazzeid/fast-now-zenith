@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
@@ -6,6 +6,7 @@ import { useDailyDeficit } from '@/hooks/useDailyDeficit';
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { deficitData, loading } = useDailyDeficit();
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const formatNumber = (num: number) => {
     return Math.abs(num).toLocaleString();
@@ -21,8 +22,33 @@ export const DailyStatsPanel = () => {
     return deficit > 0 ? TrendingDown : TrendingUp;
   };
 
+  // Handle click outside to close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isExpanded]);
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
+    <div ref={panelRef} className="fixed top-0 left-0 right-0 z-50">
       {/* Collapsed View - Always visible thin bar */}
       <div 
         className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-2 cursor-pointer"
@@ -44,7 +70,13 @@ export const DailyStatsPanel = () => {
 
       {/* Expanded View - Detailed breakdown */}
       {isExpanded && (
-        <div className="bg-ceramic-plate/98 backdrop-blur-sm border-b border-ceramic-rim">
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[-1]" 
+            onClick={() => setIsExpanded(false)}
+          />
+          <div className="bg-ceramic-plate/98 backdrop-blur-sm border-b border-ceramic-rim">
           <div className="max-w-md mx-auto px-4 py-4 space-y-4">
             {/* Main Deficit Display */}
             <Card className="p-4 bg-ceramic-base border-ceramic-rim">
@@ -134,6 +166,7 @@ export const DailyStatsPanel = () => {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );
