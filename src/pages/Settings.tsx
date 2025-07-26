@@ -14,6 +14,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
+import { UnitsSelector } from '@/components/UnitsSelector';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -32,6 +33,7 @@ const Settings = () => {
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
+  const [units, setUnits] = useState<'metric' | 'imperial'>('imperial');
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -60,7 +62,7 @@ const Settings = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level')
+          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
           .eq('user_id', user.id)
           .single();
 
@@ -76,6 +78,7 @@ const Settings = () => {
           setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
           setActivityLevel(profile.activity_level || 'sedentary');
+          setUnits((profile.units as 'metric' | 'imperial') || 'imperial');
           
           // Load API key from database if available
           if (profile.openai_api_key) {
@@ -129,7 +132,8 @@ const Settings = () => {
             age: age ? parseInt(age) : null,
             daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
             daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-            activity_level: activityLevel
+            activity_level: activityLevel,
+            units: units
           })
           .eq('user_id', user.id);
 
@@ -680,24 +684,33 @@ const Settings = () => {
             </div>
             
             <div className="space-y-4">
+              <UnitsSelector
+                selectedUnits={units}
+                onUnitsChange={setUnits}
+              />
+              
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="weight" className="text-warm-text">Weight (kg)</Label>
+                  <Label htmlFor="weight" className="text-warm-text">
+                    Weight ({units === 'metric' ? 'kg' : 'lbs'})
+                  </Label>
                   <Input
                     id="weight"
                     type="number"
-                    placeholder="70"
+                    placeholder={units === 'metric' ? '70' : '150'}
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
                     className="bg-ceramic-base border-ceramic-rim"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="height" className="text-warm-text">Height (cm)</Label>
+                  <Label htmlFor="height" className="text-warm-text">
+                    Height ({units === 'metric' ? 'cm' : 'inches'})
+                  </Label>
                   <Input
                     id="height"
                     type="number"
-                    placeholder="175"
+                    placeholder={units === 'metric' ? '175' : '70'}
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
                     className="bg-ceramic-base border-ceramic-rim"

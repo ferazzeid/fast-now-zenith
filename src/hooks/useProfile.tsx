@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 
 interface UserProfile {
   id: string;
@@ -12,6 +13,8 @@ interface UserProfile {
   daily_calorie_goal?: number;
   daily_carb_goal?: number;
   display_name?: string;
+  units?: 'metric' | 'imperial';
+  activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
 }
 
 export const useProfile = () => {
@@ -19,55 +22,78 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { executeWithRetry } = useRetryableSupabase();
 
   const loadProfile = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      const result = await executeWithRetry(async () => {
+        return await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      });
+      
+      const { data, error } = result;
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
       setProfile(data || null);
     } catch (error) {
       console.error('Error loading profile:', error);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to load profile. Please check your internet connection."
+      });
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, executeWithRetry, toast]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          ...updates,
-        })
-        .select()
-        .single();
+      const result = await executeWithRetry(async () => {
+        return await supabase
+          .from('profiles')
+          .upsert({
+            user_id: user.id,
+            ...updates,
+          })
+          .select()
+          .single();
+      });
+      
+      const { data, error } = result;
 
       if (error) throw error;
 
       setProfile(data);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been saved successfully."
+      });
       return { data, error: null };
     } catch (error: any) {
       console.error('Error updating profile:', error);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "Unable to save profile. Please try again."
+      });
       return { error, data: null };
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, executeWithRetry, toast]);
 
   const isProfileComplete = () => {
     return profile && profile.weight && profile.height && profile.age;
@@ -76,11 +102,23 @@ export const useProfile = () => {
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;
     
+    // Convert to metric for calculation
+    let weightKg: number;
+    let heightCm: number;
+    
+    if (profile.units === 'metric') {
+      weightKg = profile.weight;
+      heightCm = profile.height;
+    } else {
+      weightKg = profile.weight * 0.453592; // Convert lbs to kg
+      heightCm = profile.height * 2.54; // Convert inches to cm
+    }
+    
     // Mifflin-St Jeor Equation (assuming average between male/female)
     // Male: BMR = 10 × weight + 6.25 × height - 5 × age + 5
     // Female: BMR = 10 × weight + 6.25 × height - 5 × age - 161
     // Average: BMR = 10 × weight + 6.25 × height - 5 × age - 78
-    return Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age - 78);
+    return Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
   };
 
   const calculateWalkingCalories = (durationMinutes: number, speedMph: number = 3) => {
@@ -95,7 +133,14 @@ export const useProfile = () => {
     };
     
     const met = metValues[speedMph] || 3.5;
-    const weightKg = profile.weight * 0.453592; // Convert lbs to kg
+    
+    // Handle weight based on units
+    let weightKg: number;
+    if (profile.units === 'metric') {
+      weightKg = profile.weight; // Already in kg
+    } else {
+      weightKg = profile.weight * 0.453592; // Convert lbs to kg
+    }
     
     // Calories = MET × weight (kg) × time (hours)
     return Math.round(met * weightKg * (durationMinutes / 60));

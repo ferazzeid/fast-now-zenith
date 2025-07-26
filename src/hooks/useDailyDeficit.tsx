@@ -122,14 +122,8 @@ export const useDailyDeficit = () => {
       // Calculate BMR using Mifflin-St Jeor equation (gender-neutral)
       const bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age - 78);
       
-      // Get activity level from profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('activity_level')
-        .eq('user_id', user?.id)
-        .single();
-      
-      const activityLevel = profileData?.activity_level || 'sedentary';
+      // Use activity level from profile
+      const activityLevel = profile.activity_level || 'sedentary';
       const multiplier = ACTIVITY_MULTIPLIERS[activityLevel as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
       const tdee = Math.round(bmr * multiplier);
       

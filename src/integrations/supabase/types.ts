@@ -261,6 +261,7 @@ export type Database = {
           transcription_model: string | null
           tts_model: string | null
           tts_voice: string | null
+          units: string | null
           updated_at: string
           use_own_api_key: boolean | null
           user_id: string
@@ -287,6 +288,7 @@ export type Database = {
           transcription_model?: string | null
           tts_model?: string | null
           tts_voice?: string | null
+          units?: string | null
           updated_at?: string
           use_own_api_key?: boolean | null
           user_id: string
@@ -313,6 +315,7 @@ export type Database = {
           transcription_model?: string | null
           tts_model?: string | null
           tts_voice?: string | null
+          units?: string | null
           updated_at?: string
           use_own_api_key?: boolean | null
           user_id?: string

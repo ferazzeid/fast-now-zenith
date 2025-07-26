@@ -7,6 +7,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { WalkingStats } from '@/components/WalkingStats';
+import { DailyStatsPanel } from '@/components/DailyStatsPanel';
 
 interface UserProfile {
   daily_calorie_goal?: number;
@@ -81,6 +82,9 @@ export const TodaysDashboard = () => {
 
   return (
     <div className="space-y-4">
+      {/* Daily Deficit Panel */}
+      <DailyStatsPanel />
+      
       <div className="text-center">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
           Today's Overview

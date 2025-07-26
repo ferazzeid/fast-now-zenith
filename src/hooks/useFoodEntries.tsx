@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 
 interface FoodEntry {
   id: string;
@@ -25,6 +26,7 @@ export const useFoodEntries = () => {
   const [todayEntries, setTodayEntries] = useState<FoodEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { executeWithRetry } = useRetryableSupabase();
 
   const loadTodayEntries = useCallback(async () => {
     if (!user) return;
@@ -36,13 +38,17 @@ export const useFoodEntries = () => {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const { data, error } = await supabase
-        .from('food_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('created_at', today.toISOString())
-        .lt('created_at', tomorrow.toISOString())
-        .order('created_at', { ascending: false });
+      const result = await executeWithRetry(async () => {
+        return await supabase
+          .from('food_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('created_at', today.toISOString())
+          .lt('created_at', tomorrow.toISOString())
+          .order('created_at', { ascending: false });
+      });
+      
+      const { data, error } = result;
 
       if (error) throw error;
 
@@ -52,7 +58,7 @@ export const useFoodEntries = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, executeWithRetry]);
 
   const addFoodEntry = useCallback(async (entry: NewFoodEntry) => {
     if (!user) return { error: { message: 'User not authenticated' } };

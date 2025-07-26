@@ -149,17 +149,6 @@ const Walking = () => {
           <p className="text-muted-foreground">Track your walking session and stay active</p>
         </div>
 
-        {/* Speed Selector - only show when not running */}
-        {!isRunning && (
-          <div className="mb-6">
-            <SpeedSelector
-              selectedSpeed={selectedSpeed}
-              onSpeedChange={setSelectedSpeed}
-              disabled={isRunning}
-            />
-          </div>
-        )}
-
         {/* Timer Display */}
         <div className="relative mb-8">
           <WalkingTimer
@@ -170,6 +159,15 @@ const Walking = () => {
             onPause={handlePause}
             onResume={handleResume}
             onStop={() => setShowStopConfirm(true)}
+          />
+        </div>
+
+        {/* Speed Selector - always visible for consistent layout */}
+        <div className="mb-6">
+          <SpeedSelector
+            selectedSpeed={selectedSpeed}
+            onSpeedChange={setSelectedSpeed}
+            disabled={isRunning}
           />
         </div>
 
