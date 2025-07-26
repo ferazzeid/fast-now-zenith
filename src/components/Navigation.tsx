@@ -1,11 +1,13 @@
-import { Clock, Heart, MessageCircle, Settings } from 'lucide-react';
+import { Heart, MessageCircle, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { TimerModeSelector } from './TimerModeSelector';
+import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 
 export const Navigation = () => {
   const location = useLocation();
+  const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
 
   const navItems = [
-    { icon: Clock, label: 'Timer', path: '/' },
     { icon: Heart, label: 'Motivators', path: '/motivators' },
     { icon: MessageCircle, label: 'AI Chat', path: '/ai-chat' },
     { icon: Settings, label: 'Settings', path: '/settings' },
@@ -15,6 +17,14 @@ export const Navigation = () => {
     <nav className="fixed bottom-0 left-0 right-0 bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
       <div className="max-w-md mx-auto">
         <div className="flex justify-around">
+          {/* Timer Mode Selector */}
+          <TimerModeSelector
+            currentMode={currentMode}
+            onModeSelect={switchMode}
+            timerStatus={timerStatus}
+            formatTime={formatTime}
+          />
+          
           {navItems.map(({ icon: Icon, label, path }) => {
             const isActive = location.pathname === path;
             

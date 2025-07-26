@@ -20,8 +20,14 @@ export const FastSelector = ({
   onClose
 }: FastSelectorProps) => {
   const [selectedType, setSelectedType] = useState<'intermittent' | 'longterm'>('longterm');
-  const [duration, setDuration] = useState(Math.floor(currentDuration / 3600));
-  const [eatingWindow, setEatingWindow] = useState(Math.floor(currentEatingWindow / 3600));
+  const [duration, setDuration] = useState(() => {
+    // Fix default values based on type
+    if (currentType === 'intermittent') {
+      return Math.floor(currentDuration / 3600) || 16;
+    }
+    return Math.floor(currentDuration / 3600) || 72;
+  });
+  const [eatingWindow, setEatingWindow] = useState(Math.floor(currentEatingWindow / 3600) || 8);
 
   const handleConfirm = () => {
     onSelect(selectedType, duration * 3600, eatingWindow * 3600);
@@ -187,7 +193,7 @@ export const FastSelector = ({
             onClick={handleConfirm}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Start Fast
+            Select Fast
           </Button>
         </div>
       </div>

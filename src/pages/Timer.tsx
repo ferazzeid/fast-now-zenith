@@ -1,138 +1,156 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Settings, AlertTriangle } from 'lucide-react';
+import { Play, Square, Settings, AlertTriangle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { CeramicTimer } from '@/components/CeramicTimer';
+import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { CrisisModal } from '@/components/CrisisModal';
-import { ActivitySelector } from '@/components/ActivitySelector';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 import { useFastingSession } from '@/hooks/useFastingSession';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useTimerNavigation } from '@/hooks/useTimerNavigation';
+import { useNavigate } from 'react-router-dom';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
-  const [fastDuration, setFastDuration] = useState(16 * 60 * 60); // 16 hours default
-  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('intermittent');
+  const [fastDuration, setFastDuration] = useState(72 * 60 * 60); // 72 hours default (water fast)
+  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('longterm');
   const [eatingWindow, setEatingWindow] = useState(8 * 60 * 60); // 8 hours
   const [isInEatingWindow, setIsInEatingWindow] = useState(false);
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
-  const [showChangeConfirmation, setShowChangeConfirmation] = useState(false);
-  const [showActivitySelector, setShowActivitySelector] = useState(false);
+  const [walkingTime, setWalkingTime] = useState(0);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { currentSession, startFastingSession, endFastingSession, cancelFastingSession, loadActiveSession } = useFastingSession();
+  const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSession();
+  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
+  const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
 
-  const isRunning = !!currentSession;
+  const isRunning = !!fastingSession;
 
   useEffect(() => {
     loadActiveSession();
     // Set fastType based on current session if available
-    if (currentSession?.goal_duration_seconds) {
-      const goalHours = Math.floor(currentSession.goal_duration_seconds / 3600);
+    if (fastingSession?.goal_duration_seconds) {
+      const goalHours = Math.floor(fastingSession.goal_duration_seconds / 3600);
       if (goalHours <= 23) {
         setFastType('intermittent');
-        setFastDuration(currentSession.goal_duration_seconds);
+        setFastDuration(fastingSession.goal_duration_seconds);
       } else {
         setFastType('longterm');
-        setFastDuration(currentSession.goal_duration_seconds);
+        setFastDuration(fastingSession.goal_duration_seconds);
       }
     }
-  }, [loadActiveSession, currentSession]);
+  }, [loadActiveSession, fastingSession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isRunning && currentSession) {
+    if (isRunning && fastingSession) {
       interval = setInterval(() => {
-        const startTime = new Date(currentSession.start_time);
+        const startTime = new Date(fastingSession.start_time);
         const now = new Date();
         const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-        
         setTimeElapsed(elapsed);
-        
-        // Check if we should switch to eating window for intermittent fasting
-        if (fastType === 'intermittent' && elapsed >= fastDuration && !isInEatingWindow) {
-          setIsInEatingWindow(true);
-          toast({
-            title: "🍽️ Eating Window Started!",
-            description: "Time to break your fast. Enjoy your meal!",
-          });
-        }
-        
-        // Check if eating window is over
-        if (fastType === 'intermittent' && isInEatingWindow && elapsed >= (fastDuration + eatingWindow)) {
+
+        // Check if we should be in eating window for intermittent fasting
+        if (fastType === 'intermittent' && elapsed >= fastDuration) {
+          const totalCycleTime = fastDuration + eatingWindow;
+          const cyclePosition = elapsed % totalCycleTime;
+          const shouldBeInEatingWindow = cyclePosition >= fastDuration;
+          setIsInEatingWindow(shouldBeInEatingWindow);
+        } else {
           setIsInEatingWindow(false);
-          toast({
-            title: "✨ Fast Resumed!",
-            description: "Your eating window is over. Fast continues!",
-          });
         }
       }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isRunning, currentSession, fastDuration, eatingWindow, fastType, isInEatingWindow, toast]);
-
-  const handleStart = async () => {
-    const session = await startFastingSession(fastDuration);
-    if (session) {
+    } else {
       setTimeElapsed(0);
       setIsInEatingWindow(false);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, fastingSession, fastDuration, eatingWindow, fastType]);
+
+  const handleFastingStart = async () => {
+    const result = await startFastingSession(fastDuration);
+    if (result) {
       toast({
-        title: "🏃‍♀️ Fast Started!",
-        description: "Your fasting journey begins now. Stay strong!",
+        title: "Fast started",
+        description: `Your ${formatTimeFasting(fastDuration)} fast has begun!`
       });
     }
   };
 
-  const handleStop = async () => {
-    if (currentSession) {
-      await endFastingSession();
-      setTimeElapsed(0);
-      setIsInEatingWindow(false);
+  const handleFastingStop = async () => {
+    if (!fastingSession) return;
+    
+    const result = await endFastingSession();
+    if (result) {
       toast({
-        title: "🛑 Fast Stopped",
-        description: "Fast ended. Great effort on your journey!",
+        title: "Fast completed", 
+        description: `Great job! You fasted for ${formatTimeFasting(timeElapsed)}`
       });
     }
   };
 
-  const formatTime = (seconds: number) => {
+  const handleWalkingStart = async () => {
+    const result = await startWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Walking started",
+        description: "Your walking session has begun!"
+      });
+    }
+  };
+
+  const handleWalkingStop = async () => {
+    if (!walkingSession) return;
+    
+    const result = await endWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Walking completed",
+        description: `Session completed! Calories burned: ${result.data?.calories_burned || 0}`
+      });
+    }
+  };
+
+  const formatTimeFasting = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-    
-    // Always show hours for clarity
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const getDisplayTime = () => {
     if (countDirection === 'up') {
-      return formatTime(timeElapsed);
+      return formatTimeFasting(timeElapsed);
     } else {
       if (isInEatingWindow) {
-        // For eating window, calculate time remaining based on when eating window started
+        // For eating window countdown, show time remaining in eating window
         const eatingStartTime = timeElapsed - fastDuration;
         const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
-        return formatTime(eatingTimeRemaining);
+        return formatTimeFasting(eatingTimeRemaining);
       } else {
+        // For fasting countdown, show time remaining until fast goal
         const remaining = Math.max(0, fastDuration - timeElapsed);
-        return formatTime(remaining);
+        return formatTimeFasting(remaining);
       }
     }
   };
@@ -141,7 +159,7 @@ const Timer = () => {
     if (!isInEatingWindow) return null;
     const eatingStartTime = timeElapsed - fastDuration;
     const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
-    return formatTime(eatingTimeRemaining);
+    return formatTimeFasting(eatingTimeRemaining);
   };
 
   const getProgress = () => {
@@ -158,169 +176,144 @@ const Timer = () => {
     return isInEatingWindow ? 'Eating Window' : 'Fasting';
   };
 
-  const handleActivitySelect = (activity: 'fasting' | 'walking' | 'food') => {
-    if (activity === 'fasting') {
-      handleStart();
-    } else if (activity === 'walking') {
-      navigate('/walking');
-    } else if (activity === 'food') {
-      navigate('/food-tracking');
+  const handleFastTypeSelect = async (type: 'intermittent' | 'longterm', duration: number, eatingWindowDuration: number) => {
+    setFastType(type);
+    setFastDuration(duration);
+    setEatingWindow(eatingWindowDuration);
+    setShowFastSelector(false);
+    
+    // Automatically start the fast after selection
+    const result = await startFastingSession(duration);
+    if (result) {
+      toast({
+        title: "Fast started",
+        description: `Your ${formatTimeFasting(duration)} fast has begun!`
+      });
     }
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-20">
-      <div className="max-w-md mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="max-w-md mx-auto pt-8 pb-20">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-warm-text">FastNow</h1>
-          <p className="text-muted-foreground">App</p>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
+            {currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
+          </h1>
+          <p className="text-muted-foreground">
+            {currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
+          </p>
         </div>
 
-        {/* Fast Type Selector */}
-        <div className="flex justify-center">
-          {!isRunning ? (
-            <Button
-              variant="outline"
-              onClick={() => setShowFastSelector(true)}
-              className="bg-ceramic-plate border-ceramic-rim"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Change Fast Type
-            </Button>
+        {/* Timer Display */}
+        <div className="relative mb-8">
+          {currentMode === 'fasting' ? (
+            <CeramicTimer 
+              displayTime={getDisplayTime()}
+              progress={getProgress()}
+              isActive={isRunning}
+              isEatingWindow={isInEatingWindow}
+              showSlideshow={timeElapsed > 3600} // Show after 1 hour
+              eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
+            />
           ) : (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="bg-ceramic-plate border-ceramic-rim"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Change Fast Type
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Change Fast Type?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Changing the fast type will stop your current fast and start a new one. Your progress will be lost.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => {
-                    cancelFastingSession();
-                    setShowFastSelector(true);
-                  }}>
-                    Change Fast Type
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <WalkingTimer
+              displayTime={formatTime(timerStatus.walking.timeElapsed)}
+              isActive={timerStatus.walking.isActive}
+              onStart={handleWalkingStart}
+              onStop={handleWalkingStop}
+            />
           )}
         </div>
 
-        {/* Ceramic Timer with Count Direction Toggle */}
-        <div className="flex justify-center relative">
-          <CeramicTimer
-            progress={getProgress()}
-            displayTime={getDisplayTime()}
-            isActive={isRunning}
-            isEatingWindow={isInEatingWindow}
-            showSlideshow={true}
-            eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
-          />
-          {/* Discrete Count Direction Toggle */}
-          <div className="absolute top-0 right-0 flex items-center space-x-2 bg-ceramic-plate/80 backdrop-blur-sm px-3 py-1 rounded-full border border-ceramic-rim/50">
-            <Label htmlFor="count-direction" className="text-xs text-warm-text font-medium">
-              {countDirection === 'up' ? '↑' : '↓'}
-            </Label>
-            <Switch
-              id="count-direction"
-              checked={countDirection === 'up'}
-              onCheckedChange={(checked) => setCountDirection(checked ? 'up' : 'down')}
-              className="scale-75"
-            />
+        {/* Control Buttons - Only show for fasting mode */}
+        {currentMode === 'fasting' && (
+          <div className="space-y-4">
+            {!isRunning ? (
+              <Button 
+                onClick={() => setShowFastSelector(true)}
+                className="w-full h-16 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                size="lg"
+              >
+                <Play className="w-6 h-6 mr-2" />
+                Start Fast
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleFastingStop}
+                variant="destructive"
+                className="w-full h-16 text-lg font-medium shadow-lg"
+                size="lg"
+              >
+                <Square className="w-6 h-6 mr-2" />
+                Stop Fast
+              </Button>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Crisis Button - Only show after 24 hours */}
-        {isRunning && timeElapsed >= 24 * 60 * 60 && (
-          <div className="fixed bottom-20 right-4 z-40">
+        {/* Fast Settings - Only show for fasting mode */}
+        {currentMode === 'fasting' && !isRunning && (
+          <div className="mt-6 p-4 rounded-xl bg-ceramic-base/50 border border-ceramic-rim">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-medium text-warm-text">Fast Settings</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFastSelector(true)}
+                className="text-primary hover:bg-ceramic-rim"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Change
+              </Button>
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Type:</span>
+                <span className="font-medium">{fastType === 'intermittent' ? 'Intermittent Fasting' : 'Water Fast'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Duration:</span>
+                <span className="font-medium">{formatTimeFasting(fastDuration)}</span>
+              </div>
+              {fastType === 'intermittent' && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Eating Window:</span>
+                  <span className="font-medium">{formatTimeFasting(eatingWindow)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Crisis Support - Only show for fasting mode */}
+        {currentMode === 'fasting' && isRunning && timeElapsed > 24 * 60 * 60 && ( // Show after 24 hours
+          <div className="mt-6">
             <Button
               onClick={() => setShowCrisisModal(true)}
-              size="icon"
-              className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg border-2 border-red-400"
-              title="Need help staying strong?"
+              variant="outline"
+              className="w-full h-12 text-orange-600 border-orange-200 hover:bg-orange-50"
             >
-              <AlertTriangle className="w-6 h-6" />
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              Need Support?
             </Button>
           </div>
         )}
 
-        {/* Control Buttons */}
-        <div className="flex justify-center space-x-4">
-          {!isRunning ? (
+        {/* Timer Direction Toggle - Only show for fasting mode */}
+        {currentMode === 'fasting' && isRunning && (
+          <div className="mt-6 flex justify-center">
             <Button
-              onClick={() => setShowActivitySelector(true)}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+              variant="ghost"
+              onClick={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
+              className="text-sm text-muted-foreground hover:text-warm-text"
             >
-              <Play className="w-5 h-5 mr-2" />
-              Start Timer
+              {countDirection === 'up' ? 'Switch to Countdown' : 'Switch to Count Up'}
+              <ChevronDown className="w-4 h-4 ml-1" />
             </Button>
-          ) : (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="bg-ceramic-plate border-ceramic-rim px-8"
-                >
-                  <Square className="w-5 h-5 mr-2" />
-                  Stop Fast
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-ceramic-plate border-ceramic-rim">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-warm-text">Stop Your Fast?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to stop your fast? This will end your current fasting session and reset the timer.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="bg-ceramic-base border-ceramic-rim">
-                    Continue Fasting
-                  </AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleStop}
-                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                  >
-                    Stop Fast
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-        </div>
-
-        {/* Fast Info */}
-        <div className="bg-ceramic-plate p-4 rounded-2xl border border-ceramic-rim space-y-2">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Fast Duration:</span>
-            <span className="text-warm-text font-medium">
-              {Math.floor(fastDuration / 3600)}h
-            </span>
           </div>
-          {fastType === 'intermittent' && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Eating Window:</span>
-              <span className="text-warm-text font-medium">
-                {Math.floor(eatingWindow / 3600)}h
-              </span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Fast Selector Modal */}
@@ -329,18 +322,7 @@ const Timer = () => {
           currentType={fastType}
           currentDuration={fastDuration}
           currentEatingWindow={eatingWindow}
-            onSelect={async (type, duration, eating) => {
-              setFastType(type);
-              setFastDuration(duration);
-              setEatingWindow(eating);
-              setShowFastSelector(false);
-              // Reset timer when changing fast type
-              if (currentSession) {
-                await cancelFastingSession();
-              }
-              setTimeElapsed(0);
-              setIsInEatingWindow(false);
-            }}
+          onSelect={handleFastTypeSelect}
           onClose={() => setShowFastSelector(false)}
         />
       )}
@@ -349,34 +331,6 @@ const Timer = () => {
       <CrisisModal 
         isOpen={showCrisisModal} 
         onClose={() => setShowCrisisModal(false)} 
-      />
-
-      <AlertDialog open={showChangeConfirmation} onOpenChange={setShowChangeConfirmation}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Change Fast Type</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have an active fasting session. Changing the fast type will end your current session. Are you sure you want to continue?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              handleStop();
-              setShowChangeConfirmation(false);
-              setShowFastSelector(true);
-            }}>
-              Yes, Change Fast Type
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Activity Selector */}
-      <ActivitySelector
-        isOpen={showActivitySelector}
-        onClose={() => setShowActivitySelector(false)}
-        onSelectActivity={handleActivitySelect}
       />
     </div>
   );
