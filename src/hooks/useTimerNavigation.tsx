@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFastingSession } from './useFastingSession';
 import { useWalkingSession } from './useWalkingSession';
 
@@ -16,6 +17,7 @@ interface TimerStatus {
 }
 
 export const useTimerNavigation = () => {
+  const navigate = useNavigate();
   const [currentMode, setCurrentMode] = useState<TimerMode>('fasting');
   const [timerStatus, setTimerStatus] = useState<TimerStatus>({
     fasting: { isActive: false, timeElapsed: 0 },
@@ -61,11 +63,11 @@ export const useTimerNavigation = () => {
 
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);
-    // Navigate to the appropriate timer page
+    // Navigate to the appropriate timer page using React Router
     if (mode === 'walking') {
-      window.location.href = '/walking';
+      navigate('/walking');
     } else {
-      window.location.href = '/';
+      navigate('/');
     }
   };
 
