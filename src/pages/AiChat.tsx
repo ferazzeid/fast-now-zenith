@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSingleConversation, type Message } from '@/hooks/useSingleConversation';
 import { useFastingContext } from '@/hooks/useFastingContext';
 import { useWalkingContext } from '@/hooks/useWalkingContext';
+import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
 import { ImageUpload } from '@/components/ImageUpload';
 
@@ -35,6 +36,7 @@ const AiChat = () => {
   } = useSingleConversation();
   const { context: fastingContext, buildContextString: buildFastingContext } = useFastingContext();
   const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
+  const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
 
   useEffect(() => {
@@ -94,6 +96,10 @@ const AiChat = () => {
       
       if (walkingContext) {
         contextParts.push(`Walking data: ${buildWalkingContext(walkingContext)}`);
+      }
+      
+      if (foodContext) {
+        contextParts.push(`Nutrition data: ${buildFoodContext(foodContext)}`);
       }
       
       if (contextParts.length > 0) {

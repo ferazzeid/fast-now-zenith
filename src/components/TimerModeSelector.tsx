@@ -54,7 +54,7 @@ export const TimerModeSelector = ({
   return (
     <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
       <SheetTrigger asChild>
-        <button className="relative flex flex-col items-center text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim rounded-xl transition-all duration-200 cursor-pointer">
+        <button className="flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim">
           {/* Main Timer Button Content */}
           <div className="relative">
             <Clock className="w-5 h-5 mb-1" />

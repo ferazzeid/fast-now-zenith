@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Camera, Plus, Save } from 'lucide-react';
+import { Camera, Plus, Save, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@/components/ImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
+import { FoodHistory } from '@/components/FoodHistory';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ const FoodTracking = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { addFoodEntry, todayEntries, todayTotals } = useFoodEntries();
@@ -155,9 +157,20 @@ const FoodTracking = () => {
       <div className="max-w-md mx-auto pt-8 pb-20">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
-            Food Tracking
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div></div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Food Tracking
+            </h1>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowHistory(true)}
+              className="p-2"
+            >
+              <History className="w-5 h-5" />
+            </Button>
+          </div>
           <p className="text-muted-foreground">Log your food intake</p>
         </div>
 
@@ -282,6 +295,15 @@ const FoodTracking = () => {
               >
                 Cancel
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Food History Modal */}
+        {showHistory && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-auto">
+              <FoodHistory onClose={() => setShowHistory(false)} />
             </div>
           </div>
         )}
