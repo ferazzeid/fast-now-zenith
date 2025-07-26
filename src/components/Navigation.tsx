@@ -20,6 +20,7 @@ export const Navigation = () => {
       badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null
     },
     { icon: Utensils, label: 'Food', path: '/food-tracking' },
+    { icon: Heart, label: 'Motivate', path: '/motivators' },
     { icon: MessageCircle, label: 'AI Chat', path: '/ai-chat' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];

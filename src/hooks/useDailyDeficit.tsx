@@ -151,18 +151,28 @@ export const useDailyDeficit = () => {
     }
   }, [profile, todayTotals, calculateWalkingCaloriesForDay, calculateFastingBonus, user?.id]);
 
+  // Throttled calculation - only recalculate every 30 seconds if walking is active
   useEffect(() => {
     if (profile && user) {
       calculateDeficit();
+      
+      // Set up interval for active walking sessions only
+      if (walkingSession?.session_state === 'active') {
+        const interval = setInterval(() => {
+          calculateDeficit();
+        }, 30000); // 30 seconds
+        
+        return () => clearInterval(interval);
+      }
     }
-  }, [calculateDeficit, profile, user]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, todayTotals.carbs, fastingSession?.status, user?.id]);
 
-  // Recalculate when walking or fasting sessions change
+  // Only recalculate immediately when walking session starts/stops  
   useEffect(() => {
-    if (profile && user) {
+    if (profile && user && walkingSession?.session_state !== undefined) {
       calculateDeficit();
     }
-  }, [walkingSession?.session_state, fastingSession?.status, calculateDeficit, profile, user]);
+  }, [walkingSession?.session_state]);
 
   return {
     deficitData,
