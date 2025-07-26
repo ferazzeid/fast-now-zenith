@@ -54,29 +54,20 @@ export const TimerModeSelector = ({
   return (
     <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
       <SheetTrigger asChild>
-        <div className="relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim">
-          {/* Main Timer Button */}
-          <div className="relative flex items-center">
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <Clock className="w-5 h-5 mb-1" />
-                {activeCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center text-xs p-0"
-                  >
-                    {activeCount}
-                  </Badge>
-                )}
-              </div>
-              <span className="text-xs font-medium">Timer</span>
-            </div>
-            
-            {/* Integrated Arrow Section */}
-            <div className="ml-1 pl-1 border-l border-muted-foreground/20">
-              <ChevronUp className="w-3 h-3 opacity-60" />
-            </div>
+        <div className="relative flex flex-col items-center text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim rounded-xl transition-all duration-200">
+          {/* Main Timer Button Content */}
+          <div className="relative">
+            <Clock className="w-5 h-5 mb-1" />
+            {activeCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center text-xs p-0"
+              >
+                {activeCount}
+              </Badge>
+            )}
           </div>
+          <span className="text-xs font-medium">Timer</span>
         </div>
       </SheetTrigger>
       <SheetContent side="bottom" className="h-auto max-w-md mx-auto rounded-t-xl border-x border-t bg-background/95 backdrop-blur-sm">

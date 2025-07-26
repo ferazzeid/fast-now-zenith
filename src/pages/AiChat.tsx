@@ -12,6 +12,7 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { useAuth } from '@/hooks/useAuth';
 import { useSingleConversation, type Message } from '@/hooks/useSingleConversation';
 import { useFastingContext } from '@/hooks/useFastingContext';
+import { useWalkingContext } from '@/hooks/useWalkingContext';
 import { useMotivators } from '@/hooks/useMotivators';
 import { ImageUpload } from '@/components/ImageUpload';
 
@@ -32,7 +33,8 @@ const AiChat = () => {
     addMessage,
     clearConversation
   } = useSingleConversation();
-  const { context: fastingContext, buildContextString } = useFastingContext();
+  const { context: fastingContext, buildContextString: buildFastingContext } = useFastingContext();
+  const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
   const { createMotivator } = useMotivators();
 
   useEffect(() => {
@@ -80,15 +82,24 @@ const AiChat = () => {
     setIsProcessing(true);
 
     try {
-      // Build enhanced context with fasting data
+      // Build enhanced context with fasting and walking data
       const enhancedHistory = [...conversationHistory];
       
-      // Add fasting context to system understanding (not as a visible message)
+      // Add comprehensive context to system understanding
+      const contextParts = [];
+      
       if (fastingContext) {
-        const contextString = buildContextString(fastingContext);
+        contextParts.push(`Fasting data: ${buildFastingContext(fastingContext)}`);
+      }
+      
+      if (walkingContext) {
+        contextParts.push(`Walking data: ${buildWalkingContext(walkingContext)}`);
+      }
+      
+      if (contextParts.length > 0) {
         enhancedHistory.unshift({
           role: 'system',
-          content: `User context: ${contextString}`
+          content: `User context: ${contextParts.join(' ')}`
         });
       }
 
