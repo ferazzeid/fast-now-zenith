@@ -14,9 +14,8 @@ export const DailyStatsPanel = () => {
   const navigate = useNavigate();
 
   // Hide panel on admin pages to prevent menu overlap
-  if (location.pathname === '/admin') {
-    return null;
-  }
+  // IMPORTANT: This check must come AFTER all hooks to avoid React hooks violation
+  const shouldHidePanel = location.pathname === '/admin';
 
   const formatNumber = (num: number) => {
     return Math.abs(num).toLocaleString();
@@ -89,6 +88,11 @@ export const DailyStatsPanel = () => {
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isExpanded]);
+
+  // Don't render anything on admin pages, but ensure consistent hook calls
+  if (shouldHidePanel) {
+    return null;
+  }
 
   return (
     <TooltipProvider>
