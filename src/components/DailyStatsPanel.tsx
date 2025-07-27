@@ -2,11 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
+import { useLocation } from 'react-router-dom';
 
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { deficitData, loading } = useDailyDeficit();
   const panelRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+
+  // Hide panel on admin pages to prevent menu overlap
+  if (location.pathname === '/admin') {
+    return null;
+  }
 
   const formatNumber = (num: number) => {
     return Math.abs(num).toLocaleString();

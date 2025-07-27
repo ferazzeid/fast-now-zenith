@@ -24,9 +24,10 @@ const Walking = () => {
     startWalkingSession, 
     pauseWalkingSession,
     resumeWalkingSession,
-    endWalkingSession 
+    endWalkingSession,
+    updateSessionSpeed
   } = useWalkingSession();
-  const { isProfileComplete, calculateWalkingCalories } = useProfile();
+  const { profile, isProfileComplete, calculateWalkingCalories } = useProfile();
 
   const isRunning = !!currentSession;
 
@@ -54,7 +55,11 @@ const Walking = () => {
           setRealTimeCalories(calories);
         }
         
-        const distance = (activeDurationMinutes / 60) * speedMph;
+        // Convert distance based on unit preference
+        let distance = (activeDurationMinutes / 60) * speedMph;
+        if (profile?.units === 'metric') {
+          distance = distance * 1.60934; // Convert miles to km
+        }
         setRealTimeDistance(Math.round(distance * 100) / 100);
       }, 1000);
     }
@@ -62,7 +67,7 @@ const Walking = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories]);
+  }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories, profile?.units]);
 
   const handleStart = async () => {
     // Check if profile is complete for accurate calorie calculation
@@ -159,6 +164,13 @@ const Walking = () => {
             onPause={handlePause}
             onResume={handleResume}
             onStop={() => setShowStopConfirm(true)}
+            units={profile?.units || 'imperial'}
+            realTimeStats={currentSession ? {
+              speed: currentSession.speed_mph || selectedSpeed,
+              distance: realTimeDistance,
+              calories: realTimeCalories,
+              startTime: currentSession.start_time
+            } : undefined}
           />
         </div>
 
@@ -166,35 +178,22 @@ const Walking = () => {
         <div className="mb-6">
           <SpeedSelector
             selectedSpeed={selectedSpeed}
-            onSpeedChange={setSelectedSpeed}
-            disabled={isRunning}
+            onSpeedChange={(newSpeed) => {
+              setSelectedSpeed(newSpeed);
+              if (isRunning) {
+                updateSessionSpeed(newSpeed);
+              }
+            }}
+            disabled={false}
+            units={profile?.units || 'imperial'}
           />
+          {isRunning && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Speed changes will apply immediately to your session
+            </p>
+          )}
         </div>
 
-        {/* Real-time stats during walking */}
-        {currentSession && (
-          <div className="mt-8 p-4 rounded-xl bg-card border border-border space-y-2">
-            <h3 className="font-medium mb-2">Current Session</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Speed:</span>
-                <p className="font-medium">{currentSession.speed_mph || selectedSpeed} mph</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Distance:</span>
-                <p className="font-medium">{realTimeDistance} miles</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Calories:</span>
-                <p className="font-medium">{realTimeCalories} cal</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Started:</span>
-                <p className="font-medium">{new Date(currentSession.start_time).toLocaleTimeString()}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         <ProfileCompletionPrompt 
           isOpen={showProfilePrompt}
@@ -212,6 +211,7 @@ const Walking = () => {
           currentDuration={formatTime(timeElapsed)}
           calories={realTimeCalories}
           distance={realTimeDistance}
+          units={profile?.units || 'imperial'}
         />
 
         <div className="mt-8">

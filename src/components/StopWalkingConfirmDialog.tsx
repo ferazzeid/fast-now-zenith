@@ -16,6 +16,7 @@ interface StopWalkingConfirmDialogProps {
   currentDuration?: string;
   calories?: number;
   distance?: number;
+  units?: 'metric' | 'imperial';
 }
 
 export const StopWalkingConfirmDialog = ({ 
@@ -24,7 +25,8 @@ export const StopWalkingConfirmDialog = ({
   onConfirm,
   currentDuration,
   calories,
-  distance
+  distance,
+  units = 'imperial'
 }: StopWalkingConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -36,7 +38,7 @@ export const StopWalkingConfirmDialog = ({
             {calories && distance && (
               <div className="mt-2 text-sm">
                 <div>Calories burned: <span className="font-medium">{calories}</span></div>
-                <div>Distance: <span className="font-medium">{distance} miles</span></div>
+                <div>Distance: <span className="font-medium">{distance} {units === 'metric' ? 'km' : 'miles'}</span></div>
               </div>
             )}
             This action cannot be undone.

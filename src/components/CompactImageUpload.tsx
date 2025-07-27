@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Image, Loader2 } from 'lucide-react';
+import { Camera, Image, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,9 +10,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CompactImageUploadProps {
   onImageUpload: (url: string) => void;
+  onImageRemove?: () => void;
+  currentImageUrl?: string;
 }
 
-export const CompactImageUpload = ({ onImageUpload }: CompactImageUploadProps) => {
+export const CompactImageUpload = ({ onImageUpload, onImageRemove, currentImageUrl }: CompactImageUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -96,34 +98,58 @@ export const CompactImageUpload = ({ onImageUpload }: CompactImageUploadProps) =
   };
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <Button
-        variant="outline"
-        onClick={handleFileSelect}
-        disabled={isUploading}
-        className="h-12 flex items-center space-x-2 bg-ceramic-base border-ceramic-rim"
-      >
-        {isUploading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Image className="w-4 h-4" />
-        )}
-        <span className="text-sm">Gallery</span>
-      </Button>
+    <div className="space-y-3">
+      {/* Current image display with remove option */}
+      {currentImageUrl && (
+        <div className="relative">
+          <img 
+            src={currentImageUrl} 
+            alt="Uploaded food" 
+            className="w-full h-32 object-cover rounded-lg border border-ceramic-rim"
+          />
+          {onImageRemove && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={onImageRemove}
+              className="absolute top-2 right-2 h-6 w-6 p-0"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
+      )}
       
-      <Button
-        variant="outline"
-        onClick={handleCameraCapture}
-        disabled={isUploading}
-        className="h-12 flex items-center space-x-2 bg-ceramic-base border-ceramic-rim"
-      >
-        {isUploading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Camera className="w-4 h-4" />
-        )}
-        <span className="text-sm">Camera</span>
-      </Button>
+      {/* Upload buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          variant="outline"
+          onClick={handleFileSelect}
+          disabled={isUploading}
+          className="h-12 flex items-center space-x-2 bg-ceramic-base border-ceramic-rim"
+        >
+          {isUploading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Image className="w-4 h-4" />
+          )}
+          <span className="text-sm">Gallery</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          onClick={handleCameraCapture}
+          disabled={isUploading}
+          className="h-12 flex items-center space-x-2 bg-ceramic-base border-ceramic-rim"
+        >
+          {isUploading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Camera className="w-4 h-4" />
+          )}
+          <span className="text-sm">Camera</span>
+        </Button>
+      </div>
 
       {/* Hidden file inputs */}
       <input

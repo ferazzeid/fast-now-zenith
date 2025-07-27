@@ -205,6 +205,31 @@ export const useWalkingSession = () => {
     loadActiveSession();
   }, [loadActiveSession]);
 
+  // Update session speed during active session
+  const updateSessionSpeed = useCallback(async (newSpeed: number) => {
+    if (!currentSession || !user) return { error: null, data: null };
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({ speed_mph: newSpeed })
+        .eq('id', currentSession.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCurrentSession(data);
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Error updating session speed:', error);
+      return { error, data: null };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentSession]);
+
   return {
     currentSession,
     loading,
@@ -215,6 +240,7 @@ export const useWalkingSession = () => {
     pauseWalkingSession,
     resumeWalkingSession,
     endWalkingSession,
-    loadActiveSession
+    loadActiveSession,
+    updateSessionSpeed
   };
 };

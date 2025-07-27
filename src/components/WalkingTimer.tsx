@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -11,6 +12,14 @@ interface WalkingTimerProps {
   onResume?: () => void;
   onStop: () => void;
   className?: string;
+  realTimeStats?: {
+    speed: number;
+    distance: number;
+    calories: number;
+    startTime: string;
+    pace?: number;
+  };
+  units?: 'metric' | 'imperial';
 }
 
 export const WalkingTimer = ({ 
@@ -21,7 +30,9 @@ export const WalkingTimer = ({
   onPause,
   onResume,
   onStop, 
-  className = "" 
+  className = "",
+  realTimeStats,
+  units = 'imperial'
 }: WalkingTimerProps) => {
   const [stepAnimation, setStepAnimation] = useState(false);
 
@@ -34,67 +45,134 @@ export const WalkingTimer = ({
     }
   }, [isActive, isPaused]);
 
+  const formatPace = (speed: number) => {
+    if (units === 'metric') {
+      const paceMinPerKm = 60 / speed;
+      const minutes = Math.floor(paceMinPerKm);
+      const seconds = Math.round((paceMinPerKm - minutes) * 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+    } else {
+      const paceMinPerMile = 60 / speed;
+      const minutes = Math.floor(paceMinPerMile);
+      const seconds = Math.round((paceMinPerMile - minutes) * 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
+    }
+  };
+
   return (
     <div className={`relative ${className}`}>
-      {/* Walking Timer Background */}
-      <div className="relative w-80 h-80 mx-auto">
-        {/* Outer Ring */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent/20 to-accent/40 shadow-lg">
-          {/* Inner Walking Track */}
-          <div className="absolute inset-4 rounded-full bg-gradient-to-br from-background to-muted/30 shadow-inner">
-            {/* Center Circle */}
-            <div className="absolute inset-8 rounded-full bg-gradient-to-br from-card to-card/80 shadow-md border border-border/50">
-              
-              {/* Animated Footsteps */}
-              <div className="absolute inset-0 rounded-full overflow-hidden">
-                {[...Array(8)].map((_, i) => (
-                  <FootprintsIcon 
-                    key={i}
-                    className={`absolute w-4 h-4 text-accent/60 transition-all duration-800 ${
-                      isActive && !isPaused && stepAnimation ? 'opacity-100 scale-110' : 'opacity-40 scale-100'
-                    }`}
-                    style={{
-                      top: `${50 + 30 * Math.sin((i * Math.PI * 2) / 8)}%`,
-                      left: `${50 + 30 * Math.cos((i * Math.PI * 2) / 8)}%`,
-                      transform: `translate(-50%, -50%) rotate(${(i * 45)}deg)`,
-                      transitionDelay: `${i * 100}ms`
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Center Content */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                {/* Main Timer Display */}
-                <div className="text-center mb-2">
-                  <div className="text-4xl font-mono font-bold text-foreground mb-1">
-                    {displayTime}
-                  </div>
-                  <div className={`text-lg font-medium transition-colors duration-300 ${
-                    isActive && !isPaused ? 'text-accent' : 
-                    isPaused ? 'text-yellow-500' : 'text-muted-foreground'
-                  }`}>
-                    {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
-                  </div>
+      {/* Dashboard Layout */}
+      <div className="relative max-w-md mx-auto">
+        {/* Central Timer with subtle circular design */}
+        <div className="relative mb-6">
+          <div className="w-48 h-48 mx-auto relative">
+            {/* Subtle circular background */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent/10 to-accent/20 border border-accent/20">
+              {/* Animated border for active state */}
+              {isActive && !isPaused && (
+                <div className="absolute inset-0 rounded-full border-2 border-accent/50 animate-pulse" />
+              )}
+              {isPaused && (
+                <div className="absolute inset-0 rounded-full border-2 border-yellow-500/50 animate-pulse" />
+              )}
+            </div>
+            
+            {/* Central time display */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="text-center">
+                <div className="text-3xl font-mono font-bold text-foreground mb-1">
+                  {displayTime}
                 </div>
-
-                {/* Large Walking Icon */}
-                <FootprintsIcon className={`w-8 h-8 transition-all duration-500 ${
-                  isActive && !isPaused ? 'text-accent animate-bounce' : 
+                <div className={`text-sm font-medium transition-colors duration-300 ${
+                  isActive && !isPaused ? 'text-accent' : 
                   isPaused ? 'text-yellow-500' : 'text-muted-foreground'
-                }`} />
+                }`}>
+                  {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
+                </div>
               </div>
+              
+              {/* Central walking icon */}
+              <FootprintsIcon className={`w-6 h-6 mt-2 transition-all duration-500 ${
+                isActive && !isPaused ? 'text-accent animate-bounce' : 
+                isPaused ? 'text-yellow-500' : 'text-muted-foreground'
+              }`} />
             </div>
           </div>
         </div>
 
-        {/* Active Border Animation */}
-        {isActive && !isPaused && (
-          <div className="absolute inset-0 rounded-full border-2 border-accent/50 animate-pulse" />
+        {/* Metric Tiles surrounding the timer */}
+        {realTimeStats && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {/* Speed Tile */}
+            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+              <div className="flex items-center space-x-2 mb-1">
+                <Zap className="w-4 h-4 text-blue-500" />
+                <span className="text-xs font-medium text-warm-text">Speed</span>
+              </div>
+              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                {realTimeStats.speed} {units === 'metric' ? 'km/h' : 'mph'}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {formatPace(realTimeStats.speed)}
+              </div>
+            </Card>
+
+            {/* Distance Tile */}
+            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+              <div className="flex items-center space-x-2 mb-1">
+                <Activity className="w-4 h-4 text-green-500" />
+                <span className="text-xs font-medium text-warm-text">Distance</span>
+              </div>
+              <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                {realTimeStats.distance} {units === 'metric' ? 'km' : 'mi'}
+              </div>
+            </Card>
+
+            {/* Calories Tile */}
+            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+              <div className="flex items-center space-x-2 mb-1">
+                <Activity className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-medium text-warm-text">Calories</span>
+              </div>
+              <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                {realTimeStats.calories}
+              </div>
+              <div className="text-xs text-muted-foreground">burned</div>
+            </Card>
+
+            {/* Start Time Tile */}
+            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+              <div className="flex items-center space-x-2 mb-1">
+                <Clock className="w-4 h-4 text-purple-500" />
+                <span className="text-xs font-medium text-warm-text">Started</span>
+              </div>
+              <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </div>
+            </Card>
+          </div>
         )}
-        {/* Paused Border Animation */}
-        {isPaused && (
-          <div className="absolute inset-0 rounded-full border-2 border-yellow-500/50 animate-pulse" />
+
+        {/* Animated footsteps between tiles when active */}
+        {isActive && !isPaused && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(4)].map((_, i) => (
+              <FootprintsIcon 
+                key={i}
+                className={`absolute w-3 h-3 text-accent/40 transition-all duration-1000 ${
+                  stepAnimation ? 'opacity-100 scale-110' : 'opacity-20 scale-100'
+                }`}
+                style={{
+                  top: `${20 + i * 15}%`,
+                  left: `${30 + (i % 2) * 40}%`,
+                  transitionDelay: `${i * 200}ms`
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
 
