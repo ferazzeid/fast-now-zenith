@@ -201,12 +201,13 @@ const AiChat = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isProcessing) return;
+  const handleSendMessage = async (presetMessage?: string) => {
+    const messageToSend = presetMessage || inputMessage.trim();
+    if (!messageToSend || isProcessing) return;
 
     const userMessage: Message = {
       role: 'user',
-      content: inputMessage,
+      content: messageToSend,
       timestamp: new Date()
     };
 
@@ -214,8 +215,9 @@ const AiChat = () => {
     const success = await addMessage(userMessage);
     if (!success) return;
 
-    const messageToSend = inputMessage;
-    setInputMessage('');
+    if (!presetMessage) {
+      setInputMessage('');
+    }
 
     await sendToAI(messageToSend, getConversationHistory());
   };
@@ -306,7 +308,7 @@ const AiChat = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-background">{/* CRITICAL: Always subtract navigation height (80px) from h-screen to prevent layout issues */}
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-background mt-12">{/* CRITICAL: Always subtract navigation height (80px) from h-screen to prevent layout issues */}
       {/* Header */}
       <div className="flex-shrink-0 border-b border-border p-4">
         <div className="flex items-center justify-between">
@@ -399,6 +401,34 @@ const AiChat = () => {
                     />
                   )}
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  
+                  {/* Yes/No Confirmation Buttons for Assistant Messages */}
+                  {message.role === 'assistant' && (
+                    message.content.toLowerCase().includes('would you like') || 
+                    message.content.toLowerCase().includes('should i') ||
+                    message.content.toLowerCase().includes('do you want')
+                  ) && (
+                    <div className="flex gap-2 mt-3">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleSendMessage('Yes')}
+                        className="text-xs"
+                        type="button"
+                      >
+                        Yes
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleSendMessage('No')}
+                        className="text-xs"
+                        type="button"
+                      >
+                        No
+                      </Button>
+                    </div>
+                  )}
+                  
                   <p className="text-xs opacity-70 mt-1">
                     {message.timestamp.toLocaleTimeString()}
                   </p>
@@ -461,7 +491,7 @@ const AiChat = () => {
               </Button>
             </div>
             <Button
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage()}
               disabled={!inputMessage.trim() || isProcessing}
               size="default"
               className="flex-shrink-0"

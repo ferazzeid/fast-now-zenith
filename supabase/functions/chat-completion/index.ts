@@ -186,6 +186,38 @@ Important: Always ask for confirmation before taking actions like starting walki
         }
       },
       {
+        name: 'toggle_food_consumption',
+        description: 'Mark a food entry as eaten or just logged',
+        parameters: {
+          type: 'object',
+          properties: {
+            food_name: {
+              type: 'string',
+              description: 'Name of the food item to toggle'
+            },
+            consumed: {
+              type: 'boolean',
+              description: 'true to mark as eaten, false to mark as just logged'
+            }
+          },
+          required: ['food_name', 'consumed']
+        }
+      },
+      {
+        name: 'delete_food_entry',
+        description: 'Remove a food entry from the user\'s log',
+        parameters: {
+          type: 'object',
+          properties: {
+            food_name: {
+              type: 'string',
+              description: 'Name of the food item to delete'
+            }
+          },
+          required: ['food_name']
+        }
+      },
+      {
         name: 'get_user_profile',
         description: 'Get user\'s profile information including goals, BMR, and current stats',
         parameters: {
@@ -356,6 +388,76 @@ Important: Always ask for confirmation before taking actions like starting walki
               functionResult = `Error adding food entry: ${foodError.message}`;
             } else {
               functionResult = `Added food entry: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
+            }
+            break;
+
+          case 'toggle_food_consumption':
+            console.log('Toggling food consumption with args:', functionArgs);
+            // Find today's food entry by name
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const { data: foodEntries, error: findError } = await supabase
+              .from('food_entries')
+              .select('id, name, consumed')
+              .eq('user_id', userId)
+              .eq('name', functionArgs.food_name)
+              .gte('created_at', today.toISOString())
+              .lt('created_at', tomorrow.toISOString())
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (findError || !foodEntries || foodEntries.length === 0) {
+              functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
+            } else {
+              const { data: updatedEntry, error: updateError } = await supabase
+                .from('food_entries')
+                .update({ consumed: functionArgs.consumed })
+                .eq('id', foodEntries[0].id)
+                .select()
+                .single();
+
+              if (updateError) {
+                functionResult = `Error updating food entry: ${updateError.message}`;
+              } else {
+                const status = functionArgs.consumed ? 'eaten' : 'logged only';
+                functionResult = `Updated "${functionArgs.food_name}" - marked as ${status}`;
+              }
+            }
+            break;
+
+          case 'delete_food_entry':
+            console.log('Deleting food entry with args:', functionArgs);
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const todayEnd = new Date(todayStart);
+            todayEnd.setDate(todayEnd.getDate() + 1);
+
+            const { data: entriesToDelete, error: findDeleteError } = await supabase
+              .from('food_entries')
+              .select('id, name')
+              .eq('user_id', userId)
+              .eq('name', functionArgs.food_name)
+              .gte('created_at', todayStart.toISOString())
+              .lt('created_at', todayEnd.toISOString())
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (findDeleteError || !entriesToDelete || entriesToDelete.length === 0) {
+              functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
+            } else {
+              const { error: deleteError } = await supabase
+                .from('food_entries')
+                .delete()
+                .eq('id', entriesToDelete[0].id);
+
+              if (deleteError) {
+                functionResult = `Error deleting food entry: ${deleteError.message}`;
+              } else {
+                functionResult = `Deleted "${functionArgs.food_name}" from your food log.`;
+              }
             }
             break;
 
