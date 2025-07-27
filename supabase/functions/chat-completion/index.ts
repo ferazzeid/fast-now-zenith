@@ -428,17 +428,17 @@ Important: Always ask for confirmation before taking actions like starting walki
               .single();
             
             // Get today's food entries
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
+            const profileToday = new Date();
+            profileToday.setHours(0, 0, 0, 0);
+            const profileTomorrow = new Date(profileToday);
+            profileTomorrow.setDate(profileTomorrow.getDate() + 1);
 
             const { data: todayFood } = await supabase
               .from('food_entries')
               .select('calories, carbs')
               .eq('user_id', userId)
-              .gte('created_at', today.toISOString())
-              .lt('created_at', tomorrow.toISOString());
+              .gte('created_at', profileToday.toISOString())
+              .lt('created_at', profileTomorrow.toISOString());
 
             const todayCalories = todayFood?.reduce((sum, entry) => sum + entry.calories, 0) || 0;
             const todayCarbs = todayFood?.reduce((sum, entry) => sum + entry.carbs, 0) || 0;
@@ -457,8 +457,8 @@ Important: Always ask for confirmation before taking actions like starting walki
               .select('start_time, end_time, calories_burned, distance')
               .eq('user_id', userId)
               .eq('status', 'completed')
-              .gte('start_time', today.toISOString())
-              .lt('start_time', tomorrow.toISOString());
+              .gte('start_time', profileToday.toISOString())
+              .lt('start_time', profileTomorrow.toISOString());
 
             const todayWalkingStats = todayWalking?.reduce(
               (acc, session) => {
