@@ -15,6 +15,10 @@ interface CeramicTimerProps {
   showSlideshow?: boolean;
   /** Eating window time remaining (only shown during eating window) */
   eatingWindowTimeRemaining?: string | null;
+  /** Count direction for toggle */
+  countDirection?: 'up' | 'down';
+  /** Handler for count direction toggle */
+  onToggleCountDirection?: () => void;
   /** Additional className */
   className?: string;
 }
@@ -26,6 +30,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   isEatingWindow = false,
   showSlideshow = false,
   eatingWindowTimeRemaining = null,
+  countDirection,
+  onToggleCountDirection,
   className
 }) => {
   // Calculate stroke-dashoffset for progress ring
@@ -163,6 +169,17 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             background: 'radial-gradient(circle, transparent 60%, hsl(var(--ceramic-shadow) / 0.2) 65%, transparent 70%)',
           }}
         />
+        
+        {/* FIXED: Count Direction Toggle - Top-right corner as discrete toggle */}
+        {isActive && countDirection && onToggleCountDirection && (
+          <button
+            onClick={onToggleCountDirection}
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-ceramic-base/80 hover:bg-ceramic-base border border-ceramic-rim flex items-center justify-center text-xs text-muted-foreground hover:text-warm-text transition-all duration-200 shadow-sm backdrop-blur-sm"
+            title={countDirection === 'up' ? 'Switch to Countdown' : 'Switch to Count Up'}
+          >
+            {countDirection === 'up' ? '⬇' : '⬆'}
+          </button>
+        )}
       </div>
     </div>
   );

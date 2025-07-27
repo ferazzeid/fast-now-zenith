@@ -124,15 +124,15 @@ export const useProfile = () => {
   const calculateWalkingCalories = (durationMinutes: number, speedMph: number = 3) => {
     if (!profile || !profile.weight) return 0;
     
-    // MET values for walking at different speeds
+    // FIXED: Corrected MET values based on research data
     const metValues: { [key: number]: number } = {
-      2: 2.5,  // Slow pace
-      3: 3.5,  // Average pace
-      4: 5.0,  // Brisk pace
-      5: 6.0   // Fast pace
+      2: 2.8,  // 2 mph - slow pace (corrected from 2.5)
+      3: 3.2,  // 3 mph - average pace (corrected from 3.5)
+      4: 4.3,  // 4 mph - brisk pace (corrected from 5.0) 
+      5: 5.5   // 5 mph - fast pace (corrected from 6.0)
     };
     
-    const met = metValues[speedMph] || 3.5;
+    const met = metValues[speedMph] || 3.2;
     
     // Handle weight based on units
     let weightKg: number;

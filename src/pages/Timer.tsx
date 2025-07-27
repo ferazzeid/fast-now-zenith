@@ -217,12 +217,14 @@ const Timer = () => {
         <div className="relative mb-8">
           {currentMode === 'fasting' ? (
             <CeramicTimer 
-              displayTime={getDisplayTime()}
               progress={getProgress()}
+              displayTime={getDisplayTime()}
               isActive={isRunning}
               isEatingWindow={isInEatingWindow}
-              showSlideshow={timeElapsed > 3600} // Show after 1 hour
+              showSlideshow={true}
               eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
+              countDirection={countDirection}
+              onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
             />
           ) : (
             <WalkingTimer
@@ -336,19 +338,7 @@ const Timer = () => {
           </div>
         )}
 
-        {/* Timer Direction Toggle - Only show for fasting mode */}
-        {currentMode === 'fasting' && isRunning && (
-          <div className="mt-6 flex justify-center">
-            <Button
-              variant="ghost"
-              onClick={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
-              className="text-sm text-muted-foreground hover:text-warm-text"
-            >
-              {countDirection === 'up' ? 'Switch to Countdown' : 'Switch to Count Up'}
-              <ChevronDown className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-        )}
+        {/* REMOVED: Timer Direction Toggle moved to top-right of timer */}
       </div>
 
       {/* Fast Selector Modal */}

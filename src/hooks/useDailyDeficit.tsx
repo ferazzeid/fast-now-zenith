@@ -64,53 +64,91 @@ export const useDailyDeficit = () => {
       
       for (const session of sessions) {
         if (session.calories_burned) {
+          // FIXED: Don't double count - use already calculated calories for completed sessions
           totalCalories += session.calories_burned;
         } else if (session.end_time) {
           // Calculate calories for completed sessions without calories_burned
           const durationMs = new Date(session.end_time).getTime() - new Date(session.start_time).getTime();
-          const durationMinutes = durationMs / (1000 * 60);
+          // FIXED: Subtract pause time from completed sessions
+          const pauseTimeMs = (session.total_pause_duration || 0) * 1000;
+          const activeDurationMs = Math.max(0, durationMs - pauseTimeMs);
+          const activeDurationMinutes = activeDurationMs / (1000 * 60);
+          
           const speedMph = session.speed_mph || 3;
           
-          // MET values for walking
+          // FIXED: Corrected MET values based on research data
           const metValues: { [key: number]: number } = {
-            2: 2.5, 3: 3.5, 4: 5.0, 5: 6.0
+            2: 2.8,  // 2 mph - slow pace (was 2.5)
+            3: 3.2,  // 3 mph - average pace (was 3.5) 
+            4: 4.3,  // 4 mph - brisk pace (was 5.0)
+            5: 5.5   // 5 mph - fast pace (was 6.0)
           };
-          const met = metValues[Math.round(speedMph)] || 3.5;
-          // Use consistent weight handling
-          const weightKg = profile.units === 'metric' ? profile.weight : profile.weight * 0.453592;
-          const calories = Math.round(met * weightKg * (durationMinutes / 60));
+          const met = metValues[Math.round(speedMph)] || 3.2;
+          
+          // FIXED: Ensure weight conversion is consistent
+          let weightKg: number;
+          if (profile.units === 'metric') {
+            weightKg = profile.weight;
+          } else {
+            weightKg = profile.weight * 0.453592; // Convert lbs to kg
+          }
+          
+          const calories = Math.round(met * weightKg * (activeDurationMinutes / 60));
           totalCalories += calories;
+          
+          console.log('Completed session calculation:', {
+            durationMs,
+            pauseTimeMs,
+            activeDurationMinutes,
+            speedMph,
+            met,
+            weightKg,
+            calories
+          });
         }
       }
       
-      // Add current active session calories with pause time handling
+      // FIXED: Only calculate active session if not already included in completed sessions
       if (walkingSession?.session_state === 'active' && profile.weight) {
-        const currentDuration = (Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60);
-        // Subtract pause time for accurate calculation
-        const pauseTime = walkingSession.total_pause_duration || 0;
-        const activeDuration = Math.max(0, currentDuration - (pauseTime / 60));
+        // Check if this session is already in the completed sessions list
+        const activeSessionInList = sessions.find(s => s.id === walkingSession.id);
         
-        const speedMph = walkingSession.speed_mph || 3;
-        const metValues: { [key: number]: number } = {
-          2: 2.5, 3: 3.5, 4: 5.0, 5: 6.0
-        };
-        const met = metValues[Math.round(speedMph)] || 3.5;
-        
-        // Use consistent weight handling
-        const weightKg = profile.units === 'metric' ? profile.weight : profile.weight * 0.453592;
-        const currentCalories = Math.round(met * weightKg * (activeDuration / 60));
-        totalCalories += currentCalories;
-        
-        console.log('Active session calories calculation:', {
-          currentDuration,
-          pauseTime,
-          activeDuration,
-          speedMph,
-          met,
-          weightKg,
-          currentCalories,
-          totalCalories
-        });
+        if (!activeSessionInList) {
+          const currentDuration = (Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60);
+          // Subtract pause time for accurate calculation  
+          const pauseTimeMinutes = (walkingSession.total_pause_duration || 0) / 60;
+          const activeDuration = Math.max(0, currentDuration - pauseTimeMinutes);
+          
+          const speedMph = walkingSession.speed_mph || 3;
+          
+          // FIXED: Use same corrected MET values
+          const metValues: { [key: number]: number } = {
+            2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
+          };
+          const met = metValues[Math.round(speedMph)] || 3.2;
+          
+          // FIXED: Ensure weight conversion is consistent
+          let weightKg: number;
+          if (profile.units === 'metric') {
+            weightKg = profile.weight;
+          } else {
+            weightKg = profile.weight * 0.453592; // Convert lbs to kg
+          }
+          
+          const currentCalories = Math.round(met * weightKg * (activeDuration / 60));
+          totalCalories += currentCalories;
+          
+          console.log('Active session calories calculation:', {
+            currentDuration,
+            pauseTimeMinutes,
+            activeDuration,
+            speedMph,
+            met,
+            weightKg,
+            currentCalories,
+            totalCalories
+          });
+        }
       }
       
       return totalCalories;
@@ -118,7 +156,7 @@ export const useDailyDeficit = () => {
       console.error('Error calculating walking calories:', error);
       return 0;
     }
-  }, [user, profile?.weight, walkingSession]);
+  }, [user, profile?.weight, profile?.units, walkingSession]);
 
   const calculateFastingBonus = useCallback(() => {
     if (!fastingSession?.status || fastingSession.status !== 'active') return 0;

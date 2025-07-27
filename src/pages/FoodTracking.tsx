@@ -59,9 +59,23 @@ const FoodTracking = () => {
       }
     } catch (error) {
       console.error('Analysis error:', error);
+      // FIXED: Better error handling for food image analysis
+      let errorMessage = "Please enter food details manually";
+      if (error instanceof Error) {
+        if (error.message.includes('OpenAI API key')) {
+          errorMessage = "OpenAI API key required in Settings";
+        } else if (error.message.includes('not authenticated')) {
+          errorMessage = "Please sign in to use image analysis";
+        } else if (error.message.includes('Invalid nutrition data')) {
+          errorMessage = "Could not recognize this food. Try a clearer image or enter manually";
+        } else {
+          errorMessage = `Analysis failed: ${error.message}`;
+        }
+      }
+      
       toast({
-        title: "Analysis failed", 
-        description: "Please enter food details manually",
+        title: "Image Analysis Failed", 
+        description: errorMessage,
         variant: "destructive"
       });
     }

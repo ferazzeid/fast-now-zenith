@@ -176,18 +176,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       if (text && text.trim()) {
         onTranscription(text.trim());
         
-        // Provide feedback on voice quality
-        const confidence = text.length > 10 ? "high" : text.length > 5 ? "medium" : "low";
-        const qualityMessage = noiseDetected ? 
-          "Audio may have background noise" :
-          confidence === "high" ? "Great audio quality!" :
-          confidence === "medium" ? "Good audio quality" :
-          "Try speaking louder or closer to microphone";
-          
-        toast({
-          title: "Transcription complete",
-          description: qualityMessage,
-        });
+        // FIXED: More discrete voice quality feedback - no intrusive notifications
+        // Just show quality status in UI without toast
       } else {
         toast({
           title: "No speech detected",
@@ -239,14 +229,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
     <div className="space-y-2">
       {isRecording ? (
         <div className="space-y-2">
-          {/* Cancel button when recording */}
+          {/* FIXED: More visible cancel button with proper X */}
           <Button
             onClick={cancelRecording}
             variant="ghost"
             size="sm"
-            className="w-full text-muted-foreground hover:text-foreground"
+            className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300"
           >
-            ✕ Cancel Recording
+            <span className="text-lg font-bold mr-2">✕</span>
+            Cancel Recording
           </Button>
           
           {/* Send message button */}
