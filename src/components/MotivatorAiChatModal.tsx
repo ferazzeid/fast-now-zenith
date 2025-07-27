@@ -114,12 +114,7 @@ What's your first powerful motivator? Record it and tell me everything!`,
         content: msg.content
       }));
 
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            {
-              role: 'system',
-              content: `You are a motivational coach specialized in creating powerful fasting motivators. Your goal is to help users create specific, emotionally resonant motivators.
+      const systemPrompt = `You are a motivational coach specialized in creating powerful fasting motivators. Your goal is to help users create specific, emotionally resonant motivators.
 
 IMPORTANT: Each voice message from the user should be processed individually to create separate motivators. If they mention multiple motivators in one message, split them into separate ones.
 
@@ -145,10 +140,14 @@ RESPONSE STYLE:
 - Keep responses encouraging and action-oriented
 - Don't ask too many clarifying questions - create the motivator from what they give you
 
-ALWAYS create the motivator immediately when they describe one. Don't ask for permission.`
-            },
-            ...conversationHistory,
-            { role: 'user', content: message }
+ALWAYS create the motivator immediately when they describe one. Don't ask for permission.`;
+
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message,
+          conversationHistory: [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory
           ]
         }
       });
@@ -157,11 +156,11 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
 
       // Check if response contains motivator creation JSON
       let motivatorCreated = false;
-      let aiResponse = data.response;
+      let aiResponse = data.completion;
 
       try {
         // Look for JSON in the response
-        const jsonMatch = data.response.match(/\{[\s\S]*?"action":\s*"create_motivator"[\s\S]*?\}/);
+        const jsonMatch = data.completion.match(/\{[\s\S]*?"action":\s*"create_motivator"[\s\S]*?\}/);
         if (jsonMatch) {
           const motivatorData = JSON.parse(jsonMatch[0]);
           if (motivatorData.action === 'create_motivator') {
@@ -174,7 +173,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             
             motivatorCreated = true;
             // Remove JSON from AI response for display
-            aiResponse = data.response.replace(jsonMatch[0], '').trim();
+            aiResponse = data.completion.replace(jsonMatch[0], '').trim();
             
             toast({
               title: "✨ Motivator Created!",
@@ -188,7 +187,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
 
       const aiMessage: Message = {
         role: 'assistant',
-        content: aiResponse || data.response,
+        content: aiResponse || data.completion,
         timestamp: new Date(),
         audioEnabled: audioEnabled && fromVoice
       };
