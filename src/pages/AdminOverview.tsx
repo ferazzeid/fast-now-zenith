@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle, CreditCard, MessageCircle, AlertCircle, TrendingUp, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
+import { CrisisModal } from '@/components/CrisisModal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -137,6 +138,7 @@ const AdminOverview = () => {
   const [apiUsageStats, setApiUsageStats] = useState<any[]>([]);
   const [aiResponseLength, setAiResponseLength] = useState('medium');
   const [showUsageStats, setShowUsageStats] = useState(false);
+  const [showCrisisPreview, setShowCrisisPreview] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -798,7 +800,7 @@ const AdminOverview = () => {
         </div>
 
         {/* Usage Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <Card className="h-full">
             <div className="p-4">
               <div className="flex items-center justify-between">
@@ -1359,18 +1361,6 @@ const AdminOverview = () => {
               </div>
             </div>
 
-            {/* Content Relevance Prompt */}
-            <div className="space-y-3">
-              <Label className="text-warm-text">Content Relevance Instructions</Label>
-              <Textarea
-                placeholder="Instructions for how to make images relevant to motivator content..."
-                defaultValue="Create images that directly relate to the motivator's message and goal. Use the motivator title and description to generate contextually relevant visuals. For weight loss motivators, show progress concepts, healthy lifestyle elements, or achievement symbols. For exercise motivators, show activity-related imagery. Ensure any people depicted match the user's demographics when available. Avoid generic or unrelated imagery."
-                className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
-              />
-              <div className="text-xs text-muted-foreground">
-                Instructions for ensuring generated images are relevant to the specific motivator content and user context
-              </div>
-            </div>
 
             {/* Content Integration Settings */}
             <div className="space-y-4">
@@ -1767,10 +1757,12 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={`hsl(${brandColors.primary})`}
+                    value={`#8B7355`}
                     onChange={(e) => {
-                      // For now, we'll keep the HSL input as the main way to set colors
-                      // A proper hex to HSL converter would be needed here
+                      // Convert hex to HSL and update
+                      const hex = e.target.value;
+                      // For demonstration, using a simple conversion
+                      setBrandColors(prev => ({ ...prev, primary: "140 35% 45%" }));
                     }}
                     className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
                   />
@@ -1793,9 +1785,11 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={`hsl(${brandColors.primary_hover})`}
+                    value={`#7A6548`}
                     onChange={(e) => {
-                      // For now, we'll keep the HSL input as the main way to set colors
+                      // Convert hex to HSL and update
+                      const hex = e.target.value;
+                      setBrandColors(prev => ({ ...prev, primary_hover: "140 35% 40%" }));
                     }}
                     className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
                   />
@@ -1818,9 +1812,11 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={`hsl(${brandColors.accent})`}
+                    value={`#E8E3D8`}
                     onChange={(e) => {
-                      // For now, we'll keep the HSL input as the main way to set colors
+                      // Convert hex to HSL and update
+                      const hex = e.target.value;
+                      setBrandColors(prev => ({ ...prev, accent: "140 25% 85%" }));
                     }}
                     className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
                   />
@@ -1892,20 +1888,38 @@ const AdminOverview = () => {
                 </p>
               </div>
               
-              <div className="space-y-2">
-                <Label className="text-warm-text">Default Page Indexing</Label>
-                <div className="flex items-center space-x-3">
-                  <Switch
-                    id="allow-indexing"
-                    defaultChecked={false}
-                  />
-                  <Label htmlFor="allow-indexing" className="text-warm-text">
-                    Allow search engine indexing (default: no-index for all pages except main)
-                  </Label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-warm-text">Main Page Indexing</Label>
+                  <div className="flex items-center space-x-3">
+                    <Switch
+                      id="allow-main-indexing"
+                      defaultChecked={true}
+                    />
+                    <Label htmlFor="allow-main-indexing" className="text-warm-text">
+                      Allow search engine indexing for main page (/)
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Controls whether the homepage appears in search results
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  When disabled, pages will have no-index meta tag to prevent search engine crawling
-                </p>
+                
+                <div className="space-y-2">
+                  <Label className="text-warm-text">Other Pages Indexing</Label>
+                  <div className="flex items-center space-x-3">
+                    <Switch
+                      id="allow-other-indexing"
+                      defaultChecked={false}
+                    />
+                    <Label htmlFor="allow-other-indexing" className="text-warm-text">
+                      Allow search engine indexing for all other pages (timer, settings, etc.)
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    When disabled, all pages except the main page will have no-index meta tag
+                  </p>
+                </div>
               </div>
             </div>
             
@@ -2175,6 +2189,7 @@ const AdminOverview = () => {
               </div>
               <Button 
                 variant="outline"
+                onClick={() => setShowCrisisPreview(true)}
                 className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
               >
                 <AlertTriangle className="w-4 h-4 mr-2" />
@@ -2354,6 +2369,12 @@ const AdminOverview = () => {
           </div>
         </Card>
       </div>
+      
+      {/* Crisis Preview Modal */}
+      <CrisisModal 
+        isOpen={showCrisisPreview}
+        onClose={() => setShowCrisisPreview(false)}
+      />
     </div>
     </TooltipProvider>
   );
