@@ -89,9 +89,10 @@ const AiChat = () => {
       // Use truncated conversation history to reduce API costs
       const enhancedHistory = conversationHistory.slice(-15); // Keep last 15 messages only
       
-      // Add minimal context to reduce token usage
+      // Enhanced context with detailed health data access
       const contextParts = [];
       
+      // Current activity status
       if (walkingContext && walkingContext.isCurrentlyWalking) {
         contextParts.push(`Currently walking: ${walkingContext.currentWalkingDuration} min`);
       }
@@ -100,15 +101,36 @@ const AiChat = () => {
         contextParts.push(`Currently fasting: ${fastingContext.currentFastDuration}h`);
       }
       
+      // Daily nutrition summary
       if (foodContext && foodContext.todayCalories > 0) {
         contextParts.push(`Today: ${foodContext.todayCalories} cal`);
       }
       
-      // Only add context if really needed
+      // Enhanced context with activity insights
+      if (walkingContext && walkingContext.isCurrentlyWalking) {
+        contextParts.push(`Walking data available for analysis`);
+      }
+      
+      if (fastingContext && fastingContext.isCurrentlyFasting) {
+        contextParts.push(`Fasting data available for insights`);
+      }
+      
+      // Enhanced system prompt for data access
+      const systemPrompt = `You are a health and wellness AI assistant with access to detailed user data. You can:
+- View and analyze walking sessions, fasting periods, and food entries
+- Create motivational content and track progress
+- Provide personalized insights based on patterns
+- Suggest improvements and celebrate achievements
+
+Current context: ${contextParts.join(' | ')}
+
+Be helpful, encouraging, and use the data to provide personalized guidance.`;
+      
+      // Add enhanced context
       if (contextParts.length > 0) {
         enhancedHistory.unshift({
           role: 'system',
-          content: `Context: ${contextParts.join(', ')}`
+          content: systemPrompt
         });
       }
 

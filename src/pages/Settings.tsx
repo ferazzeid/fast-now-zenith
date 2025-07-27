@@ -281,7 +281,7 @@ const Settings = () => {
                         <Key className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm font-medium text-warm-text">Alternative: Use my own API key</span>
                       </div>
-                      <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+                      <div className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">⌄</div>
                     </div>
                   </summary>
                   
@@ -344,7 +344,7 @@ const Settings = () => {
                         <Key className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm font-medium text-warm-text">Advanced: Use my own API key</span>
                       </div>
-                      <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+                      <div className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">⌄</div>
                     </div>
                   </summary>
                   

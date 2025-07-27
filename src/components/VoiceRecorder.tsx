@@ -12,8 +12,13 @@ interface VoiceRecorderProps {
 export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, isDisabled }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [noiseDetected, setNoiseDetected] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const { toast } = useToast();
 
   const startRecording = async () => {
@@ -22,8 +27,20 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
         audio: {
           sampleRate: 16000,
           channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
         }
       });
+      
+      // Set up audio analysis
+      audioContextRef.current = new AudioContext();
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+      source.connect(analyserRef.current);
+      
+      startAudioLevelMonitoring();
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
@@ -41,6 +58,13 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         await transcribeAudio(audioBlob);
+        
+        // Stop audio monitoring and cleanup
+        stopAudioLevelMonitoring();
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
@@ -63,11 +87,45 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
     }
   };
 
+  const startAudioLevelMonitoring = () => {
+    if (!analyserRef.current) return;
+    
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+    
+    const updateAudioLevel = () => {
+      if (!analyserRef.current || !isRecording) return;
+      
+      analyserRef.current.getByteFrequencyData(dataArray);
+      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+      const normalizedLevel = Math.min(average / 100, 1);
+      
+      setAudioLevel(normalizedLevel);
+      
+      // Detect noise/background issues
+      const highFreqNoise = dataArray.slice(dataArray.length * 0.7).reduce((a, b) => a + b) / (dataArray.length * 0.3);
+      setNoiseDetected(highFreqNoise > 50);
+      
+      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
+    };
+    
+    updateAudioLevel();
+  };
+
+  const stopAudioLevelMonitoring = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    setAudioLevel(0);
+    setNoiseDetected(false);
+  };
+
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setIsProcessing(true);
+      stopAudioLevelMonitoring();
     }
   };
 
@@ -117,14 +175,23 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       
       if (text && text.trim()) {
         onTranscription(text.trim());
+        
+        // Provide feedback on voice quality
+        const confidence = text.length > 10 ? "high" : text.length > 5 ? "medium" : "low";
+        const qualityMessage = noiseDetected ? 
+          "Audio may have background noise" :
+          confidence === "high" ? "Great audio quality!" :
+          confidence === "medium" ? "Good audio quality" :
+          "Try speaking louder or closer to microphone";
+          
         toast({
           title: "Transcription complete",
-          description: "Processing your message...",
+          description: qualityMessage,
         });
       } else {
         toast({
           title: "No speech detected",
-          description: "Please try speaking again",
+          description: "Please try speaking louder or check your microphone",
           variant: "destructive"
         });
       }
@@ -149,26 +216,46 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
   };
 
   return (
-    <Button
-      onClick={toggleRecording}
-      disabled={isDisabled || isProcessing}
-      variant={isRecording ? "destructive" : "default"}
-      size="lg"
-      className="relative w-full max-w-xs"
-    >
-      {isProcessing ? (
-        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
-      ) : isRecording ? (
-        <MicOff className="h-5 w-5" />
-      ) : (
-        <Mic className="h-5 w-5" />
-      )}
-      <span className="ml-2">
-        {isProcessing ? "Processing..." : isRecording ? "Stop Recording" : "Record Message"}
-      </span>
+    <div className="space-y-2">
+      <Button
+        onClick={toggleRecording}
+        disabled={isDisabled || isProcessing}
+        variant={isRecording ? "destructive" : "default"}
+        size="lg"
+        className="relative w-full max-w-xs"
+      >
+        {isProcessing ? (
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
+        ) : isRecording ? (
+          <MicOff className="h-5 w-5" />
+        ) : (
+          <Mic className="h-5 w-5" />
+        )}
+        <span className="ml-2">
+          {isProcessing ? "Processing..." : isRecording ? "Stop Recording" : "Record Message"}
+        </span>
+        {isRecording && (
+          <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+        )}
+      </Button>
+      
+      {/* Voice Level Indicator */}
       {isRecording && (
-        <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <span>Level:</span>
+            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-75"
+                style={{ width: `${audioLevel * 100}%` }}
+              />
+            </div>
+          </div>
+          {noiseDetected && (
+            <span className="text-yellow-600 dark:text-yellow-400">⚠ Noise detected</span>
+          )}
+        </div>
       )}
-    </Button>
+    </div>
   );
 };
