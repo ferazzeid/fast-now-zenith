@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
+import { MotivatorSlideshow } from './MotivatorSlideshow';
 
 interface CeramicTimerProps {
   /** Progress value from 0 to 100 */
@@ -45,6 +46,13 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
       {showSlideshow && isActive && (
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
           <CircularMotivatorText isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
+        </div>
+      )}
+      
+      {/* Image Background - Re-added to center well */}
+      {showSlideshow && isActive && (
+        <div className="absolute inset-0 rounded-full overflow-hidden" style={{ zIndex: 1 }}>
+          <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
         </div>
       )}
       

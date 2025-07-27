@@ -66,11 +66,11 @@ export const WalkingTimer = ({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Vertical Stack Layout - Wider for consistency */}
-      <div className="w-full max-w-sm mx-auto space-y-4">
+      {/* Full width layout to match buttons */}
+      <div className="w-full space-y-4">
         
         {/* Main Timer Card */}
-        <Card className="p-6 bg-ceramic-base border-ceramic-rim text-center relative overflow-hidden">
+        <Card className="p-6 text-center relative overflow-hidden">
           {/* Walking Motivator Slideshow Background */}
           {showSlideshow && isActive && !isPaused && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
@@ -145,7 +145,7 @@ export const WalkingTimer = ({
           <div className="space-y-3">
             {/* Speed & Distance Row - Full width */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4 bg-card border border-border">
+              <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-primary" />
@@ -164,7 +164,7 @@ export const WalkingTimer = ({
                 </div>
               </Card>
 
-              <Card className="p-4 bg-card border border-border">
+              <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
@@ -183,7 +183,7 @@ export const WalkingTimer = ({
 
             {/* Calories & Session Info */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4 bg-card border border-border">
+              <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
@@ -198,7 +198,7 @@ export const WalkingTimer = ({
                 <div className="text-xs text-muted-foreground">burned</div>
               </Card>
 
-              <Card className="p-4 bg-card border border-border">
+              <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Clock className="w-4 h-4 text-primary" />
@@ -220,7 +220,7 @@ export const WalkingTimer = ({
 
         {/* Progress Indicators for Goals (if not in session) */}
         {!isActive && (
-          <Card className="p-4 bg-card border border-border">
+          <Card className="p-4">
             <div className="text-center space-y-3">
               <div className="flex items-center justify-center space-x-2">
                 <Target className="w-4 h-4 text-primary" />
