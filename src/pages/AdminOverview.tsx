@@ -507,25 +507,29 @@ const AdminOverview = () => {
   // Helper function to convert HSL to Hex
   const hslToHex = (hslString: string): string => {
     try {
-      const [h, s, l] = hslString.split(' ').map((val, idx) => {
-        const num = parseFloat(val.replace('%', ''));
-        return idx === 0 ? num : num / 100;
-      });
+      // Parse HSL format "140 35% 45%"
+      const parts = hslString.trim().split(/\s+/);
+      if (parts.length !== 3) return '#8B7355';
+      
+      const h = parseFloat(parts[0]) / 360;
+      const s = parseFloat(parts[1].replace('%', '')) / 100;
+      const l = parseFloat(parts[2].replace('%', '')) / 100;
 
       const c = (1 - Math.abs(2 * l - 1)) * s;
-      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const x = c * (1 - Math.abs(((h * 360 / 60) % 2) - 1));
       const m = l - c / 2;
       
       let r, g, b;
-      if (h >= 0 && h < 60) {
+      const hue = h * 360;
+      if (hue >= 0 && hue < 60) {
         r = c; g = x; b = 0;
-      } else if (h >= 60 && h < 120) {
+      } else if (hue >= 60 && hue < 120) {
         r = x; g = c; b = 0;
-      } else if (h >= 120 && h < 180) {
+      } else if (hue >= 120 && hue < 180) {
         r = 0; g = c; b = x;
-      } else if (h >= 180 && h < 240) {
+      } else if (hue >= 180 && hue < 240) {
         r = 0; g = x; b = c;
-      } else if (h >= 240 && h < 300) {
+      } else if (hue >= 240 && hue < 300) {
         r = x; g = 0; b = c;
       } else {
         r = c; g = 0; b = x;
@@ -868,7 +872,7 @@ const AdminOverview = () => {
         </div>
 
         {/* Usage Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card className="h-full">
             <div className="p-4">
               <div className="flex items-center justify-between">
