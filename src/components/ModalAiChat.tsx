@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, X, Volume2, VolumeX } from 'lucide-react';
+import { Send, X, Volume2, VolumeX, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -40,6 +40,14 @@ export const ModalAiChat = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [apiKey, setApiKey] = useState('');
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    portion: '',
+    calories: '',
+    carbs: ''
+  });
+  const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -66,9 +74,12 @@ export const ModalAiChat = ({
         audioEnabled: false
       };
       setMessages([contextMessage]);
+      setLastFoodSuggestion(null);
     } else if (!isOpen) {
       // Clear messages when modal closes
       setMessages([]);
+      setShowEditForm(false);
+      setLastFoodSuggestion(null);
     }
   }, [isOpen, context]);
 
@@ -141,6 +152,10 @@ Then ask if they want to add it to their food log.`;
 
       // Handle function call results and pass to parent
       if (data.functionCall && onResult) {
+        // Store the last food suggestion for editing
+        if (data.functionCall.name === 'add_food_entry') {
+          setLastFoodSuggestion(data.functionCall.arguments);
+        }
         onResult(data.functionCall);
       }
 
@@ -206,9 +221,47 @@ Then ask if they want to add it to their food log.`;
     await sendToAI(messageToSend);
   };
 
+  const handleAdjustDetails = () => {
+    if (lastFoodSuggestion) {
+      setEditFormData({
+        name: lastFoodSuggestion.name || '',
+        portion: lastFoodSuggestion.serving_size?.toString() || '',
+        calories: lastFoodSuggestion.calories?.toString() || '',
+        carbs: lastFoodSuggestion.carbs?.toString() || ''
+      });
+      setShowEditForm(true);
+    }
+  };
+
+  const handleSaveEditedFood = () => {
+    if (onResult) {
+      onResult({
+        name: 'add_food_entry',
+        arguments: {
+          name: editFormData.name,
+          serving_size: parseFloat(editFormData.portion),
+          calories: parseFloat(editFormData.calories),
+          carbs: parseFloat(editFormData.carbs),
+          consumed: false
+        }
+      });
+    }
+    setShowEditForm(false);
+  };
+
+  // Helper function to check if message contains food suggestion
+  const containsFoodSuggestion = (content: string) => {
+    const foodKeywords = ['calories', 'carbs', 'grams', 'add this', 'add it', 'food log'];
+    const hasKeywords = foodKeywords.some(keyword => content.toLowerCase().includes(keyword));
+    const isQuestion = content.includes('?');
+    const seemsLikeFood = /\d+\s*(calories|cal|grams?|g\b)/i.test(content);
+    
+    return hasKeywords && !content.toLowerCase().includes('what food') && (seemsLikeFood || content.toLowerCase().includes('add'));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto h-[80vh] flex flex-col p-0">
+      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4 flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
@@ -247,11 +300,8 @@ Then ask if they want to add it to their food log.`;
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     
-                    {/* Yes/No Confirmation Buttons for Assistant Messages */}
-                    {message.role === 'assistant' && (
-                      message.content.toLowerCase().includes('add') && 
-                      message.content.toLowerCase().includes('food')
-                    ) && (
+                    {/* Conditional confirmation buttons for food suggestions only */}
+                    {message.role === 'assistant' && containsFoodSuggestion(message.content) && (
                       <div className="flex gap-2 mt-3">
                         <Button 
                           size="sm" 
@@ -263,9 +313,11 @@ Then ask if they want to add it to their food log.`;
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleSendMessage('No, let me adjust the details')}
+                          onClick={handleAdjustDetails}
                           className="text-xs"
+                          disabled={!lastFoodSuggestion}
                         >
+                          <Edit className="w-3 h-3 mr-1" />
                           Adjust Details
                         </Button>
                       </div>
@@ -297,8 +349,67 @@ Then ask if they want to add it to their food log.`;
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Edit Form */}
+        {showEditForm && (
+          <div className="flex-shrink-0 border-t border-border p-4 bg-muted/30">
+            <h3 className="font-medium mb-3">Adjust Food Details</h3>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="edit-name" className="text-sm">Food Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label htmlFor="edit-portion" className="text-sm">Portion (g)</Label>
+                  <Input
+                    id="edit-portion"
+                    type="number"
+                    value={editFormData.portion}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, portion: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-calories" className="text-sm">Calories</Label>
+                  <Input
+                    id="edit-calories"
+                    type="number"
+                    value={editFormData.calories}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, calories: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="edit-carbs" className="text-sm">Carbs (g)</Label>
+                <Input
+                  id="edit-carbs"
+                  type="number"
+                  value={editFormData.carbs}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, carbs: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveEditedFood} className="flex-1">
+                  Add to Food Log
+                </Button>
+                <Button variant="outline" onClick={() => setShowEditForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
-        <div className="flex-shrink-0 border-t border-border p-4 space-y-3">
+        {!showEditForm && (
+          <div className="flex-shrink-0 border-t border-border p-4 space-y-3">
           {/* Text Input */}
           <div className="flex gap-2 items-end">
             <Input
@@ -325,6 +436,7 @@ Then ask if they want to add it to their food log.`;
             isDisabled={isProcessing}
           />
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );
