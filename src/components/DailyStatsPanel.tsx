@@ -96,7 +96,7 @@ export const DailyStatsPanel = () => {
 
   return (
     <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-40">
+      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* FIXED: Lower z-index to prevent overlap */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
           className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-3 cursor-pointer hover:bg-ceramic-plate/98 transition-colors select-none"

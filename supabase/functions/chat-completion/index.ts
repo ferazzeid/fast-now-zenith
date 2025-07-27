@@ -466,22 +466,61 @@ Important: Always ask for confirmation before taking actions like starting walki
 
           case 'add_food_entry':
             console.log('Adding food entry with args:', functionArgs);
-            const { data: foodEntry, error: foodError } = await supabase
-              .from('food_entries')
-              .insert([{
-                user_id: userId,
-                name: functionArgs.name,
-                calories: functionArgs.calories,
-                carbs: functionArgs.carbs,
-                serving_size: functionArgs.serving_size
-              }])
-              .select()
-              .single();
             
-            if (foodError) {
-              functionResult = `Error adding food entry: ${foodError.message}`;
+            // FIXED: Handle multiple food entries
+            if (functionArgs.foods && Array.isArray(functionArgs.foods)) {
+              // Multiple food entries
+              const results = [];
+              for (const food of functionArgs.foods) {
+                const { data, error } = await supabase
+                  .from('food_entries')
+                  .insert([{
+                    user_id: userId,
+                    name: food.name,
+                    calories: food.calories,
+                    carbs: food.carbs,
+                    serving_size: food.serving_size || 100,
+                    consumed: food.consumed || false
+                  }])
+                  .select()
+                  .single();
+                
+                if (error) {
+                  console.error('Error adding food entry:', error);
+                  results.push({ name: food.name, success: false, error: error.message });
+                } else {
+                  results.push({ name: food.name, success: true, data });
+                }
+              }
+              
+              const successCount = results.filter(r => r.success).length;
+              const totalCount = functionArgs.foods.length;
+              functionResult = `Added ${successCount}/${totalCount} foods to your log`;
+              
+              if (successCount < totalCount) {
+                const failedFoods = results.filter(r => !r.success).map(r => r.name).join(', ');
+                functionResult += `. Failed to add: ${failedFoods}`;
+              }
             } else {
-              functionResult = `Added food entry: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
+              // Single food entry (legacy support)
+              const { data: foodEntry, error: foodError } = await supabase
+                .from('food_entries')
+                .insert([{
+                  user_id: userId,
+                  name: functionArgs.name,
+                  calories: functionArgs.calories,
+                  carbs: functionArgs.carbs,
+                  serving_size: functionArgs.serving_size || 100,
+                  consumed: functionArgs.consumed || false
+                }])
+                .select()
+                .single();
+              
+              if (foodError) {
+                functionResult = `Error adding food entry: ${foodError.message}`;
+              } else {
+                functionResult = `Added food entry: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
+              }
             }
             break;
 

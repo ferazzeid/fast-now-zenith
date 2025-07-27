@@ -337,7 +337,7 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-background mt-12">{/* CRITICAL: Always subtract navigation height (80px) from h-screen to prevent layout issues */}
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-background pt-16">{/* FIXED: Add pt-16 to account for fixed header and prevent overlap */}
       {/* Header */}
       <div className="flex-shrink-0 border-b border-border p-4">
         <div className="flex items-center justify-between">

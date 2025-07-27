@@ -228,25 +228,24 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
   return (
     <div className="space-y-2">
       {isRecording ? (
-        <div className="space-y-2">
-          {/* FIXED: More visible cancel button with proper X */}
+        <div className="flex gap-2 w-full">
+          {/* FIXED: Cancel button - compact red X button */}
           <Button
             onClick={cancelRecording}
-            variant="ghost"
-            size="sm"
-            className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300"
+            variant="outline"
+            size="lg"
+            className="px-4 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
           >
-            <span className="text-lg font-bold mr-2">✕</span>
-            Cancel Recording
+            <span className="text-lg font-bold">✕</span>
           </Button>
           
-          {/* Send message button */}
+          {/* FIXED: Send message button - takes remaining width */}
           <Button
             onClick={toggleRecording}
             disabled={isDisabled || isProcessing}
             variant="destructive"
             size="lg"
-            className="relative w-full max-w-xs"
+            className="flex-1 relative"
           >
             {isProcessing ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
@@ -256,19 +255,20 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
             <span className="ml-2">
               {isProcessing ? "Processing..." : "Send Message"}
             </span>
-            <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+            {/* FIXED: Removed red circle indicator since we have separate cancel button */}
           </Button>
         </div>
       ) : (
+        /* FIXED: Full width record button to match app button style */
         <Button
           onClick={toggleRecording}
           disabled={isDisabled || isProcessing}
           variant="default"
           size="lg"
-          className="relative w-full max-w-xs"
+          className="w-full h-16 text-lg font-medium"
         >
-          <Mic className="h-5 w-5" />
-          <span className="ml-2">Record Message</span>
+          <Mic className="h-6 w-6 mr-2" />
+          <span>Record Message</span>
         </Button>
       )}
     </div>
