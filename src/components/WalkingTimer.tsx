@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -61,118 +61,145 @@ export const WalkingTimer = ({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Dashboard Layout */}
-      <div className="relative max-w-md mx-auto">
-        {/* Central Timer with subtle circular design */}
-        <div className="relative mb-6">
-          <div className="w-48 h-48 mx-auto relative">
-            {/* Subtle circular background */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent/10 to-accent/20 border border-accent/20">
-              {/* Animated border for active state */}
-              {isActive && !isPaused && (
-                <div className="absolute inset-0 rounded-full border-2 border-accent/50 animate-pulse" />
-              )}
-              {isPaused && (
-                <div className="absolute inset-0 rounded-full border-2 border-yellow-500/50 animate-pulse" />
-              )}
+      {/* Vertical Stack Layout */}
+      <div className="max-w-sm mx-auto space-y-4">
+        
+        {/* Main Timer Card */}
+        <Card className="p-6 bg-ceramic-base border-ceramic-rim text-center relative overflow-hidden">
+          {/* Small circular progress indicator in corner */}
+          <div className="absolute top-4 right-4">
+            <div className={`w-12 h-12 rounded-full border-4 transition-colors duration-300 ${
+              isActive && !isPaused ? 'border-accent border-t-accent/30 animate-spin' : 
+              isPaused ? 'border-yellow-500 border-t-yellow-500/30' : 'border-muted'
+            }`} style={{ animationDuration: '3s' }} />
+          </div>
+          
+          {/* Main time display */}
+          <div className="mb-4">
+            <div className="text-4xl font-mono font-bold text-foreground mb-2">
+              {displayTime}
             </div>
-            
-            {/* Central time display */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-center">
-                <div className="text-3xl font-mono font-bold text-foreground mb-1">
-                  {displayTime}
-                </div>
-                <div className={`text-sm font-medium transition-colors duration-300 ${
-                  isActive && !isPaused ? 'text-accent' : 
-                  isPaused ? 'text-yellow-500' : 'text-muted-foreground'
-                }`}>
-                  {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
-                </div>
-              </div>
-              
-              {/* Central walking icon */}
-              <FootprintsIcon className={`w-6 h-6 mt-2 transition-all duration-500 ${
-                isActive && !isPaused ? 'text-accent animate-bounce' : 
-                isPaused ? 'text-yellow-500' : 'text-muted-foreground'
-              }`} />
+            <div className={`text-lg font-medium transition-colors duration-300 ${
+              isActive && !isPaused ? 'text-accent' : 
+              isPaused ? 'text-yellow-500' : 'text-muted-foreground'
+            }`}>
+              {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
           </div>
-        </div>
 
-        {/* Metric Tiles surrounding the timer */}
-        {realTimeStats && (
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {/* Speed Tile */}
-            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-              <div className="flex items-center space-x-2 mb-1">
-                <Zap className="w-4 h-4 text-blue-500" />
-                <span className="text-xs font-medium text-warm-text">Speed</span>
-              </div>
-              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                {realTimeStats.speed} {units === 'metric' ? 'km/h' : 'mph'}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {formatPace(realTimeStats.speed)}
-              </div>
-            </Card>
-
-            {/* Distance Tile */}
-            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-              <div className="flex items-center space-x-2 mb-1">
-                <Activity className="w-4 h-4 text-green-500" />
-                <span className="text-xs font-medium text-warm-text">Distance</span>
-              </div>
-              <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                {realTimeStats.distance} {units === 'metric' ? 'km' : 'mi'}
-              </div>
-            </Card>
-
-            {/* Calories Tile */}
-            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-              <div className="flex items-center space-x-2 mb-1">
-                <Activity className="w-4 h-4 text-orange-500" />
-                <span className="text-xs font-medium text-warm-text">Calories</span>
-              </div>
-              <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                {realTimeStats.calories}
-              </div>
-              <div className="text-xs text-muted-foreground">burned</div>
-            </Card>
-
-            {/* Start Time Tile */}
-            <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-              <div className="flex items-center space-x-2 mb-1">
-                <Clock className="w-4 h-4 text-purple-500" />
-                <span className="text-xs font-medium text-warm-text">Started</span>
-              </div>
-              <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })}
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Animated footsteps between tiles when active */}
-        {isActive && !isPaused && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {[...Array(4)].map((_, i) => (
+          {/* Walking path visualization */}
+          <div className="flex justify-center items-center space-x-1 mb-4">
+            {[...Array(7)].map((_, i) => (
               <FootprintsIcon 
                 key={i}
-                className={`absolute w-3 h-3 text-accent/40 transition-all duration-1000 ${
-                  stepAnimation ? 'opacity-100 scale-110' : 'opacity-20 scale-100'
+                className={`w-4 h-4 transition-all duration-500 ${
+                  isActive && !isPaused ? 
+                    (stepAnimation && i % 2 === 0 ? 'text-accent scale-110' : 'text-accent/60') :
+                    'text-muted-foreground/30'
                 }`}
-                style={{
-                  top: `${20 + i * 15}%`,
-                  left: `${30 + (i % 2) * 40}%`,
-                  transitionDelay: `${i * 200}ms`
+                style={{ 
+                  transitionDelay: `${i * 100}ms`,
+                  transform: i % 2 === 0 ? 'scaleY(-1)' : 'scaleY(1)'
                 }}
               />
             ))}
           </div>
+        </Card>
+
+        {/* Metrics Stack */}
+        {realTimeStats && (
+          <div className="space-y-3">
+            {/* Speed & Distance Row */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="p-4 bg-ceramic-base border-ceramic-rim">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-medium text-warm-text">Speed</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-blue-500 animate-pulse' : 'bg-muted'}`} />
+                </div>
+                <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                  {realTimeStats.speed}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">
+                    {units === 'metric' ? 'km/h' : 'mph'}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {formatPace(realTimeStats.speed)}
+                </div>
+              </Card>
+
+              <Card className="p-4 bg-ceramic-base border-ceramic-rim">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium text-warm-text">Distance</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-green-500 animate-pulse' : 'bg-muted'}`} />
+                </div>
+                <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                  {realTimeStats.distance}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">
+                    {units === 'metric' ? 'km' : 'mi'}
+                  </span>
+                </div>
+              </Card>
+            </div>
+
+            {/* Calories & Session Info */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="p-4 bg-ceramic-base border-ceramic-rim">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm font-medium text-warm-text">Calories</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-orange-500 animate-pulse' : 'bg-muted'}`} />
+                </div>
+                <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                  {realTimeStats.calories}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
+                </div>
+                <div className="text-xs text-muted-foreground">burned</div>
+              </Card>
+
+              <Card className="p-4 bg-ceramic-base border-ceramic-rim">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-purple-500" />
+                    <span className="text-sm font-medium text-warm-text">Started</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-purple-500 animate-pulse' : 'bg-muted'}`} />
+                </div>
+                <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                  {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </div>
+                <div className="text-xs text-muted-foreground">session start</div>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Progress Indicators for Goals (if not in session) */}
+        {!isActive && (
+          <Card className="p-4 bg-ceramic-base border-ceramic-rim">
+            <div className="text-center space-y-3">
+              <div className="flex items-center justify-center space-x-2">
+                <Target className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-warm-text">Today's Goal</span>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Aim for 30 minutes of walking</div>
+                <div className="w-full bg-muted/30 rounded-full h-2">
+                  <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: '0%' }} />
+                </div>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
 
