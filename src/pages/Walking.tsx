@@ -164,6 +164,7 @@ const Walking = () => {
             onPause={handlePause}
             onResume={handleResume}
             onStop={() => setShowStopConfirm(true)}
+            showSlideshow={true}
             units={profile?.units || 'imperial'}
             realTimeStats={currentSession ? {
               speed: currentSession.speed_mph || selectedSpeed,

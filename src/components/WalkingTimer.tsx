@@ -3,6 +3,7 @@ import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Targe
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { MotivatorSlideshow } from './MotivatorSlideshow';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -13,6 +14,7 @@ interface WalkingTimerProps {
   onResume?: () => void;
   onStop: () => void;
   className?: string;
+  showSlideshow?: boolean;
   realTimeStats?: {
     speed: number;
     distance: number;
@@ -32,10 +34,12 @@ export const WalkingTimer = ({
   onResume,
   onStop, 
   className = "",
+  showSlideshow = false,
   realTimeStats,
   units = 'imperial'
 }: WalkingTimerProps) => {
   const [stepAnimation, setStepAnimation] = useState(false);
+  const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
 
   useEffect(() => {
     if (isActive && !isPaused) {
@@ -67,8 +71,18 @@ export const WalkingTimer = ({
         
         {/* Main Timer Card */}
         <Card className="p-6 bg-ceramic-base border-ceramic-rim text-center relative overflow-hidden">
+          {/* Motivator Slideshow Background */}
+          {showSlideshow && isActive && !isPaused && (
+            <div className="absolute inset-0 rounded-lg overflow-hidden">
+              <MotivatorSlideshow 
+                isActive={showSlideshow && isActive && !isPaused} 
+                onModeChange={setMotivatorMode}
+              />
+            </div>
+          )}
+          
           {/* Small circular progress indicator in corner */}
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-4 right-4" style={{ zIndex: 12 }}>
             <div className={`w-12 h-12 rounded-full border-4 transition-colors duration-300 ${
               isActive && !isPaused ? 'border-accent border-t-accent/30 animate-spin' : 
               isPaused ? 'border-yellow-500 border-t-yellow-500/30' : 'border-muted'
@@ -76,7 +90,13 @@ export const WalkingTimer = ({
           </div>
           
           {/* Main time display */}
-          <div className="mb-4">
+          <div 
+            className={cn(
+              "mb-4 transition-opacity duration-1000 relative",
+              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
+            )}
+            style={{ zIndex: 13 }}
+          >
             <div 
               className="text-4xl font-mono font-semibold text-primary mb-2 tracking-wide"
               style={{ 
@@ -96,7 +116,13 @@ export const WalkingTimer = ({
           </div>
 
           {/* Walking path visualization */}
-          <div className="flex justify-center items-center space-x-1 mb-4">
+          <div 
+            className={cn(
+              "flex justify-center items-center space-x-1 mb-4 transition-opacity duration-1000",
+              motivatorMode === 'motivator-focused' ? 'opacity-10' : 'opacity-100'
+            )}
+            style={{ zIndex: 13 }}
+          >
             {[...Array(7)].map((_, i) => (
               <FootprintsIcon 
                 key={i}
