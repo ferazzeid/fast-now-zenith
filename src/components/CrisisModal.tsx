@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart, Target, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useAuth } from '@/hooks/useAuth';
 import { useFastingContext } from '@/hooks/useFastingContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -159,6 +160,10 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-red-950/95 border-red-800 text-white backdrop-blur-sm">
+        <VisuallyHidden>
+          <DialogTitle>Crisis Intervention</DialogTitle>
+          <DialogDescription>Emergency motivational support during difficult moments</DialogDescription>
+        </VisuallyHidden>
         <div className="space-y-6 p-2">
           {/* Header */}
           <div className="text-center space-y-2">

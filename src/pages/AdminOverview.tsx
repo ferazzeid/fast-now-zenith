@@ -504,6 +504,74 @@ const AdminOverview = () => {
     }
   };
 
+  // Helper function to convert HSL to Hex
+  const hslToHex = (hslString: string): string => {
+    try {
+      const [h, s, l] = hslString.split(' ').map((val, idx) => {
+        const num = parseFloat(val.replace('%', ''));
+        return idx === 0 ? num : num / 100;
+      });
+
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = l - c / 2;
+      
+      let r, g, b;
+      if (h >= 0 && h < 60) {
+        r = c; g = x; b = 0;
+      } else if (h >= 60 && h < 120) {
+        r = x; g = c; b = 0;
+      } else if (h >= 120 && h < 180) {
+        r = 0; g = c; b = x;
+      } else if (h >= 180 && h < 240) {
+        r = 0; g = x; b = c;
+      } else if (h >= 240 && h < 300) {
+        r = x; g = 0; b = c;
+      } else {
+        r = c; g = 0; b = x;
+      }
+
+      r = Math.round((r + m) * 255);
+      g = Math.round((g + m) * 255);
+      b = Math.round((b + m) * 255);
+
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    } catch (error) {
+      return '#8B7355'; // fallback color
+    }
+  };
+
+  // Helper function to convert Hex to HSL
+  const hexToHsl = (hex: string): string => {
+    try {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+          default: h = 0;
+        }
+        h /= 6;
+      }
+
+      return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+    } catch (error) {
+      return '140 35% 45%'; // fallback HSL
+    }
+  };
+
   const saveAiSettings = async () => {
     try {
       const updates = [
@@ -800,7 +868,7 @@ const AdminOverview = () => {
         </div>
 
         {/* Usage Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="h-full">
             <div className="p-4">
               <div className="flex items-center justify-between">
@@ -1757,12 +1825,9 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={`#8B7355`}
+                    value={hslToHex(brandColors.primary)}
                     onChange={(e) => {
-                      // Convert hex to HSL and update
-                      const hex = e.target.value;
-                      // For demonstration, using a simple conversion
-                      setBrandColors(prev => ({ ...prev, primary: "140 35% 45%" }));
+                      setBrandColors(prev => ({ ...prev, primary: hexToHsl(e.target.value) }));
                     }}
                     className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
                   />
@@ -1785,11 +1850,9 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={`#7A6548`}
+                    value={hslToHex(brandColors.primary_hover)}
                     onChange={(e) => {
-                      // Convert hex to HSL and update
-                      const hex = e.target.value;
-                      setBrandColors(prev => ({ ...prev, primary_hover: "140 35% 40%" }));
+                      setBrandColors(prev => ({ ...prev, primary_hover: hexToHsl(e.target.value) }));
                     }}
                     className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
                   />
@@ -1812,11 +1875,9 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
-                    value={`#E8E3D8`}
+                    value={hslToHex(brandColors.accent)}
                     onChange={(e) => {
-                      // Convert hex to HSL and update
-                      const hex = e.target.value;
-                      setBrandColors(prev => ({ ...prev, accent: "140 25% 85%" }));
+                      setBrandColors(prev => ({ ...prev, accent: hexToHsl(e.target.value) }));
                     }}
                     className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
                   />
