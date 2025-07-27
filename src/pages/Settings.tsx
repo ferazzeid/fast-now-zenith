@@ -17,7 +17,7 @@ import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
 import { useArchivedConversations } from '@/hooks/useArchivedConversations';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
-import { AiMotivatorGeneratorModal } from '@/components/AiMotivatorGeneratorModal';
+import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -1086,7 +1086,7 @@ const Settings = () => {
        )}
        
        {showAiGeneratorModal && (
-         <AiMotivatorGeneratorModal onClose={() => setShowAiGeneratorModal(false)} />
+         <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
        )}
      </div>
    );
