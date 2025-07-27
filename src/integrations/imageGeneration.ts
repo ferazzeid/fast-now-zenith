@@ -2,11 +2,20 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const generateImage = async (prompt: string, filename: string): Promise<string> => {
   try {
-    // Call the image generation edge function (you'll need to create this)
+    // Get user's OpenAI API key if they use their own
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('openai_api_key, use_own_api_key')
+      .single();
+
+    const apiKey = profile?.use_own_api_key ? profile.openai_api_key : undefined;
+
+    // Call the image generation edge function
     const { data, error } = await supabase.functions.invoke('generate-image', {
       body: { 
         prompt,
-        filename 
+        filename,
+        apiKey
       }
     });
 

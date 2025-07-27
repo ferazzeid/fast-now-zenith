@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, filename } = await req.json();
+    const { prompt, filename, apiKey } = await req.json();
 
     if (!prompt || !filename) {
       return new Response(
@@ -23,10 +23,11 @@ serve(async (req) => {
       );
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    // Use provided API key or fall back to environment variable
+    const openAIApiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: 'OpenAI API key not provided' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
