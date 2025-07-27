@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMotivators } from '@/hooks/useMotivators';
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { generate_image } from '@/utils/imageGeneration';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -26,10 +27,11 @@ export const MotivatorAiChatModal = ({ onClose }: MotivatorAiChatModalProps) => 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { createMotivator, refreshMotivators } = useMotivators();
+  const { createMotivator, updateMotivator, refreshMotivators } = useMotivators();
 
   // Initial AI message with specific examples
   useEffect(() => {
@@ -135,7 +137,7 @@ MOTIVATOR CREATION GUIDELINES:
 - Reference specific items (clothes, photos, events)
 
 RESPONSE STYLE:
-- After creating each motivator, tell them: "I've created your motivator! You should replace the placeholder image with a real photo - like actually wearing those clothes or a photo of [specific person/item]."
+- After creating each motivator, tell them: "I've created your motivator! I'm also generating a motivational image for it automatically - you can replace it later with your own photos if you prefer."
 - Ask if they have more motivators to add
 - Keep responses encouraging and action-oriented
 - Don't ask too many clarifying questions - create the motivator from what they give you
@@ -164,8 +166,8 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
         if (jsonMatch) {
           const motivatorData = JSON.parse(jsonMatch[0]);
           if (motivatorData.action === 'create_motivator') {
-            // Create the motivator
-            await createMotivator({
+            // Create the motivator first
+            const motivatorId = await createMotivator({
               title: motivatorData.title,
               content: motivatorData.content,
               category: motivatorData.category || 'personal'
@@ -179,6 +181,11 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
               title: "✨ Motivator Created!",
               description: `"${motivatorData.title}" has been added to your motivators.`,
             });
+
+            // Generate image in background if motivator was created successfully
+            if (motivatorId) {
+              generateImageForMotivator(motivatorId, motivatorData.title, motivatorData.content);
+            }
           }
         }
       } catch (parseError) {
@@ -229,6 +236,36 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
       }
     } catch (error) {
       console.error('Error playing text as audio:', error);
+    }
+  };
+
+  const generateImageForMotivator = async (motivatorId: string, title: string, content: string) => {
+    try {
+      setIsGeneratingImage(true);
+      
+      // Create a prompt for image generation based on the motivator
+      const imagePrompt = `Motivational image representing: ${title}. ${content}. Style: modern, inspiring, high-quality, professional photography.`;
+      
+      // Generate a filename based on the motivator ID
+      const filename = `motivator-${motivatorId}.jpg`;
+      
+      // Generate the image
+      const imageUrl = await generate_image(imagePrompt, filename);
+      
+      // Update the motivator with the generated image
+      await updateMotivator(motivatorId, { imageUrl });
+      
+      toast({
+        title: "🎨 Image Generated!",
+        description: "AI generated an image for your motivator.",
+      });
+      
+    } catch (error) {
+      console.error('Error generating image for motivator:', error);
+      // Don't show error toast as this is a background operation
+      console.log('Image generation failed, but motivator was created successfully');
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -292,6 +329,17 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                   <p className="text-sm">AI is thinking...</p>
+                </div>
+              </Card>
+            </div>
+          )}
+          
+          {isGeneratingImage && (
+            <div className="flex justify-start">
+              <Card className="max-w-[85%] p-3 bg-muted">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <p className="text-sm">🎨 Generating motivational image...</p>
                 </div>
               </Card>
             </div>
