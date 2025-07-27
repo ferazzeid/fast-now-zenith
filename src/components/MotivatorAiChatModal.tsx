@@ -290,7 +290,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4 flex flex-col p-0">
+      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8 flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">AI Motivator Coach</DialogTitle>
@@ -306,9 +306,6 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
                   {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
                 </Label>
               </div>
-              <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </DialogHeader>

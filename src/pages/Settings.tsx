@@ -242,8 +242,173 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* User Profile - Moved up */}
-        {/* AI Subscription and Premium Benefits */}
+            {/* User Profile & Goals - Moved directly under Motivators */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Profile & Goals</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <UnitsSelector
+                    selectedUnits={units}
+                    onUnitsChange={setUnits}
+                  />
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        placeholder={units === 'metric' ? '70' : '154'}
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        className="bg-ceramic-base border-ceramic-rim"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        placeholder={units === 'metric' ? '175' : '69'}
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        className="bg-ceramic-base border-ceramic-rim"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="age" className="text-warm-text">Age</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        placeholder="30"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        className="bg-ceramic-base border-ceramic-rim"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-warm-text">Activity Level</Label>
+                    <Select value={activityLevel} onValueChange={setActivityLevel}>
+                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                        <SelectValue placeholder="Select your activity level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sedentary">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Sedentary</span>
+                            <span className="text-xs text-muted-foreground">Little to no exercise</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="lightly_active">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Lightly Active</span>
+                            <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="moderately_active">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Moderately Active</span>
+                            <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="very_active">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Very Active</span>
+                            <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="extremely_active">
+                          <div className="flex flex-col">
+                            <span className="font-medium">Extremely Active</span>
+                            <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This affects your base daily calorie burn (TDEE) calculation
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>
+                      <Input
+                        id="dailyCalorieGoal"
+                        type="number"
+                        placeholder="2000"
+                        value={dailyCalorieGoal}
+                        onChange={(e) => setDailyCalorieGoal(e.target.value)}
+                        className="bg-ceramic-base border-ceramic-rim"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dailyCarbGoal" className="text-warm-text">Daily Carb Goal (g)</Label>
+                      <Input
+                        id="dailyCarbGoal"
+                        type="number"
+                        placeholder="150"
+                        value={dailyCarbGoal}
+                        onChange={(e) => setDailyCarbGoal(e.target.value)}
+                        className="bg-ceramic-base border-ceramic-rim"
+                      />
+                    </div>
+                  </div>
+                  
+                  {weight && height && age && (
+                    <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg">
+                      <p className="text-sm text-primary font-medium">
+                        Estimated BMR: {Math.round(
+                          parseFloat(weight) && parseFloat(height) && parseFloat(age) 
+                            ? 10 * parseFloat(weight) + 6.25 * parseFloat(height) - 5 * parseFloat(age) + 5
+                            : 0
+                        )} calories/day
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Basal Metabolic Rate - calories needed at rest
+                      </p>
+                    </div>
+                  )}
+                  
+                  <Button onClick={handleSaveSettings} className="w-full">
+                    Save Profile
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Notifications - Moved under Profile & Goals */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Bell className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Notifications</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-warm-text font-medium">Push Notifications</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Get reminders and encouragement during fasts
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notificationsEnabled}
+                      onCheckedChange={setNotificationsEnabled}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+        {/* AI API Configuration - Renamed from AI Features, removed arrowhead */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
@@ -706,151 +871,7 @@ const Settings = () => {
           </div>
         </Card>
 
-        {/* Subscription Management */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <CreditCard className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">AI Subscription</h3>
-            </div>
-
-            {subscription.loading ? (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Loading subscription status...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Subscription Status */}
-                <div className="bg-accent/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {subscription.subscribed ? (
-                        <Crown className="w-5 h-5 text-yellow-500" />
-                      ) : (
-                        <CreditCard className="w-5 h-5 text-muted-foreground" />
-                      )}
-                      <span className="font-medium text-warm-text">
-                        {subscription.subscribed ? 'Premium' : 'Free'} Plan
-                      </span>
-                    </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      subscription.subscribed 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    }`}>
-                      {subscription.subscription_status}
-                    </span>
-                  </div>
-
-                  {/* Usage Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">AI Requests Used</span>
-                      <span className="text-warm-text">
-                        {subscription.requests_used} / {subscription.request_limit}
-                      </span>
-                    </div>
-                    <div className="w-full bg-ceramic-base rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          (subscription.requests_used / subscription.request_limit) >= 0.9 
-                            ? 'bg-red-500' 
-                            : (subscription.requests_used / subscription.request_limit) >= 0.8 
-                            ? 'bg-amber-500' 
-                            : 'bg-primary'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, (subscription.requests_used / subscription.request_limit) * 100)}%` 
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Usage Warning */}
-                  {subscription.getUsageWarning() && (
-                    <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
-                      subscription.getUsageWarning()?.level === 'critical' 
-                        ? 'bg-red-500/10 border border-red-500/20'
-                        : subscription.getUsageWarning()?.level === 'warning'
-                        ? 'bg-amber-500/10 border border-amber-500/20'
-                        : 'bg-blue-500/10 border border-blue-500/20'
-                    }`}>
-                      <AlertTriangle className={`w-4 h-4 ${
-                        subscription.getUsageWarning()?.level === 'critical' 
-                          ? 'text-red-500'
-                          : subscription.getUsageWarning()?.level === 'warning'
-                          ? 'text-amber-500'
-                          : 'text-blue-500'
-                      }`} />
-                      <p className={`text-sm ${
-                        subscription.getUsageWarning()?.level === 'critical' 
-                          ? 'text-red-600 dark:text-red-400'
-                          : subscription.getUsageWarning()?.level === 'warning'
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-blue-600 dark:text-blue-400'
-                      }`}>
-                        {subscription.getUsageWarning()?.message}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Subscription Actions */}
-                <div className="space-y-3">
-                  {!subscription.subscribed ? (
-                    <Button
-                      onClick={subscription.createSubscription}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium - $9/month
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={subscription.openCustomerPortal}
-                      variant="outline"
-                      className="w-full bg-ceramic-base border-ceramic-rim"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Manage Subscription
-                    </Button>
-                  )}
-
-                  <Button
-                    onClick={subscription.checkSubscription}
-                    variant="ghost"
-                    className="w-full text-muted-foreground hover:text-warm-text"
-                  >
-                    Refresh Status
-                  </Button>
-                </div>
-
-                {/* Premium Benefits */}
-                {!subscription.subscribed && (
-                  <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-medium text-warm-text mb-2">Premium Benefits:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• 1,000 AI requests per month (generous limit)</li>
-                      <li>• Priority support</li>
-                      <li>• All AI features included</li>
-                      <li>• Cancel anytime, no hassle</li>
-                    </ul>
-                  </div>
-                )}
-
-                {/* Free users info */}
-                {!subscription.subscribed && subscription.requests_used < subscription.free_requests_limit && (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
-                      You have {subscription.free_requests_limit - subscription.requests_used} free requests remaining. 
-                      Use your own API key for unlimited access or upgrade to premium.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </Card>
+        {/* REMOVED DUPLICATE SUBSCRIPTION SECTION */}
 
         {/* Notifications */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">

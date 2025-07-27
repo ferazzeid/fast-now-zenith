@@ -261,7 +261,7 @@ Then ask if they want to add it to their food log.`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4 flex flex-col p-0">
+      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8 flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>

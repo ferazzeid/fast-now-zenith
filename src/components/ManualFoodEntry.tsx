@@ -25,14 +25,9 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4">
+      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-1">
