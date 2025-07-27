@@ -65,9 +65,9 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
-          {/* Motivator Slideshow - Behind everything */}
+          {/* Motivator Slideshow - Behind timer when timer-focused, over timer when motivator-focused */}
           {showSlideshow && isActive && (
-            <div className="absolute inset-0 rounded-full overflow-hidden" style={{ zIndex: 1 }}>
+            <div className="absolute inset-0 rounded-full overflow-hidden">
               <MotivatorSlideshow isActive={showSlideshow && isActive} />
             </div>
           )}

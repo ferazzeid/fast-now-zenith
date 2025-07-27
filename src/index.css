@@ -151,3 +151,13 @@ All colors MUST be HSL.
     padding-bottom: max(6rem, env(safe-area-inset-bottom) + 4rem);
   }
 }
+
+/* Circular text rotation animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
