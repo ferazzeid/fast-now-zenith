@@ -445,15 +445,13 @@ const Settings = () => {
 
               {/* Free Users: Own API Key Option */}
               {!subscription.subscribed && (
-                <details className="group">
-                  <summary className="cursor-pointer select-none">
-                    <div className="flex items-center justify-between p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
-                      <div className="flex items-center gap-2">
-                        <Key className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-warm-text">Alternative: Use my own API key</span>
-                      </div>
+                <div>
+                  <div className="p-3 bg-ceramic-base rounded-lg border border-ceramic-rim cursor-pointer" onClick={() => document.getElementById('api-toggle')?.click()}>
+                    <div className="flex items-center gap-2">
+                      <Key className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-warm-text">Alternative: Use my own API key</span>
                     </div>
-                  </summary>
+                  </div>
                   
                   <div className="mt-3 space-y-3 p-3 bg-ceramic-base/50 rounded-lg border border-ceramic-rim/50">
                     <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
@@ -502,7 +500,7 @@ const Settings = () => {
                       </div>
                     )}
                   </div>
-                </details>
+                </div>
               )}
 
               {/* Premium Users: Advanced Own API Key Option */}

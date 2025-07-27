@@ -873,17 +873,17 @@ const AdminOverview = () => {
 
         {/* Usage Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="h-full">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-primary" />
+                  <Users className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Total Users</p>
+                      <p className="text-sm font-medium text-warm-text">Total Users</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total number of registered users in the system</p>
@@ -897,17 +897,17 @@ const AdminOverview = () => {
             </div>
           </Card>
           
-          <Card className="h-full">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-primary" />
+                  <CreditCard className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Paid Users</p>
+                      <p className="text-sm font-medium text-warm-text">Paid Users</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Users with active premium subscriptions</p>
@@ -921,17 +921,17 @@ const AdminOverview = () => {
             </div>
           </Card>
           
-          <Card className="h-full">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <MessageCircle className="w-5 h-5 text-primary" />
+                  <MessageCircle className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">AI Requests (24h)</p>
+                      <p className="text-sm font-medium text-warm-text">AI Requests (24h)</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Number of AI requests made in the last 24 hours across all users</p>
@@ -945,17 +945,17 @@ const AdminOverview = () => {
             </div>
           </Card>
           
-          <Card className="h-full">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Key className="w-5 h-5 text-primary" />
+                  <Key className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Shared API Configured</p>
+                      <p className="text-sm font-medium text-warm-text">Shared API Configured</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Status of shared API key configuration for all users</p>
@@ -971,89 +971,89 @@ const AdminOverview = () => {
             </div>
           </Card>
 
-          <Card className="h-full border-yellow-200 bg-yellow-50/50">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                  <AlertTriangle className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Users at Free Limit</p>
+                      <p className="text-sm font-medium text-warm-text">Users at Free Limit</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Free users who have reached their monthly usage limit and cannot make more requests</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-yellow-600">{usageStats.free_users_exhausted}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.free_users_exhausted}</p>
                   </div>
                 </div>
               </div>
             </div>
           </Card>
           
-          <Card className="h-full border-orange-200 bg-orange-50/50">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
+                  <AlertCircle className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Premium Near Limit</p>
+                      <p className="text-sm font-medium text-warm-text">Premium Near Limit</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Premium users who are approaching their monthly usage limit (80%+ used)</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-orange-600">{usageStats.premium_users_over_80_percent}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.premium_users_over_80_percent}</p>
                   </div>
                 </div>
               </div>
             </div>
           </Card>
           
-          <Card className="h-full border-green-200 bg-green-50/50">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <TrendingUp className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">Conversion Ready</p>
+                      <p className="text-sm font-medium text-warm-text">Conversion Ready</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Free users who have hit their limit and are likely to convert to premium</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-green-600">{usageStats.conversion_opportunities}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.conversion_opportunities}</p>
                   </div>
                 </div>
               </div>
             </div>
           </Card>
 
-          <Card className="h-full">
+          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="w-5 h-5 text-primary" />
+                  <BarChart3 className="w-5 h-5 text-warm-text" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-muted-foreground">API Usage</p>
+                      <p className="text-sm font-medium text-warm-text">API Usage</p>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Current month's API costs vs allocated budget limits</p>
@@ -1061,8 +1061,8 @@ const AdminOverview = () => {
                       </Tooltip>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">OpenAI: $12.45 / $100.00</p>
-                      <p className="text-sm text-muted-foreground">Perplexity: $2.30 / $50.00</p>
+                      <p className="text-sm text-warm-text/80">OpenAI: $12.45 / $100.00</p>
+                      <p className="text-sm text-warm-text/80">Perplexity: $2.30 / $50.00</p>
                     </div>
                   </div>
                 </div>

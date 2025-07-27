@@ -491,32 +491,32 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
         {/* Today's Nutrition Overview */}
         <TooltipProvider>
-          <div className="mb-8 p-4 rounded-xl bg-card border border-border">
+          <div className="mb-8 p-4 rounded-xl bg-ceramic-plate border border-ceramic-rim">
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="text-center">
-                <div className="text-xl font-bold text-primary">{todayTotals.calories}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xl font-bold text-warm-text">{todayTotals.calories}</div>
+                <div className="text-xs font-medium text-warm-text">
                   Consumed Calories
-                  <div className="text-xs text-muted-foreground/60 mt-1">today</div>
+                  <div className="text-xs text-warm-text/70 mt-1">today</div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-secondary">{todayTotals.carbs}g</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xl font-bold text-warm-text">{todayTotals.carbs}g</div>
+                <div className="text-xs font-medium text-warm-text">
                   Consumed Carbs
-                  <div className="text-xs text-muted-foreground/60 mt-1">today</div>
+                  <div className="text-xs text-warm-text/70 mt-1">today</div>
                 </div>
               </div>
             </div>
             
             <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="p-2 rounded bg-muted/30">
-                <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
+              <div className="p-2 rounded bg-ceramic-base">
+                <div className="text-sm font-semibold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs text-muted-foreground">Planned Cal</span>
+                  <span className="text-xs font-medium text-warm-text">Planned Cal</span>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                      <Info className="w-3 h-3 text-warm-text/60" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs max-w-48">Calories planned to be consumed today, often from go-to food items</p>
@@ -524,13 +524,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   </Tooltip>
                 </div>
               </div>
-              <div className="p-2 rounded bg-muted/30">
-                <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+              <div className="p-2 rounded bg-ceramic-base">
+                <div className="text-sm font-semibold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs text-muted-foreground">Planned Carbs</span>
+                  <span className="text-xs font-medium text-warm-text">Planned Carbs</span>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                      <Info className="w-3 h-3 text-warm-text/60" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs max-w-48">Carbs calculated from planned food items in your daily plan</p>
@@ -538,13 +538,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   </Tooltip>
                 </div>
               </div>
-              <div className="p-2 rounded bg-primary/10">
-                <div className="text-sm font-semibold text-primary">2000</div>
+              <div className="p-2 rounded bg-ceramic-base">
+                <div className="text-sm font-semibold text-warm-text">2000</div>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs text-muted-foreground">Cal Limit</span>
+                  <span className="text-xs font-medium text-warm-text">Cal Limit</span>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                      <Info className="w-3 h-3 text-warm-text/60" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs max-w-48">Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.</p>
@@ -552,13 +552,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   </Tooltip>
                 </div>
               </div>
-              <div className="p-2 rounded bg-secondary/10">
-                <div className="text-sm font-semibold text-secondary">150g</div>
+              <div className="p-2 rounded bg-ceramic-base">
+                <div className="text-sm font-semibold text-warm-text">150g</div>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs text-muted-foreground">Carb Limit</span>
+                  <span className="text-xs font-medium text-warm-text">Carb Limit</span>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                      <Info className="w-3 h-3 text-warm-text/60" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-xs max-w-48">Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.</p>
@@ -822,26 +822,40 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             <h3 className="font-semibold mb-4 text-lg">Today's Food Plan</h3>
             <div className="space-y-3">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className={`p-3 rounded-lg bg-card border transition-colors ${entry.consumed ? 'border-green-200 bg-green-50/20 dark:border-green-700 dark:bg-green-950/20' : 'border-amber-200 bg-amber-50/20 dark:border-amber-700 dark:bg-amber-950/20'}`}>
-                  <div className="flex items-center justify-between">
+                <div key={entry.id} className={`p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors ${entry.consumed ? 'border-green-300 bg-green-50/10' : 'border-amber-300 bg-amber-50/10'}`}>
+                  <div className="flex items-center gap-2">
+                    {/* Food Image */}
+                    <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+                      {entry.image_url ? (
+                        <img src={entry.image_url} alt={entry.name} className="w-full h-full object-cover rounded" />
+                      ) : (
+                        <Image className="w-4 h-4 text-warm-text/60" />
+                      )}
+                    </div>
+                    
+                    {/* Food Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-base truncate">{entry.name}</h4>
-                        <div className={`text-xs px-1.5 py-0.5 rounded font-medium ${entry.consumed ? 'bg-green-500/15 text-green-700 dark:text-green-300' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'}`}>
-                          {entry.consumed ? '✓' : '○'}
-                        </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {entry.serving_size}g • {entry.calories} cal • {entry.carbs}g carbs
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="font-medium text-warm-text truncate max-w-[100px]">{entry.name}</span>
+                        <span className="text-warm-text/60">•</span>
+                        <span className="text-warm-text/80 whitespace-nowrap">{entry.serving_size}g</span>
+                        <span className="text-warm-text/60">•</span>
+                        <span className="text-warm-text/80 whitespace-nowrap">{entry.calories}cal</span>
+                        <span className="text-warm-text/60">•</span>
+                        <span className="text-warm-text/80 whitespace-nowrap">{entry.carbs}g carbs</span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-0.5 ml-2">
+                    {/* Status & Actions */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${entry.consumed ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'}`}>
+                        {entry.consumed ? '✓' : '○'}
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className="p-1.5 hover:bg-primary/10 h-7 w-7"
+                        className="p-1 h-6 w-6 hover:bg-primary/10"
                         title={entry.consumed ? "Mark as planned" : "Mark as eaten"}
                       >
                         {entry.consumed ? (
@@ -858,7 +872,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleDeleteFoodEntry(entry.id)}
-                        className="p-1.5 hover:bg-destructive/10 h-7 w-7"
+                        className="p-1 h-6 w-6 hover:bg-destructive/10"
                       >
                         <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
                       </Button>
