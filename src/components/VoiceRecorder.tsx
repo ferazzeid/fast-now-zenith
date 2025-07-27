@@ -179,11 +179,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
         // FIXED: More discrete voice quality feedback - no intrusive notifications
         // Just show quality status in UI without toast
       } else {
-        toast({
-          title: "No speech detected",
-          description: "Please try speaking louder or check your microphone",
-          variant: "destructive"
-        });
+        // Don't show error notification when canceling - this is expected behavior
+        return;
       }
     } catch (error) {
       console.error('Error transcribing audio:', error);
@@ -211,8 +208,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       }
       
       toast({
-        title: "Recording cancelled",
-        description: "Your voice message was not sent",
+        title: "Message canceled",
+        description: "Your message was not sent",
       });
     }
   };
@@ -229,13 +226,13 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
     <div className="space-y-2">
       {isRecording ? (
         <div className="flex gap-2 w-full">
-          {/* Send button takes most space */}
+          {/* Send button takes most space with consistent font size and red color */}
           <Button
             onClick={toggleRecording}
             disabled={isDisabled || isProcessing}
-            variant="default"
+            variant="destructive"
             size="lg"
-            className="flex-1 h-16"
+            className="flex-1 h-16 text-base font-medium bg-red-600 hover:bg-red-700 text-white"
           >
             {isProcessing ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
@@ -245,18 +242,18 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
               </svg>
             )}
             <span className="ml-2">
-              {isProcessing ? "Processing..." : "Send Message"}
+              {isProcessing ? "Processing..." : "Send"}
             </span>
           </Button>
           
           {/* Compact cancel button on right with red X */}
           <Button
             onClick={cancelRecording}
-            variant="destructive"
+            variant="outline"
             size="lg"
-            className="w-16 h-16 p-0 flex items-center justify-center"
+            className="w-16 h-16 p-0 flex items-center justify-center border-red-300 hover:bg-red-50"
           >
-            <span className="text-xl font-bold">✕</span>
+            <span className="text-xl font-bold text-red-600">✕</span>
           </Button>
           
         </div>
@@ -267,7 +264,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
           disabled={isDisabled || isProcessing}
           variant="default"
           size="lg"
-          className="w-full h-16 text-lg font-medium"
+          className="w-full h-16 text-base font-medium"
         >
           <Mic className="h-6 w-6 mr-2" />
           <span>Record Message</span>

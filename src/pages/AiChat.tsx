@@ -170,7 +170,7 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
         switch (name) {
           case 'create_motivator':
             toast({
-              title: "Motivator Created",
+              title: "Motivator Saved",
               description: "I've created a personalized motivator for you!",
               duration: 3000,
             });

@@ -371,7 +371,7 @@ Important: Always ask for confirmation before taking actions like starting walki
             if (motivatorError) {
               functionResult = `Error creating motivator: ${motivatorError.message}`;
             } else {
-              functionResult = `Created motivator: "${functionArgs.title}"`;
+              functionResult = `Motivator saved successfully: "${functionArgs.title}"`;
             }
             break;
 
@@ -457,7 +457,7 @@ Important: Always ask for confirmation before taking actions like starting walki
               if (sessionError) {
                 functionResult = `Error starting walking session: ${sessionError.message}`;
               } else {
-                functionResult = `Walking session started! Session ID: ${session.id}`;
+                functionResult = `Walking session started successfully! Have a great walk!`;
               }
             } else {
               functionResult = 'Walking session not started - user declined';
@@ -519,7 +519,7 @@ Important: Always ask for confirmation before taking actions like starting walki
               if (foodError) {
                 functionResult = `Error adding food entry: ${foodError.message}`;
               } else {
-                functionResult = `Added food entry: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
+                functionResult = `Food logged successfully: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
               }
             }
             break;
@@ -882,7 +882,7 @@ Daily calorie needs based on activity level:
 
         return new Response(
           JSON.stringify({ 
-            completion: message_response.content || `I've executed the ${message_response.function_call.name} function. ${functionResult}`,
+            completion: message_response.content || functionResult,
             functionCall: {
               name: message_response.function_call.name,
               arguments: functionArgs,
