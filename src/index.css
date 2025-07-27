@@ -171,3 +171,23 @@ All colors MUST be HSL.
     transform: translateX(-100%);
   }
 }
+
+/* Fast fade-in marquee for walking timer */
+@keyframes fastFadeMarquee {
+  0% {
+    opacity: 0;
+    transform: translateX(50%);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}

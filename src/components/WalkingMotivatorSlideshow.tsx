@@ -98,16 +98,16 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
         />
       </div>
 
-      {/* Horizontal Ticker Text at Bottom */}
+      {/* Fast Fade-In Ticker Text at Bottom */}
       {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
         <div 
           className="absolute bottom-0 left-0 right-0 h-12 flex items-center overflow-hidden"
           style={{ zIndex: 15 }}
         >
           <div 
-            className="whitespace-nowrap text-white font-semibold text-lg tracking-wide drop-shadow-lg animate-marquee"
+            className="whitespace-nowrap text-white font-semibold text-lg tracking-wide drop-shadow-lg animate-fast-fade-marquee"
             style={{
-              animation: 'marquee 20s linear infinite'
+              animation: 'fastFadeMarquee 8s ease-in-out'
             }}
           >
             {currentMotivator.title.toUpperCase()}
@@ -115,10 +115,10 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
         </div>
       )}
 
-      {/* Clean white background during timer-focused mode */}
+      {/* Light background during timer-focused mode - matches food page stats */}
       {displayMode === 'timer-focused' && (
         <div 
-          className="absolute inset-0 bg-white rounded-lg transition-opacity duration-1000"
+          className="absolute inset-0 bg-muted/30 rounded-lg transition-opacity duration-1000"
           style={{ zIndex: 2 }}
         />
       )}

@@ -135,7 +135,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
             displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-60'
           }`}
           style={{ 
-            zIndex: 15, // Higher than plate border
+            zIndex: 20, // Much higher than any plate elements
             animation: displayMode === 'motivator-focused' ? 'spin 60s linear infinite' : 'none'
           }}
         >
