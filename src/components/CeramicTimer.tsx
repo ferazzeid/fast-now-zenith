@@ -164,6 +164,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
         <div 
           className="absolute inset-1 rounded-full pointer-events-none"
           style={{
+            zIndex: 5,
             background: 'conic-gradient(from 45deg, transparent 0deg, hsl(0 0% 100% / 0.1) 90deg, transparent 180deg, hsl(0 0% 100% / 0.05) 270deg, transparent 360deg)',
           }}
         />
@@ -176,6 +177,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             left: '12%',
             right: '12%',
             bottom: '12%',
+            zIndex: 5,
             background: 'radial-gradient(circle, transparent 60%, hsl(var(--ceramic-shadow) / 0.2) 65%, transparent 70%)',
           }}
         />

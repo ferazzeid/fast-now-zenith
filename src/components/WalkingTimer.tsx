@@ -3,7 +3,7 @@ import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Targe
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { MotivatorSlideshow } from './MotivatorSlideshow';
+import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -71,10 +71,10 @@ export const WalkingTimer = ({
         
         {/* Main Timer Card */}
         <Card className="p-6 bg-ceramic-base border-ceramic-rim text-center relative overflow-hidden">
-          {/* Motivator Slideshow Background */}
+          {/* Walking Motivator Slideshow Background */}
           {showSlideshow && isActive && !isPaused && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
-              <MotivatorSlideshow 
+              <WalkingMotivatorSlideshow 
                 isActive={showSlideshow && isActive && !isPaused} 
                 onModeChange={setMotivatorMode}
               />
