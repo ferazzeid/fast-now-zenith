@@ -168,58 +168,105 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
           <div className="space-y-2">
             <Label htmlFor="content" className="text-warm-text font-medium">
-              Description
+              Description (Optional)
             </Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
-              placeholder="Add more details about this motivation..."
+              className="bg-ceramic-base border-ceramic-rim min-h-[80px]"
+              placeholder="Optional: Add more details about this motivation..."
             />
+            <p className="text-xs text-muted-foreground">
+              Focus on the title - it's what you'll see most often. Description is optional background info.
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">
-              Motivator Image
+              Motivator Image (Optional)
             </Label>
             
             <div className="space-y-3">
-              <ImageUpload
-                currentImageUrl={imageUrl}
-                onImageUpload={setImageUrl}
-                onImageRemove={() => setImageUrl('')}
-              />
-              
-              <div className="flex items-center gap-2">
-                <div className="h-px bg-ceramic-rim flex-1" />
-                <span className="text-xs text-muted-foreground">or</span>
-                <div className="h-px bg-ceramic-rim flex-1" />
+              {/* Two button approach like food page */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Trigger file input for upload/camera
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.capture = 'environment'; // This allows camera on mobile
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        // Convert to base64 or upload logic here
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          setImageUrl(e.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    };
+                    input.click();
+                  }}
+                  className="flex-1"
+                >
+                  📷 Upload/Camera
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage}
+                  className="flex-1"
+                >
+                  {isGeneratingImage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate AI
+                    </>
+                  )}
+                </Button>
               </div>
-              
-              <Button
-                variant="outline"
-                onClick={handleGenerateImage}
-                disabled={isGeneratingImage}
-                className="w-full"
-              >
-                {isGeneratingImage ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                    Generating AI Image...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate AI Image
-                  </>
-                )}
-              </Button>
+
+              {/* Image Preview */}
+              {imageUrl && (
+                <div className="relative">
+                  <img 
+                    src={imageUrl} 
+                    alt="Motivator preview" 
+                    className="w-full h-32 object-cover rounded-lg border border-ceramic-rim"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setImageUrl('')}
+                    className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+
+              {/* Loading state info */}
+              {isGeneratingImage && (
+                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    ⏳ Generating your motivational image... This may take a moment. Please be patient!
+                  </p>
+                </div>
+              )}
             </div>
             
             <p className="text-xs text-muted-foreground">
-              💡 <strong>Pro tip:</strong> Personal photos (loved ones, goal outfits, progress pics) 
-              are usually more motivating than AI-generated images.
+              💡 <strong>Pro tip:</strong> Personal photos are usually more motivating than AI-generated images.
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
 import { useArchivedConversations } from '@/hooks/useArchivedConversations';
+import { MotivatorsModal } from '@/components/MotivatorsModal';
+import { AiMotivatorGeneratorModal } from '@/components/AiMotivatorGeneratorModal';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -40,6 +42,8 @@ const Settings = () => {
   const navigate = useNavigate();
   const subscription = useSubscription();
   const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
+  const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
+  const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
 
   useEffect(() => {
     // Load saved API key from localStorage
@@ -215,16 +219,24 @@ const Settings = () => {
                   <h3 className="text-lg font-semibold text-warm-text">Motivators</h3>
                 </div>
                 <div className="space-y-4">
-                  <Button
-                    onClick={() => navigate('/motivators')}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <Heart className="w-4 h-4 mr-2" />
-                    Manage Motivators
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setShowMotivatorsModal(true)}
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      <Heart className="w-4 h-4 mr-2" />
+                      Manage Motivators
+                    </Button>
+                    <Button
+                      onClick={() => setShowAiGeneratorModal(true)}
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate with AI
+                    </Button>
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    Create, edit, and organize your personal motivational content, images, and quotes.
+                    Create, edit, and organize your personal motivational content, images, and quotes. Use AI to automatically generate personalized motivators for your fasting journey.
                   </p>
                 </div>
               </div>
@@ -1062,13 +1074,22 @@ const Settings = () => {
                 Admin Dashboard
               </Button>
             )}
-            </div>
-          </Card>
-          </div>
-        </div>
-      </ScrollArea>
-    </div>
-  );
-};
+             </div>
+           </Card>
+           </div>
+         </div>
+       </ScrollArea>
 
-export default Settings;
+       {/* Modals */}
+       {showMotivatorsModal && (
+         <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
+       )}
+       
+       {showAiGeneratorModal && (
+         <AiMotivatorGeneratorModal onClose={() => setShowAiGeneratorModal(false)} />
+       )}
+     </div>
+   );
+ };
+ 
+ export default Settings;
