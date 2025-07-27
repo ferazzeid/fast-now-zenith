@@ -672,6 +672,16 @@ const AdminOverview = () => {
         .from('website-images')
         .getPublicUrl(fileName);
 
+      // Save favicon URL to database for persistence
+      const { error: dbError } = await supabase
+        .from('shared_settings')
+        .upsert({
+          setting_key: 'favicon_url',
+          setting_value: publicUrl
+        });
+
+      if (dbError) throw dbError;
+
       // Update index.html favicon link
       const faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
       if (faviconLink) {
@@ -680,9 +690,10 @@ const AdminOverview = () => {
 
       toast({
         title: "Success",
-        description: "Favicon uploaded successfully",
+        description: "Favicon uploaded and saved successfully",
       });
     } catch (error) {
+      console.error('Error uploading favicon:', error);
       toast({
         title: "Error",
         description: "Failed to upload favicon",
