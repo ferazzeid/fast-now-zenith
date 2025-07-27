@@ -7,6 +7,7 @@ import { CompactImageUpload } from '@/components/CompactImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
+import { ModalAiChat } from '@/components/ModalAiChat';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
@@ -22,10 +23,66 @@ const FoodTracking = () => {
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showAiChat, setShowAiChat] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [aiChatContext, setAiChatContext] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
+
+  const handleVoiceFood = () => {
+    const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
+
+To add a food item, I'll need:
+• Food name (what did you eat?)
+• Portion size in grams 
+• Calories (I can estimate if needed)
+• Carbs in grams (I can estimate if needed)
+
+Please tell me what food you'd like to add and how much you had. For example: "I had 150 grams of grilled chicken breast" or "I ate a medium apple, about 180 grams".`;
+    
+    setAiChatContext(contextMessage);
+    setShowAiChat(true);
+  };
+
+  const handleAiChatResult = async (result: any) => {
+    if (result.name === 'add_food_entry') {
+      const { arguments: args } = result;
+      
+      // Add the food entry from AI suggestion
+      const foodResult = await addFoodEntry({
+        name: args.name,
+        calories: parseFloat(args.calories),
+        carbs: parseFloat(args.carbs),
+        serving_size: parseFloat(args.serving_size),
+        consumed: args.consumed || false
+      });
+
+      if (foodResult.error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: foodResult.error.message
+        });
+      } else {
+        toast({
+          title: "Food Added Successfully!",
+          description: `${args.name} has been added to your food plan`
+        });
+        
+        // Close the AI chat modal
+        setShowAiChat(false);
+        
+        // Save to personal library
+        await saveToLibrary({
+          name: args.name,
+          calories: parseFloat(args.calories),
+          carbs: parseFloat(args.carbs),
+          serving_size: parseFloat(args.serving_size)
+        });
+      }
+    }
+  };
 
   const handleImageUpload = async (url: string) => {
     setImageUrl(url);
@@ -346,7 +403,7 @@ const FoodTracking = () => {
           </div>
           
           <Button
-            onClick={() => {/* TODO: Add voice entry */}}
+            onClick={handleVoiceFood}
             className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Mic className="w-6 h-6 mb-1" />
@@ -518,6 +575,16 @@ const FoodTracking = () => {
             </div>
           </div>
         )}
+
+        {/* AI Chat Modal */}
+        <ModalAiChat
+          isOpen={showAiChat}
+          onClose={() => setShowAiChat(false)}
+          onResult={handleAiChatResult}
+          context={aiChatContext}
+          title="Food Assistant"
+          systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
+        />
 
         {/* Food History Modal */}
         {showHistory && (
