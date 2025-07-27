@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, Plus, Search, Trash2 } from 'lucide-react';
+import { Heart, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -133,7 +133,9 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">My Food Library</h3>
-        <Button variant="ghost" onClick={onClose}>×</Button>
+        <Button variant="ghost" onClick={onClose} size="sm">
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
       <div className="relative">

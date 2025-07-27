@@ -240,32 +240,41 @@ const FoodTracking = () => {
 
         {/* Quick Actions */}
         {!showForm && !showLibrary && (
-          <div className="mb-8 space-y-4">
-            {/* Primary Actions */}
-            <div className="grid grid-cols-2 gap-3">
+          <div className="mb-8 space-y-6">
+            {/* Main Action Buttons - Consistent Styling */}
+            <div className="grid grid-cols-3 gap-3">
               <Button 
                 variant="outline" 
                 onClick={() => setShowForm(true)}
-                className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                className="h-16 flex-col space-y-1"
               >
                 <Plus className="w-5 h-5" />
-                <span className="text-sm">Manual Entry</span>
+                <span className="text-sm">Manual</span>
               </Button>
+              <CompactImageUpload onImageUpload={handleImageUpload} />
               <Button 
                 variant="outline" 
-                onClick={() => setShowLibrary(true)}
-                className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                onClick={() => {/* TODO: Add voice entry */}}
+                className="h-16 flex-col space-y-1"
               >
-                <Camera className="w-5 h-5" />
-                <span className="text-sm">My Foods</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <span className="text-sm">Voice</span>
               </Button>
             </div>
             
-            {/* Image Upload - Compact */}
-            <div className="space-y-2">
-              <div className="text-sm text-muted-foreground text-center">Or scan food</div>
-              <CompactImageUpload onImageUpload={handleImageUpload} />
-            </div>
+            {/* My Foods - Different styling as suggested */}
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowLibrary(true)}
+              className="w-full h-12 flex items-center justify-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              <span>My Foods Library</span>
+            </Button>
           </div>
         )}
 
@@ -391,56 +400,52 @@ const FoodTracking = () => {
           </div>
         )}
 
-        {/* Today's Entries */}
+        {/* Today's Food Entries - Enhanced UX */}
         {todayEntries.length > 0 && (
           <div>
-            <h3 className="font-semibold mb-4">Today's Foods</h3>
-            <div className="space-y-2">
+            <h3 className="font-semibold mb-4 text-lg">Today's Food Diary</h3>
+            <div className="space-y-3">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className={`p-3 rounded-lg bg-card border ${entry.consumed ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/50' : 'border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/50'}`}>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium">{entry.name}</div>
-                        <div className={`text-xs px-2 py-1 rounded-full ${entry.consumed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'}`}>
-                          {entry.consumed ? 'Eaten' : 'Logged'}
+                <div key={entry.id} className={`p-4 rounded-xl bg-card border-2 transition-colors ${entry.consumed ? 'border-green-200 bg-gradient-to-r from-green-50/30 to-green-100/30 dark:border-green-700 dark:from-green-950/30 dark:to-green-900/30' : 'border-amber-200 bg-gradient-to-r from-amber-50/30 to-orange-100/30 dark:border-amber-700 dark:from-amber-950/30 dark:to-orange-900/30'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-lg truncate">{entry.name}</h4>
+                        <div className={`text-xs px-2 py-1 rounded-full font-medium ${entry.consumed ? 'bg-green-500/20 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-600' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-600'}`}>
+                          {entry.consumed ? '✓ Eaten' : '○ Ready to eat'}
                         </div>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {entry.serving_size}g serving
+                        {entry.serving_size}g • {entry.calories} cal • {entry.carbs}g carbs
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right text-sm">
-                        <div>{entry.calories} cal</div>
-                        <div>{entry.carbs}g carbs</div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                          className="p-1"
-                          title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                        >
-                          {entry.consumed ? (
-                            <X className="w-4 h-4 text-orange-500" />
-                          ) : (
-                            <Check className="w-4 h-4 text-green-500" />
-                          )}
-                        </Button>
-                        <EditFoodEntryModal 
-                          entry={entry} 
-                          onUpdate={handleUpdateFoodEntry}
-                        />
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDeleteFoodEntry(entry.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                    
+                    <div className="flex items-center gap-1 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                        className="p-2 hover:bg-primary/10"
+                        title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                      >
+                        {entry.consumed ? (
+                          <X className="w-4 h-4 text-amber-600" />
+                        ) : (
+                          <Check className="w-4 h-4 text-green-600" />
+                        )}
+                      </Button>
+                      <EditFoodEntryModal 
+                        entry={entry} 
+                        onUpdate={handleUpdateFoodEntry}
+                      />
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteFoodEntry(entry.id)}
+                        className="p-2 hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                      </Button>
                     </div>
                   </div>
                 </div>

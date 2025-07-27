@@ -229,34 +229,36 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
     <div className="space-y-2">
       {isRecording ? (
         <div className="flex gap-2 w-full">
-          {/* FIXED: Cancel button - compact red X button */}
-          <Button
-            onClick={cancelRecording}
-            variant="outline"
-            size="lg"
-            className="px-4 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
-          >
-            <span className="text-lg font-bold">✕</span>
-          </Button>
-          
-          {/* FIXED: Send message button - takes remaining width */}
+          {/* Send button takes most space */}
           <Button
             onClick={toggleRecording}
             disabled={isDisabled || isProcessing}
-            variant="destructive"
+            variant="default"
             size="lg"
-            className="flex-1 relative"
+            className="flex-1 h-16"
           >
             {isProcessing ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
             ) : (
-              <MicOff className="h-5 w-5" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
             )}
             <span className="ml-2">
               {isProcessing ? "Processing..." : "Send Message"}
             </span>
-            {/* FIXED: Removed red circle indicator since we have separate cancel button */}
           </Button>
+          
+          {/* Compact cancel button on right */}
+          <Button
+            onClick={cancelRecording}
+            variant="destructive"
+            size="lg"
+            className="px-6 h-16"
+          >
+            <span className="text-lg font-bold">✕</span>
+          </Button>
+          
         </div>
       ) : (
         /* FIXED: Full width record button to match app button style */
