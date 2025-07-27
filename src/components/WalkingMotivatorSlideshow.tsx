@@ -115,10 +115,10 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
         </div>
       )}
 
-      {/* Light background during timer-focused mode - matches food page stats */}
+      {/* Light background during timer-focused mode - matches food page card background */}
       {displayMode === 'timer-focused' && (
         <div 
-          className="absolute inset-0 bg-muted/30 rounded-lg transition-opacity duration-1000"
+          className="absolute inset-0 bg-card border border-border rounded-lg transition-opacity duration-1000"
           style={{ zIndex: 2 }}
         />
       )}

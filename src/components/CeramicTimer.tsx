@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { MotivatorSlideshow } from './MotivatorSlideshow';
+import { CircularMotivatorText } from './CircularMotivatorText';
 
 interface CeramicTimerProps {
   /** Progress value from 0 to 100 */
@@ -41,6 +41,13 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
 
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
+      {/* Circular Title Text - MOVED OUTSIDE ceramic plate structure */}
+      {showSlideshow && isActive && (
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
+          <CircularMotivatorText isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
+        </div>
+      )}
+      
       {/* Main ceramic plate */}
       <div 
         className="relative w-80 h-80 rounded-full"
@@ -66,16 +73,6 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
-          {/* Motivator Slideshow - Behind timer when timer-focused, over timer when motivator-focused */}
-          {showSlideshow && isActive && (
-            <div className="absolute inset-0 rounded-full overflow-hidden">
-              <MotivatorSlideshow 
-                isActive={showSlideshow && isActive} 
-                onModeChange={setMotivatorMode}
-              />
-            </div>
-          )}
-          
           {/* Progress ring - Always visible for structure */}
           <svg 
             className="absolute inset-0 w-full h-full transform -rotate-90"

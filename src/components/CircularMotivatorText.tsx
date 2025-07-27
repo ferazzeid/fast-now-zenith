@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 
-interface MotivatorSlideshowProps {
+interface CircularMotivatorTextProps {
   isActive: boolean;
   transitionTime?: number;
   onModeChange?: (mode: 'timer-focused' | 'motivator-focused') => void;
@@ -9,7 +9,7 @@ interface MotivatorSlideshowProps {
 
 type DisplayMode = 'timer-focused' | 'motivator-focused';
 
-export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange }: MotivatorSlideshowProps) => {
+export const CircularMotivatorText = ({ isActive, transitionTime = 15, onModeChange }: CircularMotivatorTextProps) => {
   const { motivators } = useMotivators();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -48,7 +48,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
       }, 12000);
     };
 
-    // Initial delay to let plate render
+    // Initial delay to let component render
     const initialDelay = setTimeout(() => {
       startCycle();
     }, 500);
@@ -62,13 +62,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
       clearTimeout(slideTimer);
       clearInterval(interval);
     };
-  }, [isActive, motivatorsWithImages.length, transitionTime]);
-
-  if (!isActive || motivatorsWithImages.length === 0) {
-    return null;
-  }
-
-  const currentMotivator = motivatorsWithImages[currentIndex];
+  }, [isActive, motivatorsWithImages.length, transitionTime, onModeChange]);
 
   // Create circular text path for the title - positioned away from inner edge
   const createCircularText = (text: string, radius: number = 130) => {
@@ -99,36 +93,29 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
     });
   };
 
+  if (!isActive || motivatorsWithImages.length === 0) {
+    return null;
+  }
+
+  const currentMotivator = motivatorsWithImages[currentIndex];
+
   return (
     <>
-      {/* Image Layer - Only visible during motivator-focused mode */}
-      <div 
-        className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
-          displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1 }}
-      >
+      {/* Circular Title Text - Completely independent positioning */}
+      {isVisible && currentMotivator && (
         <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url(${currentMotivator?.imageUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
+          className={`absolute inset-0 transition-all duration-1000 ${
+            displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-60'
+          }`}
+          style={{ 
+            animation: displayMode === 'motivator-focused' ? 'spin 60s linear infinite' : 'none'
           }}
-        />
-        
-        {/* Subtle ceramic overlay */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(circle at 50% 50%, transparent 40%, hsla(var(--ceramic-base), 0.15) 100%)`,
-            mixBlendMode: 'multiply'
-          }}
-        />
-      </div>
-
-      {/* Remove the circular text - it's now handled externally */}
+        >
+          <div className="relative w-full h-full">
+            {createCircularText(currentMotivator.title.toUpperCase())}
+          </div>
+        </div>
+      )}
     </>
   );
 };
