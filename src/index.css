@@ -172,7 +172,25 @@ All colors MUST be HSL.
   }
 }
 
-/* Fast fade-in marquee for walking timer */
+/* Centered zoom-in animation for walking timer */
+@keyframes zoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
 @keyframes fastFadeMarquee {
   0% {
     opacity: 0;

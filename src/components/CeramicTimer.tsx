@@ -49,12 +49,6 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
         </div>
       )}
       
-      {/* Image Background - Re-added to center well */}
-      {showSlideshow && isActive && (
-        <div className="absolute inset-0 rounded-full overflow-hidden" style={{ zIndex: 1 }}>
-          <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
-        </div>
-      )}
       
       {/* Main ceramic plate */}
       <div 
@@ -81,6 +75,13 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
+          {/* Image Background - MOVED INSIDE center well where it belongs */}
+          {showSlideshow && isActive && (
+            <div className="absolute inset-0 rounded-full overflow-hidden">
+              <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
+            </div>
+          )}
+          
           {/* Progress ring - Always visible for structure */}
           <svg 
             className="absolute inset-0 w-full h-full transform -rotate-90"

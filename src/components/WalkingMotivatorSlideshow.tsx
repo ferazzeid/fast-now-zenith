@@ -98,16 +98,16 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
         />
       </div>
 
-      {/* Fast Fade-In Ticker Text at Bottom */}
+      {/* Centered Zoom-In Text */}
       {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
         <div 
-          className="absolute bottom-0 left-0 right-0 h-12 flex items-center overflow-hidden"
+          className="absolute inset-0 flex items-center justify-center"
           style={{ zIndex: 15 }}
         >
           <div 
-            className="whitespace-nowrap text-white font-semibold text-lg tracking-wide drop-shadow-lg animate-fast-fade-marquee"
+            className="text-white font-bold text-xl tracking-wide drop-shadow-lg text-center px-4 animate-zoom-in"
             style={{
-              animation: 'fastFadeMarquee 8s ease-in-out'
+              animation: 'zoomIn 8s ease-in-out'
             }}
           >
             {currentMotivator.title.toUpperCase()}
