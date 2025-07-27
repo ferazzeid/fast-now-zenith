@@ -17,7 +17,7 @@ export const useSingleConversation = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Load the single conversation from database
+  // Load the single conversation from database (non-archived)
   const loadConversation = async () => {
     if (!user) return;
     
@@ -27,6 +27,7 @@ export const useSingleConversation = () => {
         .from('chat_conversations')
         .select('*')
         .eq('user_id', user.id)
+        .eq('archived', false)
         .order('last_message_at', { ascending: false })
         .limit(1)
         .single();
@@ -128,7 +129,38 @@ export const useSingleConversation = () => {
     }
   };
 
-  // Clear the conversation (start fresh)
+  // Archive the current conversation
+  const archiveConversation = async () => {
+    if (!user) return;
+
+    try {
+      // Mark the conversation as archived
+      const { error } = await supabase
+        .from('chat_conversations')
+        .update({ archived: true })
+        .eq('user_id', user.id)
+        .eq('archived', false);
+
+      if (error) throw error;
+
+      // Clear local state
+      setMessages([]);
+      
+      toast({
+        title: "Success",
+        description: "Conversation archived and started fresh",
+      });
+    } catch (error) {
+      console.error('Error archiving conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to archive conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Clear the conversation completely (delete)
   const clearConversation = async () => {
     if (!user) return;
 
@@ -137,7 +169,8 @@ export const useSingleConversation = () => {
       const { error } = await supabase
         .from('chat_conversations')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('archived', false);
 
       if (error) throw error;
 
@@ -171,6 +204,7 @@ export const useSingleConversation = () => {
     messages,
     loading,
     addMessage,
+    archiveConversation,
     clearConversation,
     loadConversation
   };

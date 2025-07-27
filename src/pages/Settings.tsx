@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
+import { useArchivedConversations } from '@/hooks/useArchivedConversations';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -38,6 +39,7 @@ const Settings = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const subscription = useSubscription();
+  const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
 
   useEffect(() => {
     // Load saved API key from localStorage
@@ -841,6 +843,100 @@ const Settings = () => {
                 Save Profile
               </Button>
             </div>
+          </div>
+        </Card>
+
+        {/* Archived Conversations */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Archive className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Archived Conversations</h3>
+            </div>
+            
+            {archiveLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                <p className="text-sm text-muted-foreground mt-2">Loading archived conversations...</p>
+              </div>
+            ) : archivedConversations.length > 0 ? (
+              <div className="space-y-3">
+                <div className="bg-accent/20 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    {archivedConversations.length} archived conversation{archivedConversations.length !== 1 ? 's' : ''} available
+                  </p>
+                </div>
+                
+                <ScrollArea className="h-48">
+                  <div className="space-y-2">
+                    {archivedConversations.map((conv) => (
+                      <div key={conv.id} className="flex items-center justify-between p-3 bg-ceramic-base border border-ceramic-rim rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <p className="text-sm font-medium text-warm-text truncate">
+                              {conv.title}
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {conv.messages.length} message{conv.messages.length !== 1 ? 's' : ''} • {conv.last_message_at.toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => restoreConversation(conv.id)}
+                            className="h-8 w-8 p-0"
+                            title="Restore conversation"
+                          >
+                            <Archive className="w-3 h-3" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                                title="Delete permanently"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Archived Conversation</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to permanently delete this archived conversation? 
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteArchivedConversation(conv.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete Forever
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Archive className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No archived conversations</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Archive conversations from AI Chat to keep them for reference
+                </p>
+              </div>
+            )}
           </div>
         </Card>
 

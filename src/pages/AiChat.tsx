@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image } from 'lucide-react';
+import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
@@ -32,7 +33,8 @@ const AiChat = () => {
     messages, 
     loading: conversationLoading,
     addMessage,
-    clearConversation
+    clearConversation,
+    archiveConversation
   } = useSingleConversation();
   const { context: fastingContext, buildContextString: buildFastingContext } = useFastingContext();
   const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
@@ -290,6 +292,10 @@ const AiChat = () => {
     await clearConversation();
   };
 
+  const handleArchiveConversation = async () => {
+    await archiveConversation();
+  };
+
   // Display messages or show welcome message
   const displayMessages = messages.length > 0 ? messages : [
     {
@@ -327,24 +333,24 @@ const AiChat = () => {
               </Label>
             </div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearConversation}
-              className="shrink-0 hidden sm:flex"
-            >
-              <RotateCcw className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Clear</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearConversation}
-              className="shrink-0 sm:hidden"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="shrink-0">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="hidden md:inline ml-1">Options</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleArchiveConversation}>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archive & Start Fresh
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClearConversation} className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
               <DialogTrigger asChild>

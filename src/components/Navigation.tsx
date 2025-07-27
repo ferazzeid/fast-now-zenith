@@ -27,7 +27,7 @@ export const Navigation = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
       <div className="max-w-md mx-auto">
-        <div className="flex justify-around">
+        <div className="flex justify-around gap-2">
           {/* Navigation Items */}
           {navItems.map(({ icon: Icon, label, path, badge }) => {
             const isActive = location.pathname === path;
