@@ -82,22 +82,42 @@ serve(async (req) => {
       throw new Error('OpenAI API key not provided');
     }
 
+    // Get AI response length setting
+    const { data: lengthSetting } = await supabase
+      .from('shared_settings')
+      .select('setting_value')
+      .eq('setting_key', 'ai_response_length')
+      .single();
+
+    const responseLength = lengthSetting?.setting_value || 'medium';
+    const lengthInstruction = {
+      'short': 'Keep responses very brief (1-2 sentences maximum). Be concise and to the point.',
+      'medium': 'Keep responses moderate length (2-4 sentences). Provide helpful information without being verbose.',
+      'long': 'Provide detailed explanations when needed. Use multiple sentences to thoroughly address the user\'s needs.',
+      'adaptive': 'Adapt response length based on context - brief for simple questions, detailed for complex topics.'
+    }[responseLength];
+
     // Enhanced system prompt with functions
     const systemPrompt = `You are a helpful AI companion for a health and wellness app focused on intermittent fasting, walking, and nutrition tracking.
 
 Current user context: The user is using an app that helps them track fasting periods, walking sessions, and food intake.
 
+Response Length: ${lengthInstruction}
+
 You have access to the following functions to help users:
 1. create_motivator - Create personalized motivational content
-2. start_walking_session - Start a walking session for the user
-3. add_food_entry - Add a food entry to the user's log
-${isAdmin ? '4. save_admin_note - Save notes about bugs, improvements, or observations (admin only)\n5. get_admin_notes - Retrieve all saved admin notes (admin only)' : ''}
+2. get_user_motivators - View all your motivational content
+3. update_motivator - Edit existing motivational content  
+4. delete_motivator - Remove motivational content
+5. start_walking_session - Start a walking session for the user
+6. add_food_entry - Add a food entry to the user's log
+${isAdmin ? '7. save_admin_note - Save notes about bugs, improvements, or observations (admin only)\n8. get_admin_notes - Retrieve all saved admin notes (admin only)' : ''}
 
 You can help users with:
 - Fasting guidance and motivation
 - Starting and tracking walking sessions
 - Adding food entries to their log
-- Creating personalized motivational content
+- Creating, viewing, editing, and managing personalized motivational content
 - General nutrition advice and goal setting
 ${isAdmin ? '- Saving development notes and feedback (admin only)\n- Retrieving saved notes for review (admin only)' : ''}
 
@@ -143,6 +163,56 @@ Important: Always ask for confirmation before taking actions like starting walki
             }
           },
           required: ['title', 'content', 'category']
+        }
+      },
+      {
+        name: 'get_user_motivators',
+        description: 'Get all active motivators for the user',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'update_motivator',
+        description: 'Update an existing motivator',
+        parameters: {
+          type: 'object',
+          properties: {
+            motivator_id: {
+              type: 'string',
+              description: 'ID of the motivator to update'
+            },
+            title: {
+              type: 'string',
+              description: 'New title for the motivator'
+            },
+            content: {
+              type: 'string',
+              description: 'New content for the motivator'
+            },
+            category: {
+              type: 'string',
+              enum: ['fasting', 'exercise', 'nutrition', 'general'],
+              description: 'New category for the motivator'
+            }
+          },
+          required: ['motivator_id']
+        }
+      },
+      {
+        name: 'delete_motivator',
+        description: 'Delete a motivator',
+        parameters: {
+          type: 'object',
+          properties: {
+            motivator_id: {
+              type: 'string',
+              description: 'ID of the motivator to delete'
+            }
+          },
+          required: ['motivator_id']
         }
       },
       {
@@ -302,6 +372,72 @@ Important: Always ask for confirmation before taking actions like starting walki
               functionResult = `Error creating motivator: ${motivatorError.message}`;
             } else {
               functionResult = `Created motivator: "${functionArgs.title}"`;
+            }
+            break;
+
+          case 'get_user_motivators':
+            console.log('Getting user motivators');
+            const { data: userMotivators, error: getMotivatorsError } = await supabase
+              .from('motivators')
+              .select('id, title, content, category, created_at')
+              .eq('user_id', userId)
+              .eq('is_active', true)
+              .order('created_at', { ascending: false });
+            
+            if (getMotivatorsError) {
+              functionResult = `Error retrieving motivators: ${getMotivatorsError.message}`;
+            } else {
+              if (userMotivators && userMotivators.length > 0) {
+                const motivatorsList = userMotivators.map(m => 
+                  `• "${m.title}" (${m.category}) - ${m.content.substring(0, 80)}${m.content.length > 80 ? '...' : ''}`
+                ).join('\n');
+                functionResult = `Your current motivators:\n${motivatorsList}`;
+              } else {
+                functionResult = 'You don\'t have any motivators yet. Would you like me to create some for you?';
+              }
+            }
+            break;
+
+          case 'update_motivator':
+            console.log('Updating motivator with args:', functionArgs);
+            const updateData: any = {};
+            if (functionArgs.title) updateData.title = functionArgs.title;
+            if (functionArgs.content) updateData.content = functionArgs.content;
+            if (functionArgs.category) updateData.category = functionArgs.category;
+            
+            const { data: updatedMotivator, error: updateError } = await supabase
+              .from('motivators')
+              .update(updateData)
+              .eq('id', functionArgs.motivator_id)
+              .eq('user_id', userId)
+              .select()
+              .single();
+            
+            if (updateError) {
+              functionResult = `Error updating motivator: ${updateError.message}`;
+            } else if (updatedMotivator) {
+              functionResult = `Updated motivator: "${updatedMotivator.title}"`;
+            } else {
+              functionResult = 'Motivator not found or you don\'t have permission to update it.';
+            }
+            break;
+
+          case 'delete_motivator':
+            console.log('Deleting motivator with args:', functionArgs);
+            const { data: deletedMotivator, error: deleteError } = await supabase
+              .from('motivators')
+              .update({ is_active: false })
+              .eq('id', functionArgs.motivator_id)
+              .eq('user_id', userId)
+              .select('title')
+              .single();
+            
+            if (deleteError) {
+              functionResult = `Error deleting motivator: ${deleteError.message}`;
+            } else if (deletedMotivator) {
+              functionResult = `Deleted motivator: "${deletedMotivator.title}"`;
+            } else {
+              functionResult = 'Motivator not found or you don\'t have permission to delete it.';
             }
             break;
 

@@ -116,6 +116,13 @@ const AdminOverview = () => {
   const [monthlyRequestLimit, setMonthlyRequestLimit] = useState('1000');
   const [freeRequestLimit, setFreeRequestLimit] = useState('15');
   const [updateLimitsLoading, setUpdateLimitsLoading] = useState(false);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [appIconFile, setAppIconFile] = useState<File | null>(null);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingAppIcon, setUploadingAppIcon] = useState(false);
+  const [apiUsageStats, setApiUsageStats] = useState<any[]>([]);
+  const [aiResponseLength, setAiResponseLength] = useState('medium');
+  const [showUsageStats, setShowUsageStats] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -239,7 +246,8 @@ const AdminOverview = () => {
           'ai_auto_motivator_triggers',
           'ai_slideshow_transition_time',
           'ai_crisis_style',
-          'ai_admin_motivator_templates'
+          'ai_admin_motivator_templates',
+          'ai_response_length'
         ]);
 
       if (aiData) {
@@ -267,7 +275,12 @@ const AdminOverview = () => {
           crisis_style: (aiMap.ai_crisis_style as any) || 'psychological',
           admin_motivator_templates: aiMap.ai_admin_motivator_templates ? JSON.parse(aiMap.ai_admin_motivator_templates) : []
         });
+
+        setAiResponseLength(aiMap.ai_response_length || 'medium');
       }
+
+      // Fetch API usage statistics
+      await fetchApiUsageStats();
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -490,6 +503,126 @@ const AdminOverview = () => {
       toast({
         title: "Error",
         description: "Failed to save AI settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchApiUsageStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ai_usage_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setApiUsageStats(data || []);
+    } catch (error) {
+      console.error('Error fetching API usage stats:', error);
+    }
+  };
+
+  const uploadFavicon = async () => {
+    if (!faviconFile) return;
+
+    setUploadingFavicon(true);
+    try {
+      const fileExt = faviconFile.name.split('.').pop();
+      const fileName = `favicon.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('website-images')
+        .upload(fileName, faviconFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('website-images')
+        .getPublicUrl(fileName);
+
+      // Update index.html favicon link
+      const faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+      if (faviconLink) {
+        faviconLink.href = publicUrl;
+      }
+
+      toast({
+        title: "Success",
+        description: "Favicon uploaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload favicon",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingFavicon(false);
+      setFaviconFile(null);
+    }
+  };
+
+  const uploadAppIcon = async () => {
+    if (!appIconFile) return;
+
+    setUploadingAppIcon(true);
+    try {
+      const fileExt = appIconFile.name.split('.').pop();
+      const fileName = `app-icon.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('website-images')
+        .upload(fileName, appIconFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('website-images')
+        .getPublicUrl(fileName);
+
+      // Update manifest.json icons
+      // This would require server-side handling to update the actual manifest.json file
+      await supabase
+        .from('shared_settings')
+        .upsert({ 
+          setting_key: 'app_icon_url',
+          setting_value: publicUrl 
+        });
+
+      toast({
+        title: "Success",
+        description: "App icon uploaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to upload app icon",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAppIcon(false);
+      setAppIconFile(null);
+    }
+  };
+
+  const saveAiResponseLength = async () => {
+    try {
+      await supabase
+        .from('shared_settings')
+        .upsert({ 
+          setting_key: 'ai_response_length',
+          setting_value: aiResponseLength 
+        });
+
+      toast({
+        title: "Success",
+        description: "AI response length setting saved",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save AI response length setting",
         variant: "destructive",
       });
     }
@@ -1310,6 +1443,175 @@ const AdminOverview = () => {
             >
               Save Brand Colors
             </Button>
+          </div>
+        </Card>
+
+        {/* Favicon and App Icon Upload */}
+        <Card className="p-6 bg-ceramic-base/50 border-ceramic-rim">
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <Image className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">App Icons & Branding</h3>
+            </div>
+            
+            {/* Favicon Upload */}
+            <div className="space-y-3">
+              <Label htmlFor="favicon-upload" className="text-sm font-medium text-warm-text">
+                Favicon (Browser Icon)
+              </Label>
+              <div className="flex items-center space-x-3">
+                <Input
+                  id="favicon-upload"
+                  type="file"
+                  accept=".png,.ico,.jpg,.jpeg"
+                  onChange={(e) => setFaviconFile(e.target.files?.[0] || null)}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <Button
+                  onClick={uploadFavicon}
+                  disabled={!faviconFile || uploadingFavicon}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {uploadingFavicon ? 'Uploading...' : 'Upload'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Upload a PNG, ICO, or JPG file for the browser favicon (16x16 or 32x32px recommended)
+              </p>
+            </div>
+
+            {/* App Icon Upload */}
+            <div className="space-y-3">
+              <Label htmlFor="app-icon-upload" className="text-sm font-medium text-warm-text">
+                App Icon (Mobile Shortcut)
+              </Label>
+              <div className="flex items-center space-x-3">
+                <Input
+                  id="app-icon-upload"
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  onChange={(e) => setAppIconFile(e.target.files?.[0] || null)}
+                  className="bg-ceramic-base border-ceramic-rim"
+                />
+                <Button
+                  onClick={uploadAppIcon}
+                  disabled={!appIconFile || uploadingAppIcon}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {uploadingAppIcon ? 'Uploading...' : 'Upload'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Upload a PNG or JPG file for mobile app shortcuts (512x512px recommended)
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* API Usage Statistics */}
+        <Card className="p-6 bg-ceramic-base/50 border-ceramic-rim">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <BarChart3 className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-warm-text">API Usage Analytics</h3>
+              </div>
+              <Button
+                onClick={() => setShowUsageStats(!showUsageStats)}
+                variant="outline"
+                size="sm"
+              >
+                {showUsageStats ? 'Hide' : 'Show'} Stats
+              </Button>
+            </div>
+            
+            {showUsageStats && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-3 bg-ceramic-rim rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {apiUsageStats.reduce((sum, log) => sum + (log.tokens_used || 0), 0)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Total Tokens</div>
+                  </div>
+                  <div className="p-3 bg-ceramic-rim rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      ${apiUsageStats.reduce((sum, log) => sum + (log.estimated_cost || 0), 0).toFixed(2)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Total Cost</div>
+                  </div>
+                  <div className="p-3 bg-ceramic-rim rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {apiUsageStats.length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">API Calls</div>
+                  </div>
+                  <div className="p-3 bg-ceramic-rim rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {[...new Set(apiUsageStats.map(log => log.model_used))].length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Models Used</div>
+                  </div>
+                </div>
+                
+                <div className="max-h-60 overflow-y-auto">
+                  <div className="text-sm space-y-2">
+                    {apiUsageStats.slice(0, 20).map((log, index) => (
+                      <div key={index} className="p-2 bg-ceramic-rim rounded text-xs">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{log.request_type}</span>
+                          <span className="text-muted-foreground">
+                            {new Date(log.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="text-muted-foreground">
+                          {log.model_used} • {log.tokens_used} tokens • ${log.estimated_cost?.toFixed(4)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* AI Response Length Control */}
+        <Card className="p-6 bg-ceramic-base/50 border-ceramic-rim">
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">AI Response Settings</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-warm-text">
+                  Response Length Preference
+                </Label>
+                <Select value={aiResponseLength} onValueChange={setAiResponseLength}>
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="short">Short (1-2 sentences)</SelectItem>
+                    <SelectItem value="medium">Medium (2-4 sentences)</SelectItem>
+                    <SelectItem value="long">Long (Detailed explanations)</SelectItem>
+                    <SelectItem value="adaptive">Adaptive (Context-based)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Controls how detailed AI responses should be by default
+                </p>
+              </div>
+              
+              <Button
+                onClick={saveAiResponseLength}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Save Response Length Setting
+              </Button>
+            </div>
           </div>
         </Card>
 
