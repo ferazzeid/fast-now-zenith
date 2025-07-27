@@ -166,6 +166,7 @@ const FoodTracking = () => {
     setCalories(food.calories_per_100g.toString());
     setCarbs(food.carbs_per_100g.toString());
     setServingSize('100');
+    setImageUrl(''); // Reset image URL when selecting from library
     setShowLibrary(false);
     setShowForm(true);
   };
@@ -226,15 +227,36 @@ const FoodTracking = () => {
           <p className="text-muted-foreground">Log your food intake</p>
         </div>
 
-        {/* Today's Totals */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="p-4 rounded-xl bg-card border border-border text-center">
-            <div className="text-2xl font-bold text-primary">{todayTotals.calories}</div>
-            <div className="text-sm text-muted-foreground">Calories</div>
+        {/* Today's Nutrition Overview */}
+        <div className="mb-8 p-4 rounded-xl bg-card border border-border">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="text-center">
+              <div className="text-xl font-bold text-primary">{todayTotals.calories}</div>
+              <div className="text-xs text-muted-foreground">Consumed Calories</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-secondary">{todayTotals.carbs}g</div>
+              <div className="text-xs text-muted-foreground">Consumed Carbs</div>
+            </div>
           </div>
-          <div className="p-4 rounded-xl bg-card border border-border text-center">
-            <div className="text-2xl font-bold text-secondary">{todayTotals.carbs}g</div>
-            <div className="text-sm text-muted-foreground">Carbs</div>
+          
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="p-2 rounded bg-muted/30">
+              <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
+              <div className="text-xs text-muted-foreground">Planned Cal</div>
+            </div>
+            <div className="p-2 rounded bg-muted/30">
+              <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+              <div className="text-xs text-muted-foreground">Planned Carbs</div>
+            </div>
+            <div className="p-2 rounded bg-primary/10">
+              <div className="text-sm font-semibold text-primary">2000</div>
+              <div className="text-xs text-muted-foreground">Cal Limit</div>
+            </div>
+            <div className="p-2 rounded bg-secondary/10">
+              <div className="text-sm font-semibold text-secondary">150g</div>
+              <div className="text-xs text-muted-foreground">Carb Limit</div>
+            </div>
           </div>
         </div>
 
@@ -311,11 +333,48 @@ const FoodTracking = () => {
         {/* Food Entry Form */}
         {showForm && (
           <div className="space-y-4 mb-8">
-            {imageUrl && (
-              <div className="relative w-full h-32 rounded-lg overflow-hidden">
-                <img src={imageUrl} alt="Food" className="w-full h-full object-cover" />
-              </div>
-            )}
+            {/* Image Upload/Display */}
+            <div className="space-y-2">
+              <Label>Food Image (Optional)</Label>
+              {imageUrl ? (
+                <div className="relative w-full h-32 rounded-lg overflow-hidden">
+                  <img src={imageUrl} alt="Food" className="w-full h-full object-cover" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setImageUrl('')}
+                    className="absolute top-2 right-2 h-8 w-8 p-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          handleImageUpload(`/api/placeholder/${file.name}`);
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="w-full h-24 border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50"
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Add Photo</span>
+                    </div>
+                  </Button>
+                </div>
+              )}
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="foodName">Food Name</Label>
@@ -363,35 +422,35 @@ const FoodTracking = () => {
 
             {/* Consumption Status */}
             <div className="space-y-2">
-              <Label>Did you eat this now?</Label>
+              <Label className="text-sm text-muted-foreground">Status</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant={consumedNow ? "default" : "outline"}
+                  variant={consumedNow ? "secondary" : "outline"}
                   size="sm"
                   onClick={() => setConsumedNow(true)}
-                  className="flex-1"
+                  className="flex-1 h-8 text-xs bg-secondary/20 hover:bg-secondary/30"
                 >
-                  <Check className="w-4 h-4 mr-2" />
-                  Yes, eaten
+                  <Check className="w-3 h-3 mr-1" />
+                  Eaten
                 </Button>
                 <Button
                   type="button"
-                  variant={!consumedNow ? "default" : "outline"}
+                  variant={!consumedNow ? "secondary" : "outline"}
                   size="sm"
                   onClick={() => setConsumedNow(false)}
-                  className="flex-1"
+                  className="flex-1 h-8 text-xs bg-secondary/20 hover:bg-secondary/30"
                 >
-                  <X className="w-4 h-4 mr-2" />
-                  Just logging
+                  <X className="w-3 h-3 mr-1" />
+                  Planning
                 </Button>
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleSave} className="flex-1">
-                <Save className="w-4 h-4 mr-2" />
-                Save Food
+              <Button onClick={handleSave} className="flex-1 h-12 text-base font-semibold">
+                <Save className="w-5 h-5 mr-2" />
+                Add to Today's List
               </Button>
               <Button 
                 variant="outline" 
@@ -420,38 +479,38 @@ const FoodTracking = () => {
           </div>
         )}
 
-        {/* Today's Food Entries - Enhanced UX */}
+        {/* Today's Food Plan */}
         {todayEntries.length > 0 && (
           <div>
-            <h3 className="font-semibold mb-4 text-lg">Today's Food Diary</h3>
+            <h3 className="font-semibold mb-4 text-lg">Today's Food Plan</h3>
             <div className="space-y-3">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className={`p-4 rounded-xl bg-card border-2 transition-colors ${entry.consumed ? 'border-green-200 bg-gradient-to-r from-green-50/30 to-green-100/30 dark:border-green-700 dark:from-green-950/30 dark:to-green-900/30' : 'border-amber-200 bg-gradient-to-r from-amber-50/30 to-orange-100/30 dark:border-amber-700 dark:from-amber-950/30 dark:to-orange-900/30'}`}>
+                <div key={entry.id} className={`p-3 rounded-lg bg-card border transition-colors ${entry.consumed ? 'border-green-200 bg-green-50/20 dark:border-green-700 dark:bg-green-950/20' : 'border-amber-200 bg-amber-50/20 dark:border-amber-700 dark:bg-amber-950/20'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-lg truncate">{entry.name}</h4>
-                        <div className={`text-xs px-2 py-1 rounded-full font-medium ${entry.consumed ? 'bg-green-500/20 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-600' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-600'}`}>
-                          {entry.consumed ? '✓ Eaten' : '○ Ready to eat'}
+                        <h4 className="font-medium text-base truncate">{entry.name}</h4>
+                        <div className={`text-xs px-1.5 py-0.5 rounded font-medium ${entry.consumed ? 'bg-green-500/15 text-green-700 dark:text-green-300' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'}`}>
+                          {entry.consumed ? '✓' : '○'}
                         </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         {entry.serving_size}g • {entry.calories} cal • {entry.carbs}g carbs
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1 ml-2">
+                    <div className="flex items-center gap-0.5 ml-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className="p-2 hover:bg-primary/10"
-                        title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                        className="p-1.5 hover:bg-primary/10 h-7 w-7"
+                        title={entry.consumed ? "Mark as planned" : "Mark as eaten"}
                       >
                         {entry.consumed ? (
-                          <X className="w-4 h-4 text-amber-600" />
+                          <X className="w-3 h-3 text-amber-600" />
                         ) : (
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="w-3 h-3 text-green-600" />
                         )}
                       </Button>
                       <EditFoodEntryModal 
@@ -462,9 +521,9 @@ const FoodTracking = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleDeleteFoodEntry(entry.id)}
-                        className="p-2 hover:bg-destructive/10"
+                        className="p-1.5 hover:bg-destructive/10 h-7 w-7"
                       >
-                        <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                        <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
                       </Button>
                     </div>
                   </div>
