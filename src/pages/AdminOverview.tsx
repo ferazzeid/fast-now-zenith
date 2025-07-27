@@ -1220,7 +1220,7 @@ const AdminOverview = () => {
 
             {/* Style Prompt */}
             <div className="space-y-3">
-              <Label className="text-warm-text">Style Prompt</Label>
+              <Label className="text-warm-text">Visual Style Prompt</Label>
               <Textarea
                 placeholder="Define the visual style and aesthetic for AI-generated motivator images..."
                 value={imageGenSettings.style_prompt}
@@ -1228,7 +1228,64 @@ const AdminOverview = () => {
                 className="bg-ceramic-base border-ceramic-rim min-h-[120px]"
               />
               <div className="text-xs text-muted-foreground">
-                This prompt will be prepended to all motivator image generation requests to ensure consistent style
+                This prompt defines the visual style (colors, art style, mood) for all generated images
+              </div>
+            </div>
+
+            {/* Content Relevance Prompt */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Content Relevance Instructions</Label>
+              <Textarea
+                placeholder="Instructions for how to make images relevant to motivator content..."
+                defaultValue="Create images that directly relate to the motivator's message and goal. Use the motivator title and description to generate contextually relevant visuals. For weight loss motivators, show progress concepts, healthy lifestyle elements, or achievement symbols. For exercise motivators, show activity-related imagery. Ensure any people depicted match the user's demographics when available. Avoid generic or unrelated imagery."
+                className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
+              />
+              <div className="text-xs text-muted-foreground">
+                Instructions for ensuring generated images are relevant to the specific motivator content and user context
+              </div>
+            </div>
+
+            {/* Content Integration Settings */}
+            <div className="space-y-4">
+              <Label className="text-warm-text">Motivator Content Integration</Label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm">Use Motivator Title</Label>
+                  <Switch defaultChecked />
+                  <p className="text-xs text-muted-foreground">Include motivator title in image prompt</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm">Use Motivator Description</Label>
+                  <Switch defaultChecked />
+                  <p className="text-xs text-muted-foreground">Include motivator content in image prompt</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm">Include User Demographics</Label>
+                  <Switch defaultChecked />
+                  <p className="text-xs text-muted-foreground">Match depicted people to user profile when available</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm">AI-Enhanced Image Context</Label>
+                  <Switch defaultChecked />
+                  <p className="text-xs text-muted-foreground">For AI-created motivators, generate additional image-specific context</p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Image Context Generation */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">AI Image Context Prompt</Label>
+              <Textarea
+                placeholder="Prompt for AI to generate image-specific context..."
+                defaultValue="Based on this motivator's title and content, create a detailed visual description that would result in a highly relevant, inspiring image. Focus on specific visual elements, settings, objects, and concepts that directly support the motivator's message. Include details about mood, composition, and symbolic elements that reinforce the motivational theme."
+                className="bg-ceramic-base border-ceramic-rim min-h-[80px]"
+              />
+              <div className="text-xs text-muted-foreground">
+                When AI creates motivators, this prompt generates additional context specifically for image generation
               </div>
             </div>
 
@@ -1244,6 +1301,7 @@ const AdminOverview = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="gpt-image-1">GPT-Image-1 (Highest Quality)</SelectItem>
                     <SelectItem value="dall-e-3">DALL-E 3 (High Quality)</SelectItem>
                     <SelectItem value="dall-e-2">DALL-E 2 (Faster)</SelectItem>
                   </SelectContent>
@@ -1277,7 +1335,8 @@ const AdminOverview = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="hd">HD (Higher Quality)</SelectItem>
+                    <SelectItem value="high">High (Best Quality)</SelectItem>
+                    <SelectItem value="hd">HD (DALL-E 3)</SelectItem>
                     <SelectItem value="standard">Standard (Faster)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1294,8 +1353,8 @@ const AdminOverview = () => {
 
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                These settings control the style and quality of AI-generated images for motivators. 
-                The style prompt is automatically prepended to all image generation requests to ensure consistent visual branding.
+                <strong>Content Relevance:</strong> These settings ensure generated images directly relate to motivator content rather than being generic. 
+                The AI will analyze the motivator's message and create visually relevant imagery that supports the specific motivational goal.
               </p>
             </div>
           </div>
@@ -1419,15 +1478,35 @@ const AdminOverview = () => {
             </div>
 
             {/* User Context Toggle */}
-            <div className="flex items-center space-x-3">
-              <Switch
-                id="include-context"
-                checked={aiSettings.include_user_context}
-                onCheckedChange={(checked) => setAiSettings(prev => ({ ...prev, include_user_context: checked }))}
-              />
-              <Label htmlFor="include-context" className="text-warm-text">
-                Include user fasting context in responses
-              </Label>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id="include-context"
+                  checked={aiSettings.include_user_context}
+                  onCheckedChange={(checked) => setAiSettings(prev => ({ ...prev, include_user_context: checked }))}
+                />
+                <Label htmlFor="include-context" className="text-warm-text">
+                  Include user context in AI responses
+                </Label>
+                <div className="relative group">
+                  <AlertTriangle className="w-4 h-4 text-blue-500 cursor-help" />
+                  <div className="absolute left-0 top-6 w-80 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300 z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <strong>User context includes:</strong>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li><strong>Fasting data:</strong> Current session status, duration, goals, past fasting history</li>
+                      <li><strong>Food tracking:</strong> Recent meals, calorie/carb goals, eating patterns, food library</li>
+                      <li><strong>Walking activity:</strong> Sessions, distance, speed, calories burned, exercise goals</li>
+                      <li><strong>Profile info:</strong> Weight, height, age, activity level, daily goals, units preference</li>
+                      <li><strong>Usage patterns:</strong> AI request history, motivator preferences, crisis intervention style</li>
+                      <li><strong>Motivators:</strong> Personal motivator collection, categories, recent interactions</li>
+                    </ul>
+                    <p className="mt-2 font-semibold">This data helps AI provide personalized, relevant responses based on user's current state and goals.</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                When enabled, AI responses include personalized context from user's fasting, food, walking, and profile data. Hover the info icon for details.
+              </p>
             </div>
 
             <div className="flex space-x-3">
