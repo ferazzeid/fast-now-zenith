@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VoiceRecorder } from './VoiceRecorder';
-import { ImageUpload } from './ImageUpload';
+import { ModernImageUpload } from './ModernImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 // Removed complex validation - using simple form validation
@@ -150,21 +150,10 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
     <div className="space-y-6">
       {/* Create New Template */}
       <Card className="p-6 bg-ceramic-base border-ceramic-rim">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-lg font-semibold text-warm-text">Create Admin Motivator Template</h4>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowVoiceRecorder(true)}
-                className="bg-ceramic-plate border-ceramic-rim"
-              >
-                <Mic className="w-4 h-4 mr-2" />
-                Voice Input
-              </Button>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-warm-text">Create Admin Motivator Template</h4>
             </div>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -212,12 +201,26 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
           </div>
 
           <div className="space-y-2">
-            <Label className="text-warm-text">Template Image (Optional)</Label>
-            <ImageUpload
-              onImageUpload={handleImageUpload}
-              onImageRemove={() => setNewTemplate(prev => ({ ...prev, imageUrl: '' }))}
-              currentImageUrl={newTemplate.imageUrl}
-            />
+            <Label className="text-warm-text">Template Image & Voice Input</Label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <ModernImageUpload
+                  onImageUpload={handleImageUpload}
+                  onImageRemove={() => setNewTemplate(prev => ({ ...prev, imageUrl: '' }))}
+                  currentImageUrl={newTemplate.imageUrl}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowVoiceRecorder(true)}
+                className="bg-ceramic-plate border-ceramic-rim h-fit mt-2"
+              >
+                <Mic className="w-4 h-4 mr-2" />
+                Voice Input
+              </Button>
+            </div>
           </div>
 
           <Button
@@ -275,7 +278,10 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
       {showVoiceRecorder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-ceramic-plate p-6 rounded-lg border border-ceramic-rim max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-warm-text mb-4">Voice Input</h3>
+            <h3 className="text-lg font-semibold text-warm-text mb-4">Voice Input for Admin Template</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Speak the title and description for your admin motivator template. This will be available to all users.
+            </p>
             <VoiceRecorder
               onTranscription={handleVoiceTranscription}
             />

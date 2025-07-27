@@ -201,11 +201,11 @@ const AdminOverview = () => {
         setStripeApiKey(stripeSettingsData.setting_value || '');
       }
 
-      // Fetch PWA settings
+      // Fetch PWA settings and icon URLs
       const { data: pwaData } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['pwa_app_name', 'pwa_short_name', 'pwa_description', 'pwa_theme_color', 'pwa_background_color', 'brand_primary_color', 'brand_primary_hover', 'brand_accent_color']);
+        .in('setting_key', ['pwa_app_name', 'pwa_short_name', 'pwa_description', 'pwa_theme_color', 'pwa_background_color', 'brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'app_icon_url', 'favicon_url']);
 
       if (pwaData) {
         const pwaMap = pwaData.reduce((acc, setting) => {
@@ -221,11 +221,42 @@ const AdminOverview = () => {
           background_color: pwaMap.pwa_background_color || '#F5F2EA'
         });
         
-        setBrandColors({
+        const savedColors = {
           primary: pwaMap.brand_primary_color || '140 35% 45%',
           primary_hover: pwaMap.brand_primary_hover || '140 35% 40%',
           accent: pwaMap.brand_accent_color || '140 25% 85%'
-        });
+        };
+        
+        setBrandColors(savedColors);
+        
+        // Apply saved brand colors to CSS variables immediately
+        const root = document.documentElement;
+        root.style.setProperty('--primary', savedColors.primary);
+        root.style.setProperty('--accent', savedColors.accent);
+        
+        // Apply saved app icons to DOM
+        if (pwaMap.favicon_url) {
+          const existingFavicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+          if (existingFavicon) {
+            existingFavicon.href = pwaMap.favicon_url;
+          } else {
+            const favicon = document.createElement('link');
+            favicon.rel = 'icon';
+            favicon.href = pwaMap.favicon_url;
+            document.head.appendChild(favicon);
+          }
+        }
+        
+        if (pwaMap.app_icon_url) {
+          const existingIcon192 = document.querySelector("link[rel='icon'][sizes='192x192']") as HTMLLinkElement;
+          if (existingIcon192) {
+            existingIcon192.href = pwaMap.app_icon_url;
+          }
+          const existingIcon512 = document.querySelector("link[rel='icon'][sizes='512x512']") as HTMLLinkElement;
+          if (existingIcon512) {
+            existingIcon512.href = pwaMap.app_icon_url;
+          }
+        }
       }
 
       // Fetch request limits
@@ -2373,56 +2404,33 @@ const AdminOverview = () => {
             
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg mb-4">
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong>What this does:</strong> Manage individual user accounts and permissions. You can upgrade/downgrade users between free and paid tiers, and reset their monthly AI usage count. Admin users have access to this dashboard and additional features.
+                <strong>Enhanced User Management:</strong> Comprehensive user administration with advanced analytics, filtering, search, and bulk operations. View detailed user profiles, track activity, and manage permissions efficiently.
               </p>
             </div>
             
             <div className="space-y-3">
-              {users.map((userData) => (
-                <div key={userData.id} className="flex items-center justify-between p-4 bg-ceramic-base border border-ceramic-rim rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <p className="font-medium text-warm-text">
-                          {userData.display_name || 'Anonymous User'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          AI Usage: {userData.monthly_ai_requests || 0}/{userData.is_paid_user ? monthlyRequestLimit : freeRequestLimit} requests
-                        </p>
-                      </div>
-                      <Badge variant={userData.is_paid_user ? "default" : "secondary"}>
-                        {userData.is_paid_user ? 'Paid' : 'Free'}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => resetUserUsage(userData.user_id)}
-                      className="bg-ceramic-base border-ceramic-rim"
-                      title="Reset this user's monthly AI request count to 0"
-                    >
-                      Reset Usage
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => togglePaidStatus(userData.user_id, userData.is_paid_user)}
-                      variant={userData.is_paid_user ? "destructive" : "default"}
-                      title={userData.is_paid_user ? "Remove paid subscription access" : "Grant paid subscription access"}
-                    >
-                      {userData.is_paid_user ? 'Downgrade' : 'Upgrade'}
-                    </Button>
-                  </div>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
+                  <p className="text-lg font-bold text-warm-text">{users.length}</p>
+                  <p className="text-xs text-muted-foreground">Total Users</p>
                 </div>
-              ))}
-              
-              {users.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No users found</p>
+                <div className="p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
+                  <p className="text-lg font-bold text-warm-text">{users.filter(u => u.is_paid_user).length}</p>
+                  <p className="text-xs text-muted-foreground">Paid Users</p>
                 </div>
-              )}
+                <div className="p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
+                  <p className="text-lg font-bold text-warm-text">
+                    {users.length > 0 ? Math.round((users.filter(u => u.is_paid_user).length / users.length) * 100) : 0}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">Conversion</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => window.open('/user-management', '_blank')}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                Open Full User Management
+              </Button>
             </div>
             
             <div className="bg-accent/20 p-3 rounded-lg">

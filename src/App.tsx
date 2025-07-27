@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import AdminOverview from "./pages/AdminOverview";
+import { UserManagement } from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
@@ -71,6 +72,11 @@ const App = () => (
                 <Route path="/admin" element={
                   <ProtectedRoute>
                     <AdminOverview />
+                  </ProtectedRoute>  
+                } />
+                <Route path="/user-management" element={
+                  <ProtectedRoute>
+                    <UserManagement />
                   </ProtectedRoute>  
                 } />
                 <Route path="/health" element={<HealthCheck />} />

@@ -159,7 +159,7 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-red-950/95 border-red-800 text-white backdrop-blur-sm">
+      <DialogContent className="max-w-md bg-red-950/95 border-red-800 text-white backdrop-blur-sm z-[100]">
         <VisuallyHidden>
           <DialogTitle>Crisis Intervention</DialogTitle>
           <DialogDescription>Emergency motivational support during difficult moments</DialogDescription>
