@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Plus, Save, History, Edit, Trash2, Check, X, Image, Mic } from 'lucide-react';
+import { Camera, Plus, Save, History, Edit, Trash2, Check, X, Image, Mic, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { CompactImageUpload } from '@/components/CompactImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { supabase } from '@/integrations/supabase/client';
@@ -228,37 +229,85 @@ const FoodTracking = () => {
         </div>
 
         {/* Today's Nutrition Overview */}
-        <div className="mb-8 p-4 rounded-xl bg-card border border-border">
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className="text-center">
-              <div className="text-xl font-bold text-primary">{todayTotals.calories}</div>
-              <div className="text-xs text-muted-foreground">Consumed Calories</div>
+        <TooltipProvider>
+          <div className="mb-8 p-4 rounded-xl bg-card border border-border">
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="text-center">
+                <div className="text-xl font-bold text-primary">{todayTotals.calories}</div>
+                <div className="text-xs text-muted-foreground">
+                  Consumed Calories
+                  <div className="text-xs text-muted-foreground/60 mt-1">today</div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-secondary">{todayTotals.carbs}g</div>
+                <div className="text-xs text-muted-foreground">
+                  Consumed Carbs
+                  <div className="text-xs text-muted-foreground/60 mt-1">today</div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-secondary">{todayTotals.carbs}g</div>
-              <div className="text-xs text-muted-foreground">Consumed Carbs</div>
+            
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="p-2 rounded bg-muted/30">
+                <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-xs text-muted-foreground">Planned Cal</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-48">Calories planned to be consumed today, often from go-to food items</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="p-2 rounded bg-muted/30">
+                <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-xs text-muted-foreground">Planned Carbs</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-48">Carbs calculated from planned food items in your daily plan</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="p-2 rounded bg-primary/10">
+                <div className="text-sm font-semibold text-primary">2000</div>
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-xs text-muted-foreground">Cal Limit</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-48">Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="p-2 rounded bg-secondary/10">
+                <div className="text-sm font-semibold text-secondary">150g</div>
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-xs text-muted-foreground">Carb Limit</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-48">Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <div className="p-2 rounded bg-muted/30">
-              <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
-              <div className="text-xs text-muted-foreground">Planned Cal</div>
-            </div>
-            <div className="p-2 rounded bg-muted/30">
-              <div className="text-sm font-semibold text-muted-foreground">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
-              <div className="text-xs text-muted-foreground">Planned Carbs</div>
-            </div>
-            <div className="p-2 rounded bg-primary/10">
-              <div className="text-sm font-semibold text-primary">2000</div>
-              <div className="text-xs text-muted-foreground">Cal Limit</div>
-            </div>
-            <div className="p-2 rounded bg-secondary/10">
-              <div className="text-sm font-semibold text-secondary">150g</div>
-              <div className="text-xs text-muted-foreground">Carb Limit</div>
-            </div>
-          </div>
-        </div>
+        </TooltipProvider>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -472,11 +521,7 @@ const FoodTracking = () => {
 
         {/* Food History Modal */}
         {showHistory && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-4xl max-h-[90vh] overflow-auto">
-              <FoodHistory onClose={() => setShowHistory(false)} />
-            </div>
-          </div>
+          <FoodHistory onClose={() => setShowHistory(false)} />
         )}
 
         {/* Today's Food Plan */}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Trash2, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { Calendar, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -135,45 +135,32 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
     });
   };
 
-  const deleteFoodEntry = async (entryId: string, date: string) => {
+  const deleteEntireDay = async (date: string) => {
     try {
+      const summary = dailySummaries.find(s => s.date === date);
+      if (!summary) return;
+
+      // Delete all entries for this day
+      const entryIds = summary.entries.map(entry => entry.id);
       const { error } = await supabase
         .from('food_entries')
         .delete()
-        .eq('id', entryId);
+        .in('id', entryIds);
 
       if (error) throw error;
 
       // Update local state
-      setDailySummaries(prev => prev.map(summary => {
-        if (summary.date === date) {
-          const updatedEntries = summary.entries.filter(entry => entry.id !== entryId);
-          const deletedEntry = summary.entries.find(entry => entry.id === entryId);
-          
-          if (updatedEntries.length === 0) {
-            return null; // Mark for removal
-          }
-          
-          return {
-            ...summary,
-            entries: updatedEntries,
-            totalCalories: summary.totalCalories - (deletedEntry?.calories || 0),
-            totalCarbs: summary.totalCarbs - (deletedEntry?.carbs || 0),
-            entryCount: summary.entryCount - 1
-          };
-        }
-        return summary;
-      }).filter(Boolean) as DailySummary[]);
+      setDailySummaries(prev => prev.filter(s => s.date !== date));
 
       toast({
-        title: "Entry deleted",
-        description: "Food entry has been removed from your history"
+        title: "Day deleted",
+        description: "All food entries for this day have been removed"
       });
     } catch (error) {
-      console.error('Error deleting food entry:', error);
+      console.error('Error deleting day:', error);
       toast({
         title: "Error",
-        description: "Failed to delete food entry",
+        description: "Failed to delete food entries",
         variant: "destructive"
       });
     }
@@ -202,18 +189,19 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Food History
-          </CardTitle>
-          <Button variant="outline" size="sm" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-      </CardHeader>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Food History
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </CardHeader>
       <CardContent className="space-y-4">
         {dailySummaries.length === 0 ? (
           <div className="text-center py-8">
@@ -223,77 +211,75 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
           <>
             {dailySummaries.map((summary) => (
               <Card key={summary.date} className="border-l-4 border-l-primary/20">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <h3 className="font-semibold">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-sm">
                           {new Date(summary.date).toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
+                            weekday: 'short', 
+                            month: 'short', 
                             day: 'numeric' 
                           })}
                         </h3>
-                        <div className="flex gap-4 text-sm text-muted-foreground">
-                          <span>{summary.totalCalories} calories</span>
-                          <span>{summary.totalCarbs}g carbs</span>
-                          <span>{summary.entryCount} entries</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleDayExpansion(summary.date)}
-                    >
-                      <ChevronDown 
-                        className={`w-4 h-4 transition-transform ${
-                          expandedDays.has(summary.date) ? 'rotate-180' : ''
-                        }`} 
-                      />
-                    </Button>
-                  </div>
-                </CardHeader>
-                
-                {expandedDays.has(summary.date) && (
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      {summary.entries.map((entry) => (
-                        <div key={entry.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div className="flex-1">
-                            <div className="font-medium">{entry.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {entry.calories} cal • {entry.carbs}g carbs • {entry.serving_size}g
-                              <span className="ml-2">
-                                {new Date(entry.created_at).toLocaleTimeString()}
-                              </span>
-                            </div>
-                          </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleDayExpansion(summary.date)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <span className="text-xs">⇅</span>
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="w-4 h-4" />
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive">
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Food Entry</AlertDialogTitle>
+                                <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{entry.name}"? This action cannot be undone.
+                                  Are you sure you want to delete all food entries for {new Date(summary.date).toLocaleDateString()}? This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => deleteFoodEntry(entry.id, summary.date)}
+                                  onClick={() => deleteEntireDay(summary.date)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                  Delete
+                                  Delete Day
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                        <span>{summary.totalCalories} cal</span>
+                        <span>{summary.totalCarbs}g carbs</span>
+                        <span>{summary.entryCount} items</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                
+                {expandedDays.has(summary.date) && (
+                  <CardContent className="pt-0">
+                    <div className="space-y-1">
+                      {summary.entries.map((entry) => (
+                        <div key={entry.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
+                          <div className="flex-1">
+                            <div className="font-medium">{entry.name}</div>
+                            <div className="text-muted-foreground">
+                              {entry.calories} cal • {entry.carbs}g carbs • {entry.serving_size}g
+                            </div>
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -317,5 +303,6 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 };
