@@ -137,6 +137,8 @@ const AdminOverview = () => {
   const [uploadingAppIcon, setUploadingAppIcon] = useState(false);
   const [apiUsageStats, setApiUsageStats] = useState<any[]>([]);
   const [aiResponseLength, setAiResponseLength] = useState('medium');
+  const [currentFaviconUrl, setCurrentFaviconUrl] = useState('');
+  const [currentAppIconUrl, setCurrentAppIconUrl] = useState('');
   const [showUsageStats, setShowUsageStats] = useState(false);
   const [showCrisisPreview, setShowCrisisPreview] = useState(false);
   const { toast } = useToast();
@@ -234,8 +236,9 @@ const AdminOverview = () => {
         root.style.setProperty('--primary', savedColors.primary);
         root.style.setProperty('--accent', savedColors.accent);
         
-        // Apply saved app icons to DOM
+        // Apply saved app icons to DOM and update state
         if (pwaMap.favicon_url) {
+          setCurrentFaviconUrl(pwaMap.favicon_url);
           const existingFavicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
           if (existingFavicon) {
             existingFavicon.href = pwaMap.favicon_url;
@@ -248,6 +251,7 @@ const AdminOverview = () => {
         }
         
         if (pwaMap.app_icon_url) {
+          setCurrentAppIconUrl(pwaMap.app_icon_url);
           const existingIcon192 = document.querySelector("link[rel='icon'][sizes='192x192']") as HTMLLinkElement;
           if (existingIcon192) {
             existingIcon192.href = pwaMap.app_icon_url;
@@ -682,6 +686,10 @@ const AdminOverview = () => {
 
       if (dbError) throw dbError;
 
+      // Update state and DOM
+      setCurrentFaviconUrl(publicUrl);
+      setFaviconFile(null);
+      
       // Update index.html favicon link
       const faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
       if (faviconLink) {
@@ -2051,12 +2059,37 @@ const AdminOverview = () => {
               <Label htmlFor="favicon-upload" className="text-sm font-medium text-warm-text">
                 Favicon (Browser Icon)
               </Label>
+              
+              {/* Current Favicon Preview */}
+              {currentFaviconUrl && (
+                <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <img src={currentFaviconUrl} alt="Current favicon" className="w-8 h-8 rounded" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300">✓ Favicon saved</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 truncate">{currentFaviconUrl}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentFaviconUrl('');
+                      // Remove from database
+                      supabase.from('shared_settings').delete().eq('setting_key', 'favicon_url');
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+              
               <div className="flex items-center space-x-3">
                 <Input
                   id="favicon-upload"
                   type="file"
                   accept=".png,.jpg,.jpeg"
                   onChange={(e) => setFaviconFile(e.target.files?.[0] || null)}
+                  value={faviconFile ? undefined : ""}
                   className="bg-ceramic-base border-ceramic-rim"
                 />
                 <Button
@@ -2064,7 +2097,7 @@ const AdminOverview = () => {
                   disabled={!faviconFile || uploadingFavicon}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {uploadingFavicon ? 'Uploading...' : 'Save Favicon'}
+                  {uploadingFavicon ? 'Uploading...' : currentFaviconUrl ? 'Replace Favicon' : 'Save Favicon'}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -2078,12 +2111,37 @@ const AdminOverview = () => {
               <Label htmlFor="app-icon-upload" className="text-sm font-medium text-warm-text">
                 App Icon (Mobile Shortcut)
               </Label>
+              
+              {/* Current App Icon Preview */}
+              {currentAppIconUrl && (
+                <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <img src={currentAppIconUrl} alt="Current app icon" className="w-12 h-12 rounded-lg" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300">✓ App icon saved</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 truncate">{currentAppIconUrl}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentAppIconUrl('');
+                      // Remove from database
+                      supabase.from('shared_settings').delete().eq('setting_key', 'app_icon_url');
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+              
               <div className="flex items-center space-x-3">
                 <Input
                   id="app-icon-upload"
                   type="file"
                   accept=".png,.jpg,.jpeg"
                   onChange={(e) => setAppIconFile(e.target.files?.[0] || null)}
+                  value={appIconFile ? undefined : ""}
                   className="bg-ceramic-base border-ceramic-rim"
                 />
                 <Button
@@ -2091,7 +2149,7 @@ const AdminOverview = () => {
                   disabled={!appIconFile || uploadingAppIcon}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {uploadingAppIcon ? 'Uploading...' : 'Save App Icon'}
+                  {uploadingAppIcon ? 'Uploading...' : currentAppIconUrl ? 'Replace App Icon' : 'Save App Icon'}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
