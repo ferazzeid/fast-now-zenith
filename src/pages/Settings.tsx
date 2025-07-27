@@ -1019,6 +1019,107 @@ const Settings = () => {
           </div>
         </Card>
 
+        {/* Reset Account */}
+        {user && (
+          <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-red-200 dark:border-red-800">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Trash2 className="w-5 h-5 text-red-600" />
+                <h3 className="text-lg font-semibold text-warm-text">Reset Account</h3>
+              </div>
+              
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  <strong>⚠️ Danger Zone:</strong> This will permanently delete ALL your data including chat conversations, motivators, food entries, fasting sessions, and walking data. This action cannot be undone.
+                </p>
+              </div>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full bg-red-600 hover:bg-red-700">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Reset Account & Delete All Data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-ceramic-plate border-ceramic-rim">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-warm-text flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      Reset Account - Final Warning
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-3">
+                      <p>
+                        <strong>This action will permanently delete:</strong>
+                      </p>
+                      <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
+                        <li>All chat conversations and history</li>
+                        <li>All personal motivators and templates</li>
+                        <li>All food entries and tracking data</li>
+                        <li>All fasting sessions and progress</li>
+                        <li>All walking data and statistics</li>
+                        <li>Profile information and goals</li>
+                        <li>AI usage history</li>
+                      </ul>
+                      <p className="text-red-600 font-semibold">
+                        There is no way to recover this data once deleted. Are you absolutely sure?
+                      </p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-ceramic-base border-ceramic-rim text-warm-text hover:bg-ceramic-base/80">
+                      Cancel - Keep My Data
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        if (user) {
+                          try {
+                            // Delete all user data
+                            await Promise.all([
+                              supabase.from('chat_conversations').delete().eq('user_id', user.id),
+                              supabase.from('motivators').delete().eq('user_id', user.id),
+                              supabase.from('food_entries').delete().eq('user_id', user.id),
+                              supabase.from('user_foods').delete().eq('user_id', user.id),
+                              supabase.from('fasting_sessions').delete().eq('user_id', user.id),
+                              supabase.from('walking_sessions').delete().eq('user_id', user.id),
+                              supabase.from('ai_usage_logs').delete().eq('user_id', user.id),
+                              supabase.from('profiles').update({
+                                weight: null,
+                                height: null,
+                                age: null,
+                                daily_calorie_goal: null,
+                                daily_carb_goal: null,
+                                activity_level: 'sedentary',
+                                monthly_ai_requests: 0,
+                                openai_api_key: null,
+                                use_own_api_key: false
+                              }).eq('user_id', user.id)
+                            ]);
+                            
+                            toast({
+                              title: "Account Reset Complete",
+                              description: "All your data has been deleted. Your account is now fresh.",
+                              variant: "default",
+                            });
+                          } catch (error) {
+                            toast({
+                              title: "Error",
+                              description: "Failed to reset account. Please try again.",
+                              variant: "destructive",
+                            });
+                          }
+                        }
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Yes, Delete Everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </Card>
+        )}
+
         {/* About */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
           <div className="space-y-4">

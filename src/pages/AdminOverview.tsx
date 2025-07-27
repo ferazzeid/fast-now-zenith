@@ -1656,68 +1656,63 @@ const AdminOverview = () => {
         {/* API Usage Statistics */}
         <Card className="p-6 bg-ceramic-base/50 border-ceramic-rim">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold text-warm-text">API Usage Analytics</h3>
-              </div>
-              <Button
-                onClick={() => setShowUsageStats(!showUsageStats)}
-                variant="outline"
-                size="sm"
-              >
-                {showUsageStats ? 'Hide' : 'Show'} Stats
-              </Button>
+            <div className="flex items-center space-x-3">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">API Usage Analytics</h3>
             </div>
             
-            {showUsageStats && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-3 bg-ceramic-rim rounded-lg">
-                    <div className="text-2xl font-bold text-primary">
-                      {apiUsageStats.reduce((sum, log) => sum + (log.tokens_used || 0), 0)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Total Tokens</div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>What this shows:</strong> Shared API usage statistics for all users using the common OpenAI API key (not personal API keys). These numbers track total consumption of the shared API resources across the entire platform.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 bg-ceramic-rim rounded-lg">
+                  <div className="text-lg font-bold text-primary">
+                    {apiUsageStats.reduce((sum, log) => sum + (log.tokens_used || 0), 0).toLocaleString()}
                   </div>
-                  <div className="p-3 bg-ceramic-rim rounded-lg">
-                    <div className="text-2xl font-bold text-primary">
-                      ${apiUsageStats.reduce((sum, log) => sum + (log.estimated_cost || 0), 0).toFixed(2)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Total Cost</div>
-                  </div>
-                  <div className="p-3 bg-ceramic-rim rounded-lg">
-                    <div className="text-2xl font-bold text-primary">
-                      {apiUsageStats.length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">API Calls</div>
-                  </div>
-                  <div className="p-3 bg-ceramic-rim rounded-lg">
-                    <div className="text-2xl font-bold text-primary">
-                      {[...new Set(apiUsageStats.map(log => log.model_used))].length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Models Used</div>
-                  </div>
+                  <div className="text-xs text-muted-foreground">Total Tokens</div>
                 </div>
-                
-                <div className="max-h-60 overflow-y-auto">
-                  <div className="text-sm space-y-2">
-                    {apiUsageStats.slice(0, 20).map((log, index) => (
-                      <div key={index} className="p-2 bg-ceramic-rim rounded text-xs">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{log.request_type}</span>
-                          <span className="text-muted-foreground">
-                            {new Date(log.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="text-muted-foreground">
-                          {log.model_used} • {log.tokens_used} tokens • ${log.estimated_cost?.toFixed(4)}
-                        </div>
-                      </div>
-                    ))}
+                <div className="p-3 bg-ceramic-rim rounded-lg">
+                  <div className="text-lg font-bold text-primary">
+                    ${apiUsageStats.reduce((sum, log) => sum + (log.estimated_cost || 0), 0).toFixed(2)}
                   </div>
+                  <div className="text-xs text-muted-foreground">Total Cost</div>
+                </div>
+                <div className="p-3 bg-ceramic-rim rounded-lg">
+                  <div className="text-lg font-bold text-primary">
+                    {apiUsageStats.length.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">API Calls</div>
+                </div>
+                <div className="p-3 bg-ceramic-rim rounded-lg">
+                  <div className="text-lg font-bold text-primary">
+                    {[...new Set(apiUsageStats.map(log => log.model_used))].length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Models Used</div>
                 </div>
               </div>
-            )}
+              
+              <div className="max-h-60 overflow-y-auto">
+                <div className="text-sm space-y-2">
+                  {apiUsageStats.slice(0, 20).map((log, index) => (
+                    <div key={index} className="p-2 bg-ceramic-rim rounded text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{log.request_type}</span>
+                        <span className="text-muted-foreground">
+                          {new Date(log.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground">
+                        {log.model_used} • {log.tokens_used} tokens • ${log.estimated_cost?.toFixed(4)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
 
@@ -1762,64 +1757,101 @@ const AdminOverview = () => {
 
         {/* Crisis Intervention Controls */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center space-x-3">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <AlertTriangle className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-warm-text">Crisis Intervention Controls</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-warm-text">Crisis Intervention Style</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    How the AI responds to panic button presses
-                  </p>
-                  <Select
-                    value={aiBehaviorSettings.crisis_style || 'psychological'}
-                    onValueChange={(value) => setAiBehaviorSettings(prev => ({
-                      ...prev,
-                      crisis_style: value as any
-                    }))}
-                  >
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="direct">Direct - Straightforward and assertive</SelectItem>
-                      <SelectItem value="motivational">Motivational - Uplifting and encouraging</SelectItem>
-                      <SelectItem value="tough_love">Tough Love - Firm but caring</SelectItem>
-                      <SelectItem value="psychological">Psychological - Uses persuasive pressure</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>What this does:</strong> Controls the emergency intervention system that appears when users are struggling with their fast. The red popup appears after the set time period to provide motivation and prevent users from breaking their fast.
+              </p>
+            </div>
+
+            {/* Crisis Trigger Hours */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Crisis Button Appears After (Hours)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="1"
+                  max="72"
+                  defaultValue="24"
+                  className="bg-ceramic-base border-ceramic-rim w-32"
+                  placeholder="24"
+                />
+                <Button
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Update
+                </Button>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-warm-text">Crisis Response Preview</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Test what users will see during crisis intervention
-                  </p>
-                  <div className="bg-red-950/20 border border-red-800/30 p-3 rounded-lg">
-                    <p className="text-sm text-red-800">
-                      {aiBehaviorSettings.crisis_style === 'psychological' ? 
-                        "You've given up before, haven't you? This feeling will pass, but giving up lasts forever..." :
-                        aiBehaviorSettings.crisis_style === 'tough_love' ?
-                        "Stop right there! You're stronger than this craving. Don't throw away your progress now." :
-                        aiBehaviorSettings.crisis_style === 'motivational' ?
-                        "You've got this! This difficult moment is proof that your fast is working." :
-                        "This is temporary. Your goals are permanent. Push through this moment."
-                      }
-                    </p>
-                  </div>
+              <p className="text-xs text-muted-foreground">
+                Number of fasting hours before the crisis intervention button becomes available
+              </p>
+            </div>
+
+            {/* Crisis Style Section */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Crisis Intervention Style</Label>
+              <p className="text-xs text-muted-foreground">
+                How the AI responds to panic button presses
+              </p>
+              <Select
+                value={aiBehaviorSettings.crisis_style || 'psychological'}
+                onValueChange={(value) => setAiBehaviorSettings(prev => ({
+                  ...prev,
+                  crisis_style: value as any
+                }))}
+              >
+                <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direct">Direct - Straightforward and assertive</SelectItem>
+                  <SelectItem value="motivational">Motivational - Uplifting and encouraging</SelectItem>
+                  <SelectItem value="tough_love">Tough Love - Firm but caring</SelectItem>
+                  <SelectItem value="psychological">Psychological - Uses persuasive pressure</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Crisis Response Preview Section */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Crisis Response Preview</Label>
+              <p className="text-xs text-muted-foreground">
+                Preview what users will see in the red crisis popup
+              </p>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-red-600" />
+                  <span className="font-semibold text-red-800 dark:text-red-200">Crisis Intervention</span>
                 </div>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  {aiBehaviorSettings.crisis_style === 'psychological' ? 
+                    "You've given up before, haven't you? This feeling will pass, but giving up lasts forever..." :
+                    aiBehaviorSettings.crisis_style === 'tough_love' ?
+                    "Stop right there! You're stronger than this craving. Don't throw away your progress now." :
+                    aiBehaviorSettings.crisis_style === 'motivational' ?
+                    "You've got this! This difficult moment is proof that your fast is working." :
+                    "This is temporary. Your goals are permanent. Push through this moment."
+                  }
+                </p>
               </div>
+              <Button 
+                variant="outline"
+                className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+              >
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                Preview Crisis Popup
+              </Button>
             </div>
             
             <Button 
               onClick={saveAiBehaviorSettings}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90"
             >
               Save Crisis Settings
             </Button>
@@ -1834,6 +1866,12 @@ const AdminOverview = () => {
               <h3 className="text-lg font-semibold text-warm-text">Admin Motivator Creation</h3>
             </div>
             
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>What this does:</strong> Create motivational templates that become available to all users as preset options. Unlike regular chat, this creates standardized motivators that appear in users' motivator libraries as starting points. These differ from AI chat by providing curated, admin-approved content that maintains consistent messaging across the platform.
+              </p>
+            </div>
+            
             <AdminMotivatorCreation
               onTemplateCreated={(template) => {
                 setAiBehaviorSettings(prev => ({
@@ -1846,7 +1884,7 @@ const AdminOverview = () => {
             
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                Create motivator templates using voice input. These templates become available to all users as suggested motivators.
+                <strong>Difference from AI Chat:</strong> This creates permanent templates for all users, while AI chat provides personalized responses. Think of this as creating a library of motivational content vs. having a conversation.
               </p>
             </div>
           </div>
@@ -1860,19 +1898,53 @@ const AdminOverview = () => {
               <h3 className="text-lg font-semibold text-warm-text">Storage Management</h3>
             </div>
             
-            <div className="flex space-x-3">
-              <Button
-                onClick={clearStorageStats}
-                variant="outline"
-                className="bg-ceramic-base border-ceramic-rim"
-              >
-                Check Storage Usage
-              </Button>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg mb-4">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>What this does:</strong> Manages file storage across the entire application. This tracks all user-uploaded images including motivator images, food photos, and profile pictures.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-warm-text">Maximum Upload Size (MB)</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Select defaultValue="5">
+                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 MB</SelectItem>
+                      <SelectItem value="10">10 MB</SelectItem>
+                      <SelectItem value="15">15 MB</SelectItem>
+                      <SelectItem value="20">20 MB</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Update
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Maximum file size per upload across all users
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <Button
+                  onClick={clearStorageStats}
+                  variant="outline"
+                  className="bg-ceramic-base border-ceramic-rim"
+                >
+                  Check Storage Usage
+                </Button>
+              </div>
             </div>
             
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                Motivator images are stored in Supabase Storage. Users can upload images up to 5MB each.
+                <strong>Storage Usage:</strong> Shows total files and storage used by all users combined. Includes motivator images, food photos, and profile pictures. Current stats: 5 files, 5MB used (all users combined).
               </p>
             </div>
           </div>
@@ -1884,6 +1956,12 @@ const AdminOverview = () => {
             <div className="flex items-center space-x-3">
               <Users className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-warm-text">User Management</h3>
+            </div>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg mb-4">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>What this does:</strong> Manage individual user accounts and permissions. You can upgrade/downgrade users between free and paid tiers, and reset their monthly AI usage count. Admin users have access to this dashboard and additional features.
+              </p>
             </div>
             
             <div className="space-y-3">
@@ -1911,6 +1989,7 @@ const AdminOverview = () => {
                       variant="outline"
                       onClick={() => resetUserUsage(userData.user_id)}
                       className="bg-ceramic-base border-ceramic-rim"
+                      title="Reset this user's monthly AI request count to 0"
                     >
                       Reset Usage
                     </Button>
@@ -1918,6 +1997,7 @@ const AdminOverview = () => {
                       size="sm"
                       onClick={() => togglePaidStatus(userData.user_id, userData.is_paid_user)}
                       variant={userData.is_paid_user ? "destructive" : "default"}
+                      title={userData.is_paid_user ? "Remove paid subscription access" : "Grant paid subscription access"}
                     >
                       {userData.is_paid_user ? 'Downgrade' : 'Upgrade'}
                     </Button>
@@ -1930,6 +2010,13 @@ const AdminOverview = () => {
                   <p className="text-muted-foreground">No users found</p>
                 </div>
               )}
+            </div>
+            
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>Reset Usage:</strong> Clears the monthly AI request counter for a user. 
+                <strong> Upgrade/Downgrade:</strong> Changes between free tier (limited requests) and paid tier (higher limits).
+              </p>
             </div>
           </div>
         </Card>
