@@ -112,25 +112,27 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             <div className="text-center space-y-2">
               <div 
                 className={cn(
-                  "text-4xl font-mono font-bold tracking-wider transition-colors duration-300",
-                  isActive ? "text-foreground" : "text-muted-foreground"
+                  "text-4xl font-mono font-semibold tracking-wide transition-colors duration-300",
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
                 style={{ 
-                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                  textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                  fontFeatureSettings: '"tnum" 1'
                 }}
               >
                 {displayTime}
               </div>
               
-              <div className={`text-lg font-medium transition-colors duration-300 ${
-                isEatingWindow ? 'text-orange-600' : isActive ? 'text-accent' : 'text-muted-foreground'
-              }`}>
+              <div className={cn(
+                "text-lg font-medium transition-colors duration-300",
+                isEatingWindow ? 'text-primary' : isActive ? 'text-primary' : 'text-muted-foreground'
+              )}>
                 {isEatingWindow ? 'Eating' : isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
               
               {/* Separate eating window countdown */}
               {isEatingWindow && eatingWindowTimeRemaining && (
-                <div className="text-xs text-orange-600 font-medium">
+                <div className="text-xs text-primary/70 font-medium">
                   Time left: {eatingWindowTimeRemaining}
                 </div>
               )}

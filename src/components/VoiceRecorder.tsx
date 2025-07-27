@@ -232,7 +232,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
           <Mic className="h-5 w-5" />
         )}
         <span className="ml-2">
-          {isProcessing ? "Processing..." : isRecording ? "Stop Recording" : "Record Message"}
+          {isProcessing ? "Processing..." : isRecording ? "Send Message" : "Record Message"}
         </span>
         {isRecording && (
           <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />

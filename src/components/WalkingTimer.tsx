@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -76,13 +77,20 @@ export const WalkingTimer = ({
           
           {/* Main time display */}
           <div className="mb-4">
-            <div className="text-4xl font-mono font-bold text-foreground mb-2">
+            <div 
+              className="text-4xl font-mono font-semibold text-primary mb-2 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
               {displayTime}
             </div>
-            <div className={`text-lg font-medium transition-colors duration-300 ${
-              isActive && !isPaused ? 'text-accent' : 
-              isPaused ? 'text-yellow-500' : 'text-muted-foreground'
-            }`}>
+            <div className={cn(
+              "text-lg font-medium transition-colors duration-300",
+              isActive && !isPaused ? 'text-primary' : 
+              isPaused ? 'text-primary/70' : 'text-muted-foreground'
+            )}>
               {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
           </div>
@@ -114,12 +122,12 @@ export const WalkingTimer = ({
               <Card className="p-4 bg-ceramic-base border-ceramic-rim">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <Zap className="w-4 h-4 text-blue-500" />
+                    <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-blue-500 animate-pulse' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="text-xl font-bold text-primary">
                   {realTimeStats.speed}
                   <span className="text-sm font-normal text-muted-foreground ml-1">
                     {units === 'metric' ? 'km/h' : 'mph'}
@@ -133,12 +141,12 @@ export const WalkingTimer = ({
               <Card className="p-4 bg-ceramic-base border-ceramic-rim">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-green-500" />
+                    <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Distance</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-green-500 animate-pulse' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-xl font-bold text-primary">
                   {realTimeStats.distance}
                   <span className="text-sm font-normal text-muted-foreground ml-1">
                     {units === 'metric' ? 'km' : 'mi'}
@@ -152,12 +160,12 @@ export const WalkingTimer = ({
               <Card className="p-4 bg-ceramic-base border-ceramic-rim">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-orange-500" />
+                    <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Calories</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-orange-500 animate-pulse' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                <div className="text-xl font-bold text-primary">
                   {realTimeStats.calories}
                   <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                 </div>
@@ -167,12 +175,12 @@ export const WalkingTimer = ({
               <Card className="p-4 bg-ceramic-base border-ceramic-rim">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-purple-500" />
+                    <Clock className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Started</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-purple-500 animate-pulse' : 'bg-muted'}`} />
                 </div>
-                <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                <div className="text-lg font-bold text-primary">
                   {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
                     hour: '2-digit', 
                     minute: '2-digit' 

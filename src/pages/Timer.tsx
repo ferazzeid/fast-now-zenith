@@ -249,8 +249,8 @@ const Timer = () => {
             ) : (
               <Button 
                 onClick={() => setShowStopConfirmDialog(true)}
-                variant="destructive"
-                className="w-full h-16 text-lg font-medium shadow-lg"
+                variant="ghost"
+                className="w-full h-16 text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
                 size="lg"
               >
                 <Square className="w-6 h-6 mr-2" />
