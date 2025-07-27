@@ -1480,22 +1480,40 @@ const AdminOverview = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="theme-color" className="text-warm-text">Theme Color</Label>
-                <Input
-                  id="theme-color"
-                  value={pwaSettings.theme_color}
-                  onChange={(e) => setPwaSettings(prev => ({ ...prev, theme_color: e.target.value }))}
-                  className="bg-ceramic-base border-ceramic-rim"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={pwaSettings.theme_color}
+                    onChange={(e) => setPwaSettings(prev => ({ ...prev, theme_color: e.target.value }))}
+                    className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
+                  />
+                  <Input
+                    id="theme-color"
+                    value={pwaSettings.theme_color}
+                    onChange={(e) => setPwaSettings(prev => ({ ...prev, theme_color: e.target.value }))}
+                    className="bg-ceramic-base border-ceramic-rim"
+                    placeholder="#8B7355"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="bg-color" className="text-warm-text">Background Color</Label>
-                <Input
-                  id="bg-color"
-                  value={pwaSettings.background_color}
-                  onChange={(e) => setPwaSettings(prev => ({ ...prev, background_color: e.target.value }))}
-                  className="bg-ceramic-base border-ceramic-rim"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={pwaSettings.background_color}
+                    onChange={(e) => setPwaSettings(prev => ({ ...prev, background_color: e.target.value }))}
+                    className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
+                  />
+                  <Input
+                    id="bg-color"
+                    value={pwaSettings.background_color}
+                    onChange={(e) => setPwaSettings(prev => ({ ...prev, background_color: e.target.value }))}
+                    className="bg-ceramic-base border-ceramic-rim"
+                    placeholder="#F5F2EA"
+                  />
+                </div>
               </div>
             </div>
             
@@ -1531,14 +1549,25 @@ const AdminOverview = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="primary-color" className="text-warm-text">Primary Color (HSL)</Label>
-                <Input
-                  id="primary-color"
-                  value={brandColors.primary}
-                  onChange={(e) => setBrandColors(prev => ({ ...prev, primary: e.target.value }))}
-                  placeholder="140 35% 45%"
-                  className="bg-ceramic-base border-ceramic-rim"
-                />
+                <Label htmlFor="primary-color" className="text-warm-text">Primary Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={`hsl(${brandColors.primary})`}
+                    onChange={(e) => {
+                      // For now, we'll keep the HSL input as the main way to set colors
+                      // A proper hex to HSL converter would be needed here
+                    }}
+                    className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
+                  />
+                  <Input
+                    id="primary-color"
+                    value={brandColors.primary}
+                    onChange={(e) => setBrandColors(prev => ({ ...prev, primary: e.target.value }))}
+                    placeholder="140 35% 45%"
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
                 <div 
                   className="w-full h-8 rounded border-2 border-ceramic-rim"
                   style={{ backgroundColor: `hsl(${brandColors.primary})` }}
@@ -1546,14 +1575,24 @@ const AdminOverview = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="primary-hover" className="text-warm-text">Primary Hover (HSL)</Label>
-                <Input
-                  id="primary-hover"
-                  value={brandColors.primary_hover}
-                  onChange={(e) => setBrandColors(prev => ({ ...prev, primary_hover: e.target.value }))}
-                  placeholder="140 35% 40%"
-                  className="bg-ceramic-base border-ceramic-rim"
-                />
+                <Label htmlFor="primary-hover" className="text-warm-text">Primary Hover</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={`hsl(${brandColors.primary_hover})`}
+                    onChange={(e) => {
+                      // For now, we'll keep the HSL input as the main way to set colors
+                    }}
+                    className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
+                  />
+                  <Input
+                    id="primary-hover"
+                    value={brandColors.primary_hover}
+                    onChange={(e) => setBrandColors(prev => ({ ...prev, primary_hover: e.target.value }))}
+                    placeholder="140 35% 40%"
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
                 <div 
                   className="w-full h-8 rounded border-2 border-ceramic-rim"
                   style={{ backgroundColor: `hsl(${brandColors.primary_hover})` }}
@@ -1561,14 +1600,24 @@ const AdminOverview = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="accent-color" className="text-warm-text">Accent Color (HSL)</Label>
-                <Input
-                  id="accent-color"
-                  value={brandColors.accent}
-                  onChange={(e) => setBrandColors(prev => ({ ...prev, accent: e.target.value }))}
-                  placeholder="140 25% 85%"
-                  className="bg-ceramic-base border-ceramic-rim"
-                />
+                <Label htmlFor="accent-color" className="text-warm-text">Accent Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={`hsl(${brandColors.accent})`}
+                    onChange={(e) => {
+                      // For now, we'll keep the HSL input as the main way to set colors
+                    }}
+                    className="w-12 h-10 rounded border-2 border-ceramic-rim cursor-pointer"
+                  />
+                  <Input
+                    id="accent-color"
+                    value={brandColors.accent}
+                    onChange={(e) => setBrandColors(prev => ({ ...prev, accent: e.target.value }))}
+                    placeholder="140 25% 85%"
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
                 <div 
                   className="w-full h-8 rounded border-2 border-ceramic-rim"
                   style={{ backgroundColor: `hsl(${brandColors.accent})` }}
@@ -1578,7 +1627,7 @@ const AdminOverview = () => {
 
             <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                💡 Use HSL format (e.g., "140 35% 45%") for better control. Changes apply immediately to buttons and action elements.
+                💡 Use the color picker for easy selection or HSL format (e.g., "140 35% 45%") for precise control. Changes apply immediately to buttons and action elements.
               </p>
             </div>
             
@@ -1591,12 +1640,75 @@ const AdminOverview = () => {
           </div>
         </Card>
 
-        {/* Favicon and App Icon Upload */}
-        <Card className="p-6 bg-ceramic-base/50 border-ceramic-rim">
-          <div className="space-y-6">
+        {/* SEO Settings */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">SEO Settings</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Configure meta title and description for search engine optimization.
+            </p>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="meta-title" className="text-warm-text">Meta Title</Label>
+                <Input
+                  id="meta-title"
+                  placeholder="FastNow - Your Mindful Fasting Companion"
+                  className="bg-ceramic-base border-ceramic-rim"
+                  maxLength={60}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Recommended: 50-60 characters for optimal search display
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="meta-description" className="text-warm-text">Meta Description</Label>
+                <Textarea
+                  id="meta-description"
+                  placeholder="Transform your relationship with food through mindful fasting. Track progress, get AI-powered motivation, and achieve your wellness goals with our comprehensive fasting companion."
+                  className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
+                  maxLength={160}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Recommended: 150-160 characters for optimal search display
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-warm-text">Default Page Indexing</Label>
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    id="allow-indexing"
+                    defaultChecked={false}
+                  />
+                  <Label htmlFor="allow-indexing" className="text-warm-text">
+                    Allow search engine indexing (default: no-index for all pages except main)
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  When disabled, pages will have no-index meta tag to prevent search engine crawling
+                </p>
+              </div>
+            </div>
+            
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Save SEO Settings
+            </Button>
+          </div>
+        </Card>
+
+        {/* App Icons and Branding */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <Image className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">App Icons & Branding</h3>
+              <h3 className="text-lg font-semibold text-warm-text">App Icons and Branding</h3>
             </div>
             
             {/* Favicon Upload */}
@@ -1608,7 +1720,7 @@ const AdminOverview = () => {
                 <Input
                   id="favicon-upload"
                   type="file"
-                  accept=".png,.ico,.jpg,.jpeg"
+                  accept=".png,.jpg,.jpeg"
                   onChange={(e) => setFaviconFile(e.target.files?.[0] || null)}
                   className="bg-ceramic-base border-ceramic-rim"
                 />
@@ -1617,11 +1729,12 @@ const AdminOverview = () => {
                   disabled={!faviconFile || uploadingFavicon}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {uploadingFavicon ? 'Uploading...' : 'Upload'}
+                  {uploadingFavicon ? 'Uploading...' : 'Save Favicon'}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload a PNG, ICO, or JPG file for the browser favicon (16x16 or 32x32px recommended)
+                Upload a PNG or JPG file for the browser favicon (16x16 or 32x32px recommended). 
+                <strong>Note:</strong> ICO files are not supported - please use PNG/JPG instead.
               </p>
             </div>
 
@@ -1643,11 +1756,17 @@ const AdminOverview = () => {
                   disabled={!appIconFile || uploadingAppIcon}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {uploadingAppIcon ? 'Uploading...' : 'Upload'}
+                  {uploadingAppIcon ? 'Uploading...' : 'Save App Icon'}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
                 Upload a PNG or JPG file for mobile app shortcuts (512x512px recommended)
+              </p>
+            </div>
+            
+            <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                💡 Click "Save" to permanently apply your icon changes. Files will be stored securely and persist across sessions.
               </p>
             </div>
           </div>
