@@ -76,11 +76,11 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             </div>
           )}
           
-          {/* Progress ring */}
+          {/* Progress ring - Always visible for structure */}
           <svg 
             className="absolute inset-0 w-full h-full transform -rotate-90"
             viewBox="0 0 100 100"
-            style={{ zIndex: 5 }}
+            style={{ zIndex: 12 }} // Higher than motivator images to stay visible
           >
             {/* Background circle */}
             <circle
@@ -123,7 +123,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-1000",
               motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
             )}
-            style={{ zIndex: 10 }}
+            style={{ zIndex: 13 }} // Above progress ring but can fade
           >
             <div className="text-center space-y-2">
               <div 

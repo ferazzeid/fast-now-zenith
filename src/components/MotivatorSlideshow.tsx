@@ -83,7 +83,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
       return (
         <span
           key={index}
-          className="absolute font-medium text-primary/90 text-sm tracking-wide drop-shadow-sm"
+          className="absolute font-semibold text-primary text-sm tracking-wide drop-shadow-lg"
           style={{
             transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
             transformOrigin: '50% 50%',
@@ -101,14 +101,10 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
 
   return (
     <>
-      {/* Image Layer */}
+      {/* Image Layer - Only visible during motivator-focused mode */}
       <div 
         className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
-          isVisible && displayMode === 'motivator-focused' 
-            ? 'opacity-100' 
-            : displayMode === 'timer-focused' && isVisible
-            ? 'opacity-30'
-            : 'opacity-0'
+          displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1 }}
       >
@@ -118,9 +114,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
             backgroundImage: `url(${currentMotivator?.imageUrl})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: displayMode === 'motivator-focused' 
-              ? 'brightness(0.9) saturate(1.1) contrast(1.05)' 
-              : 'blur(1px) brightness(0.5) saturate(1.2)',
+            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
           }}
         />
         
@@ -128,10 +122,8 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         <div 
           className="absolute inset-0"
           style={{
-            background: displayMode === 'motivator-focused'
-              ? `radial-gradient(circle at 50% 50%, transparent 40%, hsla(var(--ceramic-base), 0.15) 100%)`
-              : `radial-gradient(circle at 40% 40%, hsla(var(--ceramic-base), 0.7), hsla(var(--ceramic-plate), 0.5) 70%, transparent 100%)`,
-            mixBlendMode: displayMode === 'motivator-focused' ? 'multiply' : 'overlay'
+            background: `radial-gradient(circle at 50% 50%, transparent 40%, hsla(var(--ceramic-base), 0.15) 100%)`,
+            mixBlendMode: 'multiply'
           }}
         />
       </div>
@@ -153,13 +145,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         </div>
       )}
 
-      {/* Overlay for timer-focused mode */}
-      {displayMode === 'timer-focused' && isVisible && (
-        <div 
-          className="absolute inset-0 bg-gradient-to-br from-ceramic-base/20 to-ceramic-plate/10 rounded-full transition-opacity duration-1000"
-          style={{ zIndex: 6 }}
-        />
-      )}
+      {/* Remove the overlay for timer-focused mode - keep clean ceramic look */}
     </>
   );
 };
