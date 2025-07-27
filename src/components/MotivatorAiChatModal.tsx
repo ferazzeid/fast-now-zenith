@@ -243,8 +243,25 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
     try {
       setIsGeneratingImage(true);
       
-      // Create a prompt for image generation based on the motivator
-      const imagePrompt = `Motivational image representing: ${title}. ${content}. Style: modern, inspiring, high-quality, professional photography.`;
+      // Fetch admin image generation settings
+      let stylePrompt = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_value')
+          .eq('setting_key', 'image_gen_style_prompt')
+          .single();
+        
+        if (settingsData?.setting_value) {
+          stylePrompt = settingsData.setting_value;
+        }
+      } catch (error) {
+        console.log('Using default style prompt as fallback');
+      }
+      
+      // Create a prompt for image generation based on the motivator and admin style
+      const imagePrompt = `${stylePrompt}\n\nSpecific subject: ${title}. ${content}`;
       
       // Generate a filename based on the motivator ID
       const filename = `motivator-${motivatorId}.jpg`;

@@ -65,6 +65,13 @@ interface AIBehaviorSettings {
   }>;
 }
 
+interface ImageGenerationSettings {
+  style_prompt: string;
+  image_model: string;
+  image_size: string;
+  image_quality: string;
+}
+
 const AdminOverview = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [sharedApiKey, setSharedApiKey] = useState('');
@@ -110,6 +117,12 @@ const AdminOverview = () => {
     auto_motivator_triggers: true,
     slideshow_transition_time: 15,
     admin_motivator_templates: []
+  });
+  const [imageGenSettings, setImageGenSettings] = useState<ImageGenerationSettings>({
+    style_prompt: "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.",
+    image_model: "dall-e-3",
+    image_size: "1024x1024",
+    image_quality: "hd"
   });
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -247,7 +260,11 @@ const AdminOverview = () => {
           'ai_slideshow_transition_time',
           'ai_crisis_style',
           'ai_admin_motivator_templates',
-          'ai_response_length'
+          'ai_response_length',
+          'image_gen_style_prompt',
+          'image_gen_model',
+          'image_gen_size',
+          'image_gen_quality'
         ]);
 
       if (aiData) {
@@ -277,6 +294,14 @@ const AdminOverview = () => {
         });
 
         setAiResponseLength(aiMap.ai_response_length || 'medium');
+
+        // Set image generation settings
+        setImageGenSettings({
+          style_prompt: aiMap.image_gen_style_prompt || "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.",
+          image_model: aiMap.image_gen_model || "dall-e-3",
+          image_size: aiMap.image_gen_size || "1024x1024",
+          image_quality: aiMap.image_gen_quality || "hd"
+        });
       }
 
       // Fetch API usage statistics
@@ -655,6 +680,35 @@ const AdminOverview = () => {
       toast({
         title: "Error",
         description: "Failed to save AI behavior settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveImageGenerationSettings = async () => {
+    try {
+      const updates = [
+        { key: 'image_gen_style_prompt', value: imageGenSettings.style_prompt },
+        { key: 'image_gen_model', value: imageGenSettings.image_model },
+        { key: 'image_gen_size', value: imageGenSettings.image_size },
+        { key: 'image_gen_quality', value: imageGenSettings.image_quality }
+      ];
+
+      for (const update of updates) {
+        await supabase
+          .from('shared_settings')
+          .update({ setting_value: update.value })
+          .eq('setting_key', update.key);
+      }
+
+      toast({
+        title: "Success",
+        description: "Image generation settings saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save image generation settings",
         variant: "destructive",
       });
     }
@@ -1151,6 +1205,97 @@ const AdminOverview = () => {
               <p className="text-xs text-muted-foreground">
                 These controls let you fine-tune how the AI detects user needs and provides motivational support.
                 All changes take effect immediately for new conversations.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Image Generation Settings */}
+        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <Image className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Image Generation Settings</h3>
+            </div>
+
+            {/* Style Prompt */}
+            <div className="space-y-3">
+              <Label className="text-warm-text">Style Prompt</Label>
+              <Textarea
+                placeholder="Define the visual style and aesthetic for AI-generated motivator images..."
+                value={imageGenSettings.style_prompt}
+                onChange={(e) => setImageGenSettings(prev => ({ ...prev, style_prompt: e.target.value }))}
+                className="bg-ceramic-base border-ceramic-rim min-h-[120px]"
+              />
+              <div className="text-xs text-muted-foreground">
+                This prompt will be prepended to all motivator image generation requests to ensure consistent style
+              </div>
+            </div>
+
+            {/* Model and Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-warm-text">Image Model</Label>
+                <Select
+                  value={imageGenSettings.image_model}
+                  onValueChange={(value) => setImageGenSettings(prev => ({ ...prev, image_model: value }))}
+                >
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dall-e-3">DALL-E 3 (High Quality)</SelectItem>
+                    <SelectItem value="dall-e-2">DALL-E 2 (Faster)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-warm-text">Image Size</Label>
+                <Select
+                  value={imageGenSettings.image_size}
+                  onValueChange={(value) => setImageGenSettings(prev => ({ ...prev, image_size: value }))}
+                >
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1024x1024">1024x1024 (Square)</SelectItem>
+                    <SelectItem value="1024x1792">1024x1792 (Portrait)</SelectItem>
+                    <SelectItem value="1792x1024">1792x1024 (Landscape)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-warm-text">Image Quality</Label>
+                <Select
+                  value={imageGenSettings.image_quality}
+                  onValueChange={(value) => setImageGenSettings(prev => ({ ...prev, image_quality: value }))}
+                >
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hd">HD (Higher Quality)</SelectItem>
+                    <SelectItem value="standard">Standard (Faster)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button
+              onClick={saveImageGenerationSettings}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Image className="w-4 h-4 mr-2" />
+              Save Image Generation Settings
+            </Button>
+
+            <div className="bg-accent/20 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                These settings control the style and quality of AI-generated images for motivators. 
+                The style prompt is automatically prepended to all image generation requests to ensure consistent visual branding.
               </p>
             </div>
           </div>

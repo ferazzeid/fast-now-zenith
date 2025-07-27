@@ -9,6 +9,7 @@ import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
+import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 
 interface Motivator {
@@ -55,7 +56,25 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
     setIsGeneratingImage(true);
     try {
-      const prompt = `Motivational image for fasting goals: "${title}" - ${content}. Make it inspiring and uplifting for health and wellness journey. Ultra high resolution.`;
+      // Fetch admin image generation settings
+      let stylePrompt = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_value')
+          .eq('setting_key', 'image_gen_style_prompt')
+          .single();
+        
+        if (settingsData?.setting_value) {
+          stylePrompt = settingsData.setting_value;
+        }
+      } catch (error) {
+        console.log('Using default style prompt as fallback');
+      }
+      
+      // Create a prompt for image generation based on the motivator and admin style
+      const prompt = `${stylePrompt}\n\nSpecific subject: ${title}. ${content}`;
       
       const newImageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
       setImageUrl(newImageUrl);
