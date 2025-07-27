@@ -66,7 +66,7 @@ export const ModalAiChat = ({
 
   useEffect(() => {
     if (isOpen && context) {
-      // Add initial context message when modal opens
+      // Add initial context message when modal opens with improved formatting
       const contextMessage: Message = {
         role: 'assistant',
         content: context,
@@ -261,7 +261,7 @@ Then ask if they want to add it to their food log.`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8 flex flex-col p-0">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] mt-4 flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
@@ -284,8 +284,8 @@ Then ask if they want to add it to their food log.`;
           </div>
         </DialogHeader>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Messages with better spacing and scrolling */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[300px] max-h-[400px]">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -298,7 +298,7 @@ Then ask if they want to add it to their food log.`;
               }`}>
                 <div className="flex items-start gap-2">
                   <div className="flex-1">
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
                     {/* Conditional confirmation buttons for food suggestions only */}
                     {message.role === 'assistant' && containsFoodSuggestion(message.content) && (
@@ -323,7 +323,7 @@ Then ask if they want to add it to their food log.`;
                       </div>
                     )}
                     
-                    <p className="text-xs opacity-70 mt-1">
+                    <p className="text-xs opacity-70 mt-2">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
                   </div>

@@ -321,12 +321,14 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
 
 To create a motivator template, I'll need:
 • Template title (clear and inspiring)
-• Detailed description (motivational content)
-• Category (health, appearance, energy, etc.)
+• Detailed description (motivational content)  
+• Category (health, appearance, energy, mental-clarity, spiritual, achievement, social, lifestyle)
 
-Please tell me what kind of motivator template you'd like to create. For example: 'I want to create a health motivator about feeling energetic' or 'Create an appearance template about looking confident'."
+Please tell me what kind of motivator template you'd like to create. For example: 'I want to create a health motivator about feeling energetic' or 'Create an appearance template about looking confident'.
+
+What motivator template would you like to create today?"
           title="Admin Template Creator"
-          systemPrompt="You are an admin template creation assistant. Your role is to help administrators create motivational templates that will be available to all users. When users describe what they want, extract the key information and create a properly formatted template. Always ensure the template has a clear title, motivational description, and appropriate category. Be encouraging and help create inspiring content."
+          systemPrompt="You are an admin template creation assistant helping create motivational templates for all users. When users describe what they want, help them create a well-structured template with a clear title, motivational description, and appropriate category. Always respond in a helpful, encouraging tone and ask clarifying questions if needed. When you have enough information, create the template using the create_admin_template function."
         />
       )}
     </div>
