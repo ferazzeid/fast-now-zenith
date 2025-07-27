@@ -17,6 +17,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [user, loading, navigate]);
 
+  // Always render something consistent to avoid hooks order issues
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -25,8 +26,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
+  // Instead of returning null, return a loading state or redirect immediately
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return <>{children}</>;
