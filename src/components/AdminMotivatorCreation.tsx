@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { Plus, Mic, Image, Save, Trash2 } from 'lucide-react';
+import { Plus, Mic, Image, Save, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { VoiceRecorder } from './VoiceRecorder';
-import { ModernImageUpload } from './ModernImageUpload';
+import { ModalAiChat } from './ModalAiChat';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 // Removed complex validation - using simple form validation
@@ -48,17 +47,16 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
     'lifestyle'
   ];
 
-  const handleVoiceTranscription = (transcription: string) => {
-    // Simple parsing of voice input into title and description
-    const lines = transcription.split('\n').filter(line => line.trim());
-    if (lines.length > 0) {
-      const titleLine = lines[0].trim();
-      const descriptionLine = lines.slice(1).join(' ').trim() || titleLine;
+  const handleAiTemplateResult = (result: any) => {
+    // Handle AI-generated template data
+    if (result && result.arguments) {
+      const { title, description, category } = result.arguments;
       
       setNewTemplate(prev => ({
         ...prev,
-        title: titleLine,
-        description: descriptionLine
+        title: title || prev.title,
+        description: description || prev.description,
+        category: category || prev.category
       }));
     }
     setShowVoiceRecorder(false);
@@ -202,25 +200,64 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
 
           <div className="space-y-2">
             <Label className="text-warm-text">Template Image & Voice Input</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <ModernImageUpload
-                  onImageUpload={handleImageUpload}
-                  onImageRemove={() => setNewTemplate(prev => ({ ...prev, imageUrl: '' }))}
-                  currentImageUrl={newTemplate.imageUrl}
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Voice Button - matching food tracking style */}
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => setShowVoiceRecorder(true)}
-                className="bg-ceramic-plate border-ceramic-rim h-fit mt-2"
+                className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                <Mic className="w-4 h-4 mr-2" />
-                Voice Input
+                <Mic className="w-6 h-6 mb-1" />
+                <span className="text-sm font-medium">Voice</span>
+              </Button>
+              
+              {/* Image Button - matching food tracking style */}
+              <Button
+                type="button"
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      // Handle actual file upload here
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const dataUrl = event.target?.result as string;
+                        handleImageUpload(dataUrl);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  };
+                  input.click();
+                }}
+                className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Image className="w-6 h-6 mb-1" />
+                <span className="text-sm font-medium">Image</span>
               </Button>
             </div>
+            
+            {/* Show uploaded image if exists */}
+            {newTemplate.imageUrl && (
+              <div className="mt-3 relative">
+                <img
+                  src={newTemplate.imageUrl}
+                  alt="Template preview"
+                  className="w-full h-32 object-cover rounded-lg border border-ceramic-rim"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setNewTemplate(prev => ({ ...prev, imageUrl: '' }))}
+                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           <Button
@@ -274,28 +311,23 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
         </Card>
       )}
 
-      {/* Voice Recorder Modal */}
+      {/* AI Chat Modal for Template Creation */}
       {showVoiceRecorder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-ceramic-plate p-6 rounded-lg border border-ceramic-rim max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-warm-text mb-4">Voice Input for Admin Template</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Speak the title and description for your admin motivator template. This will be available to all users.
-            </p>
-            <VoiceRecorder
-              onTranscription={handleVoiceTranscription}
-            />
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowVoiceRecorder(false)}
-                className="bg-ceramic-base border-ceramic-rim"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ModalAiChat
+          isOpen={showVoiceRecorder}
+          onClose={() => setShowVoiceRecorder(false)}
+          onResult={handleAiTemplateResult}
+          context="Hello! I'm here to help you create admin motivator templates that will be available to all users.
+
+To create a motivator template, I'll need:
+• Template title (clear and inspiring)
+• Detailed description (motivational content)
+• Category (health, appearance, energy, etc.)
+
+Please tell me what kind of motivator template you'd like to create. For example: 'I want to create a health motivator about feeling energetic' or 'Create an appearance template about looking confident'."
+          title="Admin Template Creator"
+          systemPrompt="You are an admin template creation assistant. Your role is to help administrators create motivational templates that will be available to all users. When users describe what they want, extract the key information and create a properly formatted template. Always ensure the template has a clear title, motivational description, and appropriate category. Be encouraging and help create inspiring content."
+        />
       )}
     </div>
   );
