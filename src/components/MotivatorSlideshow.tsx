@@ -4,11 +4,12 @@ import { useMotivators } from '@/hooks/useMotivators';
 interface MotivatorSlideshowProps {
   isActive: boolean;
   transitionTime?: number;
+  onModeChange?: (mode: 'timer-focused' | 'motivator-focused') => void;
 }
 
 type DisplayMode = 'timer-focused' | 'motivator-focused';
 
-export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorSlideshowProps) => {
+export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange }: MotivatorSlideshowProps) => {
   const { motivators } = useMotivators();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -28,16 +29,19 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorS
     const startCycle = () => {
       // Start with timer-focused mode
       setDisplayMode('timer-focused');
+      onModeChange?.('timer-focused');
       setIsVisible(true);
 
       // Switch to motivator-focused after 4 seconds
       phaseTimer = setTimeout(() => {
         setDisplayMode('motivator-focused');
+        onModeChange?.('motivator-focused');
       }, 4000);
 
       // Switch back to timer-focused and advance slide after 8 more seconds
       slideTimer = setTimeout(() => {
         setDisplayMode('timer-focused');
+        onModeChange?.('timer-focused');
         setTimeout(() => {
           setCurrentIndex(prev => (prev + 1) % motivatorsWithImages.length);
         }, 1000);
@@ -66,8 +70,8 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorS
 
   const currentMotivator = motivatorsWithImages[currentIndex];
 
-  // Create circular text path for the title
-  const createCircularText = (text: string, radius: number = 110) => {
+  // Create circular text path for the title - positioned away from inner edge
+  const createCircularText = (text: string, radius: number = 130) => {
     const chars = text.split('');
     const angleStep = (2 * Math.PI) / Math.max(chars.length, 20); // Prevent too tight spacing
     
@@ -79,7 +83,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorS
       return (
         <span
           key={index}
-          className="absolute font-medium text-primary/80 text-sm tracking-wide"
+          className="absolute font-medium text-primary/90 text-sm tracking-wide drop-shadow-sm"
           style={{
             transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
             transformOrigin: '50% 50%',
@@ -132,14 +136,14 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15 }: MotivatorS
         />
       </div>
 
-      {/* Circular Title Text */}
+      {/* Circular Title Text - Above plate border */}
       {isVisible && currentMotivator && (
         <div 
           className={`absolute inset-0 transition-all duration-1000 ${
             displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-60'
           }`}
           style={{ 
-            zIndex: 9,
+            zIndex: 15, // Higher than plate border
             animation: displayMode === 'motivator-focused' ? 'spin 60s linear infinite' : 'none'
           }}
         >

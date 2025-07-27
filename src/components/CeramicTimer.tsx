@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { MotivatorSlideshow } from './MotivatorSlideshow';
 
@@ -34,6 +34,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   onToggleCountDirection,
   className
 }) => {
+  const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   // Calculate stroke-dashoffset for progress ring
   const circumference = 2 * Math.PI * 45; // radius of 45px
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -68,7 +69,10 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           {/* Motivator Slideshow - Behind timer when timer-focused, over timer when motivator-focused */}
           {showSlideshow && isActive && (
             <div className="absolute inset-0 rounded-full overflow-hidden">
-              <MotivatorSlideshow isActive={showSlideshow && isActive} />
+              <MotivatorSlideshow 
+                isActive={showSlideshow && isActive} 
+                onModeChange={setMotivatorMode}
+              />
             </div>
           )}
           
@@ -114,7 +118,13 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           </svg>
           
           {/* Timer display */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
+          <div 
+            className={cn(
+              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-1000",
+              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
+            )}
+            style={{ zIndex: 10 }}
+          >
             <div className="text-center space-y-2">
               <div 
                 className={cn(
