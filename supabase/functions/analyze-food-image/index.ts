@@ -66,9 +66,14 @@ serve(async (req) => {
     console.log('Analyzing food image with OpenAI Vision API');
 
     // Prepare the image content for OpenAI
-    const imageContent = imageUrl 
-      ? { type: "image_url", image_url: { url: imageUrl } }
-      : { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageData}` } };
+    let imageContent;
+    if (imageUrl) {
+      // If imageUrl is provided, check if it's a relative path and make it absolute
+      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com${imageUrl}`;
+      imageContent = { type: "image_url", image_url: { url: fullImageUrl } };
+    } else {
+      imageContent = { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageData}` } };
+    }
 
     // Call OpenAI Vision API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {

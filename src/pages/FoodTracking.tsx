@@ -139,12 +139,16 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         return;
       }
 
-      if (data?.nutrition) {
+      if (data?.nutritionData) {
+        const servingSize = data.nutritionData.estimated_serving_size || 100;
+        const calories = (data.nutritionData.calories_per_100g * servingSize) / 100;
+        const carbs = (data.nutritionData.carbs_per_100g * servingSize) / 100;
+        
         setImageAnalysisData({
-          name: data.nutrition.name || '',
-          servingSize: data.nutrition.serving_size?.toString() || '',
-          calories: data.nutrition.calories?.toString() || '',
-          carbs: data.nutrition.carbs?.toString() || '',
+          name: data.nutritionData.name || '',
+          servingSize: servingSize.toString(),
+          calories: (Math.round(calories * 100) / 100).toString(),
+          carbs: (Math.round(carbs * 100) / 100).toString(),
           imageUrl: url
         });
         setShowImageAnalysis(true);
@@ -184,10 +188,51 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       return;
     }
 
+    let calories = parseFloat(manualEntryData.calories) || 0;
+    let carbs = parseFloat(manualEntryData.carbs) || 0;
+
+    // If calories or carbs are missing, get them from AI
+    if (calories === 0 || carbs === 0) {
+      try {
+        const { data, error } = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a nutrition expert. Provide nutritional information for foods. Return only a JSON object with calories_per_100g and carbs_per_100g as numbers.'
+              },
+              {
+                role: 'user',
+                content: `What are the calories and carbs per 100g for ${manualEntryData.name}? Return only JSON format: {"calories_per_100g": number, "carbs_per_100g": number}`
+              }
+            ]
+          }
+        });
+
+        if (data?.content) {
+          try {
+            const nutritionData = JSON.parse(data.content);
+            const servingGrams = parseFloat(manualEntryData.servingSize);
+            
+            if (calories === 0 && nutritionData.calories_per_100g) {
+              calories = (nutritionData.calories_per_100g * servingGrams) / 100;
+            }
+            if (carbs === 0 && nutritionData.carbs_per_100g) {
+              carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI nutrition response:', parseError);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get AI nutrition data:', error);
+      }
+    }
+
     const result = await addFoodEntry({
       name: manualEntryData.name,
-      calories: parseFloat(manualEntryData.calories) || 0,
-      carbs: parseFloat(manualEntryData.carbs) || 0,
+      calories: Math.round(calories * 100) / 100,
+      carbs: Math.round(carbs * 100) / 100,
       serving_size: parseFloat(manualEntryData.servingSize),
       consumed: false
     });
@@ -225,13 +270,54 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       return;
     }
 
+    let calories = parseFloat(imageAnalysisData.calories) || 0;
+    let carbs = parseFloat(imageAnalysisData.carbs) || 0;
+
+    // If calories or carbs are missing, get them from AI
+    if (calories === 0 || carbs === 0) {
+      try {
+        const { data, error } = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a nutrition expert. Provide nutritional information for foods. Return only a JSON object with calories_per_100g and carbs_per_100g as numbers.'
+              },
+              {
+                role: 'user',
+                content: `What are the calories and carbs per 100g for ${imageAnalysisData.name}? Return only JSON format: {"calories_per_100g": number, "carbs_per_100g": number}`
+              }
+            ]
+          }
+        });
+
+        if (data?.content) {
+          try {
+            const nutritionData = JSON.parse(data.content);
+            const servingGrams = parseFloat(imageAnalysisData.servingSize);
+            
+            if (calories === 0 && nutritionData.calories_per_100g) {
+              calories = (nutritionData.calories_per_100g * servingGrams) / 100;
+            }
+            if (carbs === 0 && nutritionData.carbs_per_100g) {
+              carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI nutrition response:', parseError);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get AI nutrition data:', error);
+      }
+    }
+
     const result = await addFoodEntry({
       name: imageAnalysisData.name,
-      calories: parseFloat(imageAnalysisData.calories) || 0,
-      carbs: parseFloat(imageAnalysisData.carbs) || 0,
+      calories: Math.round(calories * 100) / 100,
+      carbs: Math.round(carbs * 100) / 100,
       serving_size: parseFloat(imageAnalysisData.servingSize),
-      image_url: imageAnalysisData.imageUrl,
-      consumed: false
+      consumed: false,
+      image_url: imageAnalysisData.imageUrl
     });
 
     if (result.error) {
