@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Plus, Save, History, Edit, Trash2, Check, X } from 'lucide-react';
+import { Camera, Plus, Save, History, Edit, Trash2, Check, X, Image, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -238,55 +238,75 @@ const FoodTracking = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        {!showForm && !showLibrary && (
-          <div className="mb-8 space-y-6">
-            {/* Main Action Buttons - Consistent Styling */}
-            <div className="grid grid-cols-3 gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowForm(true)}
-                className="h-16 flex-col space-y-1"
-              >
-                <Plus className="w-5 h-5" />
-                <span className="text-sm">Manual</span>
-              </Button>
-              <CompactImageUpload onImageUpload={handleImageUpload} />
-              <Button 
-                variant="outline" 
-                onClick={() => {/* TODO: Add voice entry */}}
-                className="h-16 flex-col space-y-1"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-                <span className="text-sm">Voice</span>
-              </Button>
-            </div>
-            
-            {/* My Foods - Different styling as suggested */}
-            <Button 
-              variant="secondary" 
-              onClick={() => setShowLibrary(true)}
-              className="w-full h-12 flex items-center justify-center space-x-2"
+        {/* Action Buttons */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <Button
+            onClick={() => setShowForm(true)}
+            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Plus className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Manual</span>
+          </Button>
+          
+          <div className="relative">
+            <Button
+              onClick={() => {
+                // Show gallery/camera options when clicked
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    handleImageUpload(`/api/placeholder/${file.name}`); // Temporary for demo
+                  }
+                };
+                input.click();
+              }}
+              className="h-20 w-full flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-              <span>My Foods Library</span>
+              <div className="flex items-center gap-1 mb-1">
+                <Image className="w-5 h-5" />
+                <span className="text-xs">/</span>
+                <Camera className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-medium">Image</span>
             </Button>
           </div>
-        )}
+          
+          <Button
+            onClick={() => {/* TODO: Add voice entry */}}
+            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Mic className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Voice</span>
+          </Button>
+        </div>
+
+        {/* My Foods Library Button */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => setShowLibrary(!showLibrary)}
+            className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
+          >
+            <svg className="w-5 h-5 mr-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            <span className="text-muted-foreground font-medium">My Foods Library</span>
+          </Button>
+        </div>
 
         {/* Personal Food Library */}
         {showLibrary && (
-          <div className="mb-8">
+          <div className="mb-6 bg-card border border-border rounded-lg p-4">
             <PersonalFoodLibrary
               onSelectFood={handleSelectFromLibrary}
               onClose={() => setShowLibrary(false)}
             />
           </div>
         )}
+
 
         {/* Food Entry Form */}
         {showForm && (

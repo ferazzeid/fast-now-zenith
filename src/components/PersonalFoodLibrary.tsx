@@ -133,7 +133,7 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">My Food Library</h3>
-        <Button variant="ghost" onClick={onClose} size="sm">
+        <Button variant="ghost" onClick={onClose} size="sm" className="h-8 w-8 p-0">
           <X className="w-4 h-4" />
         </Button>
       </div>
@@ -164,27 +164,31 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
       ) : (
         <div className="space-y-2 max-h-80 overflow-y-auto">
           {filteredFoods.map((food) => (
-            <Card key={food.id} className="p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+            <Card key={food.id} className="p-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-lg">🍽️</span>
+                </div>
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium">{food.name}</h4>
+                    <h4 className="font-medium truncate">{food.name}</h4>
                     {food.is_favorite && (
-                      <Heart className="w-4 h-4 text-red-500 fill-current" />
+                      <Heart className="w-3 h-3 text-red-500 fill-current shrink-0" />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {food.calories_per_100g} cal, {food.carbs_per_100g}g carbs per 100g
+                  <p className="text-xs text-muted-foreground">
+                    {food.calories_per_100g} cal • {food.carbs_per_100g}g carbs • per 100g
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleFavorite(food.id, food.is_favorite)}
+                    className="h-8 w-8 p-0"
                   >
-                    <Heart className={`w-4 h-4 ${food.is_favorite ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
+                    <Heart className={`w-3 h-3 ${food.is_favorite ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
                   </Button>
                   
                   <EditLibraryFoodModal 
@@ -196,17 +200,18 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteFood(food.id)}
+                    className="h-8 w-8 p-0"
                   >
-                    <Trash2 className="w-4 h-4 text-muted-foreground" />
+                    <Trash2 className="w-3 h-3 text-muted-foreground" />
                   </Button>
                   
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     onClick={() => onSelectFood(food)}
+                    className="h-8 px-3"
                   >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Use
+                    Add
                   </Button>
                 </div>
               </div>

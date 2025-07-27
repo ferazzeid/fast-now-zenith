@@ -249,14 +249,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
             </span>
           </Button>
           
-          {/* Compact cancel button on right */}
+          {/* Compact cancel button on right with red X */}
           <Button
             onClick={cancelRecording}
             variant="destructive"
             size="lg"
-            className="px-6 h-16"
+            className="w-16 h-16 p-0 flex items-center justify-center"
           >
-            <span className="text-lg font-bold">✕</span>
+            <span className="text-xl font-bold">✕</span>
           </Button>
           
         </div>

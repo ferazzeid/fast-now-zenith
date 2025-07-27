@@ -42,7 +42,7 @@ export const WalkingHistory = () => {
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .is('deleted_at', null) // Only get non-deleted sessions
-          .order('start_time', { ascending: false })
+          .order('created_at', { ascending: false }) // Changed from start_time to created_at for more recent results
           .limit(limit);
 
         if (error) throw error;
