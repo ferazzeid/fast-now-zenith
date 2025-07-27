@@ -8,6 +8,8 @@ import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
+import { ManualFoodEntry } from '@/components/ManualFoodEntry';
+import { ImageFoodAnalysis } from '@/components/ImageFoodAnalysis';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
@@ -24,7 +26,22 @@ const FoodTracking = () => {
   const [consumedNow, setConsumedNow] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [showImageAnalysis, setShowImageAnalysis] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [manualEntryData, setManualEntryData] = useState({
+    name: '',
+    servingSize: '',
+    calories: '',
+    carbs: ''
+  });
+  const [imageAnalysisData, setImageAnalysisData] = useState({
+    name: '',
+    servingSize: '',
+    calories: '',
+    carbs: '',
+    imageUrl: ''
+  });
   const [aiChatContext, setAiChatContext] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
@@ -84,9 +101,18 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     }
   };
 
+  const handleManualEntry = () => {
+    setManualEntryData({
+      name: '',
+      servingSize: '',
+      calories: '',
+      carbs: ''
+    });
+    setShowManualEntry(true);
+  };
+
   const handleImageUpload = async (url: string) => {
     setImageUrl(url);
-    setShowForm(true);
     
     // Auto-analyze the food image
     try {
@@ -96,8 +122,17 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
       if (error) {
         console.error('Food analysis error:', error);
+        // Show manual entry with image but no pre-filled data
+        setImageAnalysisData({
+          name: '',
+          servingSize: '',
+          calories: '',
+          carbs: '',
+          imageUrl: url
+        });
+        setShowImageAnalysis(true);
         toast({
-          title: "Analysis failed",
+          title: "Analysis incomplete",
           description: "Please enter food details manually",
           variant: "destructive"
         });
@@ -105,36 +140,119 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       }
 
       if (data?.nutrition) {
-        setFoodName(data.nutrition.name || '');
-        setCalories(data.nutrition.calories?.toString() || '');
-        setCarbs(data.nutrition.carbs?.toString() || '');
-        setServingSize(data.nutrition.serving_size?.toString() || '100');
+        setImageAnalysisData({
+          name: data.nutrition.name || '',
+          servingSize: data.nutrition.serving_size?.toString() || '',
+          calories: data.nutrition.calories?.toString() || '',
+          carbs: data.nutrition.carbs?.toString() || '',
+          imageUrl: url
+        });
+        setShowImageAnalysis(true);
         
         toast({
           title: "Food analyzed!",
-          description: "Check the details and adjust if needed"
+          description: "Review the details and adjust if needed"
         });
       }
     } catch (error) {
       console.error('Analysis error:', error);
-      // FIXED: Better error handling for food image analysis
-      let errorMessage = "Please enter food details manually";
-      if (error instanceof Error) {
-        if (error.message.includes('OpenAI API key')) {
-          errorMessage = "OpenAI API key required in Settings";
-        } else if (error.message.includes('not authenticated')) {
-          errorMessage = "Please sign in to use image analysis";
-        } else if (error.message.includes('Invalid nutrition data')) {
-          errorMessage = "Could not recognize this food. Try a clearer image or enter manually";
-        } else {
-          errorMessage = `Analysis failed: ${error.message}`;
-        }
-      }
+      // Show manual entry with image but no pre-filled data
+      setImageAnalysisData({
+        name: '',
+        servingSize: '',
+        calories: '',
+        carbs: '',
+        imageUrl: url
+      });
+      setShowImageAnalysis(true);
       
       toast({
-        title: "Image Analysis Failed", 
-        description: errorMessage,
+        title: "Analysis failed", 
+        description: "Please enter food details manually",
         variant: "destructive"
+      });
+    }
+  };
+
+  const handleSaveManualEntry = async () => {
+    if (!manualEntryData.name.trim() || !manualEntryData.servingSize.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing required information",
+        description: "Please enter food name and serving size"
+      });
+      return;
+    }
+
+    const result = await addFoodEntry({
+      name: manualEntryData.name,
+      calories: parseFloat(manualEntryData.calories) || 0,
+      carbs: parseFloat(manualEntryData.carbs) || 0,
+      serving_size: parseFloat(manualEntryData.servingSize),
+      consumed: false
+    });
+
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Food added successfully!",
+        description: `${manualEntryData.name} has been added to your food plan`
+      });
+      setShowManualEntry(false);
+      
+      // Save to personal library
+      await saveToLibrary({
+        name: manualEntryData.name,
+        calories: parseFloat(manualEntryData.calories) || 0,
+        carbs: parseFloat(manualEntryData.carbs) || 0,
+        serving_size: parseFloat(manualEntryData.servingSize)
+      });
+    }
+  };
+
+  const handleSaveImageAnalysis = async () => {
+    if (!imageAnalysisData.name.trim() || !imageAnalysisData.servingSize.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing required information",
+        description: "Please enter food name and serving size"
+      });
+      return;
+    }
+
+    const result = await addFoodEntry({
+      name: imageAnalysisData.name,
+      calories: parseFloat(imageAnalysisData.calories) || 0,
+      carbs: parseFloat(imageAnalysisData.carbs) || 0,
+      serving_size: parseFloat(imageAnalysisData.servingSize),
+      image_url: imageAnalysisData.imageUrl,
+      consumed: false
+    });
+
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Food added successfully!",
+        description: `${imageAnalysisData.name} has been added to your food plan`
+      });
+      setShowImageAnalysis(false);
+      
+      // Save to personal library
+      await saveToLibrary({
+        name: imageAnalysisData.name,
+        calories: parseFloat(imageAnalysisData.calories) || 0,
+        carbs: parseFloat(imageAnalysisData.carbs) || 0,
+        serving_size: parseFloat(imageAnalysisData.servingSize)
       });
     }
   };
@@ -366,16 +484,18 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </TooltipProvider>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Reordered: Voice, Image, Manual */}
         <div className="grid grid-cols-3 gap-3 mb-6">
+          {/* Voice - 1st */}
           <Button
-            onClick={() => setShowForm(true)}
+            onClick={handleVoiceFood}
             className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            <Plus className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Manual</span>
+            <Mic className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Voice</span>
           </Button>
           
+          {/* Image - 2nd */}
           <div className="relative">
             <Button
               onClick={() => {
@@ -402,12 +522,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </Button>
           </div>
           
+          {/* Manual - 3rd */}
           <Button
-            onClick={handleVoiceFood}
+            onClick={handleManualEntry}
             className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            <Mic className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Voice</span>
+            <Plus className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Manual</span>
           </Button>
         </div>
 
@@ -575,6 +696,24 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
           </div>
         )}
+
+        {/* Manual Food Entry Modal */}
+        <ManualFoodEntry
+          isOpen={showManualEntry}
+          onClose={() => setShowManualEntry(false)}
+          onSave={handleSaveManualEntry}
+          data={manualEntryData}
+          onDataChange={setManualEntryData}
+        />
+
+        {/* Image Food Analysis Modal */}
+        <ImageFoodAnalysis
+          isOpen={showImageAnalysis}
+          onClose={() => setShowImageAnalysis(false)}
+          onSave={handleSaveImageAnalysis}
+          data={imageAnalysisData}
+          onDataChange={setImageAnalysisData}
+        />
 
         {/* AI Chat Modal */}
         <ModalAiChat
