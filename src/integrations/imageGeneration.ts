@@ -19,7 +19,18 @@ export const generateImage = async (prompt: string, filename: string): Promise<s
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase function error details:', {
+        message: error.message,
+        context: error.context,
+        details: error.details
+      });
+      throw new Error(`Edge function error: ${error.message || 'Unknown error'}`);
+    }
+
+    if (!data || !data.imageUrl) {
+      throw new Error('No image URL returned from edge function');
+    }
     
     return data.imageUrl;
   } catch (error) {

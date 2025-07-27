@@ -8,15 +8,25 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Image generation function called:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { prompt, filename, apiKey } = await req.json();
+    const body = await req.json();
+    console.log('Request body received:', { 
+      hasPrompt: !!body.prompt, 
+      hasFilename: !!body.filename,
+      hasApiKey: !!body.apiKey 
+    });
+
+    const { prompt, filename, apiKey } = body;
 
     if (!prompt || !filename) {
+      console.error('Missing required fields:', { prompt: !!prompt, filename: !!filename });
       return new Response(
         JSON.stringify({ error: 'Missing prompt or filename' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -26,13 +36,14 @@ serve(async (req) => {
     // Use provided API key or fall back to environment variable
     const openAIApiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
+      console.error('No OpenAI API key available');
       return new Response(
         JSON.stringify({ error: 'OpenAI API key not provided' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Generating image with prompt:', prompt);
+    console.log('Generating image with prompt length:', prompt.length);
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -50,6 +61,8 @@ serve(async (req) => {
       }),
     });
 
+    console.log('OpenAI response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json();
       console.error('OpenAI API error:', errorData);
@@ -61,6 +74,7 @@ serve(async (req) => {
 
     const data = await response.json();
     const imageBase64 = data.data[0].b64_json;
+    console.log('Image generated successfully, uploading to storage...');
 
     // Convert base64 to blob for upload
     const imageBlob = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
@@ -92,7 +106,7 @@ serve(async (req) => {
       .from('motivator-images')
       .getPublicUrl(filename);
 
-    console.log('Image generated and uploaded successfully:', urlData.publicUrl);
+    console.log('Image uploaded successfully:', urlData.publicUrl);
 
     return new Response(
       JSON.stringify({ imageUrl: urlData.publicUrl }),
