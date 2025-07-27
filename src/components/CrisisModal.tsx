@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart, Target, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useAuth } from '@/hooks/useAuth';
 import { useFastingContext } from '@/hooks/useFastingContext';
@@ -157,9 +157,14 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
     generateCrisisIntervention();
   };
 
+  // Add debug logging
+  console.log('CrisisModal render:', { isOpen, loading, aiResponse: !!aiResponse });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-red-950/95 border-red-800 text-white backdrop-blur-sm z-[100]">
+      <DialogPortal>
+        <DialogOverlay className="fixed inset-0 z-[100] bg-black/90 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogContent className="fixed left-[50%] top-[50%] z-[101] translate-x-[-50%] translate-y-[-50%] w-full max-w-md bg-red-950/95 border-red-800 text-white backdrop-blur-sm shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg">
         <VisuallyHidden>
           <DialogTitle>Crisis Intervention</DialogTitle>
           <DialogDescription>Emergency motivational support during difficult moments</DialogDescription>
@@ -220,7 +225,8 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
             <X className="w-4 h-4" />
           </Button>
         </div>
-      </DialogContent>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 };
