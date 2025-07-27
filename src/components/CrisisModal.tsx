@@ -121,16 +121,35 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
         }
       });
 
-      if (response.data?.response) {
-        setAiResponse(response.data.response);
+      console.log('Crisis AI response:', { 
+        hasData: !!response.data, 
+        response: response.data?.response, 
+        error: response.error,
+        fullResponse: response.data 
+      });
+
+      // Check for AI response in multiple possible formats
+      const aiText = response.data?.response || 
+                   response.data?.message?.content || 
+                   response.data?.choices?.[0]?.message?.content;
+
+      if (aiText) {
+        setAiResponse(aiText);
       } else {
+        console.error('No AI response found in:', response.data);
         throw new Error('No response from AI');
       }
     } catch (error) {
       console.error('Error generating crisis intervention:', error);
       setAiResponse(generateFallbackMessage());
+      toast({
+        title: "AI Response Failed",
+        description: "Using fallback message instead",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      // Add minimum display time so users can see the modal
+      setTimeout(() => setLoading(false), 1000);
     }
   };
 

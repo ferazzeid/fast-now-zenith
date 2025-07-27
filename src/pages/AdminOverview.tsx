@@ -2066,7 +2066,9 @@ const AdminOverview = () => {
                   <img src={currentFaviconUrl} alt="Current favicon" className="w-8 h-8 rounded" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-green-700 dark:text-green-300">✓ Favicon saved</p>
-                    <p className="text-xs text-green-600 dark:text-green-400 truncate">{currentFaviconUrl}</p>
+                     <p className="text-xs text-green-600 dark:text-green-400 truncate max-w-[200px]" title={currentFaviconUrl}>
+                       {currentFaviconUrl.split('/').pop() || 'favicon'}
+                     </p>
                   </div>
                   <Button
                     variant="outline"
@@ -2118,7 +2120,9 @@ const AdminOverview = () => {
                   <img src={currentAppIconUrl} alt="Current app icon" className="w-12 h-12 rounded-lg" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-green-700 dark:text-green-300">✓ App icon saved</p>
-                    <p className="text-xs text-green-600 dark:text-green-400 truncate">{currentAppIconUrl}</p>
+                     <p className="text-xs text-green-600 dark:text-green-400 truncate max-w-[200px]" title={currentAppIconUrl}>
+                       {currentAppIconUrl.split('/').pop() || 'app-icon'}
+                     </p>
                   </div>
                   <Button
                     variant="outline"
