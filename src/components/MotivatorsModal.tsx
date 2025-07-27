@@ -44,6 +44,13 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
 
   const handleSaveMotivator = async (updatedMotivator) => {
     try {
+      console.log('Updating motivator with ID:', updatedMotivator.id, 'Type:', typeof updatedMotivator.id);
+      
+      // Ensure we have a valid UUID
+      if (!updatedMotivator.id || typeof updatedMotivator.id !== 'string') {
+        throw new Error('Invalid motivator ID');
+      }
+      
       await updateMotivator(updatedMotivator.id, {
         title: updatedMotivator.title,
         content: updatedMotivator.content,
@@ -53,9 +60,10 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
       setEditingMotivator(null);
       refreshMotivators();
     } catch (error) {
+      console.error('Error updating motivator:', error);
       toast({
-        title: "Error",
-        description: "Failed to update motivator",
+        title: "Error updating motivator",
+        description: error.message || "Failed to update motivator",
         variant: "destructive"
       });
     }

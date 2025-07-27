@@ -86,12 +86,13 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     }
 
     const motivatorData: Motivator = {
-      ...(motivator?.id && { id: motivator.id }),
+      id: motivator?.id || '', // Ensure ID is always included for editing
       title: title.trim(),
       content: content.trim(),
       imageUrl: imageUrl || undefined
     };
 
+    console.log('MotivatorFormModal: Saving motivator data:', motivatorData);
     onSave(motivatorData);
   };
 
