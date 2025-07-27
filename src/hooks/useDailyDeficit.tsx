@@ -76,23 +76,41 @@ export const useDailyDeficit = () => {
             2: 2.5, 3: 3.5, 4: 5.0, 5: 6.0
           };
           const met = metValues[Math.round(speedMph)] || 3.5;
-          const weightKg = profile.weight * 0.453592;
+          // Use consistent weight handling
+          const weightKg = profile.units === 'metric' ? profile.weight : profile.weight * 0.453592;
           const calories = Math.round(met * weightKg * (durationMinutes / 60));
           totalCalories += calories;
         }
       }
       
-      // Add current active session calories
+      // Add current active session calories with pause time handling
       if (walkingSession?.session_state === 'active' && profile.weight) {
         const currentDuration = (Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60);
+        // Subtract pause time for accurate calculation
+        const pauseTime = walkingSession.total_pause_duration || 0;
+        const activeDuration = Math.max(0, currentDuration - (pauseTime / 60));
+        
         const speedMph = walkingSession.speed_mph || 3;
         const metValues: { [key: number]: number } = {
           2: 2.5, 3: 3.5, 4: 5.0, 5: 6.0
         };
         const met = metValues[Math.round(speedMph)] || 3.5;
-        const weightKg = profile.weight * 0.453592;
-        const currentCalories = Math.round(met * weightKg * (currentDuration / 60));
+        
+        // Use consistent weight handling
+        const weightKg = profile.units === 'metric' ? profile.weight : profile.weight * 0.453592;
+        const currentCalories = Math.round(met * weightKg * (activeDuration / 60));
         totalCalories += currentCalories;
+        
+        console.log('Active session calories calculation:', {
+          currentDuration,
+          pauseTime,
+          activeDuration,
+          speedMph,
+          met,
+          weightKg,
+          currentCalories,
+          totalCalories
+        });
       }
       
       return totalCalories;
@@ -151,16 +169,16 @@ export const useDailyDeficit = () => {
     }
   }, [profile, todayTotals, calculateWalkingCaloriesForDay, calculateFastingBonus, user?.id]);
 
-  // Throttled calculation - only recalculate every 30 seconds if walking is active
+  // Real-time calculation - recalculate every 10 seconds if walking is active
   useEffect(() => {
     if (profile && user) {
       calculateDeficit();
       
-      // Set up interval for active walking sessions only
+      // Set up interval for active walking sessions only - more frequent updates
       if (walkingSession?.session_state === 'active') {
         const interval = setInterval(() => {
           calculateDeficit();
-        }, 30000); // 30 seconds
+        }, 10000); // 10 seconds for better real-time accuracy
         
         return () => clearInterval(interval);
       }

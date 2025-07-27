@@ -25,41 +25,26 @@ export const useConversations = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Load conversations from database
-  const loadConversations = async () => {
+  // Load conversations from database with pagination
+  const loadConversations = async (limit: number = 20) => {
     if (!user) return;
     
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('chat_conversations')
-        .select('*')
+        .select('id, title, last_message_at, created_at')
         .eq('user_id', user.id)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false })
+        .limit(limit);
 
       if (error) throw error;
       
-      // Transform the data to match our interface
-      const transformedData = (data || []).map(conv => {
-        let messages: Message[] = [];
-        try {
-          if (typeof conv.messages === 'string') {
-            messages = JSON.parse(conv.messages);
-          } else if (Array.isArray(conv.messages)) {
-            messages = conv.messages as any[];
-          }
-        } catch (e) {
-          console.error('Error parsing messages:', e);
-        }
-        
-        return {
-          ...conv,
-          messages: messages.map(msg => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        };
-      });
+      // Transform the data to match our interface (without messages for list view)
+      const transformedData = (data || []).map(conv => ({
+        ...conv,
+        messages: [] // Load messages separately when conversation is selected
+      }));
       
       setConversations(transformedData);
     } catch (error) {
@@ -72,6 +57,51 @@ export const useConversations = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Load messages for a specific conversation with truncation
+  const loadConversationMessages = async (conversationId: string): Promise<Message[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .select('messages')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+
+      let messages: Message[] = [];
+      try {
+        if (typeof data.messages === 'string') {
+          messages = JSON.parse(data.messages);
+        } else if (Array.isArray(data.messages)) {
+          messages = data.messages as any[];
+        }
+      } catch (e) {
+        console.error('Error parsing messages:', e);
+        return [];
+      }
+
+      // Transform timestamps and truncate to last 20 messages
+      const transformedMessages = messages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+
+      return transformedMessages.slice(-20); // Only keep last 20 messages
+    } catch (error) {
+      console.error('Error loading conversation messages:', error);
+      return [];
+    }
+  };
+
+  // Get conversation history for AI (last 15 messages only)
+  const getConversationHistory = (conversationId: string): Message[] => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation || !conversation.messages) return [];
+    
+    // Return only last 15 messages to reduce API costs
+    return conversation.messages.slice(-15);
   };
 
   // Create new conversation
@@ -212,14 +242,32 @@ export const useConversations = () => {
     }
   }, [user]);
 
+  // Enhanced setCurrentConversation to load messages
+  const setCurrentConversationWithMessages = async (conversation: Conversation | null) => {
+    if (conversation && conversation.messages.length === 0) {
+      // Load messages for this conversation
+      const messages = await loadConversationMessages(conversation.id);
+      const conversationWithMessages = { ...conversation, messages };
+      setCurrentConversation(conversationWithMessages);
+      
+      // Update the conversation in the list as well
+      setConversations(prev => 
+        prev.map(c => c.id === conversation.id ? conversationWithMessages : c)
+      );
+    } else {
+      setCurrentConversation(conversation);
+    }
+  };
+
   return {
     conversations,
     currentConversation,
     loading,
-    setCurrentConversation,
+    setCurrentConversation: setCurrentConversationWithMessages,
     createConversation,
     addMessage,
     deleteConversation,
-    loadConversations
+    loadConversations,
+    getConversationHistory
   };
 };

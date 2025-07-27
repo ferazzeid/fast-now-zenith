@@ -242,50 +242,8 @@ Important: Always ask for confirmation before taking actions like starting walki
       }
     ];
 
-    // Add admin-only functions if user is admin
-    if (isAdmin) {
-      functions.push(
-        {
-          name: 'save_admin_note',
-          description: 'Save an admin note for bug reports, feature suggestions, or development observations',
-          parameters: {
-            type: 'object',
-            properties: {
-              content: {
-                type: 'string',
-                description: 'The note content describing a bug, suggestion, or observation'
-              },
-              category: {
-                type: 'string',
-                enum: ['bug', 'improvement', 'feature', 'observation', 'general'],
-                description: 'The category of the note'
-              },
-              priority: {
-                type: 'string',
-                enum: ['low', 'medium', 'high', 'critical'],
-                description: 'Priority level of the note'
-              }
-            },
-            required: ['content', 'category', 'priority']
-          }
-        },
-        {
-          name: 'get_admin_notes',
-          description: 'Retrieve all saved admin notes for review and implementation planning',
-          parameters: {
-            type: 'object',
-            properties: {
-              category: {
-                type: 'string',
-                enum: ['bug', 'improvement', 'feature', 'observation', 'general', 'all'],
-                description: 'Filter notes by category, or "all" for all notes'
-              }
-            },
-            required: []
-          }
-        }
-      );
-    }
+    // Remove admin functions from being sent to OpenAI to reduce costs
+    // Admin notes are excluded from AI context for performance
 
     // Send to OpenAI Chat Completions API
     console.log('Sending request to OpenAI');

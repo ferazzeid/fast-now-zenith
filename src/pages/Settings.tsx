@@ -752,6 +752,51 @@ const Settings = () => {
                 </div>
               </div>
               
+              {/* Activity Level Selector */}
+              <div className="space-y-2">
+                <Label htmlFor="activityLevel" className="text-warm-text">Activity Level</Label>
+                <Select value={activityLevel} onValueChange={setActivityLevel}>
+                  <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                    <SelectValue placeholder="Select your activity level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sedentary">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Sedentary</span>
+                        <span className="text-xs text-muted-foreground">Little or no exercise</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="lightly_active">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Lightly Active</span>
+                        <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="moderately_active">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Moderately Active</span>
+                        <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="very_active">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Very Active</span>
+                        <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="extremely_active">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Extremely Active</span>
+                        <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  This affects your base daily calorie burn (TDEE) calculation
+                </p>
+              </div>
+              
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>

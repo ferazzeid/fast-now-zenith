@@ -230,12 +230,15 @@ export const DailyStatsPanel = () => {
                           <Info className="w-3 h-3 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Extra calories burned from walking today</p>
+                          <p>Total calories burned from walking today (includes active sessions)</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
                     <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                       {formatNumber(deficitData.walkingCalories)} cal
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      All walking sessions today
                     </div>
                   </Card>
                 </div>

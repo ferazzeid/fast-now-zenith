@@ -84,28 +84,29 @@ const AiChat = () => {
     setIsProcessing(true);
 
     try {
-      // Build enhanced context with fasting and walking data
-      const enhancedHistory = [...conversationHistory];
+      // Use truncated conversation history to reduce API costs
+      const enhancedHistory = conversationHistory.slice(-15); // Keep last 15 messages only
       
-      // Add comprehensive context to system understanding
+      // Add minimal context to reduce token usage
       const contextParts = [];
       
-      if (fastingContext) {
-        contextParts.push(`Fasting data: ${buildFastingContext(fastingContext)}`);
+      if (walkingContext && walkingContext.isCurrentlyWalking) {
+        contextParts.push(`Currently walking: ${walkingContext.currentWalkingDuration} min`);
       }
       
-      if (walkingContext) {
-        contextParts.push(`Walking data: ${buildWalkingContext(walkingContext)}`);
+      if (fastingContext && fastingContext.isCurrentlyFasting) {
+        contextParts.push(`Currently fasting: ${fastingContext.currentFastDuration}h`);
       }
       
-      if (foodContext) {
-        contextParts.push(`Nutrition data: ${buildFoodContext(foodContext)}`);
+      if (foodContext && foodContext.todayCalories > 0) {
+        contextParts.push(`Today: ${foodContext.todayCalories} cal`);
       }
       
+      // Only add context if really needed
       if (contextParts.length > 0) {
         enhancedHistory.unshift({
           role: 'system',
-          content: `User context: ${contextParts.join(' ')}`
+          content: `Context: ${contextParts.join(', ')}`
         });
       }
 
