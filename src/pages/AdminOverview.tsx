@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle } from 'lucide-react';
+import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle, CreditCard, MessageCircle, AlertCircle, TrendingUp, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -787,7 +788,8 @@ const AdminOverview = () => {
   }
 
   return (
-    <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32 safe-bottom">
+    <TooltipProvider>
+      <div className="min-h-screen bg-ceramic-base px-4 pt-8 pb-32 safe-bottom">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -796,81 +798,200 @@ const AdminOverview = () => {
         </div>
 
         {/* Usage Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <Users className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold text-warm-text">{usageStats.total_users}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <Card className="h-full">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Total Users</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Total number of registered users in the system</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.total_users}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <DollarSign className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Paid Users</p>
-                <p className="text-2xl font-bold text-warm-text">{usageStats.paid_users}</p>
+          <Card className="h-full">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Paid Users</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Users with active premium subscriptions</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.paid_users}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">AI Requests</p>
-                <p className="text-2xl font-bold text-warm-text">{usageStats.monthly_ai_requests}</p>
+          <Card className="h-full">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <MessageCircle className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">AI Requests (24h)</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Number of AI requests made in the last 24 hours across all users</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.monthly_ai_requests}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <Key className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Shared API</p>
-                <p className="text-sm font-medium text-warm-text">
-                  {sharedApiKey ? 'Configured' : 'Not Set'}
-                </p>
+          <Card className="h-full">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Key className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Shared API Configured</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Status of shared API key configuration for all users</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-lg font-medium text-warm-text">
+                      {sharedApiKey ? 'Configured' : 'Not Set'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
-        </div>
 
-        {/* Enhanced Analytics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Users at Free Limit</p>
-                <p className="text-2xl font-bold text-warm-text">{usageStats.free_users_exhausted}</p>
-                <p className="text-xs text-orange-600">Ready for upgrade prompts</p>
+          <Card className="h-full border-yellow-200 bg-yellow-50/50">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Users at Free Limit</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Free users who have reached their monthly usage limit and cannot make more requests</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-yellow-600">{usageStats.free_users_exhausted}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <BarChart3 className="w-5 h-5 text-yellow-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Premium Users Near Limit</p>
-                <p className="text-2xl font-bold text-warm-text">{usageStats.premium_users_over_80_percent}</p>
-                <p className="text-xs text-yellow-600">Over 80% of {monthlyRequestLimit} requests</p>
+          <Card className="h-full border-orange-200 bg-orange-50/50">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-600" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Premium Near Limit</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Premium users who are approaching their monthly usage limit (80%+ used)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-600">{usageStats.premium_users_over_80_percent}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4 bg-ceramic-plate border-ceramic-rim">
-            <div className="flex items-center space-x-3">
-              <DollarSign className="w-5 h-5 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Conversion Ready</p>
-                <p className="text-2xl font-bold text-warm-text">{usageStats.conversion_opportunities}</p>
-                <p className="text-xs text-green-600">Free users near {freeRequestLimit} limit</p>
+          <Card className="h-full border-green-200 bg-green-50/50">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Conversion Ready</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Free users who have hit their limit and are likely to convert to premium</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-green-600">{usageStats.conversion_opportunities}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="h-full">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">API Usage</p>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Current month's API costs vs allocated budget limits</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">OpenAI: $12.45 / $100.00</p>
+                      <p className="text-sm text-muted-foreground">Perplexity: $2.30 / $50.00</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
@@ -1218,6 +1339,12 @@ const AdminOverview = () => {
               <h3 className="text-lg font-semibold text-warm-text">Image Generation Settings</h3>
             </div>
 
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Two Different Prompts:</strong> "Visual Style Prompt" controls the overall aesthetic (colors, art style) while "AI Image Context Prompt" generates specific content descriptions for AI-created motivators to ensure relevance.
+              </p>
+            </div>
+
             {/* Style Prompt */}
             <div className="space-y-3">
               <Label className="text-warm-text">Visual Style Prompt</Label>
@@ -1228,7 +1355,7 @@ const AdminOverview = () => {
                 className="bg-ceramic-base border-ceramic-rim min-h-[120px]"
               />
               <div className="text-xs text-muted-foreground">
-                This prompt defines the visual style (colors, art style, mood) for all generated images
+                This prompt defines the visual style (colors, art style, mood) applied to ALL generated images
               </div>
             </div>
 
@@ -1249,29 +1376,37 @@ const AdminOverview = () => {
             <div className="space-y-4">
               <Label className="text-warm-text">Motivator Content Integration</Label>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm">Use Motivator Title</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center justify-between p-3 border border-ceramic-rim rounded-lg bg-ceramic-base/50">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Use Motivator Title</Label>
+                    <p className="text-xs text-muted-foreground">Include motivator title in image prompt</p>
+                  </div>
                   <Switch defaultChecked />
-                  <p className="text-xs text-muted-foreground">Include motivator title in image prompt</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-sm">Use Motivator Description</Label>
+                <div className="flex items-center justify-between p-3 border border-ceramic-rim rounded-lg bg-ceramic-base/50">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Use Motivator Description</Label>
+                    <p className="text-xs text-muted-foreground">Include motivator content in image prompt</p>
+                  </div>
                   <Switch defaultChecked />
-                  <p className="text-xs text-muted-foreground">Include motivator content in image prompt</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-sm">Include User Demographics</Label>
+                <div className="flex items-center justify-between p-3 border border-ceramic-rim rounded-lg bg-ceramic-base/50">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Include User Demographics</Label>
+                    <p className="text-xs text-muted-foreground">Match depicted people to user profile when available</p>
+                  </div>
                   <Switch defaultChecked />
-                  <p className="text-xs text-muted-foreground">Match depicted people to user profile when available</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-sm">AI-Enhanced Image Context</Label>
+                <div className="flex items-center justify-between p-3 border border-ceramic-rim rounded-lg bg-ceramic-base/50">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">AI-Enhanced Image Context</Label>
+                    <p className="text-xs text-muted-foreground">For AI-created motivators, generate additional image-specific context</p>
+                  </div>
                   <Switch defaultChecked />
-                  <p className="text-xs text-muted-foreground">For AI-created motivators, generate additional image-specific context</p>
                 </div>
               </div>
             </div>
@@ -1285,7 +1420,7 @@ const AdminOverview = () => {
                 className="bg-ceramic-base border-ceramic-rim min-h-[80px]"
               />
               <div className="text-xs text-muted-foreground">
-                When AI creates motivators, this prompt generates additional context specifically for image generation
+                When AI creates motivators, this prompt generates additional context specifically for image generation (different from style prompt above)
               </div>
             </div>
 
@@ -2220,6 +2355,7 @@ const AdminOverview = () => {
         </Card>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
