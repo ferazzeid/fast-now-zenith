@@ -244,8 +244,8 @@ export const WalkingTimer = ({
             </Button>
             <Button 
               onClick={onStop}
-              variant="destructive"
-              className="flex-1 h-14 text-lg font-medium"
+              variant="secondary"
+              className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground"
               size="lg"
             >
               <Square className="w-6 h-6 mr-2" />

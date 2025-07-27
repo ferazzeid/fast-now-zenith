@@ -207,6 +207,26 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
     }
   };
 
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      // Stop recording without processing
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      stopAudioLevelMonitoring();
+      
+      // Clean up streams
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      
+      toast({
+        title: "Recording cancelled",
+        description: "Your voice message was not sent",
+      });
+    }
+  };
+
   const toggleRecording = () => {
     if (isRecording) {
       stopRecording();
@@ -217,44 +237,48 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
 
   return (
     <div className="space-y-2">
-      <Button
-        onClick={toggleRecording}
-        disabled={isDisabled || isProcessing}
-        variant={isRecording ? "destructive" : "default"}
-        size="lg"
-        className="relative w-full max-w-xs"
-      >
-        {isProcessing ? (
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
-        ) : isRecording ? (
-          <MicOff className="h-5 w-5" />
-        ) : (
-          <Mic className="h-5 w-5" />
-        )}
-        <span className="ml-2">
-          {isProcessing ? "Processing..." : isRecording ? "Send Message" : "Record Message"}
-        </span>
-        {isRecording && (
-          <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
-        )}
-      </Button>
-      
-      {/* Voice Level Indicator */}
-      {isRecording && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <span>Level:</span>
-            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary transition-all duration-75"
-                style={{ width: `${audioLevel * 100}%` }}
-              />
-            </div>
-          </div>
-          {noiseDetected && (
-            <span className="text-yellow-600 dark:text-yellow-400">⚠ Noise detected</span>
-          )}
+      {isRecording ? (
+        <div className="space-y-2">
+          {/* Cancel button when recording */}
+          <Button
+            onClick={cancelRecording}
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            ✕ Cancel Recording
+          </Button>
+          
+          {/* Send message button */}
+          <Button
+            onClick={toggleRecording}
+            disabled={isDisabled || isProcessing}
+            variant="destructive"
+            size="lg"
+            className="relative w-full max-w-xs"
+          >
+            {isProcessing ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
+            ) : (
+              <MicOff className="h-5 w-5" />
+            )}
+            <span className="ml-2">
+              {isProcessing ? "Processing..." : "Send Message"}
+            </span>
+            <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+          </Button>
         </div>
+      ) : (
+        <Button
+          onClick={toggleRecording}
+          disabled={isDisabled || isProcessing}
+          variant="default"
+          size="lg"
+          className="relative w-full max-w-xs"
+        >
+          <Mic className="h-5 w-5" />
+          <span className="ml-2">Record Message</span>
+        </Button>
       )}
     </div>
   );
