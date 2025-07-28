@@ -18,7 +18,7 @@ export const useColorTheme = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['primary_color', 'secondary_color', 'accent_color']);
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color']);
 
       if (error) {
         console.error('Error loading color settings:', error);
@@ -27,7 +27,14 @@ export const useColorTheme = () => {
 
       const settings: ColorSettings = {};
       data?.forEach(setting => {
-        settings[setting.setting_key as keyof ColorSettings] = setting.setting_value;
+        // Map the database keys to our interface keys
+        if (setting.setting_key === 'brand_primary_color') {
+          settings.primary_color = setting.setting_value;
+        } else if (setting.setting_key === 'brand_primary_hover') {
+          settings.secondary_color = setting.setting_value;
+        } else if (setting.setting_key === 'brand_accent_color') {
+          settings.accent_color = setting.setting_value;
+        }
       });
 
       setColorSettings(settings);
@@ -43,26 +50,19 @@ export const useColorTheme = () => {
     const root = document.documentElement;
     
     if (settings.primary_color) {
-      // Convert hex to HSL and apply
-      const hsl = hexToHsl(settings.primary_color);
-      if (hsl) {
-        root.style.setProperty('--primary', `${hsl.h} ${hsl.s}% ${hsl.l}%`);
-        root.style.setProperty('--ring', `${hsl.h} ${hsl.s}% ${hsl.l}%`);
-      }
+      // The values from database are already in HSL format (e.g., "220 35% 45%")
+      root.style.setProperty('--primary', settings.primary_color);
+      root.style.setProperty('--ring', settings.primary_color);
     }
 
     if (settings.secondary_color) {
-      const hsl = hexToHsl(settings.secondary_color);
-      if (hsl) {
-        root.style.setProperty('--secondary', `${hsl.h} ${hsl.s}% ${hsl.l}%`);
-      }
+      // The values from database are already in HSL format
+      root.style.setProperty('--secondary', settings.secondary_color);
     }
 
     if (settings.accent_color) {
-      const hsl = hexToHsl(settings.accent_color);
-      if (hsl) {
-        root.style.setProperty('--accent', `${hsl.h} ${hsl.s}% ${hsl.l}%`);
-      }
+      // The values from database are already in HSL format
+      root.style.setProperty('--accent', settings.accent_color);
     }
   };
 
