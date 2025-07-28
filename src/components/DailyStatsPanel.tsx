@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info, Settings } from 'lucide-react';
+import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
@@ -68,8 +68,18 @@ export const DailyStatsPanel = () => {
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-        setIsExpanded(false);
+      const target = event.target as Element;
+      
+      // Don't close if clicking inside the panel content or modal dialog
+      if (panelRef.current && !panelRef.current.contains(target)) {
+        // Also check if click is on modal/dialog content
+        const isModalClick = target.closest('[role="dialog"]') || 
+                            target.closest('.dialog-content') ||
+                            target.closest('[data-radix-portal]');
+        
+        if (!isModalClick) {
+          setIsExpanded(false);
+        }
       }
     };
 
@@ -80,14 +90,18 @@ export const DailyStatsPanel = () => {
     };
 
     if (isExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
-    }
+      // Use a timeout to prevent immediate closure from the initial click
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+      }, 100);
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }
   }, [isExpanded]);
 
   // Don't render anything on admin pages, but ensure consistent hook calls
@@ -143,7 +157,7 @@ export const DailyStatsPanel = () => {
                       <h3 className="text-lg font-semibold text-warm-text">Today's Deficit</h3>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="w-4 h-4 text-muted-foreground" />
+                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Your calorie deficit for today. A positive number means you're burning more than you consume (weight loss).</p>
@@ -168,7 +182,7 @@ export const DailyStatsPanel = () => {
                       <span className="text-xs font-medium text-warm-text">Calories In</span>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="w-3 h-3 text-muted-foreground" />
+                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total calories consumed from food today</p>
@@ -187,7 +201,7 @@ export const DailyStatsPanel = () => {
                       <span className="text-xs font-medium text-warm-text">Calories Out</span>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="w-3 h-3 text-muted-foreground" />
+                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total calories burned today: Base Daily Burn + Walking + Fasting Bonus</p>
@@ -206,7 +220,7 @@ export const DailyStatsPanel = () => {
                       <span className="text-xs text-warm-text">Base Daily Burn</span>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="w-3 h-3 text-muted-foreground" />
+                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Calories your body burns naturally based on your metabolism and activity level</p>
@@ -216,13 +230,9 @@ export const DailyStatsPanel = () => {
                     <div className="text-lg font-bold text-primary">
                       {formatNumber(deficitData.tdee)} cal
                     </div>
-                    <button 
-                      className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-warm-text transition-colors"
-                      onClick={() => navigate('/settings')}
-                    >
-                      <span>{getActivityLevelDisplay(deficitData.activityLevel)}</span>
-                      <Settings className="w-3 h-3" />
-                    </button>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {getActivityLevelDisplay(deficitData.activityLevel)}
+                    </div>
                   </Card>
 
                   {/* Walking */}
@@ -232,7 +242,7 @@ export const DailyStatsPanel = () => {
                       <span className="text-xs text-warm-text">Walking Burn</span>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="w-3 h-3 text-muted-foreground" />
+                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total calories burned from walking today (includes active sessions)</p>
@@ -259,7 +269,7 @@ export const DailyStatsPanel = () => {
                         <span className="text-sm font-medium text-warm-text">Fasting Bonus</span>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Info className="w-3 h-3 text-muted-foreground" />
+                            <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>5% metabolic boost while actively fasting</p>

@@ -78,7 +78,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-xs px-2 py-1">
+        <Button variant="ghost" size="sm" className="text-xs px-2 py-1 bg-background/80 border border-border/20 hover:bg-background/90">
           <Plus className="w-3 h-3 mr-1" />
           Add Calories
         </Button>
