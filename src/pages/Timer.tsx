@@ -272,6 +272,8 @@ const Timer = () => {
               isActive={timerStatus.walking.isActive}
               onStart={handleWalkingStart}
               onStop={handleWalkingStop}
+              selectedSpeed={3}
+              onSpeedChange={() => {}}
             />
           )}
         </div>

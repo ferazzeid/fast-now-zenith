@@ -167,6 +167,13 @@ const Walking = () => {
             onStop={() => setShowStopConfirm(true)}
             showSlideshow={true}
             units={profile?.units || 'imperial'}
+            selectedSpeed={selectedSpeed}
+            onSpeedChange={(newSpeed) => {
+              setSelectedSpeed(newSpeed);
+              if (isRunning) {
+                updateSessionSpeed(newSpeed);
+              }
+            }}
             realTimeStats={currentSession ? {
               speed: currentSession.speed_mph || selectedSpeed,
               distance: realTimeDistance,
@@ -176,25 +183,6 @@ const Walking = () => {
           />
         </div>
 
-        {/* Speed Selector - always visible for consistent layout */}
-        <div className="mb-6">
-          <SpeedSelector
-            selectedSpeed={selectedSpeed}
-            onSpeedChange={(newSpeed) => {
-              setSelectedSpeed(newSpeed);
-              if (isRunning) {
-                updateSessionSpeed(newSpeed);
-              }
-            }}
-            disabled={false}
-            units={profile?.units || 'imperial'}
-          />
-          {isRunning && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Speed changes will apply immediately to your session
-            </p>
-          )}
-        </div>
 
 
         <ProfileCompletionPrompt 

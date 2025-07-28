@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Target } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 
@@ -23,6 +24,8 @@ interface WalkingTimerProps {
     pace?: number;
   };
   units?: 'metric' | 'imperial';
+  selectedSpeed: number;
+  onSpeedChange: (speed: number) => void;
 }
 
 export const WalkingTimer = ({ 
@@ -36,7 +39,9 @@ export const WalkingTimer = ({
   className = "",
   showSlideshow = false,
   realTimeStats,
-  units = 'imperial'
+  units = 'imperial',
+  selectedSpeed,
+  onSpeedChange
 }: WalkingTimerProps) => {
   const [stepAnimation, setStepAnimation] = useState(false);
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
@@ -64,6 +69,23 @@ export const WalkingTimer = ({
     }
   };
 
+  const getSpeedOptions = (units: 'metric' | 'imperial') => {
+    if (units === 'metric') {
+      return [
+        { value: 3, label: 'Slow (3 km/h)' },
+        { value: 5, label: 'Average (5 km/h)' },
+        { value: 6, label: 'Brisk (6 km/h)' },
+        { value: 8, label: 'Fast (8 km/h)' }
+      ];
+    }
+    return [
+      { value: 2, label: 'Slow (2 mph)' },
+      { value: 3, label: 'Average (3 mph)' },
+      { value: 4, label: 'Brisk (4 mph)' },
+      { value: 5, label: 'Fast (5 mph)' }
+    ];
+  };
+
   return (
     <div className={`relative ${className}`}>
       {/* Full width layout to match buttons */}
@@ -81,6 +103,30 @@ export const WalkingTimer = ({
             </div>
           )}
           
+          {/* Speed Selector (compact, integrated) */}
+          {!isActive && (
+            <div className="absolute top-4 left-4" style={{ zIndex: 12 }}>
+              <Select
+                value={selectedSpeed.toString()}
+                onValueChange={(value) => onSpeedChange(Number(value))}
+              >
+                <SelectTrigger className="w-32 h-8 text-xs border-muted/40 bg-background/80 backdrop-blur-sm">
+                  <div className="flex items-center gap-1">
+                    <Gauge className="w-3 h-3" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {getSpeedOptions(units).map((option) => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      <span className="text-xs">{option.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Small circular progress indicator in corner */}
           <div className="absolute top-4 right-4" style={{ zIndex: 12 }}>
             <div className={`w-12 h-12 rounded-full border-4 transition-colors duration-300 ${
@@ -218,23 +264,7 @@ export const WalkingTimer = ({
           </div>
         )}
 
-        {/* Progress Indicators for Goals (if not in session) */}
-        {!isActive && (
-          <Card className="p-4">
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center space-x-2">
-                <Target className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-warm-text">Today's Goal</span>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Aim for 30 minutes of walking</div>
-                <div className="w-full bg-muted/30 rounded-full h-2">
-                  <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: '0%' }} />
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
+        {/* Remove Progress Indicators for Goals section entirely */}
       </div>
 
       {/* Control Buttons */}
