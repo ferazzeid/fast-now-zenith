@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { X, Clock, Utensils } from 'lucide-react';
+import { X, Clock, Utensils, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 
 interface FastSelectorProps {
   currentType: 'intermittent' | 'longterm';
   currentDuration: number;
   currentEatingWindow: number;
-  onSelect: (type: 'intermittent' | 'longterm', duration: number, eatingWindow: number) => void;
+  onSelect: (type: 'intermittent' | 'longterm', duration: number, eatingWindow: number, startDate?: Date, startTime?: string) => void;
   onClose: () => void;
 }
 
@@ -34,9 +36,23 @@ export const FastSelector = ({
     }
     return 8; // Default eating window for water fast (not used)
   });
+  const [startInPast, setStartInPast] = useState(false);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState('12:00');
 
   const handleConfirm = () => {
-    onSelect(selectedType, duration * 3600, eatingWindow * 3600);
+    if (startInPast) {
+      const startDateTime = new Date(`${startDate}T${startTime}`);
+      onSelect(selectedType, duration * 3600, eatingWindow * 3600, startDateTime, startTime);
+    } else {
+      onSelect(selectedType, duration * 3600, eatingWindow * 3600);
+    }
+  };
+
+  const isValidDateTime = () => {
+    if (!startInPast) return true;
+    const selectedDateTime = new Date(`${startDate}T${startTime}`);
+    return selectedDateTime < new Date();
   };
 
   const handleDurationChange = (newDuration: number) => {
@@ -193,6 +209,48 @@ export const FastSelector = ({
           )}
         </div>
 
+        {/* Start in Past Section */}
+        <div className="space-y-4 mb-6 p-4 rounded-lg bg-ceramic-base/30 border border-ceramic-rim/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-primary" />
+              <Label className="text-warm-text font-medium">Start fast in the past</Label>
+            </div>
+            <Switch
+              checked={startInPast}
+              onCheckedChange={setStartInPast}
+            />
+          </div>
+          
+          {startInPast && (
+            <div className="space-y-3 pt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-warm-text">Date</Label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-warm-text">Time</Label>
+                  <Input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="bg-ceramic-base border-ceramic-rim"
+                  />
+                </div>
+              </div>
+              {!isValidDateTime() && (
+                <p className="text-red-500 text-xs">Please select a date and time in the past</p>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Action Buttons */}
         <div className="flex space-x-3">
           <Button
@@ -204,9 +262,10 @@ export const FastSelector = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+            disabled={!isValidDateTime()}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
           >
-            Select Fast
+            {startInPast ? 'Start Past Fast' : 'Select Fast'}
           </Button>
         </div>
       </div>

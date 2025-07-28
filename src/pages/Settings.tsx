@@ -225,11 +225,31 @@ const Settings = () => {
                     <span className="text-warm-text font-medium">{user?.email}</span>
                   </div>
                   <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Login Method</span>
+                    <span className="text-warm-text font-medium">
+                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Member since</span>
                     <span className="text-warm-text font-medium">
                       {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                     </span>
                   </div>
+                </div>
+                
+                <div className="pt-3 border-t border-ceramic-rim">
+                  <Button
+                    onClick={() => {
+                      signOut();
+                      navigate('/auth');
+                    }}
+                    variant="outline"
+                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -862,81 +882,6 @@ const Settings = () => {
           </div>
         </Card>
 
-        {/* Data Management */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Database className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">Data Management</h3>
-            </div>
-            
-            <div className="space-y-3">
-              <Button
-                onClick={handleClearWalkingHistory}
-                variant="outline"
-                className="w-full border-orange-200 text-orange-600 hover:bg-orange-50"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Walking History
-              </Button>
-              
-              <div className="bg-accent/20 p-3 rounded-lg">
-                <p className="text-xs text-muted-foreground">
-                  Clear your walking history to start fresh. Data is soft-deleted and may be recoverable.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Data Management */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Database className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">Data Management</h3>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="bg-accent/20 p-3 rounded-lg">
-                <p className="text-xs text-muted-foreground">
-                  Manage your personal data and history. Cleared data is soft-deleted and may be recoverable.
-                </p>
-              </div>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear Walking History
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Clear Walking History</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to clear all your walking session history? 
-                      This will remove all walking sessions from your dashboard and statistics.
-                      Data is soft-deleted and may be recoverable by contacting support.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleClearWalkingHistory}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Clear History
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </div>
-        </Card>
 
         {/* Account */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">

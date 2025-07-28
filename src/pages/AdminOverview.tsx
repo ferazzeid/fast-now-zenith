@@ -1111,16 +1111,27 @@ const AdminOverview = () => {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-warm-text/80">OpenAI: $12.45 / $100.00</p>
-                      <p className="text-sm text-warm-text/80">Perplexity: $2.30 / $50.00</p>
-                    </div>
+                     <div className="space-y-1">
+                       <Button
+                         onClick={() => setShowUsageStats(!showUsageStats)}
+                         variant="outline"
+                         size="sm"
+                         className="bg-ceramic-base border-ceramic-rim text-warm-text"
+                       >
+                         {showUsageStats ? 'Hide' : 'Show'} Real Usage Data
+                       </Button>
+                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </Card>
         </div>
+
+        {/* Real API Usage Stats */}
+        {showUsageStats && (
+          <RealApiUsageStats />
+        )}
 
         {/* Limit Recommendations */}
         {(usageStats.free_users_exhausted / Math.max(usageStats.total_users - usageStats.paid_users, 1) > 0.2) && (

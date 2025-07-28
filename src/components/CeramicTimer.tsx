@@ -20,6 +20,10 @@ interface CeramicTimerProps {
   countDirection?: 'up' | 'down';
   /** Handler for count direction toggle */
   onToggleCountDirection?: () => void;
+  /** Fast type for display */
+  fastType?: 'intermittent' | 'longterm';
+  /** Goal duration in hours */
+  goalDuration?: number;
   /** Additional className */
   className?: string;
 }
@@ -33,6 +37,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   eatingWindowTimeRemaining = null,
   countDirection,
   onToggleCountDirection,
+  fastType,
+  goalDuration,
   className
 }) => {
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
@@ -149,8 +155,25 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 "text-lg font-medium transition-colors duration-300",
                 isEatingWindow ? 'text-primary' : isActive ? 'text-primary' : 'text-muted-foreground'
               )}>
-                {isEatingWindow ? 'Eating' : isActive ? 'Fasting' : 'Ready to Fast'}
+                {isEatingWindow ? 'Eating' : 
+                 isActive && fastType ? 
+                   (fastType === 'intermittent' ? 'Intermittent' : 'Water Fast') : 
+                   isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
+              
+              {/* Goal Duration Display */}
+              {isActive && goalDuration && (
+                <div className="text-sm text-muted-foreground font-medium">
+                  Goal: {goalDuration >= 24 ? `${Math.round(goalDuration / 24)}d` : `${Math.round(goalDuration)}h`}
+                </div>
+              )}
+              
+              {/* Progress Percentage */}
+              {isActive && progress > 0 && (
+                <div className="text-xs text-primary/70 font-medium">
+                  {progress.toFixed(0)}% complete
+                </div>
+              )}
               
               {/* Separate eating window countdown */}
               {isEatingWindow && eatingWindowTimeRemaining && (
