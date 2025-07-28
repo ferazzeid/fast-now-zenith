@@ -265,21 +265,16 @@ Then ask if they want to add it to their food log.`;
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Switch
-                  id="modal-audio-mode"
-                  checked={audioEnabled}
-                  onCheckedChange={setAudioEnabled}
-                  className="scale-75"
-                />
-                <Label htmlFor="modal-audio-mode" className="text-sm">
-                  {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-                </Label>
-              </div>
-              <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center gap-1">
+              <Switch
+                id="modal-audio-mode"
+                checked={audioEnabled}
+                onCheckedChange={setAudioEnabled}
+                className="scale-75"
+              />
+              <Label htmlFor="modal-audio-mode" className="text-sm">
+                {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+              </Label>
             </div>
           </div>
         </DialogHeader>

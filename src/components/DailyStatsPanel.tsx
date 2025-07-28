@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -129,8 +130,8 @@ export const DailyStatsPanel = () => {
               className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-ceramic-plate/98 backdrop-blur-sm border-b border-ceramic-rim">
-              <div className="max-w-md mx-auto px-4 py-4 space-y-4">
+            <div className="bg-ceramic-plate/98 backdrop-blur-sm border-b border-ceramic-rim max-w-md mx-auto">
+              <div className="px-4 py-4 space-y-4">
                 {/* Main Deficit Display */}
                 <Card className="p-4 bg-ceramic-base border-ceramic-rim">
                   <div className="text-center space-y-2">
@@ -241,8 +242,11 @@ export const DailyStatsPanel = () => {
                     <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                       {formatNumber(deficitData.walkingCalories)} cal
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      All walking sessions today
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="text-xs text-muted-foreground">
+                        All walking sessions today
+                      </div>
+                      <ManualCalorieModal onCalorieAdded={() => {/* Will refresh via useDailyDeficit */}} />
                     </div>
                   </Card>
                 </div>

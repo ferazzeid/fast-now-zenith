@@ -209,6 +209,33 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_calorie_burns: {
+        Row: {
+          activity_name: string
+          calories_burned: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_name: string
+          calories_burned: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_name?: string
+          calories_burned?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       motivators: {
         Row: {
           category: string | null
