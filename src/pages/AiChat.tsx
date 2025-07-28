@@ -364,9 +364,9 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen pt-16"> {/* Add top padding to account for DailyStatsPanel */}
+      <div className="flex flex-col h-screen">
         {/* Header */}
-        <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-50">
+        <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-50 mt-16">
           <div className="max-w-md mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -414,8 +414,8 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {/* Messages - Reduced height and centered */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 max-h-[calc(100vh-280px)]">
           <div className="max-w-md mx-auto space-y-4">
             {allMessages.map((message, index) => (
               <div
