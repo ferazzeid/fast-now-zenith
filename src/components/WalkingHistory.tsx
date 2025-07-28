@@ -69,6 +69,10 @@ export const WalkingHistory = () => {
     };
 
     fetchWalkingSessions();
+
+    // Auto-refresh every 10 seconds for real-time updates
+    const refreshInterval = setInterval(fetchWalkingSessions, 10000);
+    return () => clearInterval(refreshInterval);
   }, [user, showAll]);
 
   const handleDeleteSession = async (sessionId: string) => {

@@ -9,7 +9,7 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const { deficitData, loading } = useDailyDeficit();
+  const { deficitData, loading, refreshDeficit } = useDailyDeficit();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -100,12 +100,12 @@ export const DailyStatsPanel = () => {
       <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* FIXED: Lower z-index to prevent overlap */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
-          className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim cursor-pointer hover:bg-ceramic-plate/98 transition-colors select-none"
+          className="cursor-pointer transition-colors select-none"
           onClick={() => setIsExpanded(!isExpanded)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim hover:bg-ceramic-plate/98 transition-colors">
             <div className="flex items-center space-x-2">
               <Target className="w-5 h-5 text-primary" />
               <span className="text-sm font-medium text-warm-text">
@@ -243,10 +243,9 @@ export const DailyStatsPanel = () => {
                       {formatNumber(deficitData.walkingCalories)} cal
                     </div>
                     <div className="flex items-center justify-between mt-1">
-                      <div className="text-xs text-muted-foreground">
+                       <div className="text-xs text-muted-foreground">
                         All walking sessions today
                       </div>
-                      <ManualCalorieModal onCalorieAdded={() => {/* Will refresh via useDailyDeficit */}} />
                     </div>
                   </Card>
                 </div>
@@ -278,6 +277,7 @@ export const DailyStatsPanel = () => {
           </>
         )}
       </div>
+      <ManualCalorieModal onCalorieAdded={refreshDeficit} />
     </TooltipProvider>
   );
 };

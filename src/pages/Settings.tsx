@@ -204,7 +204,7 @@ const Settings = () => {
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
       <ScrollArea className="h-screen">
         <div className="px-4 pt-8 pb-24">
-          <div className="max-w-md mx-auto space-y-6">
+          <div className="max-w-md mx-auto space-y-6 bg-ceramic-base">
             {/* Header */}
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold text-warm-text">Settings</h1>
@@ -383,18 +383,20 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Notifications - Moved under Profile & Goals */}
+            {/* REMOVED: Notifications section as per plan */}
+
+            {/* Compact AI API Section */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Bell className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Notifications</h3>
+                  <Key className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">AI & API</h3>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-warm-text font-medium">Push Notifications</Label>
+                      <Label className="text-warm-text font-medium">Use Your Own API Key</Label>
                       <p className="text-sm text-muted-foreground">
                         Get reminders and encouragement during fasts
                       </p>
