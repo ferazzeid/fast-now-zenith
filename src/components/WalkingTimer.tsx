@@ -136,29 +136,27 @@ export const WalkingTimer = ({
               {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
             
-            {/* Speed Selector - positioned below "Ready to Walk" text */}
-            {!isActive && (
-              <div className="mt-3" style={{ zIndex: 13 }}>
-                <Select
-                  value={selectedSpeed.toString()}
-                  onValueChange={(value) => onSpeedChange(Number(value))}
-                >
-                  <SelectTrigger className="w-40 h-8 text-xs mx-auto">
-                    <div className="flex items-center gap-1">
-                      <Gauge className="w-3 h-3" />
-                      <SelectValue />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="z-50">
-                    {getSpeedOptions(units).map((option) => (
-                      <SelectItem key={option.value} value={option.value.toString()}>
-                        <span className="text-xs">{option.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Speed Selector - positioned below status text, visible for both active and inactive states */}
+            <div className="mt-3" style={{ zIndex: 13 }}>
+              <Select
+                value={selectedSpeed.toString()}
+                onValueChange={(value) => onSpeedChange(Number(value))}
+              >
+                <SelectTrigger className="w-40 h-8 text-xs mx-auto">
+                  <div className="flex items-center gap-1">
+                    <Gauge className="w-3 h-3" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  {getSpeedOptions(units).map((option) => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      <span className="text-xs">{option.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Walking path visualization */}

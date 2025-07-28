@@ -33,6 +33,8 @@ export const WalkingHistory = () => {
   useEffect(() => {
     const fetchWalkingSessions = async () => {
       if (!user) return;
+      
+      console.log('Fetching walking sessions, refreshTrigger:', refreshTrigger);
 
       try {
         const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
@@ -49,6 +51,7 @@ export const WalkingHistory = () => {
 
         if (error) throw error;
         setSessions(data || []);
+        console.log('Walking sessions fetched:', data?.length || 0);
 
         // Check if there are more sessions available
         if (!showAll) {
@@ -72,7 +75,9 @@ export const WalkingHistory = () => {
 
     // Force immediate refresh when refreshTrigger changes
     if (refreshTrigger > 0) {
+      console.log('Forcing refresh due to trigger change');
       setLoading(true);
+      setSessions([]); // Clear existing sessions to force visual refresh
     }
     fetchWalkingSessions();
   }, [user, showAll, refreshTrigger]);

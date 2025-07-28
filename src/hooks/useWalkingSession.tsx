@@ -147,6 +147,7 @@ export const useWalkingSession = () => {
   }, [user, currentSession]);
 
   const endWalkingSession = useCallback(async () => {
+    console.log('Ending walking session...');
     if (!user || !currentSession) return { error: { message: 'No active session' } };
 
     setLoading(true);
@@ -192,7 +193,11 @@ export const useWalkingSession = () => {
 
       setCurrentSession(null);
       setIsPaused(false);
+      
+      // Force immediate refresh
+      console.log('Triggering walking history refresh after session end');
       setRefreshTrigger(prev => prev + 1);
+      
       return { data, error: null };
     } catch (error: any) {
       console.error('Error ending walking session:', error);

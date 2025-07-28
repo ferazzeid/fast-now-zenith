@@ -71,12 +71,7 @@ const Walking = () => {
   }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories, profile?.units]);
 
   const handleStart = async () => {
-    // Check if profile is complete for accurate calorie calculation
-    if (!isProfileComplete()) {
-      setShowProfilePrompt(true);
-      return;
-    }
-
+    // Start walking session directly without blocking
     const result = await startWalkingSession(selectedSpeed);
     if (result.error) {
       toast({

@@ -28,6 +28,7 @@ export const ClearWalkingHistoryButton = () => {
       if (error) throw error;
 
       // Trigger refresh of walking history
+      console.log('Triggering walking history refresh after clear');
       triggerRefresh();
 
       toast({

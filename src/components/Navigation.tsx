@@ -1,10 +1,12 @@
 import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
+import { useProfile } from '@/hooks/useProfile';
 
 export const Navigation = () => {
   const location = useLocation();
   const { timerStatus, formatTime } = useTimerNavigation();
+  const { isProfileComplete } = useProfile();
 
   const navItems = [
     { 
@@ -20,7 +22,12 @@ export const Navigation = () => {
       badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null
     },
     { icon: Utensils, label: 'Food', path: '/food-tracking' },
-    { icon: MessageCircle, label: 'AI Chat', path: '/ai-chat' },
+    { 
+      icon: MessageCircle, 
+      label: 'AI Chat', 
+      path: '/ai-chat',
+      badge: !isProfileComplete() ? '!' : undefined
+    },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -45,7 +52,11 @@ export const Navigation = () => {
                 <Icon className="w-5 h-5 mb-1" />
                 <span className="text-xs font-medium">{label}</span>
                 {badge && (
-                  <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[2rem] text-center">
+                  <div className={`absolute -top-1 -right-1 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[2rem] text-center ${
+                    badge === '!' 
+                      ? 'bg-red-500' 
+                      : 'bg-green-500'
+                  }`}>
                     {badge}
                   </div>
                 )}
