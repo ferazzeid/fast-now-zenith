@@ -232,6 +232,11 @@ export const useWalkingSession = () => {
     }
   }, [user, currentSession]);
 
+  // Manual trigger for refresh
+  const triggerRefresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
+
   return {
     currentSession,
     loading,
@@ -244,6 +249,7 @@ export const useWalkingSession = () => {
     endWalkingSession,
     loadActiveSession,
     updateSessionSpeed,
-    refreshTrigger
+    refreshTrigger,
+    triggerRefresh
   };
 };

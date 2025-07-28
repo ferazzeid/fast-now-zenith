@@ -5,12 +5,14 @@ import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export const ClearWalkingHistoryButton = () => {
   const [isClearing, setIsClearing] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { triggerRefresh } = useWalkingSession();
 
   const handleClearHistory = async () => {
     if (!user) return;
@@ -24,6 +26,9 @@ export const ClearWalkingHistoryButton = () => {
         .is('deleted_at', null);
 
       if (error) throw error;
+
+      // Trigger refresh of walking history
+      triggerRefresh();
 
       toast({
         title: "Success",

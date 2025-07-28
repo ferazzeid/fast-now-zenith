@@ -70,6 +70,10 @@ export const WalkingHistory = () => {
       }
     };
 
+    // Force immediate refresh when refreshTrigger changes
+    if (refreshTrigger > 0) {
+      setLoading(true);
+    }
     fetchWalkingSessions();
   }, [user, showAll, refreshTrigger]);
 
