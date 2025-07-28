@@ -315,8 +315,8 @@ Important: Always ask for confirmation before taking actions like starting walki
     // Remove admin functions from being sent to OpenAI to reduce costs
     // Admin notes are excluded from AI context for performance
 
-    // Send to OpenAI Chat Completions API
-    console.log('Sending request to OpenAI');
+        // Send to OpenAI Chat Completions API
+    console.log('Sending request to OpenAI with', functions.length, 'functions available');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -349,10 +349,14 @@ Important: Always ask for confirmation before taking actions like starting walki
     // Handle function calls
     if (message_response.function_call) {
       console.log('Function call detected:', message_response.function_call.name);
+      console.log('Function arguments:', message_response.function_call.arguments);
       
       try {
         const functionArgs = JSON.parse(message_response.function_call.arguments);
         let functionResult = null;
+        
+        // Add function call confidence and validation
+        console.log('Executing function:', message_response.function_call.name, 'with args:', functionArgs);
 
         switch (message_response.function_call.name) {
           case 'create_motivator':
@@ -862,7 +866,17 @@ Daily calorie needs based on activity level:
             break;
 
           default:
-            functionResult = `Unknown function: ${message_response.function_call.name}`;
+            console.error('Unknown function called:', message_response.function_call.name);
+            functionResult = `I'm not sure how to handle "${message_response.function_call.name}". Could you please rephrase your request? I can help with:
+            
+• Creating and managing motivational content
+• Starting walking sessions  
+• Adding food entries
+• Getting user profile information
+${isAdmin ? '• Saving and retrieving admin notes' : ''}
+
+What would you like me to help you with?`;
+            break;
         }
 
         // Track usage if not using own API key

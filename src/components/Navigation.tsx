@@ -1,22 +1,39 @@
 import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
+import { useFastingSession } from '@/hooks/useFastingSession';
 
 export const Navigation = () => {
   const location = useLocation();
   const { timerStatus, formatTime } = useTimerNavigation();
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
   const { isProfileComplete } = useProfile();
+  const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
+
+  // Load active session on mount
+  useEffect(() => {
+    loadActiveSession();
+  }, [loadActiveSession]);
   const highPriorityNotifications = getHighPriorityNotifications();
+
+  // Calculate fasting duration for badge
+  const getFastingBadge = () => {
+    if (!fastingSession || fastingSession.status !== 'active') return null;
+    const now = Date.now();
+    const startTime = new Date(fastingSession.start_time).getTime();
+    const elapsed = Math.floor((now - startTime) / 1000); // seconds
+    return formatTime(elapsed);
+  };
 
   const navItems = [
     { 
       icon: Clock, 
       label: 'Fasting', 
       path: '/',
-      badge: timerStatus.fasting.isActive ? formatTime(timerStatus.fasting.timeElapsed) : null
+      badge: getFastingBadge()
     },
     { 
       icon: Footprints, 

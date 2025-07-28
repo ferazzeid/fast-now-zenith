@@ -197,8 +197,8 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
               <Calendar className="w-5 h-5" />
               Food History
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Close
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              ✕
             </Button>
           </div>
         </CardHeader>

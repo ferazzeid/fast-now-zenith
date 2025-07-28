@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Plus, Save, History, Edit, Trash2, Check, X, Image, Mic, Info } from 'lucide-react';
+import { Camera, Plus, Save, History, Edit, Trash2, Check, X, Image, Mic, Info, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,9 +10,11 @@ import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { ImageFoodAnalysis } from '@/components/ImageFoodAnalysis';
+import { PremiumGate } from '@/components/PremiumGate';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -46,6 +48,7 @@ const FoodTracking = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
+  const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
   const handleVoiceFood = () => {
     const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
@@ -573,40 +576,44 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         {/* Action Buttons - Reordered: Voice, Image, Manual */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           {/* Voice - 1st */}
-          <Button
-            onClick={handleVoiceFood}
-            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Mic className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Voice</span>
-          </Button>
+          <PremiumGate feature="AI Voice Assistant">
+            <Button
+              onClick={handleVoiceFood}
+              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Mic className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">Voice</span>
+            </Button>
+          </PremiumGate>
           
           {/* Image - 2nd */}
-          <div className="relative">
-            <Button
-              onClick={() => {
-                // Show gallery/camera options when clicked
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (file) {
-                    handleImageUpload(`/api/placeholder/${file.name}`); // Temporary for demo
-                  }
-                };
-                input.click();
-              }}
-              className="h-20 w-full flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <div className="flex items-center gap-1 mb-1">
-                <Image className="w-5 h-5" />
-                <span className="text-xs">/</span>
-                <Camera className="w-5 h-5" />
-              </div>
-              <span className="text-sm font-medium">Image</span>
-            </Button>
-          </div>
+          <PremiumGate feature="AI Image Analysis">
+            <div className="relative">
+              <Button
+                onClick={() => {
+                  // Show gallery/camera options when clicked
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      handleImageUpload(`/api/placeholder/${file.name}`); // Temporary for demo
+                    }
+                  };
+                  input.click();
+                }}
+                className="h-20 w-full flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <div className="flex items-center gap-1 mb-1">
+                  <Image className="w-5 h-5" />
+                  <span className="text-xs">/</span>
+                  <Camera className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-medium">Image</span>
+              </Button>
+            </div>
+          </PremiumGate>
           
           {/* Manual - 3rd */}
           <Button
@@ -802,14 +809,16 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         />
 
         {/* AI Chat Modal */}
-        <ModalAiChat
-          isOpen={showAiChat}
-          onClose={() => setShowAiChat(false)}
-          onResult={handleAiChatResult}
-          context={aiChatContext}
-          title="Food Assistant"
-          systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
-        />
+        <PremiumGate feature="AI Chat Assistant" showUpgrade={false}>
+          <ModalAiChat
+            isOpen={showAiChat}
+            onClose={() => setShowAiChat(false)}
+            onResult={handleAiChatResult}
+            context={aiChatContext}
+            title="Food Assistant"
+            systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
+          />
+        </PremiumGate>
 
         {/* Food History Modal */}
         {showHistory && (
@@ -833,18 +842,23 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                       )}
                     </div>
                     
-                    {/* Food Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1 text-xs">
-                        <span className="font-medium text-warm-text truncate max-w-[100px]">{entry.name}</span>
-                        <span className="text-warm-text/60">•</span>
-                        <span className="text-warm-text/80 whitespace-nowrap">{entry.serving_size}g</span>
-                        <span className="text-warm-text/60">•</span>
-                        <span className="text-warm-text/80 whitespace-nowrap">{entry.calories}cal</span>
-                        <span className="text-warm-text/60">•</span>
-                        <span className="text-warm-text/80 whitespace-nowrap">{entry.carbs}g carbs</span>
-                      </div>
-                    </div>
+                     {/* Food Info */}
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center gap-1 text-xs">
+                         <span className="font-medium text-warm-text truncate max-w-[100px]">{entry.name}</span>
+                         <span className="text-warm-text/60">•</span>
+                         <span className="text-warm-text/80 whitespace-nowrap">{entry.serving_size}g</span>
+                         <span className="text-warm-text/60">•</span>
+                         <span className="text-warm-text/80 whitespace-nowrap">{entry.calories}cal</span>
+                         <span className="text-warm-text/60">•</span>
+                         <span className="text-warm-text/80 whitespace-nowrap">{entry.carbs}g carbs</span>
+                       </div>
+                       {/* Walking minutes required */}
+                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                         <Footprints className="w-3 h-3" />
+                         <span>{formatWalkingTime(calculateWalkingMinutesForFood(entry.calories))} walking @ 3mph</span>
+                       </div>
+                     </div>
                     
                     {/* Status & Actions */}
                     <div className="flex items-center gap-1 flex-shrink-0">

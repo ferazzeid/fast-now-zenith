@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,13 @@ export const useFastingSession = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Load active session on mount
+  useEffect(() => {
+    if (user) {
+      loadActiveSession();
+    }
+  }, [user]);
 
   const startFastingSession = useCallback(async (goalDurationSeconds: number, customStartTime?: Date) => {
     if (!user) {
