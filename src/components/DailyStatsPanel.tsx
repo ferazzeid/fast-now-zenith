@@ -14,9 +14,9 @@ export const DailyStatsPanel = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide panel on admin, auth, and AI chat pages to prevent overlap issues
+  // Hide panel on admin and auth pages to prevent menu overlap  
   // IMPORTANT: This check must come AFTER all hooks to avoid React hooks violation
-  const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password' || location.pathname === '/ai-chat';
+  const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
 
   const formatNumber = (num: number) => {
     return Math.abs(num).toLocaleString();
@@ -111,7 +111,7 @@ export const DailyStatsPanel = () => {
 
   return (
     <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-50">{/* Higher z-index to stay above AI chat */}
+      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-50">{/* High z-index but coordinated with other components */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
           className="cursor-pointer transition-colors select-none"

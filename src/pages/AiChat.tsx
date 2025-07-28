@@ -364,7 +364,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen pt-20"> {/* Add top padding for deficit panel */}
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">
