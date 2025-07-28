@@ -14,9 +14,9 @@ export const DailyStatsPanel = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide panel on admin and auth pages to prevent menu overlap  
+  // Hide panel on admin, auth, and AI chat pages to prevent overlap issues
   // IMPORTANT: This check must come AFTER all hooks to avoid React hooks violation
-  const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
+  const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password' || location.pathname === '/ai-chat';
 
   const formatNumber = (num: number) => {
     return Math.abs(num).toLocaleString();
