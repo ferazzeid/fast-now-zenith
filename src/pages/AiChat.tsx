@@ -11,12 +11,24 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { useAuth } from '@/hooks/useAuth';
-import { useSingleConversation, type Message } from '@/hooks/useSingleConversation';
+import { useSingleConversation } from '@/hooks/useSingleConversation';
 import { useFastingContext } from '@/hooks/useFastingContext';
 import { useWalkingContext } from '@/hooks/useWalkingContext';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
 import { ImageUpload } from '@/components/ImageUpload';
+import { useNavigate } from 'react-router-dom';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { useProfile } from '@/hooks/useProfile';
+
+// Enhanced Message interface to support notifications
+interface EnhancedMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  audioEnabled?: boolean;
+  isNotification?: boolean;
+}
 
 const AiChat = () => {
   const [inputMessage, setInputMessage] = useState('');
@@ -26,9 +38,13 @@ const AiChat = () => {
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { getAutoShowNotifications, clearNotification } = useNotificationSystem();
+  const { profile, updateProfile } = useProfile();
   const { 
     messages, 
     loading: conversationLoading,
@@ -41,9 +57,100 @@ const AiChat = () => {
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
 
+  // Combine regular messages with notification messages
+  const allMessages = [...notificationMessages, ...messages];
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [allMessages]);
+
+  // Auto-show notifications when component mounts
+  useEffect(() => {
+    const autoShowNotifications = getAutoShowNotifications();
+    
+    if (autoShowNotifications.length > 0) {
+      // Add notification messages to chat
+      const newNotificationMessages: EnhancedMessage[] = autoShowNotifications.map(notification => ({
+        role: 'system',
+        content: notification.message,
+        timestamp: new Date(),
+        isNotification: true,
+      }));
+
+      setNotificationMessages(newNotificationMessages);
+    }
+  }, []);
+
+  // Handle notification responses
+  const handleNotificationResponse = async (message: string) => {
+    // Check if this is a response to profile completion
+    const profileNotification = getAutoShowNotifications().find(n => n.type === 'profile_incomplete');
+    
+    if (profileNotification && notificationMessages.length > 0) {
+      // Try to extract profile information from the message
+      const weightMatch = message.match(/(?:weigh|weight).*?(\d+)\s*(?:lbs?|pounds?|kg|kilos?)/i);
+      const heightMatch = message.match(/(?:height|tall).*?(\d+)(?:['"]\s*(\d+)['""]?|\s*(?:cm|inches?|in|feet?|ft))/i);
+      const ageMatch = message.match(/(?:age|old).*?(\d+)/i);
+
+      let updates: any = {};
+      let extracted = false;
+
+      if (weightMatch) {
+        const weight = parseInt(weightMatch[1]);
+        if (weight > 0 && weight < 1000) {
+          updates.weight = weight;
+          extracted = true;
+        }
+      }
+
+      if (heightMatch) {
+        const height = parseInt(heightMatch[1]);
+        if (height > 0 && height < 300) {
+          updates.height = height;
+          extracted = true;
+        }
+      }
+
+      if (ageMatch) {
+        const age = parseInt(ageMatch[1]);
+        if (age > 0 && age < 150) {
+          updates.age = age;
+          extracted = true;
+        }
+      }
+
+      if (extracted) {
+        try {
+          await updateProfile(updates);
+          
+          // Send confirmation message as regular message
+          const confirmationContent = `Great! I've updated your profile with the information you provided. ${
+            Object.keys(updates).length === 3 
+              ? 'Your profile is now complete and I can provide accurate calorie calculations!' 
+              : 'If you have more information to share, please let me know or you can complete it in Settings.'
+          }`;
+
+          await addMessage({
+            role: 'assistant',
+            content: confirmationContent,
+            timestamp: new Date(),
+          });
+          
+          // Clear the notification if profile is now complete
+          if (updates.weight && updates.height && updates.age) {
+            clearNotification('profile_incomplete');
+            setNotificationMessages([]); // Clear notification messages
+          }
+          
+          return true; // Indicate that we handled this as a notification response
+        } catch (error) {
+          console.error('Error updating profile:', error);
+        }
+      }
+    }
+
+    return false; // Indicate this should be processed as a regular chat message
+  };
 
   useEffect(() => {
     // Load API key from localStorage
@@ -53,31 +160,7 @@ const AiChat = () => {
     }
   }, []);
 
-  const getConversationHistory = () => {
-    return messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
-  };
-
-  const handleVoiceTranscription = async (transcription: string) => {
-    if (!transcription.trim()) return;
-
-    const userMessage: Message = {
-      role: 'user',
-      content: transcription,
-      timestamp: new Date(),
-      audioEnabled: true
-    };
-
-    // Add user message to conversation
-    const success = await addMessage(userMessage);
-    if (!success) return;
-
-    await sendToAI(transcription, getConversationHistory(), true);
-  };
-
-  const sendToAI = async (message: string, conversationHistory: Array<{ role: string; content: string }>, fromVoice = false) => {
+  const sendToAI = async (message: string, fromVoice = false) => {
     if (!apiKey.trim()) {
       setShowApiDialog(true);
       return;
@@ -86,58 +169,42 @@ const AiChat = () => {
     setIsProcessing(true);
 
     try {
-      // Use truncated conversation history to reduce API costs
-      const enhancedHistory = conversationHistory.slice(-15); // Keep last 15 messages only
-      
-      // Enhanced context with detailed health data access
-      const contextParts = [];
-      
-      // Current activity status
-      if (walkingContext && walkingContext.isCurrentlyWalking) {
-        contextParts.push(`Currently walking: ${walkingContext.currentWalkingDuration} min`);
-      }
-      
-      if (fastingContext && fastingContext.isCurrentlyFasting) {
-        contextParts.push(`Currently fasting: ${fastingContext.currentFastDuration}h`);
-      }
-      
-      // Daily nutrition summary
-      if (foodContext && foodContext.todayCalories > 0) {
-        contextParts.push(`Today: ${foodContext.todayCalories} cal`);
-      }
-      
-      // Enhanced context with activity insights
-      if (walkingContext && walkingContext.isCurrentlyWalking) {
-        contextParts.push(`Walking data available for analysis`);
-      }
-      
-      if (fastingContext && fastingContext.isCurrentlyFasting) {
-        contextParts.push(`Fasting data available for insights`);
-      }
-      
-      // Enhanced system prompt for data access
-      const systemPrompt = `You are a health and wellness AI assistant with access to detailed user data. You can:
-- View and analyze walking sessions, fasting periods, and food entries
-- Create motivational content and track progress
-- Provide personalized insights based on patterns
-- Suggest improvements and celebrate achievements
+      // Build comprehensive context
+      const contextParts = [
+        buildFastingContext(fastingContext),
+        buildWalkingContext(walkingContext), 
+        buildFoodContext(foodContext)
+      ].filter(Boolean);
 
-Current context: ${contextParts.join(' | ')}
+      const contextString = contextParts.length > 0 
+        ? `Current user context:\n${contextParts.join('\n')}\n\n`
+        : '';
 
-Be helpful, encouraging, and use the data to provide personalized guidance.`;
-      
-      // Add enhanced context
-      if (contextParts.length > 0) {
-        enhancedHistory.unshift({
-          role: 'system',
-          content: systemPrompt
-        });
-      }
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      const systemPrompt = `You are a helpful AI assistant for a health and fasting app. You help users with:
+1. Fasting guidance and motivation
+2. Walking/exercise tracking and encouragement  
+3. Food tracking and nutrition advice
+4. Creating motivational content and quotes
+5. General health and wellness questions
+
+You have access to tools to create motivational content when requested.
+
+Current context: ${contextString}
+
+Be conversational, supportive, and helpful. When users ask for motivational content, use the create_motivator tool.`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
-          message,
-          conversationHistory: enhancedHistory
+          message: `${contextString}${message}`,
+          conversationHistory: [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory
+          ]
         },
         headers: {
           'X-OpenAI-API-Key': apiKey
@@ -146,16 +213,13 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
 
       if (error) throw error;
 
-      // Handle potential function calls in the response
       if (data.completion) {
-        const aiMessage: Message = {
+        await addMessage({
           role: 'assistant',
           content: data.completion,
           timestamp: new Date(),
           audioEnabled: audioEnabled && fromVoice
-        };
-
-        await addMessage(aiMessage);
+        });
 
         // Play audio if enabled and this was a voice message
         if (audioEnabled && fromVoice) {
@@ -165,34 +229,29 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
 
       // Handle function call results
       if (data.functionCall) {
-        const { name, result } = data.functionCall;
-        
-        switch (name) {
-          case 'create_motivator':
-            toast({
-              title: "Motivator Saved",
-              description: "I've created a personalized motivator for you!",
-              duration: 3000,
+        if (data.functionCall.name === 'create_motivator') {
+          const args = data.functionCall.arguments;
+          try {
+            await createMotivator({
+              title: args.text,
+              content: args.text,
+              category: args.category || 'general',
+              imageUrl: args.image_prompt
             });
-            break;
-          case 'start_walking_session':
-            if (result.includes('started')) {
-              toast({
-                title: "Walking Session Started",
-                description: "Your walking session has begun. Have a great walk!",
-                duration: 3000,
-              });
-            }
-            break;
-          case 'add_food_entry':
-            if (result.includes('Added')) {
-              toast({
-                title: "Food Logged",
-                description: "I've added this food to your nutrition log!",
-                duration: 3000,
-              });
-            }
-            break;
+            
+            await addMessage({
+              role: 'assistant',
+              content: "I've created that motivator for you! You can view it in the Motivators section.",
+              timestamp: new Date(),
+            });
+          } catch (error) {
+            console.error('Error creating motivator:', error);
+            await addMessage({
+              role: 'assistant',
+              content: "I had trouble creating that motivator. Please try again later.",
+              timestamp: new Date(),
+            });
+          }
         }
       }
 
@@ -201,8 +260,7 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
-        variant: "destructive",
-        duration: 3000,
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -226,311 +284,243 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
     }
   };
 
+  const handleVoiceTranscription = async (transcription: string) => {
+    if (!transcription.trim()) return;
+
+    await addMessage({
+      role: 'user',
+      content: transcription,
+      timestamp: new Date(),
+      audioEnabled: true
+    });
+
+    // Check if this is a notification response first
+    const wasNotificationResponse = await handleNotificationResponse(transcription);
+    
+    if (!wasNotificationResponse) {
+      await sendToAI(transcription, true);
+    }
+  };
+
   const handleSendMessage = async (presetMessage?: string) => {
     const messageToSend = presetMessage || inputMessage.trim();
     if (!messageToSend || isProcessing) return;
 
-    const userMessage: Message = {
+    await addMessage({
       role: 'user',
       content: messageToSend,
       timestamp: new Date()
-    };
-
-    // Add user message to conversation
-    const success = await addMessage(userMessage);
-    if (!success) return;
+    });
 
     if (!presetMessage) {
       setInputMessage('');
     }
 
-    await sendToAI(messageToSend, getConversationHistory());
+    // Check if this is a notification response first
+    const wasNotificationResponse = await handleNotificationResponse(messageToSend);
+    
+    if (!wasNotificationResponse) {
+      await sendToAI(messageToSend);
+    }
   };
 
-  const handleSaveApiKey = () => {
-    localStorage.setItem('openai_api_key', apiKey);
-    setShowApiDialog(false);
-    toast({
-      title: "API Key Saved",
-      description: "Your OpenAI API key has been saved locally.",
-      duration: 3000,
-    });
-  };
-
-  const handleImageUpload = async (imageUrl: string) => {
+  const handleImageUpload = (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
     setShowImageUpload(false);
     
-    // Analyze the food image
-    try {
-      setIsProcessing(true);
-      
-      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-        body: { 
-          imageUrl: imageUrl
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        const { nutritionData } = data;
-        
-        // Add the image and analysis to the conversation
-        const userMessage: Message = {
-          role: 'user',
-          content: `[Image uploaded: Food photo]`,
-          timestamp: new Date(),
-          imageUrl: imageUrl
-        };
-        
-        await addMessage(userMessage);
-
-        // Send analysis to AI for further processing
-        const analysisPrompt = `I've analyzed this food image and found: ${nutritionData.name} with ${nutritionData.calories_per_100g} calories per 100g and ${nutritionData.carbs_per_100g}g carbs per 100g. Estimated serving size: ${nutritionData.estimated_serving_size}g. Would you like me to add this to your food log?`;
-        
-        await sendToAI(analysisPrompt, getConversationHistory());
-      } else {
-        throw new Error(data.error || 'Failed to analyze image');
-      }
-    } catch (error) {
-      console.error('Error analyzing food image:', error);
-      toast({
-        title: "Analysis Failed",
-        description: "Could not analyze the food image. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    // Add a message about the uploaded image
+    addMessage({
+      role: 'user',
+      content: `I've uploaded an image: ${imageUrl}`,
+      timestamp: new Date()
+    });
   };
 
-  const handleImageRemove = () => {
-    setUploadedImageUrl('');
-  };
-
-  const handleClearConversation = async () => {
+  const handleClearChat = async () => {
     await clearConversation();
+    setNotificationMessages([]); // Also clear notification messages
+    toast({
+      title: "Chat Cleared",
+      description: "Your conversation has been cleared."
+    });
   };
 
-  const handleArchiveConversation = async () => {
-    await archiveConversation();
-  };
-
-  // Display messages or show welcome message
-  const displayMessages = messages.length > 0 ? messages : [
-    {
-      role: 'assistant' as const,
-      content: "Hello! I'm your AI companion for health and wellness. I can help you with fasting guidance, walking sessions, food logging, and creating motivational content. How can I assist you today?",
-      timestamp: new Date(),
-      audioEnabled: false
+  const handleArchiveChat = async () => {
+    try {
+      await archiveConversation();
+      setNotificationMessages([]); // Also clear notification messages
+      toast({
+        title: "Chat Archived",
+        description: "Your conversation has been archived and a new chat started."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to archive conversation.",
+        variant: "destructive"
+      });
     }
-  ];
-
-  if (conversationLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-background pt-16">{/* FIXED: Add pt-16 to account for fixed header and prevent overlap */}
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-border p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">AI Companion</h1>
-          <div className="flex items-center gap-1 overflow-hidden">
-            <div className="flex items-center gap-1 shrink-0">
-              <Switch
-                id="audio-mode"
-                checked={audioEnabled}
-                onCheckedChange={setAudioEnabled}
-                className="scale-75"
-              />
-              <Label htmlFor="audio-mode" className="text-sm">
-                {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-              </Label>
+    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
+      <div className="flex flex-col h-screen">
+        {/* Header */}
+        <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0">
+          <div className="max-w-md mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">AI</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-warm-text">AI Assistant</h1>
+                <p className="text-xs text-muted-foreground">Here to help with your health journey</p>
+              </div>
             </div>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="shrink-0">
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="hidden md:inline ml-1">Options</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleArchiveConversation}>
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive & Start Fresh
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleClearConversation} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear All
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="shrink-0">
-                  <Settings className="h-4 w-4" />
-                  <span className="hidden md:inline ml-1">API</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>OpenAI API Configuration</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="api-key">OpenAI API Key</Label>
-                    <Input
-                      id="api-key"
-                      type="password"
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="sk-..."
-                      className="mt-2"
-                    />
-                  </div>
-                  <Button onClick={handleSaveApiKey} className="w-full">
-                    Save API Key
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
+                <Switch
+                  id="audio-mode"
+                  checked={audioEnabled}
+                  onCheckedChange={setAudioEnabled}
+                  className="scale-75"
+                />
+                <Label htmlFor="audio-mode" className="text-sm">
+                  {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+                </Label>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="h-4 w-4" />
                   </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background border border-border">
+                  <DropdownMenuItem onClick={() => setShowApiDialog(true)}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    API Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleArchiveChat}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archive Chat
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleClearChat} className="text-red-600">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Chat
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
-      </div>
 
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {displayMessages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <Card className={`max-w-[80%] p-3 ${
-              message.role === 'user' 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-muted'
-            }`}>
-              <div className="flex items-start gap-2">
-                <div className="flex-1">
-                  {message.imageUrl && (
-                    <img 
-                      src={message.imageUrl} 
-                      alt="Uploaded food" 
-                      className="rounded-lg mb-2 max-w-full h-auto max-h-48 object-cover"
-                    />
-                  )}
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  
-                  {/* Yes/No Confirmation Buttons for Assistant Messages */}
-                  {message.role === 'assistant' && (
-                    message.content.toLowerCase().includes('would you like') || 
-                    message.content.toLowerCase().includes('should i') ||
-                    message.content.toLowerCase().includes('do you want')
-                  ) && (
-                    <div className="flex gap-2 mt-3">
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleSendMessage('Yes')}
-                        className="text-xs"
-                        type="button"
-                      >
-                        Yes
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleSendMessage('No')}
-                        className="text-xs"
-                        type="button"
-                      >
-                        No
-                      </Button>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          <div className="max-w-md mx-auto space-y-4">
+            {allMessages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <Card className={`max-w-[85%] p-4 ${
+                  message.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : (message as EnhancedMessage).isNotification
+                      ? 'bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800'
+                      : 'bg-muted'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      {(message as EnhancedMessage).isNotification && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                            Information Needed
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                      
+                      {/* Quick action buttons for notifications */}
+                      {(message as EnhancedMessage).isNotification && (
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            size="sm" 
+                            onClick={() => setInputMessage("I am ")}
+                            className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300"
+                          >
+                            Tell You Now
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => navigate('/settings')}
+                            className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                          >
+                            Go to Settings
+                          </Button>
+                        </div>
+                      )}
+                      
+                      <p className="text-xs opacity-70 mt-2">
+                        {message.timestamp.toLocaleTimeString()}
+                      </p>
                     </div>
-                  )}
-                  
-                  <p className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-                {message.audioEnabled && message.role === 'assistant' && (
-                  <Volume2 className="h-4 w-4 opacity-70" />
-                )}
+                    {message.audioEnabled && message.role === 'assistant' && (
+                      <Volume2 className="h-4 w-4 opacity-70" />
+                    )}
+                  </div>
+                </Card>
               </div>
-            </Card>
-          </div>
-        ))}
-        
-        {isProcessing && (
-          <div className="flex justify-start">
-            <Card className="max-w-[80%] p-3 bg-muted">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                <p className="text-sm">AI is thinking...</p>
+            ))}
+            
+            {isProcessing && (
+              <div className="flex justify-start">
+                <Card className="max-w-[85%] p-4 bg-muted">
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    <p className="text-sm">AI is thinking...</p>
+                  </div>
+                </Card>
               </div>
-            </Card>
+            )}
+            
+            <div ref={messagesEndRef} />
           </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+        </div>
 
-      {/* Input - CRITICAL: Add bottom padding to prevent overlap with navigation */}
-      <div className="flex-shrink-0 border-t border-border p-4 pb-6 mb-16">{/* CRITICAL: mb-16 ensures input stays above navigation */}
-        <div className="space-y-3">
-          {/* Image Upload Section */}
-          {showImageUpload && (
-            <div className="border border-border rounded-lg p-3 bg-ceramic-plate/50">
-              <ImageUpload
-                currentImageUrl={uploadedImageUrl}
-                onImageUpload={handleImageUpload}
-                onImageRemove={handleImageRemove}
-              />
-            </div>
-          )}
-          
-          {/* Input Area */}
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 relative">
+        {/* Input */}
+        <div className="bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-4 flex-shrink-0">
+          <div className="max-w-md mx-auto space-y-3">
+            {/* Text Input */}
+            <div className="flex gap-2 items-end">
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ask me anything about your health journey..."
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 disabled={isProcessing}
-                className="resize-none pr-10"
+                className="flex-1 bg-ceramic-base border-ceramic-rim"
               />
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowImageUpload(!showImageUpload)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10"
-                title="Upload food photo"
+                onClick={() => setShowImageUpload(true)}
+                variant="outline"
+                size="default"
+                className="flex-shrink-0 bg-ceramic-base border-ceramic-rim"
               >
-                <Camera className="w-4 h-4" />
+                <Camera className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => handleSendMessage()}
+                disabled={!inputMessage.trim() || isProcessing}
+                size="default"
+                className="flex-shrink-0"
+              >
+                <Send className="h-4 w-4" />
               </Button>
             </div>
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isProcessing}
-              size="default"
-              className="flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Voice Recording */}
-          <div className="flex justify-center">
+            
+            {/* Voice Recording */}
             <VoiceRecorder
               onTranscription={handleVoiceTranscription}
               isDisabled={isProcessing}
@@ -538,6 +528,67 @@ Be helpful, encouraging, and use the data to provide personalized guidance.`;
           </div>
         </div>
       </div>
+
+      {/* API Key Dialog */}
+      <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+        <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>OpenAI API Configuration</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="api-key">OpenAI API Key</Label>
+              <Input
+                id="api-key"
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="sk-..."
+                className="mt-1"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Your API key is stored locally and never sent to our servers.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => {
+                  localStorage.setItem('openai_api_key', apiKey);
+                  setShowApiDialog(false);
+                  toast({
+                    title: "API Key Saved",
+                    description: "You can now use AI features.",
+                  });
+                }}
+                className="flex-1"
+              >
+                Save Key
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowApiDialog(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Upload Dialog */}
+      <Dialog open={showImageUpload} onOpenChange={setShowImageUpload}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Image</DialogTitle>
+          </DialogHeader>
+          <ImageUpload 
+            currentImageUrl=""
+            onImageUpload={handleImageUpload}
+            onImageRemove={() => {}}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
