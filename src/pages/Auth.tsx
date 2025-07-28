@@ -43,15 +43,12 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-accent/10 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-6">
         {/* Logo/Brand */}
-        <div className="text-center space-y-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              FastNow
-            </h1>
-            <p className="text-muted-foreground">Your mindful app</p>
-          </div>
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-foreground">
+            FastNow
+          </h1>
         </div>
 
         <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
