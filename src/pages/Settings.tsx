@@ -828,13 +828,13 @@ const Settings = () => {
               </p>
             </div>
             
-            <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
-              <p className="text-xs text-amber-600 dark:text-amber-400">
-                ⚠️ Clearing cache will log you out and require you to sign in again
+            <ClearCacheButton />
+            
+            <div className="bg-muted/20 p-2 rounded text-center">
+              <p className="text-xs text-muted-foreground">
+                Will log you out and require you to sign in again
               </p>
             </div>
-            
-            <ClearCacheButton />
             
             {isAdmin && (
               <Button

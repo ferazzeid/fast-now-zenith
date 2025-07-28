@@ -66,6 +66,14 @@ export const useColorTheme = () => {
     }
   };
 
+  // Apply default colors immediately to prevent flash
+  const applyDefaultColors = () => {
+    const root = document.documentElement;
+    // Set default primary color to prevent green flash
+    root.style.setProperty('--primary', '220 35% 45%'); // Default blue
+    root.style.setProperty('--ring', '220 35% 45%');
+  };
+
   const hexToHsl = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!result) return null;
@@ -99,6 +107,8 @@ export const useColorTheme = () => {
   };
 
   useEffect(() => {
+    // Apply default colors immediately to prevent flash
+    applyDefaultColors();
     loadColors();
   }, [user]);
 
