@@ -46,11 +46,8 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-8">
         {/* Logo/Brand */}
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-glow">
-            <Timer className="w-8 h-8 text-primary-foreground" />
-          </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-foreground">
               FastNow
             </h1>
             <p className="text-muted-foreground">Your mindful app</p>
