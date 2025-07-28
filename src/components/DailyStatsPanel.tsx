@@ -111,7 +111,7 @@ export const DailyStatsPanel = () => {
 
   return (
     <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* Lower z-index than AI chat header */}
+      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-50">{/* Higher z-index to stay above AI chat */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
           className="cursor-pointer transition-colors select-none"
