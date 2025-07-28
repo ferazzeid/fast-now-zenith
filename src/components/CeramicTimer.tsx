@@ -154,8 +154,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               {/* Main Timer - Centered */}
               <div 
                 className={cn(
-                  "text-5xl font-mono font-bold tracking-wide transition-colors duration-300",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  "font-mono font-bold tracking-wide transition-colors duration-300",
+                  isActive ? "text-4xl text-primary" : "text-3xl text-muted-foreground"
                 )}
                 style={{ 
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)',

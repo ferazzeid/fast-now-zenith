@@ -21,7 +21,7 @@ export const useFastingSession = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const startFastingSession = useCallback(async (goalDurationSeconds: number) => {
+  const startFastingSession = useCallback(async (goalDurationSeconds: number, customStartTime?: Date) => {
     if (!user) {
       toast({
         title: "Error",
@@ -43,13 +43,16 @@ export const useFastingSession = () => {
         .eq('user_id', user.id)
         .eq('status', 'active');
 
+      // Use custom start time or current time
+      const startTime = customStartTime ? customStartTime.toISOString() : new Date().toISOString();
+
       // Create new session
       const { data, error } = await supabase
         .from('fasting_sessions')
         .insert([
           {
             user_id: user.id,
-            start_time: new Date().toISOString(),
+            start_time: startTime,
             goal_duration_seconds: goalDurationSeconds,
             status: 'active'
           }

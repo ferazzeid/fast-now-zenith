@@ -212,16 +212,17 @@ const Timer = () => {
     try {
       // Calculate the past start time
       const pastStartDateTime = new Date(`${startDate}T${startTime}`);
-      const now = new Date();
-      const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
-      const elapsedSeconds = Math.floor(timeDiffMs / 1000);
       
-      // Start the fast with regular function
-      const result = await startFastingSession(duration);
+      // Start the fast with the custom start time in the database
+      const result = await startFastingSession(duration, pastStartDateTime);
       
       if (result) {
-        // Set the elapsed time to reflect the past start
-        setTimeElapsed(elapsedSeconds);
+        // Load the session to get accurate timing
+        await loadActiveSession();
+        
+        const now = new Date();
+        const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
+        const elapsedSeconds = Math.floor(timeDiffMs / 1000);
         
         toast({
           title: "Fast started retroactively",

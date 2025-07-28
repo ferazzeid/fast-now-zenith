@@ -439,7 +439,7 @@ const Settings = () => {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label htmlFor="use-own-key" className="text-warm-text font-medium">Use your own API key</Label>
-                <p className="text-xs text-muted-foreground">Enable to use your own OpenAI API key for unlimited usage</p>
+                <p className="text-xs text-muted-foreground">Toggle to configure your own OpenAI API key</p>
               </div>
               <Switch
                 id="use-own-key"
