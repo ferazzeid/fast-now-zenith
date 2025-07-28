@@ -100,12 +100,12 @@ export const DailyStatsPanel = () => {
       <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* FIXED: Lower z-index to prevent overlap */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
-          className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-3 cursor-pointer hover:bg-ceramic-plate/98 transition-colors select-none"
+          className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim cursor-pointer hover:bg-ceramic-plate/98 transition-colors select-none"
           onClick={() => setIsExpanded(!isExpanded)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto flex items-center justify-between">
+          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Target className="w-5 h-5 text-primary" />
               <span className="text-sm font-medium text-warm-text">

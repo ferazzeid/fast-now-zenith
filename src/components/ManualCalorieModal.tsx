@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,26 +20,6 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const predefinedActivities = [
-    { name: 'Weight Training', calories: 300 },
-    { name: 'Running', calories: 400 },
-    { name: 'Cycling', calories: 350 },
-    { name: 'Swimming', calories: 450 },
-    { name: 'Yoga', calories: 200 },
-    { name: 'Basketball', calories: 350 },
-    { name: 'Soccer', calories: 400 },
-    { name: 'Tennis', calories: 300 },
-    { name: 'Dancing', calories: 250 },
-    { name: 'Hiking', calories: 320 },
-  ];
-
-  const handleActivitySelect = (activity: string) => {
-    const selected = predefinedActivities.find(a => a.name === activity);
-    if (selected) {
-      setActivityName(selected.name);
-      setCaloriesBurned(selected.calories.toString());
-    }
-  };
 
   const handleSave = async () => {
     if (!activityName.trim() || !caloriesBurned.trim() || !user) {
@@ -104,27 +83,11 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
           Add Calories
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Add Manual Calorie Burn</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="activity-select">Quick Select Activity</Label>
-            <Select onValueChange={handleActivitySelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose an activity..." />
-              </SelectTrigger>
-              <SelectContent>
-                {predefinedActivities.map((activity) => (
-                  <SelectItem key={activity.name} value={activity.name}>
-                    {activity.name} (~{activity.calories} cal)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div>
             <Label htmlFor="activity-name">Activity Name</Label>
             <Input
@@ -133,6 +96,8 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               onChange={(e) => setActivityName(e.target.value)}
               placeholder="e.g., Weight Training"
               maxLength={100}
+              onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -146,6 +111,8 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               placeholder="e.g., 300"
               min="1"
               max="2000"
+              onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
             />
           </div>
 
