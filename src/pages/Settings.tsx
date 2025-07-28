@@ -211,6 +211,29 @@ const Settings = () => {
               <p className="text-muted-foreground">Customize your fasting experience</p>
             </div>
 
+            {/* Account Section - Moved to top */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
+                </div>
+                
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="text-warm-text font-medium">{user?.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Member since</span>
+                    <span className="text-warm-text font-medium">
+                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
             {/* Motivators */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
@@ -242,7 +265,7 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* User Profile & Goals - Moved directly under Motivators */}
+            {/* User Profile & Goals */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -839,97 +862,30 @@ const Settings = () => {
           </div>
         </Card>
 
-        {/* Archived Conversations */}
+        {/* Data Management */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <Archive className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">Archived Conversations</h3>
+              <Database className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-warm-text">Data Management</h3>
             </div>
             
-            {archiveLoading ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                <p className="text-sm text-muted-foreground mt-2">Loading archived conversations...</p>
-              </div>
-            ) : archivedConversations.length > 0 ? (
-              <div className="space-y-3">
-                <div className="bg-accent/20 p-3 rounded-lg">
-                  <p className="text-xs text-muted-foreground">
-                    {archivedConversations.length} archived conversation{archivedConversations.length !== 1 ? 's' : ''} available
-                  </p>
-                </div>
-                
-                <ScrollArea className="h-48">
-                  <div className="space-y-2">
-                    {archivedConversations.map((conv) => (
-                      <div key={conv.id} className="flex items-center justify-between p-3 bg-ceramic-base border border-ceramic-rim rounded-lg">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <p className="text-sm font-medium text-warm-text truncate">
-                              {conv.title}
-                            </p>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {conv.messages.length} message{conv.messages.length !== 1 ? 's' : ''} • {conv.last_message_at.toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => restoreConversation(conv.id)}
-                            className="h-8 w-8 p-0"
-                            title="Restore conversation"
-                          >
-                            <Archive className="w-3 h-3" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                                title="Delete permanently"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Archived Conversation</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to permanently delete this archived conversation? 
-                                  This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteArchivedConversation(conv.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete Forever
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Archive className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No archived conversations</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Archive conversations from AI Chat to keep them for reference
+            <div className="space-y-3">
+              <Button
+                onClick={handleClearWalkingHistory}
+                variant="outline"
+                className="w-full border-orange-200 text-orange-600 hover:bg-orange-50"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear Walking History
+              </Button>
+              
+              <div className="bg-accent/20 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  Clear your walking history to start fresh. Data is soft-deleted and may be recoverable.
                 </p>
               </div>
-            )}
+            </div>
           </div>
         </Card>
 
@@ -1141,7 +1097,7 @@ const Settings = () => {
             
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground text-center">
-                FastNow - Your mindful app
+                Made with ❤️ for your wellness journey
               </p>
             </div>
             

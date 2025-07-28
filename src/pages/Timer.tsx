@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Settings, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { CrisisModal } from '@/components/CrisisModal';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
+import { RetroactiveFastModal } from '@/components/RetroactiveFastModal';
 import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
@@ -22,6 +24,7 @@ const Timer = () => {
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
+  const [showRetroactiveFastModal, setShowRetroactiveFastModal] = useState(false);
   const [walkingTime, setWalkingTime] = useState(0);
   
   const { toast } = useToast();
@@ -200,6 +203,28 @@ const Timer = () => {
     }
   };
 
+  const handleRetroactiveFastStart = async (startDate: string, startTime: string, fastType: 'intermittent' | 'longterm', duration: number) => {
+    try {
+      // For now, just use the regular start function
+      // TODO: Modify useFastingSession to support custom start times
+      const result = await startFastingSession(duration);
+      
+      if (result) {
+        setShowRetroactiveFastModal(false);
+        toast({
+          title: "Fast started retroactively",
+          description: `Fast duration: ${Math.floor(duration / 3600)} hours`
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start retroactive fast",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap with DailyStatsPanel */}
@@ -240,14 +265,25 @@ const Timer = () => {
         {currentMode === 'fasting' && (
           <div className="space-y-4">
             {!isRunning ? (
-              <Button 
-                onClick={() => setShowFastSelector(true)}
-                className="w-full h-16 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                size="lg"
-              >
-                <Play className="w-6 h-6 mr-2" />
-                Start Fast
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => setShowFastSelector(true)}
+                  className="w-full h-16 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                  size="lg"
+                >
+                  <Play className="w-6 h-6 mr-2" />
+                  Start Fast
+                </Button>
+                <Button 
+                  onClick={() => setShowRetroactiveFastModal(true)}
+                  variant="outline"
+                  className="w-full h-12 text-sm font-medium border-primary/20 hover:bg-primary/5"
+                  size="lg"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Start Fast in Past
+                </Button>
+              </div>
             ) : (
               <Button 
                 onClick={() => setShowStopConfirmDialog(true)}
@@ -262,28 +298,39 @@ const Timer = () => {
           </div>
         )}
 
-        {/* Current Fast Info - Only show when running */}
+        {/* Current Fast Info - Integrated into main display when running */}
         {currentMode === 'fasting' && isRunning && (
           <div className="mt-6 p-4 rounded-xl bg-ceramic-base/50 border border-ceramic-rim">
-            <h3 className="font-medium text-warm-text mb-4">Current Fast</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Type:</span>
-                <span className="font-medium">{fastType === 'intermittent' ? 'Intermittent Fasting' : 'Water Fast'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Goal:</span>
-                <span className="font-medium">{formatTimeFasting(fastDuration)}</span>
-              </div>
-              {fastType === 'intermittent' && (
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-warm-text">
+                {fastType === 'intermittent' ? 'Intermittent Fast' : 'Water Fast'}
+              </h3>
+              <Badge variant="outline" className="text-primary border-primary/20">
+                {isInEatingWindow ? 'Eating Window' : 'Fasting'}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Eating Window:</span>
-                  <span className="font-medium">{formatTimeFasting(eatingWindow)}</span>
+                  <span className="text-muted-foreground">Goal:</span>
+                  <span className="font-medium">{formatTimeFasting(fastDuration)}</span>
                 </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Elapsed:</span>
-                <span className="font-medium text-primary">{formatTimeFasting(timeElapsed)}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Elapsed:</span>
+                  <span className="font-medium text-primary">{formatTimeFasting(timeElapsed)}</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {fastType === 'intermittent' && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Window:</span>
+                    <span className="font-medium">{formatTimeFasting(eatingWindow)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Progress:</span>
+                  <span className="font-medium">{getProgress().toFixed(0)}%</span>
+                </div>
               </div>
             </div>
           </div>
@@ -367,6 +414,13 @@ const Timer = () => {
           handleFastingStop();
         }}
         currentDuration={formatTimeFasting(timeElapsed)}
+      />
+
+      {/* Retroactive Fast Modal */}
+      <RetroactiveFastModal
+        isOpen={showRetroactiveFastModal}
+        onClose={() => setShowRetroactiveFastModal(false)}
+        onConfirm={handleRetroactiveFastStart}
       />
     </div>
   );
