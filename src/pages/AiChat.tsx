@@ -79,7 +79,7 @@ const AiChat = () => {
 
       setNotificationMessages(newNotificationMessages);
     }
-  }, []);
+  }, [getAutoShowNotifications, profile, user]);
 
   // Handle notification responses
   const handleNotificationResponse = async (message: string) => {
@@ -364,9 +364,9 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen pt-20"> {/* Add top padding for deficit panel */}
         {/* Header */}
-        <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-50 mt-16">
+        <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -395,7 +395,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background border border-border">
+                <DropdownMenuContent align="end" className="bg-background border border-border z-50">
                   <DropdownMenuItem onClick={() => setShowApiDialog(true)}>
                     <Settings className="w-4 h-4 mr-2" />
                     API Settings
@@ -414,8 +414,8 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
           </div>
         </div>
 
-        {/* Messages - Reduced height and centered */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 max-h-[calc(100vh-280px)]">
+        {/* Messages - Flexible height with proper spacing */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
           <div className="max-w-md mx-auto space-y-4">
             {allMessages.map((message, index) => (
               <div

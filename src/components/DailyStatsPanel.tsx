@@ -111,7 +111,7 @@ export const DailyStatsPanel = () => {
 
   return (
     <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* FIXED: Lower z-index to prevent overlap */}
+      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-50">{/* High z-index but coordinated with other components */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
           className="cursor-pointer transition-colors select-none"
@@ -144,7 +144,7 @@ export const DailyStatsPanel = () => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-ceramic-plate border-b border-ceramic-rim max-w-md mx-auto">
+            <div className="bg-ceramic-plate border-b border-ceramic-rim max-w-md mx-auto z-50">
               <div className="px-4 py-4 space-y-4">
                 {/* Main Deficit Display */}
                 <Card className="p-4 bg-ceramic-base border-ceramic-rim">
