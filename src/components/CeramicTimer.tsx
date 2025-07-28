@@ -137,53 +137,57 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             )}
             style={{ zIndex: 13 }} // Above progress ring but can fade
           >
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1">
+              {/* Fast Type - Above timer */}
+              <div className={cn(
+                "text-sm font-medium transition-colors duration-300",
+                isEatingWindow ? 'text-amber-600' : isActive ? 'text-primary' : 'text-muted-foreground'
+              )}>
+                {isEatingWindow ? 'Eating Window' : 
+                 isActive && fastType ? 
+                   (fastType === 'intermittent' ? 
+                     `${Math.round((goalDuration || 0))}h / ${Math.round(24 - (goalDuration || 0))}h` : 
+                     'Water Fast') : 
+                   isActive ? 'Fasting' : 'Ready to Fast'}
+              </div>
+              
+              {/* Main Timer - Centered */}
               <div 
                 className={cn(
-                  "text-4xl font-mono font-semibold tracking-wide transition-colors duration-300",
+                  "text-5xl font-mono font-bold tracking-wide transition-colors duration-300",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
                 style={{ 
-                  textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   fontFeatureSettings: '"tnum" 1'
                 }}
               >
                 {displayTime}
               </div>
               
-              <div className={cn(
-                "text-lg font-medium transition-colors duration-300",
-                isEatingWindow ? 'text-primary' : isActive ? 'text-primary' : 'text-muted-foreground'
-              )}>
-                {isEatingWindow ? 'Eating' : 
-                 isActive && fastType ? 
-                   (fastType === 'intermittent' ? 'Intermittent' : 'Water Fast') : 
-                   isActive ? 'Fasting' : 'Ready to Fast'}
-              </div>
-              
-              {/* Goal Duration Display */}
+              {/* Goal Duration - Under timer */}
               {isActive && goalDuration && (
                 <div className="text-sm text-muted-foreground font-medium">
-                  Goal: {goalDuration >= 24 ? `${Math.round(goalDuration / 24)}d` : `${Math.round(goalDuration)}h`}
+                  {Math.round(goalDuration)}h goal
                 </div>
               )}
               
-              {/* Progress Percentage */}
+              {/* Progress Percentage - Clean display */}
               {isActive && progress > 0 && (
                 <div className="text-xs text-primary/70 font-medium">
-                  {progress.toFixed(0)}% complete
+                  {Math.max(1, Math.round(progress))}%
                 </div>
               )}
               
               {/* Separate eating window countdown */}
               {isEatingWindow && eatingWindowTimeRemaining && (
-                <div className="text-xs text-primary/70 font-medium">
-                  Time left: {eatingWindowTimeRemaining}
+                <div className="text-xs text-amber-600/70 font-medium">
+                  {eatingWindowTimeRemaining} left
                 </div>
               )}
               
               {isActive && (
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse mx-auto" />
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse mx-auto mt-2" />
               )}
             </div>
           </div>

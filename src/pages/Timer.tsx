@@ -210,14 +210,22 @@ const Timer = () => {
 
   const handleRetroactiveFastStart = async (startDate: string, startTime: string, fastType: 'intermittent' | 'longterm', duration: number) => {
     try {
-      // For now, just use the regular start function
-      // TODO: Modify useFastingSession to support custom start times
+      // Calculate the past start time
+      const pastStartDateTime = new Date(`${startDate}T${startTime}`);
+      const now = new Date();
+      const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
+      const elapsedSeconds = Math.floor(timeDiffMs / 1000);
+      
+      // Start the fast with regular function
       const result = await startFastingSession(duration);
       
       if (result) {
+        // Set the elapsed time to reflect the past start
+        setTimeElapsed(elapsedSeconds);
+        
         toast({
           title: "Fast started retroactively",
-          description: `Fast duration: ${Math.floor(duration / 3600)} hours`
+          description: `Fast started ${formatTimeFasting(elapsedSeconds)} ago`
         });
       }
     } catch (error) {
@@ -296,40 +304,6 @@ const Timer = () => {
         )}
 
 
-        {/* Fast Settings - Only show for fasting mode */}
-        {currentMode === 'fasting' && !isRunning && (
-          <div className="mt-6 p-4 rounded-xl bg-ceramic-base/50 border border-ceramic-rim">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium text-warm-text">Fast Settings</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFastSelector(true)}
-                className="text-primary hover:bg-ceramic-rim"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Change
-              </Button>
-            </div>
-            
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Type:</span>
-                <span className="font-medium">{fastType === 'intermittent' ? 'Intermittent Fasting' : 'Water Fast'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Duration:</span>
-                <span className="font-medium">{formatTimeFasting(fastDuration)}</span>
-              </div>
-              {fastType === 'intermittent' && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Eating Window:</span>
-                  <span className="font-medium">{formatTimeFasting(eatingWindow)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Crisis Support - Only show for fasting mode */}
         {currentMode === 'fasting' && isRunning && timeElapsed > 24 * 60 * 60 && ( // Show after 24 hours

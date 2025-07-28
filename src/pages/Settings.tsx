@@ -428,297 +428,51 @@ const Settings = () => {
 
             {/* REMOVED: Notifications section as per plan */}
 
-            {/* Compact AI API Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Key className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">AI & API</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-warm-text font-medium">Use Your Own API Key</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Get reminders and encouragement during fasts
-                      </p>
-                    </div>
-                    <Switch
-                      checked={notificationsEnabled}
-                      onCheckedChange={setNotificationsEnabled}
-                    />
-                  </div>
-                </div>
-              </div>
-            </Card>
 
-        {/* AI API Configuration */}
+        {/* AI Settings */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <Key className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">AI API</h3>
+              <h3 className="text-lg font-semibold text-warm-text">AI Settings</h3>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="use-own-key" className="text-warm-text font-medium">Use your own API key</Label>
+                <p className="text-xs text-muted-foreground">Enable to use your own OpenAI API key for unlimited usage</p>
+              </div>
+              <Switch
+                id="use-own-key"
+                checked={useOwnKey}
+                onCheckedChange={setUseOwnKey}
+              />
             </div>
             
-            <div className="space-y-4">
-              {/* AI Service Status */}
-              <div className="space-y-3">
-                {subscription.subscribed ? (
-                  <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Crown className="w-5 h-5 text-green-500" />
-                      <span className="font-medium text-green-600 dark:text-green-400">Premium AI Access</span>
-                    </div>
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      You have unlimited access to our AI-powered fasting assistant. No setup required!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg space-y-3">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-blue-500" />
-                      <span className="font-medium text-blue-600 dark:text-blue-400">Personal API Access</span>
-                    </div>
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
-                      You get {subscription.request_limit} AI requests using our shared service. 
-                      Used: {subscription.requests_used}/{subscription.request_limit}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Free Users: Own API Key Option */}
-              {!subscription.subscribed && (
-                <div>
-                  <div className="p-3 bg-ceramic-base rounded-lg border border-ceramic-rim cursor-pointer" onClick={() => document.getElementById('api-toggle')?.click()}>
-                    <div className="flex items-center gap-2">
-                      <Key className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-warm-text">Alternative: Use my own API key</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 space-y-3 p-3 bg-ceramic-base/50 rounded-lg border border-ceramic-rim/50">
-                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
-                      <p className="text-xs text-amber-600 dark:text-amber-400">
-                        Use your own OpenAI API key instead of upgrading. You'll get full model control but pay OpenAI directly.
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="use-own-key-free"
-                        checked={useOwnKey}
-                        onCheckedChange={setUseOwnKey}
-                      />
-                      <Label htmlFor="use-own-key-free" className="text-sm text-warm-text">
-                        Use my own API key instead of shared service
-                      </Label>
-                    </div>
-
-                    {useOwnKey && (
-                      <div className="space-y-3">
-                        <Label htmlFor="api-key" className="text-warm-text">
-                          OpenAI API Key
-                        </Label>
-                        <div className="space-y-2">
-                          <Input
-                            id="api-key"
-                            type={isKeyVisible ? 'text' : 'password'}
-                            placeholder="sk-..."
-                            value={openAiKey}
-                            onChange={(e) => setOpenAiKey(e.target.value)}
-                            className="bg-ceramic-base border-ceramic-rim"
-                            maxLength={100}
-                          />
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="show-key"
-                              checked={isKeyVisible}
-                              onCheckedChange={setIsKeyVisible}
-                            />
-                            <Label htmlFor="show-key" className="text-sm text-muted-foreground">
-                              Show API key
-                            </Label>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Premium Users: Advanced Own API Key Option */}
-              {subscription.subscribed && (
-                <details className="group">
-                  <summary className="cursor-pointer select-none">
-                    <div className="flex items-center justify-between p-3 bg-ceramic-base rounded-lg border border-ceramic-rim">
-                      <div className="flex items-center gap-2">
-                        <Key className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-warm-text">Advanced: Use my own API key</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">⌄</div>
-                    </div>
-                  </summary>
-                  
-                  <div className="mt-3 space-y-3 p-3 bg-ceramic-base/50 rounded-lg border border-ceramic-rim/50">
-                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
-                      <p className="text-xs text-amber-600 dark:text-amber-400">
-                        Optional: Use your own OpenAI API key for custom model control. Most users don't need this.
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="use-own-key-premium"
-                        checked={useOwnKey}
-                        onCheckedChange={setUseOwnKey}
-                      />
-                      <Label htmlFor="use-own-key-premium" className="text-sm text-warm-text">
-                        Use my own API key instead of shared service
-                      </Label>
-                    </div>
-
-                    {useOwnKey && (
-                      <div className="space-y-3">
-                        <Label htmlFor="api-key-premium" className="text-warm-text">
-                          OpenAI API Key
-                        </Label>
-                        <div className="space-y-2">
-                          <Input
-                            id="api-key-premium"
-                            type={isKeyVisible ? 'text' : 'password'}
-                            placeholder="sk-..."
-                            value={openAiKey}
-                            onChange={(e) => setOpenAiKey(e.target.value)}
-                            className="bg-ceramic-base border-ceramic-rim"
-                            maxLength={100}
-                          />
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="show-key-premium"
-                              checked={isKeyVisible}
-                              onCheckedChange={setIsKeyVisible}
-                            />
-                            <Label htmlFor="show-key-premium" className="text-sm text-muted-foreground">
-                              Show API key
-                            </Label>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </details>
-              )}
-
-              {/* Voice Selection (Always visible for shared service) */}
-              {!useOwnKey && (
+            {useOwnKey ? (
+              <div className="space-y-4 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
                 <div className="space-y-2">
-                  <Label className="text-warm-text">AI Voice</Label>
-                  <Select value={ttsVoice} onValueChange={setTtsVoice}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alloy">Alloy (Balanced ⭐)</SelectItem>
-                      <SelectItem value="echo">Echo (Male)</SelectItem>
-                      <SelectItem value="fable">Fable (Expressive)</SelectItem>
-                      <SelectItem value="onyx">Onyx (Deep)</SelectItem>
-                      <SelectItem value="nova">Nova (Warm)</SelectItem>
-                      <SelectItem value="shimmer">Shimmer (Soft)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Choose your preferred assistant voice. Speech and transcription models are optimized by our team.
-                  </p>
-                </div>
-              )}
-
-              {/* Model Selection (Only when using own API key) */}
-              {useOwnKey && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-warm-text">Speech Model (Real-time)</Label>
-                      <Select value={speechModel} onValueChange={setSpeechModel}>
-                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="gpt-4o-mini-realtime">GPT-4o Mini (Cost-effective ⭐)</SelectItem>
-                          <SelectItem value="gpt-4o-realtime">GPT-4o (Premium)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        {speechModel === 'gpt-4o-mini-realtime' ? 'Most cost-effective for voice chat' : 'Higher quality but more expensive'}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-warm-text">Transcription Model</Label>
-                      <Select value={transcriptionModel} onValueChange={setTranscriptionModel}>
-                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="whisper-1">Whisper-1 (Recommended ⭐)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-warm-text">Text-to-Speech Model</Label>
-                      <Select value={ttsModel} onValueChange={setTtsModel}>
-                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="tts-1">TTS-1 (Cost-effective ⭐)</SelectItem>
-                          <SelectItem value="tts-1-hd">TTS-1 HD (Premium)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-warm-text">Voice</Label>
-                      <Select value={ttsVoice} onValueChange={setTtsVoice}>
-                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="alloy">Alloy (Balanced ⭐)</SelectItem>
-                          <SelectItem value="echo">Echo (Male)</SelectItem>
-                          <SelectItem value="fable">Fable (Expressive)</SelectItem>
-                          <SelectItem value="onyx">Onyx (Deep)</SelectItem>
-                          <SelectItem value="nova">Nova (Warm)</SelectItem>
-                          <SelectItem value="shimmer">Shimmer (Soft)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <Label htmlFor="openai-key" className="text-warm-text">OpenAI API Key</Label>
+                  <div className="relative">
+                    <Input
+                      id="openai-key"
+                      type={isKeyVisible ? 'text' : 'password'}
+                      placeholder="Enter your OpenAI API key"
+                      value={openAiKey}
+                      onChange={(e) => setOpenAiKey(e.target.value)}
+                      className="bg-ceramic-base border-ceramic-rim pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute inset-y-0 right-0 px-3 py-0 h-full"
+                      onClick={() => setIsKeyVisible(!isKeyVisible)}
+                    >
+                      {isKeyVisible ? '🙈' : '👁️'}
+                    </Button>
                   </div>
-
-                  <Button
-                    onClick={handleClearApiKey}
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim"
-                  >
-                    Clear API Key
-                  </Button>
-                </>
-              )}
-              
-              <Button
-                onClick={handleSaveSettings}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Save AI Settings
-              </Button>
-              
-              <div className="bg-accent/20 p-3 rounded-lg">
-                <p className="text-xs text-muted-foreground">
-                  {useOwnKey ? (
-                    <>Your API key enables voice-to-text, AI chat, and smart motivator creation. 
-                    Get your key from{' '}
+                  <p className="text-xs text-muted-foreground">
+                    Get your API key from{" "}
                     <a 
                       href="https://platform.openai.com/api-keys" 
                       target="_blank" 
@@ -726,13 +480,62 @@ const Settings = () => {
                       className="text-primary hover:underline"
                     >
                       OpenAI Platform
-                    </a></>
-                  ) : (
-                    'Using shared fasting assistant service. Voice and models are optimized by our team for the best experience.'
-                  )}
-                </p>
+                    </a>
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-warm-text">Chat Model</Label>
+                  <Select value={speechModel} onValueChange={setSpeechModel}>
+                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                      <SelectValue placeholder="Select chat model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gpt-4o-mini-realtime">GPT-4o Mini (Recommended)</SelectItem>
+                      <SelectItem value="gpt-4o-realtime">GPT-4o (Premium)</SelectItem>
+                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Fast)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-warm-text">Voice</Label>
+                  <Select value={ttsVoice} onValueChange={setTtsVoice}>
+                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                      <SelectValue placeholder="Select voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="alloy">Alloy</SelectItem>
+                      <SelectItem value="echo">Echo</SelectItem>
+                      <SelectItem value="fable">Fable</SelectItem>
+                      <SelectItem value="onyx">Onyx</SelectItem>
+                      <SelectItem value="nova">Nova</SelectItem>
+                      <SelectItem value="shimmer">Shimmer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleClearApiKey}
+                    variant="outline"
+                    className="flex-1 bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                  >
+                    Clear API Key
+                  </Button>
+                  <Button 
+                    onClick={handleSaveSettings}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    Save AI Settings
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-sm text-muted-foreground p-3 rounded-lg bg-ceramic-base/30">
+                Using shared service with default models and voice settings.
+              </p>
+            )}
           </div>
         </Card>
 
@@ -883,42 +686,6 @@ const Settings = () => {
         </Card>
 
 
-        {/* Account */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <User className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">Account</h3>
-            </div>
-            
-            <div className="space-y-3">
-              {user ? (
-                <>
-                  <div className="bg-green-500/10 border border-green-500/20 p-3 rounded-lg">
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      ✅ Signed in as {user.email}
-                    </p>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive"
-                    onClick={signOut}
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <div className="bg-accent/20 p-3 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Sign in to sync your data across devices and access premium features.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
 
         {/* Reset Account */}
         {user && (
