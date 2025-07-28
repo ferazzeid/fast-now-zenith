@@ -78,14 +78,14 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-xs px-2 py-1 bg-background/80 border border-border/20 hover:bg-background/90">
+        <Button variant="ghost" size="sm" className="text-xs px-2 py-1 bg-card border border-border hover:bg-accent">
           <Plus className="w-3 h-3 mr-1" />
-          Add Calories
+          Add External Activity
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
-          <DialogTitle>Add Manual Calorie Burn</DialogTitle>
+          <DialogTitle>Add External Activity</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -122,7 +122,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               disabled={saving}
               className="flex-1"
             >
-              {saving ? 'Saving...' : 'Add Calories'}
+              {saving ? 'Saving...' : 'Add Activity'}
             </Button>
             <Button 
               variant="outline" 

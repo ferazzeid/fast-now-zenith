@@ -265,7 +265,7 @@ Then ask if they want to add it to their food log.`;
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2 mr-8">
               <Switch
                 id="modal-audio-mode"
                 checked={audioEnabled}

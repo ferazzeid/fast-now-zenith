@@ -299,108 +299,119 @@ const Settings = () => {
                     onUnitsChange={setUnits}
                   />
                   
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
-                      <Input
-                        id="weight"
-                        type="number"
-                        placeholder={units === 'metric' ? '70' : '154'}
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        className="bg-ceramic-base border-ceramic-rim"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
-                      <Input
-                        id="height"
-                        type="number"
-                        placeholder={units === 'metric' ? '175' : '69'}
-                        value={height}
-                        onChange={(e) => setHeight(e.target.value)}
-                        className="bg-ceramic-base border-ceramic-rim"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="age" className="text-warm-text">Age</Label>
-                      <Input
-                        id="age"
-                        type="number"
-                        placeholder="30"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                        className="bg-ceramic-base border-ceramic-rim"
-                      />
+                  {/* Physical Attributes Section */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
+                        <Input
+                          id="weight"
+                          type="number"
+                          placeholder={units === 'metric' ? '70' : '154'}
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
+                        <Input
+                          id="height"
+                          type="number"
+                          placeholder={units === 'metric' ? '175' : '69'}
+                          value={height}
+                          onChange={(e) => setHeight(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="age" className="text-warm-text">Age</Label>
+                        <Input
+                          id="age"
+                          type="number"
+                          placeholder="30"
+                          value={age}
+                          onChange={(e) => setAge(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-warm-text">Activity Level</Label>
-                    <Select value={activityLevel} onValueChange={setActivityLevel}>
-                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                        <SelectValue placeholder="Select your activity level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sedentary">
-                          <div className="flex flex-col">
-                            <span className="font-medium">Sedentary</span>
-                            <span className="text-xs text-muted-foreground">Little to no exercise</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="lightly_active">
-                          <div className="flex flex-col">
-                            <span className="font-medium">Lightly Active</span>
-                            <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="moderately_active">
-                          <div className="flex flex-col">
-                            <span className="font-medium">Moderately Active</span>
-                            <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="very_active">
-                          <div className="flex flex-col">
-                            <span className="font-medium">Very Active</span>
-                            <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="extremely_active">
-                          <div className="flex flex-col">
-                            <span className="font-medium">Extremely Active</span>
-                            <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      This affects your base daily calorie burn (TDEE) calculation
-                    </p>
+                  {/* Activity Level Section */}
+                  <div className="space-y-4 pt-6 border-t border-ceramic-rim/50">
+                    <h4 className="text-sm font-medium text-warm-text">Activity Level</h4>
+                    <div className="space-y-2">
+                      <Select value={activityLevel} onValueChange={setActivityLevel}>
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue placeholder="Select your activity level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sedentary">
+                            <div className="flex flex-col">
+                              <span className="font-medium">Sedentary</span>
+                              <span className="text-xs text-muted-foreground">Little to no exercise</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="lightly_active">
+                            <div className="flex flex-col">
+                              <span className="font-medium">Lightly Active</span>
+                              <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="moderately_active">
+                            <div className="flex flex-col">
+                              <span className="font-medium">Moderately Active</span>
+                              <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="very_active">
+                            <div className="flex flex-col">
+                              <span className="font-medium">Very Active</span>
+                              <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="extremely_active">
+                            <div className="flex flex-col">
+                              <span className="font-medium">Extremely Active</span>
+                              <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        This affects your base daily calorie burn (TDEE) calculation
+                      </p>
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>
-                      <Input
-                        id="dailyCalorieGoal"
-                        type="number"
-                        placeholder="2000"
-                        value={dailyCalorieGoal}
-                        onChange={(e) => setDailyCalorieGoal(e.target.value)}
-                        className="bg-ceramic-base border-ceramic-rim"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="dailyCarbGoal" className="text-warm-text">Daily Carb Goal (g)</Label>
-                      <Input
-                        id="dailyCarbGoal"
-                        type="number"
-                        placeholder="150"
-                        value={dailyCarbGoal}
-                        onChange={(e) => setDailyCarbGoal(e.target.value)}
-                        className="bg-ceramic-base border-ceramic-rim"
-                      />
+                  {/* Goals Section */}
+                  <div className="space-y-4 pt-6 border-t border-ceramic-rim/50">
+                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>
+                        <Input
+                          id="dailyCalorieGoal"
+                          type="number"
+                          placeholder="2000"
+                          value={dailyCalorieGoal}
+                          onChange={(e) => setDailyCalorieGoal(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dailyCarbGoal" className="text-warm-text">Daily Carb Goal (g)</Label>
+                        <Input
+                          id="dailyCarbGoal"
+                          type="number"
+                          placeholder="150"
+                          value={dailyCarbGoal}
+                          onChange={(e) => setDailyCarbGoal(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
                     </div>
                   </div>
                   

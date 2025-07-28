@@ -141,10 +141,10 @@ export const DailyStatsPanel = () => {
           <>
             {/* Overlay */}
             <div 
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[-1]" 
+              className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-ceramic-plate/98 backdrop-blur-sm border-b border-ceramic-rim max-w-md mx-auto">
+            <div className="bg-ceramic-plate border-b border-ceramic-rim max-w-md mx-auto">
               <div className="px-4 py-4 space-y-4">
                 {/* Main Deficit Display */}
                 <Card className="p-4 bg-ceramic-base border-ceramic-rim">
@@ -180,10 +180,12 @@ export const DailyStatsPanel = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Utensils className="w-4 h-4 text-primary" />
                       <span className="text-xs font-medium text-warm-text">Calories In</span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
+                       <Tooltip>
+                         <TooltipTrigger>
+                           <button className="p-2 hover:bg-accent rounded-md">
+                             <Info className="w-4 h-4 text-muted-foreground" />
+                           </button>
+                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total calories consumed from food today</p>
                         </TooltipContent>
@@ -199,10 +201,12 @@ export const DailyStatsPanel = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Activity className="w-4 h-4 text-primary" />
                       <span className="text-xs font-medium text-warm-text">Calories Out</span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
+                       <Tooltip>
+                         <TooltipTrigger>
+                           <button className="p-2 hover:bg-accent rounded-md">
+                             <Info className="w-4 h-4 text-muted-foreground" />
+                           </button>
+                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total calories burned today: Base Daily Burn + Walking + Fasting Bonus</p>
                         </TooltipContent>
@@ -218,10 +222,12 @@ export const DailyStatsPanel = () => {
                     <div className="flex items-center space-x-2 mb-1">
                       <Target className="w-3 h-3 text-primary" />
                       <span className="text-xs text-warm-text">Base Daily Burn</span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
+                       <Tooltip>
+                         <TooltipTrigger>
+                           <button className="p-2 hover:bg-accent rounded-md">
+                             <Info className="w-4 h-4 text-muted-foreground" />
+                           </button>
+                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Calories your body burns naturally based on your metabolism and activity level</p>
                         </TooltipContent>
@@ -230,9 +236,9 @@ export const DailyStatsPanel = () => {
                     <div className="text-lg font-bold text-primary">
                       {formatNumber(deficitData.tdee)} cal
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {getActivityLevelDisplay(deficitData.activityLevel)}
-                    </div>
+                     <div className="text-xs text-muted-foreground mt-1">
+                       {getActivityLevelDisplay(deficitData.activityLevel)}
+                     </div>
                   </Card>
 
                   {/* Walking */}
@@ -240,10 +246,12 @@ export const DailyStatsPanel = () => {
                     <div className="flex items-center space-x-2 mb-1">
                       <Activity className="w-3 h-3 text-primary" />
                       <span className="text-xs text-warm-text">Walking Burn</span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
+                       <Tooltip>
+                         <TooltipTrigger>
+                           <button className="p-2 hover:bg-accent rounded-md">
+                             <Info className="w-4 h-4 text-muted-foreground" />
+                           </button>
+                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Total calories burned from walking today (includes active sessions)</p>
                         </TooltipContent>
@@ -267,10 +275,12 @@ export const DailyStatsPanel = () => {
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-purple-500" />
                         <span className="text-sm font-medium text-warm-text">Fasting Bonus</span>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
-                          </TooltipTrigger>
+                         <Tooltip>
+                           <TooltipTrigger>
+                             <button className="p-2 hover:bg-accent rounded-md">
+                               <Info className="w-4 h-4 text-muted-foreground" />
+                             </button>
+                           </TooltipTrigger>
                           <TooltipContent>
                             <p>5% metabolic boost while actively fasting</p>
                           </TooltipContent>
