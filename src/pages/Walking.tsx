@@ -7,6 +7,7 @@ import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog'
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
+import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
 
 const Walking = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -216,6 +217,10 @@ const Walking = () => {
         />
 
         <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Walking History</h3>
+            <ClearWalkingHistoryButton />
+          </div>
           <WalkingHistory />
         </div>
       </div>

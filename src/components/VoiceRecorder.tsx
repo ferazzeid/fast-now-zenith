@@ -253,7 +253,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
             size="lg"
             className="w-16 h-16 p-0 flex items-center justify-center border-red-300 hover:bg-red-50"
           >
-            <span className="text-xl font-bold text-red-600">✕</span>
+            Cancel
           </Button>
           
         </div>

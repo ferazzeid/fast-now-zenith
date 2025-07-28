@@ -22,6 +22,7 @@ export const useWalkingSession = () => {
   const [loading, setLoading] = useState(false);
   const [selectedSpeed, setSelectedSpeed] = useState<number>(3); // Default to average speed
   const [isPaused, setIsPaused] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
   const { calculateWalkingCalories } = useProfile();
 
@@ -191,6 +192,7 @@ export const useWalkingSession = () => {
 
       setCurrentSession(null);
       setIsPaused(false);
+      setRefreshTrigger(prev => prev + 1);
       return { data, error: null };
     } catch (error: any) {
       console.error('Error ending walking session:', error);
@@ -241,6 +243,7 @@ export const useWalkingSession = () => {
     resumeWalkingSession,
     endWalkingSession,
     loadActiveSession,
-    updateSessionSpeed
+    updateSessionSpeed,
+    refreshTrigger
   };
 };

@@ -136,83 +136,46 @@ export const RealApiUsageStats = ({ className }: RealApiUsageStatsProps) => {
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5 text-blue-500" />
-            <div>
-              <p className="text-sm font-medium">Total Requests</p>
-              <p className="text-2xl font-bold">{getTotalRequests().toLocaleString()}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
-            <div>
-              <p className="text-sm font-medium">Success Rate</p>
-              <p className="text-2xl font-bold">{getSuccessRate()}%</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center space-x-2">
-            <DollarSign className="w-5 h-5 text-yellow-500" />
-            <div>
-              <p className="text-sm font-medium">Est. Cost (30d)</p>
-              <p className="text-2xl font-bold">${totalCost.toFixed(2)}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-            <div>
-              <p className="text-sm font-medium">Failed Requests</p>
-              <p className="text-2xl font-bold">
-                {usageData.reduce((sum, day) => sum + day.failed_requests, 0)}
-              </p>
-            </div>
-          </div>
-        </Card>
+      {/* Compact Summary */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="p-3 bg-gray-50 rounded">
+          <p className="text-xs text-gray-600">Requests</p>
+          <p className="text-sm font-semibold">{getTotalRequests()}</p>
+        </div>
+        <div className="p-3 bg-gray-50 rounded">
+          <p className="text-xs text-gray-600">Success</p>
+          <p className="text-sm font-semibold">{getSuccessRate()}%</p>
+        </div>
+        <div className="p-3 bg-gray-50 rounded">
+          <p className="text-xs text-gray-600">Cost (30d)</p>
+          <p className="text-sm font-semibold">${totalCost.toFixed(2)}</p>
+        </div>
+        <div className="p-3 bg-gray-50 rounded">
+          <p className="text-xs text-gray-600">Failed</p>
+          <p className="text-sm font-semibold">{usageData.reduce((sum, day) => sum + day.failed_requests, 0)}</p>
+        </div>
       </div>
 
-      {/* Recent Activity */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent API Activity (Last 7 Days)</h3>
-        <div className="space-y-3">
+      {/* Recent Activity - Compact */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium">Last 7 Days</h4>
+        <div className="space-y-1">
           {getRecentDaysData().map((day, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium">{new Date(day.date).toLocaleDateString()}</p>
-                <div className="flex space-x-4 text-sm text-gray-600">
-                  <span>{day.total_requests} requests</span>
-                  <span>${day.cost_estimate.toFixed(3)} cost</span>
-                </div>
-              </div>
+            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+              <span>{new Date(day.date).toLocaleDateString()}</span>
               <div className="flex space-x-2">
-                <Badge variant="outline" className="text-green-600">
-                  {day.successful_requests} success
-                </Badge>
-                {day.failed_requests > 0 && (
-                  <Badge variant="destructive">
-                    {day.failed_requests} failed
-                  </Badge>
-                )}
+                <span>{day.total_requests}req</span>
+                <span>${day.cost_estimate.toFixed(3)}</span>
               </div>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
 
-      {/* Model Usage Breakdown */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Model Usage Breakdown</h3>
-        <div className="space-y-2">
+      {/* Model Usage - Compact */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium">Model Usage</h4>
+        <div className="space-y-1">
           {Object.entries(
             usageData.reduce((acc: Record<string, number>, day) => {
               Object.entries(day.model_breakdown).forEach(([model, count]) => {
@@ -222,14 +185,15 @@ export const RealApiUsageStats = ({ className }: RealApiUsageStatsProps) => {
             }, {})
           )
             .sort(([, a], [, b]) => b - a)
+            .slice(0, 5)
             .map(([model, count]) => (
-              <div key={model} className="flex justify-between items-center">
-                <span className="font-medium">{model}</span>
-                <Badge variant="secondary">{count} requests</Badge>
+              <div key={model} className="flex justify-between items-center text-xs">
+                <span>{model}</span>
+                <span>{count}</span>
               </div>
             ))}
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

@@ -498,22 +498,6 @@ const Settings = () => {
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-warm-text">Voice</Label>
-                  <Select value={ttsVoice} onValueChange={setTtsVoice}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue placeholder="Select voice" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alloy">Alloy</SelectItem>
-                      <SelectItem value="echo">Echo</SelectItem>
-                      <SelectItem value="fable">Fable</SelectItem>
-                      <SelectItem value="onyx">Onyx</SelectItem>
-                      <SelectItem value="nova">Nova</SelectItem>
-                      <SelectItem value="shimmer">Shimmer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <div className="flex space-x-2">
                   <Button 
@@ -536,16 +520,39 @@ const Settings = () => {
                 Using shared service with default models and voice settings.
               </p>
             )}
+
+            {/* Voice Settings - Available for all users */}
+            <div className="space-y-2 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
+              <Label className="text-warm-text">AI Voice</Label>
+              <Select value={ttsVoice} onValueChange={setTtsVoice} disabled={!useOwnKey && !subscription.subscribed}>
+                <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                  <SelectValue placeholder="Select voice" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alloy">Alloy</SelectItem>
+                  <SelectItem value="echo">Echo</SelectItem>
+                  <SelectItem value="fable">Fable</SelectItem>
+                  <SelectItem value="onyx">Onyx</SelectItem>
+                  <SelectItem value="nova">Nova</SelectItem>
+                  <SelectItem value="shimmer">Shimmer</SelectItem>
+                </SelectContent>
+              </Select>
+              {!useOwnKey && !subscription.subscribed && (
+                <p className="text-xs text-muted-foreground">
+                  Voice selection available with premium subscription or own API key
+                </p>
+              )}
+            </div>
           </div>
         </Card>
 
-        {/* AI Subscription and Premium Benefits */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <CreditCard className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">AI Subscription and Premium Benefits</h3>
-            </div>
+            {/* Premium Subscription */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Premium Subscription</h3>
+                </div>
 
             {subscription.loading ? (
               <div className="text-center py-4">
@@ -671,13 +678,10 @@ const Settings = () => {
                   </div>
                 )}
 
-                {/* Free users info */}
+                {/* Free users info - Compact */}
                 {!subscription.subscribed && subscription.requests_used < subscription.free_requests_limit && (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
-                      You have {subscription.free_requests_limit - subscription.requests_used} free requests remaining. 
-                      Use your own API key for unlimited access or upgrade to premium.
-                    </p>
+                  <div className="text-xs text-muted-foreground p-2 rounded bg-ceramic-base/30">
+                    {subscription.free_requests_limit - subscription.requests_used} free requests remaining.
                   </div>
                 )}
               </div>
@@ -810,6 +814,12 @@ const Settings = () => {
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground text-center">
                 Made with ❤️ for your wellness journey
+              </p>
+            </div>
+            
+            <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                ⚠️ Clearing cache will log you out and require you to sign in again
               </p>
             </div>
             

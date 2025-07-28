@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { format } from 'date-fns';
 
 interface WalkingSession {
@@ -27,6 +28,7 @@ export const WalkingHistory = () => {
   const [hasMore, setHasMore] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { refreshTrigger } = useWalkingSession();
 
   useEffect(() => {
     const fetchWalkingSessions = async () => {
@@ -69,11 +71,7 @@ export const WalkingHistory = () => {
     };
 
     fetchWalkingSessions();
-
-    // Auto-refresh every 10 seconds for real-time updates
-    const refreshInterval = setInterval(fetchWalkingSessions, 10000);
-    return () => clearInterval(refreshInterval);
-  }, [user, showAll]);
+  }, [user, showAll, refreshTrigger]);
 
   const handleDeleteSession = async (sessionId: string) => {
     if (!user) return;
@@ -127,7 +125,6 @@ export const WalkingHistory = () => {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Walking History</h3>
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <Card key={i} className="p-4 animate-pulse">
@@ -143,7 +140,6 @@ export const WalkingHistory = () => {
   if (sessions.length === 0) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Walking History</h3>
         <Card className="p-6 text-center">
           <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
           <p className="text-muted-foreground">No walking sessions yet</p>
@@ -156,7 +152,6 @@ export const WalkingHistory = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Walking History</h3>
         <Badge variant="secondary">{sessions.length} sessions</Badge>
       </div>
       

@@ -164,7 +164,7 @@ export const DailyStatsPanel = () => {
                   {/* Calories In */}
                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Utensils className="w-4 h-4 text-orange-500" />
+                      <Utensils className="w-4 h-4 text-primary" />
                       <span className="text-xs font-medium text-warm-text">Calories In</span>
                       <Tooltip>
                         <TooltipTrigger>
@@ -175,7 +175,7 @@ export const DailyStatsPanel = () => {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                    <div className="text-lg font-bold text-primary">
                       {formatNumber(deficitData.caloriesConsumed)} cal
                     </div>
                   </Card>
@@ -183,7 +183,7 @@ export const DailyStatsPanel = () => {
                   {/* Calories Out */}
                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Activity className="w-4 h-4 text-blue-500" />
+                      <Activity className="w-4 h-4 text-primary" />
                       <span className="text-xs font-medium text-warm-text">Calories Out</span>
                       <Tooltip>
                         <TooltipTrigger>
@@ -194,7 +194,7 @@ export const DailyStatsPanel = () => {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    <div className="text-lg font-bold text-primary">
                       {formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.fastingBonus)} cal
                     </div>
                   </Card>
@@ -213,7 +213,7 @@ export const DailyStatsPanel = () => {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="text-sm font-semibold text-primary">
+                    <div className="text-lg font-bold text-primary">
                       {formatNumber(deficitData.tdee)} cal
                     </div>
                     <button 
@@ -228,7 +228,7 @@ export const DailyStatsPanel = () => {
                   {/* Walking */}
                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
                     <div className="flex items-center space-x-2 mb-1">
-                      <Activity className="w-3 h-3 text-green-500" />
+                      <Activity className="w-3 h-3 text-primary" />
                       <span className="text-xs text-warm-text">Walking Burn</span>
                       <Tooltip>
                         <TooltipTrigger>
@@ -239,7 +239,7 @@ export const DailyStatsPanel = () => {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    <div className="text-lg font-bold text-primary">
                       {formatNumber(deficitData.walkingCalories)} cal
                     </div>
                     <div className="flex items-center justify-between mt-1">
@@ -272,12 +272,16 @@ export const DailyStatsPanel = () => {
                     </div>
                   </Card>
                 )}
+
+                {/* Manual Calorie Burn Addition */}
+                <div className="mt-4">
+                  <ManualCalorieModal onCalorieAdded={refreshDeficit} />
+                </div>
               </div>
             </div>
           </>
         )}
       </div>
-      <ManualCalorieModal onCalorieAdded={refreshDeficit} />
     </TooltipProvider>
   );
 };
