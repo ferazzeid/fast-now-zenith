@@ -14,19 +14,21 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   console.log('DEBUG: ProtectedRoute render', { user: !!user, loading });
 
   useEffect(() => {
+    // Only redirect if we're absolutely sure there's no user after loading is complete
+    // Add a delay to ensure authentication has time to resolve from cache
     if (!loading && !user) {
-      navigate('/auth');
+      const timer = setTimeout(() => {
+        navigate('/auth');
+      }, 1000); // Give extra time for auth to resolve
+      
+      return () => clearTimeout(timer);
     }
   }, [user, loading, navigate]);
 
-  // Show proper loading spinner while checking auth
-  if (loading) {
-    console.log('DEBUG: Showing loading spinner');
-    return <LoadingSpinner />;
-  }
-
-  // If no user, show loading spinner briefly while navigating to avoid flash
-  if (!user) {
+  // Show loading screen while authentication is resolving OR if no user yet
+  // This prevents the flash of login page
+  if (loading || !user) {
+    console.log('DEBUG: Showing loading spinner - loading:', loading, 'user:', !!user);
     return <LoadingSpinner />;
   }
 
