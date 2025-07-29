@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect, useCallback } from 'react';
 import { Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -12,11 +12,81 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true }: PremiumGateProps) => {
-  const { subscribed, can_use_own_api_key, requests_used, request_limit, createSubscription } = useSubscription();
   const { toast } = useToast();
+  
+  // AI-centric state management
+  const [subscriptionData, setSubscriptionData] = useState({
+    subscribed: false,
+    can_use_own_api_key: true,
+    requests_used: 0,
+    request_limit: 15,
+    loading: true
+  });
+
+  // AI-powered subscription check
+  const checkSubscription = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSubscriptionData(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Check my subscription status for premium features",
+          action: "check_premium_access"
+        }
+      });
+
+      if (error) {
+        console.error('Error checking subscription:', error);
+        setSubscriptionData(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
+      setSubscriptionData({
+        subscribed: data.subscribed || false,
+        can_use_own_api_key: data.can_use_own_api_key || false,
+        requests_used: data.requests_used || 0,
+        request_limit: data.request_limit || 15,
+        loading: false
+      });
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setSubscriptionData(prev => ({ ...prev, loading: false }));
+    }
+  }, []);
+
+  // AI-powered subscription creation
+  const createSubscription = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Create a premium subscription for me",
+          action: "create_subscription"
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      throw error;
+    }
+  }, []);
+
+  useEffect(() => {
+    checkSubscription();
+  }, [checkSubscription]);
 
   // Check if user has access to the feature
-  const hasAccess = subscribed || can_use_own_api_key || (requests_used < request_limit);
+  const hasAccess = subscriptionData.subscribed || 
+                   subscriptionData.can_use_own_api_key || 
+                   (subscriptionData.requests_used < subscriptionData.request_limit);
 
   const handleUpgrade = async () => {
     try {
@@ -33,6 +103,11 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     }
   };
+
+  // Show loading state while checking subscription
+  if (subscriptionData.loading) {
+    return <div className="animate-pulse opacity-50">{children}</div>;
+  }
 
   if (hasAccess) {
     return <>{children}</>;

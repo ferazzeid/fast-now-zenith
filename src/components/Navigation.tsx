@@ -1,23 +1,54 @@
 import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
-import { useProfile } from '@/hooks/useProfile';
-import { useFastingSession } from '@/hooks/useFastingSession';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Navigation = () => {
   const location = useLocation();
   const { timerStatus, formatTime } = useTimerNavigation();
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
-  const { isProfileComplete } = useProfile();
-  const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
   const { todayTotals } = useFoodEntries();
   const { isAnimationsSuspended } = useAnimationControl();
   const [currentTime, setCurrentTime] = useState(Date.now());
+  
+  // AI-centric state management
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [fastingSession, setFastingSession] = useState(null);
+
+  // AI-powered data loading
+  const loadActiveSession = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Load my active fasting session and profile completion status",
+          action: "load_navigation_data"
+        }
+      });
+
+      if (error) {
+        console.error('Error loading navigation data:', error);
+        return;
+      }
+
+      if (data.fasting_session) {
+        setFastingSession(data.fasting_session);
+      }
+
+      if (data.profile_complete !== undefined) {
+        setIsProfileComplete(data.profile_complete);
+      }
+    } catch (error) {
+      console.error('Error in loadActiveSession:', error);
+    }
+  }, []);
 
   // Update time every second for real-time badges, but pause when animations are suspended
   useEffect(() => {
