@@ -262,7 +262,7 @@ export const useDailyDeficit = () => {
         return () => clearInterval(interval);
       }
     }
-  }, [calculateDeficit]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, todayTotals.carbs, manualCalorieTotal, user?.id, calculateDeficit]);
 
   // Only recalculate immediately when walking session starts/stops  
   useEffect(() => {

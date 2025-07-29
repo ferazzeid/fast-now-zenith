@@ -107,6 +107,7 @@ export const DailyStatsPanel = () => {
   // Debug logging to understand why deficit panel isn't showing
   console.log('DailyStatsPanel - shouldHidePanel:', shouldHidePanel);
   console.log('DailyStatsPanel - deficitData:', deficitData);
+  console.log('DailyStatsPanel - loading:', loading);
   console.log('DailyStatsPanel - caloriesConsumed:', deficitData.caloriesConsumed);
   
   // Don't render anything on admin pages, but show when we have profile data (even if no calories consumed yet)
