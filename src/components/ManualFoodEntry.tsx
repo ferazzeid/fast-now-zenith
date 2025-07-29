@@ -111,29 +111,20 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             </div>
           </div>
 
-          {/* Optional but Helpful Fields */}
+          {/* Nutritional Information */}
           <div className="pt-2 border-t border-border">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-muted-foreground">
-                Optional (but helpful for accurate tracking):
+            <div className="mb-3">
+              <p className="text-sm font-medium mb-1">Nutritional Information</p>
+              <p className="text-xs text-muted-foreground">
+                Enter manually from packaging or use AI to estimate:
               </p>
-              {data.name && data.servingSize && (
-                <Button
-                  onClick={handleAiFill}
-                  disabled={isAiFilling}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                >
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  {isAiFilling ? 'Filling...' : 'Fill with AI'}
-                </Button>
-              )}
             </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="calories" className="text-sm">Calories</Label>
+                <Label htmlFor="calories" className="text-sm font-medium">
+                  Calories <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="calories"
                   type="number"
@@ -141,11 +132,14 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                   onChange={(e) => updateField('calories', e.target.value)}
                   placeholder="0"
                   className="mt-1"
+                  required
                 />
               </div>
 
               <div>
-                <Label htmlFor="carbs" className="text-sm">Carbs (g)</Label>
+                <Label htmlFor="carbs" className="text-sm font-medium">
+                  Carbs (g) <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="carbs"
                   type="number"
@@ -153,9 +147,26 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                   onChange={(e) => updateField('carbs', e.target.value)}
                   placeholder="0"
                   className="mt-1"
+                  required
                 />
               </div>
             </div>
+
+            {/* AI Fill Button - Positioned under the fields */}
+            {data.name && data.servingSize && (
+              <div className="mt-3 flex justify-center">
+                <Button
+                  onClick={handleAiFill}
+                  disabled={isAiFilling}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  {isAiFilling ? 'Estimating...' : 'Estimate with AI'}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
