@@ -53,13 +53,20 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
 
     setLoading(true);
     try {
-      // Get food entries with pagination
+      // Calculate yesterday's end to exclude today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const yesterdayEnd = new Date(today.getTime() - 1); // End of yesterday
+      
+      // Get only consumed food entries from previous days (exclude today)
       const { data: entries, error } = await supabase
         .from('food_entries')
         .select('*')
         .eq('user_id', user.id)
+        .eq('consumed', true) // Only consumed items
+        .lt('created_at', yesterdayEnd.toISOString()) // Exclude today
         .order('created_at', { ascending: false })
-        .range(offsetValue * 50, (offsetValue + 1) * 50 - 1); // Batch load 50 entries per page
+        .range(offsetValue * 50, (offsetValue + 1) * 50 - 1);
 
       if (error) throw error;
 
@@ -276,9 +283,6 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                             <div className="text-muted-foreground">
                               {entry.calories} cal • {entry.carbs}g carbs • {entry.serving_size}g
                             </div>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
                       ))}
