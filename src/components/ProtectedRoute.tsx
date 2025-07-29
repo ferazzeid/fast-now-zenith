@@ -10,6 +10,8 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  
+  console.log('ProtectedRoute: user =', !!user, 'loading =', loading);
 
   useEffect(() => {
     // Only redirect if loading is completely done AND there's no user
