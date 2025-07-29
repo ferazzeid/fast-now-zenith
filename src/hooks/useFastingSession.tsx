@@ -22,11 +22,33 @@ export const useFastingSession = () => {
   const { toast } = useToast();
 
   // Load active session on mount
-  useEffect(() => {
-    if (user) {
-      loadActiveSession();
+  const loadActiveSession = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('fasting_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+
+      setCurrentSession(data as FastingSession || null);
+    } catch (error) {
+      console.error('Error loading active session:', error);
+    } finally {
+      setLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    loadActiveSession();
+  }, [loadActiveSession]);
 
   const startFastingSession = useCallback(async (goalDurationSeconds: number, customStartTime?: Date) => {
     if (!user) {
@@ -161,29 +183,6 @@ export const useFastingSession = () => {
     }
   }, [user, currentSession, toast]);
 
-  const loadActiveSession = useCallback(async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('fasting_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('start_time', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
-
-      setCurrentSession(data as FastingSession || null);
-    } catch (error) {
-      console.error('Error loading active session:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
 
   return {
     currentSession,

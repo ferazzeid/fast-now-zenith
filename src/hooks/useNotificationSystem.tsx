@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useProfile } from './useProfile';
 import { useAuth } from './useAuth';
 
@@ -26,7 +26,6 @@ export interface Notification {
 }
 
 export const useNotificationSystem = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
   const { profile, isProfileComplete } = useProfile();
   const { user } = useAuth();
@@ -44,9 +43,9 @@ export const useNotificationSystem = () => {
     localStorage.setItem('dismissed_notifications', JSON.stringify([...dismissed]));
   };
 
-  // Generate notifications based on current state
-  useEffect(() => {
-    if (!user) return;
+  // Generate notifications based on current state using useMemo to prevent infinite loops
+  const notifications = useMemo(() => {
+    if (!user) return [];
 
     const currentNotifications: Notification[] = [];
 
@@ -86,37 +85,7 @@ export const useNotificationSystem = () => {
       }
     }
 
-    // Future notification examples (commented out for now):
-    
-    // Subscription upsell notification
-    // if (shouldShowSubscriptionUpsell()) {
-    //   const subscriptionNotification: Notification = {
-    //     id: 'subscription_upsell',
-    //     type: 'subscription_upsell',
-    //     priority: 'medium',
-    //     title: 'Unlock Premium Features',
-    //     message: 'You\'ve been using the app for a while! Upgrade to premium for unlimited AI features, advanced analytics, and priority support.',
-    //     actions: {
-    //       primary: {
-    //         label: 'Learn More',
-    //         action: 'navigate',
-    //         target: '/settings#subscription',
-    //       },
-    //       secondary: {
-    //         label: 'Maybe Later',
-    //         action: 'dismiss',
-    //       },
-    //     },
-    //     autoShow: false,
-    //     persistent: false,
-    //   };
-    //   
-    //   if (!dismissedNotifications.has(subscriptionNotification.id)) {
-    //     currentNotifications.push(subscriptionNotification);
-    //   }
-    // }
-
-    setNotifications(currentNotifications);
+    return currentNotifications;
   }, [user, profile, isProfileComplete, dismissedNotifications]);
 
   const dismissNotification = (notificationId: string) => {
@@ -127,7 +96,6 @@ export const useNotificationSystem = () => {
   };
 
   const clearNotification = (notificationId: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
     dismissNotification(notificationId);
   };
 
