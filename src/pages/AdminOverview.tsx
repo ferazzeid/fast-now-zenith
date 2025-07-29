@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle, CreditCard, MessageCircle, AlertCircle, TrendingUp, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
-import { CrisisModal } from '@/components/CrisisModal';
 import { RealApiUsageStats } from '@/components/RealApiUsageStats';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -142,7 +141,7 @@ const AdminOverview = () => {
   const [currentFaviconUrl, setCurrentFaviconUrl] = useState('');
   const [currentAppIconUrl, setCurrentAppIconUrl] = useState('');
   const [showUsageStats, setShowUsageStats] = useState(false);
-  const [showCrisisPreview, setShowCrisisPreview] = useState(false);
+  
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -2381,14 +2380,6 @@ const AdminOverview = () => {
                   }
                 </p>
               </div>
-              <Button 
-                variant="outline"
-                onClick={() => setShowCrisisPreview(true)}
-                className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
-              >
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                Preview Crisis Popup
-              </Button>
             </div>
             
             <Button 
@@ -2541,11 +2532,6 @@ const AdminOverview = () => {
         </Card>
       </div>
       
-      {/* Crisis Preview Modal */}
-      <CrisisModal 
-        isOpen={showCrisisPreview}
-        onClose={() => setShowCrisisPreview(false)}
-      />
     </div>
     </TooltipProvider>
   );

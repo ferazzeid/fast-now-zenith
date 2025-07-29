@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
-import { CrisisModal } from '@/components/CrisisModal';
+import { ModalAiChat } from '@/components/ModalAiChat';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 
 import { useToast } from '@/hooks/use-toast';
@@ -362,10 +362,36 @@ const Timer = () => {
         />
       )}
 
-      {/* Crisis Modal */}
-      <CrisisModal 
+      {/* Crisis Support Modal */}
+      <ModalAiChat 
         isOpen={showCrisisModal} 
-        onClose={() => setShowCrisisModal(false)} 
+        onClose={() => setShowCrisisModal(false)}
+        title="Crisis Support"
+        context={`I understand you're having a challenging moment during your fast. I'm here to help you work through this. 
+
+Your Current Fast:
+• Type: ${fastType === 'intermittent' ? `Intermittent (${Math.floor(fastDuration / 3600)}h fast / ${Math.floor(eatingWindow / 3600)}h eat)` : `Extended Fast (${Math.floor(fastDuration / 3600)} hours)`}
+• Time Elapsed: ${formatTimeFasting(timeElapsed)}
+• Progress: ${Math.round(getProgress())}%
+
+Let's talk about what you're experiencing right now. What's making this moment particularly difficult? I can help you work through these feelings and find strategies to continue your fast successfully.`}
+        systemPrompt={`You are a specialized crisis intervention AI for fasting support. Your role is to:
+
+1. PROVIDE IMMEDIATE EMOTIONAL SUPPORT - Acknowledge their struggle and validate their feelings
+2. ASSESS THE SITUATION - Understand what triggered this crisis moment
+3. OFFER COPING STRATEGIES - Provide practical techniques to manage cravings, stress, or discomfort
+4. REINFORCE THEIR GOALS - Remind them why they started this fast and their progress so far
+5. SUGGEST ALTERNATIVES - If breaking the fast is necessary, help them do it safely and plan to restart
+
+IMPORTANT GUIDELINES:
+- Use an ${crisisSettings.style} communication style with intensity level ${crisisSettings.intensity}/10
+- Never shame or judge them for struggling
+- Focus on harm reduction if they're determined to break the fast
+- Encourage professional help if they mention serious health concerns
+- Keep responses conversational, supportive, and actionable
+- Ask follow-up questions to understand their specific situation better
+
+Remember: This is a moment of vulnerability. Your goal is to help them through this crisis while respecting their autonomy and wellbeing.`}
       />
 
       {/* Stop Fast Confirmation Dialog */}
