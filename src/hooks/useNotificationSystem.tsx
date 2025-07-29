@@ -49,31 +49,7 @@ export const useNotificationSystem = () => {
 
     const currentNotifications: Notification[] = [];
 
-    // Check for OpenAI API key configuration issue
-    if (profile?.use_own_api_key && !profile?.openai_api_key) {
-      currentNotifications.push({
-        id: 'openai_key_missing',
-        type: 'profile_incomplete',
-        priority: 'high',
-        title: 'AI Features Disabled',
-        message: 'AI features require an OpenAI API key. Configure your API key in Settings → AI Configuration to enable voice chat, food analysis, and smart suggestions.',
-        actions: {
-          primary: {
-            label: 'Configure API Key',
-            action: 'navigate',
-            target: '/settings'
-          },
-          secondary: {
-            label: 'Dismiss',
-            action: 'dismiss'
-          }
-        },
-        autoShow: true,
-        persistent: true
-      });
-    }
-
-    // Profile incomplete notification - ALWAYS show if profile is incomplete, ignore dismissals
+    // Profile incomplete notification
     if (!isProfileComplete()) {
       const missingFields = [];
       if (!profile?.weight) missingFields.push('weight');
@@ -104,20 +80,15 @@ export const useNotificationSystem = () => {
         },
       };
 
-      // Critical notifications like profile_incomplete should ALWAYS show when the condition is true
-      currentNotifications.push(profileNotification);
+      if (!dismissedNotifications.has(profileNotification.id)) {
+        currentNotifications.push(profileNotification);
+      }
     }
 
     return currentNotifications;
-  }, [user, profile, isProfileComplete]);
+  }, [user, profile, isProfileComplete, dismissedNotifications]);
 
   const dismissNotification = (notificationId: string) => {
-    // Only dismiss non-critical notifications
-    if (notificationId === 'profile_incomplete') {
-      // Don't dismiss profile incomplete - it should persist until resolved
-      return;
-    }
-    
     const newDismissed = new Set(dismissedNotifications);
     newDismissed.add(notificationId);
     setDismissedNotifications(newDismissed);
@@ -125,11 +96,7 @@ export const useNotificationSystem = () => {
   };
 
   const clearNotification = (notificationId: string) => {
-    // Remove from dismissed notifications instead of adding to them
-    const newDismissed = new Set(dismissedNotifications);
-    newDismissed.delete(notificationId);
-    setDismissedNotifications(newDismissed);
-    saveDismissedNotifications(newDismissed);
+    dismissNotification(notificationId);
   };
 
   const getHighPriorityNotifications = () => {

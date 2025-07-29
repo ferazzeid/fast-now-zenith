@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -11,8 +12,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { useAuth } from '@/hooks/useAuth';
+import { useSingleConversation } from '@/hooks/useSingleConversation';
+import { useFastingContext } from '@/hooks/useFastingContext';
+import { useWalkingContext } from '@/hooks/useWalkingContext';
+import { useFoodContext } from '@/hooks/useFoodContext';
+import { useMotivators } from '@/hooks/useMotivators';
 import { ImageUpload } from '@/components/ImageUpload';
 import { useNavigate } from 'react-router-dom';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { useProfile } from '@/hooks/useProfile';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -31,214 +40,307 @@ const AiChat = () => {
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
-  const [messages, setMessages] = useState<EnhancedMessage[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
-  const [crisisInitialized, setCrisisInitialized] = useState(false);
   const [searchParams] = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const { getAutoShowNotifications, clearNotification } = useNotificationSystem();
+  const { profile, updateProfile } = useProfile();
+  const { 
+    messages, 
+    loading: conversationLoading,
+    addMessage,
+    clearConversation,
+    archiveConversation
+  } = useSingleConversation();
+  const { context: fastingContext, buildContextString: buildFastingContext } = useFastingContext();
+  const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
+  const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
+  const { createMotivator } = useMotivators();
+  const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
 
   // Check for crisis mode
   const isCrisisMode = searchParams.get('crisis') === 'true';
   const crisisData = searchParams.get('data') ? JSON.parse(decodeURIComponent(searchParams.get('data')!)) : null;
 
+  console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
+
   // Combine regular messages with notification messages
   const allMessages = [...notificationMessages, ...messages];
 
-  // Load user and session data on mount
   useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData.session?.user) {
-          setUser(sessionData.session.user);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [allMessages]);
+
+  // Auto-show notifications when component mounts
+  useEffect(() => {
+    const autoShowNotifications = getAutoShowNotifications();
+    
+    if (autoShowNotifications.length > 0) {
+      // Add notification messages to chat
+      const newNotificationMessages: EnhancedMessage[] = autoShowNotifications.map(notification => ({
+        role: 'system',
+        content: notification.message,
+        timestamp: new Date(),
+        isNotification: true,
+      }));
+
+      setNotificationMessages(newNotificationMessages);
+    }
+  }, [getAutoShowNotifications, profile, user]);
+
+  // Handle crisis mode initialization
+  useEffect(() => {
+    if (isCrisisMode && crisisData && messages.length === 0) {
+      console.log('DEBUG: Initializing crisis conversation');
+      // Add crisis greeting message as a regular message that gets saved
+      handleSendMessage(generateProactiveMessage());
+    }
+  }, [isCrisisMode, crisisData, messages.length]);
+
+  // Handle notification responses
+  const handleNotificationResponse = async (message: string) => {
+    // Check if this is a response to profile completion
+    const profileNotification = getAutoShowNotifications().find(n => n.type === 'profile_incomplete');
+    
+    if (profileNotification && notificationMessages.length > 0) {
+      console.log('DEBUG: Processing profile notification response:', message);
+      
+      // Try to extract profile information from the message with more precise patterns
+      const weightMatch = message.match(/(?:weigh|weight|i\s+(?:am|weigh))\s*(?:about\s*)?(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?|kg|kilos?)?/i);
+      const heightMatch = message.match(/(?:height|tall|i\s+am)\s*(?:about\s*)?(\d+)\s*(?:(?:feet?|ft|')\s*)?(\d+)?\s*(?:inches?|in|"|cm)?/i);
+      const ageMatch = message.match(/(\d+)\s*(?:Y|years?|yrs?)\s*(?:old)?|(?:age|old|i\s+am)\s*(?:about\s*)?(\d+)/i);
+      
+      let updates: any = {};
+      let extracted = false;
+
+      console.log('DEBUG: Regex matches:', { weightMatch, heightMatch, ageMatch });
+
+      if (weightMatch) {
+        const weight = parseFloat(weightMatch[1]);
+        console.log('DEBUG: Weight parsing - weightMatch:', weightMatch, 'extracted weight:', weight);
+        
+        // Validate weight (20-500kg is reasonable range)
+        if (weight >= 20 && weight <= 500) {
+          updates.weight = weight;
+          extracted = true;
+          console.log('DEBUG: Extracted valid weight:', weight);
+        } else {
+          console.log('DEBUG: Weight rejected - outside valid range (20-500kg):', weight);
+        }
+      }
+
+      if (heightMatch) {
+        let heightInCm;
+        const feet = parseInt(heightMatch[1]);
+        const inches = heightMatch[2] ? parseInt(heightMatch[2]) : 0;
+        
+        // Check if it's likely feet/inches (e.g., "5 10" or "5'10")
+        if (feet <= 8 && (!heightMatch[2] || inches <= 12)) {
+          // Convert feet/inches to cm
+          heightInCm = Math.round((feet * 12 + inches) * 2.54);
+        } else {
+          // Assume it's already in cm
+          heightInCm = feet;
+        }
+        
+        console.log('DEBUG: Height parsing - heightMatch:', heightMatch, 'calculated height:', heightInCm);
+        
+        // Validate height (100-250cm is reasonable range)
+        if (heightInCm >= 100 && heightInCm <= 250) {
+          updates.height = heightInCm;
+          extracted = true;
+          console.log('DEBUG: Extracted valid height:', heightInCm, 'cm');
+        } else {
+          console.log('DEBUG: Height rejected - outside valid range (100-250cm):', heightInCm);
+        }
+      }
+
+      if (ageMatch) {
+        // ageMatch[1] might be from "44Y" pattern, ageMatch[2] from other patterns
+        const ageStr = ageMatch[1] || ageMatch[2];
+        const age = parseInt(ageStr);
+        
+        console.log('DEBUG: Age parsing - ageMatch:', ageMatch, 'extracted age:', age);
+        
+        // Validate age (10-120 years is reasonable range)
+        if (age >= 10 && age <= 120) {
+          updates.age = age;
+          extracted = true;
+          console.log('DEBUG: Extracted valid age:', age);
+        } else {
+          console.log('DEBUG: Age rejected - outside valid range (10-120):', age);
+        }
+      }
+
+      if (extracted) {
+        try {
+          console.log('DEBUG: Updating profile with:', updates);
+          const result = await updateProfile(updates);
+          console.log('DEBUG: Profile update result:', result);
           
-          // Load profile data through AI
-          const response = await supabase.functions.invoke('chat-completion', {
-            body: {
-              function_name: 'get_user_profile',
-              function_args: {}
-            }
+          // Check if the update was successful
+          if (result.error) {
+            console.error('DEBUG: Profile update failed:', result.error);
+            await addMessage({
+              role: 'assistant',
+              content: `I had trouble saving that information: ${result.error.message}. Please try again or update your profile in Settings.`,
+              timestamp: new Date(),
+            });
+            return true;
+          }
+          
+          // Send confirmation message as regular message
+          const confirmationContent = `Perfect! I've saved your information:${
+            updates.weight ? ` Weight: ${updates.weight}kg` : ''
+          }${
+            updates.height ? ` Height: ${updates.height}cm` : ''
+          }${
+            updates.age ? ` Age: ${updates.age} years` : ''
+          }.${
+            Object.keys(updates).length === 3 
+              ? ' Your profile is now complete and I can provide accurate calorie calculations!' 
+              : ' If you want to add more information, you can tell me here or update it in Settings.'
+          }`;
+
+          await addMessage({
+            role: 'assistant',
+            content: confirmationContent,
+            timestamp: new Date(),
           });
           
-          if (response.data?.data) {
-            setProfile(response.data.data);
-          }
+          // Clear the notification if we got some profile info
+          clearNotification('profile_incomplete');
+          setNotificationMessages([]); // Clear notification messages
+          
+          return true; // Indicate that we handled this as a notification response
+        } catch (error) {
+          console.error('Error updating profile:', error);
+          await addMessage({
+            role: 'assistant',
+            content: `I encountered an error while saving your information: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or update your profile in Settings.`,
+            timestamp: new Date(),
+          });
         }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      }
-    };
-    
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    // Only auto-scroll if user sent a message recently or processing
-    if (isProcessing || messages[messages.length - 1]?.role === 'user') {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [allMessages, isProcessing]);
-
-  // Load conversation history on mount
-  useEffect(() => {
-    const loadConversation = async () => {
-      if (!user) return;
-      
-      try {
-        const response = await supabase.functions.invoke('chat-completion', {
-          body: {
-            function_name: 'load_conversation',
-            function_args: {}
-          }
+      } else {
+        console.log('DEBUG: No profile information extracted from message');
+        // If no specific info was extracted, provide guidance
+        await addMessage({
+          role: 'assistant',
+          content: 'I can help you save your profile information. Please tell me your weight, height, and age. For example: "I am 70kg, 175cm tall, and 30 years old" or "I weigh 150 pounds, I am 5 feet 10 inches tall, and I am 25 years old".',
+          timestamp: new Date(),
         });
-        
-        if (response.data?.data?.messages) {
-          const transformedMessages = response.data.data.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }));
-          setMessages(transformedMessages);
-        }
-      } catch (error) {
-        console.error('Error loading conversation:', error);
+        return true;
       }
-    };
-    
-    loadConversation();
-  }, [user]);
+    }
 
-  // Handle crisis mode initialization - only once when entering crisis mode
-  useEffect(() => {
-    if (isCrisisMode && crisisData && messages.length === 0 && !isProcessing && !crisisInitialized) {
-      setCrisisInitialized(true);
-      // Generate crisis greeting through AI
-      generateCrisisGreeting();
-    }
-  }, [isCrisisMode, crisisData, messages.length, isProcessing, crisisInitialized]);
-
-  const generateCrisisGreeting = async () => {
-    try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          function_name: 'generate_crisis_greeting',
-          function_args: { crisis_data: crisisData }
-        }
-      });
-      
-      if (response.data?.data?.message) {
-        await addAIMessage(response.data.data.message);
-      }
-    } catch (error) {
-      console.error('Error generating crisis greeting:', error);
-    }
-  };
-
-  // Helper functions for AI-centric message management
-  const addUserMessage = async (content: string) => {
-    const message = {
-      role: 'user' as const,
-      content,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, message]);
-    
-    // Save to database through AI
-    try {
-      await supabase.functions.invoke('chat-completion', {
-        body: {
-          function_name: 'add_message',
-          function_args: { message }
-        }
-      });
-    } catch (error) {
-      console.error('Error saving user message:', error);
-    }
-    
-    return message;
-  };
-
-  const addAIMessage = async (content: string) => {
-    const message = {
-      role: 'assistant' as const,
-      content,
-      timestamp: new Date(),
-      audioEnabled: audioEnabled
-    };
-    
-    setMessages(prev => [...prev, message]);
-    
-    // Save to database through AI
-    try {
-      await supabase.functions.invoke('chat-completion', {
-        body: {
-          function_name: 'add_message',
-          function_args: { message }
-        }
-      });
-    } catch (error) {
-      console.error('Error saving AI message:', error);
-    }
-    
-    if (audioEnabled) {
-      await playTextAsAudio(content);
-    }
-    
-    return message;
+    return false; // Indicate this should be processed as a regular chat message
   };
 
   useEffect(() => {
-    // Load API key from localStorage and sync with state
+    // Load API key from localStorage
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
-      // Close the dialog if a key is already present
-      setShowApiDialog(false);
-    } else {
-      // Only show dialog if no key exists and not in crisis mode (will be handled by SOS)
-      setShowApiDialog(false);
     }
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    if (!message || !message.trim()) {
-      console.error('sendToAI called with empty message:', message);
+    if (!apiKey.trim()) {
+      setShowApiDialog(true);
+      // Don't show error toast for missing API key - the dialog explains everything
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // Send message to AI-centric chat completion with full conversation history
+      // Build comprehensive context
+      const contextParts = [
+        buildFastingContext(fastingContext),
+        buildWalkingContext(walkingContext), 
+        buildFoodContext(foodContext)
+      ].filter(Boolean);
+
+      const contextString = contextParts.length > 0 
+        ? `Current user context:\n${contextParts.join('\n')}\n\n`
+        : '';
+
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
 
-      const systemPrompt = isCrisisMode ? 
-        'You are a crisis support AI assistant. Be empathetic, supportive, and helpful in providing immediate crisis support and guidance.' :
-        'You are a helpful AI assistant for a health and fasting app. You help users with fasting, walking, food tracking, motivational content, and general health questions. You have access to comprehensive user data and can perform various health-related functions.';
+      const systemPrompt = isCrisisMode ? generateSystemPrompt() : `You are a helpful AI assistant for a health and fasting app. You help users with:
+1. Fasting guidance and motivation
+2. Walking/exercise tracking and encouragement  
+3. Food tracking and nutrition advice
+4. Creating motivational content and quotes
+5. General health and wellness questions
+
+You have access to tools to create motivational content when requested.
+
+Current context: ${contextString}
+
+Be conversational, supportive, and helpful. When users ask for motivational content, use the create_motivator tool.`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
-          message: message,
+          message: `${contextString}${message}`,
           conversationHistory: [
             { role: 'system', content: systemPrompt },
             ...conversationHistory
-          ],
-          crisis_mode: isCrisisMode,
-          audio_enabled: audioEnabled && fromVoice
+          ]
+        },
+        headers: {
+          'X-OpenAI-API-Key': apiKey
         }
       });
 
       if (error) throw error;
 
       if (data.completion) {
-        await addAIMessage(data.completion);
+        await addMessage({
+          role: 'assistant',
+          content: data.completion,
+          timestamp: new Date(),
+          audioEnabled: audioEnabled && fromVoice
+        });
+
+        // Play audio if enabled and this was a voice message
+        if (audioEnabled && fromVoice) {
+          await playTextAsAudio(data.completion);
+        }
+      }
+
+      // Handle function call results
+      if (data.functionCall) {
+        if (data.functionCall.name === 'create_motivator') {
+          const args = data.functionCall.arguments;
+          try {
+            await createMotivator({
+              title: args.text,
+              content: args.text,
+              category: args.category || 'general',
+              imageUrl: args.image_prompt
+            });
+            
+            await addMessage({
+              role: 'assistant',
+              content: "I've created that motivator for you! You can view it in the Motivators section.",
+              timestamp: new Date(),
+            });
+          } catch (error) {
+            console.error('Error creating motivator:', error);
+            await addMessage({
+              role: 'assistant',
+              content: "I had trouble creating that motivator. Please try again later.",
+              timestamp: new Date(),
+            });
+          }
+        }
       }
 
     } catch (error) {
@@ -273,22 +375,42 @@ const AiChat = () => {
   const handleVoiceTranscription = async (transcription: string) => {
     if (!transcription.trim()) return;
 
-    await addUserMessage(transcription);
-    await sendToAI(transcription, true);
+    await addMessage({
+      role: 'user',
+      content: transcription,
+      timestamp: new Date(),
+      audioEnabled: true
+    });
+
+    // Check if this is a notification response first
+    const wasNotificationResponse = await handleNotificationResponse(transcription);
+    
+    if (!wasNotificationResponse) {
+      await sendToAI(transcription, true);
+    }
   };
 
-  const handleSendMessage = useCallback(async (presetMessage?: string) => {
+  const handleSendMessage = async (presetMessage?: string) => {
     const messageToSend = presetMessage || inputMessage.trim();
     if (!messageToSend || isProcessing) return;
 
     try {
-      await addUserMessage(messageToSend);
+      await addMessage({
+        role: 'user',
+        content: messageToSend,
+        timestamp: new Date()
+      });
 
       if (!presetMessage) {
         setInputMessage('');
       }
 
-      await sendToAI(messageToSend);
+      // Check if this is a notification response first
+      const wasNotificationResponse = await handleNotificationResponse(messageToSend);
+      
+      if (!wasNotificationResponse) {
+        await sendToAI(messageToSend);
+      }
     } catch (error) {
       console.error('Error handling message:', error);
       toast({
@@ -297,53 +419,33 @@ const AiChat = () => {
         variant: "destructive"
       });
     }
-  }, [inputMessage, isProcessing]);
+  };
 
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
     setShowImageUpload(false);
     
-    // Add a message about the uploaded image through AI
-    addUserMessage(`I've uploaded an image: ${imageUrl}`);
+    // Add a message about the uploaded image
+    addMessage({
+      role: 'user',
+      content: `I've uploaded an image: ${imageUrl}`,
+      timestamp: new Date()
+    });
   };
 
   const handleClearChat = async () => {
-    try {
-      await supabase.functions.invoke('chat-completion', {
-        body: {
-          function_name: 'clear_conversation',
-          function_args: {}
-        }
-      });
-      
-      setMessages([]);
-      setNotificationMessages([]);
-      
-      toast({
-        title: "Chat Cleared",
-        description: "Your conversation has been cleared."
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to clear conversation.",
-        variant: "destructive"
-      });
-    }
+    await clearConversation();
+    setNotificationMessages([]); // Also clear notification messages
+    toast({
+      title: "Chat Cleared",
+      description: "Your conversation has been cleared."
+    });
   };
 
   const handleArchiveChat = async () => {
     try {
-      await supabase.functions.invoke('chat-completion', {
-        body: {
-          function_name: 'archive_conversation',
-          function_args: {}
-        }
-      });
-      
-      setMessages([]);
-      setNotificationMessages([]);
-      
+      await archiveConversation();
+      setNotificationMessages([]); // Also clear notification messages
       toast({
         title: "Chat Archived",
         description: "Your conversation has been archived and a new chat started."
@@ -358,8 +460,8 @@ const AiChat = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-ceramic-base overflow-hidden">
-      <div className="flex flex-col h-full pt-16"> {/* Fixed: Proper spacing for header */}
+    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
+      <div className="flex flex-col h-screen pt-24"> {/* Increased top padding for deficit panel */}
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">
@@ -491,23 +593,17 @@ const AiChat = () => {
             {isCrisisMode && (
               <div className="flex flex-wrap gap-2">
                 <div className="text-xs text-muted-foreground mb-2">Quick responses:</div>
-                {['I need help', 'Tell me more', 'What can I do?', 'I feel better'].map((reply, index) => (
+                {generateQuickReplies().map((reply, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="sm"
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
-                      console.log('DEBUG: Quick reply clicked:', reply);
-                      try {
-                        await handleSendMessage(reply);
-                      } catch (error) {
-                        console.error('Error sending quick reply:', error);
-                      }
+                      console.log('DEBUG: Quick reply clicked', reply);
+                      handleSendMessage(reply);
                     }}
                     className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer"
-                    disabled={isProcessing}
                   >
                     {reply}
                   </Button>

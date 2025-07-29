@@ -13,11 +13,10 @@ import { ImageFoodAnalysis } from '@/components/ImageFoodAnalysis';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useEffect } from 'react';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -48,18 +47,8 @@ const FoodTracking = () => {
   const [aiChatContext, setAiChatContext] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
+  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
-  const { 
-    todayEntries, 
-    todayTotals, 
-    loading, 
-    addFoodEntry, 
-    updateFoodEntry, 
-    deleteFoodEntry, 
-    toggleConsumption 
-  } = useFoodEntries();
-
-  // Note: Using useFoodEntries hook for all food operations now
 
   const handleVoiceFood = () => {
     const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
@@ -80,23 +69,38 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     if (result.name === 'add_food_entry') {
       const { arguments: args } = result;
       
-      // The AI has already added the food entry, data will refresh automatically
-      
-      toast({
-        title: "Food Added Successfully!",
-        description: `${args.name} has been added to your food plan`
-      });
-      
-      // Close the AI chat modal
-      setShowAiChat(false);
-      
-      // Save to personal library
-      await saveToLibrary({
+      // Add the food entry from AI suggestion
+      const foodResult = await addFoodEntry({
         name: args.name,
         calories: parseFloat(args.calories),
         carbs: parseFloat(args.carbs),
-        serving_size: parseFloat(args.serving_size)
+        serving_size: parseFloat(args.serving_size),
+        consumed: args.consumed || false
       });
+
+      if (foodResult.error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: foodResult.error.message
+        });
+      } else {
+        toast({
+          title: "Food Added Successfully!",
+          description: `${args.name} has been added to your food plan`
+        });
+        
+        // Close the AI chat modal
+        setShowAiChat(false);
+        
+        // Save to personal library
+        await saveToLibrary({
+          name: args.name,
+          calories: parseFloat(args.calories),
+          carbs: parseFloat(args.carbs),
+          serving_size: parseFloat(args.serving_size)
+        });
+      }
     }
   };
 
@@ -187,52 +191,74 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       return;
     }
 
-    try {
-      // Use the AI-enhanced addFoodEntry function from useFoodEntries
-      const result = await addFoodEntry({
-        name: manualEntryData.name,
-        serving_size: parseFloat(manualEntryData.servingSize),
-        calories: parseFloat(manualEntryData.calories) || 0,
-        carbs: parseFloat(manualEntryData.carbs) || 0,
-        consumed: true
-      });
+    let calories = parseFloat(manualEntryData.calories) || 0;
+    let carbs = parseFloat(manualEntryData.carbs) || 0;
 
-      if (result.error) {
-        throw new Error(result.error.message || 'Failed to add food entry');
+    // If calories or carbs are missing, get them from AI
+    if (calories === 0 || carbs === 0) {
+      try {
+        const { data, error } = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a nutrition expert. Provide nutritional information for foods. Return only a JSON object with calories_per_100g and carbs_per_100g as numbers.'
+              },
+              {
+                role: 'user',
+                content: `What are the calories and carbs per 100g for ${manualEntryData.name}? Return only JSON format: {"calories_per_100g": number, "carbs_per_100g": number}`
+              }
+            ]
+          }
+        });
+
+        if (data?.content) {
+          try {
+            const nutritionData = JSON.parse(data.content);
+            const servingGrams = parseFloat(manualEntryData.servingSize);
+            
+            if (calories === 0 && nutritionData.calories_per_100g) {
+              calories = (nutritionData.calories_per_100g * servingGrams) / 100;
+            }
+            if (carbs === 0 && nutritionData.carbs_per_100g) {
+              carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI nutrition response:', parseError);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get AI nutrition data:', error);
       }
+    }
 
-      const enhancementMessage = (result as any).ai_enhanced ? 
-        " (AI enhanced nutrition data)" : "";
+    const result = await addFoodEntry({
+      name: manualEntryData.name,
+      calories: Math.round(calories * 100) / 100,
+      carbs: Math.round(carbs * 100) / 100,
+      serving_size: parseFloat(manualEntryData.servingSize),
+      consumed: false
+    });
 
+    if (result.error) {
       toast({
-        title: "Food added successfully",
-        description: `${manualEntryData.name} has been added to your diary${enhancementMessage}`
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
       });
-
-      // Reset form
-      setManualEntryData({
-        name: '',
-        servingSize: '',
-        calories: '',
-        carbs: ''
+    } else {
+      toast({
+        title: "Food added successfully!",
+        description: `${manualEntryData.name} has been added to your food plan`
       });
       setShowManualEntry(false);
-
-      // Data will refresh automatically via useFoodEntries hook
-
-      // Save to personal library if not already there
+      
+      // Save to personal library
       await saveToLibrary({
         name: manualEntryData.name,
         calories: parseFloat(manualEntryData.calories) || 0,
         carbs: parseFloat(manualEntryData.carbs) || 0,
         serving_size: parseFloat(manualEntryData.servingSize)
-      });
-    } catch (error) {
-      console.error('Error adding food entry:', error);
-      toast({
-        variant: "destructive",
-        title: "Error adding food",
-        description: error.message || "Failed to add food entry"
       });
     }
   };
@@ -445,8 +471,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20 overflow-y-auto">
-      <div className="max-w-md mx-auto p-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -742,10 +768,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
 
             <div className="flex gap-2">
-                <Button onClick={handleSave} className="flex-1 h-12 text-base font-semibold">
-                  <Save className="w-5 h-5 mr-2" />
-                  Add to Food Plan
-                </Button>
+              <Button onClick={handleSave} className="flex-1 h-12 text-base font-semibold">
+                <Save className="w-5 h-5 mr-2" />
+                Add to Today's List
+              </Button>
               <Button 
                 variant="outline" 
                 onClick={() => {
@@ -771,7 +797,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           onSave={handleSaveManualEntry}
           data={manualEntryData}
           onDataChange={setManualEntryData}
-          loading={loading}
         />
 
         {/* Image Food Analysis Modal */}

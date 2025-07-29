@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { SpeedSelector } from '@/components/SpeedSelector';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { WalkingHistory } from '@/components/WalkingHistory';
 import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
-import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
+import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
 
 const Walking = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -16,24 +16,21 @@ const Walking = () => {
   const [realTimeDistance, setRealTimeDistance] = useState(0);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const { toast } = useToast();
-  
   const { 
     currentSession, 
     loading, 
     selectedSpeed, 
     setSelectedSpeed, 
-    isPaused, 
+    isPaused,
     startWalkingSession, 
-    pauseWalkingSession, 
-    resumeWalkingSession, 
-    endWalkingSession, 
-    updateSessionSpeed 
+    pauseWalkingSession,
+    resumeWalkingSession,
+    endWalkingSession,
+    updateSessionSpeed
   } = useWalkingSession();
-  
   const { profile, isProfileComplete, calculateWalkingCalories } = useProfile();
 
   const isRunning = !!currentSession;
-
 
 
   useEffect(() => {
@@ -74,12 +71,7 @@ const Walking = () => {
   }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories, profile?.units]);
 
   const handleStart = async () => {
-    // Check profile completeness first
-    if (!isProfileComplete()) {
-      setShowProfilePrompt(true);
-      return;
-    }
-
+    // Start walking session directly without blocking
     const result = await startWalkingSession(selectedSpeed);
     if (result.error) {
       toast({
@@ -148,8 +140,8 @@ const Walking = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20 overflow-y-auto">
-      <div className="max-w-md mx-auto p-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
@@ -173,7 +165,7 @@ const Walking = () => {
             selectedSpeed={selectedSpeed}
             onSpeedChange={(newSpeed) => {
               setSelectedSpeed(newSpeed);
-              if (currentSession) {
+              if (isRunning) {
                 updateSessionSpeed(newSpeed);
               }
             }}

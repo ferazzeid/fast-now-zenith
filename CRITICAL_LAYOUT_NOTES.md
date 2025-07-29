@@ -15,14 +15,11 @@
 - Ensures proper touch targets on mobile
 
 ### Files That MUST Follow This Rule:
-- src/pages/Index.tsx ✅ FIXED
-- src/pages/AiChat.tsx ✅ FIXED  
-- src/pages/Timer.tsx ✅ FIXED
-- src/pages/Walking.tsx ✅ FIXED
-- src/pages/FoodTracking.tsx ✅ FIXED
-- src/pages/Settings.tsx ✅ FIXED
-- src/pages/Motivators.tsx ✅ FIXED
-- Any page with input fields or full-height layouts ✅ VERIFIED
+- src/pages/AiChat.tsx ✅ FIXED
+- src/pages/Timer.tsx 
+- src/pages/Walking.tsx
+- src/pages/FoodTracking.tsx
+- Any page with input fields or full-height layouts
 
 ## ⚠️ TRANSCRIPTION FUNCTIONALITY 
 

@@ -44,32 +44,8 @@ export const useWalkingSession = () => {
         throw error;
       }
 
-      if (data) {
-        // Check if session is stale (over 6 hours old)
-        const now = new Date();
-        const sessionStart = new Date(data.start_time);
-        const sixHoursAgo = now.getTime() - (6 * 60 * 60 * 1000);
-        
-        if (sessionStart.getTime() < sixHoursAgo) {
-          console.log('Found stale walking session, ending it automatically');
-          // Auto-end stale session
-          await supabase
-            .from('walking_sessions')
-            .update({
-              end_time: now.toISOString(),
-              status: 'completed',
-              session_state: 'completed'
-            })
-            .eq('id', data.id);
-          
-          setCurrentSession(null);
-        } else {
-          setCurrentSession(data);
-          setIsPaused(data?.session_state === 'paused');
-        }
-      } else {
-        setCurrentSession(null);
-      }
+      setCurrentSession(data || null);
+      setIsPaused(data?.session_state === 'paused');
     } catch (error) {
       console.error('Error loading active walking session:', error);
     } finally {
@@ -82,16 +58,6 @@ export const useWalkingSession = () => {
 
     setLoading(true);
     try {
-      // First, clean up any existing active sessions
-      await supabase
-        .from('walking_sessions')
-        .update({
-          status: 'cancelled',
-          end_time: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .eq('status', 'active');
-
       const { data, error } = await supabase
         .from('walking_sessions')
         .insert({

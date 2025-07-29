@@ -9,13 +9,11 @@ import { CrisisChatModal } from '@/components/CrisisChatModal';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 
 import { useToast } from '@/hooks/use-toast';
+import { useFastingSession } from '@/hooks/useFastingSession';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useCrisisSettings } from '@/hooks/useCrisisSettings';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
-import { useAuth } from '@/hooks/useAuth';
-import { useFastingSession } from '@/hooks/useFastingSession';
-import { supabase } from '@/integrations/supabase/client';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { SOSButton } from '@/components/SOSButton';
 
 const Timer = () => {
@@ -36,56 +34,25 @@ const Timer = () => {
   const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
   
   const [walkingTime, setWalkingTime] = useState(0);
-  const [loading, setLoading] = useState(false);
   
+  const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSession();
+  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
-  const { user } = useAuth();
   const { settings: crisisSettings } = useCrisisSettings();
-  const { currentSession: fastingSession, startFastingSession, endFastingSession } = useFastingSession();
   const { 
     generateCrisisContext, 
     generateSystemPrompt, 
     generateProactiveMessage, 
     generateQuickReplies 
   } = useCrisisConversation();
-  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
 
   const isRunning = !!fastingSession;
 
-
-  const handleWalkingStart = async () => {
-    const result = await startWalkingSession(3);
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
-      toast({
-        title: "Walking started",
-        description: "Your walking session has begun!"
-      });
-    }
-  };
-
-  const handleWalkingStop = async () => {
-    const result = await endWalkingSession();
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error", 
-        description: result.error.message
-      });
-    } else {
-      toast({
-        title: "Walking completed",
-        description: `Session completed! Calories burned: ${result.data?.calories_burned || 0}`
-      });
-    }
-  };
-
+  useEffect(() => {
+    console.log('Timer: Loading active session...');
+    loadActiveSession();
+  }, [loadActiveSession]);
 
   useEffect(() => {
     console.log('Timer: Fasting session changed:', fastingSession);
@@ -161,6 +128,39 @@ const Timer = () => {
     }
   };
 
+  const handleWalkingStart = async () => {
+    const result = await startWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Walking started",
+        description: "Your walking session has begun!"
+      });
+    }
+  };
+
+  const handleWalkingStop = async () => {
+    if (!walkingSession) return;
+    
+    const result = await endWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Walking completed",
+        description: `Session completed! Calories burned: ${result.data?.calories_burned || 0}`
+      });
+    }
+  };
 
   const formatTimeFasting = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -263,10 +263,13 @@ const Timer = () => {
       // Calculate the past start time
       const pastStartDateTime = new Date(`${startDate}T${startTime}`);
       
-      // Start the fast with the custom start time
+      // Start the fast with the custom start time in the database
       const result = await startFastingSession(duration, pastStartDateTime);
       
       if (result) {
+        // Load the session to get accurate timing
+        await loadActiveSession();
+        
         const now = new Date();
         const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
         const elapsedSeconds = Math.floor(timeDiffMs / 1000);
@@ -310,8 +313,8 @@ const Timer = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20 overflow-y-auto">
-      <div className="max-w-md mx-auto p-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap with DailyStatsPanel */}
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">

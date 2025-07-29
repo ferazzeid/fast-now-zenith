@@ -16,10 +16,9 @@ interface ManualFoodEntryProps {
     carbs: string;
   };
   onDataChange: (data: any) => void;
-  loading?: boolean;
 }
 
-export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange, loading = false }: ManualFoodEntryProps) => {
+export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }: ManualFoodEntryProps) => {
   const updateField = (field: string, value: string) => {
     onDataChange({ ...data, [field]: value });
   };
@@ -99,10 +98,10 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange, l
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
-            <Button onClick={onSave} className="flex-1" disabled={loading}>
-              {loading ? "Adding..." : "Add to Food Plan"}
+            <Button onClick={onSave} className="flex-1">
+              Add to Food Plan
             </Button>
-            <Button variant="outline" onClick={onClose} disabled={loading}>
+            <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
           </div>

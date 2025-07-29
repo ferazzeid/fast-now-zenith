@@ -104,14 +104,14 @@ export const DailyStatsPanel = () => {
     }
   }, [isExpanded]);
 
-  // Don't render anything on admin pages, but always show if there's any food data
-  if (shouldHidePanel) {
+  // Don't render anything on admin pages or when no food has been consumed
+  if (shouldHidePanel || deficitData.caloriesConsumed === 0) {
     return null;
   }
 
   return (
     <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-20">{/* Lower z-index than navigation */}
+      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* Lower z-index than AI chat header */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
           className="cursor-pointer transition-colors select-none"

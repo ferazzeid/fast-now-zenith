@@ -43,29 +43,21 @@ export const useTimerNavigation = () => {
         fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
       }
 
-      if (walkingSession && walkingSession.status === 'active') {
+      if (walkingSession) {
         const startTime = new Date(walkingSession.start_time);
         const now = new Date();
+        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         
-        // Check if session is stale (over 6 hours old)
-        const sixHoursAgo = now.getTime() - (6 * 60 * 60 * 1000);
-        if (startTime.getTime() < sixHoursAgo) {
-          // Session is stale, don't show as active
-          walkingElapsed = 0;
-        } else {
-          let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-          
-          // Subtract paused time
-          const pausedTime = walkingSession.total_pause_duration || 0;
-          let currentPauseTime = 0;
-          
-          // If currently paused, add current pause duration
-          if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
-            currentPauseTime = Math.floor((now.getTime() - new Date(walkingSession.pause_start_time).getTime()) / 1000);
-          }
-          
-          walkingElapsed = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
+        // Subtract paused time
+        const pausedTime = walkingSession.total_pause_duration || 0;
+        let currentPauseTime = 0;
+        
+        // If currently paused, add current pause duration
+        if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
+          currentPauseTime = Math.floor((now.getTime() - new Date(walkingSession.pause_start_time).getTime()) / 1000);
         }
+        
+        walkingElapsed = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
       }
 
       setTimerStatus({

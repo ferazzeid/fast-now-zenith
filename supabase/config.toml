@@ -5,15 +5,3 @@ verify_jwt = false
 
 [functions.generate-image]
 verify_jwt = true
-
-[functions.start-walking-session]
-verify_jwt = true
-
-[functions.end-walking-session]
-verify_jwt = true
-
-[functions.add-food-entry]
-verify_jwt = true
-
-[functions.generate-motivator-image]
-verify_jwt = true

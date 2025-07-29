@@ -1,20 +1,22 @@
 import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { useProfile } from '@/hooks/useProfile';
+import { useFastingSession } from '@/hooks/useFastingSession';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
-import { useFastingSession } from '@/hooks/useFastingSession';
 
 export const Navigation = () => {
   const location = useLocation();
   const { timerStatus, formatTime } = useTimerNavigation();
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
+  const { isProfileComplete } = useProfile();
+  const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
   const { todayTotals } = useFoodEntries();
   const { isAnimationsSuspended } = useAnimationControl();
-  const { currentSession: fastingSession } = useFastingSession();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Update time every second for real-time badges, but pause when animations are suspended
@@ -27,14 +29,22 @@ export const Navigation = () => {
     return () => clearInterval(interval);
   }, [isAnimationsSuspended]);
 
+  // Load active session on mount
+  useEffect(() => {
+    loadActiveSession();
+  }, [loadActiveSession]);
+
   // Calculate fasting duration and status for badge - UPDATED FOR REAL-TIME
   const getFastingBadge = () => {
+    console.log('DEBUG: getFastingBadge called', { fastingSession, currentTime });
     if (!fastingSession || fastingSession.status !== 'active') {
+      console.log('DEBUG: No active fasting session');
       return null;
     }
     
     const startTime = new Date(fastingSession.start_time).getTime();
     const elapsed = Math.floor((currentTime - startTime) / 1000); // seconds
+    console.log('DEBUG: Timer calculation', { startTime, elapsed, currentTime });
     
     // Check if intermittent fasting and determine if in eating window
     const goalDuration = fastingSession.goal_duration_seconds || 0;

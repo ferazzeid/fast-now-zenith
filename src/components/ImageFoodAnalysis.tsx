@@ -30,9 +30,14 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
-            {hasAiAnalysis ? 'AI Food Analysis' : 'Food from Image'}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg font-semibold">
+              {hasAiAnalysis ? 'AI Food Analysis' : 'Food from Image'}
+            </DialogTitle>
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 p-1">

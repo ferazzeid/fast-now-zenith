@@ -1,113 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Plus, Settings, Edit, Trash2, Image, Sparkles } from 'lucide-react';
+import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const Motivators = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [motivators, setMotivators] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { motivators, loading, createMotivator, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
-
-  // AI-powered motivator management
-  const refreshMotivators = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "Load all my motivators",
-          action: "load_motivators"
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.motivators) {
-        setMotivators(data.motivators);
-      }
-    } catch (error) {
-      console.error('Error loading motivators:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const createMotivator = useCallback(async (motivatorData) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Create a new motivator: "${motivatorData.title}" with content: "${motivatorData.content}"`,
-          action: "create_motivator",
-          motivator_data: motivatorData
-        }
-      });
-
-      if (error) throw error;
-
-      return { data: data.motivator, error: null };
-    } catch (error) {
-      console.error('Error creating motivator:', error);
-      return { data: null, error };
-    }
-  }, []);
-
-  const updateMotivator = useCallback(async (motivatorId, updates) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Update motivator with title: "${updates.title}" and content: "${updates.content}"`,
-          action: "update_motivator",
-          motivator_id: motivatorId,
-          updates: updates
-        }
-      });
-
-      if (error) throw error;
-
-      return { data: data.motivator, error: null };
-    } catch (error) {
-      console.error('Error updating motivator:', error);
-      return { data: null, error };
-    }
-  }, []);
-
-  const deleteMotivator = useCallback(async (motivatorId) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Delete motivator`,
-          action: "delete_motivator",
-          motivator_id: motivatorId
-        }
-      });
-
-      if (error) throw error;
-
-      return { data: true, error: null };
-    } catch (error) {
-      console.error('Error deleting motivator:', error);
-      return { data: null, error };
-    }
-  }, []);
-
-  // Load initial data
-  useEffect(() => {
-    refreshMotivators();
-  }, [refreshMotivators]);
 
   const handleCreateMotivator = async (motivatorData) => {
     try {
@@ -185,8 +92,8 @@ const Motivators = () => {
 
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-ceramic-base overflow-y-auto">
-      <div className="px-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
+    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
+      <div className="px-4 pt-8 pb-24">
         <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">

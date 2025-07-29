@@ -258,6 +258,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
           
         </div>
       ) : (
+        /* FIXED: Full width record button to match app button style */
         <Button
           onClick={toggleRecording}
           disabled={isDisabled || isProcessing}
@@ -266,7 +267,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
           className="w-full h-16 text-base font-medium"
         >
           <Mic className="h-6 w-6 mr-2" />
-          <span>Voice</span>
+          <span>Record Message</span>
         </Button>
       )}
     </div>

@@ -7,68 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
 };
 
-// Enhanced logging utility
-const logWithTimestamp = (level: string, message: string, data?: any) => {
-  const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] [${level}] ${message}`;
-  if (data) {
-    console.log(logMessage, data);
-  } else {
-    console.log(logMessage);
-  }
-};
-
-// Enhanced error handling utility
-const handleError = (error: any, context: string) => {
-  logWithTimestamp('ERROR', `${context}: ${error.message}`, error);
-  return {
-    success: false,
-    error: error.message,
-    context,
-    timestamp: new Date().toISOString()
-  };
-};
-
-// Rate limiting utility (simple in-memory cache)
-const rateLimitCache = new Map();
-const isRateLimited = (userId: string, limit = 60, windowMs = 60000) => {
-  const now = Date.now();
-  const userKey = `${userId}_${Math.floor(now / windowMs)}`;
-  const current = rateLimitCache.get(userKey) || 0;
-  
-  if (current >= limit) {
-    return true;
-  }
-  
-  rateLimitCache.set(userKey, current + 1);
-  // Clean old entries
-  for (const [key, _] of rateLimitCache) {
-    if (key.split('_')[1] < Math.floor((now - windowMs) / windowMs)) {
-      rateLimitCache.delete(key);
-    }
-  }
-  
-  return false;
-};
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const startTime = Date.now();
-  let userId = 'anonymous';
-  
   try {
-    logWithTimestamp('INFO', 'Chat completion request received');
+    console.log('Chat completion request received');
     const { message, conversationHistory = [] } = await req.json();
     
-    if (!message || typeof message !== 'string') {
-      throw new Error('Invalid message provided');
+    if (!message) {
+      throw new Error('No message provided');
     }
 
-    // Initialize Supabase client with enhanced configuration
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
     
@@ -78,29 +31,23 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Enhanced user authentication
+    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
-    logWithTimestamp('DEBUG', 'Auth header present:', !!authHeader);
+    console.log('Auth header present:', !!authHeader);
     if (!authHeader) {
       throw new Error('No authorization header provided');
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    logWithTimestamp('DEBUG', 'User authentication result:', { success: !!userData.user, error: userError?.message });
-    
+    console.log('User authentication result:', { success: !!userData.user, error: userError?.message });
     if (userError || !userData.user) {
       throw new Error('User not authenticated');
     }
 
-    userId = userData.user.id;
+    const userId = userData.user.id;
 
-    // Rate limiting check
-    if (isRateLimited(userId)) {
-      throw new Error('Rate limit exceeded. Please wait before making another request.');
-    }
-
-    // Get user profile with caching consideration
+    // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -108,10 +55,10 @@ serve(async (req) => {
       .single();
 
     if (profileError) {
-      logWithTimestamp('WARN', 'Profile fetch error:', profileError);
+      console.error('Error fetching profile:', profileError);
     }
 
-    // Check admin status
+    // Check if user is admin
     const { data: userRole } = await supabase
       .from('user_roles')
       .select('role')
@@ -121,37 +68,21 @@ serve(async (req) => {
     
     const isAdmin = !!userRole;
 
-    // Enhanced API key management
+    // Determine which API key to use
     let OPENAI_API_KEY;
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
     
     if (profile?.use_own_api_key && profile?.openai_api_key) {
       OPENAI_API_KEY = profile.openai_api_key;
-      logWithTimestamp('DEBUG', 'Using user OpenAI API key from profile');
+      console.log('Using user OpenAI API key from profile');
     } else if (clientApiKey) {
       OPENAI_API_KEY = clientApiKey;
-      logWithTimestamp('DEBUG', 'Using client OpenAI API key');
+      console.log('Using client OpenAI API key');
     } else {
-      OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-      if (!OPENAI_API_KEY) {
-        // For auth verification requests, return a simple success response
-        if (message === 'Verify my authentication status' || req.body?.action === 'verify_auth') {
-          logWithTimestamp('INFO', 'Auth verification request - returning success without OpenAI');
-          return new Response(JSON.stringify({ 
-            content: 'Authentication verified successfully',
-            authenticated: true,
-            user_id: userId,
-            processing_time: Date.now() - startTime
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        throw new Error('OpenAI API key not provided');
-      }
-      logWithTimestamp('DEBUG', 'Using system OpenAI API key');
+      throw new Error('OpenAI API key not provided');
     }
 
-    // Get AI response length setting with caching
+    // Get AI response length setting
     const { data: lengthSetting } = await supabase
       .from('shared_settings')
       .select('setting_value')
@@ -166,82 +97,36 @@ serve(async (req) => {
       'adaptive': 'Adapt response length based on context - brief for simple questions, detailed for complex topics.'
     }[responseLength];
 
-    // Enhanced system prompt
-    const systemPrompt = `You are an intelligent AI health companion that serves as the CENTRAL BRAIN for this wellness app. You have complete control over all user data and app functionality.
+    // Enhanced system prompt with functions
+    const systemPrompt = `You are a helpful AI companion for a health and wellness app focused on intermittent fasting, walking, and nutrition tracking.
 
-**CORE RESPONSIBILITIES:**
-- Automatically detect and extract structured data from conversations
-- Proactively manage user profiles, goals, and preferences
-- Intelligently suggest UI actions and navigation
-- Handle ALL data operations seamlessly
-- Provide contextual guidance and motivation
-
-**AUTOMATIC DATA MANAGEMENT:**
-When users mention personal details (weight, height, age, goals), automatically update their profile.
-When users talk about food, automatically log it to their nutrition tracker.
-When users want to exercise, automatically start sessions.
-When users share achievements or struggles, offer relevant motivators.
-
-**INTELLIGENT EXTRACTION:**
-Always look for opportunities to:
-- Update incomplete profile information
-- Set or adjust daily goals based on user preferences
-- Create personalized motivators from user conversations
-- Suggest optimal fasting windows based on their schedule
-- Recommend walking goals based on their fitness level
+Current user context: The user is using an app that helps them track fasting periods, walking sessions, and food intake.
 
 Response Length: ${lengthInstruction}
 
-You have access to these comprehensive functions:
+You have access to the following functions to help users:
+1. create_motivator - Create personalized motivational content
+2. get_user_motivators - View all your motivational content
+3. update_motivator - Edit existing motivational content  
+4. delete_motivator - Remove motivational content
+5. start_walking_session - Start a walking session for the user
+6. add_food_entry - Add a food entry to the user's log
+${isAdmin ? '7. save_admin_note - Save notes about bugs, improvements, or observations (admin only)\n8. get_admin_notes - Retrieve all saved admin notes (admin only)' : ''}
 
-**PROFILE & SETTINGS:**
-1. get_user_profile - Get complete user profile and current stats
-2. update_user_profile - Update user profile information (weight, height, age, goals, etc.)
-3. calculate_bmr - Calculate Basal Metabolic Rate
+You can help users with:
+- Fasting guidance and motivation
+- Starting and tracking walking sessions
+- Adding food entries to their log
+- Creating, viewing, editing, and managing personalized motivational content
+- General nutrition advice and goal setting
+${isAdmin ? '- Saving development notes and feedback (admin only)\n- Retrieving saved notes for review (admin only)' : ''}
 
-**FOOD & NUTRITION:**
-4. add_food_entry - Add food items to nutrition log
-5. get_food_entries - Get user's food entries for any date range
-6. update_food_entry - Modify existing food entries
-7. delete_food_entry - Remove food entries
-8. toggle_food_consumption - Mark foods as eaten/logged
+When users mention starting a walk or wanting to go for a walk, offer to start a walking session for them.
+When users provide food information or ask to log food, offer to add it to their food log.
+${isAdmin ? 'When users say things like "save this to admin notes", "note for later", "add to notes", or similar phrases, use the save_admin_note function.\nWhen users ask to "show admin notes", "review notes", or "what notes do we have", use the get_admin_notes function.' : ''}
+Be supportive, encouraging, and provide practical advice. Keep responses concise but helpful.
 
-**WALKING & EXERCISE:**
-9. start_walking_session - Begin a walking session
-10. get_walking_sessions - Get walking history and statistics
-11. end_walking_session - Complete current walking session
-12. pause_walking_session - Pause current walking session
-13. resume_walking_session - Resume paused walking session
-14. update_walking_speed - Adjust walking pace during session
-
-**FASTING:**
-15. start_fasting_session - Begin a fasting period
-16. get_fasting_sessions - Get fasting history and current status
-17. end_fasting_session - Complete current fast
-18. cancel_fasting_session - Cancel current fast
-
-**MOTIVATORS & GUIDANCE:**
-19. create_motivator - Create personalized motivational content
-20. get_user_motivators - View all motivational content
-21. update_motivator - Edit existing motivational content
-22. delete_motivator - Remove motivational content
-
-**UI & NAVIGATION:**
-23. suggest_ui_actions - Recommend interface actions based on user state
-24. get_dashboard_insights - Generate dashboard content and recommendations
-
-${isAdmin ? '**ADMIN FUNCTIONS:**\n25. save_admin_note - Save development notes and observations\n26. get_admin_notes - Retrieve saved admin notes' : ''}
-
-**PROACTIVE BEHAVIOR:**
-- Automatically fill missing profile data when mentioned in conversation
-- Suggest relevant actions based on user's current state and goals
-- Provide contextual guidance without being asked
-- Create motivators from user's personal stories and goals
-- Recommend UI features the user should explore
-
-Be the intelligent brain that anticipates user needs and seamlessly manages their health journey.
-
-Important: You can take actions automatically when the intent is clear, but always confirm major decisions.`;
+Important: Always ask for confirmation before taking actions like starting walking sessions or adding food entries.`;
 
     const messages = [
       {
@@ -255,240 +140,22 @@ Important: You can take actions automatically when the intent is clear, but alwa
       }
     ];
 
-    // Enhanced function definitions
+    // Enhanced function definitions for the AI
     const functions = [
-      // PROFILE & SETTINGS
-      {
-        name: 'get_user_profile',
-        description: 'Get complete user profile and current stats',
-        parameters: {
-          type: 'object',
-          properties: {},
-          required: []
-        }
-      },
-      {
-        name: 'update_user_profile',
-        description: 'Update user profile information (weight, height, age, goals, etc.)',
-        parameters: {
-          type: 'object',
-          properties: {
-            weight: { type: 'number', description: 'Weight in kg' },
-            height: { type: 'number', description: 'Height in cm' },
-            age: { type: 'number', description: 'Age in years' },
-            daily_calorie_goal: { type: 'number', description: 'Daily calorie goal' },
-            daily_carb_goal: { type: 'number', description: 'Daily carb goal in grams' },
-            activity_level: { 
-              type: 'string', 
-              enum: ['sedentary', 'light', 'moderate', 'active', 'very_active'],
-              description: 'Activity level for TDEE calculation' 
-            }
-          },
-          required: []
-        }
-      },
-      {
-        name: 'calculate_bmr',
-        description: 'Calculate user\'s Basal Metabolic Rate',
-        parameters: {
-          type: 'object',
-          properties: {
-            weight: { type: 'number', description: 'Weight in kg' },
-            height: { type: 'number', description: 'Height in cm' },
-            age: { type: 'number', description: 'Age in years' },
-            gender: { type: 'string', enum: ['male', 'female'], description: 'Gender for BMR calculation' }
-          },
-          required: ['weight', 'height', 'age', 'gender']
-        }
-      },
-
-      // FOOD & NUTRITION
-      {
-        name: 'add_food_entry',
-        description: 'Add food items to nutrition log',
-        parameters: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', description: 'Name of the food item' },
-            calories: { type: 'number', description: 'Total calories for this serving' },
-            carbs: { type: 'number', description: 'Total carbs in grams for this serving' },
-            serving_size: { type: 'number', description: 'Serving size in grams' },
-            consumed: { type: 'boolean', description: 'Whether the food was actually eaten' }
-          },
-          required: ['name', 'calories', 'carbs', 'serving_size']
-        }
-      },
-      {
-        name: 'get_food_entries',
-        description: 'Get user\'s food entries for any date range',
-        parameters: {
-          type: 'object',
-          properties: {
-            date: { type: 'string', description: 'Date in YYYY-MM-DD format (defaults to today)' },
-            days_back: { type: 'number', description: 'Number of days to look back from the date' }
-          },
-          required: []
-        }
-      },
-      {
-        name: 'update_food_entry',
-        description: 'Modify existing food entries',
-        parameters: {
-          type: 'object',
-          properties: {
-            food_name: { type: 'string', description: 'Name of the food to update' },
-            calories: { type: 'number', description: 'New calorie value' },
-            carbs: { type: 'number', description: 'New carb value' },
-            serving_size: { type: 'number', description: 'New serving size' }
-          },
-          required: ['food_name']
-        }
-      },
-      {
-        name: 'delete_food_entry',
-        description: 'Remove food entries',
-        parameters: {
-          type: 'object',
-          properties: {
-            food_name: { type: 'string', description: 'Name of the food item to delete' }
-          },
-          required: ['food_name']
-        }
-      },
-      {
-        name: 'toggle_food_consumption',
-        description: 'Mark foods as eaten/logged',
-        parameters: {
-          type: 'object',
-          properties: {
-            food_name: { type: 'string', description: 'Name of the food item to toggle' },
-            consumed: { type: 'boolean', description: 'true to mark as eaten, false to mark as just logged' }
-          },
-          required: ['food_name', 'consumed']
-        }
-      },
-
-      // WALKING & EXERCISE
-      {
-        name: 'start_walking_session',
-        description: 'Begin a walking session',
-        parameters: {
-          type: 'object',
-          properties: {
-            speed_mph: { type: 'number', description: 'Walking speed in mph (default 3.0)' },
-            confirm: { type: 'boolean', description: 'Confirmation that the user wants to start walking' }
-          },
-          required: ['confirm']
-        }
-      },
-      {
-        name: 'get_walking_sessions',
-        description: 'Get walking history and statistics',
-        parameters: {
-          type: 'object',
-          properties: {
-            days_back: { type: 'number', description: 'Number of days to look back (default 7)' }
-          },
-          required: []
-        }
-      },
-      {
-        name: 'end_walking_session',
-        description: 'Complete current walking session',
-        parameters: {
-          type: 'object',
-          properties: {
-            confirm: { type: 'boolean', description: 'Confirmation to end the session' }
-          },
-          required: ['confirm']
-        }
-      },
-      {
-        name: 'pause_walking_session',
-        description: 'Pause current walking session',
-        parameters: {
-          type: 'object',
-          properties: {},
-          required: []
-        }
-      },
-      {
-        name: 'resume_walking_session',
-        description: 'Resume paused walking session',
-        parameters: {
-          type: 'object',
-          properties: {},
-          required: []
-        }
-      },
-      {
-        name: 'update_walking_speed',
-        description: 'Adjust walking pace during session',
-        parameters: {
-          type: 'object',
-          properties: {
-            speed_mph: { type: 'number', description: 'New walking speed in mph' }
-          },
-          required: ['speed_mph']
-        }
-      },
-
-      // FASTING
-      {
-        name: 'start_fasting_session',
-        description: 'Begin a fasting period',
-        parameters: {
-          type: 'object',
-          properties: {
-            goal_hours: { type: 'number', description: 'Goal fasting duration in hours' },
-            confirm: { type: 'boolean', description: 'Confirmation to start fasting' }
-          },
-          required: ['goal_hours', 'confirm']
-        }
-      },
-      {
-        name: 'get_fasting_sessions',
-        description: 'Get fasting history and current status',
-        parameters: {
-          type: 'object',
-          properties: {
-            days_back: { type: 'number', description: 'Number of days to look back (default 7)' }
-          },
-          required: []
-        }
-      },
-      {
-        name: 'end_fasting_session',
-        description: 'Complete current fast',
-        parameters: {
-          type: 'object',
-          properties: {
-            confirm: { type: 'boolean', description: 'Confirmation to end the fast' }
-          },
-          required: ['confirm']
-        }
-      },
-      {
-        name: 'cancel_fasting_session',
-        description: 'Cancel current fast',
-        parameters: {
-          type: 'object',
-          properties: {
-            reason: { type: 'string', description: 'Optional reason for canceling' }
-          },
-          required: []
-        }
-      },
-
-      // MOTIVATORS & GUIDANCE
       {
         name: 'create_motivator',
-        description: 'Create personalized motivational content',
+        description: 'Create a personalized motivational message for the user',
         parameters: {
           type: 'object',
           properties: {
-            title: { type: 'string', description: 'A short, inspiring title for the motivator' },
-            content: { type: 'string', description: 'The motivational message content' },
+            title: {
+              type: 'string',
+              description: 'A short, inspiring title for the motivator'
+            },
+            content: {
+              type: 'string', 
+              description: 'The motivational message content'
+            },
             category: {
               type: 'string',
               enum: ['fasting', 'exercise', 'nutrition', 'general'],
@@ -500,28 +167,31 @@ Important: You can take actions automatically when the intent is clear, but alwa
       },
       {
         name: 'get_user_motivators',
-        description: 'View all motivational content',
+        description: 'Get all active motivators for the user',
         parameters: {
           type: 'object',
-          properties: {
-            category: { 
-              type: 'string', 
-              enum: ['fasting', 'exercise', 'nutrition', 'general'],
-              description: 'Filter by category (optional)' 
-            }
-          },
+          properties: {},
           required: []
         }
       },
       {
         name: 'update_motivator',
-        description: 'Edit existing motivational content',
+        description: 'Update an existing motivator',
         parameters: {
           type: 'object',
           properties: {
-            motivator_id: { type: 'string', description: 'ID of the motivator to update' },
-            title: { type: 'string', description: 'New title for the motivator' },
-            content: { type: 'string', description: 'New content for the motivator' },
+            motivator_id: {
+              type: 'string',
+              description: 'ID of the motivator to update'
+            },
+            title: {
+              type: 'string',
+              description: 'New title for the motivator'
+            },
+            content: {
+              type: 'string',
+              description: 'New content for the motivator'
+            },
             category: {
               type: 'string',
               enum: ['fasting', 'exercise', 'nutrition', 'general'],
@@ -533,976 +203,809 @@ Important: You can take actions automatically when the intent is clear, but alwa
       },
       {
         name: 'delete_motivator',
-        description: 'Remove motivational content',
+        description: 'Delete a motivator',
         parameters: {
           type: 'object',
           properties: {
-            motivator_id: { type: 'string', description: 'ID of the motivator to delete' }
+            motivator_id: {
+              type: 'string',
+              description: 'ID of the motivator to delete'
+            }
           },
           required: ['motivator_id']
         }
       },
-
-      // UI & NAVIGATION
       {
-        name: 'suggest_ui_actions',
-        description: 'Recommend interface actions based on user state',
+        name: 'start_walking_session',
+        description: 'Start a walking session for the user',
         parameters: {
           type: 'object',
           properties: {
-            current_context: { type: 'string', description: 'Current page or context user is in' }
+            confirm: {
+              type: 'boolean',
+              description: 'Confirmation that the user wants to start walking'
+            }
           },
-          required: []
+          required: ['confirm']
         }
       },
       {
-        name: 'get_dashboard_insights',
-        description: 'Generate dashboard content and recommendations',
+        name: 'add_food_entry',
+        description: 'Add a food item to the user\'s nutrition log',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the food item'
+            },
+            calories: {
+              type: 'number',
+              description: 'Total calories for this serving'
+            },
+            carbs: {
+              type: 'number', 
+              description: 'Total carbs in grams for this serving'
+            },
+            serving_size: {
+              type: 'number',
+              description: 'Serving size in grams'
+            }
+          },
+          required: ['name', 'calories', 'carbs', 'serving_size']
+        }
+      },
+      {
+        name: 'toggle_food_consumption',
+        description: 'Mark a food entry as eaten or just logged',
+        parameters: {
+          type: 'object',
+          properties: {
+            food_name: {
+              type: 'string',
+              description: 'Name of the food item to toggle'
+            },
+            consumed: {
+              type: 'boolean',
+              description: 'true to mark as eaten, false to mark as just logged'
+            }
+          },
+          required: ['food_name', 'consumed']
+        }
+      },
+      {
+        name: 'delete_food_entry',
+        description: 'Remove a food entry from the user\'s log',
+        parameters: {
+          type: 'object',
+          properties: {
+            food_name: {
+              type: 'string',
+              description: 'Name of the food item to delete'
+            }
+          },
+          required: ['food_name']
+        }
+      },
+      {
+        name: 'get_user_profile',
+        description: 'Get user\'s profile information including goals, BMR, and current stats',
         parameters: {
           type: 'object',
           properties: {},
           required: []
         }
+      },
+      {
+        name: 'calculate_bmr',
+        description: 'Calculate user\'s Basal Metabolic Rate based on their profile',
+        parameters: {
+          type: 'object',
+          properties: {
+            weight: { type: 'number', description: 'Weight in kg' },
+            height: { type: 'number', description: 'Height in cm' },
+            age: { type: 'number', description: 'Age in years' },
+            gender: { type: 'string', enum: ['male', 'female'], description: 'Gender for BMR calculation' }
+          },
+          required: ['weight', 'height', 'age', 'gender']
+        }
       }
     ];
 
-    // Add admin functions if user is admin
-    if (isAdmin) {
-      functions.push(
-        {
-          name: 'save_admin_note',
-          description: 'Save development notes and observations',
-          parameters: {
-            type: 'object',
-            properties: {
-              note: { type: 'string', description: 'The admin note to save' },
-              category: { type: 'string', description: 'Category for the note' }
-            },
-            required: ['note']
-          }
-        },
-        {
-          name: 'get_admin_notes',
-          description: 'Retrieve saved admin notes',
-          parameters: {
-            type: 'object',
-            properties: {
-              category: { type: 'string', description: 'Filter by category (optional)' }
-            },
-            required: []
-          }
-        }
-      );
-    }
-
-    // Enhanced OpenAI API call with retry logic
-    let openAIResponse;
-    let retryCount = 0;
-    const maxRetries = 3;
-
-    while (retryCount < maxRetries) {
-      try {
-        logWithTimestamp('DEBUG', `OpenAI API call attempt ${retryCount + 1}`);
-        
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4.1-2025-04-14',
-            messages,
-            functions,
-            function_call: 'auto',
-            temperature: 0.7,
-            max_tokens: 2000,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.text();
-          throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
-        }
-
-        openAIResponse = await response.json();
-        break; // Success, exit retry loop
-        
-      } catch (error) {
-        retryCount++;
-        logWithTimestamp('WARN', `OpenAI API call failed (attempt ${retryCount}):`, error.message);
-        
-        if (retryCount >= maxRetries) {
-          throw new Error(`OpenAI API failed after ${maxRetries} attempts: ${error.message}`);
-        }
-        
-        // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-      }
-    }
-
-    const completion = openAIResponse.choices[0].message;
-    let functionResult = '';
-
-    // Enhanced function execution with proper error handling
-    if (completion.function_call) {
-      const functionName = completion.function_call.name;
-      let functionArgs;
-
-      try {
-        functionArgs = JSON.parse(completion.function_call.arguments);
-        logWithTimestamp('INFO', `Executing function: ${functionName}`, functionArgs);
-      } catch (error) {
-        logWithTimestamp('ERROR', 'Failed to parse function arguments:', error);
-        functionResult = 'Error: Invalid function arguments provided';
-      }
-
-      if (functionArgs) {
-        try {
-          // Execute the appropriate function with enhanced error handling
-          switch (functionName) {
-            case 'get_user_profile':
-              const { data: profileData, error: getProfileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-              if (getProfileError) {
-                functionResult = `Error retrieving profile: ${getProfileError.message}`;
-              } else if (!profileData) {
-                functionResult = 'No profile found. Please complete your profile first.';
-              } else {
-                const profileInfo = [
-                  profileData.weight ? `Weight: ${profileData.weight}kg` : 'Weight: Not set',
-                  profileData.height ? `Height: ${profileData.height}cm` : 'Height: Not set',
-                  profileData.age ? `Age: ${profileData.age} years` : 'Age: Not set',
-                  profileData.daily_calorie_goal ? `Daily calorie goal: ${profileData.daily_calorie_goal}` : 'Calorie goal: Not set',
-                  profileData.daily_carb_goal ? `Daily carb goal: ${profileData.daily_carb_goal}g` : 'Carb goal: Not set',
-                  profileData.activity_level ? `Activity level: ${profileData.activity_level}` : 'Activity level: Not set'
-                ].join('\n');
-                
-                functionResult = `**Your Profile:**\n${profileInfo}`;
-              }
-              break;
-
-            case 'update_user_profile':
-              const updateData: any = {};
-              if (functionArgs.weight !== undefined) updateData.weight = functionArgs.weight;
-              if (functionArgs.height !== undefined) updateData.height = functionArgs.height;
-              if (functionArgs.age !== undefined) updateData.age = functionArgs.age;
-              if (functionArgs.daily_calorie_goal !== undefined) updateData.daily_calorie_goal = functionArgs.daily_calorie_goal;
-              if (functionArgs.daily_carb_goal !== undefined) updateData.daily_carb_goal = functionArgs.daily_carb_goal;
-              if (functionArgs.activity_level !== undefined) updateData.activity_level = functionArgs.activity_level;
-
-              const { error: updateProfileError } = await supabase
-                .from('profiles')
-                .update(updateData)
-                .eq('user_id', userId);
-
-              if (updateProfileError) {
-                functionResult = `Error updating profile: ${updateProfileError.message}`;
-              } else {
-                const updates = Object.keys(updateData).join(', ');
-                functionResult = `Profile updated successfully! Updated: ${updates}`;
-              }
-              break;
-
-            case 'calculate_bmr':
-              const { weight, height, age, gender } = functionArgs;
-              let bmr;
-              
-              if (gender.toLowerCase() === 'male') {
-                bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
-              } else {
-                bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
-              }
-              
-              const activityMultipliers = {
-                sedentary: 1.2,
-                light: 1.375,
-                moderate: 1.55,
-                active: 1.725,
-                very_active: 1.9
-              };
-              
-              const tdeeResults = Object.entries(activityMultipliers).map(([level, multiplier]) => 
-                `${level}: ${Math.round(bmr * multiplier)} calories`
-              ).join('\n');
-              
-              functionResult = `**BMR Calculation:**\nBasal Metabolic Rate: ${Math.round(bmr)} calories/day\n\n**TDEE by Activity Level:**\n${tdeeResults}`;
-              break;
-
-            case 'add_food_entry':
-              const { name, calories, carbs, serving_size, consumed = false } = functionArgs;
-              
-              const { error: addFoodError } = await supabase
-                .from('food_entries')
-                .insert({
-                  user_id: userId,
-                  name,
-                  calories,
-                  carbs,
-                  serving_size,
-                  consumed
-                });
-
-              if (addFoodError) {
-                functionResult = `Error adding food entry: ${addFoodError.message}`;
-              } else {
-                functionResult = `Added "${name}" to your food log: ${calories} calories, ${carbs}g carbs (${serving_size}g serving) - ${consumed ? 'marked as eaten' : 'logged for tracking'}`;
-              }
-              break;
-
-            case 'get_food_entries':
-              const entryDate = functionArgs.date ? new Date(functionArgs.date) : new Date();
-              const daysBack = functionArgs.days_back || 0;
-              
-              const startDate = new Date(entryDate);
-              startDate.setDate(startDate.getDate() - daysBack);
-              startDate.setHours(0, 0, 0, 0);
-              
-              const endDate = new Date(entryDate);
-              endDate.setHours(23, 59, 59, 999);
-              
-              const { data: entriesData, error: foodEntriesError } = await supabase
-                .from('food_entries')
-                .select('*')
-                .eq('user_id', userId)
-                .gte('created_at', startDate.toISOString())
-                .lte('created_at', endDate.toISOString())
-                .order('created_at', { ascending: false });
-                
-              if (foodEntriesError) {
-                functionResult = `Error retrieving food entries: ${foodEntriesError.message}`;
-              } else if (!entriesData || entriesData.length === 0) {
-                functionResult = `No food entries found for the specified date range.`;
-              } else {
-                const totalCalories = entriesData.reduce((sum, entry) => sum + (entry.consumed ? entry.calories : 0), 0);
-                const totalCarbs = entriesData.reduce((sum, entry) => sum + (entry.consumed ? entry.carbs : 0), 0);
-                
-                const entriesList = entriesData.map(entry => 
-                  `• ${entry.name}: ${entry.calories} cal, ${entry.carbs}g carbs ${entry.consumed ? '✅ eaten' : '📝 logged'}`
-                ).join('\n');
-                
-                functionResult = `Food entries (${daysBack > 0 ? `last ${daysBack + 1} days` : 'today'}):\n\n${entriesList}\n\n**Totals consumed:** ${totalCalories} calories, ${totalCarbs}g carbs`;
-              }
-              break;
-
-            case 'update_food_entry':
-              const updateFoodDate = new Date();
-              updateFoodDate.setHours(0, 0, 0, 0);
-              const updateFoodEnd = new Date(updateFoodDate);
-              updateFoodEnd.setDate(updateFoodEnd.getDate() + 1);
-
-              const { data: foodToUpdate, error: findFoodError } = await supabase
-                .from('food_entries')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('name', functionArgs.food_name)
-                .gte('created_at', updateFoodDate.toISOString())
-                .lt('created_at', updateFoodEnd.toISOString())
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-              if (findFoodError || !foodToUpdate || foodToUpdate.length === 0) {
-                functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
-              } else {
-                const foodUpdateData: any = {};
-                if (functionArgs.calories !== undefined) foodUpdateData.calories = functionArgs.calories;
-                if (functionArgs.carbs !== undefined) foodUpdateData.carbs = functionArgs.carbs;
-                if (functionArgs.serving_size !== undefined) foodUpdateData.serving_size = functionArgs.serving_size;
-                
-                const { error: updateFoodError } = await supabase
-                  .from('food_entries')
-                  .update(foodUpdateData)
-                  .eq('id', foodToUpdate[0].id);
-
-                if (updateFoodError) {
-                  functionResult = `Error updating food entry: ${updateFoodError.message}`;
-                } else {
-                  const updates = Object.keys(foodUpdateData).join(', ');
-                  functionResult = `Updated "${functionArgs.food_name}" - changed: ${updates}`;
-                }
-              }
-              break;
-
-            case 'delete_food_entry':
-              const deleteFoodDate = new Date();
-              deleteFoodDate.setHours(0, 0, 0, 0);
-              const deleteFoodEnd = new Date(deleteFoodDate);
-              deleteFoodEnd.setDate(deleteFoodEnd.getDate() + 1);
-
-              const { data: foodToDelete, error: findDeleteError } = await supabase
-                .from('food_entries')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('name', functionArgs.food_name)
-                .gte('created_at', deleteFoodDate.toISOString())
-                .lt('created_at', deleteFoodEnd.toISOString())
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-              if (findDeleteError || !foodToDelete || foodToDelete.length === 0) {
-                functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
-              } else {
-                const { error: deleteFoodError } = await supabase
-                  .from('food_entries')
-                  .delete()
-                  .eq('id', foodToDelete[0].id);
-
-                if (deleteFoodError) {
-                  functionResult = `Error deleting food entry: ${deleteFoodError.message}`;
-                } else {
-                  functionResult = `Deleted "${functionArgs.food_name}" from your food log.`;
-                }
-              }
-              break;
-
-            case 'toggle_food_consumption':
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const tomorrow = new Date(today);
-              tomorrow.setDate(tomorrow.getDate() + 1);
-
-              const { data: toggleEntries, error: findError } = await supabase
-                .from('food_entries')
-                .select('id, name, consumed')
-                .eq('user_id', userId)
-                .eq('name', functionArgs.food_name)
-                .gte('created_at', today.toISOString())
-                .lt('created_at', tomorrow.toISOString())
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-              if (findError || !toggleEntries || toggleEntries.length === 0) {
-                functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
-              } else {
-                const { error: toggleError } = await supabase
-                  .from('food_entries')
-                  .update({ consumed: functionArgs.consumed })
-                  .eq('id', toggleEntries[0].id);
-
-                if (toggleError) {
-                  functionResult = `Error updating food consumption: ${toggleError.message}`;
-                } else {
-                  functionResult = `Marked "${functionArgs.food_name}" as ${functionArgs.consumed ? 'eaten ✅' : 'logged only 📝'}`;
-                }
-              }
-              break;
-
-            case 'start_walking_session':
-              if (!functionArgs.confirm) {
-                functionResult = 'Please confirm that you want to start a walking session.';
-                break;
-              }
-
-              // Check for active session
-              const { data: activeWalkingSession } = await supabase
-                .from('walking_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (activeWalkingSession) {
-                functionResult = 'You already have an active walking session. Please end it first or use resume_walking_session.';
-              } else {
-                const speed = functionArgs.speed_mph || 3.0;
-                const { error: walkingError } = await supabase
-                  .from('walking_sessions')
-                  .insert({
-                    user_id: userId,
-                    speed_mph: speed,
-                    started_at: new Date().toISOString()
-                  });
-
-                if (walkingError) {
-                  functionResult = `Error starting walking session: ${walkingError.message}`;
-                } else {
-                  functionResult = `🚶‍♀️ Walking session started! Speed: ${speed} mph. Good luck on your walk!`;
-                }
-              }
-              break;
-
-            case 'get_walking_sessions':
-              const walkingDaysBack = functionArgs.days_back || 7;
-              const walkingStartDate = new Date();
-              walkingStartDate.setDate(walkingStartDate.getDate() - walkingDaysBack);
-
-              const { data: walkingSessions, error: walkingSessionsError } = await supabase
-                .from('walking_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .gte('started_at', walkingStartDate.toISOString())
-                .order('started_at', { ascending: false });
-
-              if (walkingSessionsError) {
-                functionResult = `Error retrieving walking sessions: ${walkingSessionsError.message}`;
-              } else if (!walkingSessions || walkingSessions.length === 0) {
-                functionResult = `No walking sessions found in the last ${walkingDaysBack} days.`;
-              } else {
-                const activeSession = walkingSessions.find(session => !session.ended_at);
-                let sessionsList = walkingSessions.map(session => {
-                  const duration = session.ended_at 
-                    ? Math.round((new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 60000)
-                    : Math.round((new Date().getTime() - new Date(session.started_at).getTime()) / 60000);
-                  const status = session.ended_at ? '✅ completed' : '🔄 active';
-                  const distance = session.distance_miles ? ` - ${session.distance_miles.toFixed(2)} miles` : '';
-                  const calories = session.calories_burned ? ` - ${session.calories_burned} cal` : '';
-                  return `• ${new Date(session.started_at).toLocaleDateString()}: ${duration} min ${status}${distance}${calories}`;
-                }).join('\n');
-
-                functionResult = `Walking sessions (last ${walkingDaysBack} days):\n\n${sessionsList}`;
-                if (activeSession) {
-                  functionResult += `\n\n**Active session:** Started ${new Date(activeSession.started_at).toLocaleTimeString()}`;
-                }
-              }
-              break;
-
-            case 'end_walking_session':
-              if (!functionArgs.confirm) {
-                functionResult = 'Please confirm that you want to end your walking session.';
-                break;
-              }
-
-              const { data: currentWalkingSession, error: findWalkingError } = await supabase
-                .from('walking_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (findWalkingError || !currentWalkingSession) {
-                functionResult = 'No active walking session found.';
-              } else {
-                const endTime = new Date();
-                const startTime = new Date(currentWalkingSession.started_at);
-                const durationMinutes = (endTime.getTime() - startTime.getTime()) / 60000;
-                const distanceMiles = (currentWalkingSession.speed_mph * durationMinutes / 60);
-                
-                // Simple calorie calculation (roughly 0.4 calories per minute per mph for walking)
-                const caloriesBurned = Math.round(durationMinutes * currentWalkingSession.speed_mph * 0.4);
-
-                const { error: endWalkingError } = await supabase
-                  .from('walking_sessions')
-                  .update({
-                    ended_at: endTime.toISOString(),
-                    duration_minutes: Math.round(durationMinutes),
-                    distance_miles: distanceMiles,
-                    calories_burned: caloriesBurned
-                  })
-                  .eq('id', currentWalkingSession.id);
-
-                if (endWalkingError) {
-                  functionResult = `Error ending walking session: ${endWalkingError.message}`;
-                } else {
-                  functionResult = `🎉 Walking session completed!\n\nDuration: ${Math.round(durationMinutes)} minutes\nDistance: ${distanceMiles.toFixed(2)} miles\nCalories burned: ${caloriesBurned}\nGreat job!`;
-                }
-              }
-              break;
-
-            case 'pause_walking_session':
-              const { data: walkingSessionToPause, error: pauseWalkingError } = await supabase
-                .from('walking_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (pauseWalkingError || !walkingSessionToPause) {
-                functionResult = 'No active walking session found to pause.';
-              } else {
-                const { error: updatePauseError } = await supabase
-                  .from('walking_sessions')
-                  .update({ is_paused: true, paused_at: new Date().toISOString() })
-                  .eq('id', walkingSessionToPause.id);
-
-                if (updatePauseError) {
-                  functionResult = `Error pausing walking session: ${updatePauseError.message}`;
-                } else {
-                  functionResult = '⏸️ Walking session paused. Take a rest and resume when ready!';
-                }
-              }
-              break;
-
-            case 'resume_walking_session':
-              const { data: walkingSessionToResume, error: resumeWalkingError } = await supabase
-                .from('walking_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .eq('is_paused', true)
-                .single();
-
-              if (resumeWalkingError || !walkingSessionToResume) {
-                functionResult = 'No paused walking session found to resume.';
-              } else {
-                const { error: updateResumeError } = await supabase
-                  .from('walking_sessions')
-                  .update({ is_paused: false, paused_at: null })
-                  .eq('id', walkingSessionToResume.id);
-
-                if (updateResumeError) {
-                  functionResult = `Error resuming walking session: ${updateResumeError.message}`;
-                } else {
-                  functionResult = '▶️ Walking session resumed! Keep going, you\'re doing great!';
-                }
-              }
-              break;
-
-            case 'update_walking_speed':
-              const { data: walkingSessionToUpdate, error: updateSpeedError } = await supabase
-                .from('walking_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (updateSpeedError || !walkingSessionToUpdate) {
-                functionResult = 'No active walking session found to update speed.';
-              } else {
-                const { error: speedUpdateError } = await supabase
-                  .from('walking_sessions')
-                  .update({ speed_mph: functionArgs.speed_mph })
-                  .eq('id', walkingSessionToUpdate.id);
-
-                if (speedUpdateError) {
-                  functionResult = `Error updating walking speed: ${speedUpdateError.message}`;
-                } else {
-                  functionResult = `🚶‍♀️ Walking speed updated to ${functionArgs.speed_mph} mph`;
-                }
-              }
-              break;
-
-            case 'start_fasting_session':
-              if (!functionArgs.confirm) {
-                functionResult = 'Please confirm that you want to start a fasting session.';
-                break;
-              }
-
-              // Check for active fasting session
-              const { data: activeFastingSession } = await supabase
-                .from('fasting_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (activeFastingSession) {
-                functionResult = 'You already have an active fasting session. Please end it first.';
-              } else {
-                const { error: fastingError } = await supabase
-                  .from('fasting_sessions')
-                  .insert({
-                    user_id: userId,
-                    goal_hours: functionArgs.goal_hours,
-                    started_at: new Date().toISOString()
-                  });
-
-                if (fastingError) {
-                  functionResult = `Error starting fasting session: ${fastingError.message}`;
-                } else {
-                  functionResult = `🕐 Fasting session started! Goal: ${functionArgs.goal_hours} hours. You've got this!`;
-                }
-              }
-              break;
-
-            case 'get_fasting_sessions':
-              const fastingDaysBack = functionArgs.days_back || 7;
-              const fastingStartDate = new Date();
-              fastingStartDate.setDate(fastingStartDate.getDate() - fastingDaysBack);
-
-              const { data: fastingSessions, error: fastingSessionsError } = await supabase
-                .from('fasting_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .gte('started_at', fastingStartDate.toISOString())
-                .order('started_at', { ascending: false });
-
-              if (fastingSessionsError) {
-                functionResult = `Error retrieving fasting sessions: ${fastingSessionsError.message}`;
-              } else if (!fastingSessions || fastingSessions.length === 0) {
-                functionResult = `No fasting sessions found in the last ${fastingDaysBack} days.`;
-              } else {
-                const activeFastingSession = fastingSessions.find(session => !session.ended_at);
-                let fastingSessionsList = fastingSessions.map(session => {
-                  const duration = session.ended_at 
-                    ? (new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 3600000
-                    : (new Date().getTime() - new Date(session.started_at).getTime()) / 3600000;
-                  const status = session.ended_at ? '✅ completed' : '🔄 active';
-                  const goalStatus = session.goal_hours ? ` (goal: ${session.goal_hours}h)` : '';
-                  return `• ${new Date(session.started_at).toLocaleDateString()}: ${duration.toFixed(1)}h ${status}${goalStatus}`;
-                }).join('\n');
-
-                functionResult = `Fasting sessions (last ${fastingDaysBack} days):\n\n${fastingSessionsList}`;
-                if (activeFastingSession) {
-                  const currentDuration = (new Date().getTime() - new Date(activeFastingSession.started_at).getTime()) / 3600000;
-                  functionResult += `\n\n**Active session:** ${currentDuration.toFixed(1)} hours of ${activeFastingSession.goal_hours} hours`;
-                }
-              }
-              break;
-
-            case 'end_fasting_session':
-              if (!functionArgs.confirm) {
-                functionResult = 'Please confirm that you want to end your fasting session.';
-                break;
-              }
-
-              const { data: currentFastingSession, error: findFastingError } = await supabase
-                .from('fasting_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (findFastingError || !currentFastingSession) {
-                functionResult = 'No active fasting session found.';
-              } else {
-                const endTime = new Date();
-                const startTime = new Date(currentFastingSession.started_at);
-                const durationHours = (endTime.getTime() - startTime.getTime()) / 3600000;
-
-                const { error: endFastingError } = await supabase
-                  .from('fasting_sessions')
-                  .update({
-                    ended_at: endTime.toISOString(),
-                    actual_hours: durationHours
-                  })
-                  .eq('id', currentFastingSession.id);
-
-                if (endFastingError) {
-                  functionResult = `Error ending fasting session: ${endFastingError.message}`;
-                } else {
-                  const goalReached = durationHours >= currentFastingSession.goal_hours;
-                  functionResult = `🎉 Fasting session completed!\n\nDuration: ${durationHours.toFixed(1)} hours\nGoal: ${currentFastingSession.goal_hours} hours\n${goalReached ? '✅ Goal achieved! Excellent work!' : '📝 Good effort! Every fast is progress.'}`;
-                }
-              }
-              break;
-
-            case 'cancel_fasting_session':
-              const { data: fastingSessionToCancel, error: cancelFastingError } = await supabase
-                .from('fasting_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              if (cancelFastingError || !fastingSessionToCancel) {
-                functionResult = 'No active fasting session found to cancel.';
-              } else {
-                const { error: deleteFastingError } = await supabase
-                  .from('fasting_sessions')
-                  .delete()
-                  .eq('id', fastingSessionToCancel.id);
-
-                if (deleteFastingError) {
-                  functionResult = `Error canceling fasting session: ${deleteFastingError.message}`;
-                } else {
-                  const reason = functionArgs.reason ? ` Reason: ${functionArgs.reason}` : '';
-                  functionResult = `Fasting session canceled.${reason} Remember, it's okay to listen to your body!`;
-                }
-              }
-              break;
-
-            case 'create_motivator':
-              const { title, content, category } = functionArgs;
-              const { error: createMotivatorError } = await supabase
-                .from('motivators')
-                .insert({
-                  user_id: userId,
-                  title,
-                  content,
-                  category
-                });
-
-              if (createMotivatorError) {
-                functionResult = `Error creating motivator: ${createMotivatorError.message}`;
-              } else {
-                functionResult = `✨ Motivator created successfully!\n\n**${title}**\n${content}\n\nCategory: ${category}`;
-              }
-              break;
-
-            case 'get_user_motivators':
-              const categoryFilter = functionArgs.category;
-              let motivatorQuery = supabase
-                .from('motivators')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
-
-              if (categoryFilter) {
-                motivatorQuery = motivatorQuery.eq('category', categoryFilter);
-              }
-
-              const { data: motivators, error: motivatorsError } = await motivatorQuery;
-
-              if (motivatorsError) {
-                functionResult = `Error retrieving motivators: ${motivatorsError.message}`;
-              } else if (!motivators || motivators.length === 0) {
-                functionResult = categoryFilter 
-                  ? `No motivators found in the ${categoryFilter} category.`
-                  : 'No motivators found. Create your first motivator to get started!';
-              } else {
-                const motivatorsList = motivators.map(motivator => 
-                  `**${motivator.title}**\n${motivator.content}\n*Category: ${motivator.category}*`
-                ).join('\n\n---\n\n');
-                
-                functionResult = `Your motivators${categoryFilter ? ` (${categoryFilter})` : ''}:\n\n${motivatorsList}`;
-              }
-              break;
-
-            case 'update_motivator':
-              const motivatorUpdateData: any = {};
-              if (functionArgs.title !== undefined) motivatorUpdateData.title = functionArgs.title;
-              if (functionArgs.content !== undefined) motivatorUpdateData.content = functionArgs.content;
-              if (functionArgs.category !== undefined) motivatorUpdateData.category = functionArgs.category;
-
-              const { error: updateMotivatorError } = await supabase
-                .from('motivators')
-                .update(motivatorUpdateData)
-                .eq('id', functionArgs.motivator_id)
-                .eq('user_id', userId);
-
-              if (updateMotivatorError) {
-                functionResult = `Error updating motivator: ${updateMotivatorError.message}`;
-              } else {
-                const updates = Object.keys(motivatorUpdateData).join(', ');
-                functionResult = `Motivator updated successfully! Changed: ${updates}`;
-              }
-              break;
-
-            case 'delete_motivator':
-              const { error: deleteMotivatorError } = await supabase
-                .from('motivators')
-                .delete()
-                .eq('id', functionArgs.motivator_id)
-                .eq('user_id', userId);
-
-              if (deleteMotivatorError) {
-                functionResult = `Error deleting motivator: ${deleteMotivatorError.message}`;
-              } else {
-                functionResult = 'Motivator deleted successfully.';
-              }
-              break;
-
-            case 'suggest_ui_actions':
-              // Get user's current data to make suggestions
-              const { data: currentProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-              const { data: todayFood } = await supabase
-                .from('food_entries')
-                .select('*')
-                .eq('user_id', userId)
-                .gte('created_at', new Date().toISOString().split('T')[0])
-                .lt('created_at', new Date(Date.now() + 86400000).toISOString().split('T')[0]);
-
-              const { data: activeSession } = await supabase
-                .from('fasting_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              let suggestions = [];
-
-              if (!currentProfile?.weight || !currentProfile?.height) {
-                suggestions.push('📋 Complete your profile to get personalized recommendations');
-              }
-
-              if (!todayFood || todayFood.length === 0) {
-                suggestions.push('🍎 Log your first meal in the Food Tracking section');
-              }
-
-              if (!activeSession) {
-                suggestions.push('⏰ Start a fasting session to track your progress');
-              }
-
-              suggestions.push('🚶‍♀️ Try the Walking timer for active recovery');
-              suggestions.push('💪 Create a personal motivator for inspiration');
-              suggestions.push('📊 Check your dashboard for daily insights');
-
-              functionResult = `**Suggested actions:**\n\n${suggestions.map(s => `• ${s}`).join('\n')}`;
-              break;
-
-            case 'get_dashboard_insights':
-              // Gather comprehensive user data for insights
-              const { data: dashboardProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-              const todayStart = new Date();
-              todayStart.setHours(0, 0, 0, 0);
-              const todayEnd = new Date();
-              todayEnd.setHours(23, 59, 59, 999);
-
-              const { data: todayFoodEntries } = await supabase
-                .from('food_entries')
-                .select('*')
-                .eq('user_id', userId)
-                .gte('created_at', todayStart.toISOString())
-                .lte('created_at', todayEnd.toISOString());
-
-              const { data: currentFast } = await supabase
-                .from('fasting_sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .is('ended_at', null)
-                .single();
-
-              let insights = ['**Today\'s Dashboard:**\n'];
-
-              // Food insights
-              if (todayFoodEntries && todayFoodEntries.length > 0) {
-                const totalCals = todayFoodEntries.reduce((sum, entry) => sum + (entry.consumed ? entry.calories : 0), 0);
-                const totalCarbs = todayFoodEntries.reduce((sum, entry) => sum + (entry.consumed ? entry.carbs : 0), 0);
-                insights.push(`🍎 **Nutrition:** ${totalCals} calories, ${totalCarbs}g carbs consumed`);
-                
-                if (dashboardProfile?.daily_calorie_goal) {
-                  const remaining = dashboardProfile.daily_calorie_goal - totalCals;
-                  insights.push(`📊 **Goal progress:** ${remaining > 0 ? `${remaining} calories remaining` : `${Math.abs(remaining)} calories over goal`}`);
-                }
-              } else {
-                insights.push('🍎 **Nutrition:** No food logged today');
-              }
-
-              // Fasting insights
-              if (currentFast) {
-                const fastingHours = (new Date().getTime() - new Date(currentFast.started_at).getTime()) / 3600000;
-                const progress = (fastingHours / currentFast.goal_hours) * 100;
-                insights.push(`⏰ **Fasting:** ${fastingHours.toFixed(1)}/${currentFast.goal_hours}h (${progress.toFixed(1)}%)`);
-              } else {
-                insights.push('⏰ **Fasting:** No active fast');
-              }
-
-              // Profile completeness
-              if (dashboardProfile) {
-                const profileFields = ['weight', 'height', 'age', 'daily_calorie_goal'];
-                const completedFields = profileFields.filter(field => dashboardProfile[field]).length;
-                const completeness = (completedFields / profileFields.length) * 100;
-                insights.push(`👤 **Profile:** ${completeness.toFixed(0)}% complete`);
-              }
-
-              functionResult = insights.join('\n');
-              break;
-
-            // Admin functions
-            case 'save_admin_note':
-              if (!isAdmin) {
-                functionResult = 'Admin access required for this function.';
-                break;
-              }
-
-              const { error: saveNoteError } = await supabase
-                .from('admin_notes')
-                .insert({
-                  user_id: userId,
-                  note: functionArgs.note,
-                  category: functionArgs.category || 'general'
-                });
-
-              if (saveNoteError) {
-                functionResult = `Error saving admin note: ${saveNoteError.message}`;
-              } else {
-                functionResult = 'Admin note saved successfully.';
-              }
-              break;
-
-            case 'get_admin_notes':
-              if (!isAdmin) {
-                functionResult = 'Admin access required for this function.';
-                break;
-              }
-
-              let adminNotesQuery = supabase
-                .from('admin_notes')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-              if (functionArgs.category) {
-                adminNotesQuery = adminNotesQuery.eq('category', functionArgs.category);
-              }
-
-              const { data: adminNotes, error: adminNotesError } = await adminNotesQuery;
-
-              if (adminNotesError) {
-                functionResult = `Error retrieving admin notes: ${adminNotesError.message}`;
-              } else if (!adminNotes || adminNotes.length === 0) {
-                functionResult = 'No admin notes found.';
-              } else {
-                const notesList = adminNotes.map(note => 
-                  `**${new Date(note.created_at).toLocaleDateString()}** (${note.category})\n${note.note}`
-                ).join('\n\n---\n\n');
-                
-                functionResult = `Admin notes:\n\n${notesList}`;
-              }
-              break;
-
-            default:
-              functionResult = `Unknown function: ${functionName}`;
-              logWithTimestamp('ERROR', `Unknown function called: ${functionName}`);
-          }
-
-        } catch (error) {
-          logWithTimestamp('ERROR', `Function execution error for ${functionName}:`, error);
-          functionResult = `Error executing ${functionName}: ${error.message}`;
-        }
-      }
-
-      // Track usage
-      try {
-        await supabase.rpc('track_usage_event', {
-          _user_id: userId,
-          _event_type: functionName || 'chat_completion',
-          _requests_count: 1
-        });
-      } catch (trackingError) {
-        logWithTimestamp('WARN', 'Usage tracking failed:', trackingError);
-      }
-
-      // Return function result
-      const duration = Date.now() - startTime;
-      logWithTimestamp('INFO', `Request completed in ${duration}ms`);
-      
-      return new Response(JSON.stringify({ 
-        content: completion.content || functionResult,
-        function_result: functionResult,
-        processing_time: duration
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // No function call, return the completion
-    const duration = Date.now() - startTime;
-    logWithTimestamp('INFO', `Request completed in ${duration}ms`);
-    
-    return new Response(JSON.stringify({ 
-      content: completion.content,
-      processing_time: duration
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // Remove admin functions from being sent to OpenAI to reduce costs
+    // Admin notes are excluded from AI context for performance
+
+        // Send to OpenAI Chat Completions API
+    console.log('Sending request to OpenAI with', functions.length, 'functions available');
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: messages,
+        functions: functions,
+        function_call: 'auto',
+        max_tokens: 1000,
+        temperature: 0.7
+      }),
     });
+
+    console.log('OpenAI response status:', response.status);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const result = await response.json();
+    console.log('Chat completion successful');
+
+    const choice = result.choices[0];
+    const message_response = choice.message;
+    
+    // Handle function calls
+    if (message_response.function_call) {
+      console.log('Function call detected:', message_response.function_call.name);
+      console.log('Function arguments:', message_response.function_call.arguments);
+      
+      try {
+        const functionArgs = JSON.parse(message_response.function_call.arguments);
+        let functionResult = null;
+        
+        // Add function call confidence and validation
+        console.log('Executing function:', message_response.function_call.name, 'with args:', functionArgs);
+
+        switch (message_response.function_call.name) {
+          case 'create_motivator':
+            console.log('Creating motivator with args:', functionArgs);
+            const { data: motivator, error: motivatorError } = await supabase
+              .from('motivators')
+              .insert([{
+                user_id: userId,
+                title: functionArgs.title,
+                content: functionArgs.content,
+                category: functionArgs.category
+              }])
+              .select()
+              .single();
+            
+            if (motivatorError) {
+              functionResult = `Error creating motivator: ${motivatorError.message}`;
+            } else {
+              functionResult = `Motivator saved successfully: "${functionArgs.title}"`;
+            }
+            break;
+
+          case 'get_user_motivators':
+            console.log('Getting user motivators');
+            const { data: userMotivators, error: getMotivatorsError } = await supabase
+              .from('motivators')
+              .select('id, title, content, category, created_at')
+              .eq('user_id', userId)
+              .eq('is_active', true)
+              .order('created_at', { ascending: false });
+            
+            if (getMotivatorsError) {
+              functionResult = `Error retrieving motivators: ${getMotivatorsError.message}`;
+            } else {
+              if (userMotivators && userMotivators.length > 0) {
+                const motivatorsList = userMotivators.map(m => 
+                  `• "${m.title}" (${m.category}) - ${m.content.substring(0, 80)}${m.content.length > 80 ? '...' : ''}`
+                ).join('\n');
+                functionResult = `Your current motivators:\n${motivatorsList}`;
+              } else {
+                functionResult = 'You don\'t have any motivators yet. Would you like me to create some for you?';
+              }
+            }
+            break;
+
+          case 'update_motivator':
+            console.log('Updating motivator with args:', functionArgs);
+            const updateData: any = {};
+            if (functionArgs.title) updateData.title = functionArgs.title;
+            if (functionArgs.content) updateData.content = functionArgs.content;
+            if (functionArgs.category) updateData.category = functionArgs.category;
+            
+            const { data: updatedMotivator, error: updateError } = await supabase
+              .from('motivators')
+              .update(updateData)
+              .eq('id', functionArgs.motivator_id)
+              .eq('user_id', userId)
+              .select()
+              .single();
+            
+            if (updateError) {
+              functionResult = `Error updating motivator: ${updateError.message}`;
+            } else if (updatedMotivator) {
+              functionResult = `Updated motivator: "${updatedMotivator.title}"`;
+            } else {
+              functionResult = 'Motivator not found or you don\'t have permission to update it.';
+            }
+            break;
+
+          case 'delete_motivator':
+            console.log('Deleting motivator with args:', functionArgs);
+            const { data: deletedMotivator, error: deleteError } = await supabase
+              .from('motivators')
+              .update({ is_active: false })
+              .eq('id', functionArgs.motivator_id)
+              .eq('user_id', userId)
+              .select('title')
+              .single();
+            
+            if (deleteError) {
+              functionResult = `Error deleting motivator: ${deleteError.message}`;
+            } else if (deletedMotivator) {
+              functionResult = `Deleted motivator: "${deletedMotivator.title}"`;
+            } else {
+              functionResult = 'Motivator not found or you don\'t have permission to delete it.';
+            }
+            break;
+
+          case 'start_walking_session':
+            if (functionArgs.confirm) {
+              console.log('Starting walking session');
+              const { data: session, error: sessionError } = await supabase
+                .from('walking_sessions')
+                .insert([{
+                  user_id: userId,
+                  start_time: new Date().toISOString(),
+                  status: 'active'
+                }])
+                .select()
+                .single();
+              
+              if (sessionError) {
+                functionResult = `Error starting walking session: ${sessionError.message}`;
+              } else {
+                functionResult = `Walking session started successfully! Have a great walk!`;
+              }
+            } else {
+              functionResult = 'Walking session not started - user declined';
+            }
+            break;
+
+          case 'add_food_entry':
+            console.log('Adding food entry with args:', functionArgs);
+            
+            // FIXED: Handle multiple food entries
+            if (functionArgs.foods && Array.isArray(functionArgs.foods)) {
+              // Multiple food entries
+              const results = [];
+              for (const food of functionArgs.foods) {
+                const { data, error } = await supabase
+                  .from('food_entries')
+                  .insert([{
+                    user_id: userId,
+                    name: food.name,
+                    calories: food.calories,
+                    carbs: food.carbs,
+                    serving_size: food.serving_size || 100,
+                    consumed: food.consumed || false
+                  }])
+                  .select()
+                  .single();
+                
+                if (error) {
+                  console.error('Error adding food entry:', error);
+                  results.push({ name: food.name, success: false, error: error.message });
+                } else {
+                  results.push({ name: food.name, success: true, data });
+                }
+              }
+              
+              const successCount = results.filter(r => r.success).length;
+              const totalCount = functionArgs.foods.length;
+              functionResult = `Added ${successCount}/${totalCount} foods to your log`;
+              
+              if (successCount < totalCount) {
+                const failedFoods = results.filter(r => !r.success).map(r => r.name).join(', ');
+                functionResult += `. Failed to add: ${failedFoods}`;
+              }
+            } else {
+              // Single food entry (legacy support)
+              const { data: foodEntry, error: foodError } = await supabase
+                .from('food_entries')
+                .insert([{
+                  user_id: userId,
+                  name: functionArgs.name,
+                  calories: functionArgs.calories,
+                  carbs: functionArgs.carbs,
+                  serving_size: functionArgs.serving_size || 100,
+                  consumed: functionArgs.consumed || false
+                }])
+                .select()
+                .single();
+              
+              if (foodError) {
+                functionResult = `Error adding food entry: ${foodError.message}`;
+              } else {
+                functionResult = `Food logged successfully: ${functionArgs.name} (${functionArgs.calories} calories, ${functionArgs.carbs}g carbs)`;
+              }
+            }
+            break;
+
+          case 'toggle_food_consumption':
+            console.log('Toggling food consumption with args:', functionArgs);
+            // Find today's food entry by name
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const { data: foodEntries, error: findError } = await supabase
+              .from('food_entries')
+              .select('id, name, consumed')
+              .eq('user_id', userId)
+              .eq('name', functionArgs.food_name)
+              .gte('created_at', today.toISOString())
+              .lt('created_at', tomorrow.toISOString())
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (findError || !foodEntries || foodEntries.length === 0) {
+              functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
+            } else {
+              const { data: updatedEntry, error: updateError } = await supabase
+                .from('food_entries')
+                .update({ consumed: functionArgs.consumed })
+                .eq('id', foodEntries[0].id)
+                .select()
+                .single();
+
+              if (updateError) {
+                functionResult = `Error updating food entry: ${updateError.message}`;
+              } else {
+                const status = functionArgs.consumed ? 'eaten' : 'logged only';
+                functionResult = `Updated "${functionArgs.food_name}" - marked as ${status}`;
+              }
+            }
+            break;
+
+          case 'delete_food_entry':
+            console.log('Deleting food entry with args:', functionArgs);
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const todayEnd = new Date(todayStart);
+            todayEnd.setDate(todayEnd.getDate() + 1);
+
+            const { data: entriesToDelete, error: findDeleteError } = await supabase
+              .from('food_entries')
+              .select('id, name')
+              .eq('user_id', userId)
+              .eq('name', functionArgs.food_name)
+              .gte('created_at', todayStart.toISOString())
+              .lt('created_at', todayEnd.toISOString())
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (findDeleteError || !entriesToDelete || entriesToDelete.length === 0) {
+              functionResult = `Food entry "${functionArgs.food_name}" not found in today's log.`;
+            } else {
+              const { error: deleteError } = await supabase
+                .from('food_entries')
+                .delete()
+                .eq('id', entriesToDelete[0].id);
+
+              if (deleteError) {
+                functionResult = `Error deleting food entry: ${deleteError.message}`;
+              } else {
+                functionResult = `Deleted "${functionArgs.food_name}" from your food log.`;
+              }
+            }
+            break;
+
+          case 'get_user_profile':
+            // Get user profile and current stats
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('weight, height, age, daily_calorie_goal, daily_carb_goal')
+              .eq('user_id', userId)
+              .single();
+            
+            // Get today's food entries
+            const profileToday = new Date();
+            profileToday.setHours(0, 0, 0, 0);
+            const profileTomorrow = new Date(profileToday);
+            profileTomorrow.setDate(profileTomorrow.getDate() + 1);
+
+            const { data: todayFood } = await supabase
+              .from('food_entries')
+              .select('calories, carbs')
+              .eq('user_id', userId)
+              .gte('created_at', profileToday.toISOString())
+              .lt('created_at', profileTomorrow.toISOString());
+
+            const todayCalories = todayFood?.reduce((sum, entry) => sum + entry.calories, 0) || 0;
+            const todayCarbs = todayFood?.reduce((sum, entry) => sum + entry.carbs, 0) || 0;
+
+            // Get active walking session
+            const { data: walkingSession } = await supabase
+              .from('walking_sessions')
+              .select('*')
+              .eq('user_id', userId)
+              .eq('status', 'active')
+              .single();
+
+            // Get today's walking stats
+            const { data: todayWalking } = await supabase
+              .from('walking_sessions')
+              .select('start_time, end_time, calories_burned, distance')
+              .eq('user_id', userId)
+              .eq('status', 'completed')
+              .gte('start_time', profileToday.toISOString())
+              .lt('start_time', profileTomorrow.toISOString());
+
+            const todayWalkingStats = todayWalking?.reduce(
+              (acc, session) => {
+                const duration = session.end_time && session.start_time
+                  ? Math.floor((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / (1000 * 60))
+                  : 0;
+                
+                return {
+                  minutes: acc.minutes + duration,
+                  calories: acc.calories + (session.calories_burned || 0),
+                  distance: acc.distance + (session.distance || 0),
+                };
+              },
+              { minutes: 0, calories: 0, distance: 0 }
+            ) || { minutes: 0, calories: 0, distance: 0 };
+
+            // Get weekly walking stats
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            
+            const { data: weeklyWalking } = await supabase
+              .from('walking_sessions')
+              .select('start_time, end_time, calories_burned, distance')
+              .eq('user_id', userId)
+              .eq('status', 'completed')
+              .gte('start_time', startOfWeek.toISOString());
+
+            const weeklyWalkingStats = weeklyWalking?.reduce(
+              (acc, session) => {
+                const duration = session.end_time && session.start_time
+                  ? Math.floor((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / (1000 * 60))
+                  : 0;
+                
+                return {
+                  minutes: acc.minutes + duration,
+                  calories: acc.calories + (session.calories_burned || 0),
+                  distance: acc.distance + (session.distance || 0),
+                };
+              },
+              { minutes: 0, calories: 0, distance: 0 }
+            ) || { minutes: 0, calories: 0, distance: 0 };
+
+            // Calculate BMR if profile exists
+            let bmr = null;
+            if (profile?.weight && profile?.height && profile?.age) {
+              // Using Mifflin-St Jeor equation (assuming male, can be adjusted)
+              bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5);
+            }
+
+            functionResult = `Profile and stats:
+**Profile:**
+${profile?.weight ? `Weight: ${profile.weight} kg` : 'Weight: Not set'}
+${profile?.height ? `Height: ${profile.height} cm` : 'Height: Not set'}
+${profile?.age ? `Age: ${profile.age} years` : 'Age: Not set'}
+${bmr ? `Estimated BMR: ${bmr} calories/day` : ''}
+
+**Daily Goals:**
+${profile?.daily_calorie_goal ? `Calorie Goal: ${profile.daily_calorie_goal} cal` : 'Calorie Goal: Not set'}
+${profile?.daily_carb_goal ? `Carb Goal: ${profile.daily_carb_goal}g` : 'Carb Goal: Not set'}
+
+**Today's Progress:**
+Calories consumed: ${todayCalories} cal
+Carbs consumed: ${todayCarbs}g
+Walking: ${todayWalkingStats.minutes} minutes, ${todayWalkingStats.calories} cal burned, ${todayWalkingStats.distance.toFixed(1)} miles
+${walkingSession ? 'Currently on a walk! 🚶‍♂️' : 'No active walking session'}
+
+**Weekly Walking Stats:**
+Total walking: ${weeklyWalkingStats.minutes} minutes
+Calories burned: ${weeklyWalkingStats.calories} cal
+Distance covered: ${weeklyWalkingStats.distance.toFixed(1)} miles
+${weeklyWalkingStats.minutes >= 150 ? '✅ WHO weekly activity goal achieved!' : `${150 - weeklyWalkingStats.minutes} minutes left for weekly goal`}
+
+**Calorie Balance:**
+Net calories: ${todayCalories - todayWalkingStats.calories} (consumed - burned walking)
+${!profile?.weight || !profile?.height || !profile?.age ? 
+  'Consider updating your profile in Settings to get personalized recommendations!' : 
+  bmr && profile?.daily_calorie_goal ? 
+    `Daily balance: ${todayCalories - profile.daily_calorie_goal > 0 ? '+' : ''}${todayCalories - profile.daily_calorie_goal} from calorie goal` : 
+    ''
+}`;
+            break;
+
+          case 'calculate_bmr':
+            const { weight, height, age, gender } = functionArgs;
+            
+            // Mifflin-St Jeor equation
+            let calculatedBmr;
+            if (gender === 'male') {
+              calculatedBmr = Math.round(10 * weight + 6.25 * height - 5 * age + 5);
+            } else {
+              calculatedBmr = Math.round(10 * weight + 6.25 * height - 5 * age - 161);
+            }
+
+            functionResult = `BMR calculation for ${weight}kg, ${height}cm, ${age} years old, ${gender}:
+
+**Basal Metabolic Rate (BMR): ${calculatedBmr} calories/day**
+
+Daily calorie needs based on activity level:
+- Sedentary (little/no exercise): ${Math.round(calculatedBmr * 1.2)} cal/day
+- Light activity (1-3 days/week): ${Math.round(calculatedBmr * 1.375)} cal/day  
+- Moderate activity (3-5 days/week): ${Math.round(calculatedBmr * 1.55)} cal/day
+- Very active (6-7 days/week): ${Math.round(calculatedBmr * 1.725)} cal/day`;
+            break;
+
+          case 'save_admin_note':
+            if (!isAdmin) {
+              functionResult = 'Error: Admin access required for this function';
+              break;
+            }
+            
+            console.log('Saving admin note with args:', functionArgs);
+            const noteData = {
+              content: functionArgs.content,
+              category: functionArgs.category,
+              priority: functionArgs.priority,
+              timestamp: new Date().toISOString(),
+              user_id: userId
+            };
+            
+            // Create a unique key for this note
+            const noteKey = `admin_note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            const { error: noteError } = await supabase
+              .from('shared_settings')
+              .insert([{
+                setting_key: noteKey,
+                setting_value: JSON.stringify(noteData)
+              }]);
+            
+            if (noteError) {
+              functionResult = `Error saving admin note: ${noteError.message}`;
+            } else {
+              functionResult = `Admin note saved successfully!\n\n**Category:** ${functionArgs.category}\n**Priority:** ${functionArgs.priority}\n**Content:** ${functionArgs.content}\n\nNote ID: ${noteKey}`;
+            }
+            break;
+
+          case 'get_admin_notes':
+            if (!isAdmin) {
+              functionResult = 'Error: Admin access required for this function';
+              break;
+            }
+            
+            console.log('Retrieving admin notes with args:', functionArgs);
+            const { data: notes, error: notesError } = await supabase
+              .from('shared_settings')
+              .select('setting_key, setting_value')
+              .like('setting_key', 'admin_note_%');
+            
+            if (notesError) {
+              functionResult = `Error retrieving admin notes: ${notesError.message}`;
+              break;
+            }
+            
+            if (!notes || notes.length === 0) {
+              functionResult = 'No admin notes found.';
+              break;
+            }
+            
+            // Parse and filter notes
+            const parsedNotes = notes.map(note => {
+              try {
+                const data = JSON.parse(note.setting_value);
+                return {
+                  id: note.setting_key,
+                  ...data
+                };
+              } catch (e) {
+                return null;
+              }
+            }).filter(Boolean);
+            
+            // Filter by category if specified
+            const categoryFilter = functionArgs.category || 'all';
+            const filteredNotes = categoryFilter === 'all' 
+              ? parsedNotes 
+              : parsedNotes.filter(note => note.category === categoryFilter);
+            
+            if (filteredNotes.length === 0) {
+              functionResult = `No admin notes found for category: ${categoryFilter}`;
+              break;
+            }
+            
+            // Sort by priority and timestamp
+            const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+            filteredNotes.sort((a, b) => {
+              const priorityDiff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+              if (priorityDiff !== 0) return priorityDiff;
+              return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+            });
+            
+            // Format notes for display
+            let notesDisplay = `## Admin Notes Summary ${categoryFilter !== 'all' ? `(${categoryFilter})` : ''}\n\n`;
+            notesDisplay += `**Total Notes:** ${filteredNotes.length}\n\n`;
+            
+            // Group by category and priority
+            const categories = ['bug', 'improvement', 'feature', 'observation', 'general'];
+            const priorities = ['critical', 'high', 'medium', 'low'];
+            
+            categories.forEach(cat => {
+              const categoryNotes = filteredNotes.filter(note => note.category === cat);
+              if (categoryNotes.length > 0) {
+                notesDisplay += `### ${cat.toUpperCase()} (${categoryNotes.length} notes)\n\n`;
+                
+                priorities.forEach(pri => {
+                  const priorityNotes = categoryNotes.filter(note => note.priority === pri);
+                  if (priorityNotes.length > 0) {
+                    notesDisplay += `**${pri.toUpperCase()} Priority:**\n`;
+                    priorityNotes.forEach((note, index) => {
+                      const date = new Date(note.timestamp).toLocaleDateString();
+                      notesDisplay += `${index + 1}. ${note.content} *(${date})*\n`;
+                    });
+                    notesDisplay += '\n';
+                  }
+                });
+              }
+            });
+            
+            notesDisplay += `\n**Next Steps:**\n`;
+            notesDisplay += `- Critical/High priority items should be addressed first\n`;
+            notesDisplay += `- Consider grouping related improvements for efficient implementation\n`;
+            notesDisplay += `- Review and test each bug fix thoroughly\n`;
+            notesDisplay += `- Update user documentation for new features\n\n`;
+            notesDisplay += `*Use "save this to admin notes" to add new observations while testing.*`;
+            
+            functionResult = notesDisplay;
+            break;
+
+          default:
+            console.error('Unknown function called:', message_response.function_call.name);
+            functionResult = `I'm not sure how to handle "${message_response.function_call.name}". Could you please rephrase your request? I can help with:
+            
+• Creating and managing motivational content
+• Starting walking sessions  
+• Adding food entries
+• Getting user profile information
+${isAdmin ? '• Saving and retrieving admin notes' : ''}
+
+What would you like me to help you with?`;
+            break;
+        }
+
+        // Track usage if not using own API key
+        if (!profile?.use_own_api_key) {
+          console.log('Updating monthly AI requests count');
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ 
+              monthly_ai_requests: (profile?.monthly_ai_requests || 0) + 1 
+            })
+            .eq('user_id', userId);
+          
+          if (updateError) {
+            console.error('Error updating usage count:', updateError);
+          }
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            completion: message_response.content || functionResult,
+            functionCall: {
+              name: message_response.function_call.name,
+              arguments: functionArgs,
+              result: functionResult
+            }
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        );
+
+      } catch (parseError) {
+        console.error('Error parsing function arguments:', parseError);
+        return new Response(
+          JSON.stringify({ 
+            completion: "I tried to help, but there was an error processing the function call.",
+            error: "Function call parsing failed"
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        );
+      }
+    }
+
+    const completion = message_response.content;
+    console.log('Regular completion received');
+
+    // Track usage if not using own API key
+    if (!profile?.use_own_api_key) {
+      console.log('Updating monthly AI requests count');
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          monthly_ai_requests: (profile?.monthly_ai_requests || 0) + 1 
+        })
+        .eq('user_id', userId);
+      
+      if (updateError) {
+        console.error('Error updating usage count:', updateError);
+      }
+    }
+
+    console.log('Chat completion successful');
+    return new Response(
+      JSON.stringify({ completion }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    );
 
   } catch (error) {
-    const duration = Date.now() - startTime;
-    const errorResponse = handleError(error, 'Chat completion request');
-    
-    logWithTimestamp('ERROR', `Request failed after ${duration}ms for user ${userId}:`, error);
-    
-    return new Response(JSON.stringify({
-      error: errorResponse.error,
-      context: errorResponse.context,
-      processing_time: duration
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error in chat-completion function:', error);
+    let statusCode = 500;
+    let errorMessage = 'An unexpected error occurred';
+
+    if (error.message.includes('not authenticated')) {
+      statusCode = 401;
+      errorMessage = 'Authentication required';
+    } else if (error.message.includes('API key')) {
+      statusCode = 400;
+      errorMessage = error.message;
+    }
+
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: statusCode 
+      }
+    );
   }
 });
+
+// Helper function to provide user-friendly function feedback
+function getFriendlyFunctionFeedback(functionName: string, result: any): string {
+  const feedbackMap: Record<string, string> = {
+    'create_motivator': '💪 New motivator created successfully!',
+    'get_user_motivators': `📋 Retrieved ${typeof result === 'string' && result.includes('motivators:') ? 'your' : '0'} motivators.`,
+    'update_motivator': '✅ Motivator updated successfully!',
+    'delete_motivator': '🗑️ Motivator removed successfully!',
+    'start_walking_session': '🚶 Walking session started! Have a great walk!',
+    'add_food_entry': '🍽️ Food entry added to your tracking!',
+    'toggle_food_consumption': '✅ Food consumption status updated!',
+    'delete_food_entry': '🗑️ Food entry removed from your log!',
+    'get_user_profile': '👤 Profile information retrieved.',
+    'calculate_bmr': '🔥 BMR calculated successfully!'
+  };
+  
+  return feedbackMap[functionName] || `✅ ${typeof result === 'string' ? result : 'Action completed successfully!'}`;
+}
+
+// Helper function to provide specific error guidance
+function getFunctionErrorGuidance(functionName: string, error: any): string {
+  const errorGuidanceMap: Record<string, string> = {
+    'create_motivator': "I couldn't create the motivator. Please try again with different content or check if you have the necessary permissions.",
+    'get_user_motivators': "I couldn't retrieve your motivators. Please check your connection and try again.",
+    'update_motivator': "I couldn't update the motivator. Please make sure it exists and you have permission to edit it.",
+    'delete_motivator': "I couldn't delete the motivator. Please verify it exists and you have permission to remove it.",
+    'start_walking_session': "I couldn't start your walking session. Please check if you already have an active session or try again.",
+    'add_food_entry': "I couldn't add the food entry. Please make sure all required information is provided and try again.",
+    'toggle_food_consumption': "I couldn't update the food consumption status. Please check if the food entry exists.",
+    'delete_food_entry': "I couldn't remove the food entry. Please verify it exists in your log.",
+    'get_user_profile': "I couldn't retrieve your profile. Please check your login status and try again.",
+    'calculate_bmr': "I couldn't calculate your BMR. Please ensure all required information (weight, height, age, gender) is provided."
+  };
+  
+  return errorGuidanceMap[functionName] || "I apologize, but I encountered an error while trying to help you. Please try again or rephrase your request.";
+}
