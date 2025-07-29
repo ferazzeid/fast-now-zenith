@@ -973,3 +973,39 @@ What would you like me to help you with?`;
     );
   }
 });
+
+// Helper function to provide user-friendly function feedback
+function getFriendlyFunctionFeedback(functionName: string, result: any): string {
+  const feedbackMap: Record<string, string> = {
+    'create_motivator': '💪 New motivator created successfully!',
+    'get_user_motivators': `📋 Retrieved ${typeof result === 'string' && result.includes('motivators:') ? 'your' : '0'} motivators.`,
+    'update_motivator': '✅ Motivator updated successfully!',
+    'delete_motivator': '🗑️ Motivator removed successfully!',
+    'start_walking_session': '🚶 Walking session started! Have a great walk!',
+    'add_food_entry': '🍽️ Food entry added to your tracking!',
+    'toggle_food_consumption': '✅ Food consumption status updated!',
+    'delete_food_entry': '🗑️ Food entry removed from your log!',
+    'get_user_profile': '👤 Profile information retrieved.',
+    'calculate_bmr': '🔥 BMR calculated successfully!'
+  };
+  
+  return feedbackMap[functionName] || `✅ ${typeof result === 'string' ? result : 'Action completed successfully!'}`;
+}
+
+// Helper function to provide specific error guidance
+function getFunctionErrorGuidance(functionName: string, error: any): string {
+  const errorGuidanceMap: Record<string, string> = {
+    'create_motivator': "I couldn't create the motivator. Please try again with different content or check if you have the necessary permissions.",
+    'get_user_motivators': "I couldn't retrieve your motivators. Please check your connection and try again.",
+    'update_motivator': "I couldn't update the motivator. Please make sure it exists and you have permission to edit it.",
+    'delete_motivator': "I couldn't delete the motivator. Please verify it exists and you have permission to remove it.",
+    'start_walking_session': "I couldn't start your walking session. Please check if you already have an active session or try again.",
+    'add_food_entry': "I couldn't add the food entry. Please make sure all required information is provided and try again.",
+    'toggle_food_consumption': "I couldn't update the food consumption status. Please check if the food entry exists.",
+    'delete_food_entry': "I couldn't remove the food entry. Please verify it exists in your log.",
+    'get_user_profile': "I couldn't retrieve your profile. Please check your login status and try again.",
+    'calculate_bmr': "I couldn't calculate your BMR. Please ensure all required information (weight, height, age, gender) is provided."
+  };
+  
+  return errorGuidanceMap[functionName] || "I apologize, but I encountered an error while trying to help you. Please try again or rephrase your request.";
+}

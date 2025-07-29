@@ -142,11 +142,7 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
     } catch (error) {
       console.error('Error generating crisis intervention:', error);
       setAiResponse(generateFallbackMessage());
-      toast({
-        title: "AI Response Failed",
-        description: "Using fallback message instead",
-        variant: "destructive",
-      });
+      // Don't show error toast to user - just use fallback silently
     } finally {
       // Add minimum display time so users can see the modal
       setTimeout(() => setLoading(false), 1000);
@@ -182,8 +178,8 @@ Be ${crisisSettings.intensity > 7 ? 'very intense and confrontational' : crisisS
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogPortal>
-        <DialogOverlay className="fixed inset-0 z-[100] bg-black/90 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogContent className="fixed left-[50%] top-[50%] z-[101] translate-x-[-50%] translate-y-[-50%] w-full max-w-md bg-red-950/95 border-red-800 text-white backdrop-blur-sm shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg">
+        <DialogOverlay className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogContent className="fixed left-[50%] top-[50%] z-[101] translate-x-[-50%] translate-y-[-50%] w-full max-w-md bg-red-950 border-red-800 text-white shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg mx-4">
         <VisuallyHidden>
           <DialogTitle>Crisis Intervention</DialogTitle>
           <DialogDescription>Emergency motivational support during difficult moments</DialogDescription>

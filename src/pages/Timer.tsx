@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
+import { useCrisisSettings } from '@/hooks/useCrisisSettings';
+import { SOSButton } from '@/components/SOSButton';
 import { useNavigate } from 'react-router-dom';
 
 const Timer = () => {
@@ -32,6 +34,7 @@ const Timer = () => {
   const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSession();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
+  const { settings: crisisSettings } = useCrisisSettings();
 
   const isRunning = !!fastingSession;
 
@@ -151,15 +154,29 @@ const Timer = () => {
 
   const getDisplayTime = () => {
     if (countDirection === 'up') {
+      // For intermittent fasting, show time within current cycle
+      if (fastType === 'intermittent') {
+        const totalCycleTime = fastDuration + eatingWindow;
+        const cyclePosition = timeElapsed % totalCycleTime;
+        return formatTimeFasting(cyclePosition);
+      }
       return formatTimeFasting(timeElapsed);
     } else {
       if (isInEatingWindow) {
         // For eating window countdown, show time remaining in eating window
-        const eatingStartTime = timeElapsed - fastDuration;
+        const totalCycleTime = fastDuration + eatingWindow;
+        const cyclePosition = timeElapsed % totalCycleTime;
+        const eatingStartTime = cyclePosition - fastDuration;
         const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
         return formatTimeFasting(eatingTimeRemaining);
       } else {
         // For fasting countdown, show time remaining until fast goal
+        if (fastType === 'intermittent') {
+          const totalCycleTime = fastDuration + eatingWindow;
+          const cyclePosition = timeElapsed % totalCycleTime;
+          const remaining = Math.max(0, fastDuration - cyclePosition);
+          return formatTimeFasting(remaining);
+        }
         const remaining = Math.max(0, fastDuration - timeElapsed);
         return formatTimeFasting(remaining);
       }
@@ -174,9 +191,16 @@ const Timer = () => {
   };
 
   const getProgress = () => {
-    if (isInEatingWindow) {
-      const eatingStartTime = timeElapsed - fastDuration;
-      return Math.min((eatingStartTime / eatingWindow) * 100, 100);
+    if (fastType === 'intermittent') {
+      const totalCycleTime = fastDuration + eatingWindow;
+      const cyclePosition = timeElapsed % totalCycleTime;
+      
+      if (isInEatingWindow) {
+        const eatingStartTime = cyclePosition - fastDuration;
+        return Math.min((eatingStartTime / eatingWindow) * 100, 100);
+      } else {
+        return Math.min((cyclePosition / fastDuration) * 100, 100);
+      }
     } else {
       return Math.min((timeElapsed / fastDuration) * 100, 100);
     }
@@ -184,6 +208,14 @@ const Timer = () => {
 
   const getCurrentMode = () => {
     if (fastType === 'longterm') return 'Extended Fast';
+    
+    if (fastType === 'intermittent') {
+      const totalCycleTime = fastDuration + eatingWindow;
+      const currentCycle = Math.floor(timeElapsed / totalCycleTime) + 1;
+      const baseMode = isInEatingWindow ? 'Eating Window' : 'Fasting';
+      return `${baseMode} - Day ${currentCycle}`;
+    }
+    
     return isInEatingWindow ? 'Eating Window' : 'Fasting';
   };
 
@@ -254,18 +286,24 @@ const Timer = () => {
         {/* Timer Display */}
         <div className="relative mb-8">
           {currentMode === 'fasting' ? (
-            <CeramicTimer 
-              progress={getProgress()}
-              displayTime={getDisplayTime()}
-              isActive={isRunning}
-              isEatingWindow={isInEatingWindow}
-              showSlideshow={true}
-              eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
-              countDirection={countDirection}
-              onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
-              fastType={fastType}
-              goalDuration={fastDuration / 3600}
-            />
+            <>
+              <CeramicTimer 
+                progress={getProgress()}
+                displayTime={getDisplayTime()}
+                isActive={isRunning}
+                isEatingWindow={isInEatingWindow}
+                showSlideshow={true}
+                eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
+                countDirection={countDirection}
+                onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
+                fastType={fastType}
+                goalDuration={fastDuration / 3600}
+              />
+              {/* SOS Button - positioned relative to timer */}
+              {isRunning && timeElapsed > (crisisSettings.triggerHours * 60 * 60) && (
+                <SOSButton onClick={() => setShowCrisisModal(true)} />
+              )}
+            </>
           ) : (
             <WalkingTimer
               displayTime={formatTime(timerStatus.walking.timeElapsed)}
@@ -308,19 +346,6 @@ const Timer = () => {
 
 
 
-        {/* Crisis Support - Only show for fasting mode */}
-        {currentMode === 'fasting' && isRunning && timeElapsed > 24 * 60 * 60 && ( // Show after 24 hours
-          <div className="mt-6">
-            <Button
-              onClick={() => setShowCrisisModal(true)}
-              variant="outline"
-              className="w-full h-12 text-orange-600 border-orange-200 hover:bg-orange-50"
-            >
-              <AlertTriangle className="w-5 h-5 mr-2" />
-              Need Support?
-            </Button>
-          </div>
-        )}
 
         {/* REMOVED: Timer Direction Toggle moved to top-right of timer */}
       </div>

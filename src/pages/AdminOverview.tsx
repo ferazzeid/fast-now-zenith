@@ -131,6 +131,7 @@ const AdminOverview = () => {
   const [loading, setLoading] = useState(true);
   const [monthlyRequestLimit, setMonthlyRequestLimit] = useState('1000');
   const [freeRequestLimit, setFreeRequestLimit] = useState('15');
+  const [crisisTriggerHours, setCrisisTriggerHours] = useState('24');
   const [updateLimitsLoading, setUpdateLimitsLoading] = useState(false);
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [appIconFile, setAppIconFile] = useState<File | null>(null);
@@ -264,11 +265,11 @@ const AdminOverview = () => {
         }
       }
 
-      // Fetch request limits
+      // Fetch request limits and crisis settings
       const { data: limitsData } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+        .in('setting_key', ['monthly_request_limit', 'free_request_limit', 'crisis_trigger_hours']);
 
       if (limitsData) {
         const limitsMap = limitsData.reduce((acc, setting) => {
@@ -278,6 +279,7 @@ const AdminOverview = () => {
 
         setMonthlyRequestLimit(limitsMap.monthly_request_limit || '1000');
         setFreeRequestLimit(limitsMap.free_request_limit || '15');
+        setCrisisTriggerHours(limitsMap.crisis_trigger_hours || '24');
       }
 
       // Fetch AI settings
@@ -859,22 +861,24 @@ const AdminOverview = () => {
     try {
       await supabase
         .from('shared_settings')
-        .update({ setting_value: monthlyRequestLimit })
-        .eq('setting_key', 'monthly_request_limit');
+        .upsert({ setting_key: 'monthly_request_limit', setting_value: monthlyRequestLimit });
 
       await supabase
         .from('shared_settings')
-        .update({ setting_value: freeRequestLimit })
-        .eq('setting_key', 'free_request_limit');
+        .upsert({ setting_key: 'free_request_limit', setting_value: freeRequestLimit });
+
+      await supabase
+        .from('shared_settings')
+        .upsert({ setting_key: 'crisis_trigger_hours', setting_value: crisisTriggerHours });
 
       toast({
         title: "Success",
-        description: "Request limits updated successfully",
+        description: "Settings updated successfully",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update request limits",
+        description: "Failed to update settings",
         variant: "destructive",
       });
     } finally {
@@ -2305,10 +2309,19 @@ const AdminOverview = () => {
                   type="number"
                   min="1"
                   max="72"
-                  defaultValue="24"
+                  value={crisisTriggerHours}
+                  onChange={(e) => setCrisisTriggerHours(e.target.value)}
                   className="bg-ceramic-base border-ceramic-rim w-32"
                   placeholder="24"
                 />
+                <Button
+                  onClick={updateRequestLimits}
+                  disabled={updateLimitsLoading}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {updateLimitsLoading ? 'Saving...' : 'Save'}
+                </Button>
                 <Button
                   size="sm"
                   className="bg-primary hover:bg-primary/90"
