@@ -19,36 +19,61 @@ export const Navigation = () => {
   }, [loadActiveSession]);
   const highPriorityNotifications = getHighPriorityNotifications();
 
-  // Calculate fasting duration for badge
+  // Calculate fasting duration and status for badge
   const getFastingBadge = () => {
     if (!fastingSession || fastingSession.status !== 'active') return null;
     const now = Date.now();
     const startTime = new Date(fastingSession.start_time).getTime();
     const elapsed = Math.floor((now - startTime) / 1000); // seconds
-    return formatTime(elapsed);
+    
+    // Check if intermittent fasting and determine if in eating window
+    const goalDuration = fastingSession.goal_duration_seconds || 0;
+    const isIntermittent = goalDuration <= 23 * 3600; // 23 hours or less
+    
+    if (isIntermittent) {
+      const eatingWindow = 8 * 60 * 60; // 8 hours eating window
+      const totalCycleTime = goalDuration + eatingWindow;
+      const cyclePosition = elapsed % totalCycleTime;
+      const isInEatingWindow = cyclePosition >= goalDuration;
+      
+      if (isInEatingWindow) {
+        // Show eating window countdown
+        const eatingStartTime = cyclePosition - goalDuration;
+        const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
+        return { time: formatTime(eatingTimeRemaining), isEating: true };
+      }
+    }
+    
+    // Regular fasting display
+    return { time: formatTime(elapsed), isEating: false };
   };
 
+  const fastingBadge = getFastingBadge();
+  
   const navItems = [
     { 
       icon: Clock, 
       label: 'Fasting', 
       path: '/',
-      badge: getFastingBadge()
+      badge: fastingBadge?.time || null,
+      isEating: fastingBadge?.isEating || false
     },
     { 
       icon: Footprints, 
       label: 'Walking', 
       path: '/walking',
-      badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null
+      badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null,
+      isEating: false
     },
-    { icon: Utensils, label: 'Food', path: '/food-tracking' },
+    { icon: Utensils, label: 'Food', path: '/food-tracking', isEating: false },
     { 
       icon: MessageCircle, 
       label: 'AI Chat', 
       path: '/ai-chat',
-      hasNotification: hasActiveNotifications()
+      hasNotification: hasActiveNotifications(),
+      isEating: false
     },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: Settings, label: 'Settings', path: '/settings', isEating: false },
   ];
 
   return (
@@ -56,7 +81,7 @@ export const Navigation = () => {
       <div className="max-w-md mx-auto">
         <div className="flex justify-around gap-1">
           {/* Navigation Items */}
-          {navItems.map(({ icon: Icon, label, path, badge, hasNotification }) => {
+          {navItems.map(({ icon: Icon, label, path, badge, hasNotification, isEating }) => {
             const isActive = location.pathname === path;
             
             return (
@@ -83,12 +108,14 @@ export const Navigation = () => {
                   </span>
                 )}
                 
-                {/* Regular badge for other items */}
+                {/* Regular badge for timer items - colored based on eating status */}
                 {badge && (
                   <div className={`absolute -top-1 -right-1 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[2rem] text-center ${
                     badge === '!' 
                       ? 'bg-red-500' 
-                      : 'bg-green-500'
+                      : isEating 
+                        ? 'bg-amber-500' 
+                        : 'bg-green-500'
                   }`}>
                     {badge}
                   </div>
