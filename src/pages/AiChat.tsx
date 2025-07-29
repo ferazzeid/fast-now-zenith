@@ -289,11 +289,20 @@ const AiChat = () => {
 4. Creating motivational content and quotes
 5. General health and wellness questions
 
+IMPORTANT: When users ask for motivational content, quotes, or inspiration, ALWAYS use the create_motivator tool. 
+Examples that should trigger create_motivator:
+- "I need motivation"
+- "Create a motivator about weight loss"
+- "Give me an inspiring quote"
+- "I want motivation for my workout"
+
+Ask clarifying questions if needed (category, specific theme), then create the motivator.
+
 You have access to tools to create motivational content when requested.
 
 Current context: ${contextString}
 
-Be conversational, supportive, and helpful. When users ask for motivational content, use the create_motivator tool.`;
+Be conversational, supportive, and helpful. When users mention motivators or inspiration, use the create_motivator tool.`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
@@ -384,6 +393,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
   const handleVoiceTranscription = async (transcription: string) => {
     if (!transcription.trim()) return;
 
+    // Always add the user message first
     await addMessage({
       role: 'user',
       content: transcription,
@@ -394,9 +404,8 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
     // Check if this is a notification response first
     const wasNotificationResponse = await handleNotificationResponse(transcription);
     
-    if (!wasNotificationResponse) {
-      await sendToAI(transcription, true);
-    }
+    // Always send to AI for a conversational response
+    await sendToAI(transcription, true);
   };
 
   const handleSendMessage = async (presetMessage?: string) => {
@@ -404,6 +413,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
     if (!messageToSend || isProcessing) return;
 
     try {
+      // Always add the user message to chat first
       await addMessage({
         role: 'user',
         content: messageToSend,
@@ -417,9 +427,10 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
       // Check if this is a notification response first
       const wasNotificationResponse = await handleNotificationResponse(messageToSend);
       
-      if (!wasNotificationResponse) {
-        await sendToAI(messageToSend);
-      }
+      // Always send to AI, even if it was a notification response
+      // The AI should handle both profile updates AND provide conversational responses
+      await sendToAI(messageToSend);
+      
     } catch (error) {
       console.error('Error handling message:', error);
       toast({

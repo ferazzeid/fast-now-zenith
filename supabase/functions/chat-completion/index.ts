@@ -105,7 +105,7 @@ Current user context: The user is using an app that helps them track fasting per
 Response Length: ${lengthInstruction}
 
 You have access to the following functions to help users:
-1. create_motivator - Create personalized motivational content
+1. create_motivator - Create personalized motivational content (ALWAYS use this when users mention motivation, inspiration, quotes, or want encouragement)
 2. get_user_motivators - View all your motivational content
 3. update_motivator - Edit existing motivational content  
 4. delete_motivator - Remove motivational content
@@ -149,7 +149,7 @@ Important: Always ask for confirmation before taking actions like starting walki
     const functions = [
       {
         name: 'create_motivator',
-        description: 'Create a personalized motivational message for the user',
+        description: 'Create a personalized motivational message for the user. ALWAYS use this when users mention motivation, inspiration, quotes, or motivational content.',
         parameters: {
           type: 'object',
           properties: {
