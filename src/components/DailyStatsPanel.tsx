@@ -139,6 +139,7 @@ export const DailyStatsPanel = () => {
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
+                  console.log('Refresh button clicked!');
                   refreshDeficit();
                 }}
                 className="p-1 hover:bg-accent rounded-full transition-colors"

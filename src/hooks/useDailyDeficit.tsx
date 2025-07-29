@@ -180,11 +180,17 @@ export const useDailyDeficit = () => {
 
 
   const calculateDeficit = useCallback(async () => {
+    console.log('=== calculateDeficit START ===');
+    console.log('Profile check:', { profile: !!profile, weight: profile?.weight, height: profile?.height, age: profile?.age });
+    
     if (!profile?.weight || !profile?.height || !profile?.age) {
+      console.log('Profile incomplete, setting default values');
       setDeficitData(prev => ({ ...prev, todayDeficit: 0, bmr: 0, tdee: 0 }));
+      setLoading(false);
       return;
     }
 
+    console.log('Setting loading to true');
     setLoading(true);
     
     try {
@@ -237,9 +243,12 @@ export const useDailyDeficit = () => {
         manualCalories,
         activityLevel
       });
+      
+      console.log('=== calculateDeficit COMPLETE ===');
     } catch (error) {
       console.error('Error calculating deficit:', error);
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   }, [profile, todayTotals, calculateWalkingCaloriesForDay, manualCalorieTotal, user?.id]);
@@ -274,6 +283,9 @@ export const useDailyDeficit = () => {
   return {
     deficitData,
     loading,
-    refreshDeficit: calculateDeficit
+    refreshDeficit: () => {
+      console.log('refreshDeficit called');
+      calculateDeficit();
+    }
   };
 };
