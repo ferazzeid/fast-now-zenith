@@ -31,73 +31,46 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  console.log('DEBUG: AuthProvider component rendering');
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    let mounted = true;
-    console.log('DEBUG: Auth initialization started, loading:', loading);
-
-    // Check for cached session first to eliminate flash
+  // Check for cached session synchronously to set initial state
+  const getInitialAuthState = () => {
     const cachedSession = localStorage.getItem('supabase.auth.token');
     const cachedExpiry = localStorage.getItem('supabase.auth.expiry');
     const cachedUser = localStorage.getItem('supabase.auth.user');
     
-    console.log('DEBUG: Cache check', {
-      hasSession: !!cachedSession,
-      hasExpiry: !!cachedExpiry,
-      hasUser: !!cachedUser,
-      isExpired: cachedExpiry ? new Date().getTime() >= parseInt(cachedExpiry) : 'no expiry'
-    });
-    
     if (cachedSession && cachedExpiry && cachedUser && new Date().getTime() < parseInt(cachedExpiry)) {
-      // Use cached session and set user immediately to prevent redirect
       try {
         const userData = JSON.parse(cachedUser);
-        console.log('DEBUG: Using cached session, setting user immediately to prevent redirect');
-        setUser(userData);
-        setSession({ 
-          access_token: cachedSession, 
-          expires_at: parseInt(cachedExpiry) / 1000,
-          user: userData 
-        } as Session);
-        // Don't set loading to false yet - we'll do that after showing loading screen
+        return {
+          user: userData,
+          session: { 
+            access_token: cachedSession, 
+            expires_at: parseInt(cachedExpiry) / 1000,
+            user: userData 
+          } as Session,
+          loading: false // No loading needed if we have cached session
+        };
       } catch (error) {
-        // If cache is corrupted, continue with normal flow
-        console.warn('Cache corrupted, proceeding with normal auth flow');
+        console.warn('Cached session corrupted, using default state');
       }
-    } else {
-      console.log('DEBUG: No valid cache found, will show loading screen');
     }
+    
+    return {
+      user: null,
+      session: null,
+      loading: true
+    };
+  };
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Always show loading screen for minimum time for better UX
-        setTimeout(() => {
-          setLoading(false);
-        }, 800);
-        
-        // Cache session info for faster subsequent loads
-        if (session) {
-          localStorage.setItem('supabase.auth.token', session.access_token);
-          localStorage.setItem('supabase.auth.expiry', (session.expires_at! * 1000).toString());
-          localStorage.setItem('supabase.auth.user', JSON.stringify(session.user));
-        } else {
-          localStorage.removeItem('supabase.auth.token');
-          localStorage.removeItem('supabase.auth.expiry');
-          localStorage.removeItem('supabase.auth.user');
-        }
-      }
-    });
+  const initialState = getInitialAuthState();
+  const [user, setUser] = useState<User | null>(initialState.user);
+  const [session, setSession] = useState<Session | null>(initialState.session);
+  const [loading, setLoading] = useState(initialState.loading);
+  const { toast } = useToast();
 
-    // Set up auth state listener
+  useEffect(() => {
+    let mounted = true;
+
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (mounted) {
@@ -118,6 +91,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       }
     );
+
+    // Get current session to sync with Supabase
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        // Update cache
+        if (session) {
+          localStorage.setItem('supabase.auth.token', session.access_token);
+          localStorage.setItem('supabase.auth.expiry', (session.expires_at! * 1000).toString());
+          localStorage.setItem('supabase.auth.user', JSON.stringify(session.user));
+        } else {
+          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('supabase.auth.expiry');
+          localStorage.removeItem('supabase.auth.user');
+        }
+      }
+    });
 
     return () => {
       mounted = false;
