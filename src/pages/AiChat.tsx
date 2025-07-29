@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,8 +18,8 @@ import { useFastingContext } from '@/hooks/useFastingContext';
 import { useWalkingContext } from '@/hooks/useWalkingContext';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
-import { ImageUpload } from '@/components/ImageUpload';
 import { useNavigate } from 'react-router-dom';
+import { SimpleImageUpload } from '@/components/SimpleImageUpload';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
@@ -45,6 +45,7 @@ const AiChat = () => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -458,15 +459,27 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
     setShowImageUpload(false);
     
     try {
-      // Add a message showing the uploaded image
-      await addMessage({
-        role: 'user',
-        content: `![Uploaded Image](${imageUrl})`,
-        timestamp: new Date()
-      });
+      // Add image message with proper structure for display
+      const imageMessage = {
+        role: 'user' as const,
+        content: 'Uploaded an image for analysis',
+        timestamp: new Date(),
+        imageUrl: imageUrl
+      };
+      
+      await addMessage(imageMessage);
 
-      // Analyze the image automatically
+      // Start analysis with loading state
       setIsProcessing(true);
+      
+      const analysisMessage = {
+        role: 'assistant' as const,
+        content: 'Analyzing your image...',
+        timestamp: new Date(),
+        isAnalyzing: true
+      };
+      
+      await addMessage(analysisMessage);
       
       const { data, error } = await supabase.functions.invoke('analyze-food-image', {
         body: { imageUrl }
@@ -474,32 +487,47 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
 
       if (error) {
         console.error('Image analysis error:', error);
-        await addMessage({
-          role: 'assistant',
+        const errorMessage = {
+          role: 'assistant' as const,
           content: 'I can see your image, but I had trouble analyzing it. Can you tell me what you\'d like to do with this image?',
           timestamp: new Date()
-        });
+        };
+        await addMessage(errorMessage);
         return;
       }
 
-      // Send analysis result to AI
-      const analysisText = `I analyzed your uploaded image and found: ${data.name || 'food item'}. 
-Estimated nutrition: ${data.calories || 'unknown'} calories${data.carbs ? `, ${data.carbs}g carbs` : ''}.
-Would you like me to add this to your food diary, save it to your food library, or is there something else you'd like to do with it?`;
+      // Create detailed analysis result with action options
+      const analysisText = `🍽️ **Food Analysis Results**
 
-      await addMessage({
-        role: 'assistant',
+**Identified:** ${data.name || 'Unknown food item'}
+**Estimated nutrition per 100g:**
+• Calories: ${data.calories_per_100g || 'Unknown'}
+• Carbs: ${data.carbs_per_100g || 'Unknown'}g
+**Estimated serving size:** ${data.estimated_serving_size || 'Unknown'}g
+**Confidence:** ${Math.round((data.confidence || 0) * 100)}%
+
+${data.description ? `**Notes:** ${data.description}` : ''}
+
+**What would you like to do next?**`;
+
+      const resultMessage = {
+        role: 'assistant' as const,
         content: analysisText,
-        timestamp: new Date()
-      });
+        timestamp: new Date(),
+        foodAnalysis: data,
+        showFoodActions: true
+      };
+
+      await addMessage(resultMessage);
 
     } catch (error) {
       console.error('Error handling image upload:', error);
-      await addMessage({
-        role: 'assistant',
+      const errorMessage = {
+        role: 'assistant' as const,
         content: 'I can see your image, but I had trouble analyzing it. Can you tell me what you\'d like to do with this image?',
         timestamp: new Date()
-      });
+      };
+      await addMessage(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -624,19 +652,73 @@ Would you like me to add this to your food diary, save it to your food library, 
                             </span>
                           </div>
                         )}
-                        {/* Check if message contains an image */}
-                        {message.content.includes('![Uploaded Image](') ? (
+                        {/* Enhanced image and content display */}
+                        {(message as any).imageUrl ? (
                           <div className="space-y-2">
                             <img 
-                              src={message.content.match(/!\[Uploaded Image\]\((.*?)\)/)?.[1] || ''} 
-                              alt="Uploaded content" 
+                              src={(message as any).imageUrl} 
+                              alt="Uploaded image" 
                               className="max-w-full h-auto rounded-lg border border-border"
                               style={{ maxHeight: '200px', objectFit: 'contain' }}
                             />
-                            <p className="text-xs text-muted-foreground">Image uploaded</p>
+                            <p className="text-sm">{message.content}</p>
+                          </div>
+                        ) : (message as any).isAnalyzing ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                            <p className="text-sm">{message.content}</p>
                           </div>
                         ) : (
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                        )}
+                        
+                        {/* Food analysis action buttons */}
+                        {(message as any).showFoodActions && (message as any).foodAnalysis && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              onClick={() => {
+                                // Navigate to food tracking with pre-filled data
+                                const analysis = (message as any).foodAnalysis;
+                                const calories = Math.round((analysis.calories_per_100g * analysis.estimated_serving_size) / 100);
+                                navigate(`/food-tracking?add=${encodeURIComponent(JSON.stringify({
+                                  name: analysis.name,
+                                  calories: calories,
+                                  carbs: Math.round((analysis.carbs_per_100g * analysis.estimated_serving_size) / 100),
+                                  serving_size: analysis.estimated_serving_size
+                                }))}`);
+                              }}
+                              className="text-xs bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+                            >
+                              📝 Add to Diary
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                // Navigate to food library with pre-filled data
+                                const analysis = (message as any).foodAnalysis;
+                                navigate(`/food-tracking?library=${encodeURIComponent(JSON.stringify({
+                                  name: analysis.name,
+                                  calories_per_100g: analysis.calories_per_100g,
+                                  carbs_per_100g: analysis.carbs_per_100g
+                                }))}`);
+                              }}
+                              className="text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
+                              📚 Save to Library
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setInputMessage(`Can you help me adjust the details for ${(message as any).foodAnalysis.name}?`);
+                              }}
+                              className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50"
+                            >
+                              ✏️ Edit Details
+                            </Button>
+                          </div>
                         )}
                         
                         {/* Quick action buttons for notifications */}
@@ -862,15 +944,15 @@ Would you like me to add this to your food diary, save it to your food library, 
 
       {/* Image Upload Dialog */}
       <Dialog open={showImageUpload} onOpenChange={setShowImageUpload}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg mx-auto">
           <DialogHeader>
-            <DialogTitle>Upload Image</DialogTitle>
+            <DialogTitle>Upload Food Image</DialogTitle>
           </DialogHeader>
-          <ImageUpload 
-            currentImageUrl=""
-            onImageUpload={handleImageUpload}
-            onImageRemove={() => {}}
-          />
+          <div className="py-4">
+            <SimpleImageUpload 
+              onImageUpload={handleImageUpload}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
