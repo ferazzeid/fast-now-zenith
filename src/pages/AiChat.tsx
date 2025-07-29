@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -12,16 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
-import { useAuth } from '@/hooks/useAuth';
-import { useSingleConversation } from '@/hooks/useSingleConversation';
-import { useFastingContext } from '@/hooks/useFastingContext';
-import { useWalkingContext } from '@/hooks/useWalkingContext';
-import { useFoodContext } from '@/hooks/useFoodContext';
-import { useMotivators } from '@/hooks/useMotivators';
 import { ImageUpload } from '@/components/ImageUpload';
 import { useNavigate } from 'react-router-dom';
-import { useNotificationSystem } from '@/hooks/useNotificationSystem';
-import { useProfile } from '@/hooks/useProfile';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -40,27 +31,15 @@ const AiChat = () => {
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [messages, setMessages] = useState<EnhancedMessage[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
   const [crisisInitialized, setCrisisInitialized] = useState(false);
   const [searchParams] = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const { getAutoShowNotifications, clearNotification } = useNotificationSystem();
-  const { profile, updateProfile } = useProfile();
-  const { 
-    messages, 
-    loading: conversationLoading,
-    addMessage,
-    clearConversation,
-    archiveConversation
-  } = useSingleConversation();
-  const { context: fastingContext, buildContextString: buildFastingContext } = useFastingContext();
-  const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
-  const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
-  const { createMotivator } = useMotivators();
-  const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
 
   // Check for crisis mode
   const isCrisisMode = searchParams.get('crisis') === 'true';
@@ -69,6 +48,34 @@ const AiChat = () => {
   // Combine regular messages with notification messages
   const allMessages = [...notificationMessages, ...messages];
 
+  // Load user and session data on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session?.user) {
+          setUser(sessionData.session.user);
+          
+          // Load profile data through AI
+          const response = await supabase.functions.invoke('chat-completion', {
+            body: {
+              function_name: 'get_user_profile',
+              function_args: {}
+            }
+          });
+          
+          if (response.data?.data) {
+            setProfile(response.data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+    
+    loadUserData();
+  }, []);
+
   useEffect(() => {
     // Only auto-scroll if user sent a message recently or processing
     if (isProcessing || messages[messages.length - 1]?.role === 'user') {
@@ -76,148 +83,112 @@ const AiChat = () => {
     }
   }, [allMessages, isProcessing]);
 
-  // Auto-show notifications when component mounts
+  // Load conversation history on mount
   useEffect(() => {
-    const autoShowNotifications = getAutoShowNotifications();
+    const loadConversation = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await supabase.functions.invoke('chat-completion', {
+          body: {
+            function_name: 'load_conversation',
+            function_args: {}
+          }
+        });
+        
+        if (response.data?.data?.messages) {
+          const transformedMessages = response.data.data.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(transformedMessages);
+        }
+      } catch (error) {
+        console.error('Error loading conversation:', error);
+      }
+    };
     
-    if (autoShowNotifications.length > 0) {
-      // Add notification messages to chat
-      const newNotificationMessages: EnhancedMessage[] = autoShowNotifications.map(notification => ({
-        role: 'system',
-        content: notification.message,
-        timestamp: new Date(),
-        isNotification: true,
-      }));
-
-      setNotificationMessages(newNotificationMessages);
-    }
-  }, [getAutoShowNotifications, profile, user]);
+    loadConversation();
+  }, [user]);
 
   // Handle crisis mode initialization - only once when entering crisis mode
   useEffect(() => {
     if (isCrisisMode && crisisData && messages.length === 0 && !isProcessing && !crisisInitialized) {
       setCrisisInitialized(true);
-      // Add crisis greeting message as a regular message that gets saved
-      handleSendMessage(generateProactiveMessage());
+      // Generate crisis greeting through AI
+      generateCrisisGreeting();
     }
-  }, [isCrisisMode, crisisData, messages.length, isProcessing, crisisInitialized, generateProactiveMessage]);
+  }, [isCrisisMode, crisisData, messages.length, isProcessing, crisisInitialized]);
 
-  // Handle notification responses with AI-powered extraction
-  const handleNotificationResponse = async (message: string) => {
-    // Check if this is a response to profile completion
-    const profileNotification = getAutoShowNotifications().find(n => n.type === 'profile_incomplete');
-    
-    if (profileNotification && notificationMessages.length > 0) {
-      console.log('DEBUG: Processing profile notification response with AI:', message);
-      
-      // Get missing profile fields
-      const missingFields = [];
-      if (!profile?.age) missingFields.push('age');
-      if (!profile?.weight) missingFields.push('weight');
-      if (!profile?.height) missingFields.push('height');
-      
-      // Let AI extract profile information naturally
-      const profileExtractionPrompt = `You are helping extract profile information. The user is missing: ${missingFields.join(', ')}. 
-
-From their message "${message}", extract any profile information and respond in this exact JSON format:
-{
-  "extracted": true/false,
-  "age": number or null,
-  "weight": number or null,
-  "height": number or null,
-  "confirmation": "confirmation message for the user"
-}
-
-Rules for precise extraction:
-- Age: Extract just the number (10-120 years). Examples: "44Y" = 44, "I'm 25" = 25, "25 years old" = 25
-- Weight: Extract in kg (20-500 kg). Convert if needed: "150 lbs" = 68, "70kg" = 70  
-- Height: Extract in cm (100-250 cm). Convert if needed: "5'8\"" = 173, "175cm" = 175
-
-Be precise with numbers - don't add extra digits. "44Y" should be age 44, not 100.
-
-If you can't extract valid information, set extracted to false and ask for clarification.`;
-
-      try {
-        const response = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages: [
-              { role: 'system', content: profileExtractionPrompt },
-              { role: 'user', content: message }
-            ],
-            model: 'gpt-4o-mini'
-          }
-        });
-
-        if (response.error) throw response.error;
-
-        const aiResponse = response.data?.message?.content;
-        console.log('DEBUG: AI profile extraction response:', aiResponse);
-
-        // Try to parse JSON from AI response
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const extractedData = JSON.parse(jsonMatch[0]);
-          
-          if (extractedData.extracted) {
-            const updates: any = {};
-            if (extractedData.age) updates.age = extractedData.age;
-            if (extractedData.weight) updates.weight = extractedData.weight;
-            if (extractedData.height) updates.height = extractedData.height;
-            
-            console.log('DEBUG: Attempting to update profile with:', updates);
-            
-            // Show what we're about to save
-            await addMessage({
-              role: 'assistant',
-              content: `I extracted: ${Object.entries(updates).map(([key, value]) => `${key}: ${value}`).join(', ')}. Let me save this to your profile...`,
-              timestamp: new Date()
-            });
-            
-            const result = await updateProfile(updates);
-            
-            if (result.error) {
-              console.error('DEBUG: Profile update failed:', result.error);
-              await addMessage({
-                role: 'assistant',
-                content: `Sorry, I couldn't save your profile: ${result.error.message}. Please try again or check your Settings.`,
-                timestamp: new Date()
-              });
-            } else {
-              console.log('DEBUG: Profile update succeeded:', result.data);
-              await addMessage({
-                role: 'assistant',
-                content: extractedData.confirmation || 'Perfect! Your profile has been updated successfully.',
-                timestamp: new Date()
-              });
-              
-              // Only clear notification after successful update
-              clearNotification('profile_incomplete');
-              setNotificationMessages([]);
-            }
-            
-            return true;
-          } else {
-            // AI couldn't extract valid data, send AI's clarification message
-            await addMessage({
-              role: 'assistant',
-              content: extractedData.confirmation || 'I need more specific information. Could you please provide your age, weight, and height more clearly?',
-              timestamp: new Date()
-            });
-            return true;
-          }
+  const generateCrisisGreeting = async () => {
+    try {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          function_name: 'generate_crisis_greeting',
+          function_args: { crisis_data: crisisData }
         }
-      } catch (error) {
-        console.error('Error in AI profile extraction:', error);
-        await addMessage({
-          role: 'assistant',
-          content: 'I had trouble processing that information. Could you please provide your age, weight, and height? For example: "I am 25 years old, weigh 70kg, and am 175cm tall"',
-          timestamp: new Date()
-        });
-        return true;
+      });
+      
+      if (response.data?.data?.message) {
+        await addAIMessage(response.data.data.message);
       }
+    } catch (error) {
+      console.error('Error generating crisis greeting:', error);
     }
+  };
 
-    return false; // Indicate this should be processed as a regular chat message
+  // Helper functions for AI-centric message management
+  const addUserMessage = async (content: string) => {
+    const message = {
+      role: 'user' as const,
+      content,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, message]);
+    
+    // Save to database through AI
+    try {
+      await supabase.functions.invoke('chat-completion', {
+        body: {
+          function_name: 'add_message',
+          function_args: { message }
+        }
+      });
+    } catch (error) {
+      console.error('Error saving user message:', error);
+    }
+    
+    return message;
+  };
+
+  const addAIMessage = async (content: string) => {
+    const message = {
+      role: 'assistant' as const,
+      content,
+      timestamp: new Date(),
+      audioEnabled: audioEnabled
+    };
+    
+    setMessages(prev => [...prev, message]);
+    
+    // Save to database through AI
+    try {
+      await supabase.functions.invoke('chat-completion', {
+        body: {
+          function_name: 'add_message',
+          function_args: { message }
+        }
+      });
+    } catch (error) {
+      console.error('Error saving AI message:', error);
+    }
+    
+    if (audioEnabled) {
+      await playTextAsAudio(content);
+    }
+    
+    return message;
   };
 
   useEffect(() => {
@@ -234,106 +205,40 @@ If you can't extract valid information, set extracted to false and ask for clari
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    // Validate message before proceeding
     if (!message || !message.trim()) {
       console.error('sendToAI called with empty message:', message);
-      return;
-    }
-
-    // Check for API key in both state and localStorage
-    const currentApiKey = apiKey || localStorage.getItem('openai_api_key');
-    if (!currentApiKey?.trim()) {
-      setShowApiDialog(true);
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // Build comprehensive context
-      const contextParts = [
-        buildFastingContext(fastingContext),
-        buildWalkingContext(walkingContext), 
-        buildFoodContext(foodContext)
-      ].filter(Boolean);
-
-      const contextString = contextParts.length > 0 
-        ? `Current user context:\n${contextParts.join('\n')}\n\n`
-        : '';
-
+      // Send message to AI-centric chat completion with full conversation history
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
 
-      const systemPrompt = isCrisisMode ? generateSystemPrompt() : `You are a helpful AI assistant for a health and fasting app. You help users with:
-1. Fasting guidance and motivation
-2. Walking/exercise tracking and encouragement  
-3. Food tracking and nutrition advice
-4. Creating motivational content and quotes
-5. General health and wellness questions
-
-You have access to tools to create motivational content when requested.
-
-Current context: ${contextString}
-
-Be conversational, supportive, and helpful. When users ask for motivational content, use the create_motivator tool.`;
+      const systemPrompt = isCrisisMode ? 
+        'You are a crisis support AI assistant. Be empathetic, supportive, and helpful in providing immediate crisis support and guidance.' :
+        'You are a helpful AI assistant for a health and fasting app. You help users with fasting, walking, food tracking, motivational content, and general health questions. You have access to comprehensive user data and can perform various health-related functions.';
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
-          message: message, // Send the message without concatenating context
+          message: message,
           conversationHistory: [
             { role: 'system', content: systemPrompt },
             ...conversationHistory
-          ]
-        },
-        headers: {
-          'X-OpenAI-API-Key': currentApiKey
+          ],
+          crisis_mode: isCrisisMode,
+          audio_enabled: audioEnabled && fromVoice
         }
       });
 
       if (error) throw error;
 
       if (data.completion) {
-        await addMessage({
-          role: 'assistant',
-          content: data.completion,
-          timestamp: new Date(),
-          audioEnabled: audioEnabled && fromVoice
-        });
-
-        // Play audio if enabled and this was a voice message
-        if (audioEnabled && fromVoice) {
-          await playTextAsAudio(data.completion);
-        }
-      }
-
-      // Handle function call results
-      if (data.functionCall) {
-        if (data.functionCall.name === 'create_motivator') {
-          const args = data.functionCall.arguments;
-          try {
-            await createMotivator({
-              title: args.text,
-              content: args.text,
-              category: args.category || 'general',
-              imageUrl: args.image_prompt
-            });
-            
-            await addMessage({
-              role: 'assistant',
-              content: "I've created that motivator for you! You can view it in the Motivators section.",
-              timestamp: new Date(),
-            });
-          } catch (error) {
-            console.error('Error creating motivator:', error);
-            await addMessage({
-              role: 'assistant',
-              content: "I had trouble creating that motivator. Please try again later.",
-              timestamp: new Date(),
-            });
-          }
-        }
+        await addAIMessage(data.completion);
       }
 
     } catch (error) {
@@ -368,38 +273,21 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
   const handleVoiceTranscription = async (transcription: string) => {
     if (!transcription.trim()) return;
 
-    await addMessage({
-      role: 'user',
-      content: transcription,
-      timestamp: new Date(),
-      audioEnabled: true
-    });
-
-    // Check if this is a notification response first
-    const wasNotificationResponse = await handleNotificationResponse(transcription);
-    
-    if (!wasNotificationResponse) {
-      await sendToAI(transcription, true);
-    }
+    await addUserMessage(transcription);
+    await sendToAI(transcription, true);
   };
 
   const handleSendMessage = useCallback(async (presetMessage?: string) => {
     const messageToSend = presetMessage || inputMessage.trim();
-    console.log('handleSendMessage called with:', { presetMessage, inputMessage, messageToSend });
     if (!messageToSend || isProcessing) return;
 
     try {
-      await addMessage({
-        role: 'user',
-        content: messageToSend,
-        timestamp: new Date()
-      });
+      await addUserMessage(messageToSend);
 
       if (!presetMessage) {
         setInputMessage('');
       }
 
-      // Always send directly to AI - let the AI handle everything including profile information
       await sendToAI(messageToSend);
     } catch (error) {
       console.error('Error handling message:', error);
@@ -409,33 +297,53 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         variant: "destructive"
       });
     }
-  }, [inputMessage, isProcessing, addMessage, isCrisisMode, notificationMessages.length, sendToAI, handleNotificationResponse]);
+  }, [inputMessage, isProcessing]);
 
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
     setShowImageUpload(false);
     
-    // Add a message about the uploaded image
-    addMessage({
-      role: 'user',
-      content: `I've uploaded an image: ${imageUrl}`,
-      timestamp: new Date()
-    });
+    // Add a message about the uploaded image through AI
+    addUserMessage(`I've uploaded an image: ${imageUrl}`);
   };
 
   const handleClearChat = async () => {
-    await clearConversation();
-    setNotificationMessages([]); // Also clear notification messages
-    toast({
-      title: "Chat Cleared",
-      description: "Your conversation has been cleared."
-    });
+    try {
+      await supabase.functions.invoke('chat-completion', {
+        body: {
+          function_name: 'clear_conversation',
+          function_args: {}
+        }
+      });
+      
+      setMessages([]);
+      setNotificationMessages([]);
+      
+      toast({
+        title: "Chat Cleared",
+        description: "Your conversation has been cleared."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear conversation.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleArchiveChat = async () => {
     try {
-      await archiveConversation();
-      setNotificationMessages([]); // Also clear notification messages
+      await supabase.functions.invoke('chat-completion', {
+        body: {
+          function_name: 'archive_conversation',
+          function_args: {}
+        }
+      });
+      
+      setMessages([]);
+      setNotificationMessages([]);
+      
       toast({
         title: "Chat Archived",
         description: "Your conversation has been archived and a new chat started."
@@ -583,7 +491,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
             {isCrisisMode && (
               <div className="flex flex-wrap gap-2">
                 <div className="text-xs text-muted-foreground mb-2">Quick responses:</div>
-                {generateQuickReplies().map((reply, index) => (
+                {['I need help', 'Tell me more', 'What can I do?', 'I feel better'].map((reply, index) => (
                   <Button
                     key={index}
                     variant="outline"
