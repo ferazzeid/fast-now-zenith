@@ -343,7 +343,13 @@ const Timer = () => {
               />
               {/* SOS Button - positioned relative to timer */}
               {isRunning && timeElapsed > (crisisSettings.triggerHours * 60 * 60) && (
-                <SOSButton onClick={openCrisisModal} />
+                <SOSButton 
+                  fastType={fastType}
+                  timeElapsed={timeElapsed}
+                  goalDuration={fastDuration}
+                  progress={getProgress()}
+                  isInEatingWindow={getCurrentMode() === 'eating'}
+                />
               )}
             </>
           ) : (

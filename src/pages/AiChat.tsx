@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -39,6 +41,7 @@ const AiChat = () => {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
+  const [searchParams] = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -56,6 +59,11 @@ const AiChat = () => {
   const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
+  const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
+
+  // Check for crisis mode
+  const isCrisisMode = searchParams.get('crisis') === 'true';
+  const crisisData = searchParams.get('data') ? JSON.parse(decodeURIComponent(searchParams.get('data')!)) : null;
 
   // Combine regular messages with notification messages
   const allMessages = [...notificationMessages, ...messages];
@@ -80,6 +88,24 @@ const AiChat = () => {
       setNotificationMessages(newNotificationMessages);
     }
   }, [getAutoShowNotifications, profile, user]);
+
+  // Handle crisis mode initialization
+  useEffect(() => {
+    if (isCrisisMode && crisisData) {
+      // Add crisis greeting message
+      const crisisMessage: EnhancedMessage = {
+        role: 'assistant',
+        content: generateProactiveMessage(),
+        timestamp: new Date(),
+      };
+      
+      addMessage({
+        role: 'assistant',
+        content: generateProactiveMessage(),
+        timestamp: new Date(),
+      });
+    }
+  }, [isCrisisMode, crisisData, generateProactiveMessage, addMessage]);
 
   // Handle notification responses
   const handleNotificationResponse = async (message: string) => {
@@ -185,7 +211,7 @@ const AiChat = () => {
         content: msg.content
       }));
 
-      const systemPrompt = `You are a helpful AI assistant for a health and fasting app. You help users with:
+      const systemPrompt = isCrisisMode ? generateSystemPrompt() : `You are a helpful AI assistant for a health and fasting app. You help users with:
 1. Fasting guidance and motivation
 2. Walking/exercise tracking and encouragement  
 3. Food tracking and nutrition advice
@@ -373,8 +399,12 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
                 <span className="text-primary-foreground font-bold text-sm">AI</span>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-warm-text">AI Assistant</h1>
-                <p className="text-xs text-muted-foreground">Here to help with your health journey</p>
+                <h1 className="text-lg font-semibold text-warm-text">
+                  {isCrisisMode ? 'Crisis Support' : 'AI Assistant'}
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  {isCrisisMode ? 'Emergency support for your fasting journey' : 'Here to help with your health journey'}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -492,6 +522,22 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         {/* Input */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-4 flex-shrink-0">
           <div className="max-w-md mx-auto space-y-3">
+            {/* Crisis Quick Replies */}
+            {isCrisisMode && (
+              <div className="flex flex-wrap gap-2">
+                {generateQuickReplies().map((reply, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSendMessage(reply)}
+                    className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300"
+                  >
+                    {reply}
+                  </Button>
+                ))}
+              </div>
+            )}
             {/* Text Input */}
             <div className="flex gap-2 items-end">
               <Input
