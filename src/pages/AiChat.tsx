@@ -106,27 +106,45 @@ const AiChat = () => {
     const profileNotification = getAutoShowNotifications().find(n => n.type === 'profile_incomplete');
     
     if (profileNotification && notificationMessages.length > 0) {
-      // Try to extract profile information from the message
-      const weightMatch = message.match(/(?:weigh|weight).*?(\d+)\s*(?:lbs?|pounds?|kg|kilos?)/i);
-      const heightMatch = message.match(/(?:height|tall).*?(\d+)(?:['"]\s*(\d+)['""]?|\s*(?:cm|inches?|in|feet?|ft))/i);
-      const ageMatch = message.match(/(?:age|old).*?(\d+)/i);
-
+      console.log('DEBUG: Processing profile notification response:', message);
+      
+      // Try to extract profile information from the message with more flexible patterns
+      const weightMatch = message.match(/(?:weigh|weight|i\s+am).*?(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?|kg|kilos?|$)/i);
+      const heightMatch = message.match(/(?:height|tall|i\s+am).*?(\d+)\s*(?:(?:feet?|ft|')\s*)?(\d+)?\s*(?:inches?|in|"|cm|$)/i);
+      const ageMatch = message.match(/(?:age|old|i\s+am).*?(\d+)/i);
+      
       let updates: any = {};
       let extracted = false;
 
+      console.log('DEBUG: Regex matches:', { weightMatch, heightMatch, ageMatch });
+
       if (weightMatch) {
-        const weight = parseInt(weightMatch[1]);
+        const weight = parseFloat(weightMatch[1]);
         if (weight > 0 && weight < 1000) {
           updates.weight = weight;
           extracted = true;
+          console.log('DEBUG: Extracted weight:', weight);
         }
       }
 
       if (heightMatch) {
-        const height = parseInt(heightMatch[1]);
-        if (height > 0 && height < 300) {
-          updates.height = height;
+        let heightInCm;
+        const feet = parseInt(heightMatch[1]);
+        const inches = heightMatch[2] ? parseInt(heightMatch[2]) : 0;
+        
+        // Check if it's likely feet/inches (e.g., "5 10" or "5'10")
+        if (feet <= 8 && (!heightMatch[2] || inches <= 12)) {
+          // Convert feet/inches to cm
+          heightInCm = Math.round((feet * 12 + inches) * 2.54);
+        } else {
+          // Assume it's already in cm
+          heightInCm = feet;
+        }
+        
+        if (heightInCm > 0 && heightInCm < 300) {
+          updates.height = heightInCm;
           extracted = true;
+          console.log('DEBUG: Extracted height:', heightInCm, 'cm');
         }
       }
 
@@ -135,18 +153,27 @@ const AiChat = () => {
         if (age > 0 && age < 150) {
           updates.age = age;
           extracted = true;
+          console.log('DEBUG: Extracted age:', age);
         }
       }
 
       if (extracted) {
         try {
-          await updateProfile(updates);
+          console.log('DEBUG: Updating profile with:', updates);
+          const result = await updateProfile(updates);
+          console.log('DEBUG: Profile update result:', result);
           
           // Send confirmation message as regular message
-          const confirmationContent = `Great! I've updated your profile with the information you provided. ${
+          const confirmationContent = `Perfect! I've saved your information:${
+            updates.weight ? ` Weight: ${updates.weight}kg` : ''
+          }${
+            updates.height ? ` Height: ${updates.height}cm` : ''
+          }${
+            updates.age ? ` Age: ${updates.age} years` : ''
+          }.${
             Object.keys(updates).length === 3 
-              ? 'Your profile is now complete and I can provide accurate calorie calculations!' 
-              : 'If you have more information to share, please let me know or you can complete it in Settings.'
+              ? ' Your profile is now complete and I can provide accurate calorie calculations!' 
+              : ' If you want to add more information, you can tell me here or update it in Settings.'
           }`;
 
           await addMessage({
@@ -155,16 +182,28 @@ const AiChat = () => {
             timestamp: new Date(),
           });
           
-          // Clear the notification if profile is now complete
-          if (updates.weight && updates.height && updates.age) {
-            clearNotification('profile_incomplete');
-            setNotificationMessages([]); // Clear notification messages
-          }
+          // Clear the notification if we got some profile info
+          clearNotification('profile_incomplete');
+          setNotificationMessages([]); // Clear notification messages
           
           return true; // Indicate that we handled this as a notification response
         } catch (error) {
           console.error('Error updating profile:', error);
+          await addMessage({
+            role: 'assistant',
+            content: 'I had trouble saving that information. Please try again or update your profile in Settings.',
+            timestamp: new Date(),
+          });
         }
+      } else {
+        console.log('DEBUG: No profile information extracted from message');
+        // If no specific info was extracted, provide guidance
+        await addMessage({
+          role: 'assistant',
+          content: 'I can help you save your profile information. Please tell me your weight, height, and age. For example: "I am 70kg, 175cm tall, and 30 years old" or "I weigh 150 pounds, I am 5 feet 10 inches tall, and I am 25 years old".',
+          timestamp: new Date(),
+        });
+        return true;
       }
     }
 
