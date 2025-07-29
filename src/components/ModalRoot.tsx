@@ -10,26 +10,9 @@ export const ModalRoot = ({ children }: ModalRootProps) => {
   // This prevents animation interference from parent components
   return createPortal(
     <>
-      {/* Stable backdrop layer to prevent blinking and system interference */}
-      <div className="fixed inset-0 z-40 bg-transparent pointer-events-none" 
-           style={{ 
-             transform: 'translate3d(0, 0, 0)',
-             willChange: 'transform',
-             backfaceVisibility: 'hidden'
-           }} />
-      {/* Secondary stabilizing layer */}
-      <div className="fixed inset-0 z-45 bg-transparent pointer-events-none"
-           style={{ 
-             transform: 'translate3d(0, 0, 0)',
-             willChange: 'transform'
-           }} />
-      <div className="modal-root relative z-50"
-           style={{ 
-             transform: 'translate3d(0, 0, 0)',
-             willChange: 'transform',
-             backfaceVisibility: 'hidden',
-             isolation: 'isolate'
-           }}>
+      {/* Single stable layer to prevent rendering interference */}
+      <div className="fixed inset-0 z-40 bg-transparent pointer-events-none" />
+      <div className="modal-root relative z-50">
         {children}
       </div>
     </>,
