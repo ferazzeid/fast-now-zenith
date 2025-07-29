@@ -928,18 +928,18 @@ ${!profile?.weight || !profile?.height || !profile?.age ?
 
           case 'update_user_profile':
             console.log('Updating user profile with args:', functionArgs);
-            const updateData: any = {};
+            const profileUpdateData: any = {};
             
-            if (functionArgs.weight !== undefined) updateData.weight = functionArgs.weight;
-            if (functionArgs.height !== undefined) updateData.height = functionArgs.height;
-            if (functionArgs.age !== undefined) updateData.age = functionArgs.age;
-            if (functionArgs.daily_calorie_goal !== undefined) updateData.daily_calorie_goal = functionArgs.daily_calorie_goal;
-            if (functionArgs.daily_carb_goal !== undefined) updateData.daily_carb_goal = functionArgs.daily_carb_goal;
-            if (functionArgs.activity_level !== undefined) updateData.activity_level = functionArgs.activity_level;
+            if (functionArgs.weight !== undefined) profileUpdateData.weight = functionArgs.weight;
+            if (functionArgs.height !== undefined) profileUpdateData.height = functionArgs.height;
+            if (functionArgs.age !== undefined) profileUpdateData.age = functionArgs.age;
+            if (functionArgs.daily_calorie_goal !== undefined) profileUpdateData.daily_calorie_goal = functionArgs.daily_calorie_goal;
+            if (functionArgs.daily_carb_goal !== undefined) profileUpdateData.daily_carb_goal = functionArgs.daily_carb_goal;
+            if (functionArgs.activity_level !== undefined) profileUpdateData.activity_level = functionArgs.activity_level;
             
             const { data: updatedProfile, error: profileUpdateError } = await supabase
               .from('profiles')
-              .update(updateData)
+              .update(profileUpdateData)
               .eq('user_id', userId)
               .select()
               .single();
@@ -947,7 +947,7 @@ ${!profile?.weight || !profile?.height || !profile?.age ?
             if (profileUpdateError) {
               functionResult = `Error updating profile: ${profileUpdateError.message}`;
             } else {
-              const updates = Object.keys(updateData).join(', ');
+              const updates = Object.keys(profileUpdateData).join(', ');
               functionResult = `Profile updated successfully! Updated: ${updates}`;
             }
             break;
