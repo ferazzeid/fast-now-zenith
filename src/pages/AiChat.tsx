@@ -100,137 +100,96 @@ const AiChat = () => {
     }
   }, [isCrisisMode, crisisData, messages.length]);
 
-  // Handle notification responses
+  // Handle notification responses with AI-powered extraction
   const handleNotificationResponse = async (message: string) => {
     // Check if this is a response to profile completion
     const profileNotification = getAutoShowNotifications().find(n => n.type === 'profile_incomplete');
     
     if (profileNotification && notificationMessages.length > 0) {
-      console.log('DEBUG: Processing profile notification response:', message);
+      console.log('DEBUG: Processing profile notification response with AI:', message);
       
-      // Try to extract profile information from the message with more precise patterns
-      const weightMatch = message.match(/(?:weigh|weight|i\s+(?:am|weigh))\s*(?:about\s*)?(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?|kg|kilos?)?/i);
-      const heightMatch = message.match(/(?:height|tall|i\s+am)\s*(?:about\s*)?(\d+)\s*(?:(?:feet?|ft|')\s*)?(\d+)?\s*(?:inches?|in|"|cm)?/i);
-      const ageMatch = message.match(/(\d+)\s*(?:Y|years?|yrs?)\s*(?:old)?|(?:age|old|i\s+am)\s*(?:about\s*)?(\d+)/i);
+      // Get missing profile fields
+      const missingFields = [];
+      if (!profile?.age) missingFields.push('age');
+      if (!profile?.weight) missingFields.push('weight');
+      if (!profile?.height) missingFields.push('height');
       
-      let updates: any = {};
-      let extracted = false;
+      // Let AI extract profile information naturally
+      const profileExtractionPrompt = `You are helping extract profile information. The user is missing: ${missingFields.join(', ')}. 
 
-      console.log('DEBUG: Regex matches:', { weightMatch, heightMatch, ageMatch });
+From their message "${message}", extract any profile information and respond in this exact JSON format:
+{
+  "extracted": true/false,
+  "age": number or null,
+  "weight": number or null,
+  "height": number or null,
+  "confirmation": "confirmation message for the user"
+}
 
-      if (weightMatch) {
-        const weight = parseFloat(weightMatch[1]);
-        console.log('DEBUG: Weight parsing - weightMatch:', weightMatch, 'extracted weight:', weight);
-        
-        // Validate weight (20-500kg is reasonable range)
-        if (weight >= 20 && weight <= 500) {
-          updates.weight = weight;
-          extracted = true;
-          console.log('DEBUG: Extracted valid weight:', weight);
-        } else {
-          console.log('DEBUG: Weight rejected - outside valid range (20-500kg):', weight);
-        }
-      }
+Validation rules:
+- Age: 10-120 years
+- Weight: 20-500 kg (convert lbs to kg if needed: divide by 2.2)
+- Height: 100-250 cm (convert feet/inches to cm if needed: feet*30.48 + inches*2.54)
 
-      if (heightMatch) {
-        let heightInCm;
-        const feet = parseInt(heightMatch[1]);
-        const inches = heightMatch[2] ? parseInt(heightMatch[2]) : 0;
-        
-        // Check if it's likely feet/inches (e.g., "5 10" or "5'10")
-        if (feet <= 8 && (!heightMatch[2] || inches <= 12)) {
-          // Convert feet/inches to cm
-          heightInCm = Math.round((feet * 12 + inches) * 2.54);
-        } else {
-          // Assume it's already in cm
-          heightInCm = feet;
-        }
-        
-        console.log('DEBUG: Height parsing - heightMatch:', heightMatch, 'calculated height:', heightInCm);
-        
-        // Validate height (100-250cm is reasonable range)
-        if (heightInCm >= 100 && heightInCm <= 250) {
-          updates.height = heightInCm;
-          extracted = true;
-          console.log('DEBUG: Extracted valid height:', heightInCm, 'cm');
-        } else {
-          console.log('DEBUG: Height rejected - outside valid range (100-250cm):', heightInCm);
-        }
-      }
+If you can't extract valid information, set extracted to false and ask for clarification.`;
 
-      if (ageMatch) {
-        // ageMatch[1] might be from "44Y" pattern, ageMatch[2] from other patterns
-        const ageStr = ageMatch[1] || ageMatch[2];
-        const age = parseInt(ageStr);
-        
-        console.log('DEBUG: Age parsing - ageMatch:', ageMatch, 'extracted age:', age);
-        
-        // Validate age (10-120 years is reasonable range)
-        if (age >= 10 && age <= 120) {
-          updates.age = age;
-          extracted = true;
-          console.log('DEBUG: Extracted valid age:', age);
-        } else {
-          console.log('DEBUG: Age rejected - outside valid range (10-120):', age);
-        }
-      }
+      try {
+        const response = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              { role: 'system', content: profileExtractionPrompt },
+              { role: 'user', content: message }
+            ],
+            model: 'gpt-4o-mini'
+          }
+        });
 
-      if (extracted) {
-        try {
-          console.log('DEBUG: Updating profile with:', updates);
-          const result = await updateProfile(updates);
-          console.log('DEBUG: Profile update result:', result);
+        if (response.error) throw response.error;
+
+        const aiResponse = response.data?.message?.content;
+        console.log('DEBUG: AI profile extraction response:', aiResponse);
+
+        // Try to parse JSON from AI response
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const extractedData = JSON.parse(jsonMatch[0]);
           
-          // Check if the update was successful
-          if (result.error) {
-            console.error('DEBUG: Profile update failed:', result.error);
+          if (extractedData.extracted) {
+            const updates: any = {};
+            if (extractedData.age) updates.age = extractedData.age;
+            if (extractedData.weight) updates.weight = extractedData.weight;
+            if (extractedData.height) updates.height = extractedData.height;
+            
+            console.log('DEBUG: Updating profile with AI-extracted data:', updates);
+            await updateProfile(updates);
+            
             await addMessage({
               role: 'assistant',
-              content: `I had trouble saving that information: ${result.error.message}. Please try again or update your profile in Settings.`,
-              timestamp: new Date(),
+              content: extractedData.confirmation || 'Great! I\'ve updated your profile information.',
+              timestamp: new Date()
+            });
+            
+            // Clear the notification
+            clearNotification('profile_incomplete');
+            setNotificationMessages([]);
+            
+            return true;
+          } else {
+            // AI couldn't extract valid data, send AI's clarification message
+            await addMessage({
+              role: 'assistant',
+              content: extractedData.confirmation || 'I need more specific information. Could you please provide your age, weight, and height more clearly?',
+              timestamp: new Date()
             });
             return true;
           }
-          
-          // Send confirmation message as regular message
-          const confirmationContent = `Perfect! I've saved your information:${
-            updates.weight ? ` Weight: ${updates.weight}kg` : ''
-          }${
-            updates.height ? ` Height: ${updates.height}cm` : ''
-          }${
-            updates.age ? ` Age: ${updates.age} years` : ''
-          }.${
-            Object.keys(updates).length === 3 
-              ? ' Your profile is now complete and I can provide accurate calorie calculations!' 
-              : ' If you want to add more information, you can tell me here or update it in Settings.'
-          }`;
-
-          await addMessage({
-            role: 'assistant',
-            content: confirmationContent,
-            timestamp: new Date(),
-          });
-          
-          // Clear the notification if we got some profile info
-          clearNotification('profile_incomplete');
-          setNotificationMessages([]); // Clear notification messages
-          
-          return true; // Indicate that we handled this as a notification response
-        } catch (error) {
-          console.error('Error updating profile:', error);
-          await addMessage({
-            role: 'assistant',
-            content: `I encountered an error while saving your information: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or update your profile in Settings.`,
-            timestamp: new Date(),
-          });
         }
-      } else {
-        console.log('DEBUG: No profile information extracted from message');
-        // If no specific info was extracted, provide guidance
+      } catch (error) {
+        console.error('Error in AI profile extraction:', error);
         await addMessage({
           role: 'assistant',
-          content: 'I can help you save your profile information. Please tell me your weight, height, and age. For example: "I am 70kg, 175cm tall, and 30 years old" or "I weigh 150 pounds, I am 5 feet 10 inches tall, and I am 25 years old".',
-          timestamp: new Date(),
+          content: 'I had trouble processing that information. Could you please provide your age, weight, and height? For example: "I am 25 years old, weigh 70kg, and am 175cm tall"',
+          timestamp: new Date()
         });
         return true;
       }
