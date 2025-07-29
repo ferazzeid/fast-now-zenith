@@ -14,12 +14,13 @@ export const TimerBadge = ({ time, isEating = false, className = "" }: TimerBadg
         rounded-full 
         font-mono
         flex items-center justify-center
-        w-14 h-6
+        min-w-[56px] h-6
+        whitespace-nowrap
         ${isEating ? 'bg-amber-500' : 'bg-green-500'}
         ${className}
       `}
     >
-      <span className="truncate">{time}</span>
+      <span className="text-center">{time}</span>
     </div>
   );
 };

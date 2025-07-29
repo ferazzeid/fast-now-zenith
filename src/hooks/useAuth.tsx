@@ -41,10 +41,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check for cached session first to eliminate flash
     const cachedSession = localStorage.getItem('supabase.auth.token');
     const cachedExpiry = localStorage.getItem('supabase.auth.expiry');
+    const cachedUser = localStorage.getItem('supabase.auth.user');
     
-    if (cachedSession && cachedExpiry && new Date().getTime() < parseInt(cachedExpiry)) {
-      // Use cached session immediately
-      setLoading(false);
+    if (cachedSession && cachedExpiry && cachedUser && new Date().getTime() < parseInt(cachedExpiry)) {
+      // Use cached session immediately to eliminate loading delay
+      try {
+        const userData = JSON.parse(cachedUser);
+        setUser(userData);
+        setSession({ 
+          access_token: cachedSession, 
+          expires_at: parseInt(cachedExpiry) / 1000,
+          user: userData 
+        } as Session);
+        setLoading(false);
+      } catch (error) {
+        // If cache is corrupted, continue with normal flow
+        console.warn('Cache corrupted, proceeding with normal auth flow');
+      }
     }
 
     // Get initial session
@@ -58,9 +71,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (session) {
           localStorage.setItem('supabase.auth.token', session.access_token);
           localStorage.setItem('supabase.auth.expiry', (session.expires_at! * 1000).toString());
+          localStorage.setItem('supabase.auth.user', JSON.stringify(session.user));
         } else {
           localStorage.removeItem('supabase.auth.token');
           localStorage.removeItem('supabase.auth.expiry');
+          localStorage.removeItem('supabase.auth.user');
         }
       }
     });
@@ -77,9 +92,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           if (session) {
             localStorage.setItem('supabase.auth.token', session.access_token);
             localStorage.setItem('supabase.auth.expiry', (session.expires_at! * 1000).toString());
+            localStorage.setItem('supabase.auth.user', JSON.stringify(session.user));
           } else {
             localStorage.removeItem('supabase.auth.token');
             localStorage.removeItem('supabase.auth.expiry');
+            localStorage.removeItem('supabase.auth.user');
           }
         }
       }

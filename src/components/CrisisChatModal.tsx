@@ -12,6 +12,7 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { useAuth } from '@/hooks/useAuth';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ModalRoot } from '@/components/ModalRoot';
+import { useAnimationControl } from '@/components/AnimationController';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -45,6 +46,7 @@ export const CrisisChatModal = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { suspendAnimations, resumeAnimations } = useAnimationControl();
 
   useEffect(() => {
     // Only scroll if there are messages and we're not in the initial loading state
@@ -63,6 +65,9 @@ export const CrisisChatModal = ({
 
   useEffect(() => {
     if (isOpen) {
+      // Suspend all page animations when crisis modal opens
+      suspendAnimations();
+      
       // Only initialize messages if they're currently empty to prevent re-initialization
       setMessages(prevMessages => {
         if (prevMessages.length > 0) {
@@ -96,11 +101,13 @@ export const CrisisChatModal = ({
         return initialMessages;
       });
     } else {
+      // Resume animations when modal closes
+      resumeAnimations();
       setMessages([]);
       setInputMessage('');
       setIsProcessing(false);
     }
-  }, [isOpen, context, proactiveMessage]);
+  }, [isOpen, context, proactiveMessage, suspendAnimations, resumeAnimations]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
     setIsProcessing(true);
@@ -277,7 +284,7 @@ export const CrisisChatModal = ({
             <div className="flex justify-start">
               <Card className="max-w-[85%] p-3 bg-muted">
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full opacity-70"></div>
                   <p className="text-sm">AI is thinking...</p>
                 </div>
               </Card>

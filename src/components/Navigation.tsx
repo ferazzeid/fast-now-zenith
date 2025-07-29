@@ -30,10 +30,15 @@ export const Navigation = () => {
 
   // Calculate fasting duration and status for badge - UPDATED FOR REAL-TIME
   const getFastingBadge = () => {
-    if (!fastingSession || fastingSession.status !== 'active') return null;
+    console.log('DEBUG: getFastingBadge called', { fastingSession, currentTime });
+    if (!fastingSession || fastingSession.status !== 'active') {
+      console.log('DEBUG: No active fasting session');
+      return null;
+    }
     
     const startTime = new Date(fastingSession.start_time).getTime();
     const elapsed = Math.floor((currentTime - startTime) / 1000); // seconds
+    console.log('DEBUG: Timer calculation', { startTime, elapsed, currentTime });
     
     // Check if intermittent fasting and determine if in eating window
     const goalDuration = fastingSession.goal_duration_seconds || 0;

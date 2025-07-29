@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
+import { useAnimationControl } from '@/components/AnimationController';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -45,6 +46,7 @@ export const WalkingTimer = ({
 }: WalkingTimerProps) => {
   const [stepAnimation, setStepAnimation] = useState(false);
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
+  const { isAnimationsSuspended } = useAnimationControl();
 
   useEffect(() => {
     if (isActive && !isPaused) {
@@ -106,7 +108,7 @@ export const WalkingTimer = ({
           {/* Small circular progress indicator in corner */}
           <div className="absolute top-4 right-4" style={{ zIndex: 12 }}>
             <div className={`w-12 h-12 rounded-full border-4 transition-colors duration-300 ${
-              isActive && !isPaused ? 'border-accent border-t-accent/30 animate-spin' : 
+              isActive && !isPaused && !isAnimationsSuspended ? 'border-accent border-t-accent/30 animate-spin' : 
               isPaused ? 'border-yellow-500 border-t-yellow-500/30' : 'border-muted'
             }`} style={{ animationDuration: '3s' }} />
           </div>
@@ -195,7 +197,7 @@ export const WalkingTimer = ({
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-blue-500 animate-pulse' : 'bg-muted'}`} />
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
                 <div className="text-xl font-bold text-primary">
                   {realTimeStats.speed}
@@ -214,7 +216,7 @@ export const WalkingTimer = ({
                     <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Distance</span>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-green-500 animate-pulse' : 'bg-muted'}`} />
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-green-500 animate-pulse' : isActive && !isPaused ? 'bg-green-500' : 'bg-muted'}`} />
                 </div>
                 <div className="text-xl font-bold text-primary">
                   {realTimeStats.distance}
@@ -233,7 +235,7 @@ export const WalkingTimer = ({
                     <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Calories</span>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-orange-500 animate-pulse' : 'bg-muted'}`} />
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-orange-500 animate-pulse' : isActive && !isPaused ? 'bg-orange-500' : 'bg-muted'}`} />
                 </div>
                 <div className="text-xl font-bold text-primary">
                   {realTimeStats.calories}
@@ -248,7 +250,7 @@ export const WalkingTimer = ({
                     <Clock className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Started</span>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused ? 'bg-purple-500 animate-pulse' : 'bg-muted'}`} />
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-purple-500 animate-pulse' : isActive && !isPaused ? 'bg-purple-500' : 'bg-muted'}`} />
                 </div>
                 <div className="text-lg font-bold text-primary">
                   {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
