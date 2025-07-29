@@ -165,10 +165,17 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 {displayTime}
               </div>
               
-              {/* Progress Percentage - Only show during fasting phase for intermittent fasting */}
-              {isActive && progress > 0 && (fastType !== 'intermittent' || !isEatingWindow) && (
+              {/* Goal Display - Always show during intermittent fasting */}
+              {isActive && fastType === 'intermittent' && goalDuration && (
+                <div className="text-xs text-muted-foreground font-medium">
+                  {Math.round(goalDuration)}h fast / {Math.round(24 - goalDuration)}h eat
+                </div>
+              )}
+              
+              {/* Progress Percentage - Show fasting progress during fast, eating progress during eating */}
+              {isActive && progress > 0 && (
                 <div className="text-xs text-primary/70 font-medium">
-                  {Math.max(1, Math.round(progress))}%
+                  {Math.max(1, Math.round(progress))}% {isEatingWindow ? 'eaten' : 'fasted'}
                 </div>
               )}
               
