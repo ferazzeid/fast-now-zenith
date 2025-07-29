@@ -132,7 +132,7 @@ export const DailyStatsPanel = () => {
                 Today's Deficit:
               </span>
               <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                {loading ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
+                {(loading && deficitData.todayDeficit === 0) ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -182,7 +182,7 @@ export const DailyStatsPanel = () => {
                       </Tooltip>
                     </div>
                     <div className={`text-3xl font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                      {loading ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
+                      {(loading && deficitData.todayDeficit === 0) ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {deficitData.todayDeficit > 0 ? 'Calorie deficit (weight loss)' : 'Calorie surplus (weight gain)'}
