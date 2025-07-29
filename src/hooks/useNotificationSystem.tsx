@@ -46,21 +46,15 @@ export const useNotificationSystem = () => {
   // Generate notifications based on current state using useMemo to prevent infinite loops
   const notifications = useMemo(() => {
     if (!user) return [];
-    
-    console.log('DEBUG: Notification system check - user:', !!user);
-    console.log('DEBUG: Profile data:', profile);
-    console.log('DEBUG: isProfileComplete():', isProfileComplete());
 
     const currentNotifications: Notification[] = [];
 
-    // Profile incomplete notification
+    // Profile incomplete notification - ALWAYS show if profile is incomplete, ignore dismissals
     if (!isProfileComplete()) {
       const missingFields = [];
       if (!profile?.weight) missingFields.push('weight');
       if (!profile?.height) missingFields.push('height');
       if (!profile?.age) missingFields.push('age');
-
-      console.log('DEBUG: Missing profile fields:', missingFields);
 
       const profileNotification: Notification = {
         id: 'profile_incomplete',
@@ -86,19 +80,20 @@ export const useNotificationSystem = () => {
         },
       };
 
-      console.log('DEBUG: Dismissed notifications:', dismissedNotifications);
-      console.log('DEBUG: Should show profile notification:', !dismissedNotifications.has(profileNotification.id));
-
-      if (!dismissedNotifications.has(profileNotification.id)) {
-        currentNotifications.push(profileNotification);
-      }
+      // Critical notifications like profile_incomplete should ALWAYS show when the condition is true
+      currentNotifications.push(profileNotification);
     }
 
-    console.log('DEBUG: Final notifications array:', currentNotifications);
     return currentNotifications;
-  }, [user, profile, isProfileComplete, dismissedNotifications]);
+  }, [user, profile, isProfileComplete]);
 
   const dismissNotification = (notificationId: string) => {
+    // Only dismiss non-critical notifications
+    if (notificationId === 'profile_incomplete') {
+      // Don't dismiss profile incomplete - it should persist until resolved
+      return;
+    }
+    
     const newDismissed = new Set(dismissedNotifications);
     newDismissed.add(notificationId);
     setDismissedNotifications(newDismissed);
