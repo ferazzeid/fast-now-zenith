@@ -96,7 +96,9 @@ export const useProfile = () => {
   }, [user, executeWithRetry, toast]);
 
   const isProfileComplete = () => {
-    return profile && profile.weight && profile.height && profile.age;
+    const complete = profile && profile.weight && profile.height && profile.age;
+    console.log('isProfileComplete check:', { profile, complete, weight: profile?.weight, height: profile?.height, age: profile?.age });
+    return complete;
   };
 
   const calculateBMR = () => {

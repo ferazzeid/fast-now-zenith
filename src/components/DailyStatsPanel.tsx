@@ -141,12 +141,17 @@ export const DailyStatsPanel = () => {
                 onClick={async (e) => {
                   e.stopPropagation();
                   setIsRefreshing(true);
+                  console.log('Refresh button clicked, starting refresh...');
                   try {
                     await refreshDeficit();
+                    console.log('Refresh completed successfully');
                   } catch (error) {
                     console.error('Refresh failed:', error);
                   } finally {
-                    setIsRefreshing(false);
+                    setTimeout(() => {
+                      setIsRefreshing(false);
+                      console.log('Refresh button reset');
+                    }, 1000); // Add minimum 1 second loading time for visual feedback
                   }
                 }}
                 className="p-1 hover:bg-accent rounded-full transition-colors"

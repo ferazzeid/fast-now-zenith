@@ -122,6 +122,14 @@ export const useDailyDeficit = () => {
       const activeWalkingCalories = walkingStats.isActive ? walkingStats.realTimeCalories : 0;
       const walkingCalories = completedWalkingCalories + activeWalkingCalories;
       
+      console.log('Walking calories calculation:', {
+        completedWalkingCalories,
+        activeWalkingCalories,
+        totalWalkingCalories: walkingCalories,
+        walkingStatsIsActive: walkingStats.isActive,
+        walkingStatsRealTimeCalories: walkingStats.realTimeCalories
+      });
+      
       const manualCalories = manualCalorieTotal || 0;
       
       // Calculate deficit: TDEE + Walking + Manual Activities - Food Consumed
