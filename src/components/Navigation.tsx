@@ -6,7 +6,7 @@ import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
-import { supabase } from '@/integrations/supabase/client';
+import { useFastingSession } from '@/hooks/useFastingSession';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -14,41 +14,8 @@ export const Navigation = () => {
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
   const { todayTotals } = useFoodEntries();
   const { isAnimationsSuspended } = useAnimationControl();
+  const { currentSession: fastingSession } = useFastingSession();
   const [currentTime, setCurrentTime] = useState(Date.now());
-  
-  // AI-centric state management
-  const [isProfileComplete, setIsProfileComplete] = useState(false);
-  const [fastingSession, setFastingSession] = useState(null);
-
-  // AI-powered data loading
-  const loadActiveSession = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "Load my active fasting session and profile completion status",
-          action: "load_navigation_data"
-        }
-      });
-
-      if (error) {
-        console.error('Error loading navigation data:', error);
-        return;
-      }
-
-      if (data.fasting_session) {
-        setFastingSession(data.fasting_session);
-      }
-
-      if (data.profile_complete !== undefined) {
-        setIsProfileComplete(data.profile_complete);
-      }
-    } catch (error) {
-      console.error('Error in loadActiveSession:', error);
-    }
-  }, []);
 
   // Update time every second for real-time badges, but pause when animations are suspended
   useEffect(() => {
@@ -60,22 +27,14 @@ export const Navigation = () => {
     return () => clearInterval(interval);
   }, [isAnimationsSuspended]);
 
-  // Load active session on mount
-  useEffect(() => {
-    loadActiveSession();
-  }, [loadActiveSession]);
-
   // Calculate fasting duration and status for badge - UPDATED FOR REAL-TIME
   const getFastingBadge = () => {
-    console.log('DEBUG: getFastingBadge called', { fastingSession, currentTime });
     if (!fastingSession || fastingSession.status !== 'active') {
-      console.log('DEBUG: No active fasting session');
       return null;
     }
     
     const startTime = new Date(fastingSession.start_time).getTime();
     const elapsed = Math.floor((currentTime - startTime) / 1000); // seconds
-    console.log('DEBUG: Timer calculation', { startTime, elapsed, currentTime });
     
     // Check if intermittent fasting and determine if in eating window
     const goalDuration = fastingSession.goal_duration_seconds || 0;
