@@ -46,11 +46,14 @@ export const CrisisChatModal = ({
   const { user } = useAuth();
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll if there are messages and we're not in the initial loading state
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   useEffect(() => {
-    // Load API key from localStorage
+    // Load API key from localStorage only once
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
@@ -58,34 +61,48 @@ export const CrisisChatModal = ({
   }, []);
 
   useEffect(() => {
+    console.log('CrisisChatModal: isOpen changed to:', isOpen);
+    
     if (isOpen) {
-      const initialMessages: Message[] = [];
-      
-      // Add compact context message
-      if (context) {
-        const contextMessage: Message = {
-          role: 'assistant',
-          content: context,
-          timestamp: new Date(),
-          audioEnabled: false
-        };
-        initialMessages.push(contextMessage);
-      }
-      
-      // Add proactive message
-      if (proactiveMessage) {
-        const proactiveMsg: Message = {
-          role: 'assistant',
-          content: proactiveMessage,
-          timestamp: new Date(),
-          audioEnabled: false
-        };
-        initialMessages.push(proactiveMsg);
-      }
-      
-      setMessages(initialMessages);
+      // Only initialize messages if they're currently empty to prevent re-initialization
+      setMessages(prevMessages => {
+        if (prevMessages.length > 0) {
+          console.log('CrisisChatModal: Messages already exist, not reinitializing');
+          return prevMessages;
+        }
+        
+        console.log('CrisisChatModal: Initializing messages');
+        const initialMessages: Message[] = [];
+        
+        // Add compact context message
+        if (context) {
+          const contextMessage: Message = {
+            role: 'assistant',
+            content: context,
+            timestamp: new Date(),
+            audioEnabled: false
+          };
+          initialMessages.push(contextMessage);
+        }
+        
+        // Add proactive message
+        if (proactiveMessage) {
+          const proactiveMsg: Message = {
+            role: 'assistant',
+            content: proactiveMessage,
+            timestamp: new Date(),
+            audioEnabled: false
+          };
+          initialMessages.push(proactiveMsg);
+        }
+        
+        return initialMessages;
+      });
     } else {
+      console.log('CrisisChatModal: Modal closed, clearing messages');
       setMessages([]);
+      setInputMessage('');
+      setIsProcessing(false);
     }
   }, [isOpen, context, proactiveMessage]);
 
