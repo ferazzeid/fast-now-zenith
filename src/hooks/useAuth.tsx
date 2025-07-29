@@ -252,10 +252,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     updatePassword,
   };
 
-  // Show loading screen while checking auth
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  // Don't show loading screen here - let ProtectedRoute handle it
+  // This prevents double loading screens
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
