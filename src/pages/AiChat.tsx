@@ -182,6 +182,11 @@ const AiChat = () => {
   const sendToAI = async (message: string, fromVoice = false) => {
     if (!apiKey.trim()) {
       setShowApiDialog(true);
+      toast({
+        title: "API Key Required",
+        description: "Please add your OpenAI API key or subscribe to premium to continue chatting.",
+        variant: "default"
+      });
       return;
     }
 
@@ -578,48 +583,68 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         </div>
       </div>
 
-      {/* API Key Dialog */}
+      {/* Choose How to Continue Dialog */}
       <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-        <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>OpenAI API Configuration</DialogTitle>
+            <DialogTitle>Choose How to Continue</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="api-key">OpenAI API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
-                className="mt-1"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Your API key is stored locally and never sent to our servers.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => {
-                  localStorage.setItem('openai_api_key', apiKey);
-                  setShowApiDialog(false);
-                  toast({
-                    title: "API Key Saved",
-                    description: "You can now use AI features.",
-                  });
-                }}
-                className="flex-1"
-              >
-                Save Key
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowApiDialog(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="border rounded-lg p-4 bg-primary/5">
+                <h3 className="font-semibold text-sm mb-2">🌟 Recommended: Premium Subscription</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get unlimited AI conversations, priority support, and advanced features.
+                </p>
+                <Button className="w-full" onClick={() => navigate('/settings')}>
+                  View Premium Plans
+                </Button>
+              </div>
+              
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold text-sm mb-2">🔑 Bring Your Own OpenAI Key</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Use your personal OpenAI API key. Get one from OpenAI's platform.
+                </p>
+                <div className="space-y-3">
+                  <Input
+                    type="password"
+                    placeholder="sk-..."
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="font-mono text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open('https://platform.openai.com/api-keys', '_blank')}
+                      className="flex-1 text-xs"
+                    >
+                      Get API Key
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (apiKey.trim()) {
+                          localStorage.setItem('openai_api_key', apiKey);
+                          setShowApiDialog(false);
+                          toast({
+                            title: "API Key Saved",
+                            description: "You can now use the AI assistant."
+                          });
+                        }
+                      }}
+                      disabled={!apiKey.trim()}
+                      className="flex-1 text-xs"
+                    >
+                      Save Key
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Your API key is stored locally and never sent to our servers.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </DialogContent>
