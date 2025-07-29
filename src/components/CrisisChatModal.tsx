@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { useAuth } from '@/hooks/useAuth';
 import { PremiumGate } from '@/components/PremiumGate';
+import { ModalRoot } from '@/components/ModalRoot';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -316,8 +317,10 @@ export const CrisisChatModal = ({
   );
 
   return (
-    <PremiumGate feature="Crisis Support Chat" showUpgrade={true}>
-      <ChatInterface />
-    </PremiumGate>
+    <ModalRoot>
+      <PremiumGate feature="Crisis Support Chat" showUpgrade={true}>
+        <ChatInterface />
+      </PremiumGate>
+    </ModalRoot>
   );
 };

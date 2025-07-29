@@ -5,6 +5,7 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useFastingSession } from '@/hooks/useFastingSession';
+import { TimerBadge } from '@/components/TimerBadge';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -131,17 +132,9 @@ export const Navigation = () => {
                   </span>
                 )}
                 
-                {/* Regular badge for timer items - FIXED WIDTH to prevent shifting */}
+                {/* Fixed width timer badge to prevent shifting */}
                 {badge && (
-                  <div className={`absolute -top-1 -right-1 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[3.5rem] text-center font-mono ${
-                    badge === '!' 
-                      ? 'bg-red-500' 
-                      : isEating 
-                        ? 'bg-amber-500' 
-                        : 'bg-green-500'
-                  }`}>
-                    {badge}
-                  </div>
+                  <TimerBadge time={badge} isEating={isEating} />
                 )}
               </Link>
             );

@@ -38,12 +38,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session first to reduce flash
+    // Check for cached session first to eliminate flash
+    const cachedSession = localStorage.getItem('supabase.auth.token');
+    const cachedExpiry = localStorage.getItem('supabase.auth.expiry');
+    
+    if (cachedSession && cachedExpiry && new Date().getTime() < parseInt(cachedExpiry)) {
+      // Use cached session immediately
+      setLoading(false);
+    }
+
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Cache session info for faster subsequent loads
+        if (session) {
+          localStorage.setItem('supabase.auth.token', session.access_token);
+          localStorage.setItem('supabase.auth.expiry', (session.expires_at! * 1000).toString());
+        } else {
+          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('supabase.auth.expiry');
+        }
       }
     });
 
@@ -53,9 +71,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
-          // Only set loading to false if we haven't already
-          if (loading) {
-            setLoading(false);
+          setLoading(false);
+          
+          // Update cache
+          if (session) {
+            localStorage.setItem('supabase.auth.token', session.access_token);
+            localStorage.setItem('supabase.auth.expiry', (session.expires_at! * 1000).toString());
+          } else {
+            localStorage.removeItem('supabase.auth.token');
+            localStorage.removeItem('supabase.auth.expiry');
           }
         }
       }
