@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,12 @@ const Timer = () => {
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
+  
+  // Crisis modal static context state
+  const [crisisContext, setCrisisContext] = useState<string>('');
+  const [crisisSystemPrompt, setCrisisSystemPrompt] = useState<string>('');
+  const [crisisProactiveMessage, setCrisisProactiveMessage] = useState<string>('');
+  const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
   
   const [walkingTime, setWalkingTime] = useState(0);
   
@@ -284,29 +290,29 @@ const Timer = () => {
     }
   };
 
-  // Memoize crisis modal props to prevent unnecessary re-renders
-  const crisisModalProps = useMemo(() => ({
-    context: generateCrisisContext({
+  // Function to open crisis modal with static context
+  const openCrisisModal = () => {
+    // Generate context once when opening modal
+    const context = generateCrisisContext({
       fastType,
       timeElapsed,
       goalDuration: fastDuration,
       progress: getProgress(),
       isInEatingWindow: isInEatingWindow
-    }),
-    systemPrompt: generateSystemPrompt(),
-    proactiveMessage: generateProactiveMessage(),
-    quickReplies: generateQuickReplies()
-  }), [
-    generateCrisisContext,
-    generateSystemPrompt, 
-    generateProactiveMessage,
-    generateQuickReplies,
-    fastType,
-    timeElapsed,
-    fastDuration,
-    isInEatingWindow,
-    getProgress
-  ]);
+    });
+    const systemPrompt = generateSystemPrompt();
+    const proactiveMessage = generateProactiveMessage();
+    const quickReplies = generateQuickReplies();
+    
+    // Store in state
+    setCrisisContext(context);
+    setCrisisSystemPrompt(systemPrompt);
+    setCrisisProactiveMessage(proactiveMessage);
+    setCrisisQuickReplies(quickReplies);
+    
+    // Open modal
+    setShowCrisisModal(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
@@ -339,7 +345,7 @@ const Timer = () => {
               />
               {/* SOS Button - positioned relative to timer */}
               {isRunning && timeElapsed > (crisisSettings.triggerHours * 60 * 60) && (
-                <SOSButton onClick={() => setShowCrisisModal(true)} />
+                <SOSButton onClick={openCrisisModal} />
               )}
             </>
           ) : (
@@ -403,10 +409,10 @@ const Timer = () => {
       <CrisisChatModal 
         isOpen={showCrisisModal} 
         onClose={() => setShowCrisisModal(false)}
-        context={crisisModalProps.context}
-        systemPrompt={crisisModalProps.systemPrompt}
-        proactiveMessage={crisisModalProps.proactiveMessage}
-        quickReplies={crisisModalProps.quickReplies}
+        context={crisisContext}
+        systemPrompt={crisisSystemPrompt}
+        proactiveMessage={crisisProactiveMessage}
+        quickReplies={crisisQuickReplies}
       />
 
       {/* Stop Fast Confirmation Dialog */}
