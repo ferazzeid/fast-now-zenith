@@ -67,21 +67,28 @@ export const useFoodEntries = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('food_entries')
-        .insert({
-          ...entry,
-          user_id: user.id
-        })
-        .select()
-        .single();
+      // Use AI-enhanced edge function for food entry
+      const { data, error } = await supabase.functions.invoke('add-food-entry', {
+        body: {
+          name: entry.name,
+          serving_size: entry.serving_size || 100,
+          calories: entry.calories || 0,
+          carbs: entry.carbs || 0,
+          consumed: entry.consumed || true,
+          image_url: entry.image_url || null
+        }
+      });
 
       if (error) throw error;
 
       // Refresh today's entries
       await loadTodayEntries();
       
-      return { data, error: null };
+      return { 
+        data: data.food_entry, 
+        error: null, 
+        ai_enhanced: data.ai_enhanced 
+      };
     } catch (error: any) {
       console.error('Error adding food entry:', error);
       return { error, data: null };

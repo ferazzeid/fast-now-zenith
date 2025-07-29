@@ -14,6 +14,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
+import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
@@ -45,147 +46,20 @@ const FoodTracking = () => {
     imageUrl: ''
   });
   const [aiChatContext, setAiChatContext] = useState('');
-  const [todayEntries, setTodayEntries] = useState<any[]>([]);
-  const [todayTotals, setTodayTotals] = useState({ calories: 0, carbs: 0 });
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
+  const { 
+    todayEntries, 
+    todayTotals, 
+    loading, 
+    addFoodEntry, 
+    updateFoodEntry, 
+    deleteFoodEntry, 
+    toggleConsumption 
+  } = useFoodEntries();
 
-  // AI-powered food operations
-  const addFoodEntry = async (entry: any) => {
-    try {
-      const authToken = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Add food entry: ${entry.name}, ${entry.calories} calories, ${entry.carbs}g carbs, ${entry.serving_size}g serving, consumed: ${entry.consumed}`,
-          conversationHistory: []
-        },
-        headers: {
-          Authorization: `Bearer ${authToken.data.session?.access_token}`
-        }
-      });
-
-      if (error) return { error };
-      await loadTodayEntries();
-      return { data };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const updateFoodEntry = async (entryId: string, updates: any) => {
-    try {
-      const authToken = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Update food entry with ID ${entryId}: ${JSON.stringify(updates)}`,
-          conversationHistory: []
-        },
-        headers: {
-          Authorization: `Bearer ${authToken.data.session?.access_token}`
-        }
-      });
-
-      if (error) return { error };
-      await loadTodayEntries();
-      return { data };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const deleteFoodEntry = async (entryId: string) => {
-    try {
-      const authToken = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Delete food entry with ID ${entryId}`,
-          conversationHistory: []
-        },
-        headers: {
-          Authorization: `Bearer ${authToken.data.session?.access_token}`
-        }
-      });
-
-      if (error) return { error };
-      await loadTodayEntries();
-      return { data };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const toggleConsumption = async (entryId: string, consumed: boolean) => {
-    try {
-      const authToken = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Toggle food consumption for entry ${entryId} to ${consumed ? 'eaten' : 'planned'}`,
-          conversationHistory: []
-        },
-        headers: {
-          Authorization: `Bearer ${authToken.data.session?.access_token}`
-        }
-      });
-
-      if (error) return { error };
-      await loadTodayEntries();
-      return { data };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const loadTodayEntries = async () => {
-    try {
-      setLoading(true);
-      const authToken = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "Get my food entries for today",
-          conversationHistory: []
-        },
-        headers: {
-          Authorization: `Bearer ${authToken.data.session?.access_token}`
-        }
-      });
-
-      if (data?.functionCall?.result) {
-        // Parse the AI response to extract food entries
-        const result = data.functionCall.result;
-        // For now, we'll use direct database access, but this would be enhanced with AI parsing
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        const { data: entries } = await supabase
-          .from('food_entries')
-          .select('*')
-          .eq('user_id', user?.id)
-          .gte('created_at', today.toISOString())
-          .lt('created_at', tomorrow.toISOString())
-          .order('created_at', { ascending: false });
-
-        setTodayEntries(entries || []);
-        
-        const consumedCalories = entries?.filter(e => e.consumed).reduce((sum, entry) => sum + entry.calories, 0) || 0;
-        const consumedCarbs = entries?.filter(e => e.consumed).reduce((sum, entry) => sum + entry.carbs, 0) || 0;
-        setTodayTotals({ calories: consumedCalories, carbs: consumedCarbs });
-      }
-    } catch (error) {
-      console.error('Error loading food entries:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      loadTodayEntries();
-    }
-  }, [user]);
+  // Note: Using useFoodEntries hook for all food operations now
 
   const handleVoiceFood = () => {
     const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
@@ -206,8 +80,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     if (result.name === 'add_food_entry') {
       const { arguments: args } = result;
       
-      // The AI has already added the food entry, just refresh the data
-      await loadTodayEntries();
+      // The AI has already added the food entry, data will refresh automatically
       
       toast({
         title: "Food Added Successfully!",
@@ -315,24 +188,20 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     }
 
     try {
-      setLoading(true);
-      
-      // Use the new edge function for food entry
-      const response = await supabase.functions.invoke('add-food-entry', {
-        body: {
-          name: manualEntryData.name,
-          serving_size: parseFloat(manualEntryData.servingSize),
-          calories: parseFloat(manualEntryData.calories) || 0,
-          carbs: parseFloat(manualEntryData.carbs) || 0,
-          consumed: true
-        }
+      // Use the AI-enhanced addFoodEntry function from useFoodEntries
+      const result = await addFoodEntry({
+        name: manualEntryData.name,
+        serving_size: parseFloat(manualEntryData.servingSize),
+        calories: parseFloat(manualEntryData.calories) || 0,
+        carbs: parseFloat(manualEntryData.carbs) || 0,
+        consumed: true
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to add food entry');
+      if (result.error) {
+        throw new Error(result.error.message || 'Failed to add food entry');
       }
 
-      const enhancementMessage = response.data.ai_enhanced ? 
+      const enhancementMessage = (result as any).ai_enhanced ? 
         " (AI enhanced nutrition data)" : "";
 
       toast({
@@ -349,8 +218,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       });
       setShowManualEntry(false);
 
-      // Refresh food entries
-      await loadTodayEntries();
+      // Data will refresh automatically via useFoodEntries hook
 
       // Save to personal library if not already there
       await saveToLibrary({
@@ -366,8 +234,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         title: "Error adding food",
         description: error.message || "Failed to add food entry"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -905,6 +771,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           onSave={handleSaveManualEntry}
           data={manualEntryData}
           onDataChange={setManualEntryData}
+          loading={loading}
         />
 
         {/* Image Food Analysis Modal */}
