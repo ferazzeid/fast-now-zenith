@@ -65,6 +65,8 @@ const AiChat = () => {
   const isCrisisMode = searchParams.get('crisis') === 'true';
   const crisisData = searchParams.get('data') ? JSON.parse(decodeURIComponent(searchParams.get('data')!)) : null;
 
+  console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
+
   // Combine regular messages with notification messages
   const allMessages = [...notificationMessages, ...messages];
 
@@ -525,13 +527,18 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
             {/* Crisis Quick Replies */}
             {isCrisisMode && (
               <div className="flex flex-wrap gap-2">
+                <div className="text-xs text-muted-foreground mb-2">Quick responses:</div>
                 {generateQuickReplies().map((reply, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="sm"
-                    onClick={() => handleSendMessage(reply)}
-                    className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('DEBUG: Quick reply clicked', reply);
+                      handleSendMessage(reply);
+                    }}
+                    className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer"
                   >
                     {reply}
                   </Button>
