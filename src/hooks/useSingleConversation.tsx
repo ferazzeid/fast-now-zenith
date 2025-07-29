@@ -95,15 +95,18 @@ export const useSingleConversation = () => {
 
       console.log('DEBUG: Saving to database, total messages:', messagesForDb.length);
 
-      // Check if conversation exists
-      const { data: existingConversation, error: queryError } = await supabase
+      // Check if conversation exists - get the most recent one
+      const { data: conversations, error: queryError } = await supabase
         .from('chat_conversations')
         .select('id')
         .eq('user_id', user.id)
         .eq('archived', false)
-        .maybeSingle();
+        .order('last_message_at', { ascending: false })
+        .limit(1);
 
-      console.log('DEBUG: Existing conversation query result:', { existingConversation, queryError });
+      console.log('DEBUG: Existing conversation query result:', { conversations, queryError });
+
+      const existingConversation = conversations && conversations.length > 0 ? conversations[0] : null;
 
       if (existingConversation) {
         console.log('DEBUG: Updating existing conversation:', existingConversation.id);
