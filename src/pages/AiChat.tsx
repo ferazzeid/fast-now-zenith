@@ -35,6 +35,7 @@ interface EnhancedMessage {
 }
 
 const AiChat = () => {
+  console.log('DEBUG: AiChat component rendered');
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
@@ -661,7 +662,10 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
             <div className="flex gap-2 items-end">
               <Input
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={(e) => {
+                  console.log('DEBUG: Input changed:', e.target.value);
+                  setInputMessage(e.target.value);
+                }}
                 placeholder="Ask me anything about your health journey..."
                 onKeyDown={(e) => {
                   console.log('DEBUG: Key pressed:', e.key, 'shiftKey:', e.shiftKey);
