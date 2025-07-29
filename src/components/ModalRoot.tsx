@@ -11,7 +11,7 @@ export const ModalRoot = ({ children }: ModalRootProps) => {
   return createPortal(
     <>
       {/* Stable backdrop layer to prevent blinking and system interference */}
-      <div className="fixed inset-0 z-40 bg-transparent" 
+      <div className="fixed inset-0 z-40 bg-transparent pointer-events-none" 
            style={{ 
              transform: 'translate3d(0, 0, 0)',
              willChange: 'transform',
