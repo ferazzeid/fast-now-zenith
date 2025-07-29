@@ -23,19 +23,20 @@ export const useFastingSession = () => {
 
   // Load active session on mount
   const loadActiveSession = useCallback(async () => {
-    if (!user) {
+    const currentUser = user;
+    if (!currentUser) {
       console.log('UseFastingSession: No user, skipping session load');
       setCurrentSession(null);
       return;
     }
 
-    console.log('UseFastingSession: Loading session for user:', user.id);
+    console.log('UseFastingSession: Loading session for user:', currentUser.id);
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('fasting_sessions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUser.id)
         .eq('status', 'active')
         .order('start_time', { ascending: false })
         .limit(1)
@@ -54,7 +55,7 @@ export const useFastingSession = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []); // Remove user dependency to prevent infinite loop
 
   useEffect(() => {
     loadActiveSession();
