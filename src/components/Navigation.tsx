@@ -76,8 +76,8 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
-      <div className="max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
+      <div className="w-full">
         <div className="flex justify-around gap-1">
           {/* Navigation Items */}
           {navItems.map(({ icon: Icon, label, path, badge, hasNotification, isEating }) => {
@@ -96,9 +96,9 @@ export const Navigation = () => {
                 <Icon className="w-5 h-5 mb-1" />
                 <span className="text-xs font-medium">{label}</span>
                 
-                 {/* Notification badge for AI Chat - repositioned */}
+                 {/* Notification badge for AI Chat - standardized positioning */}
                 {hasNotification && (
-                  <span className={`absolute top-1 right-3 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium ${
+                  <span className={`absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium ${
                     getHighPriorityNotifications().some(n => n.type === 'profile_incomplete') 
                       ? 'bg-amber-500 text-amber-50' 
                       : 'bg-red-500 text-white'

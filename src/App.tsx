@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
+import { SOSSupport } from "./pages/SOSSupport";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./hooks/useAuth";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -68,6 +69,11 @@ const AppContent = () => {
             <Route path="/food-tracking" element={
               <ProtectedRoute>
                 <FoodTracking />
+              </ProtectedRoute>
+            } />
+            <Route path="/sos-support" element={
+              <ProtectedRoute>
+                <SOSSupport />
               </ProtectedRoute>
             } />
             <Route path="/admin" element={

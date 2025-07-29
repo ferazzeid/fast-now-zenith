@@ -116,10 +116,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
-                className={cn(
-                  "transition-all duration-1000 ease-out",
-                  isActive && "animate-pulse"
-                )}
+                className="transition-all duration-1000 ease-out"
                 style={{
                   filter: isActive ? `drop-shadow(0 0 6px ${
                     isEatingWindow ? 'rgba(212, 168, 85, 0.4)' : 'hsl(var(--primary) / 0.4)'
