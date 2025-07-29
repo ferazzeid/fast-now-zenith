@@ -71,8 +71,11 @@ const AiChat = () => {
   const allMessages = [...notificationMessages, ...messages];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [allMessages]);
+    // Only auto-scroll if user sent a message recently or processing
+    if (isProcessing || messages[messages.length - 1]?.role === 'user') {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [allMessages, isProcessing]);
 
   // Auto-show notifications when component mounts
   useEffect(() => {
@@ -227,9 +230,9 @@ If you can't extract valid information, set extracted to false and ask for clari
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    if (!apiKey.trim()) {
+    // Only check API key for non-crisis mode or if it's genuinely missing
+    if (!isCrisisMode && !apiKey.trim()) {
       setShowApiDialog(true);
-      // Don't show error toast for missing API key - the dialog explains everything
       return;
     }
 

@@ -104,8 +104,8 @@ export const DailyStatsPanel = () => {
     }
   }, [isExpanded]);
 
-  // Don't render anything on admin pages or when no food has been consumed
-  if (shouldHidePanel || deficitData.caloriesConsumed === 0) {
+  // Don't render anything on admin pages, but always show if there's any food data
+  if (shouldHidePanel) {
     return null;
   }
 
