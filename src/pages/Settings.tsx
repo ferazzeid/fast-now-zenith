@@ -119,13 +119,6 @@ const Settings = () => {
 
       // Save user preferences to database
       if (user) {
-        console.log('Saving settings for user:', user.id);
-        console.log('API key provided:', !!openAiKey);
-        console.log('API key length:', openAiKey?.length || 0);
-        console.log('API key first 10 chars:', openAiKey?.substring(0, 10) || 'none');
-        console.log('Use own key:', useOwnKey);
-        console.log('Will save openai_api_key as:', useOwnKey ? (openAiKey || 'EMPTY') : null);
-        
         const updateData = {
           use_own_api_key: useOwnKey,
           speech_model: speechModel,
@@ -142,15 +135,10 @@ const Settings = () => {
           units: units
         };
         
-        console.log('About to update with data:', updateData);
-        
         const { data, error } = await supabase
           .from('profiles')
           .update(updateData)
-          .eq('user_id', user.id)
-          .select(); // Add select to see what was actually saved
-
-        console.log('Update result:', { data, error });
+          .eq('user_id', user.id);
 
         if (error) {
           console.error('Settings save error:', error);

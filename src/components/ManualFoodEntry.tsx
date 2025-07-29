@@ -37,19 +37,34 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
     setIsAiFilling(true);
     try {
+      console.log('Making AI request for:', data.name, data.servingSize);
+      
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
-          message: `Please provide the nutritional information for ${data.servingSize}g of ${data.name}. Return only the calories and carbs in grams as numbers. Format: calories: X, carbs: Y`
+          message: `Please provide the nutritional information for ${data.servingSize}g of ${data.name}. Return only the calories and carbs in grams as numbers. Format: calories: X, carbs: Y`,
+          conversationHistory: []
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
         },
       });
 
-      if (error) throw error;
+      console.log('AI response result:', result);
+      console.log('AI response error:', error);
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Unknown error from AI service');
+      }
+
+      if (!result) {
+        throw new Error('No response from AI service');
+      }
 
       // Parse AI response to extract calories and carbs
-      const response = result.response;
+      const response = result.completion || result.response || '';
+      console.log('AI response text:', response);
+      
       const caloriesMatch = response.match(/calories?:\s*(\d+)/i);
       const carbsMatch = response.match(/carbs?:\s*(\d+(?:\.\d+)?)/i);
 
@@ -61,11 +76,12 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
         });
         toast.success('Nutritional data filled by AI');
       } else {
+        console.log('Could not parse response:', response);
         toast.error('Could not parse AI response. Please enter manually.');
       }
     } catch (error) {
       console.error('AI fill error:', error);
-      toast.error('Failed to get AI suggestions. Please enter manually.');
+      toast.error(`Failed to get AI suggestions: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsAiFilling(false);
     }
