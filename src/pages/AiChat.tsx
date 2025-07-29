@@ -412,13 +412,20 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
     const messageToSend = presetMessage || inputMessage.trim();
     if (!messageToSend || isProcessing) return;
 
+    console.log('DEBUG: handleSendMessage called with:', messageToSend);
+
     try {
       // Always add the user message to chat first
-      await addMessage({
-        role: 'user',
+      console.log('DEBUG: About to add user message');
+      const userMessage = {
+        role: 'user' as const,
         content: messageToSend,
         timestamp: new Date()
-      });
+      };
+      
+      console.log('DEBUG: User message object:', userMessage);
+      const addResult = await addMessage(userMessage);
+      console.log('DEBUG: User message add result:', addResult);
 
       if (!presetMessage) {
         setInputMessage('');
@@ -426,10 +433,13 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
 
       // Check if this is a notification response first
       const wasNotificationResponse = await handleNotificationResponse(messageToSend);
+      console.log('DEBUG: Was notification response:', wasNotificationResponse);
       
       // Always send to AI, even if it was a notification response
       // The AI should handle both profile updates AND provide conversational responses
+      console.log('DEBUG: About to send to AI');
       await sendToAI(messageToSend);
+      console.log('DEBUG: Finished sending to AI');
       
     } catch (error) {
       console.error('Error handling message:', error);
