@@ -6,6 +6,7 @@ import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { TimerBadge } from '@/components/TimerBadge';
+import { useAnimationControl } from '@/components/AnimationController';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -13,15 +14,18 @@ export const Navigation = () => {
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
   const { isProfileComplete } = useProfile();
   const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
+  const { isAnimationsSuspended } = useAnimationControl();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Update time every second for real-time badges
+  // Update time every second for real-time badges, but pause when animations are suspended
   useEffect(() => {
+    if (isAnimationsSuspended) return;
+    
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAnimationsSuspended]);
 
   // Load active session on mount
   useEffect(() => {
