@@ -592,8 +592,25 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
                 <p className="text-sm text-muted-foreground mb-3">
                   Get unlimited AI conversations and advanced features.
                 </p>
-                <Button className="w-full" onClick={() => navigate('/settings')}>
-                  View Premium Plans
+                <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground" onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('create-subscription');
+                    if (error) throw error;
+                    if (data.url) {
+                      window.open(data.url, '_blank');
+                    }
+                  } catch (error) {
+                    console.error('Error creating subscription:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to open subscription page. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                  setShowApiDialog(false);
+                }}>
+                  <span className="mr-2">👑</span>
+                  Upgrade to Premium - $9/month
                 </Button>
               </div>
               

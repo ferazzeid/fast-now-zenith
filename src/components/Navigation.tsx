@@ -5,6 +5,7 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useFastingSession } from '@/hooks/useFastingSession';
+import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 
@@ -14,6 +15,7 @@ export const Navigation = () => {
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
   const { isProfileComplete } = useProfile();
   const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
+  const { todayTotals } = useFoodEntries();
   const { isAnimationsSuspended } = useAnimationControl();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
@@ -98,7 +100,13 @@ export const Navigation = () => {
       badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null,
       isEating: false
     },
-    { icon: Utensils, label: 'Food', path: '/food-tracking', isEating: false },
+    { 
+      icon: Utensils, 
+      label: 'Food', 
+      path: '/food-tracking', 
+      isEating: false,
+      caloriesBadge: todayTotals.calories > 0 ? todayTotals.calories : null
+    },
     { 
       icon: MessageCircle, 
       label: 'AI Chat', 
@@ -114,7 +122,7 @@ export const Navigation = () => {
       <div className="w-full">
         <div className="flex justify-around gap-1">
           {/* Navigation Items */}
-          {navItems.map(({ icon: Icon, label, path, badge, hasNotification, isEating }) => {
+          {navItems.map(({ icon: Icon, label, path, badge, hasNotification, isEating, caloriesBadge }) => {
             const isActive = location.pathname === path;
             
             return (
@@ -124,7 +132,7 @@ export const Navigation = () => {
                 className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 ${
                   isActive 
                     ? 'bg-primary text-primary-foreground shadow-lg' 
-                    : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim'
+                    : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
                 }`}
               >
                 <Icon className="w-5 h-5 mb-1" />
@@ -141,9 +149,16 @@ export const Navigation = () => {
                   </span>
                 )}
                 
-                {/* Fixed width timer badge to prevent shifting */}
+                {/* Timer badge for fasting/walking */}
                 {badge && (
                   <TimerBadge time={badge} isEating={isEating} />
+                )}
+                
+                {/* Calorie badge for food */}
+                {caloriesBadge && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
+                    {caloriesBadge}
+                  </span>
                 )}
               </Link>
             );
