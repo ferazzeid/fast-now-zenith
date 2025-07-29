@@ -185,8 +185,8 @@ const Motivators = () => {
 
 
   return (
-    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="px-4 pt-8 pb-24">
+    <div className="h-[calc(100vh-80px)] bg-ceramic-base overflow-y-auto">
+      <div className="px-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
         <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">

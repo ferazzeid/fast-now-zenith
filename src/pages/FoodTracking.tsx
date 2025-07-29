@@ -594,8 +594,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
+    <div className="h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20 overflow-y-auto">
+      <div className="max-w-md mx-auto p-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">

@@ -453,9 +453,9 @@ const Settings = () => {
   }, [user, toast]);
 
   return (
-    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <ScrollArea className="h-screen">
-        <div className="px-4 pt-8 pb-24">
+    <div className="h-[calc(100vh-80px)] bg-ceramic-base overflow-hidden">
+      <ScrollArea className="h-full">
+        <div className="px-4 pt-8 pb-16">{/* CRITICAL FIX: Proper navigation spacing */}
           <div className="max-w-md mx-auto space-y-6 bg-ceramic-base">
             {/* Header */}
             <div className="text-center space-y-2">
