@@ -215,9 +215,11 @@ export const useSingleConversation = () => {
 
   // Load conversation when user changes
   useEffect(() => {
+    console.log('DEBUG: useEffect triggered, user:', user?.id, 'current messages:', messages.length);
     if (user) {
       loadConversation();
     } else {
+      console.log('DEBUG: No user, clearing messages');
       setMessages([]);
     }
   }, [user]);
