@@ -759,6 +759,7 @@ const Settings = () => {
                               supabase.from('user_foods').delete().eq('user_id', user.id),
                               supabase.from('fasting_sessions').delete().eq('user_id', user.id),
                               supabase.from('walking_sessions').delete().eq('user_id', user.id),
+                              supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
                               supabase.from('ai_usage_logs').delete().eq('user_id', user.id),
                               supabase.from('profiles').update({
                                 weight: null,

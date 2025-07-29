@@ -76,9 +76,8 @@ const AiChat = () => {
 
   console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
 
-  // Combine regular messages with notification messages and add profile system message
-  const { isProfileComplete } = useProfile();
-  const profileSystemMessage = !isProfileComplete() ? [{
+  // Combine regular messages with notification messages
+  const profileSystemMessage = (!profile?.weight || !profile?.height || !profile?.age) ? [{
     role: 'system' as const,
     content: 'Profile information needed',
     timestamp: new Date(),
