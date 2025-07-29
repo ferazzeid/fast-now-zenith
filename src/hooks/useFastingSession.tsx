@@ -23,8 +23,13 @@ export const useFastingSession = () => {
 
   // Load active session on mount
   const loadActiveSession = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('UseFastingSession: No user, skipping session load');
+      setCurrentSession(null);
+      return;
+    }
 
+    console.log('UseFastingSession: Loading session for user:', user.id);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -34,13 +39,18 @@ export const useFastingSession = () => {
         .eq('status', 'active')
         .order('start_time', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+      if (error) {
+        console.error('UseFastingSession: Error loading session:', error);
+        throw error;
+      }
 
+      console.log('UseFastingSession: Loaded session:', data);
       setCurrentSession(data as FastingSession || null);
     } catch (error) {
       console.error('Error loading active session:', error);
+      setCurrentSession(null);
     } finally {
       setLoading(false);
     }
