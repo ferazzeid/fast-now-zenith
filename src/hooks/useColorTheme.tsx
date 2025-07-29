@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 
 interface ColorSettings {
   primary_color?: string;
@@ -11,7 +10,6 @@ interface ColorSettings {
 export const useColorTheme = () => {
   const [colorSettings, setColorSettings] = useState<ColorSettings>({});
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
   const loadColors = async () => {
     try {
@@ -110,7 +108,7 @@ export const useColorTheme = () => {
     // Apply default colors immediately to prevent flash
     applyDefaultColors();
     loadColors();
-  }, [user]);
+  }, []); // Remove user dependency since color settings are shared/global
 
   return { colorSettings, loading, loadColors, applyColors };
 };
