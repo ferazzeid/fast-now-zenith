@@ -246,19 +246,23 @@ export const useDailyDeficit = () => {
 
   // Real-time calculation - recalculate every 60 seconds if walking is active
   useEffect(() => {
+    console.log('Deficit calculation effect triggered:', { profile: !!profile, user: !!user });
     if (profile && user) {
+      console.log('Calling calculateDeficit...');
       calculateDeficit();
       
       // Set up interval for active walking sessions only - less frequent updates for better performance
       if (walkingSession?.session_state === 'active') {
+        console.log('Setting up interval for active walking session');
         const interval = setInterval(() => {
+          console.log('Interval triggered - recalculating deficit');
           calculateDeficit();
         }, 60000); // 60 seconds for better performance while maintaining accuracy
         
         return () => clearInterval(interval);
       }
     }
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, todayTotals.carbs, manualCalorieTotal, user?.id]);
+  }, [calculateDeficit]);
 
   // Only recalculate immediately when walking session starts/stops  
   useEffect(() => {

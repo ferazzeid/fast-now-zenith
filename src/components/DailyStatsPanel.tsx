@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info } from 'lucide-react';
+import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info, RotateCcw } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
@@ -135,6 +135,16 @@ export const DailyStatsPanel = () => {
               </span>
             </div>
             <div className="flex items-center space-x-2">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  refreshDeficit();
+                }}
+                className="p-1 hover:bg-accent rounded-full transition-colors"
+                title="Refresh data"
+              >
+                <RotateCcw className="w-4 h-4 text-muted-foreground hover:text-primary" />
+              </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
               <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
