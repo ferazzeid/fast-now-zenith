@@ -30,14 +30,39 @@ export const useSubscription = () => {
 
   const checkSubscription = async () => {
     if (!user || !session) {
+      console.log('UseSubscription: No user or session, setting defaults');
+      setSubscriptionData(prev => ({
+        ...prev,
+        subscribed: false,
+        subscription_status: 'free',
+        subscription_tier: 'free',
+        can_use_own_api_key: true,
+      }));
       setLoading(false);
       return;
     }
 
     try {
+      console.log('UseSubscription: Checking subscription for user:', user.id);
       // Check subscription status
       const { data: subData, error: subError } = await supabase.functions.invoke('check-subscription');
-      if (subError) throw subError;
+      if (subError) {
+        console.error('UseSubscription: Subscription check error:', subError);
+        // Don't throw on auth errors, just set defaults
+        if (subError.message?.includes('authentication') || subError.message?.includes('Session')) {
+          console.log('UseSubscription: Auth error, setting free defaults');
+          setSubscriptionData(prev => ({
+            ...prev,
+            subscribed: false,
+            subscription_status: 'free',
+            subscription_tier: 'free',
+            can_use_own_api_key: true,
+          }));
+          setLoading(false);
+          return;
+        }
+        throw subError;
+      }
 
       // Get user profile data
       const { data: profile, error: profileError } = await supabase
