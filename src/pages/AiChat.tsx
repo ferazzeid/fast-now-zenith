@@ -22,7 +22,7 @@ import { ImageUpload } from '@/components/ImageUpload';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
-import { ProfileCompletionBanner } from '@/components/ProfileCompletionBanner';
+import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -31,6 +31,7 @@ interface EnhancedMessage {
   timestamp: Date;
   audioEnabled?: boolean;
   isNotification?: boolean;
+  isProfileMessage?: boolean;
 }
 
 const AiChat = () => {
@@ -68,8 +69,15 @@ const AiChat = () => {
 
   console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
 
-  // Combine regular messages with notification messages
-  const allMessages = [...notificationMessages, ...messages];
+  // Combine regular messages with notification messages and add profile system message
+  const profileSystemMessage = profile && (!profile.weight || !profile.height || !profile.age) ? [{
+    role: 'system' as const,
+    content: 'Profile information needed',
+    timestamp: new Date(),
+    isProfileMessage: true,
+  }] : [];
+  
+  const allMessages = [...profileSystemMessage, ...notificationMessages, ...messages];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -464,10 +472,6 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
       <div className="flex flex-col h-screen pt-20"> {/* Reduced padding since we have the banner */}
         
-        {/* Profile Completion Banner */}
-        <div className="flex-shrink-0 pt-4">
-          <ProfileCompletionBanner />
-        </div>
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">
@@ -520,62 +524,78 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         {/* Messages - Flexible height with proper spacing */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
           <div className="max-w-md mx-auto space-y-4">
-            {allMessages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <Card className={`max-w-[85%] p-4 ${
-                  message.role === 'user' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : (message as EnhancedMessage).isNotification
-                      ? 'bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800'
-                      : 'bg-muted'
-                }`}>
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1">
-                      {(message as EnhancedMessage).isNotification && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
-                            Information Needed
-                          </span>
-                        </div>
-                      )}
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                      
-                      {/* Quick action buttons for notifications */}
-                      {(message as EnhancedMessage).isNotification && (
-                        <div className="flex gap-2 mt-3">
-                          <Button 
-                            size="sm" 
-                            onClick={() => setInputMessage("I am ")}
-                            className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300"
-                          >
-                            Tell You Now
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => navigate('/settings')}
-                            className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
-                          >
-                            Go to Settings
-                          </Button>
-                        </div>
-                      )}
-                      
-                      <p className="text-xs opacity-70 mt-2">
-                        {message.timestamp.toLocaleTimeString()}
-                      </p>
-                    </div>
-                    {message.audioEnabled && message.role === 'assistant' && (
-                      <Volume2 className="h-4 w-4 opacity-70" />
-                    )}
+            {allMessages.map((message, index) => {
+              const enhancedMessage = message as EnhancedMessage & { isProfileMessage?: boolean };
+              
+              // Show ProfileSystemMessage for profile messages
+              if (enhancedMessage.isProfileMessage) {
+                return (
+                  <div key={index}>
+                    <ProfileSystemMessage onProfileUpdate={() => {
+                      // Force a re-render by clearing notification messages
+                      setNotificationMessages([]);
+                    }} />
                   </div>
-                </Card>
-              </div>
-            ))}
+                );
+              }
+              
+              return (
+                <div
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <Card className={`max-w-[85%] p-4 ${
+                    message.role === 'user' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : enhancedMessage.isNotification
+                        ? 'bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800'
+                        : 'bg-muted'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1">
+                        {enhancedMessage.isNotification && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                              Information Needed
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                        
+                        {/* Quick action buttons for notifications */}
+                        {enhancedMessage.isNotification && (
+                          <div className="flex gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              onClick={() => setInputMessage("I am ")}
+                              className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300"
+                            >
+                              Tell You Now
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => navigate('/settings')}
+                              className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                            >
+                              Go to Settings
+                            </Button>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs opacity-70 mt-2">
+                          {message.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                      {enhancedMessage.audioEnabled && message.role === 'assistant' && (
+                        <Volume2 className="h-4 w-4 opacity-70" />
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              );
+            })}
             
             {isProcessing && (
               <div className="flex justify-start">
