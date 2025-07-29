@@ -80,6 +80,7 @@ export type Database = {
       chat_conversations: {
         Row: {
           archived: boolean
+          conversation_type: string | null
           created_at: string
           id: string
           last_message_at: string
@@ -90,6 +91,7 @@ export type Database = {
         }
         Insert: {
           archived?: boolean
+          conversation_type?: string | null
           created_at?: string
           id?: string
           last_message_at?: string
@@ -100,6 +102,7 @@ export type Database = {
         }
         Update: {
           archived?: boolean
+          conversation_type?: string | null
           created_at?: string
           id?: string
           last_message_at?: string

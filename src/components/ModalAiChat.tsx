@@ -25,6 +25,9 @@ interface ModalAiChatProps {
   context?: string;
   title?: string;
   systemPrompt?: string;
+  conversationType?: 'general' | 'crisis';
+  proactiveMessage?: string;
+  quickReplies?: string[];
 }
 
 export const ModalAiChat = ({ 
@@ -33,7 +36,10 @@ export const ModalAiChat = ({
   onResult, 
   context = '',
   title = 'AI Assistant',
-  systemPrompt = 'You are a helpful AI assistant.'
+  systemPrompt = 'You are a helpful AI assistant.',
+  conversationType = 'general',
+  proactiveMessage = '',
+  quickReplies = []
 }: ModalAiChatProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -65,15 +71,33 @@ export const ModalAiChat = ({
   }, []);
 
   useEffect(() => {
-    if (isOpen && context) {
-      // Add initial context message when modal opens with improved formatting
-      const contextMessage: Message = {
-        role: 'assistant',
-        content: context,
-        timestamp: new Date(),
-        audioEnabled: false
-      };
-      setMessages([contextMessage]);
+    if (isOpen) {
+      // Initialize messages array
+      const initialMessages: Message[] = [];
+      
+      // Add context message if provided
+      if (context) {
+        const contextMessage: Message = {
+          role: 'assistant',
+          content: context,
+          timestamp: new Date(),
+          audioEnabled: false
+        };
+        initialMessages.push(contextMessage);
+      }
+      
+      // For crisis conversations, add proactive message immediately
+      if (conversationType === 'crisis' && proactiveMessage) {
+        const proactiveMsg: Message = {
+          role: 'assistant',
+          content: proactiveMessage,
+          timestamp: new Date(),
+          audioEnabled: false
+        };
+        initialMessages.push(proactiveMsg);
+      }
+      
+      setMessages(initialMessages);
       setLastFoodSuggestion(null);
     } else if (!isOpen) {
       // Clear messages when modal closes
@@ -81,7 +105,7 @@ export const ModalAiChat = ({
       setShowEditForm(false);
       setLastFoodSuggestion(null);
     }
-  }, [isOpen, context]);
+  }, [isOpen, context, conversationType, proactiveMessage]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
     if (!apiKey.trim()) {
@@ -295,8 +319,25 @@ Then ask if they want to add it to their food log.`;
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
+                    {/* Crisis Quick Reply Buttons */}
+                    {conversationType === 'crisis' && message.role === 'assistant' && quickReplies.length > 0 && index === messages.length - 1 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {quickReplies.map((reply, replyIndex) => (
+                          <Button 
+                            key={replyIndex}
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleSendMessage(reply)}
+                            className="text-xs"
+                          >
+                            {reply}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                    
                     {/* Conditional confirmation buttons for food suggestions only */}
-                    {message.role === 'assistant' && containsFoodSuggestion(message.content) && (
+                    {conversationType === 'general' && message.role === 'assistant' && containsFoodSuggestion(message.content) && (
                       <div className="flex gap-2 mt-3">
                         <Button 
                           size="sm" 
