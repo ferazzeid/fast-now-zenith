@@ -14,12 +14,13 @@ export interface Message {
 export const useSingleConversation = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isProcessingMessage, setIsProcessingMessage] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   // Load the single conversation from database (non-archived)
   const loadConversation = async () => {
-    if (!user) return;
+    if (!user || isProcessingMessage) return;
     
     console.log('DEBUG: Loading conversation for user:', user.id);
     setLoading(true);
@@ -81,6 +82,7 @@ export const useSingleConversation = () => {
     if (!user) return false;
 
     console.log('DEBUG: addMessage called with:', message);
+    setIsProcessingMessage(true);
 
     try {
       // Update local state first for immediate display
@@ -148,6 +150,8 @@ export const useSingleConversation = () => {
         variant: "destructive",
       });
       return false;
+    } finally {
+      setIsProcessingMessage(false);
     }
   };
 
@@ -222,7 +226,7 @@ export const useSingleConversation = () => {
       console.log('DEBUG: No user, clearing messages');
       setMessages([]);
     }
-  }, [user]);
+  }, [user?.id]);
 
   return {
     messages,
