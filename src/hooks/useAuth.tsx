@@ -45,6 +45,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const cachedExpiry = localStorage.getItem('supabase.auth.expiry');
     const cachedUser = localStorage.getItem('supabase.auth.user');
     
+    console.log('DEBUG: Cache check', {
+      hasSession: !!cachedSession,
+      hasExpiry: !!cachedExpiry,
+      hasUser: !!cachedUser,
+      isExpired: cachedExpiry ? new Date().getTime() >= parseInt(cachedExpiry) : 'no expiry'
+    });
+    
     if (cachedSession && cachedExpiry && cachedUser && new Date().getTime() < parseInt(cachedExpiry)) {
       // Use cached session and set user immediately to prevent redirect
       try {
