@@ -358,8 +358,8 @@ const AiChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen pt-24"> {/* Increased top padding for deficit panel */}
+    <div className="h-[calc(100vh-80px)] bg-ceramic-base overflow-hidden">
+      <div className="flex flex-col h-full pt-16"> {/* Fixed: Proper spacing for header */}
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">

@@ -314,75 +314,60 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       return;
     }
 
-    let calories = parseFloat(manualEntryData.calories) || 0;
-    let carbs = parseFloat(manualEntryData.carbs) || 0;
-
-    // If calories or carbs are missing, get them from AI
-    if (calories === 0 || carbs === 0) {
-      try {
-        const { data, error } = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a nutrition expert. Provide nutritional information for foods. Return only a JSON object with calories_per_100g and carbs_per_100g as numbers.'
-              },
-              {
-                role: 'user',
-                content: `What are the calories and carbs per 100g for ${manualEntryData.name}? Return only JSON format: {"calories_per_100g": number, "carbs_per_100g": number}`
-              }
-            ]
-          }
-        });
-
-        if (data?.content) {
-          try {
-            const nutritionData = JSON.parse(data.content);
-            const servingGrams = parseFloat(manualEntryData.servingSize);
-            
-            if (calories === 0 && nutritionData.calories_per_100g) {
-              calories = (nutritionData.calories_per_100g * servingGrams) / 100;
-            }
-            if (carbs === 0 && nutritionData.carbs_per_100g) {
-              carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
-            }
-          } catch (parseError) {
-            console.error('Failed to parse AI nutrition response:', parseError);
-          }
+    try {
+      setLoading(true);
+      
+      // Use the new edge function for food entry
+      const response = await supabase.functions.invoke('add-food-entry', {
+        body: {
+          name: manualEntryData.name,
+          serving_size: parseFloat(manualEntryData.servingSize),
+          calories: parseFloat(manualEntryData.calories) || 0,
+          carbs: parseFloat(manualEntryData.carbs) || 0,
+          consumed: true
         }
-      } catch (error) {
-        console.error('Failed to get AI nutrition data:', error);
-      }
-    }
-
-    const result = await addFoodEntry({
-      name: manualEntryData.name,
-      calories: Math.round(calories * 100) / 100,
-      carbs: Math.round(carbs * 100) / 100,
-      serving_size: parseFloat(manualEntryData.servingSize),
-      consumed: false
-    });
-
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
       });
-    } else {
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to add food entry');
+      }
+
+      const enhancementMessage = response.data.ai_enhanced ? 
+        " (AI enhanced nutrition data)" : "";
+
       toast({
-        title: "Food added successfully!",
-        description: `${manualEntryData.name} has been added to your food plan`
+        title: "Food added successfully",
+        description: `${manualEntryData.name} has been added to your diary${enhancementMessage}`
+      });
+
+      // Reset form
+      setManualEntryData({
+        name: '',
+        servingSize: '',
+        calories: '',
+        carbs: ''
       });
       setShowManualEntry(false);
-      
-      // Save to personal library
+
+      // Refresh food entries
+      await loadTodayEntries();
+
+      // Save to personal library if not already there
       await saveToLibrary({
         name: manualEntryData.name,
         calories: parseFloat(manualEntryData.calories) || 0,
         carbs: parseFloat(manualEntryData.carbs) || 0,
         serving_size: parseFloat(manualEntryData.servingSize)
       });
+    } catch (error) {
+      console.error('Error adding food entry:', error);
+      toast({
+        variant: "destructive",
+        title: "Error adding food",
+        description: error.message || "Failed to add food entry"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -891,10 +876,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleSave} className="flex-1 h-12 text-base font-semibold">
-                <Save className="w-5 h-5 mr-2" />
-                Add to Today's List
-              </Button>
+                <Button onClick={handleSave} className="flex-1 h-12 text-base font-semibold">
+                  <Save className="w-5 h-5 mr-2" />
+                  Add to Food Plan
+                </Button>
               <Button 
                 variant="outline" 
                 onClick={() => {

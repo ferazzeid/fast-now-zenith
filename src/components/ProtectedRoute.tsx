@@ -72,9 +72,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return () => subscription.unsubscribe();
   }, [checkAuthentication, navigate]);
 
-  // Show loading screen while authentication is resolving
-  if (loading || !user) {
+  // Show loading screen only on initial authentication check
+  if (loading && !user) {
     return <LoadingSpinner />;
+  }
+
+  // If not authenticated, navigate to auth (don't show loading)
+  if (!user) {
+    return null;
   }
 
   return <>{children}</>;

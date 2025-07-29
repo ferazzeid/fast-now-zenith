@@ -126,17 +126,17 @@ const Timer = () => {
     if (!user) return { error: { message: "Not authenticated" } };
     
     try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          userMessage: "Start a new walking session",
-          context: "timer_management",
-          userId: user.id
-        }
+      const response = await supabase.functions.invoke('start-walking-session', {
+        body: { speed_mph: 3 }
       });
 
-      if (response.data?.session) {
-        setWalkingSession(response.data.session);
-        return { data: response.data.session };
+      if (response.data?.walking_session) {
+        setWalkingSession(response.data.walking_session);
+        toast({
+          title: "Walking session started",
+          description: "Your walking session has begun!"
+        });
+        return { data: response.data.walking_session };
       }
       return { error: { message: "Failed to start walking session" } };
     } catch (error) {
@@ -149,16 +149,16 @@ const Timer = () => {
     if (!user || !walkingSession) return { error: { message: "No active session" } };
     
     try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          userMessage: "End my current walking session",
-          context: "timer_management",
-          userId: user.id
-        }
+      const response = await supabase.functions.invoke('end-walking-session', {
+        body: { session_id: walkingSession.id }
       });
 
       if (response.data?.success) {
         setWalkingSession(null);
+        toast({
+          title: "Walking session ended",
+          description: "Your walking session has been completed!"
+        });
         return { data: response.data };
       }
       return { error: { message: "Failed to end walking session" } };
