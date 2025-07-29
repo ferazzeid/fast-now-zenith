@@ -25,15 +25,18 @@ export const AnimationProvider = ({ children }: AnimationProviderProps) => {
 
   const suspendAnimations = () => {
     setIsAnimationsSuspended(true);
-    // Add CSS to disable all animations
+    // Add targeted CSS to reduce animation interference without aggressive global rules
     const style = document.createElement('style');
     style.id = 'suspend-animations';
     style.textContent = `
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        transition-delay: 0ms !important;
+      .modal-root * {
+        animation-duration: 0.2s;
+        transition-duration: 0.2s;
+      }
+      .modal-root {
+        transform: translate3d(0, 0, 0);
+        will-change: transform;
+        backface-visibility: hidden;
       }
     `;
     document.head.appendChild(style);

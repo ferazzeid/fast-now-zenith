@@ -212,7 +212,14 @@ export const CrisisChatModal = ({
 
   const ChatInterface = () => (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] mt-4 flex flex-col p-0">
+      <DialogContent 
+        className="max-w-md mx-auto max-h-[90vh] mt-4 flex flex-col p-0"
+        style={{ 
+          transform: 'translate3d(0, 0, 0)',
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+          isolation: 'isolate'
+        }}>
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">Crisis Support</DialogTitle>
