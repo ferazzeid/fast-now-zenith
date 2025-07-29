@@ -234,6 +234,12 @@ If you can't extract valid information, set extracted to false and ask for clari
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
+    // Validate message before proceeding
+    if (!message || !message.trim()) {
+      console.error('sendToAI called with empty message:', message);
+      return;
+    }
+
     // Check for API key in both state and localStorage
     const currentApiKey = apiKey || localStorage.getItem('openai_api_key');
     if (!currentApiKey?.trim()) {
@@ -275,7 +281,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
-          message: `${contextString}${message}`,
+          message: message, // Send the message without concatenating context
           conversationHistory: [
             { role: 'system', content: systemPrompt },
             ...conversationHistory
@@ -379,6 +385,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
   const handleSendMessage = useCallback(async (presetMessage?: string) => {
     const messageToSend = presetMessage || inputMessage.trim();
+    console.log('handleSendMessage called with:', { presetMessage, inputMessage, messageToSend });
     if (!messageToSend || isProcessing) return;
 
     try {
@@ -414,7 +421,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         variant: "destructive"
       });
     }
-  }, [inputMessage, isProcessing, addMessage, isCrisisMode, notificationMessages.length, toast]);
+  }, [inputMessage, isProcessing, addMessage, isCrisisMode, notificationMessages.length, sendToAI, handleNotificationResponse]);
 
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
