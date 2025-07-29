@@ -121,52 +121,79 @@ export const useDailyDeficit = () => {
       console.log('Current walking session state:', walkingSession);
       console.log('Total calories from completed sessions:', totalCalories);
       
-      // FIXED: Only calculate active session if not already included in completed sessions
+      // Handle active session with throttling for very long sessions
       if (walkingSession?.session_state === 'active' && profile.weight) {
-        // Check if this session is already in the completed sessions list
-        const activeSessionInList = sessions.find(s => s.id === walkingSession.id);
-        
-        console.log('Active session check:', { 
-          activeSessionInList: !!activeSessionInList, 
-          walkingSessionId: walkingSession.id,
-          sessionState: walkingSession.session_state 
-        });
-        
-        if (!activeSessionInList) {
-          const currentDuration = (Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60);
-          // Subtract pause time for accurate calculation  
-          const pauseTimeMinutes = (walkingSession.total_pause_duration || 0) / 60;
-          const activeDuration = Math.max(0, currentDuration - pauseTimeMinutes);
+        try {
+          const activeSessionInList = sessions.find(s => s.id === walkingSession.id);
           
-          const speedMph = walkingSession.speed_mph || 3;
-          
-          // FIXED: Use same corrected MET values
-          const metValues: { [key: number]: number } = {
-            2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
-          };
-          const met = metValues[Math.round(speedMph)] || 3.2;
-          
-          // FIXED: Ensure weight conversion is consistent
-          let weightKg: number;
-          if (profile.units === 'metric') {
-            weightKg = profile.weight;
-          } else {
-            weightKg = profile.weight * 0.453592; // Convert lbs to kg
-          }
-          
-          const currentCalories = Math.round(met * weightKg * (activeDuration / 60));
-          totalCalories += currentCalories;
-          
-          console.log('Active session calories calculation:', {
-            currentDuration,
-            pauseTimeMinutes,
-            activeDuration,
-            speedMph,
-            met,
-            weightKg,
-            currentCalories,
-            totalCalories
+          console.log('Active session check:', { 
+            activeSessionInList: !!activeSessionInList, 
+            walkingSessionId: walkingSession.id,
+            sessionState: walkingSession.session_state 
           });
+          
+          if (!activeSessionInList) {
+            const currentTime = Date.now();
+            const startTime = new Date(walkingSession.start_time).getTime();
+            const currentDuration = (currentTime - startTime) / (1000 * 60); // in minutes
+            
+            // For very long sessions (>4 hours), use cached value with throttled updates
+            if (currentDuration > 240) { // 4 hours
+              const cacheKey = `walking_calories_${walkingSession.id}`;
+              const lastCalculationTime = sessionStorage.getItem(`${cacheKey}_time`);
+              const cachedCalories = sessionStorage.getItem(cacheKey);
+              
+              // Only recalculate every 2 minutes for very long sessions
+              if (lastCalculationTime && cachedCalories && 
+                  (currentTime - parseInt(lastCalculationTime)) < 120000) { // 2 minutes
+                console.log('Using cached calories for long session:', cachedCalories);
+                totalCalories += parseInt(cachedCalories);
+                return totalCalories;
+              }
+            }
+            
+            const pauseTimeMinutes = (walkingSession.total_pause_duration || 0) / 60;
+            const activeDuration = Math.max(0, currentDuration - pauseTimeMinutes);
+            
+            const speedMph = walkingSession.speed_mph || 3;
+            
+            const metValues: { [key: number]: number } = {
+              2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
+            };
+            const met = metValues[Math.round(speedMph)] || 3.2;
+            
+            let weightKg: number;
+            if (profile.units === 'metric') {
+              weightKg = profile.weight;
+            } else {
+              weightKg = profile.weight * 0.453592; // Convert lbs to kg
+            }
+            
+            const currentCalories = Math.round(met * weightKg * (activeDuration / 60));
+            totalCalories += currentCalories;
+            
+            // Cache the result for very long sessions
+            if (currentDuration > 240) {
+              const cacheKey = `walking_calories_${walkingSession.id}`;
+              sessionStorage.setItem(cacheKey, currentCalories.toString());
+              sessionStorage.setItem(`${cacheKey}_time`, currentTime.toString());
+            }
+            
+            console.log('Active session calories calculation:', {
+              currentDuration,
+              pauseTimeMinutes,
+              activeDuration,
+              speedMph,
+              met,
+              weightKg,
+              currentCalories,
+              totalCalories,
+              cached: currentDuration > 240
+            });
+          }
+        } catch (activeSessionError) {
+          console.error('Error calculating active session calories:', activeSessionError);
+          // Don't let active session calculation failure break the entire deficit calculation
         }
       }
       
@@ -194,59 +221,98 @@ export const useDailyDeficit = () => {
     setLoading(true);
     
     try {
-      // Calculate BMR using Mifflin-St Jeor equation (gender-neutral)
-      // Convert to metric for calculation if needed
-      let weightKg: number;
-      let heightCm: number;
-      
-      if (profile.units === 'metric') {
-        weightKg = profile.weight;
-        heightCm = profile.height;
-      } else {
-        weightKg = profile.weight * 0.453592; // Convert lbs to kg
-        heightCm = profile.height * 2.54; // Convert inches to cm
-      }
-      
-      const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
-      
-      // Use activity level from profile
-      const activityLevel = profile.activity_level || 'sedentary';
-      const multiplier = ACTIVITY_MULTIPLIERS[activityLevel as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
-      const tdee = Math.round(bmr * multiplier);
-      
-      // Get today's data
-      const caloriesConsumed = todayTotals.calories || 0;
-      const walkingCalories = await calculateWalkingCaloriesForDay();
-      const manualCalories = manualCalorieTotal || 0;
-      
-      // Calculate deficit: TDEE + Walking + Manual Activities - Food Consumed
-      const todayDeficit = tdee + walkingCalories + manualCalories - caloriesConsumed;
-      
-      console.log('Deficit calculation breakdown:', {
-        bmr,
-        tdee,
-        activityLevel,
-        multiplier,
-        caloriesConsumed,
-        walkingCalories,
-        manualCalories,
-        todayDeficit,
-        profile: { weight: profile.weight, height: profile.height, age: profile.age, units: profile.units }
+      // Add timeout protection for the entire deficit calculation
+      const timeoutPromise = new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('Deficit calculation timeout')), 15000); // 15 second timeout
       });
+
+      const calculationPromise = (async () => {
+        // Calculate BMR using Mifflin-St Jeor equation (gender-neutral)
+        // Convert to metric for calculation if needed
+        let weightKg: number;
+        let heightCm: number;
+        
+        if (profile.units === 'metric') {
+          weightKg = profile.weight;
+          heightCm = profile.height;
+        } else {
+          weightKg = profile.weight * 0.453592; // Convert lbs to kg
+          heightCm = profile.height * 2.54; // Convert inches to cm
+        }
+        
+        const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
+        
+        // Use activity level from profile
+        const activityLevel = profile.activity_level || 'sedentary';
+        const multiplier = ACTIVITY_MULTIPLIERS[activityLevel as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
+        const tdee = Math.round(bmr * multiplier);
+        
+        // Get today's data with error recovery
+        const caloriesConsumed = todayTotals.calories || 0;
+        
+        let walkingCalories = 0;
+        try {
+          walkingCalories = await calculateWalkingCaloriesForDay();
+        } catch (walkingError) {
+          console.error('Walking calorie calculation failed, using fallback:', walkingError);
+          // Use cached value if available
+          const lastKnownWalkingCalories = sessionStorage.getItem('last_walking_calories');
+          walkingCalories = lastKnownWalkingCalories ? parseInt(lastKnownWalkingCalories) : 0;
+        }
+        
+        // Cache successful walking calorie calculation
+        if (walkingCalories > 0) {
+          sessionStorage.setItem('last_walking_calories', walkingCalories.toString());
+        }
+        
+        const manualCalories = manualCalorieTotal || 0;
+        
+        // Calculate deficit: TDEE + Walking + Manual Activities - Food Consumed
+        const todayDeficit = tdee + walkingCalories + manualCalories - caloriesConsumed;
+        
+        console.log('Deficit calculation breakdown:', {
+          bmr,
+          tdee,
+          activityLevel,
+          multiplier,
+          caloriesConsumed,
+          walkingCalories,
+          manualCalories,
+          todayDeficit,
+          profile: { weight: profile.weight, height: profile.height, age: profile.age, units: profile.units }
+        });
+        
+        setDeficitData({
+          todayDeficit,
+          bmr,
+          tdee,
+          caloriesConsumed,
+          walkingCalories,
+          manualCalories,
+          activityLevel
+        });
+        
+        console.log('=== calculateDeficit COMPLETE ===');
+      })();
+
+      // Race between calculation and timeout
+      await Promise.race([calculationPromise, timeoutPromise]);
       
-      setDeficitData({
-        todayDeficit,
-        bmr,
-        tdee,
-        caloriesConsumed,
-        walkingCalories,
-        manualCalories,
-        activityLevel
-      });
-      
-      console.log('=== calculateDeficit COMPLETE ===');
     } catch (error) {
       console.error('Error calculating deficit:', error);
+      
+      // Provide fallback data on error
+      const fallbackData = {
+        todayDeficit: 0,
+        bmr: 0,
+        tdee: 0,
+        caloriesConsumed: todayTotals.calories || 0,
+        walkingCalories: 0,
+        manualCalories: manualCalorieTotal || 0,
+        activityLevel: profile.activity_level || 'sedentary'
+      };
+      
+      setDeficitData(fallbackData);
     } finally {
       console.log('Setting loading to false');
       setLoading(false);
