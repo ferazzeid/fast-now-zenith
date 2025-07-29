@@ -663,7 +663,14 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ask me anything about your health journey..."
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                onKeyDown={(e) => {
+                  console.log('DEBUG: Key pressed:', e.key, 'shiftKey:', e.shiftKey);
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('DEBUG: Enter pressed, calling handleSendMessage');
+                    handleSendMessage();
+                  }
+                }}
                 disabled={isProcessing}
                 className="flex-1 bg-ceramic-base border-ceramic-rim"
               />
@@ -676,7 +683,10 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
                 <Camera className="h-4 w-4" />
               </Button>
               <Button
-                onClick={() => handleSendMessage()}
+                onClick={() => {
+                  console.log('DEBUG: Send button clicked');
+                  handleSendMessage();
+                }}
                 disabled={!inputMessage.trim() || isProcessing}
                 size="default"
                 className="flex-shrink-0"
