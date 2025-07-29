@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { X, Camera } from 'lucide-react';
+import { X, Camera, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -19,8 +22,53 @@ interface ManualFoodEntryProps {
 }
 
 export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }: ManualFoodEntryProps) => {
+  const { session } = useAuth();
+  const [isAiFilling, setIsAiFilling] = useState(false);
+
   const updateField = (field: string, value: string) => {
     onDataChange({ ...data, [field]: value });
+  };
+
+  const handleAiFill = async () => {
+    if (!data.name || !data.servingSize) {
+      toast.error('Please enter food name and serving size first');
+      return;
+    }
+
+    setIsAiFilling(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: `Please provide the nutritional information for ${data.servingSize}g of ${data.name}. Return only the calories and carbs in grams as numbers. Format: calories: X, carbs: Y`
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      // Parse AI response to extract calories and carbs
+      const response = result.response;
+      const caloriesMatch = response.match(/calories?:\s*(\d+)/i);
+      const carbsMatch = response.match(/carbs?:\s*(\d+(?:\.\d+)?)/i);
+
+      if (caloriesMatch && carbsMatch) {
+        onDataChange({
+          ...data,
+          calories: caloriesMatch[1],
+          carbs: carbsMatch[1]
+        });
+        toast.success('Nutritional data filled by AI');
+      } else {
+        toast.error('Could not parse AI response. Please enter manually.');
+      }
+    } catch (error) {
+      console.error('AI fill error:', error);
+      toast.error('Failed to get AI suggestions. Please enter manually.');
+    } finally {
+      setIsAiFilling(false);
+    }
   };
 
   return (
@@ -65,9 +113,23 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
           {/* Optional but Helpful Fields */}
           <div className="pt-2 border-t border-border">
-            <p className="text-sm text-muted-foreground mb-3">
-              Optional (but helpful for accurate tracking):
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-muted-foreground">
+                Optional (but helpful for accurate tracking):
+              </p>
+              {data.name && data.servingSize && (
+                <Button
+                  onClick={handleAiFill}
+                  disabled={isAiFilling}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  {isAiFilling ? 'Filling...' : 'Fill with AI'}
+                </Button>
+              )}
+            </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div>
