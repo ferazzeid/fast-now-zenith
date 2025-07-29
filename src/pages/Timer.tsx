@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,13 +27,18 @@ const Timer = () => {
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
   
+  // Crisis modal static context state
+  const [crisisContext, setCrisisContext] = useState<string>('');
+  const [crisisSystemPrompt, setCrisisSystemPrompt] = useState<string>('');
+  const [crisisProactiveMessage, setCrisisProactiveMessage] = useState<string>('');
+  const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
+  
   const [walkingTime, setWalkingTime] = useState(0);
   
-  const { toast } = useToast();
-  const navigate = useNavigate();
   const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSession();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
+  const { toast } = useToast();
   const { settings: crisisSettings } = useCrisisSettings();
   const { 
     generateCrisisContext, 
@@ -284,9 +288,9 @@ const Timer = () => {
     }
   };
 
-  // Function to open SOS support page instead of modal
-  const openSOSSupport = () => {
-    // Generate context once when opening
+  // Function to open crisis modal with static context
+  const openCrisisModal = () => {
+    // Generate context once when opening modal
     const context = generateCrisisContext({
       fastType,
       timeElapsed,
@@ -298,15 +302,14 @@ const Timer = () => {
     const proactiveMessage = generateProactiveMessage();
     const quickReplies = generateQuickReplies();
     
-    // Navigate to SOS page with context
-    navigate('/sos-support', {
-      state: {
-        context,
-        systemPrompt,
-        proactiveMessage,
-        quickReplies
-      }
-    });
+    // Store in state
+    setCrisisContext(context);
+    setCrisisSystemPrompt(systemPrompt);
+    setCrisisProactiveMessage(proactiveMessage);
+    setCrisisQuickReplies(quickReplies);
+    
+    // Open modal
+    setShowCrisisModal(true);
   };
 
   return (
@@ -340,7 +343,7 @@ const Timer = () => {
               />
               {/* SOS Button - positioned relative to timer */}
               {isRunning && timeElapsed > (crisisSettings.triggerHours * 60 * 60) && (
-                <SOSButton onClick={openSOSSupport} />
+                <SOSButton onClick={openCrisisModal} />
               )}
             </>
           ) : (
@@ -383,9 +386,6 @@ const Timer = () => {
           </div>
         )}
 
-
-
-
         {/* REMOVED: Timer Direction Toggle moved to top-right of timer */}
       </div>
 
@@ -400,6 +400,15 @@ const Timer = () => {
         />
       )}
 
+      {/* Crisis Support Modal */}
+      <CrisisChatModal 
+        isOpen={showCrisisModal} 
+        onClose={() => setShowCrisisModal(false)}
+        context={crisisContext}
+        systemPrompt={crisisSystemPrompt}
+        proactiveMessage={crisisProactiveMessage}
+        quickReplies={crisisQuickReplies}
+      />
 
       {/* Stop Fast Confirmation Dialog */}
       <StopFastConfirmDialog
