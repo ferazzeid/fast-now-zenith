@@ -104,6 +104,11 @@ export const useNotificationSystem = () => {
   };
 
   const hasActiveNotifications = () => {
+    // Check for incomplete profile first
+    if (profile && (!profile.weight || !profile.height || !profile.age)) {
+      return true;
+    }
+    
     return notifications.length > 0;
   };
 

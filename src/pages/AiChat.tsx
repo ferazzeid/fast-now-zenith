@@ -22,6 +22,7 @@ import { ImageUpload } from '@/components/ImageUpload';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
+import { ProfileCompletionBanner } from '@/components/ProfileCompletionBanner';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -461,7 +462,12 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen pt-24"> {/* Increased top padding for deficit panel */}
+      <div className="flex flex-col h-screen pt-20"> {/* Reduced padding since we have the banner */}
+        
+        {/* Profile Completion Banner */}
+        <div className="flex-shrink-0 pt-4">
+          <ProfileCompletionBanner />
+        </div>
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">
@@ -582,7 +588,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
               </div>
             )}
             
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} data-messages-end />
           </div>
         </div>
 
