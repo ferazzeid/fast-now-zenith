@@ -10,6 +10,8 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  
+  console.log('DEBUG: ProtectedRoute render', { user: !!user, loading });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -19,6 +21,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Show proper loading spinner while checking auth
   if (loading) {
+    console.log('DEBUG: Showing loading spinner');
     return <LoadingSpinner />;
   }
 

@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     let mounted = true;
+    console.log('DEBUG: Auth initialization started, loading:', loading);
 
     // Check for cached session first to eliminate flash
     const cachedSession = localStorage.getItem('supabase.auth.token');
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Use cached session immediately to eliminate loading delay
       try {
         const userData = JSON.parse(cachedUser);
+        console.log('DEBUG: Using cached session, setting loading to false immediately');
         setUser(userData);
         setSession({ 
           access_token: cachedSession, 
@@ -59,6 +61,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // If cache is corrupted, continue with normal flow
         console.warn('Cache corrupted, proceeding with normal auth flow');
       }
+    } else {
+      console.log('DEBUG: No valid cache found, will show loading screen');
     }
 
     // Get initial session
