@@ -106,7 +106,11 @@ export const useNotificationSystem = () => {
   };
 
   const clearNotification = (notificationId: string) => {
-    dismissNotification(notificationId);
+    // Remove from dismissed notifications instead of adding to them
+    const newDismissed = new Set(dismissedNotifications);
+    newDismissed.delete(notificationId);
+    setDismissedNotifications(newDismissed);
+    saveDismissedNotifications(newDismissed);
   };
 
   const getHighPriorityNotifications = () => {
