@@ -13,6 +13,7 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useCrisisSettings } from '@/hooks/useCrisisSettings';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { useAuth } from '@/hooks/useAuth';
+import { useFastingSession } from '@/hooks/useFastingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { SOSButton } from '@/components/SOSButton';
 
@@ -34,7 +35,6 @@ const Timer = () => {
   const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
   
   const [walkingTime, setWalkingTime] = useState(0);
-  const [fastingSession, setFastingSession] = useState<any>(null);
   const [walkingSession, setWalkingSession] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   
@@ -42,6 +42,7 @@ const Timer = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { settings: crisisSettings } = useCrisisSettings();
+  const { currentSession: fastingSession, startFastingSession, endFastingSession } = useFastingSession();
   const { 
     generateCrisisContext, 
     generateSystemPrompt, 
@@ -51,76 +52,6 @@ const Timer = () => {
 
   const isRunning = !!fastingSession;
 
-  // AI-powered session management functions
-  const loadActiveSession = async () => {
-    if (!user) return;
-    setLoading(true);
-    
-    try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          userMessage: "Load my current active fasting and walking sessions",
-          context: "timer_management",
-          userId: user.id
-        }
-      });
-
-      if (response.data?.sessions) {
-        setFastingSession(response.data.sessions.fasting);
-        setWalkingSession(response.data.sessions.walking);
-      }
-    } catch (error) {
-      console.error('Error loading sessions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const startFastingSession = async (duration: number, customStartTime?: Date) => {
-    if (!user) return null;
-    
-    try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          userMessage: `Start a new fasting session with ${duration} seconds duration${customStartTime ? ` starting at ${customStartTime.toISOString()}` : ''}`,
-          context: "timer_management",
-          userId: user.id
-        }
-      });
-
-      if (response.data?.session) {
-        setFastingSession(response.data.session);
-        return response.data.session;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error starting fasting session:', error);
-      return null;
-    }
-  };
-
-  const endFastingSession = async () => {
-    if (!user || !fastingSession) return null;
-    
-    try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          userMessage: "End my current fasting session",
-          context: "timer_management", 
-          userId: user.id
-        }
-      });
-
-      if (response.data?.success) {
-        setFastingSession(null);
-        return response.data;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error ending fasting session:', error);
-      return null;
-    }
-  };
 
   const startWalkingSession = async () => {
     if (!user) return { error: { message: "Not authenticated" } };
@@ -168,10 +99,6 @@ const Timer = () => {
     }
   };
 
-  useEffect(() => {
-    console.log('Timer: Loading active session...');
-    loadActiveSession();
-  }, [user]);
 
   useEffect(() => {
     console.log('Timer: Fasting session changed:', fastingSession);
@@ -382,13 +309,10 @@ const Timer = () => {
       // Calculate the past start time
       const pastStartDateTime = new Date(`${startDate}T${startTime}`);
       
-      // Start the fast with the custom start time in the database
+      // Start the fast with the custom start time
       const result = await startFastingSession(duration, pastStartDateTime);
       
       if (result) {
-        // Load the session to get accurate timing
-        await loadActiveSession();
-        
         const now = new Date();
         const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
         const elapsedSeconds = Math.floor(timeDiffMs / 1000);
