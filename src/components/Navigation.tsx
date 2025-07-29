@@ -17,7 +17,6 @@ export const Navigation = () => {
   useEffect(() => {
     loadActiveSession();
   }, [loadActiveSession]);
-  const highPriorityNotifications = getHighPriorityNotifications();
 
   // Calculate fasting duration and status for badge
   const getFastingBadge = () => {
@@ -97,14 +96,14 @@ export const Navigation = () => {
                 <Icon className="w-5 h-5 mb-1" />
                 <span className="text-xs font-medium">{label}</span>
                 
-                {/* Notification badge for AI Chat - repositioned */}
+                 {/* Notification badge for AI Chat - repositioned */}
                 {hasNotification && (
                   <span className={`absolute top-1 right-3 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium ${
-                    highPriorityNotifications.some(n => n.type === 'profile_incomplete') 
+                    getHighPriorityNotifications().some(n => n.type === 'profile_incomplete') 
                       ? 'bg-amber-500 text-amber-50' 
                       : 'bg-red-500 text-white'
                   }`}>
-                    {highPriorityNotifications.length > 0 ? '!' : '●'}
+                    {getHighPriorityNotifications().length > 0 ? '!' : '●'}
                   </span>
                 )}
                 
