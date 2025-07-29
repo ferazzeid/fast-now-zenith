@@ -61,9 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   };
 
-  console.log('AuthProvider: Getting initial auth state');
   const initialState = getInitialAuthState();
-  console.log('AuthProvider: Initial state:', initialState);
   const [user, setUser] = useState<User | null>(initialState.user);
   const [session, setSession] = useState<Session | null>(initialState.session);
   const [loading, setLoading] = useState(initialState.loading);

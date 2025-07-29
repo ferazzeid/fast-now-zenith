@@ -17,9 +17,7 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Auth page: useEffect user =', !!user, 'authLoading =', authLoading);
     if (user && !authLoading) {
-      console.log('Auth page: Redirecting to home because user exists');
       navigate('/');
     }
   }, [user, authLoading, navigate]);
