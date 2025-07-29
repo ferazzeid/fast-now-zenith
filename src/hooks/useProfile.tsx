@@ -59,37 +59,83 @@ export const useProfile = () => {
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
+    console.log('DEBUG: Starting profile update with data:', updates);
     setLoading(true);
+    
     try {
+      // Validate updates before attempting to save
+      const validatedUpdates: any = { user_id: user.id };
+      
+      if (updates.age !== undefined) {
+        if (typeof updates.age !== 'number' || updates.age < 10 || updates.age > 120) {
+          throw new Error(`Invalid age: ${updates.age}. Must be between 10-120 years.`);
+        }
+        validatedUpdates.age = Math.round(updates.age);
+      }
+      
+      if (updates.weight !== undefined) {
+        if (typeof updates.weight !== 'number' || updates.weight < 20 || updates.weight > 500) {
+          throw new Error(`Invalid weight: ${updates.weight}. Must be between 20-500 kg.`);
+        }
+        validatedUpdates.weight = Math.round(updates.weight * 10) / 10; // Round to 1 decimal
+      }
+      
+      if (updates.height !== undefined) {
+        if (typeof updates.height !== 'number' || updates.height < 100 || updates.height > 250) {
+          throw new Error(`Invalid height: ${updates.height}. Must be between 100-250 cm.`);
+        }
+        validatedUpdates.height = Math.round(updates.height);
+      }
+      
+      // Add other fields without validation
+      Object.keys(updates).forEach(key => {
+        if (!['age', 'weight', 'height'].includes(key)) {
+          validatedUpdates[key] = updates[key as keyof UserProfile];
+        }
+      });
+
+      console.log('DEBUG: Validated updates:', validatedUpdates);
+
       const result = await executeWithRetry(async () => {
         return await supabase
           .from('profiles')
-          .upsert({
-            user_id: user.id,
-            ...updates,
-          })
+          .upsert(validatedUpdates)
           .select()
           .single();
       });
       
       const { data, error } = result;
+      console.log('DEBUG: Database result:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('DEBUG: Database error details:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from database update');
+      }
 
       setProfile(data);
+      console.log('DEBUG: Profile updated successfully:', data);
+      
       toast({
-        title: "Profile updated",
-        description: "Your profile has been saved successfully."
+        title: "Profile updated successfully!",
+        description: `Updated: ${Object.keys(validatedUpdates).filter(k => k !== 'user_id').join(', ')}`
       });
+      
       return { data, error: null };
     } catch (error: any) {
-      console.error('Error updating profile:', error);
+      console.error('DEBUG: Profile update failed:', error);
+      const errorMessage = error.message || 'Unknown error occurred';
+      
       toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Unable to save profile. Please try again."
+        variant: "destructive", 
+        title: "Profile update failed",
+        description: errorMessage
       });
-      return { error, data: null };
+      
+      return { error: { message: errorMessage }, data: null };
     } finally {
       setLoading(false);
     }

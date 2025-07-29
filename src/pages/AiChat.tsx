@@ -126,10 +126,12 @@ From their message "${message}", extract any profile information and respond in 
   "confirmation": "confirmation message for the user"
 }
 
-Validation rules:
-- Age: 10-120 years
-- Weight: 20-500 kg (convert lbs to kg if needed: divide by 2.2)
-- Height: 100-250 cm (convert feet/inches to cm if needed: feet*30.48 + inches*2.54)
+Rules for precise extraction:
+- Age: Extract just the number (10-120 years). Examples: "44Y" = 44, "I'm 25" = 25, "25 years old" = 25
+- Weight: Extract in kg (20-500 kg). Convert if needed: "150 lbs" = 68, "70kg" = 70  
+- Height: Extract in cm (100-250 cm). Convert if needed: "5'8\"" = 173, "175cm" = 175
+
+Be precise with numbers - don't add extra digits. "44Y" should be age 44, not 100.
 
 If you can't extract valid information, set extracted to false and ask for clarification.`;
 
@@ -160,18 +162,36 @@ If you can't extract valid information, set extracted to false and ask for clari
             if (extractedData.weight) updates.weight = extractedData.weight;
             if (extractedData.height) updates.height = extractedData.height;
             
-            console.log('DEBUG: Updating profile with AI-extracted data:', updates);
-            await updateProfile(updates);
+            console.log('DEBUG: Attempting to update profile with:', updates);
             
+            // Show what we're about to save
             await addMessage({
               role: 'assistant',
-              content: extractedData.confirmation || 'Great! I\'ve updated your profile information.',
+              content: `I extracted: ${Object.entries(updates).map(([key, value]) => `${key}: ${value}`).join(', ')}. Let me save this to your profile...`,
               timestamp: new Date()
             });
             
-            // Clear the notification
-            clearNotification('profile_incomplete');
-            setNotificationMessages([]);
+            const result = await updateProfile(updates);
+            
+            if (result.error) {
+              console.error('DEBUG: Profile update failed:', result.error);
+              await addMessage({
+                role: 'assistant',
+                content: `Sorry, I couldn't save your profile: ${result.error.message}. Please try again or check your Settings.`,
+                timestamp: new Date()
+              });
+            } else {
+              console.log('DEBUG: Profile update succeeded:', result.data);
+              await addMessage({
+                role: 'assistant',
+                content: extractedData.confirmation || 'Perfect! Your profile has been updated successfully.',
+                timestamp: new Date()
+              });
+              
+              // Only clear notification after successful update
+              clearNotification('profile_incomplete');
+              setNotificationMessages([]);
+            }
             
             return true;
           } else {
