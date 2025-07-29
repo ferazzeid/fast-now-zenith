@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
-import { useFastingSession } from '@/hooks/useFastingSession';
+import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -12,7 +12,7 @@ interface DailyDeficitData {
   tdee: number;
   caloriesConsumed: number;
   walkingCalories: number;
-  fastingBonus: number;
+  manualCalories: number;
   activityLevel: string;
 }
 
@@ -31,7 +31,7 @@ export const useDailyDeficit = () => {
     tdee: 0,
     caloriesConsumed: 0,
     walkingCalories: 0,
-    fastingBonus: 0,
+    manualCalories: 0,
     activityLevel: 'sedentary'
   });
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ export const useDailyDeficit = () => {
   const { profile } = useProfile();
   const { todayTotals } = useFoodEntries();
   const { currentSession: walkingSession } = useWalkingSession();
-  const { currentSession: fastingSession } = useFastingSession();
+  const { todayTotal: manualCalorieTotal } = useManualCalorieBurns();
   const { user } = useAuth();
 
   const calculateWalkingCaloriesForDay = useCallback(async () => {
@@ -158,13 +158,6 @@ export const useDailyDeficit = () => {
     }
   }, [user, profile?.weight, profile?.units, walkingSession]);
 
-  const calculateFastingBonus = useCallback(() => {
-    if (!fastingSession?.status || fastingSession.status !== 'active') return 0;
-    
-    // Simple fasting bonus: 5% increase in metabolic rate during active fast
-    const bmr = profile ? (10 * (profile.weight || 0) + 6.25 * (profile.height || 0) - 5 * (profile.age || 0) - 78) : 0;
-    return Math.round(bmr * 0.05);
-  }, [fastingSession, profile]);
 
   const calculateDeficit = useCallback(async () => {
     if (!profile?.weight || !profile?.height || !profile?.age) {
@@ -176,7 +169,19 @@ export const useDailyDeficit = () => {
     
     try {
       // Calculate BMR using Mifflin-St Jeor equation (gender-neutral)
-      const bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age - 78);
+      // Convert to metric for calculation if needed
+      let weightKg: number;
+      let heightCm: number;
+      
+      if (profile.units === 'metric') {
+        weightKg = profile.weight;
+        heightCm = profile.height;
+      } else {
+        weightKg = profile.weight * 0.453592; // Convert lbs to kg
+        heightCm = profile.height * 2.54; // Convert inches to cm
+      }
+      
+      const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
       
       // Use activity level from profile
       const activityLevel = profile.activity_level || 'sedentary';
@@ -186,10 +191,22 @@ export const useDailyDeficit = () => {
       // Get today's data
       const caloriesConsumed = todayTotals.calories || 0;
       const walkingCalories = await calculateWalkingCaloriesForDay();
-      const fastingBonus = calculateFastingBonus();
+      const manualCalories = manualCalorieTotal || 0;
       
-      // Calculate deficit: TDEE + Walking + Fasting Bonus - Food Consumed
-      const todayDeficit = tdee + walkingCalories + fastingBonus - caloriesConsumed;
+      // Calculate deficit: TDEE + Walking + Manual Activities - Food Consumed
+      const todayDeficit = tdee + walkingCalories + manualCalories - caloriesConsumed;
+      
+      console.log('Deficit calculation breakdown:', {
+        bmr,
+        tdee,
+        activityLevel,
+        multiplier,
+        caloriesConsumed,
+        walkingCalories,
+        manualCalories,
+        todayDeficit,
+        profile: { weight: profile.weight, height: profile.height, age: profile.age, units: profile.units }
+      });
       
       setDeficitData({
         todayDeficit,
@@ -197,7 +214,7 @@ export const useDailyDeficit = () => {
         tdee,
         caloriesConsumed,
         walkingCalories,
-        fastingBonus,
+        manualCalories,
         activityLevel
       });
     } catch (error) {
@@ -205,23 +222,23 @@ export const useDailyDeficit = () => {
     } finally {
       setLoading(false);
     }
-  }, [profile, todayTotals, calculateWalkingCaloriesForDay, calculateFastingBonus, user?.id]);
+  }, [profile, todayTotals, calculateWalkingCaloriesForDay, manualCalorieTotal, user?.id]);
 
-  // Real-time calculation - recalculate every 10 seconds if walking is active
+  // Real-time calculation - recalculate every 60 seconds if walking is active
   useEffect(() => {
     if (profile && user) {
       calculateDeficit();
       
-      // Set up interval for active walking sessions only - more frequent updates
+      // Set up interval for active walking sessions only - less frequent updates for better performance
       if (walkingSession?.session_state === 'active') {
         const interval = setInterval(() => {
           calculateDeficit();
-        }, 10000); // 10 seconds for better real-time accuracy
+        }, 60000); // 60 seconds for better performance while maintaining accuracy
         
         return () => clearInterval(interval);
       }
     }
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, todayTotals.carbs, fastingSession?.status, user?.id]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, todayTotals.carbs, manualCalorieTotal, user?.id]);
 
   // Only recalculate immediately when walking session starts/stops  
   useEffect(() => {

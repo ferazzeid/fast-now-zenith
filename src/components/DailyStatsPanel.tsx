@@ -212,14 +212,14 @@ export const DailyStatsPanel = () => {
                              <Info className="w-4 h-4 text-muted-foreground" />
                            </button>
                          </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Total calories burned today: Base Daily Burn + Walking + Fasting Bonus</p>
-                        </TooltipContent>
+                         <TooltipContent>
+                           <p>Total calories burned today: Base Daily Burn + Walking + Manual Activities</p>
+                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="text-lg font-bold text-primary">
-                      {formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.fastingBonus)} cal
-                    </div>
+                     <div className="text-lg font-bold text-primary">
+                       {formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)} cal
+                     </div>
                   </Card>
 
                   {/* Base Daily Burn (TDEE) */}
@@ -273,30 +273,30 @@ export const DailyStatsPanel = () => {
                   </Card>
                 </div>
 
-                {/* Fasting Bonus (if applicable) */}
-                {deficitData.fastingBonus > 0 && (
-                  <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-purple-500" />
-                        <span className="text-sm font-medium text-warm-text">Fasting Bonus</span>
-                         <Tooltip>
-                           <TooltipTrigger>
-                             <button className="p-2 hover:bg-accent rounded-md">
-                               <Info className="w-4 h-4 text-muted-foreground" />
-                             </button>
-                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p>5% metabolic boost while actively fasting</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <div className="text-sm font-bold text-purple-600 dark:text-purple-400">
-                        {formatNumber(deficitData.fastingBonus)} cal
-                      </div>
-                    </div>
-                  </Card>
-                )}
+                 {/* Manual Activities (if applicable) */}
+                 {deficitData.manualCalories > 0 && (
+                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center space-x-2">
+                         <Activity className="w-4 h-4 text-green-500" />
+                         <span className="text-sm font-medium text-warm-text">Manual Activities</span>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <button className="p-2 hover:bg-accent rounded-md">
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                              </button>
+                            </TooltipTrigger>
+                           <TooltipContent>
+                             <p>Calories burned from manually logged activities today</p>
+                           </TooltipContent>
+                         </Tooltip>
+                       </div>
+                       <div className="text-sm font-bold text-green-600 dark:text-green-400">
+                         {formatNumber(deficitData.manualCalories)} cal
+                       </div>
+                     </div>
+                   </Card>
+                 )}
 
                 {/* Manual Calorie Burn Addition */}
                 <div className="mt-4">
