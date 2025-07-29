@@ -111,18 +111,23 @@ You have access to the following functions to help users:
 4. delete_motivator - Remove motivational content
 5. start_walking_session - Start a walking session for the user
 6. add_food_entry - Add a food entry to the user's log
-${isAdmin ? '7. save_admin_note - Save notes about bugs, improvements, or observations (admin only)\n8. get_admin_notes - Retrieve all saved admin notes (admin only)' : ''}
+7. update_profile - Update user profile (weight, height, age, goals)
+8. get_user_profile - Get user profile information
+${isAdmin ? '9. save_admin_note - Save notes about bugs, improvements, or observations (admin only)\n10. get_admin_notes - Retrieve all saved admin notes (admin only)' : ''}
 
 You can help users with:
 - Fasting guidance and motivation
 - Starting and tracking walking sessions
 - Adding food entries to their log
+- Updating profile information (weight, height, age, calorie/carb goals)
+- Getting current profile information and calculating BMR
 - Creating, viewing, editing, and managing personalized motivational content
 - General nutrition advice and goal setting
 ${isAdmin ? '- Saving development notes and feedback (admin only)\n- Retrieving saved notes for review (admin only)' : ''}
 
 When users mention starting a walk or wanting to go for a walk, offer to start a walking session for them.
 When users provide food information or ask to log food, offer to add it to their food log.
+When users provide profile information like weight, height, age, or goals, use the update_profile function to save it.
 ${isAdmin ? 'When users say things like "save this to admin notes", "note for later", "add to notes", or similar phrases, use the save_admin_note function.\nWhen users ask to "show admin notes", "review notes", or "what notes do we have", use the get_admin_notes function.' : ''}
 Be supportive, encouraging, and provide practical advice. Keep responses concise but helpful.
 
@@ -293,6 +298,21 @@ Important: Always ask for confirmation before taking actions like starting walki
         parameters: {
           type: 'object',
           properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'update_profile',
+        description: 'Update user profile information like weight, height, age, and goals',
+        parameters: {
+          type: 'object',
+          properties: {
+            weight: { type: 'number', description: 'Weight in kg' },
+            height: { type: 'number', description: 'Height in cm' },
+            age: { type: 'number', description: 'Age in years' },
+            daily_calorie_goal: { type: 'number', description: 'Daily calorie goal' },
+            daily_carb_goal: { type: 'number', description: 'Daily carb goal in grams' }
+          },
           required: []
         }
       },
@@ -720,6 +740,47 @@ ${!profile?.weight || !profile?.height || !profile?.age ?
 }`;
             break;
 
+          case 'update_profile':
+            console.log('Updating user profile with args:', functionArgs);
+            
+            // Build update object from provided parameters
+            const profileUpdateData: any = {};
+            if (functionArgs.weight !== undefined) profileUpdateData.weight = functionArgs.weight;
+            if (functionArgs.height !== undefined) profileUpdateData.height = functionArgs.height;
+            if (functionArgs.age !== undefined) profileUpdateData.age = functionArgs.age;
+            if (functionArgs.daily_calorie_goal !== undefined) profileUpdateData.daily_calorie_goal = functionArgs.daily_calorie_goal;
+            if (functionArgs.daily_carb_goal !== undefined) profileUpdateData.daily_carb_goal = functionArgs.daily_carb_goal;
+            
+            if (Object.keys(profileUpdateData).length === 0) {
+              functionResult = 'No profile data provided to update.';
+            } else {
+              const { data: updatedProfile, error: profileUpdateError } = await supabase
+                .from('profiles')
+                .update(profileUpdateData)
+                .eq('user_id', userId)
+                .select()
+                .single();
+              
+              if (profileUpdateError) {
+                functionResult = `Error updating profile: ${profileUpdateError.message}`;
+              } else {
+                const updatedFields = Object.keys(profileUpdateData).map(key => {
+                  const value = profileUpdateData[key];
+                  switch(key) {
+                    case 'weight': return `Weight: ${value}kg`;
+                    case 'height': return `Height: ${value}cm`;
+                    case 'age': return `Age: ${value} years`;
+                    case 'daily_calorie_goal': return `Daily calorie goal: ${value} cal`;
+                    case 'daily_carb_goal': return `Daily carb goal: ${value}g`;
+                    default: return `${key}: ${value}`;
+                  }
+                }).join(', ');
+                
+                functionResult = `Profile updated successfully! Updated: ${updatedFields}`;
+              }
+            }
+            break;
+
           case 'calculate_bmr':
             const { weight, height, age, gender } = functionArgs;
             
@@ -986,6 +1047,7 @@ function getFriendlyFunctionFeedback(functionName: string, result: any): string 
     'toggle_food_consumption': '✅ Food consumption status updated!',
     'delete_food_entry': '🗑️ Food entry removed from your log!',
     'get_user_profile': '👤 Profile information retrieved.',
+    'update_profile': '✅ Profile updated successfully!',
     'calculate_bmr': '🔥 BMR calculated successfully!'
   };
   
@@ -1004,6 +1066,7 @@ function getFunctionErrorGuidance(functionName: string, error: any): string {
     'toggle_food_consumption': "I couldn't update the food consumption status. Please check if the food entry exists.",
     'delete_food_entry': "I couldn't remove the food entry. Please verify it exists in your log.",
     'get_user_profile': "I couldn't retrieve your profile. Please check your login status and try again.",
+    'update_profile': "I couldn't update your profile. Please check the information provided and try again.",
     'calculate_bmr': "I couldn't calculate your BMR. Please ensure all required information (weight, height, age, gender) is provided."
   };
   
