@@ -108,10 +108,10 @@ const AiChat = () => {
     if (profileNotification && notificationMessages.length > 0) {
       console.log('DEBUG: Processing profile notification response:', message);
       
-      // Try to extract profile information from the message with more flexible patterns
-      const weightMatch = message.match(/(?:weigh|weight|i\s+am).*?(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?|kg|kilos?|$)/i);
-      const heightMatch = message.match(/(?:height|tall|i\s+am).*?(\d+)\s*(?:(?:feet?|ft|')\s*)?(\d+)?\s*(?:inches?|in|"|cm|$)/i);
-      const ageMatch = message.match(/(?:age|old|i\s+am).*?(\d+)/i);
+      // Try to extract profile information from the message with more precise patterns
+      const weightMatch = message.match(/(?:weigh|weight|i\s+(?:am|weigh))\s*(?:about\s*)?(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?|kg|kilos?)?/i);
+      const heightMatch = message.match(/(?:height|tall|i\s+am)\s*(?:about\s*)?(\d+)\s*(?:(?:feet?|ft|')\s*)?(\d+)?\s*(?:inches?|in|"|cm)?/i);
+      const ageMatch = message.match(/(\d+)\s*(?:Y|years?|yrs?)\s*(?:old)?|(?:age|old|i\s+am)\s*(?:about\s*)?(\d+)/i);
       
       let updates: any = {};
       let extracted = false;
@@ -120,10 +120,15 @@ const AiChat = () => {
 
       if (weightMatch) {
         const weight = parseFloat(weightMatch[1]);
-        if (weight > 0 && weight < 1000) {
+        console.log('DEBUG: Weight parsing - weightMatch:', weightMatch, 'extracted weight:', weight);
+        
+        // Validate weight (20-500kg is reasonable range)
+        if (weight >= 20 && weight <= 500) {
           updates.weight = weight;
           extracted = true;
-          console.log('DEBUG: Extracted weight:', weight);
+          console.log('DEBUG: Extracted valid weight:', weight);
+        } else {
+          console.log('DEBUG: Weight rejected - outside valid range (20-500kg):', weight);
         }
       }
 
@@ -141,19 +146,32 @@ const AiChat = () => {
           heightInCm = feet;
         }
         
-        if (heightInCm > 0 && heightInCm < 300) {
+        console.log('DEBUG: Height parsing - heightMatch:', heightMatch, 'calculated height:', heightInCm);
+        
+        // Validate height (100-250cm is reasonable range)
+        if (heightInCm >= 100 && heightInCm <= 250) {
           updates.height = heightInCm;
           extracted = true;
-          console.log('DEBUG: Extracted height:', heightInCm, 'cm');
+          console.log('DEBUG: Extracted valid height:', heightInCm, 'cm');
+        } else {
+          console.log('DEBUG: Height rejected - outside valid range (100-250cm):', heightInCm);
         }
       }
 
       if (ageMatch) {
-        const age = parseInt(ageMatch[1]);
-        if (age > 0 && age < 150) {
+        // ageMatch[1] might be from "44Y" pattern, ageMatch[2] from other patterns
+        const ageStr = ageMatch[1] || ageMatch[2];
+        const age = parseInt(ageStr);
+        
+        console.log('DEBUG: Age parsing - ageMatch:', ageMatch, 'extracted age:', age);
+        
+        // Validate age (10-120 years is reasonable range)
+        if (age >= 10 && age <= 120) {
           updates.age = age;
           extracted = true;
-          console.log('DEBUG: Extracted age:', age);
+          console.log('DEBUG: Extracted valid age:', age);
+        } else {
+          console.log('DEBUG: Age rejected - outside valid range (10-120):', age);
         }
       }
 
@@ -162,6 +180,17 @@ const AiChat = () => {
           console.log('DEBUG: Updating profile with:', updates);
           const result = await updateProfile(updates);
           console.log('DEBUG: Profile update result:', result);
+          
+          // Check if the update was successful
+          if (result.error) {
+            console.error('DEBUG: Profile update failed:', result.error);
+            await addMessage({
+              role: 'assistant',
+              content: `I had trouble saving that information: ${result.error.message}. Please try again or update your profile in Settings.`,
+              timestamp: new Date(),
+            });
+            return true;
+          }
           
           // Send confirmation message as regular message
           const confirmationContent = `Perfect! I've saved your information:${
@@ -191,7 +220,7 @@ const AiChat = () => {
           console.error('Error updating profile:', error);
           await addMessage({
             role: 'assistant',
-            content: 'I had trouble saving that information. Please try again or update your profile in Settings.',
+            content: `I encountered an error while saving your information: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or update your profile in Settings.`,
             timestamp: new Date(),
           });
         }
