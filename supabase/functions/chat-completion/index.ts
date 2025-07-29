@@ -104,8 +104,14 @@ Current user context: The user is using an app that helps them track fasting per
 
 Response Length: ${lengthInstruction}
 
+CRITICAL MOTIVATOR RULE: When users mention wanting motivation, motivators, inspiration, or quotes:
+- IMMEDIATELY ask "What motivational message would you like me to create?" 
+- Then use create_motivator function with their response
+- Do NOT ask about categories first - choose automatically based on context
+- Default to 'general' category if unclear
+
 You have access to the following functions to help users:
-1. create_motivator - Create personalized motivational content (ALWAYS use this when users mention motivation, inspiration, quotes, or want encouragement)
+1. create_motivator - Create personalized motivational content (USE IMMEDIATELY when users want motivation)
 2. get_user_motivators - View all your motivational content
 3. update_motivator - Edit existing motivational content  
 4. delete_motivator - Remove motivational content
