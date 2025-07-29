@@ -65,8 +65,6 @@ const AiChat = () => {
   const isCrisisMode = searchParams.get('crisis') === 'true';
   const crisisData = searchParams.get('data') ? JSON.parse(decodeURIComponent(searchParams.get('data')!)) : null;
 
-  console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
-
   // Combine regular messages with notification messages
   const allMessages = [...notificationMessages, ...messages];
 
@@ -94,14 +92,13 @@ const AiChat = () => {
     }
   }, [getAutoShowNotifications, profile, user]);
 
-  // Handle crisis mode initialization
+  // Handle crisis mode initialization - only once when entering crisis mode
   useEffect(() => {
-    if (isCrisisMode && crisisData && messages.length === 0) {
-      console.log('DEBUG: Initializing crisis conversation');
+    if (isCrisisMode && crisisData && messages.length === 0 && !isProcessing) {
       // Add crisis greeting message as a regular message that gets saved
       handleSendMessage(generateProactiveMessage());
     }
-  }, [isCrisisMode, crisisData, messages.length]);
+  }, [isCrisisMode, crisisData]); // Remove messages.length dependency to prevent loops
 
   // Handle notification responses with AI-powered extraction
   const handleNotificationResponse = async (message: string) => {
@@ -222,15 +219,22 @@ If you can't extract valid information, set extracted to false and ask for clari
   };
 
   useEffect(() => {
-    // Load API key from localStorage
+    // Load API key from localStorage and sync with state
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
+      // Close the dialog if a key is already present
+      setShowApiDialog(false);
+    } else {
+      // Only show dialog if no key exists and not in crisis mode (will be handled by SOS)
+      setShowApiDialog(false);
     }
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    if (!apiKey.trim()) {
+    // Check for API key in both state and localStorage
+    const currentApiKey = apiKey || localStorage.getItem('openai_api_key');
+    if (!currentApiKey?.trim()) {
       setShowApiDialog(true);
       return;
     }
@@ -276,7 +280,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
           ]
         },
         headers: {
-          'X-OpenAI-API-Key': apiKey
+          'X-OpenAI-API-Key': currentApiKey
         }
       });
 
@@ -386,11 +390,18 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         setInputMessage('');
       }
 
-      // Check if this is a notification response first
-      const wasNotificationResponse = await handleNotificationResponse(messageToSend);
-      
-      if (!wasNotificationResponse) {
+      // In crisis mode, handle quick responses directly as regular chat
+      // Don't intercept them with notification logic
+      if (isCrisisMode || !notificationMessages.length) {
         await sendToAI(messageToSend);
+      } else {
+        // Only check for notification responses if we have active notifications
+        // and we're not in crisis mode
+        const wasNotificationResponse = await handleNotificationResponse(messageToSend);
+        
+        if (!wasNotificationResponse) {
+          await sendToAI(messageToSend);
+        }
       }
     } catch (error) {
       console.error('Error handling message:', error);
