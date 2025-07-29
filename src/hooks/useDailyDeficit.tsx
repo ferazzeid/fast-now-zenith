@@ -43,12 +43,17 @@ export const useDailyDeficit = () => {
   const { user } = useAuth();
 
   const calculateWalkingCaloriesForDay = useCallback(async () => {
-    if (!user || !profile?.weight) return 0;
+    if (!user || !profile?.weight) {
+      console.log('Walking calc early return:', { user: !!user, weight: profile?.weight });
+      return 0;
+    }
     
     try {
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      
+      console.log('Fetching walking sessions for today:', { startOfDay, endOfDay });
       
       const { data: sessions } = await supabase
         .from('walking_sessions')
@@ -58,7 +63,12 @@ export const useDailyDeficit = () => {
         .lt('start_time', endOfDay.toISOString())
         .neq('status', 'deleted');
       
-      if (!sessions) return 0;
+      console.log('Found walking sessions:', sessions);
+      
+      if (!sessions) {
+        console.log('No sessions found');
+        return 0;
+      }
       
       let totalCalories = 0;
       
@@ -108,10 +118,19 @@ export const useDailyDeficit = () => {
         }
       }
       
+      console.log('Current walking session state:', walkingSession);
+      console.log('Total calories from completed sessions:', totalCalories);
+      
       // FIXED: Only calculate active session if not already included in completed sessions
       if (walkingSession?.session_state === 'active' && profile.weight) {
         // Check if this session is already in the completed sessions list
         const activeSessionInList = sessions.find(s => s.id === walkingSession.id);
+        
+        console.log('Active session check:', { 
+          activeSessionInList: !!activeSessionInList, 
+          walkingSessionId: walkingSession.id,
+          sessionState: walkingSession.session_state 
+        });
         
         if (!activeSessionInList) {
           const currentDuration = (Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60);
@@ -151,6 +170,7 @@ export const useDailyDeficit = () => {
         }
       }
       
+      console.log('Final walking calories total:', totalCalories);
       return totalCalories;
     } catch (error) {
       console.error('Error calculating walking calories:', error);
