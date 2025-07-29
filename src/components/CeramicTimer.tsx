@@ -177,7 +177,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               )}
               
               {isActive && (
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse mx-auto mt-2" />
+                <div className="w-2 h-2 bg-primary rounded-full mx-auto mt-2" />
               )}
             </div>
           </div>
