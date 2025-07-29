@@ -14,14 +14,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   console.log('DEBUG: ProtectedRoute render', { user: !!user, loading });
 
   useEffect(() => {
-    // Only redirect if we're absolutely sure there's no user after loading is complete
-    // Add a delay to ensure authentication has time to resolve from cache
+    // Only redirect if loading is completely done AND there's no user
+    // This prevents redirects while cached sessions are being restored
     if (!loading && !user) {
-      const timer = setTimeout(() => {
-        navigate('/auth');
-      }, 1000); // Give extra time for auth to resolve
-      
-      return () => clearTimeout(timer);
+      console.log('DEBUG: No user after loading complete, redirecting to auth');
+      navigate('/auth');
     }
   }, [user, loading, navigate]);
 

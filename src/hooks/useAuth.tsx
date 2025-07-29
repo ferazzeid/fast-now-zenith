@@ -46,21 +46,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const cachedUser = localStorage.getItem('supabase.auth.user');
     
     if (cachedSession && cachedExpiry && cachedUser && new Date().getTime() < parseInt(cachedExpiry)) {
-      // Use cached session but keep loading for a brief moment to show loading screen
+      // Use cached session and set user immediately to prevent redirect
       try {
         const userData = JSON.parse(cachedUser);
-        console.log('DEBUG: Using cached session, but keeping loading true briefly');
+        console.log('DEBUG: Using cached session, setting user immediately to prevent redirect');
         setUser(userData);
         setSession({ 
           access_token: cachedSession, 
           expires_at: parseInt(cachedExpiry) / 1000,
           user: userData 
         } as Session);
-        
-        // Keep loading for minimum 800ms to show loading screen
-        setTimeout(() => {
-          setLoading(false);
-        }, 800);
+        // Don't set loading to false yet - we'll do that after showing loading screen
       } catch (error) {
         // If cache is corrupted, continue with normal flow
         console.warn('Cache corrupted, proceeding with normal auth flow');
@@ -74,7 +70,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        
+        // Always show loading screen for minimum time for better UX
+        setTimeout(() => {
+          setLoading(false);
+        }, 800);
         
         // Cache session info for faster subsequent loads
         if (session) {
