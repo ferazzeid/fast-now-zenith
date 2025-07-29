@@ -134,6 +134,18 @@ serve(async (req) => {
     } else {
       OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
       if (!OPENAI_API_KEY) {
+        // For auth verification requests, return a simple success response
+        if (message === 'Verify my authentication status' || req.body?.action === 'verify_auth') {
+          logWithTimestamp('INFO', 'Auth verification request - returning success without OpenAI');
+          return new Response(JSON.stringify({ 
+            content: 'Authentication verified successfully',
+            authenticated: true,
+            user_id: userId,
+            processing_time: Date.now() - startTime
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         throw new Error('OpenAI API key not provided');
       }
       logWithTimestamp('DEBUG', 'Using system OpenAI API key');
