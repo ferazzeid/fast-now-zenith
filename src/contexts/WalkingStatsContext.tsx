@@ -102,7 +102,17 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 export const useWalkingStats = () => {
   const context = useContext(WalkingStatsContext);
   if (context === undefined) {
-    throw new Error('useWalkingStats must be used within a WalkingStatsProvider');
+    // Return default values instead of throwing an error
+    return {
+      walkingStats: {
+        realTimeCalories: 0,
+        realTimeDistance: 0,
+        timeElapsed: 0,
+        isActive: false,
+        isPaused: false,
+        currentSessionId: null
+      }
+    };
   }
   return context;
 };

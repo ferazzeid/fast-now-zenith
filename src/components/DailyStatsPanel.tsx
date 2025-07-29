@@ -9,6 +9,7 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { deficitData, loading, refreshDeficit } = useDailyDeficit();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -132,20 +133,27 @@ export const DailyStatsPanel = () => {
                 Today's Deficit:
               </span>
               <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                {(loading && deficitData.todayDeficit === 0) ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
+                {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
               </span>
             </div>
             <div className="flex items-center space-x-2">
               <button 
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation();
-                  console.log('Refresh button clicked!');
-                  refreshDeficit();
+                  setIsRefreshing(true);
+                  try {
+                    await refreshDeficit();
+                  } catch (error) {
+                    console.error('Refresh failed:', error);
+                  } finally {
+                    setIsRefreshing(false);
+                  }
                 }}
                 className="p-1 hover:bg-accent rounded-full transition-colors"
                 title="Refresh data"
+                disabled={isRefreshing}
               >
-                <RotateCcw className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                <RotateCcw className={`w-4 h-4 text-muted-foreground hover:text-primary transition-transform ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
               <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -182,7 +190,7 @@ export const DailyStatsPanel = () => {
                       </Tooltip>
                     </div>
                     <div className={`text-3xl font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                      {(loading && deficitData.todayDeficit === 0) ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
+                      {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {deficitData.todayDeficit > 0 ? 'Calorie deficit (weight loss)' : 'Calorie surplus (weight gain)'}

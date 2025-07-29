@@ -75,12 +75,24 @@ export const useDailyDeficit = () => {
 
   const calculateDeficit = useCallback(async () => {
     if (!profile?.weight || !profile?.height || !profile?.age) {
-      setDeficitData(prev => ({ ...prev, todayDeficit: 0, bmr: 0, tdee: 0 }));
+      setDeficitData(prev => ({ 
+        ...prev, 
+        todayDeficit: 0, 
+        bmr: 0, 
+        tdee: 0,
+        caloriesConsumed: todayTotals.calories || 0,
+        walkingCalories: 0,
+        manualCalories: manualCalorieTotal || 0,
+        activityLevel: profile?.activity_level || 'sedentary'
+      }));
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    // Only show loading when we have no data at all
+    if (deficitData.tdee === 0) {
+      setLoading(true);
+    }
     
     try {
       // Calculate BMR using Mifflin-St Jeor equation
@@ -162,9 +174,13 @@ export const useDailyDeficit = () => {
     }
   }, [walkingStats.isActive, walkingStats.isPaused, calculateDeficit]);
 
+  const refreshDeficit = useCallback(async () => {
+    await calculateDeficit();
+  }, [calculateDeficit]);
+
   return {
     deficitData,
     loading,
-    refreshDeficit: calculateDeficit
+    refreshDeficit
   };
 };
