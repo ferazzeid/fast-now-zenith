@@ -579,12 +579,18 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
                     key={index}
                     variant="outline"
                     size="sm"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
-                      console.log('DEBUG: Quick reply clicked', reply);
-                      handleSendMessage(reply);
+                      e.stopPropagation();
+                      console.log('DEBUG: Quick reply clicked:', reply);
+                      try {
+                        await handleSendMessage(reply);
+                      } catch (error) {
+                        console.error('Error sending quick reply:', error);
+                      }
                     }}
                     className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer"
+                    disabled={isProcessing}
                   >
                     {reply}
                   </Button>
