@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,13 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';  
-import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
-import { useArchivedConversations } from '@/hooks/useArchivedConversations';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 // Removed complex validation utilities - using simple localStorage
@@ -38,13 +35,312 @@ const Settings = () => {
   const [activityLevel, setActivityLevel] = useState('sedentary');
   const [units, setUnits] = useState<'metric' | 'imperial'>('imperial');
   const { toast } = useToast();
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const subscription = useSubscription();
-  const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
+  
+  // AI-centric state management
+  const [user, setUser] = useState(null);
+  const [subscription, setSubscription] = useState({
+    loading: false,
+    subscribed: false,
+    subscription_status: 'free',
+    requests_used: 0,
+    request_limit: 15,
+    free_requests_limit: 15,
+    createSubscription: () => {},
+    openCustomerPortal: () => {},
+    checkSubscription: () => {},
+    getUsageWarning: () => null
+  });
+  const [archivedConversations, setArchivedConversations] = useState([]);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
+  // AI-powered authentication management
+  const signOut = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Sign me out",
+          action: "sign_out"
+        }
+      });
+
+      if (error) throw error;
+
+      // Clear local state
+      setUser(null);
+      localStorage.removeItem('openai_api_key');
+      
+      // Redirect to auth page
+      navigate('/auth');
+      
+      toast({
+        title: "Signed out successfully",
+        description: "See you next time!"
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Fallback to direct supabase signout
+      await supabase.auth.signOut();
+      navigate('/auth');
+    }
+  }, [navigate, toast]);
+
+  // AI-powered subscription management
+  const createSubscription = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Create a premium subscription for me",
+          action: "create_subscription"
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.open(data.url, '_blank');
+        toast({
+          title: "Redirecting to checkout",
+          description: "Opening payment page..."
+        });
+      }
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create subscription. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  const openCustomerPortal = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Open my customer billing portal",
+          action: "open_customer_portal"
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open billing portal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  const checkSubscription = useCallback(async () => {
+    try {
+      setSubscription(prev => ({ ...prev, loading: true }));
+      
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Check my subscription status and usage",
+          action: "check_subscription"
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.subscription) {
+        setSubscription(prev => ({
+          ...prev,
+          loading: false,
+          subscribed: data.subscription.subscribed || false,
+          subscription_status: data.subscription.subscription_status || 'free',
+          requests_used: data.subscription.requests_used || 0,
+          request_limit: data.subscription.request_limit || 15,
+          free_requests_limit: data.subscription.free_requests_limit || 15,
+          createSubscription,
+          openCustomerPortal,
+          checkSubscription,
+          getUsageWarning: () => {
+            const percentage = (data.subscription.requests_used / data.subscription.request_limit) * 100;
+            if (percentage >= 100) {
+              return {
+                level: 'critical',
+                message: data.subscription.subscribed 
+                  ? 'Monthly limit reached. Upgrade limits in admin panel or use your own API key.'
+                  : 'Free requests used up. Upgrade to premium for 1,000 monthly requests.',
+              };
+            } else if (percentage >= 90) {
+              return {
+                level: 'warning',
+                message: `You've used ${data.subscription.requests_used} of ${data.subscription.request_limit} requests this month.`,
+              };
+            } else if (percentage >= 80) {
+              return {
+                level: 'info',
+                message: `You've used ${data.subscription.requests_used} of ${data.subscription.request_limit} requests this month.`,
+              };
+            }
+            return null;
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setSubscription(prev => ({ ...prev, loading: false }));
+    }
+  }, [createSubscription, openCustomerPortal]);
+
+  // AI-powered conversation management
+  const restoreConversation = useCallback(async (conversationId) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: `Restore archived conversation`,
+          action: "restore_conversation",
+          conversation_id: conversationId
+        }
+      });
+
+      if (error) throw error;
+
+      // Remove from archived list
+      setArchivedConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      toast({
+        title: "Conversation restored",
+        description: "You can now continue your chat"
+      });
+    } catch (error) {
+      console.error('Error restoring conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to restore conversation",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  const deleteArchivedConversation = useCallback(async (conversationId) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: `Delete archived conversation permanently`,
+          action: "delete_conversation",
+          conversation_id: conversationId
+        }
+      });
+
+      if (error) throw error;
+
+      // Remove from archived list
+      setArchivedConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been permanently removed"
+      });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  // AI-powered data loading
+  const loadUserData = useCallback(async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      setUser(authUser);
+
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Load my complete user profile, settings, and archived conversations",
+          action: "load_user_data"
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.profile) {
+        const profile = data.profile;
+        setUseOwnKey(profile.use_own_api_key ?? true);
+        setSpeechModel(profile.speech_model || 'gpt-4o-mini-realtime');
+        setTranscriptionModel(profile.transcription_model || 'whisper-1');
+        setTtsModel(profile.tts_model || 'tts-1');
+        setTtsVoice(profile.tts_voice || 'alloy');
+        setWeight(profile.weight?.toString() || '');
+        setHeight(profile.height?.toString() || '');
+        setAge(profile.age?.toString() || '');
+        setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
+        setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
+        setActivityLevel(profile.activity_level || 'sedentary');
+        setUnits((profile.units as 'metric' | 'imperial') || 'imperial');
+        
+        if (profile.openai_api_key) {
+          setOpenAiKey(profile.openai_api_key);
+        }
+      }
+
+      if (data.admin_role) {
+        setIsAdmin(data.admin_role);
+      }
+
+      if (data.archived_conversations) {
+        setArchivedConversations(data.archived_conversations);
+      }
+
+      // Update subscription state
+      if (data.subscription) {
+        setSubscription(prev => ({
+          ...prev,
+          subscribed: data.subscription.subscribed || false,
+          subscription_status: data.subscription.subscription_status || 'free',
+          requests_used: data.subscription.requests_used || 0,
+          request_limit: data.subscription.request_limit || 15,
+          free_requests_limit: data.subscription.free_requests_limit || 15,
+          createSubscription,
+          openCustomerPortal,
+          checkSubscription: () => checkSubscription(),
+          getUsageWarning: () => {
+            const percentage = (data.subscription.requests_used / data.subscription.request_limit) * 100;
+            if (percentage >= 100) {
+              return {
+                level: 'critical',
+                message: data.subscription.subscribed 
+                  ? 'Monthly limit reached. Upgrade limits in admin panel or use your own API key.'
+                  : 'Free requests used up. Upgrade to premium for 1,000 monthly requests.',
+              };
+            } else if (percentage >= 90) {
+              return {
+                level: 'warning',
+                message: `You've used ${data.subscription.requests_used} of ${data.subscription.request_limit} requests this month.`,
+              };
+            } else if (percentage >= 80) {
+              return {
+                level: 'info',
+                message: `You've used ${data.subscription.requests_used} of ${data.subscription.request_limit} requests this month.`,
+              };
+            }
+            return null;
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }, [createSubscription, openCustomerPortal, checkSubscription]);
+
+  // Load initial data when component mounts
   useEffect(() => {
     // Load saved API key from localStorage
     const savedApiKey = localStorage.getItem('openai_api_key');
@@ -52,53 +348,12 @@ const Settings = () => {
       setOpenAiKey(savedApiKey);
     }
 
-    const checkAdminRole = async () => {
-      if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
-        setIsAdmin(!!data);
-      }
-    };
+    // Load user data via AI
+    loadUserData();
+  }, [loadUserData]);
 
-    const fetchUserSettings = async () => {
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
-          .eq('user_id', user.id)
-          .single();
-
-        if (profile) {
-          setUseOwnKey(profile.use_own_api_key ?? true);
-          setSpeechModel(profile.speech_model || 'gpt-4o-mini-realtime');
-          setTranscriptionModel(profile.transcription_model || 'whisper-1');
-          setTtsModel(profile.tts_model || 'tts-1');
-          setTtsVoice(profile.tts_voice || 'alloy');
-          setWeight(profile.weight?.toString() || '');
-          setHeight(profile.height?.toString() || '');
-          setAge(profile.age?.toString() || '');
-          setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
-          setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
-          setActivityLevel(profile.activity_level || 'sedentary');
-          setUnits((profile.units as 'metric' | 'imperial') || 'imperial');
-          
-          // Load API key from database if available
-          if (profile.openai_api_key) {
-            setOpenAiKey(profile.openai_api_key);
-          }
-        }
-      }
-    };
-
-    checkAdminRole();
-    fetchUserSettings();
-  }, [user]);
-
-  const handleSaveSettings = async () => {
+  // AI-powered settings save
+  const handleSaveSettings = useCallback(async () => {
     try {
       // Simple validation for API key
       if (useOwnKey && openAiKey.trim()) {
@@ -117,53 +372,48 @@ const Settings = () => {
         localStorage.removeItem('openai_api_key');
       }
 
-      // Save user preferences to database
+      // Save user preferences via AI
       if (user) {
-        console.log('Saving settings for user:', user.id);
-        console.log('API key length:', openAiKey?.length || 0);
-        console.log('Use own key:', useOwnKey);
-        console.log('Will save openai_api_key as:', useOwnKey ? openAiKey : null);
-        
-        const { data, error } = await supabase
-          .from('profiles')
-          .update({
-            use_own_api_key: useOwnKey,
-            speech_model: speechModel,
-            transcription_model: transcriptionModel,
-            tts_model: ttsModel,
-            tts_voice: ttsVoice,
-            openai_api_key: useOwnKey ? openAiKey : null,
-            weight: weight ? parseFloat(weight) : null,
-            height: height ? parseInt(height) : null,
-            age: age ? parseInt(age) : null,
-            daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
-            daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-            activity_level: activityLevel,
-            units: units
-          })
-          .eq('user_id', user.id);
+        const settingsData = {
+          use_own_api_key: useOwnKey,
+          speech_model: speechModel,
+          transcription_model: transcriptionModel,
+          tts_model: ttsModel,
+          tts_voice: ttsVoice,
+          openai_api_key: useOwnKey ? openAiKey : null,
+          weight: weight ? parseFloat(weight) : null,
+          height: height ? parseInt(height) : null,
+          age: age ? parseInt(age) : null,
+          daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
+          daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
+          activity_level: activityLevel,
+          units: units
+        };
 
-        console.log('Update result:', { data, error });
+        const { data, error } = await supabase.functions.invoke('chat-completion', {
+          body: {
+            message: `Save my profile settings and preferences`,
+            action: "save_user_settings",
+            settings_data: settingsData
+          }
+        });
 
-        if (error) {
-          console.error('Settings save error:', error);
-          throw error;
-        }
+        if (error) throw error;
 
-        console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",
           description: useOwnKey ? "Using your own API key with selected models" : "Using shared service with selected models",
         });
       }
     } catch (error) {
+      console.error('Error saving settings:', error);
       toast({
         title: "Error",
         description: "Failed to save settings",
         variant: "destructive"
       });
     }
-  };
+  }, [user, useOwnKey, openAiKey, speechModel, transcriptionModel, ttsModel, ttsVoice, weight, height, age, dailyCalorieGoal, dailyCarbGoal, activityLevel, units, toast]);
 
   const handleClearApiKey = () => {
     setOpenAiKey('');
@@ -174,15 +424,17 @@ const Settings = () => {
     });
   };
 
-  const handleClearWalkingHistory = async () => {
+  // AI-powered walking history clearing
+  const handleClearWalkingHistory = useCallback(async () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('walking_sessions')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('deleted_at', null);
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          message: "Clear all my walking history",
+          action: "clear_walking_history"
+        }
+      });
 
       if (error) throw error;
 
@@ -198,7 +450,7 @@ const Settings = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [user, toast]);
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
@@ -756,27 +1008,25 @@ const Settings = () => {
                       onClick={async () => {
                         if (user) {
                           try {
-                            // Delete all user data
-                            await Promise.all([
-                              supabase.from('chat_conversations').delete().eq('user_id', user.id),
-                              supabase.from('motivators').delete().eq('user_id', user.id),
-                              supabase.from('food_entries').delete().eq('user_id', user.id),
-                              supabase.from('user_foods').delete().eq('user_id', user.id),
-                              supabase.from('fasting_sessions').delete().eq('user_id', user.id),
-                              supabase.from('walking_sessions').delete().eq('user_id', user.id),
-                              supabase.from('ai_usage_logs').delete().eq('user_id', user.id),
-                              supabase.from('profiles').update({
-                                weight: null,
-                                height: null,
-                                age: null,
-                                daily_calorie_goal: null,
-                                daily_carb_goal: null,
-                                activity_level: 'sedentary',
-                                monthly_ai_requests: 0,
-                                openai_api_key: null,
-                                use_own_api_key: false
-                              }).eq('user_id', user.id)
-                            ]);
+                            // AI-powered account reset
+                            const { data, error } = await supabase.functions.invoke('chat-completion', {
+                              body: {
+                                message: "Reset my account and delete all my data permanently",
+                                action: "reset_account"
+                              }
+                            });
+
+                            if (error) throw error;
+                            
+                            // Clear local state
+                            setWeight('');
+                            setHeight('');
+                            setAge('');
+                            setDailyCalorieGoal('');
+                            setDailyCarbGoal('');
+                            setActivityLevel('sedentary');
+                            setArchivedConversations([]);
+                            localStorage.removeItem('openai_api_key');
                             
                             toast({
                               title: "Account Reset Complete",
@@ -784,6 +1034,7 @@ const Settings = () => {
                               variant: "default",
                             });
                           } catch (error) {
+                            console.error('Error resetting account:', error);
                             toast({
                               title: "Error",
                               description: "Failed to reset account. Please try again.",
