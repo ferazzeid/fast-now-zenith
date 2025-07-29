@@ -93,21 +93,12 @@ const AiChat = () => {
 
   // Handle crisis mode initialization
   useEffect(() => {
-    if (isCrisisMode && crisisData) {
-      // Add crisis greeting message
-      const crisisMessage: EnhancedMessage = {
-        role: 'assistant',
-        content: generateProactiveMessage(),
-        timestamp: new Date(),
-      };
-      
-      addMessage({
-        role: 'assistant',
-        content: generateProactiveMessage(),
-        timestamp: new Date(),
-      });
+    if (isCrisisMode && crisisData && messages.length === 0) {
+      console.log('DEBUG: Initializing crisis conversation');
+      // Add crisis greeting message as a regular message that gets saved
+      handleSendMessage(generateProactiveMessage());
     }
-  }, [isCrisisMode, crisisData, generateProactiveMessage, addMessage]);
+  }, [isCrisisMode, crisisData, messages.length]);
 
   // Handle notification responses
   const handleNotificationResponse = async (message: string) => {
@@ -334,21 +325,30 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
     const messageToSend = presetMessage || inputMessage.trim();
     if (!messageToSend || isProcessing) return;
 
-    await addMessage({
-      role: 'user',
-      content: messageToSend,
-      timestamp: new Date()
-    });
+    try {
+      await addMessage({
+        role: 'user',
+        content: messageToSend,
+        timestamp: new Date()
+      });
 
-    if (!presetMessage) {
-      setInputMessage('');
-    }
+      if (!presetMessage) {
+        setInputMessage('');
+      }
 
-    // Check if this is a notification response first
-    const wasNotificationResponse = await handleNotificationResponse(messageToSend);
-    
-    if (!wasNotificationResponse) {
-      await sendToAI(messageToSend);
+      // Check if this is a notification response first
+      const wasNotificationResponse = await handleNotificationResponse(messageToSend);
+      
+      if (!wasNotificationResponse) {
+        await sendToAI(messageToSend);
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -401,12 +401,8 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
                 <span className="text-primary-foreground font-bold text-sm">AI</span>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-warm-text">
-                  {isCrisisMode ? 'Crisis Support' : 'AI Assistant'}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {isCrisisMode ? 'Emergency support for your fasting journey' : 'Here to help with your health journey'}
-                </p>
+                <h1 className="text-lg font-semibold text-warm-text">AI Assistant</h1>
+                <p className="text-xs text-muted-foreground">Here to help with your health journey</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
