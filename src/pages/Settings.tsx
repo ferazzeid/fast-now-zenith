@@ -343,32 +343,32 @@ const Settings = () => {
                           <SelectValue placeholder="Select your activity level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sedentary">
-                            <div className="flex flex-col">
+                          <SelectItem value="sedentary" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Sedentary</span>
                               <span className="text-xs text-muted-foreground">Little to no exercise</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="lightly_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="lightly_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Lightly Active</span>
                               <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="moderately_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="moderately_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Moderately Active</span>
                               <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="very_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="very_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Very Active</span>
                               <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="extremely_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="extremely_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Extremely Active</span>
                               <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
                             </div>

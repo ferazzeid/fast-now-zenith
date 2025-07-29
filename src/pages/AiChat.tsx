@@ -24,6 +24,8 @@ import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
+import { GoalSettingNotification } from '@/components/GoalSettingNotification';
+import { useGoalNotification } from '@/hooks/useGoalNotification';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -66,6 +68,7 @@ const AiChat = () => {
   const { createMotivator } = useMotivators();
   const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
   const { subscribed, can_use_own_api_key } = useSubscription();
+  const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
 
   // Check for crisis mode
   const isCrisisMode = searchParams.get('crisis') === 'true';
