@@ -89,7 +89,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] top-[50%] translate-y-[-50%] fixed">{/* Center the modal properly */}
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
         </DialogHeader>

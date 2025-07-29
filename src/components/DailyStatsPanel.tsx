@@ -104,8 +104,13 @@ export const DailyStatsPanel = () => {
     }
   }, [isExpanded]);
 
-  // Don't render anything on admin pages or when no food has been consumed
-  if (shouldHidePanel || deficitData.caloriesConsumed === 0) {
+  // Debug logging to understand why deficit panel isn't showing
+  console.log('DailyStatsPanel - shouldHidePanel:', shouldHidePanel);
+  console.log('DailyStatsPanel - deficitData:', deficitData);
+  console.log('DailyStatsPanel - caloriesConsumed:', deficitData.caloriesConsumed);
+  
+  // Don't render anything on admin pages, but show when we have profile data (even if no calories consumed yet)
+  if (shouldHidePanel) {
     return null;
   }
 
