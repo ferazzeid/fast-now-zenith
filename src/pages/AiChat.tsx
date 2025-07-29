@@ -399,20 +399,8 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         setInputMessage('');
       }
 
-      // Crisis mode takes absolute priority - bypass ALL notification handling
-      if (isCrisisMode) {
-        await sendToAI(messageToSend);
-      } else if (notificationMessages.length > 0) {
-        // Only check for notification responses when NOT in crisis mode
-        const wasNotificationResponse = await handleNotificationResponse(messageToSend);
-        
-        if (!wasNotificationResponse) {
-          await sendToAI(messageToSend);
-        }
-      } else {
-        // No notifications and not in crisis - send directly to AI
-        await sendToAI(messageToSend);
-      }
+      // Always send directly to AI - let the AI handle everything including profile information
+      await sendToAI(messageToSend);
     } catch (error) {
       console.error('Error handling message:', error);
       toast({
