@@ -9,11 +9,11 @@ import { CrisisChatModal } from '@/components/CrisisChatModal';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 
 import { useToast } from '@/hooks/use-toast';
-import { useFastingSession } from '@/hooks/useFastingSession';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useCrisisSettings } from '@/hooks/useCrisisSettings';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { SOSButton } from '@/components/SOSButton';
 
 const Timer = () => {
@@ -34,11 +34,13 @@ const Timer = () => {
   const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
   
   const [walkingTime, setWalkingTime] = useState(0);
+  const [fastingSession, setFastingSession] = useState<any>(null);
+  const [walkingSession, setWalkingSession] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   
-  const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSession();
-  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { settings: crisisSettings } = useCrisisSettings();
   const { 
     generateCrisisContext, 
@@ -49,10 +51,127 @@ const Timer = () => {
 
   const isRunning = !!fastingSession;
 
+  // AI-powered session management functions
+  const loadActiveSession = async () => {
+    if (!user) return;
+    setLoading(true);
+    
+    try {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          userMessage: "Load my current active fasting and walking sessions",
+          context: "timer_management",
+          userId: user.id
+        }
+      });
+
+      if (response.data?.sessions) {
+        setFastingSession(response.data.sessions.fasting);
+        setWalkingSession(response.data.sessions.walking);
+      }
+    } catch (error) {
+      console.error('Error loading sessions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startFastingSession = async (duration: number, customStartTime?: Date) => {
+    if (!user) return null;
+    
+    try {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          userMessage: `Start a new fasting session with ${duration} seconds duration${customStartTime ? ` starting at ${customStartTime.toISOString()}` : ''}`,
+          context: "timer_management",
+          userId: user.id
+        }
+      });
+
+      if (response.data?.session) {
+        setFastingSession(response.data.session);
+        return response.data.session;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error starting fasting session:', error);
+      return null;
+    }
+  };
+
+  const endFastingSession = async () => {
+    if (!user || !fastingSession) return null;
+    
+    try {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          userMessage: "End my current fasting session",
+          context: "timer_management", 
+          userId: user.id
+        }
+      });
+
+      if (response.data?.success) {
+        setFastingSession(null);
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error ending fasting session:', error);
+      return null;
+    }
+  };
+
+  const startWalkingSession = async () => {
+    if (!user) return { error: { message: "Not authenticated" } };
+    
+    try {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          userMessage: "Start a new walking session",
+          context: "timer_management",
+          userId: user.id
+        }
+      });
+
+      if (response.data?.session) {
+        setWalkingSession(response.data.session);
+        return { data: response.data.session };
+      }
+      return { error: { message: "Failed to start walking session" } };
+    } catch (error) {
+      console.error('Error starting walking session:', error);
+      return { error: { message: error.message } };
+    }
+  };
+
+  const endWalkingSession = async () => {
+    if (!user || !walkingSession) return { error: { message: "No active session" } };
+    
+    try {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          userMessage: "End my current walking session",
+          context: "timer_management",
+          userId: user.id
+        }
+      });
+
+      if (response.data?.success) {
+        setWalkingSession(null);
+        return { data: response.data };
+      }
+      return { error: { message: "Failed to end walking session" } };
+    } catch (error) {
+      console.error('Error ending walking session:', error);
+      return { error: { message: error.message } };
+    }
+  };
+
   useEffect(() => {
     console.log('Timer: Loading active session...');
     loadActiveSession();
-  }, [loadActiveSession]);
+  }, [user]);
 
   useEffect(() => {
     console.log('Timer: Fasting session changed:', fastingSession);
