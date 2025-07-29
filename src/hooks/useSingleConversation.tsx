@@ -31,9 +31,11 @@ export const useSingleConversation = () => {
         .eq('archived', false)
         .order('last_message_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.log('DEBUG: Query result:', { data, error });
+
+      if (error) {
         throw error;
       }
       
@@ -94,12 +96,14 @@ export const useSingleConversation = () => {
       console.log('DEBUG: Saving to database, total messages:', messagesForDb.length);
 
       // Check if conversation exists
-      const { data: existingConversation } = await supabase
+      const { data: existingConversation, error: queryError } = await supabase
         .from('chat_conversations')
         .select('id')
         .eq('user_id', user.id)
         .eq('archived', false)
-        .single();
+        .maybeSingle();
+
+      console.log('DEBUG: Existing conversation query result:', { existingConversation, queryError });
 
       if (existingConversation) {
         console.log('DEBUG: Updating existing conversation:', existingConversation.id);
