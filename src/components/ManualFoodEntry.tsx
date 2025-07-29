@@ -41,7 +41,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
-          message: `Please provide the nutritional information for ${data.servingSize}g of ${data.name}. Return only the calories and carbs in grams as numbers. Format: calories: X, carbs: Y`,
+          message: `Please provide the nutritional information per 100g for ${data.name}. Return only the calories and carbs per 100g as numbers. Format: calories: X, carbs: Y`,
           conversationHistory: []
         },
         headers: {
@@ -130,16 +130,16 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Nutritional Information */}
           <div className="pt-2 border-t border-border">
             <div className="mb-3">
-              <p className="text-sm font-medium mb-1">Nutritional Information</p>
+              <p className="text-sm font-medium mb-1">Nutritional Information (per 100g)</p>
               <p className="text-xs text-muted-foreground">
-                Enter manually from packaging or use AI to estimate:
+                Enter values per 100g from packaging or use AI to estimate:
               </p>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="calories" className="text-sm font-medium">
-                  Calories <span className="text-red-500">*</span>
+                  Calories (per 100g) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="calories"
@@ -154,7 +154,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
               <div>
                 <Label htmlFor="carbs" className="text-sm font-medium">
-                  Carbs (g) <span className="text-red-500">*</span>
+                  Carbs (per 100g) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="carbs"
@@ -186,11 +186,18 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
             <Button onClick={onSave} className="flex-1">
-              Add to Food Plan
+              Add to Food Plan & Library
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
+          </div>
+          
+          {/* Workflow Info */}
+          <div className="bg-muted/50 rounded-lg p-3 mt-2">
+            <p className="text-xs text-muted-foreground">
+              This will add {data.servingSize}g to your food plan and save nutritional data (per 100g) to your library for future use.
+            </p>
           </div>
         </div>
       </DialogContent>
