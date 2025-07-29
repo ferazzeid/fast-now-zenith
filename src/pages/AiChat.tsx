@@ -570,7 +570,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen pt-20"> {/* Reduced padding since we have the banner */}
+      <div className="flex flex-col h-screen pt-20">
         
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
@@ -622,7 +622,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
         </div>
 
         {/* Messages - Flexible height with proper spacing */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 min-h-0">
           <div className="max-w-md mx-auto space-y-4">
             {allMessages.map((message, index) => {
               const enhancedMessage = message as EnhancedMessage & { isProfileMessage?: boolean };
