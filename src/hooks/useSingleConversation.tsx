@@ -21,6 +21,7 @@ export const useSingleConversation = () => {
   const loadConversation = async () => {
     if (!user) return;
     
+    console.log('DEBUG: Loading conversation for user:', user.id);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -37,6 +38,7 @@ export const useSingleConversation = () => {
       }
       
       if (data) {
+        console.log('DEBUG: Found conversation with', data.messages ? 'messages' : 'no messages');
         // Transform the data to match our interface
         let conversationMessages: Message[] = [];
         try {
@@ -54,7 +56,11 @@ export const useSingleConversation = () => {
           timestamp: new Date(msg.timestamp)
         }));
         
+        console.log('DEBUG: Loaded', transformedMessages.length, 'messages from database');
         setMessages(transformedMessages);
+      } else {
+        console.log('DEBUG: No conversation found, starting fresh');
+        setMessages([]);
       }
     } catch (error) {
       console.error('Error loading conversation:', error);
@@ -72,8 +78,12 @@ export const useSingleConversation = () => {
   const addMessage = async (message: Message) => {
     if (!user) return false;
 
+    console.log('DEBUG: addMessage called with:', message);
+
     try {
+      // Update local state first for immediate display
       const updatedMessages = [...messages, message];
+      setMessages(updatedMessages);
       
       // Serialize messages with timestamps as ISO strings
       const messagesForDb = updatedMessages.map(msg => ({
@@ -81,14 +91,18 @@ export const useSingleConversation = () => {
         timestamp: msg.timestamp.toISOString()
       }));
 
+      console.log('DEBUG: Saving to database, total messages:', messagesForDb.length);
+
       // Check if conversation exists
       const { data: existingConversation } = await supabase
         .from('chat_conversations')
         .select('id')
         .eq('user_id', user.id)
+        .eq('archived', false)
         .single();
 
       if (existingConversation) {
+        console.log('DEBUG: Updating existing conversation:', existingConversation.id);
         // Update existing conversation
         const { error } = await supabase
           .from('chat_conversations')
@@ -100,6 +114,7 @@ export const useSingleConversation = () => {
 
         if (error) throw error;
       } else {
+        console.log('DEBUG: Creating new conversation');
         // Create new conversation
         const title = message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '');
         
@@ -115,11 +130,11 @@ export const useSingleConversation = () => {
         if (error) throw error;
       }
 
-      // Update local state
-      setMessages(updatedMessages);
+      console.log('DEBUG: Message saved successfully, local state updated');
       return true;
     } catch (error) {
       console.error('Error adding message:', error);
+      // If database save fails, still keep the local state for better UX
       toast({
         title: "Error",
         description: "Failed to save message",
