@@ -38,18 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Get initial session
+    // Get initial session first to reduce flash
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
         setSession(session);
@@ -57,6 +46,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoading(false);
       }
     });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          // Only set loading to false if we haven't already
+          if (loading) {
+            setLoading(false);
+          }
+        }
+      }
+    );
 
     return () => {
       mounted = false;

@@ -17,20 +17,20 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [user, loading, navigate]);
 
-  // Always render something consistent to avoid hooks order issues
+  // Improved loading state to reduce flash
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Instead of returning null, return a loading state or redirect immediately
+  // If no user, show minimal loading while navigating
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

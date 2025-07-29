@@ -1,6 +1,6 @@
 import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
@@ -12,18 +12,27 @@ export const Navigation = () => {
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
   const { isProfileComplete } = useProfile();
   const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Update time every second for real-time badges
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Load active session on mount
   useEffect(() => {
     loadActiveSession();
   }, [loadActiveSession]);
 
-  // Calculate fasting duration and status for badge
+  // Calculate fasting duration and status for badge - UPDATED FOR REAL-TIME
   const getFastingBadge = () => {
     if (!fastingSession || fastingSession.status !== 'active') return null;
-    const now = Date.now();
+    
     const startTime = new Date(fastingSession.start_time).getTime();
-    const elapsed = Math.floor((now - startTime) / 1000); // seconds
+    const elapsed = Math.floor((currentTime - startTime) / 1000); // seconds
     
     // Check if intermittent fasting and determine if in eating window
     const goalDuration = fastingSession.goal_duration_seconds || 0;
@@ -39,12 +48,27 @@ export const Navigation = () => {
         // Show eating window countdown
         const eatingStartTime = cyclePosition - goalDuration;
         const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
-        return { time: formatTime(eatingTimeRemaining), isEating: true };
+        return { 
+          time: formatTime(eatingTimeRemaining), 
+          isEating: true,
+          label: 'Eating'
+        };
+      } else {
+        // Show current fast progress
+        return { 
+          time: formatTime(cyclePosition), 
+          isEating: false,
+          label: 'Fasting'
+        };
       }
     }
     
-    // Regular fasting display
-    return { time: formatTime(elapsed), isEating: false };
+    // Regular fasting display - show elapsed time
+    return { 
+      time: formatTime(elapsed), 
+      isEating: false,
+      label: 'Fasting'
+    };
   };
 
   const fastingBadge = getFastingBadge();
@@ -107,9 +131,9 @@ export const Navigation = () => {
                   </span>
                 )}
                 
-                {/* Regular badge for timer items - colored based on eating status */}
+                {/* Regular badge for timer items - FIXED WIDTH to prevent shifting */}
                 {badge && (
-                  <div className={`absolute -top-1 -right-1 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[2rem] text-center ${
+                  <div className={`absolute -top-1 -right-1 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[3.5rem] text-center font-mono ${
                     badge === '!' 
                       ? 'bg-red-500' 
                       : isEating 
