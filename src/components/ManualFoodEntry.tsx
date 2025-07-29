@@ -152,21 +152,19 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               </div>
             </div>
 
-            {/* AI Fill Button - Positioned under the fields */}
-            {data.name && data.servingSize && (
-              <div className="mt-3 flex justify-center">
-                <Button
-                  onClick={handleAiFill}
-                  disabled={isAiFilling}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                >
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  {isAiFilling ? 'Estimating...' : 'Estimate with AI'}
-                </Button>
-              </div>
-            )}
+            {/* AI Fill Button - Always visible since both fields are required */}
+            <div className="mt-3 flex justify-center">
+              <Button
+                onClick={handleAiFill}
+                disabled={isAiFilling || !data.name || !data.servingSize}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                <Sparkles className="w-3 h-3 mr-1" />
+                {isAiFilling ? 'Estimating...' : 'Estimate with AI'}
+              </Button>
+            </div>
           </div>
 
           {/* Action Buttons */}
