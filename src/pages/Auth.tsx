@@ -6,13 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Loader2, Timer, Mountain } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +21,11 @@ const Auth = () => {
       navigate('/');
     }
   }, [user, navigate]);
+
+  // Show loading screen while auth is loading to prevent login form flash
+  if (authLoading) {
+    return <LoadingSpinner />;
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
