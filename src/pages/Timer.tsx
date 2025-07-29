@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
-import { ModalAiChat } from '@/components/ModalAiChat';
+import { CrisisChatModal } from '@/components/CrisisChatModal';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 
 import { useToast } from '@/hooks/use-toast';
@@ -370,11 +370,9 @@ const Timer = () => {
       )}
 
       {/* Crisis Support Modal */}
-      <ModalAiChat 
+      <CrisisChatModal 
         isOpen={showCrisisModal} 
         onClose={() => setShowCrisisModal(false)}
-        title="Crisis Support"
-        conversationType="crisis"
         context={generateCrisisContext({
           fastType,
           timeElapsed,

@@ -26,37 +26,19 @@ export const useCrisisConversation = () => {
       return `${hours}h ${minutes}m`;
     };
 
-    const activeMotivators = motivators.filter(m => m.is_active);
-    const hasMotivators = activeMotivators.length > 0;
+    // For intermittent fasting, cap time elapsed at goal duration and show today's progress
+    let displayTime = timeElapsed;
+    let displayProgress = progress;
+    let statusText = '';
 
-    // Build context based on fast type and progress
-    let contextParts = [
-      `I understand you're having a challenging moment during your fast. I'm here to help you work through this.`,
-      ``,
-      `Your Current Fast:`,
-      `• Type: ${fastType === 'intermittent' ? `Intermittent (${Math.floor(goalDuration / 3600)}h fast)` : `Extended Fast (${Math.floor(goalDuration / 3600)} hours)`}`,
-      `• Time Elapsed: ${formatTime(timeElapsed)}`,
-      `• Progress: ${Math.round(progress)}%`,
-    ];
-
-    if (isInEatingWindow) {
-      contextParts.push(`• Status: Currently in eating window`);
+    if (fastType === 'intermittent') {
+      displayTime = Math.min(timeElapsed, goalDuration);
+      statusText = isInEatingWindow ? 'Currently in eating window' : `Fasting for ${formatTime(displayTime)} today`;
+    } else {
+      statusText = `Extended fast: ${formatTime(displayTime)} elapsed`;
     }
 
-    if (hasMotivators) {
-      contextParts.push(
-        ``,
-        `Your Goals & Motivators:`,
-        ...activeMotivators.slice(0, 3).map(m => `• ${m.title}: ${m.content}`)
-      );
-    }
-
-    contextParts.push(
-      ``,
-      `Let's talk about what you're experiencing right now. What's making this moment particularly difficult?`
-    );
-
-    return contextParts.join('\n');
+    return statusText;
   }, [motivators]);
 
   const generateSystemPrompt = useCallback(() => {
@@ -110,20 +92,7 @@ Remember: This is a moment of vulnerability. Your goal is to help them through t
   }, [crisisSettings]);
 
   const generateProactiveMessage = useCallback(() => {
-    const messages = [
-      `I see you're looking for support right now. That takes courage, and I'm here to help you through this difficult moment.`,
-      
-      `What's going on? Are you:`,
-      `• About to break your fast?`,
-      `• Extremely hungry and unsure if you can continue?`,
-      `• Having mood swings or emotional difficulties?`,
-      `• Already ate something you regret?`,
-      `• Dealing with something else entirely?`,
-      
-      `Let me know what you're experiencing, and we'll work through this together.`
-    ];
-
-    return messages.join('\n\n');
+    return `I'm here to help you through this difficult moment. What's going on?`;
   }, []);
 
   const generateQuickReplies = useCallback(() => {
