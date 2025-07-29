@@ -46,6 +46,10 @@ export const useNotificationSystem = () => {
   // Generate notifications based on current state using useMemo to prevent infinite loops
   const notifications = useMemo(() => {
     if (!user) return [];
+    
+    console.log('DEBUG: Notification system check - user:', !!user);
+    console.log('DEBUG: Profile data:', profile);
+    console.log('DEBUG: isProfileComplete():', isProfileComplete());
 
     const currentNotifications: Notification[] = [];
 
@@ -55,6 +59,8 @@ export const useNotificationSystem = () => {
       if (!profile?.weight) missingFields.push('weight');
       if (!profile?.height) missingFields.push('height');
       if (!profile?.age) missingFields.push('age');
+
+      console.log('DEBUG: Missing profile fields:', missingFields);
 
       const profileNotification: Notification = {
         id: 'profile_incomplete',
@@ -80,11 +86,15 @@ export const useNotificationSystem = () => {
         },
       };
 
+      console.log('DEBUG: Dismissed notifications:', dismissedNotifications);
+      console.log('DEBUG: Should show profile notification:', !dismissedNotifications.has(profileNotification.id));
+
       if (!dismissedNotifications.has(profileNotification.id)) {
         currentNotifications.push(profileNotification);
       }
     }
 
+    console.log('DEBUG: Final notifications array:', currentNotifications);
     return currentNotifications;
   }, [user, profile, isProfileComplete, dismissedNotifications]);
 
