@@ -81,7 +81,7 @@ export const TodaysDashboard = () => {
     : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Daily Deficit Panel */}
       <DailyStatsPanel />
       

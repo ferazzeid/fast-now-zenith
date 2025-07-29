@@ -49,6 +49,30 @@ export const useNotificationSystem = () => {
 
     const currentNotifications: Notification[] = [];
 
+    // Check for OpenAI API key configuration issue
+    if (profile?.use_own_api_key && !profile?.openai_api_key) {
+      currentNotifications.push({
+        id: 'openai_key_missing',
+        type: 'profile_incomplete',
+        priority: 'high',
+        title: 'AI Features Disabled',
+        message: 'AI features require an OpenAI API key. Configure your API key in Settings → AI Configuration to enable voice chat, food analysis, and smart suggestions.',
+        actions: {
+          primary: {
+            label: 'Configure API Key',
+            action: 'navigate',
+            target: '/settings'
+          },
+          secondary: {
+            label: 'Dismiss',
+            action: 'dismiss'
+          }
+        },
+        autoShow: true,
+        persistent: true
+      });
+    }
+
     // Profile incomplete notification - ALWAYS show if profile is incomplete, ignore dismissals
     if (!isProfileComplete()) {
       const missingFields = [];

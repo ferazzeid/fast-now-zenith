@@ -15,6 +15,8 @@ interface UserProfile {
   display_name?: string;
   units?: 'metric' | 'imperial';
   activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  use_own_api_key?: boolean;
+  openai_api_key?: string;
 }
 
 export const useProfile = () => {
@@ -32,7 +34,7 @@ export const useProfile = () => {
       const result = await executeWithRetry(async () => {
         return await supabase
           .from('profiles')
-          .select('*')
+          .select('*, use_own_api_key, openai_api_key')
           .eq('user_id', user.id)
           .maybeSingle();
       });
