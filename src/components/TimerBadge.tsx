@@ -14,7 +14,7 @@ export const TimerBadge = ({ time, isEating = false, className = "" }: TimerBadg
         rounded-full 
         font-mono
         flex items-center justify-center
-        min-w-[56px] h-6
+        w-[72px] h-6
         whitespace-nowrap
         ${isEating ? 'bg-amber-500' : 'bg-green-500'}
         ${className}
