@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { SimpleImageUpload } from '@/components/SimpleImageUpload';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 
 // Enhanced Message interface to support notifications
@@ -64,6 +65,7 @@ const AiChat = () => {
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
   const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
+  const { subscribed, can_use_own_api_key } = useSubscription();
 
   // Check for crisis mode
   const isCrisisMode = searchParams.get('crisis') === 'true';
@@ -260,7 +262,11 @@ const AiChat = () => {
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    if (!apiKey.trim()) {
+    // Only show API dialog if:
+    // 1. No API key is configured AND
+    // 2. User doesn't have premium subscription AND 
+    // 3. User can't use their own API key (exceeded free limit)
+    if (!apiKey.trim() && !subscribed && !can_use_own_api_key) {
       setShowApiDialog(true);
       // Don't show error toast for missing API key - the dialog explains everything
       return;
@@ -773,25 +779,27 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
         {/* Input */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-4 flex-shrink-0">
           <div className="max-w-md mx-auto space-y-3">
-            {/* Crisis Quick Replies */}
+            {/* Crisis Quick Replies - Simplified */}
             {isCrisisMode && (
-              <div className="flex flex-wrap gap-2">
-                <div className="text-xs text-muted-foreground mb-2">Quick responses:</div>
-                {generateQuickReplies().map((reply, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      console.log('DEBUG: Quick reply clicked', reply);
-                      handleSendMessage(reply);
-                    }}
-                    className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer"
-                  >
-                    {reply}
-                  </Button>
-                ))}
+              <div className="space-y-2">
+                <div className="text-xs text-muted-foreground">Common responses:</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {generateQuickReplies().map((reply, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log('DEBUG: Quick reply clicked', reply);
+                        handleSendMessage(reply);
+                      }}
+                      className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer justify-start h-auto py-2 px-3"
+                    >
+                      {reply}
+                    </Button>
+                  ))}
+                </div>
               </div>
             )}
             {/* Text Input */}
