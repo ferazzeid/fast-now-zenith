@@ -15,6 +15,7 @@ import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { useAuth } from '@/hooks/useAuth';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { supabase } from '@/integrations/supabase/client';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { SOSButton } from '@/components/SOSButton';
 
 const Timer = () => {
@@ -35,7 +36,6 @@ const Timer = () => {
   const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
   
   const [walkingTime, setWalkingTime] = useState(0);
-  const [walkingSession, setWalkingSession] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
@@ -49,53 +49,40 @@ const Timer = () => {
     generateProactiveMessage, 
     generateQuickReplies 
   } = useCrisisConversation();
+  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
 
   const isRunning = !!fastingSession;
 
 
-  const startWalkingSession = async () => {
-    if (!user) return { error: { message: "Not authenticated" } };
-    
-    try {
-      const response = await supabase.functions.invoke('start-walking-session', {
-        body: { speed_mph: 3 }
+  const handleWalkingStart = async () => {
+    const result = await startWalkingSession(3);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
       });
-
-      if (response.data?.walking_session) {
-        setWalkingSession(response.data.walking_session);
-        toast({
-          title: "Walking session started",
-          description: "Your walking session has begun!"
-        });
-        return { data: response.data.walking_session };
-      }
-      return { error: { message: "Failed to start walking session" } };
-    } catch (error) {
-      console.error('Error starting walking session:', error);
-      return { error: { message: error.message } };
+    } else {
+      toast({
+        title: "Walking started",
+        description: "Your walking session has begun!"
+      });
     }
   };
 
-  const endWalkingSession = async () => {
-    if (!user || !walkingSession) return { error: { message: "No active session" } };
-    
-    try {
-      const response = await supabase.functions.invoke('end-walking-session', {
-        body: { session_id: walkingSession.id }
+  const handleWalkingStop = async () => {
+    const result = await endWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: result.error.message
       });
-
-      if (response.data?.success) {
-        setWalkingSession(null);
-        toast({
-          title: "Walking session ended",
-          description: "Your walking session has been completed!"
-        });
-        return { data: response.data };
-      }
-      return { error: { message: "Failed to end walking session" } };
-    } catch (error) {
-      console.error('Error ending walking session:', error);
-      return { error: { message: error.message } };
+    } else {
+      toast({
+        title: "Walking completed",
+        description: `Session completed! Calories burned: ${result.data?.calories_burned || 0}`
+      });
     }
   };
 
@@ -174,39 +161,6 @@ const Timer = () => {
     }
   };
 
-  const handleWalkingStart = async () => {
-    const result = await startWalkingSession();
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
-      toast({
-        title: "Walking started",
-        description: "Your walking session has begun!"
-      });
-    }
-  };
-
-  const handleWalkingStop = async () => {
-    if (!walkingSession) return;
-    
-    const result = await endWalkingSession();
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error", 
-        description: result.error.message
-      });
-    } else {
-      toast({
-        title: "Walking completed",
-        description: `Session completed! Calories burned: ${result.data?.calories_burned || 0}`
-      });
-    }
-  };
 
   const formatTimeFasting = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);

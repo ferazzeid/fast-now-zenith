@@ -6,7 +6,8 @@ import { WalkingHistory } from '@/components/WalkingHistory';
 import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
-import { supabase } from '@/integrations/supabase/client';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useProfile } from '@/hooks/useProfile';
 
 const Walking = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -14,189 +15,25 @@ const Walking = () => {
   const [realTimeCalories, setRealTimeCalories] = useState(0);
   const [realTimeDistance, setRealTimeDistance] = useState(0);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
-  const [currentSession, setCurrentSession] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [selectedSpeed, setSelectedSpeed] = useState(3);
-  const [isPaused, setIsPaused] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
+  
+  const { 
+    currentSession, 
+    loading, 
+    selectedSpeed, 
+    setSelectedSpeed, 
+    isPaused, 
+    startWalkingSession, 
+    pauseWalkingSession, 
+    resumeWalkingSession, 
+    endWalkingSession, 
+    updateSessionSpeed 
+  } = useWalkingSession();
+  
+  const { profile, isProfileComplete, calculateWalkingCalories } = useProfile();
 
   const isRunning = !!currentSession;
 
-  // AI-powered data loading
-  const loadActiveSession = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "Load my current active walking session and profile data",
-          action: "load_walking_data"
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.walking_session) {
-        setCurrentSession(data.walking_session);
-        setIsPaused(data.walking_session.status === 'paused');
-      }
-      
-      if (data.profile) {
-        setProfile(data.profile);
-      }
-    } catch (error) {
-      console.error('Error loading walking data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // AI-powered profile functions
-  const isProfileComplete = useCallback(() => {
-    return profile && profile.weight && profile.height && profile.age;
-  }, [profile]);
-
-  const calculateWalkingCalories = useCallback((durationMinutes: number, speedMph: number) => {
-    if (!profile?.weight) return 0;
-
-    const metValues: { [key: number]: number } = {
-      2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
-    };
-    const met = metValues[Math.round(speedMph)] || 3.2;
-
-    let weightKg: number;
-    if (profile.units === 'metric') {
-      weightKg = profile.weight;
-    } else {
-      weightKg = profile.weight * 0.453592;
-    }
-
-    const caloriesPerMinute = (met * weightKg) / 60;
-    return Math.round(caloriesPerMinute * durationMinutes);
-  }, [profile]);
-
-  // AI-powered session management
-  const startWalkingSession = useCallback(async (speedMph: number) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Start a walking session at ${speedMph} mph`,
-          action: "start_walking_session",
-          speed_mph: speedMph
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.walking_session) {
-        setCurrentSession(data.walking_session);
-        setIsPaused(false);
-        await loadActiveSession();
-      }
-
-      return { data: data.walking_session, error: null };
-    } catch (error) {
-      console.error('Error starting walking session:', error);
-      return { data: null, error };
-    }
-  }, [loadActiveSession]);
-
-  const pauseWalkingSession = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "Pause my current walking session",
-          action: "pause_walking_session",
-          session_id: currentSession?.id
-        }
-      });
-
-      if (error) throw error;
-
-      setIsPaused(true);
-      await loadActiveSession();
-      return { data: data.walking_session, error: null };
-    } catch (error) {
-      console.error('Error pausing walking session:', error);
-      return { data: null, error };
-    }
-  }, [currentSession?.id, loadActiveSession]);
-
-  const resumeWalkingSession = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "Resume my paused walking session",
-          action: "resume_walking_session",
-          session_id: currentSession?.id
-        }
-      });
-
-      if (error) throw error;
-
-      setIsPaused(false);
-      await loadActiveSession();
-      return { data: data.walking_session, error: null };
-    } catch (error) {
-      console.error('Error resuming walking session:', error);
-      return { data: null, error };
-    }
-  }, [currentSession?.id, loadActiveSession]);
-
-  const endWalkingSession = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: "End my current walking session",
-          action: "end_walking_session",
-          session_id: currentSession?.id,
-          duration_seconds: timeElapsed
-        }
-      });
-
-      if (error) throw error;
-
-      setCurrentSession(null);
-      setIsPaused(false);
-      setTimeElapsed(0);
-      setRealTimeCalories(0);
-      setRealTimeDistance(0);
-
-      return { data: data.walking_session, error: null };
-    } catch (error) {
-      console.error('Error ending walking session:', error);
-      return { data: null, error };
-    }
-  }, [currentSession?.id, timeElapsed]);
-
-  const updateSessionSpeed = useCallback(async (newSpeed: number) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          message: `Update my walking session speed to ${newSpeed} mph`,
-          action: "update_walking_speed",
-          session_id: currentSession?.id,
-          speed_mph: newSpeed
-        }
-      });
-
-      if (error) throw error;
-      await loadActiveSession();
-    } catch (error) {
-      console.error('Error updating session speed:', error);
-    }
-  }, [currentSession?.id, loadActiveSession]);
-
-  // Load initial data
-  useEffect(() => {
-    loadActiveSession();
-  }, [loadActiveSession]);
 
 
   useEffect(() => {
@@ -237,7 +74,12 @@ const Walking = () => {
   }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories, profile?.units]);
 
   const handleStart = async () => {
-    // Start walking session directly without blocking
+    // Check profile completeness first
+    if (!isProfileComplete()) {
+      setShowProfilePrompt(true);
+      return;
+    }
+
     const result = await startWalkingSession(selectedSpeed);
     if (result.error) {
       toast({
@@ -331,7 +173,7 @@ const Walking = () => {
             selectedSpeed={selectedSpeed}
             onSpeedChange={(newSpeed) => {
               setSelectedSpeed(newSpeed);
-              if (isRunning) {
+              if (currentSession) {
                 updateSessionSpeed(newSpeed);
               }
             }}
