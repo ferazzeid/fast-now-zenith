@@ -30,7 +30,7 @@ export const useSingleConversation = () => {
         .eq('archived', false)
         .order('last_message_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
         throw error;
@@ -81,22 +81,32 @@ export const useSingleConversation = () => {
         timestamp: msg.timestamp.toISOString()
       }));
 
-      // Check if conversation exists
-      const { data: existingConversation } = await supabase
+      // Check if conversation exists (and clean up duplicates if any)
+      const { data: existingConversations } = await supabase
         .from('chat_conversations')
-        .select('id')
+        .select('id, created_at')
         .eq('user_id', user.id)
-        .single();
+        .eq('archived', false)
+        .order('created_at', { ascending: false });
 
-      if (existingConversation) {
-        // Update existing conversation
+      if (existingConversations && existingConversations.length > 0) {
+        // If multiple conversations exist, keep the newest and delete others
+        if (existingConversations.length > 1) {
+          const conversationsToDelete = existingConversations.slice(1);
+          await supabase
+            .from('chat_conversations')
+            .delete()
+            .in('id', conversationsToDelete.map(conv => conv.id));
+        }
+
+        // Update the newest conversation
         const { error } = await supabase
           .from('chat_conversations')
           .update({
             messages: JSON.stringify(messagesForDb),
             last_message_at: new Date().toISOString()
           })
-          .eq('id', existingConversation.id);
+          .eq('id', existingConversations[0].id);
 
         if (error) throw error;
       } else {

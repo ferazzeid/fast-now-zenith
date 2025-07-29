@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
@@ -41,6 +41,7 @@ const AiChat = () => {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
+  const [crisisInitialized, setCrisisInitialized] = useState(false);
   const [searchParams] = useSearchParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -94,11 +95,12 @@ const AiChat = () => {
 
   // Handle crisis mode initialization - only once when entering crisis mode
   useEffect(() => {
-    if (isCrisisMode && crisisData && messages.length === 0 && !isProcessing) {
+    if (isCrisisMode && crisisData && messages.length === 0 && !isProcessing && !crisisInitialized) {
+      setCrisisInitialized(true);
       // Add crisis greeting message as a regular message that gets saved
       handleSendMessage(generateProactiveMessage());
     }
-  }, [isCrisisMode, crisisData]); // Remove messages.length dependency to prevent loops
+  }, [isCrisisMode, crisisData, messages.length, isProcessing, crisisInitialized, generateProactiveMessage]);
 
   // Handle notification responses with AI-powered extraction
   const handleNotificationResponse = async (message: string) => {
@@ -375,7 +377,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
     }
   };
 
-  const handleSendMessage = async (presetMessage?: string) => {
+  const handleSendMessage = useCallback(async (presetMessage?: string) => {
     const messageToSend = presetMessage || inputMessage.trim();
     if (!messageToSend || isProcessing) return;
 
@@ -411,7 +413,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         variant: "destructive"
       });
     }
-  };
+  }, [inputMessage, isProcessing, addMessage, isCrisisMode, notificationMessages.length, toast]);
 
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
