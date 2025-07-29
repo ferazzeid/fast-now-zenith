@@ -71,7 +71,8 @@ const AiChat = () => {
   console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
 
   // Combine regular messages with notification messages and add profile system message
-  const profileSystemMessage = profile && (!profile.weight || !profile.height || !profile.age) ? [{
+  const { isProfileComplete } = useProfile();
+  const profileSystemMessage = !isProfileComplete() ? [{
     role: 'system' as const,
     content: 'Profile information needed',
     timestamp: new Date(),
@@ -452,16 +453,56 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
     }
   };
 
-  const handleImageUpload = (imageUrl: string) => {
+  const handleImageUpload = async (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
     setShowImageUpload(false);
     
-    // Add a message about the uploaded image
-    addMessage({
-      role: 'user',
-      content: `I've uploaded an image: ${imageUrl}`,
-      timestamp: new Date()
-    });
+    try {
+      // Add a message showing the uploaded image
+      await addMessage({
+        role: 'user',
+        content: `![Uploaded Image](${imageUrl})`,
+        timestamp: new Date()
+      });
+
+      // Analyze the image automatically
+      setIsProcessing(true);
+      
+      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+        body: { imageUrl }
+      });
+
+      if (error) {
+        console.error('Image analysis error:', error);
+        await addMessage({
+          role: 'assistant',
+          content: 'I can see your image, but I had trouble analyzing it. Can you tell me what you\'d like to do with this image?',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Send analysis result to AI
+      const analysisText = `I analyzed your uploaded image and found: ${data.name || 'food item'}. 
+Estimated nutrition: ${data.calories || 'unknown'} calories${data.carbs ? `, ${data.carbs}g carbs` : ''}.
+Would you like me to add this to your food diary, save it to your food library, or is there something else you'd like to do with it?`;
+
+      await addMessage({
+        role: 'assistant',
+        content: analysisText,
+        timestamp: new Date()
+      });
+
+    } catch (error) {
+      console.error('Error handling image upload:', error);
+      await addMessage({
+        role: 'assistant',
+        content: 'I can see your image, but I had trouble analyzing it. Can you tell me what you\'d like to do with this image?',
+        timestamp: new Date()
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleClearChat = async () => {
@@ -583,7 +624,20 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
                             </span>
                           </div>
                         )}
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                        {/* Check if message contains an image */}
+                        {message.content.includes('![Uploaded Image](') ? (
+                          <div className="space-y-2">
+                            <img 
+                              src={message.content.match(/!\[Uploaded Image\]\((.*?)\)/)?.[1] || ''} 
+                              alt="Uploaded content" 
+                              className="max-w-full h-auto rounded-lg border border-border"
+                              style={{ maxHeight: '200px', objectFit: 'contain' }}
+                            />
+                            <p className="text-xs text-muted-foreground">Image uploaded</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                        )}
                         
                         {/* Quick action buttons for notifications */}
                         {enhancedMessage.isNotification && (
