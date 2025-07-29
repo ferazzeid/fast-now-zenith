@@ -774,11 +774,22 @@ const Settings = () => {
                               }).eq('user_id', user.id)
                             ]);
                             
+                            // Clear localStorage to remove any cached data
+                            localStorage.removeItem('openai_api_key');
+                            localStorage.removeItem('food_analysis_cache');
+                            localStorage.removeItem('walking_stats');
+                            localStorage.removeItem('fasting_context');
+                            
                             toast({
                               title: "Account Reset Complete",
-                              description: "All your data has been deleted. Your account is now fresh.",
+                              description: "All your data has been deleted. Reloading app to clear cache...",
                               variant: "default",
                             });
+                            
+                            // Force reload to clear all React state and caches
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 1500);
                           } catch (error) {
                             toast({
                               title: "Error",
