@@ -153,30 +153,29 @@ const Timer = () => {
   };
 
   const getDisplayTime = () => {
-    if (countDirection === 'up') {
-      // For intermittent fasting, show time within current cycle
-      if (fastType === 'intermittent') {
-        const totalCycleTime = fastDuration + eatingWindow;
-        const cyclePosition = timeElapsed % totalCycleTime;
-        return formatTimeFasting(cyclePosition);
-      }
-      return formatTimeFasting(timeElapsed);
-    } else {
+    if (fastType === 'intermittent') {
+      const totalCycleTime = fastDuration + eatingWindow;
+      const cyclePosition = timeElapsed % totalCycleTime;
+      
       if (isInEatingWindow) {
-        // For eating window countdown, show time remaining in eating window
-        const totalCycleTime = fastDuration + eatingWindow;
-        const cyclePosition = timeElapsed % totalCycleTime;
+        // Always show countdown for eating window
         const eatingStartTime = cyclePosition - fastDuration;
         const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
         return formatTimeFasting(eatingTimeRemaining);
       } else {
-        // For fasting countdown, show time remaining until fast goal
-        if (fastType === 'intermittent') {
-          const totalCycleTime = fastDuration + eatingWindow;
-          const cyclePosition = timeElapsed % totalCycleTime;
+        // For fasting phase, respect count direction
+        if (countDirection === 'up') {
+          return formatTimeFasting(cyclePosition);
+        } else {
           const remaining = Math.max(0, fastDuration - cyclePosition);
           return formatTimeFasting(remaining);
         }
+      }
+    } else {
+      // Long-term fasting logic unchanged
+      if (countDirection === 'up') {
+        return formatTimeFasting(timeElapsed);
+      } else {
         const remaining = Math.max(0, fastDuration - timeElapsed);
         return formatTimeFasting(remaining);
       }
@@ -196,9 +195,11 @@ const Timer = () => {
       const cyclePosition = timeElapsed % totalCycleTime;
       
       if (isInEatingWindow) {
+        // For eating window, show progress of eating time used
         const eatingStartTime = cyclePosition - fastDuration;
         return Math.min((eatingStartTime / eatingWindow) * 100, 100);
       } else {
+        // For fasting phase, show progress of current fast
         return Math.min((cyclePosition / fastDuration) * 100, 100);
       }
     } else {
@@ -293,7 +294,7 @@ const Timer = () => {
                 isActive={isRunning}
                 isEatingWindow={isInEatingWindow}
                 showSlideshow={true}
-                eatingWindowTimeRemaining={getEatingWindowTimeRemaining()}
+                eatingWindowTimeRemaining={null}
                 countDirection={countDirection}
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
                 fastType={fastType}

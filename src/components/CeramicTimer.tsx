@@ -146,8 +146,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 {isEatingWindow ? 'Eating Window' : 
                  isActive && fastType ? 
                    (fastType === 'intermittent' ? 
-                     `${Math.round((goalDuration || 0))}h / ${Math.round(24 - (goalDuration || 0))}h` : 
-                     'Water Fast') : 
+                     `${Math.round((goalDuration || 0))}h fast / ${Math.round(24 - (goalDuration || 0))}h eat` : 
+                     `${Math.round((goalDuration || 0))}h goal`) : 
                    isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
               
@@ -165,24 +165,10 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 {displayTime}
               </div>
               
-              {/* Goal Duration - Under timer */}
-              {isActive && goalDuration && (
-                <div className="text-sm text-muted-foreground font-medium">
-                  {Math.round(goalDuration)}h goal
-                </div>
-              )}
-              
-              {/* Progress Percentage - Clean display */}
-              {isActive && progress > 0 && (
+              {/* Progress Percentage - Only show during fasting phase for intermittent fasting */}
+              {isActive && progress > 0 && (fastType !== 'intermittent' || !isEatingWindow) && (
                 <div className="text-xs text-primary/70 font-medium">
                   {Math.max(1, Math.round(progress))}%
-                </div>
-              )}
-              
-              {/* Separate eating window countdown */}
-              {isEatingWindow && eatingWindowTimeRemaining && (
-                <div className="text-xs text-amber-600/70 font-medium">
-                  {eatingWindowTimeRemaining} left
                 </div>
               )}
               
