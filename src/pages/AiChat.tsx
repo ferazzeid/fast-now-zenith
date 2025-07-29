@@ -230,8 +230,7 @@ If you can't extract valid information, set extracted to false and ask for clari
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    // Only check API key for non-crisis mode or if it's genuinely missing
-    if (!isCrisisMode && !apiKey.trim()) {
+    if (!apiKey.trim()) {
       setShowApiDialog(true);
       return;
     }
