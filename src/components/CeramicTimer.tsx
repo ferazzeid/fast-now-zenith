@@ -212,7 +212,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
         {isActive && countDirection && onToggleCountDirection && (
           <button
             onClick={onToggleCountDirection}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-ceramic-base/80 hover:bg-ceramic-base border border-ceramic-rim flex items-center justify-center text-xs text-muted-foreground hover:text-warm-text transition-all duration-200 shadow-sm backdrop-blur-sm"
+            className="absolute top-4 w-8 h-8 rounded-full bg-ceramic-base/80 hover:bg-ceramic-base border border-ceramic-rim flex items-center justify-center text-xs text-muted-foreground hover:text-warm-text transition-all duration-200 backdrop-blur-sm"
+            style={{ right: '16px' }} // Align with SOS button
             title={countDirection === 'up' ? 'Switch to Countdown' : 'Switch to Count Up'}
           >
             {countDirection === 'up' ? '⬇' : '⬆'}
