@@ -17,10 +17,12 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
+    console.log('Auth page: useEffect user =', !!user, 'authLoading =', authLoading);
+    if (user && !authLoading) {
+      console.log('Auth page: Redirecting to home because user exists');
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   // Show loading screen while auth is loading to prevent login form flash
   if (authLoading) {
