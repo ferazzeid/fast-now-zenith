@@ -61,17 +61,13 @@ export const CrisisChatModal = ({
   }, []);
 
   useEffect(() => {
-    console.log('CrisisChatModal: isOpen changed to:', isOpen);
-    
     if (isOpen) {
       // Only initialize messages if they're currently empty to prevent re-initialization
       setMessages(prevMessages => {
         if (prevMessages.length > 0) {
-          console.log('CrisisChatModal: Messages already exist, not reinitializing');
           return prevMessages;
         }
         
-        console.log('CrisisChatModal: Initializing messages');
         const initialMessages: Message[] = [];
         
         // Add compact context message
@@ -99,7 +95,6 @@ export const CrisisChatModal = ({
         return initialMessages;
       });
     } else {
-      console.log('CrisisChatModal: Modal closed, clearing messages');
       setMessages([]);
       setInputMessage('');
       setIsProcessing(false);

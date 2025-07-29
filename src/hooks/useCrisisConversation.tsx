@@ -39,7 +39,7 @@ export const useCrisisConversation = () => {
     }
 
     return statusText;
-  }, [motivators]);
+  }, []);
 
   const generateSystemPrompt = useCallback(() => {
     const intensityDescriptions = {

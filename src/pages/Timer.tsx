@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -284,6 +284,30 @@ const Timer = () => {
     }
   };
 
+  // Memoize crisis modal props to prevent unnecessary re-renders
+  const crisisModalProps = useMemo(() => ({
+    context: generateCrisisContext({
+      fastType,
+      timeElapsed,
+      goalDuration: fastDuration,
+      progress: getProgress(),
+      isInEatingWindow: isInEatingWindow
+    }),
+    systemPrompt: generateSystemPrompt(),
+    proactiveMessage: generateProactiveMessage(),
+    quickReplies: generateQuickReplies()
+  }), [
+    generateCrisisContext,
+    generateSystemPrompt, 
+    generateProactiveMessage,
+    generateQuickReplies,
+    fastType,
+    timeElapsed,
+    fastDuration,
+    isInEatingWindow,
+    getProgress
+  ]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap with DailyStatsPanel */}
@@ -379,16 +403,10 @@ const Timer = () => {
       <CrisisChatModal 
         isOpen={showCrisisModal} 
         onClose={() => setShowCrisisModal(false)}
-        context={generateCrisisContext({
-          fastType,
-          timeElapsed,
-          goalDuration: fastDuration,
-          progress: getProgress(),
-          isInEatingWindow: isInEatingWindow
-        })}
-        systemPrompt={generateSystemPrompt()}
-        proactiveMessage={generateProactiveMessage()}
-        quickReplies={generateQuickReplies()}
+        context={crisisModalProps.context}
+        systemPrompt={crisisModalProps.systemPrompt}
+        proactiveMessage={crisisModalProps.proactiveMessage}
+        quickReplies={crisisModalProps.quickReplies}
       />
 
       {/* Stop Fast Confirmation Dialog */}
