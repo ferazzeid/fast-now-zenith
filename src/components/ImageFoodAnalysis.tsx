@@ -28,7 +28,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4">
+      <DialogContent className="max-w-md mx-auto max-h-[85vh]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">
