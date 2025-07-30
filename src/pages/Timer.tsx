@@ -341,20 +341,6 @@ const Timer = () => {
                 fastType={fastType}
                 goalDuration={fastDuration / 3600}
               />
-              {/* Timer Mode Selector - positioned relative to timer */}
-              {isRunning && (
-                <div className="absolute top-4 right-4">
-                  <div className="bg-ceramic-plate/80 backdrop-blur-sm rounded-lg border border-ceramic-rim p-2">
-                    <button 
-                      onClick={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
-                      className="text-muted-foreground hover:text-warm-text transition-colors"
-                      title={`Switch to count ${countDirection === 'up' ? 'down' : 'up'}`}
-                    >
-                      <Clock className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <WalkingTimer

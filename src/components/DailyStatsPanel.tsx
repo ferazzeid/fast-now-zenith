@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info, RotateCcw } from 'lucide-react';
+import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
@@ -9,7 +9,6 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const { deficitData, loading, refreshDeficit } = useDailyDeficit();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -137,29 +136,6 @@ export const DailyStatsPanel = () => {
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <button 
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  setIsRefreshing(true);
-                  console.log('Refresh button clicked, starting refresh...');
-                  try {
-                    await refreshDeficit();
-                    console.log('Refresh completed successfully');
-                  } catch (error) {
-                    console.error('Refresh failed:', error);
-                  } finally {
-                    setTimeout(() => {
-                      setIsRefreshing(false);
-                      console.log('Refresh button reset');
-                    }, 1000); // Add minimum 1 second loading time for visual feedback
-                  }
-                }}
-                className="p-1 hover:bg-accent rounded-full transition-colors"
-                title="Refresh data"
-                disabled={isRefreshing}
-              >
-                <RotateCcw className={`w-4 h-4 text-muted-foreground hover:text-primary transition-transform ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
               <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
