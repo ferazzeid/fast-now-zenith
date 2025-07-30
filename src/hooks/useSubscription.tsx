@@ -10,26 +10,18 @@ interface SubscriptionData {
   subscription_end_date?: string;
   requests_used: number;
   request_limit: number;
-  free_requests_limit: number;
-  can_use_own_api_key: boolean;
   isPaidUser: boolean;
-  isGiftedPremium: boolean;
-  hasCloudStorage: boolean;
   hasPremiumFeatures: boolean;
 }
 
 export const useSubscription = () => {
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({
     subscribed: false,
-    subscription_status: 'free',
-    subscription_tier: 'free',
+    subscription_status: 'granted_user',
+    subscription_tier: 'granted_user',
     requests_used: 0,
-    request_limit: 1000,
-    free_requests_limit: 15,
-    can_use_own_api_key: true,
+    request_limit: 15,
     isPaidUser: false,
-    isGiftedPremium: false,
-    hasCloudStorage: false,
     hasPremiumFeatures: false,
   });
   const [loading, setLoading] = useState(true);
@@ -39,17 +31,15 @@ export const useSubscription = () => {
   const checkSubscription = async () => {
     if (!user || !session) {
       console.log('UseSubscription: No user or session, setting defaults');
-      setSubscriptionData(prev => ({
-        ...prev,
+      setSubscriptionData({
         subscribed: false,
-        subscription_status: 'free',
-        subscription_tier: 'free',
-        can_use_own_api_key: true,
+        subscription_status: 'granted_user',
+        subscription_tier: 'granted_user',
+        requests_used: 0,
+        request_limit: 15,
         isPaidUser: false,
-        isGiftedPremium: false,
-        hasCloudStorage: false,
         hasPremiumFeatures: false,
-      }));
+      });
       setLoading(false);
       return;
     }
@@ -57,133 +47,70 @@ export const useSubscription = () => {
     try {
       console.log('UseSubscription: Checking subscription for user:', user.id);
       
-      // Get user profile data first to check for own API key
+      // Update user tier based on current conditions
+      const { error: tierError } = await supabase.rpc('update_user_tier', {
+        _user_id: user.id
+      });
+
+      if (tierError) {
+        console.error('Error updating user tier:', tierError);
+      }
+
+      // Get updated profile with tier
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('monthly_ai_requests, use_own_api_key, subscription_status, subscription_tier, openai_api_key')
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
       if (profileError) throw profileError;
 
-      // Check if user has their own API key (highest priority)
-      const hasOwnApiKey = !!(profile?.openai_api_key && profile.openai_api_key.trim());
-      console.log('UseSubscription: User has own API key:', hasOwnApiKey);
-
-      // Check Stripe subscription status
-      const { data: subData, error: subError } = await supabase.functions.invoke('check-subscription');
-      if (subError) {
-        console.error('UseSubscription: Subscription check error:', subError);
-        // Don't throw on auth errors, just set defaults
-        if (subError.message?.includes('authentication') || subError.message?.includes('Session')) {
-          console.log('UseSubscription: Auth error, setting defaults with API key status');
-          setSubscriptionData(prev => ({
-            ...prev,
-            subscribed: false,
-            subscription_status: hasOwnApiKey ? 'own_api_key' : 'free',
-            subscription_tier: hasOwnApiKey ? 'own_api_key' : 'free',
-            can_use_own_api_key: true,
-            isPaidUser: hasOwnApiKey,
-            isGiftedPremium: false,
-            hasCloudStorage: hasOwnApiKey,
-            hasPremiumFeatures: hasOwnApiKey,
-          }));
-          setLoading(false);
-          return;
-        }
-        throw subError;
-      }
-
-      // Get shared settings for limits
-      const { data: settings, error: settingsError } = await supabase
-        .from('shared_settings')
-        .select('setting_key, setting_value')
-        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
-
-      if (settingsError) throw settingsError;
-
-      const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
-      const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '15');
-
+      const tier = profile?.user_tier || 'granted_user';
       const requestsUsed = profile?.monthly_ai_requests || 0;
-      const hasStripeSubscription = subData?.subscribed || false;
 
-      // Determine user status based on priority:
-      // 1. Own API key users (premium equivalent)
-      // 2. Stripe subscription users
-      // 3. Gifted premium users (< 15 requests used)
-      // 4. True free users (exhausted credits, no subscription, no API key)
-
-      let userStatus, userTier, isPaidUser, isGiftedPremium, hasCloudStorage, hasPremiumFeatures, currentLimit;
-
-      if (hasOwnApiKey) {
-        // Users with own API key get premium treatment
-        userStatus = 'own_api_key';
-        userTier = 'own_api_key';
-        isPaidUser = true;
-        isGiftedPremium = false;
-        hasCloudStorage = true;
-        hasPremiumFeatures = true;
-        currentLimit = monthlyLimit; // Give them high limit since they use their own key
-        console.log('UseSubscription: User classified as Own API Key user');
-      } else if (hasStripeSubscription) {
-        // Stripe subscription users
-        userStatus = subData.subscription_status;
-        userTier = subData.subscription_tier;
-        isPaidUser = true;
-        isGiftedPremium = false;
-        hasCloudStorage = true;
-        hasPremiumFeatures = true;
-        currentLimit = monthlyLimit;
-        console.log('UseSubscription: User classified as Stripe subscriber');
-      } else if (requestsUsed < freeLimit) {
-        // Gifted premium users (new users with unused free credits)
-        userStatus = 'gifted_premium';
-        userTier = 'gifted_premium';
-        isPaidUser = false;
-        isGiftedPremium = true;
-        hasCloudStorage = true;
-        hasPremiumFeatures = true;
-        currentLimit = freeLimit;
-        console.log('UseSubscription: User classified as Gifted Premium');
-      } else {
-        // True free users (exhausted credits, no subscription, no API key)
-        userStatus = 'free';
-        userTier = 'free';
-        isPaidUser = false;
-        isGiftedPremium = false;
-        hasCloudStorage = false;
-        hasPremiumFeatures = false;
-        currentLimit = freeLimit;
-        console.log('UseSubscription: User classified as True Free user');
+      // Check Stripe subscription for paid users only
+      let stripeSubscriptionData = null;
+      if (tier === 'paid_user') {
+        try {
+          const { data: stripeData, error: stripeError } = await supabase.functions.invoke('check-subscription');
+          if (stripeError) {
+            console.error('Error checking subscription:', stripeError);
+          } else {
+            stripeSubscriptionData = stripeData;
+          }
+        } catch (error) {
+          console.error('Error calling check-subscription function:', error);
+        }
       }
 
-      // Can use own API key if: premium user OR haven't exceeded free limit OR already have API key
-      const canUseOwnApiKey = isPaidUser || isGiftedPremium || hasOwnApiKey;
+      // Determine subscription status and limits based on tier
+      const subscribed = tier !== 'free_user';
+      const isPaidUser = tier === 'paid_user' || tier === 'api_user';
+      const hasPremiumFeatures = tier !== 'free_user';
+      
+      // Request limits by tier
+      const requestLimit = tier === 'api_user' ? Infinity : 
+                          tier === 'paid_user' ? 500 : 
+                          tier === 'granted_user' ? 15 : 0;
 
       setSubscriptionData({
-        subscribed: hasStripeSubscription,
-        subscription_status: userStatus,
-        subscription_tier: userTier,
-        subscription_end_date: subData?.subscription_end_date,
+        subscribed,
+        subscription_status: tier === 'api_user' ? 'api_key' : 
+                           tier === 'paid_user' ? (stripeSubscriptionData?.subscription_status || 'active') :
+                           tier === 'granted_user' ? 'granted' : 'free',
+        subscription_tier: tier,
+        subscription_end_date: stripeSubscriptionData?.subscription_end_date,
         requests_used: requestsUsed,
-        request_limit: currentLimit,
-        free_requests_limit: freeLimit,
-        can_use_own_api_key: canUseOwnApiKey,
+        request_limit: requestLimit,
         isPaidUser,
-        isGiftedPremium,
-        hasCloudStorage,
-        hasPremiumFeatures,
+        hasPremiumFeatures
       });
 
       console.log('UseSubscription: Final status:', { 
-        userStatus, 
-        userTier, 
+        tier,
         isPaidUser, 
-        isGiftedPremium, 
-        hasCloudStorage, 
         hasPremiumFeatures,
-        hasOwnApiKey 
+        requestLimit
       });
     } catch (error) {
       console.error('Error checking subscription:', error);

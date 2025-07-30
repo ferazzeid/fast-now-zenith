@@ -20,7 +20,7 @@ export const CompactImageUpload = ({ onImageUpload, onImageRemove, currentImageU
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasCloudStorage } = useSubscription();
+  const { hasPremiumFeatures } = useSubscription();
   const isMobile = useIsMobile();
 
   const handleFileSelect = () => {
@@ -72,7 +72,7 @@ export const CompactImageUpload = ({ onImageUpload, onImageRemove, currentImageU
 
     try {
       // Use hybrid upload system
-      const result = await uploadImageHybrid(file, user.id, hasCloudStorage, supabase);
+      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase);
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');

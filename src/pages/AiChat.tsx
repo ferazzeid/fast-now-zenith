@@ -67,7 +67,7 @@ const AiChat = () => {
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
   const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
-  const { subscribed, can_use_own_api_key } = useSubscription();
+  const { subscribed, subscription_tier } = useSubscription();
   const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
 
   // Check for crisis mode
@@ -268,7 +268,7 @@ const AiChat = () => {
     // 1. No API key is configured AND
     // 2. User doesn't have premium subscription AND 
     // 3. User can't use their own API key (exceeded free limit)
-    if (!apiKey.trim() && !subscribed && !can_use_own_api_key) {
+    if (!apiKey.trim() && !subscribed && subscription_tier !== 'api_user') {
       setShowApiDialog(true);
       // Don't show error toast for missing API key - the dialog explains everything
       return;

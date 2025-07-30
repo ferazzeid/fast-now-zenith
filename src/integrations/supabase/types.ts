@@ -287,8 +287,10 @@ export type Database = {
           height: number | null
           id: string
           is_paid_user: boolean | null
+          last_activity_at: string | null
           monthly_ai_requests: number | null
           openai_api_key: string | null
+          payment_method: string | null
           speech_model: string | null
           stripe_customer_id: string | null
           subscription_end_date: string | null
@@ -301,6 +303,7 @@ export type Database = {
           updated_at: string
           use_own_api_key: boolean | null
           user_id: string
+          user_tier: Database["public"]["Enums"]["user_tier"] | null
           weight: number | null
         }
         Insert: {
@@ -314,8 +317,10 @@ export type Database = {
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
+          last_activity_at?: string | null
           monthly_ai_requests?: number | null
           openai_api_key?: string | null
+          payment_method?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
@@ -328,6 +333,7 @@ export type Database = {
           updated_at?: string
           use_own_api_key?: boolean | null
           user_id: string
+          user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
         }
         Update: {
@@ -341,8 +347,10 @@ export type Database = {
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
+          last_activity_at?: string | null
           monthly_ai_requests?: number | null
           openai_api_key?: string | null
+          payment_method?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
@@ -355,6 +363,7 @@ export type Database = {
           updated_at?: string
           use_own_api_key?: boolean | null
           user_id?: string
+          user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
         }
         Relationships: []
@@ -539,9 +548,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_user_tier: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_tier"]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
+      user_tier: "api_user" | "paid_user" | "granted_user" | "free_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -670,6 +684,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      user_tier: ["api_user", "paid_user", "granted_user", "free_user"],
     },
   },
 } as const

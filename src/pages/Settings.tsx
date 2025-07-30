@@ -622,9 +622,9 @@ const Settings = () => {
                   )}
 
                   {/* Free users info - Compact */}
-                  {!subscription.subscribed && subscription.requests_used < subscription.free_requests_limit && (
+                  {!subscription.subscribed && subscription.requests_used < subscription.request_limit && (
                     <div className="text-xs text-muted-foreground p-2 rounded bg-ceramic-base/30">
-                      {subscription.free_requests_limit - subscription.requests_used} free requests remaining.
+                      {subscription.request_limit - subscription.requests_used} free requests remaining.
                     </div>
                   )}
                 </div>

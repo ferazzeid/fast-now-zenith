@@ -12,11 +12,11 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true }: PremiumGateProps) => {
-  const { subscribed, can_use_own_api_key, requests_used, request_limit, createSubscription } = useSubscription();
+  const { subscribed, subscription_tier, requests_used, request_limit, createSubscription } = useSubscription();
   const { toast } = useToast();
 
   // Check if user has access to the feature
-  const hasAccess = subscribed || can_use_own_api_key || (requests_used < request_limit);
+  const hasAccess = subscribed || subscription_tier === 'api_user' || (requests_used < request_limit);
 
   const handleUpgrade = async () => {
     try {
