@@ -40,7 +40,6 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
       };
 
       mediaRecorderRef.current.onstop = () => {
-        setHasRecording(true);
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -61,15 +60,16 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+  const sendRecording = async () => {
+    // Stop recording if still recording, then process
+    if (isRecording && mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      // Wait a moment for the recording to finalize
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
-  };
-
-  const sendRecording = async () => {
-    if (!hasRecording) return;
+    
+    if (audioChunksRef.current.length === 0) return;
     
     setIsProcessing(true);
     try {
@@ -95,7 +95,6 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
         });
         
         // Reset state
-        setHasRecording(false);
         audioChunksRef.current = [];
       } else {
         throw new Error('No transcription received');
@@ -112,17 +111,6 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
     }
   };
 
-  const cancelRecording = () => {
-    setIsRecording(false);
-    setHasRecording(false);
-    setIsProcessing(false);
-    audioChunksRef.current = [];
-    
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-  };
-
   // Show different states
   if (isProcessing) {
     return (
@@ -135,52 +123,6 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
           Processing...
         </Button>
-      </div>
-    );
-  }
-
-  if (isRecording) {
-    return (
-      <div className="space-y-2">
-        <Button
-          onClick={stopRecording}
-          size="lg"
-          className="w-full h-16 text-base font-medium bg-red-500 hover:bg-red-600 text-white animate-pulse"
-        >
-          <Square className="h-6 w-6 mr-2" />
-          <span>Stop Recording</span>
-        </Button>
-        <p className="text-xs text-center text-muted-foreground">
-          🎤 Recording... Tap "Stop Recording" when finished
-        </p>
-      </div>
-    );
-  }
-
-  if (hasRecording) {
-    return (
-      <div className="space-y-2">
-        <div className="flex gap-2">
-          <Button
-            onClick={cancelRecording}
-            variant="outline"
-            size="lg"
-            className="flex-1 h-16"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={sendRecording}
-            size="lg"
-            className="flex-1 h-16 text-base font-medium bg-green-500 hover:bg-green-600 text-white"
-          >
-            <Send className="h-6 w-6 mr-2" />
-            Send Message
-          </Button>
-        </div>
-        <p className="text-xs text-center text-muted-foreground">
-          ✅ Recording complete! Tap "Send Message" to process
-        </p>
       </div>
     );
   }

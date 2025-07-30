@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Camera, Plus, Save, History, Edit, Trash2, Check, X, Image, Mic, Info, Footprints } from 'lucide-react';
+import { Plus, Save, History, Edit, Trash2, Check, X, Mic, Info, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CompactImageUpload } from '@/components/CompactImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
-import { ImageFoodAnalysis } from '@/components/ImageFoodAnalysis';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
@@ -23,26 +21,17 @@ const FoodTracking = () => {
   const [calories, setCalories] = useState('');
   const [carbs, setCarbs] = useState('');
   const [servingSize, setServingSize] = useState('100');
-  const [imageUrl, setImageUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
-  const [showImageAnalysis, setShowImageAnalysis] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [manualEntryData, setManualEntryData] = useState({
     name: '',
     servingSize: '',
     calories: '',
     carbs: ''
-  });
-  const [imageAnalysisData, setImageAnalysisData] = useState({
-    name: '',
-    servingSize: '',
-    calories: '',
-    carbs: '',
-    imageUrl: ''
   });
   const [aiChatContext, setAiChatContext] = useState('');
   const { toast } = useToast();
@@ -114,72 +103,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     setShowManualEntry(true);
   };
 
-  const handleImageUpload = async (url: string) => {
-    setImageUrl(url);
-    
-    // Auto-analyze the food image
-    try {
-      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-        body: { imageUrl: url }
-      });
-
-      if (error) {
-        console.error('Food analysis error:', error);
-        // Show manual entry with image but no pre-filled data
-        setImageAnalysisData({
-          name: '',
-          servingSize: '',
-          calories: '',
-          carbs: '',
-          imageUrl: url
-        });
-        setShowImageAnalysis(true);
-        toast({
-          title: "Analysis incomplete",
-          description: "Please enter food details manually",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (data?.nutritionData) {
-        const servingSize = data.nutritionData.estimated_serving_size || 100;
-        const calories = (data.nutritionData.calories_per_100g * servingSize) / 100;
-        const carbs = (data.nutritionData.carbs_per_100g * servingSize) / 100;
-        
-        setImageAnalysisData({
-          name: data.nutritionData.name || '',
-          servingSize: servingSize.toString(),
-          calories: (Math.round(calories * 100) / 100).toString(),
-          carbs: (Math.round(carbs * 100) / 100).toString(),
-          imageUrl: url
-        });
-        setShowImageAnalysis(true);
-        
-        toast({
-          title: "Food analyzed!",
-          description: "Review the details and adjust if needed"
-        });
-      }
-    } catch (error) {
-      console.error('Analysis error:', error);
-      // Show manual entry with image but no pre-filled data
-      setImageAnalysisData({
-        name: '',
-        servingSize: '',
-        calories: '',
-        carbs: '',
-        imageUrl: url
-      });
-      setShowImageAnalysis(true);
-      
-      toast({
-        title: "Analysis failed", 
-        description: "Please enter food details manually",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleSaveManualEntry = async () => {
     if (!manualEntryData.name.trim() || !manualEntryData.servingSize.trim()) {
@@ -276,88 +199,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     }
   };
 
-  const handleSaveImageAnalysis = async () => {
-    if (!imageAnalysisData.name.trim() || !imageAnalysisData.servingSize.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Missing required information",
-        description: "Please enter food name and serving size"
-      });
-      return;
-    }
-
-    let calories = parseFloat(imageAnalysisData.calories) || 0;
-    let carbs = parseFloat(imageAnalysisData.carbs) || 0;
-
-    // If calories or carbs are missing, get them from AI
-    if (calories === 0 || carbs === 0) {
-      try {
-        const { data, error } = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a nutrition expert. Provide nutritional information for foods. Return only a JSON object with calories_per_100g and carbs_per_100g as numbers.'
-              },
-              {
-                role: 'user',
-                content: `What are the calories and carbs per 100g for ${imageAnalysisData.name}? Return only JSON format: {"calories_per_100g": number, "carbs_per_100g": number}`
-              }
-            ]
-          }
-        });
-
-        if (data?.content) {
-          try {
-            const nutritionData = JSON.parse(data.content);
-            const servingGrams = parseFloat(imageAnalysisData.servingSize);
-            
-            if (calories === 0 && nutritionData.calories_per_100g) {
-              calories = (nutritionData.calories_per_100g * servingGrams) / 100;
-            }
-            if (carbs === 0 && nutritionData.carbs_per_100g) {
-              carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
-            }
-          } catch (parseError) {
-            console.error('Failed to parse AI nutrition response:', parseError);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to get AI nutrition data:', error);
-      }
-    }
-
-    const result = await addFoodEntry({
-      name: imageAnalysisData.name,
-      calories: Math.round(calories * 100) / 100,
-      carbs: Math.round(carbs * 100) / 100,
-      serving_size: parseFloat(imageAnalysisData.servingSize),
-      consumed: false,
-      image_url: imageAnalysisData.imageUrl
-    });
-
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
-      toast({
-        title: "Food added successfully!",
-        description: `${imageAnalysisData.name} has been added to your food plan`
-      });
-      setShowImageAnalysis(false);
-      
-      // Save to personal library
-      await saveToLibrary({
-        name: imageAnalysisData.name,
-        calories: parseFloat(imageAnalysisData.calories) || 0,
-        carbs: parseFloat(imageAnalysisData.carbs) || 0,
-        serving_size: parseFloat(imageAnalysisData.servingSize)
-      });
-    }
-  };
 
   const handleSave = async () => {
     if (!foodName || !calories || !carbs) {
@@ -374,7 +215,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       calories: parseFloat(calories),
       carbs: parseFloat(carbs),
       serving_size: parseFloat(servingSize),
-      image_url: imageUrl,
       consumed: consumedNow
     });
 
@@ -394,7 +234,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       setCalories('');
       setCarbs('');
       setServingSize('100');
-      setImageUrl('');
       setConsumedNow(true);
       setShowForm(false);
       
@@ -449,7 +288,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     setCalories(food.calories_per_100g.toString());
     setCarbs(food.carbs_per_100g.toString());
     setServingSize('100');
-    setImageUrl(''); // Reset image URL when selecting from library
     setShowLibrary(false);
     setShowForm(true);
   };
@@ -591,8 +429,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </TooltipProvider>
 
-        {/* Action Buttons - Reordered: Voice, Image, Manual */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
           {/* Voice - 1st */}
           <PremiumGate feature="AI Voice Assistant">
             <Button
@@ -604,34 +442,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </Button>
           </PremiumGate>
           
-          {/* Image - 2nd */}
-          <PremiumGate feature="AI Image Analysis">
-            <div className="relative">
-              <Button
-                onClick={() => {
-                  // Show gallery/camera options when clicked
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.accept = 'image/*';
-                  input.onchange = (e) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) {
-                      handleImageUpload(`/api/placeholder/${file.name}`); // Temporary for demo
-                    }
-                  };
-                  input.click();
-                }}
-                className="h-20 w-full flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <div className="flex items-center gap-1 mb-1">
-                  <Image className="w-5 h-5" />
-                  <span className="text-xs">/</span>
-                  <Camera className="w-5 h-5" />
-                </div>
-                <span className="text-sm font-medium">Image</span>
-              </Button>
-            </div>
-          </PremiumGate>
           
           {/* Manual - 3rd */}
           <Button
@@ -671,48 +481,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         {/* Food Entry Form */}
         {showForm && (
           <div className="space-y-4 mb-8">
-            {/* Image Upload/Display */}
-            <div className="space-y-2">
-              <Label>Food Image (Optional)</Label>
-              {imageUrl ? (
-                <div className="relative w-full h-32 rounded-lg overflow-hidden">
-                  <img src={imageUrl} alt="Food" className="w-full h-full object-cover" />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setImageUrl('')}
-                    className="absolute top-2 right-2 h-8 w-8 p-0"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
-                      input.onchange = (e) => {
-                        const file = (e.target as HTMLInputElement).files?.[0];
-                        if (file) {
-                          handleImageUpload(`/api/placeholder/${file.name}`);
-                        }
-                      };
-                      input.click();
-                    }}
-                    className="w-full h-24 border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <Camera className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Add Photo</span>
-                    </div>
-                  </Button>
-                </div>
-              )}
-            </div>
             
             <div className="space-y-2">
               <Label htmlFor="foodName">Food Name</Label>
@@ -794,7 +562,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                 variant="outline" 
                 onClick={() => {
                   setShowForm(false);
-                  setImageUrl('');
                   setFoodName('');
                   setCalories('');
                   setCarbs('');
@@ -817,14 +584,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           onDataChange={setManualEntryData}
         />
 
-        {/* Image Food Analysis Modal */}
-        <ImageFoodAnalysis
-          isOpen={showImageAnalysis}
-          onClose={() => setShowImageAnalysis(false)}
-          onSave={handleSaveImageAnalysis}
-          data={imageAnalysisData}
-          onDataChange={setImageAnalysisData}
-        />
 
         {/* AI Chat Modal */}
         <PremiumGate feature="AI Chat Assistant" showUpgrade={false}>
@@ -853,11 +612,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   <div className="flex items-center gap-2">
                     {/* Food Image */}
                     <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-                      {entry.image_url ? (
-                        <img src={entry.image_url} alt={entry.name} className="w-full h-full object-cover rounded" />
-                      ) : (
-                        <Image className="w-4 h-4 text-warm-text/60" />
-                      )}
+                      <div className="w-4 h-4 bg-warm-text/20 rounded flex items-center justify-center">
+                        <span className="text-xs text-warm-text/60">🍽️</span>
+                      </div>
                     </div>
                     
                      {/* Food Info */}

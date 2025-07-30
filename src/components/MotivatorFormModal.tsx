@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Lightbulb } from 'lucide-react';
+import { X, Save, Sparkles, Lightbulb, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { generate_image } from '@/utils/imageGeneration';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
+import { SimpleVoiceRecorder } from './SimpleVoiceRecorder';
 
 interface Motivator {
   id?: string;
@@ -116,6 +117,17 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     onSave(motivatorData);
   };
 
+  const handleVoiceTranscription = (transcription: string) => {
+    // If short (likely a title), put in title field
+    // If longer, put in content field
+    if (transcription.length < 50) {
+      setTitle(transcription);
+    } else {
+      setContent(transcription);
+    }
+    setShowVoiceRecorder(false);
+  };
+
   const useTemplate = (template: any) => {
     setTitle(template.title);
     setContent(template.description);
@@ -175,9 +187,20 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         {/* Form */}
         <div className="space-y-4 mb-6">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-warm-text font-medium">
-              Title *
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="title" className="text-warm-text font-medium">
+                Title *
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceRecorder(true)}
+                className="h-6 px-2"
+              >
+                <Mic className="w-3 h-3 mr-1" />
+                <span className="text-xs">Voice</span>
+              </Button>
+            </div>
             <Input
               id="title"
               value={title}
@@ -291,6 +314,34 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             </p>
           </div>
         </div>
+
+        {/* Voice Recorder Modal */}
+        {showVoiceRecorder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+            <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
+              <div className="text-center mb-4">
+                <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
+                <p className="text-sm text-muted-foreground">
+                  Speak your motivator title or description
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <SimpleVoiceRecorder
+                  onTranscription={handleVoiceTranscription}
+                />
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setShowVoiceRecorder(false)}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex space-x-3">
