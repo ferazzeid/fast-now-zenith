@@ -39,21 +39,21 @@ All colors MUST be HSL.
     --input: 35 12% 92%;
     --ring: 140 35% 45%;
 
-    /* Ceramic plate colors */
+    /* Ceramic plate colors - Light Mode */
     --ceramic-light: 32 20% 95%;
     --ceramic-base: 32 15% 92%;
-    --ceramic-plate: 32 18% 94%;     /* Light mode ceramic plate */
-    --ceramic-rim: 32 10% 82%;       /* Light mode rim */
     --ceramic-warm: 32 18% 88%;
     --ceramic-shadow: 32 12% 85%;
     --ceramic-deep: 32 8% 80%;
+    --ceramic-plate: 32 18% 94%;
+    --ceramic-rim: 32 10% 82%;
 
-    /* 3D Effects */
+    /* 3D Effects - Light Mode */
     --shadow-plate: 0 8px 32px -8px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(32 12% 85% / 0.2);
     --shadow-rim: inset 0 1px 4px hsl(0 0% 100% / 0.8), inset 0 -1px 2px hsl(32 8% 80% / 0.3);
     --shadow-well: inset 0 2px 8px hsl(32 8% 80% / 0.4), inset 0 4px 12px hsl(0 0% 0% / 0.1);
 
-    /* Gradients */
+    /* Gradients - Light Mode */
     --gradient-ceramic: radial-gradient(ellipse at 30% 30%, hsl(var(--ceramic-light)), hsl(var(--ceramic-base)) 70%);
     --gradient-rim: linear-gradient(135deg, hsl(var(--ceramic-light)), hsl(var(--ceramic-warm)) 50%, hsl(var(--ceramic-shadow)));
     --gradient-well: radial-gradient(circle, hsl(var(--ceramic-base)), hsl(var(--ceramic-shadow)) 80%);
@@ -61,63 +61,68 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Frame background colors */
-    --frame-background: 32 8% 75%;       /* Darker ceramic for frame background */
+    --frame-background: 32 8% 75%;
+    --warm-text: 20 15% 25%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Base dark theme colors */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 88%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 88%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 88%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 140 35% 55%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 88%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 88%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 88%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    
-    /* Custom ceramic theme colors for dark mode - Original design adapted */
-    --ceramic-base: 0 0% 18%;        /* Dark ceramic base */
-    --ceramic-plate: 0 0% 22%;       /* Slightly lighter plate surface */
-    --ceramic-rim: 0 0% 30%;         /* Visible dark rim */
-    --progress-active: 140 35% 55%;  /* Brighter green for dark mode */
-    --progress-bg: 0 0% 35%;         /* Dark gray progress background */
-    --warm-text: 0 0% 85%;           /* Light text for dark mode */
-    --soft-shadow: 0 0% 15%;         /* Dark shadows */
-    
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 140 35% 55%;
+
+    /* Dark ceramic colors */
+    --ceramic-light: 0 0% 20%;
+    --ceramic-base: 0 0% 15%;
+    --ceramic-warm: 0 0% 18%;
+    --ceramic-shadow: 0 0% 8%;
+    --ceramic-deep: 0 0% 5%;
+    --ceramic-plate: 0 0% 12%;
+    --ceramic-rim: 0 0% 25%;
+
+    /* Dark 3D Effects */
+    --shadow-plate: 0 25px 50px -12px hsl(0 0% 0% / 0.8), 0 0 0 1px hsl(0 0% 25% / 0.1), inset 0 1px 0 hsl(0 0% 25% / 0.1);
+    --shadow-rim: inset 0 2px 8px hsl(0 0% 0% / 0.3), inset 0 -2px 4px hsl(0 0% 25% / 0.1), 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-well: inset 0 4px 12px hsl(0 0% 0% / 0.6), inset 0 -1px 2px hsl(0 0% 20% / 0.1), 0 1px 2px hsl(0 0% 25% / 0.1);
+
+    /* Dark gradients */
+    --gradient-ceramic: radial-gradient(ellipse at 30% 20%, hsl(var(--ceramic-light)), hsl(var(--ceramic-base)) 30%, hsl(var(--ceramic-shadow)) 70%, hsl(var(--ceramic-deep)));
+    --gradient-rim: linear-gradient(135deg, hsl(var(--ceramic-light)), hsl(var(--ceramic-warm)) 50%, hsl(var(--ceramic-shadow)));
+    --gradient-well: radial-gradient(circle at 60% 70%, hsl(var(--ceramic-shadow)), hsl(var(--ceramic-base)) 40%, hsl(var(--ceramic-warm)) 80%, hsl(var(--ceramic-light)));
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -128,7 +133,8 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Frame background colors for dark mode */
-    --frame-background: 0 0% 12%;         /* Very dark background for frame */
+    --frame-background: 0 0% 6%;
+    --warm-text: 0 0% 85%;
   }
 }
 

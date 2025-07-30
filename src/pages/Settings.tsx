@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { UnitsSelector } from '@/components/UnitsSelector';
 import { useArchivedConversations } from '@/hooks/useArchivedConversations';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
+import { ThemeToggle } from '@/components/ThemeToggle';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -206,7 +207,26 @@ const Settings = () => {
               <p className="text-muted-foreground">Customize your fasting experience</p>
             </div>
 
-            {/* Account Section - Moved to top */}
+            {/* Theme Toggle Section */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-warm-text">Theme</p>
+                      <p className="text-xs text-muted-foreground">Choose your preferred color scheme</p>
+                    </div>
+                    <ThemeToggle />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Account Section */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
