@@ -27,7 +27,7 @@ interface User {
 }
 
 interface UsageStats {
-  stripe_paid_users: number;
+  paid_users: number;
   api_key_users: number;
   starter_pack_users: number;
   true_free_users: number;
@@ -90,7 +90,7 @@ const AdminOverview = () => {
     accent: '140 25% 85%'
   });
   const [usageStats, setUsageStats] = useState<UsageStats>({
-    stripe_paid_users: 0,
+    paid_users: 0,
     api_key_users: 0,
     starter_pack_users: 0,
     true_free_users: 0,
@@ -159,7 +159,7 @@ const AdminOverview = () => {
         const freeLimit = parseInt(freeRequestLimit || '15');
         
         // Classify users based on the new 4-tier system
-        const stripePaidUsers = profilesData.filter(u => 
+        const paidUsers = profilesData.filter(u => 
           u.subscription_status === 'active' || u.subscription_tier !== 'free'
         );
         
@@ -178,13 +178,19 @@ const AdminOverview = () => {
           (u.subscription_status === 'free' || !u.subscription_status) &&
           (u.monthly_ai_requests || 0) >= freeLimit
         );
+
+        // Fetch total AI requests from ai_usage_logs for last 24 hours
+        const { data: usageData } = await supabase
+          .from('ai_usage_logs')
+          .select('id')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
         
         const stats = {
-          stripe_paid_users: stripePaidUsers.length,
+          paid_users: paidUsers.length,
           api_key_users: apiKeyUsers.length,
           starter_pack_users: starterPackUsers.length,
           true_free_users: trueFreeUsers.length,
-          total_ai_requests_24h: profilesData.reduce((sum, u) => sum + (u.monthly_ai_requests || 0), 0),
+          total_ai_requests_24h: usageData?.length || 0,
           shared_api_configured: false, // Will be set below when fetching shared API key
         };
         setUsageStats(stats);
@@ -947,17 +953,17 @@ const AdminOverview = () => {
                   <CreditCard className="w-5 h-5 text-green-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Stripe Paid Users</p>
+                      <p className="text-xs font-medium text-warm-text">Paid</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Users with active Stripe subscriptions</p>
+                          <p>Users with active subscriptions</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.stripe_paid_users}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.paid_users}</p>
                   </div>
                 </div>
               </div>
@@ -969,7 +975,7 @@ const AdminOverview = () => {
                   <Key className="w-5 h-5 text-blue-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">API Key Users</p>
+                      <p className="text-xs font-medium text-warm-text">API</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
@@ -991,7 +997,7 @@ const AdminOverview = () => {
                   <Users className="w-5 h-5 text-orange-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Starter Pack Users</p>
+                      <p className="text-xs font-medium text-warm-text">Starter</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
@@ -1013,7 +1019,7 @@ const AdminOverview = () => {
                   <AlertTriangle className="w-5 h-5 text-red-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">True Free Users</p>
+                      <p className="text-xs font-medium text-warm-text">Free</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
@@ -1042,10 +1048,7 @@ const AdminOverview = () => {
                     {usageStats.shared_api_configured ? '✅' : '❌'}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-warm-text">Shared API</p>
-                    <p className="text-xs text-muted-foreground">
-                      {usageStats.shared_api_configured ? 'Configured' : 'Not Set'}
-                    </p>
+                    <p className="text-xs font-medium text-warm-text">Shared API</p>
                   </div>
                 </div>
               </div>
@@ -1056,7 +1059,7 @@ const AdminOverview = () => {
                 <div className="flex items-center gap-3">
                   <MessageCircle className="w-5 h-5 text-blue-600" />
                   <div>
-                    <p className="text-sm font-medium text-warm-text">AI Requests (24h)</p>
+                    <p className="text-xs font-medium text-warm-text">AI Requests (24h)</p>
                     <p className="text-lg font-bold text-warm-text">{usageStats.total_ai_requests_24h}</p>
                   </div>
                 </div>
