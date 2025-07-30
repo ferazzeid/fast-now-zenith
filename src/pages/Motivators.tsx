@@ -35,8 +35,8 @@ const Motivators = () => {
       setShowFormModal(false);
       
       toast({
-        title: "✨ Motivator Created!",
-        description: "Your new motivator has been saved.",
+        title: "✅ Motivator Created!",
+        description: "Your new motivator has been saved successfully.",
       });
       
       refreshMotivators();
@@ -126,6 +126,12 @@ Please tell me what motivates you or what kind of motivational message you'd lik
       
       // Store the suggestion - keep the chat open for review
       setPendingAiSuggestion(suggestionData);
+      
+      // Show success toast
+      toast({
+        title: "✅ Motivator Suggestion Ready!",
+        description: "Review the suggestion in the chat and confirm to create it.",
+      });
     }
   };
   

@@ -75,12 +75,14 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         });
       } else {
         toast({
-          title: "Food Added Successfully!",
+          title: "✅ Food Added Successfully!",
           description: `${args.name} has been added to your food plan`
         });
         
-        // Close the AI chat modal
-        setShowAiChat(false);
+        // Close the AI chat modal after a brief delay
+        setTimeout(() => {
+          setShowAiChat(false);
+        }, 1500);
         
         // Save to personal library
         await saveToLibrary({

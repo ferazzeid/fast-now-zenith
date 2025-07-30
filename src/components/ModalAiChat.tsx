@@ -255,7 +255,7 @@ When a user shares what motivates them, use the create_motivator function immedi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] flex flex-col p-0 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <DialogContent className="max-w-md w-[95vw] max-h-[85vh] flex flex-col p-0 mx-auto">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         </DialogHeader>
@@ -303,16 +303,17 @@ When a user shares what motivates them, use the create_motivator function immedi
                         >
                           Yes, Add It
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={handleAdjustDetails}
-                          className="text-xs"
-                          disabled={!lastFoodSuggestion}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Adjust Details
-                        </Button>
+                        {lastFoodSuggestion && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={handleAdjustDetails}
+                            className="text-xs"
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Adjust Details
+                          </Button>
+                        )}
                       </div>
                     )}
                     
