@@ -1,4 +1,4 @@
-import { Heart, Brain, Settings, Utensils, Clock, Footprints } from 'lucide-react';
+import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
@@ -108,9 +108,9 @@ export const Navigation = () => {
       caloriesBadge: todayTotals.calories > 0 ? todayTotals.calories : null
     },
     { 
-      icon: Brain, 
-      label: 'Goals', 
-      path: '/motivators',
+      icon: MessageCircle, 
+      label: 'AI Chat', 
+      path: '/ai-chat',
       hasNotification: hasActiveNotifications(),
       isEating: false
     },

@@ -131,6 +131,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
 
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
+      // CRITICAL: Always check for API key first to prevent transcription failures
+      // This check prevents the recurring "failed to transcribe" error
+      const apiKey = localStorage.getItem('openai_api_key');
+      
+      if (!apiKey) {
+        throw new Error('Please set your OpenAI API key in Settings first');
+      }
+
       // Convert blob to base64 (process in chunks to avoid stack overflow)
       const arrayBuffer = await audioBlob.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -144,7 +152,10 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       const base64Audio = btoa(binary);
 
       const response = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio }
+        body: { audio: base64Audio },
+        headers: {
+          'X-OpenAI-API-Key': apiKey
+        }
       });
 
       console.log('Transcription response:', response);
@@ -165,10 +176,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       if (text && text.trim()) {
         onTranscription(text.trim());
         
-        toast({
-          title: "Voice transcribed!",
-          description: "Your voice message has been converted to text",
-        });
+        // FIXED: More discrete voice quality feedback - no intrusive notifications
+        // Just show quality status in UI without toast
       } else {
         // Don't show error notification when canceling - this is expected behavior
         return;
@@ -177,7 +186,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
       console.error('Error transcribing audio:', error);
       toast({
         title: "Error",
-        description: "Failed to transcribe audio. Please try again.",
+        description: "Failed to transcribe audio",
         variant: "destructive"
       });
     } finally {

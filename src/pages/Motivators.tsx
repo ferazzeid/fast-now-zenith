@@ -108,10 +108,18 @@ const Motivators = () => {
           <div className="flex gap-3">
             <Button 
               onClick={() => setShowFormModal(true)}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create New
+            </Button>
+            <Button 
+              onClick={() => navigate('/settings')}
+              variant="outline"
+              className="flex-1"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
             </Button>
           </div>
 
