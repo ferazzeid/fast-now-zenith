@@ -52,6 +52,7 @@ export const ModalAiChat = ({
     carbs: ''
   });
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
+  const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -88,11 +89,13 @@ export const ModalAiChat = ({
       
       setMessages(initialMessages);
       setLastFoodSuggestion(null);
+      setLastMotivatorSuggestion(null);
     } else if (!isOpen) {
       // Clear messages when modal closes
       setMessages([]);
       setShowEditForm(false);
       setLastFoodSuggestion(null);
+      setLastMotivatorSuggestion(null);
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
 
@@ -194,16 +197,19 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
         console.log('⚠️ No completion or function call in AI response');
       }
 
-      // Handle function call results and pass to parent
-      if (data.functionCall && onResult) {
-        // Store the last food suggestion for editing
+      // Handle function call results and store suggestions
+      if (data.functionCall) {
+        // Store the suggestions for button actions
         if (data.functionCall.name === 'add_food_entry') {
           setLastFoodSuggestion(data.functionCall.arguments);
+        } else if (data.functionCall.name === 'create_motivator') {
+          setLastMotivatorSuggestion(data.functionCall);
         }
-        onResult(data.functionCall);
-      } else if (data.functionCall && !onResult) {
-        // If there's a function call but no onResult handler, log it
-        console.log('Function call received but no onResult handler:', data.functionCall);
+        
+        // Only pass to parent immediately for certain actions
+        if (onResult && (message.includes('Yes, add it') || message.includes('Yes, create this motivator'))) {
+          onResult(data.functionCall);
+        }
       }
 
     } catch (error) {
@@ -279,6 +285,22 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
       });
     }
     setShowEditForm(false);
+  };
+
+  const handleCreateMotivator = () => {
+    if (lastMotivatorSuggestion && onResult) {
+      onResult(lastMotivatorSuggestion);
+      // Close the modal after creating
+      onClose();
+    }
+  };
+
+  const handleEditMotivator = () => {
+    if (lastMotivatorSuggestion) {
+      const currentArgs = lastMotivatorSuggestion.arguments;
+      // Send a message to AI asking for edits
+      handleSendMessage(`I want to edit this motivator. Current title: "${currentArgs?.title}" and content: "${currentArgs?.content}". Please help me modify it.`);
+    }
   };
 
   // Helper function to check if message contains food suggestion
@@ -365,26 +387,26 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                       </div>
                     )}
                     
-                    {/* Motivator suggestion buttons */}
-                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
-                      <div className="flex gap-2 mt-3">
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleSendMessage('Yes, create this motivator')}
-                          className="text-xs bg-primary text-primary-foreground"
-                        >
-                          Create It
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleSendMessage('Let me edit it first')}
-                          className="text-xs"
-                        >
-                          Edit First
-                        </Button>
-                      </div>
-                    )}
+                     {/* Motivator suggestion buttons */}
+                     {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
+                       <div className="flex gap-2 mt-3">
+                         <Button 
+                           size="sm" 
+                           onClick={handleCreateMotivator}
+                           className="text-xs bg-primary text-primary-foreground"
+                         >
+                           Create It
+                         </Button>
+                         <Button 
+                           size="sm" 
+                           variant="outline"
+                           onClick={handleEditMotivator}
+                           className="text-xs"
+                         >
+                           Edit First
+                         </Button>
+                       </div>
+                     )}
                     
                     <p className="text-xs opacity-70 mt-2">
                       {message.timestamp.toLocaleTimeString()}
