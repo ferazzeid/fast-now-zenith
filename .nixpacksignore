@@ -1,1 +1,6 @@
 supabase/functions/
+supabase/
+**/*.ts
+**/deno.json
+**/deno.jsonc
+**/deno.lock
