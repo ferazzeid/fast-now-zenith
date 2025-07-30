@@ -197,8 +197,9 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-md mx-auto pt-20 pb-24 overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <ScrollArea className="h-screen w-full">
+        <div className="max-w-md mx-auto pt-20 pb-24">
           <div className="space-y-6">
             {/* Header */}
             <div className="text-center mb-8">
@@ -783,22 +784,23 @@ const Settings = () => {
                 <Shield className="w-4 h-4 mr-2" />
                 Admin Dashboard
               </Button>
-           )}
-          </div>
-        </Card>
-        </div>
-      </div>
+            )}
+             </div>
+           </Card>
+           </div>
+         </div>
+       </ScrollArea>
 
-      {/* Modals */}
-      {showMotivatorsModal && (
-        <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
-      )}
-      
-      {showAiGeneratorModal && (
-        <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
-      )}
-    </div>
-  );
+       {/* Modals */}
+       {showMotivatorsModal && (
+         <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
+       )}
+       
+       {showAiGeneratorModal && (
+         <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
+       )}
+     </div>
+   );
  };
  
  export default Settings;
