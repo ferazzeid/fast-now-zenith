@@ -30,14 +30,9 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[85vh]">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">
-              {hasAiAnalysis ? 'AI Food Analysis' : 'Food from Image'}
-            </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-lg font-semibold">
+            {hasAiAnalysis ? 'AI Food Analysis' : 'Food from Image'}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-1">
@@ -60,7 +55,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
                 <p className="text-sm font-medium">AI Analysis Complete</p>
               </div>
               <p className="text-xs text-green-600 dark:text-green-300 mt-1">
-                I've analyzed your image and estimated the nutritional values. Please review and adjust if needed.
+                I've analyzed your image and estimated the nutritional values. The serving size estimate is based on visual analysis - please adjust if you consumed more/less than shown.
               </p>
             </div>
           )}
@@ -72,7 +67,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
                 <p className="text-sm font-medium">Analysis Incomplete</p>
               </div>
               <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">
-                I couldn't recognize this food. Please enter the details manually.
+                I couldn't recognize this food from the image. Please enter the food details manually below.
               </p>
             </div>
           )}
@@ -97,6 +92,9 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
               <Label htmlFor="serving-size" className="text-sm font-medium">
                 Serving Size (grams) <span className="text-red-500">*</span>
               </Label>
+              <p className="text-xs text-muted-foreground mb-1">
+                Adjust this if you consumed more/less than what's shown in the image
+              </p>
               <Input
                 id="serving-size"
                 type="number"
@@ -155,7 +153,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
           {/* Workflow Info */}
           <div className="bg-muted/50 rounded-lg p-3 mt-2">
             <p className="text-xs text-muted-foreground">
-              This will add {data.servingSize}g to your food plan and calculate per-100g values for your library.
+              This will add {data.name || 'this food'} ({data.servingSize || '0'}g) to your food plan and calculate per-100g values for your library.
             </p>
           </div>
         </div>
