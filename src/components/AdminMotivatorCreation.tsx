@@ -48,12 +48,8 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
   ];
 
   const handleAiTemplateResult = () => {
-    // Voice functionality temporarily disabled
-    toast({
-      title: "Voice feature temporarily disabled",
-      description: "Please use manual entry for now",
-      variant: "destructive"
-    });
+    // Voice functionality for admin creation
+    console.log("Voice recording not yet implemented for admin");
     setShowVoiceRecorder(false);
   };
 

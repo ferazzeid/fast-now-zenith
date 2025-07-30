@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Heart, Sparkles, Palette } from 'lucide-react';
+import { User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
 import { useArchivedConversations } from '@/hooks/useArchivedConversations';
-import { MotivatorsModal } from '@/components/MotivatorsModal';
+
 
 import { ThemeToggle } from '@/components/ThemeToggle';
 // Removed complex validation utilities - using simple localStorage
@@ -35,7 +35,6 @@ const Settings = () => {
   const navigate = useNavigate();
   const subscription = useSubscription();
   const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
-  const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -213,27 +212,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Motivators */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Heart className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Motivators</h3>
-                </div>
-                <div className="space-y-4">
-                  <Button
-                    onClick={() => setShowMotivatorsModal(true)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <Heart className="w-4 h-4 mr-2" />
-                    Manage Motivators
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    Create, edit, and organize your personal motivational content, images, and quotes to inspire your fasting journey.
-                  </p>
-                </div>
-              </div>
-            </Card>
 
             {/* User Profile & Goals */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
@@ -697,10 +675,6 @@ const Settings = () => {
          </div>
        </ScrollArea>
 
-       {/* Modals */}
-       {showMotivatorsModal && (
-         <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
-       )}
      </div>
    );
  };

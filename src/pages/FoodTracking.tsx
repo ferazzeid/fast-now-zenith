@@ -49,11 +49,8 @@ const FoodTracking = () => {
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
   const handleVoiceFood = () => {
-    toast({
-      title: "Voice feature temporarily disabled",
-      description: "Please use manual entry for now",
-      variant: "destructive"
-    });
+    // Restore voice functionality here with VoiceRecorder component
+    console.log("Voice recording not yet implemented");
   };
 
   const handleManualEntry = () => {

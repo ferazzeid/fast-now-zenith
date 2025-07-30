@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Lightbulb } from 'lucide-react';
+import { X, Save, Sparkles, Lightbulb, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { generate_image } from '@/utils/imageGeneration';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
+import { VoiceRecorder } from './VoiceRecorder';
 
 interface Motivator {
   id?: string;
@@ -31,6 +32,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();
 
@@ -94,6 +96,21 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     }
   };
 
+  const handleVoiceTranscription = (transcription: string) => {
+    // Use transcription to populate title or content
+    if (!title.trim()) {
+      setTitle(transcription);
+    } else {
+      setContent(transcription);
+    }
+    setShowVoiceRecorder(false);
+    
+    toast({
+      title: "Voice transcribed!",
+      description: "Text has been added to your motivator.",
+    });
+  };
+
   const handleSave = () => {
     if (!title.trim()) {
       toast({
@@ -124,8 +141,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-ceramic-plate rounded-3xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-ceramic-rim shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-ceramic-plate rounded-3xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-ceramic-rim shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-warm-text">
@@ -208,8 +225,17 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             </Label>
             
             <div className="space-y-3">
-              {/* Two button approach like food page */}
-              <div className="flex gap-2">
+              {/* Three button approach with voice */}
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowVoiceRecorder(true)}
+                  className="flex flex-col items-center justify-center h-16"
+                >
+                  <Mic className="w-4 h-4 mb-1" />
+                  <span className="text-xs">Voice</span>
+                </Button>
+                
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -231,26 +257,27 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                     };
                     input.click();
                   }}
-                  className="flex-1"
+                  className="flex flex-col items-center justify-center h-16"
                 >
-                  📷 Upload/Camera
+                  <span className="text-lg mb-1">📷</span>
+                  <span className="text-xs">Upload</span>
                 </Button>
                 
                 <Button
                   variant="outline"
                   onClick={handleGenerateImage}
                   disabled={isGeneratingImage}
-                  className="flex-1"
+                  className="flex flex-col items-center justify-center h-16"
                 >
                   {isGeneratingImage ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating...
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mb-1" />
+                      <span className="text-xs">Generating...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI
+                      <Sparkles className="w-4 h-4 mb-1" />
+                      <span className="text-xs">Generate AI</span>
                     </>
                   )}
                 </Button>
@@ -309,6 +336,31 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             {isEditing ? 'Save Changes' : 'Create Motivator'}
           </Button>
         </div>
+
+        {/* Voice Recorder Modal */}
+        {showVoiceRecorder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+            <div className="bg-ceramic-plate rounded-3xl p-6 w-full max-w-sm border border-ceramic-rim shadow-2xl">
+              <div className="text-center space-y-4">
+                <h4 className="text-lg font-semibold text-warm-text">Voice Input</h4>
+                <p className="text-sm text-muted-foreground">
+                  Speak your motivator title or description
+                </p>
+                <VoiceRecorder
+                  onTranscription={handleVoiceTranscription}
+                  isDisabled={false}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => setShowVoiceRecorder(false)}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
