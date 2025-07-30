@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Brain, Plus, Settings, Edit, Trash2, Image, Sparkles } from 'lucide-react';
+import { Plus, Edit, Trash2, Image, Sparkles, Mic } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
+import { ModalAiChat } from '@/components/ModalAiChat';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -15,6 +16,8 @@ const Motivators = () => {
   const { motivators, loading, createMotivator, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
+  const [showAiChat, setShowAiChat] = useState(false);
+  const [aiChatContext, setAiChatContext] = useState('');
 
   const handleCreateMotivator = async (motivatorData) => {
     try {
@@ -90,6 +93,37 @@ const Motivators = () => {
     }
   };
 
+  const handleVoiceMotivator = () => {
+    const contextMessage = `Hello! I'm here to help you create a motivational message for your fasting journey.
+
+I can help you create:
+• Inspirational titles for your motivators
+• Detailed motivational content and descriptions
+• Personal reasons for your health goals
+• Reminders of why you started this journey
+
+Please tell me what motivates you or what kind of motivational message you'd like to create. For example: "I want to remind myself why I'm doing this for my health" or "Create something about feeling confident in my body".`;
+    
+    setAiChatContext(contextMessage);
+    setShowAiChat(true);
+  };
+
+  const handleAiChatResult = async (result: any) => {
+    if (result.name === 'create_motivator') {
+      const { arguments: args } = result;
+      
+      // Create the motivator from AI suggestion
+      await handleCreateMotivator({
+        title: args.title,
+        content: args.content,
+        imageUrl: args.imageUrl || null
+      });
+      
+      // Close the AI chat modal
+      setShowAiChat(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
@@ -97,29 +131,28 @@ const Motivators = () => {
         <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <Brain className="w-12 h-12 text-primary mx-auto" />
-            <h1 className="text-3xl font-bold text-warm-text">My Motivators</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Motivators</h1>
             <p className="text-muted-foreground">
               Your personal collection of inspiration and motivation
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={handleVoiceMotivator}
+              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Mic className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">Voice</span>
+            </Button>
+            
             <Button 
               onClick={() => setShowFormModal(true)}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Create New
-            </Button>
-            <Button 
-              onClick={() => navigate('/settings')}
-              variant="outline"
-              className="flex-1 border-primary/20 text-primary hover:bg-primary/10"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
+              <Plus className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">Manual</span>
             </Button>
           </div>
 
@@ -239,6 +272,17 @@ const Motivators = () => {
               motivator={editingMotivator}
               onSave={handleSaveMotivator}
               onClose={() => setEditingMotivator(null)}
+            />
+          )}
+
+          {/* AI Chat Modal */}
+          {showAiChat && (
+            <ModalAiChat
+              isOpen={showAiChat}
+              context={aiChatContext}
+              onResult={handleAiChatResult}
+              onClose={() => setShowAiChat(false)}
+              title="Motivator Assistant"
             />
           )}
         </div>
