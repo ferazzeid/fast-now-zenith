@@ -255,7 +255,7 @@ When a user shares what motivates them, use the create_motivator function immedi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] mt-4 flex flex-col p-0">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] flex flex-col p-0 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         </DialogHeader>
@@ -294,7 +294,7 @@ When a user shares what motivates them, use the create_motivator function immedi
                     )}
                     
                     {/* Conditional confirmation buttons for food suggestions only */}
-                    {conversationType === 'general' && message.role === 'assistant' && containsFoodSuggestion(message.content) && (
+                    {conversationType === 'general' && title === 'Food Assistant' && message.role === 'assistant' && containsFoodSuggestion(message.content) && (
                       <div className="flex gap-2 mt-3">
                         <Button 
                           size="sm" 
@@ -312,6 +312,27 @@ When a user shares what motivates them, use the create_motivator function immedi
                         >
                           <Edit className="w-3 h-3 mr-1" />
                           Adjust Details
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Motivator suggestion buttons */}
+                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && message.content.includes('Title:') && message.content.includes('Content:') && (
+                      <div className="flex gap-2 mt-3">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleSendMessage('Yes, create this motivator')}
+                          className="text-xs"
+                        >
+                          Create It
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleSendMessage('Let me edit it first')}
+                          className="text-xs"
+                        >
+                          Edit First
                         </Button>
                       </div>
                     )}
@@ -405,7 +426,7 @@ When a user shares what motivates them, use the create_motivator function immedi
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask about food details..."
+              placeholder={title === "Motivator Assistant" ? "What motivates you? For example..." : "Ask about food details..."}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
               disabled={isProcessing}
               className="flex-1"
