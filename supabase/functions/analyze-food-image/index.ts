@@ -67,33 +67,43 @@ serve(async (req) => {
 
     // Prepare the image content for OpenAI
     let imageContent;
+    let finalImageUrl;
+    
     if (imageUrl) {
-      // Handle different URL types properly
-      let finalImageUrl;
+      console.log('Processing imageUrl:', imageUrl.substring(0, 50) + '...');
+      
       if (imageUrl.startsWith('data:')) {
-        // Data URL - use as is
+        // Data URL passed via imageUrl parameter - use as is
         finalImageUrl = imageUrl;
-      } else if (imageUrl.startsWith('http')) {
-        // Already absolute URL - use as is
+        console.log('Data URL detected in imageUrl parameter');
+      } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        // Already absolute HTTP/HTTPS URL - use as is
         finalImageUrl = imageUrl;
+        console.log('HTTP URL detected:', imageUrl);
       } else {
         // Relative path - make it absolute
         finalImageUrl = `https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com${imageUrl}`;
+        console.log('Relative path converted to absolute URL:', finalImageUrl);
       }
+      
       imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
-    } else {
+    } else if (imageData) {
+      console.log('Processing imageData:', imageData.substring(0, 50) + '...');
+      
       // Handle imageData - check if it's already a complete data URL
-      let finalImageData;
       if (imageData.startsWith('data:')) {
         // Already a complete data URL - use as is
-        finalImageData = imageData;
-        console.log('Using existing data URL format');
+        finalImageUrl = imageData;
+        console.log('Complete data URL detected in imageData');
       } else {
         // Raw base64 - add the data URL prefix
-        finalImageData = `data:image/jpeg;base64,${imageData}`;
+        finalImageUrl = `data:image/jpeg;base64,${imageData}`;
         console.log('Added data URL prefix to base64 data');
       }
-      imageContent = { type: "image_url", image_url: { url: finalImageData } };
+      
+      imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
+    } else {
+      throw new Error('No valid image data provided');
     }
 
     // Call OpenAI Vision API
