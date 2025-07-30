@@ -27,15 +27,12 @@ interface User {
 }
 
 interface UsageStats {
-  total_users: number;
-  paid_users: number;
-  total_ai_requests: number;
-  monthly_ai_requests: number;
-  users_at_free_limit: number;
-  users_near_premium_limit: number;
-  conversion_opportunities: number;
-  free_users_exhausted: number;
-  premium_users_over_80_percent: number;
+  stripe_paid_users: number;
+  api_key_users: number;
+  starter_pack_users: number;
+  true_free_users: number;
+  total_ai_requests_24h: number;
+  shared_api_configured: boolean;
 }
 
 interface AISettings {
@@ -93,15 +90,12 @@ const AdminOverview = () => {
     accent: '140 25% 85%'
   });
   const [usageStats, setUsageStats] = useState<UsageStats>({
-    total_users: 0,
-    paid_users: 0,
-    total_ai_requests: 0,
-    monthly_ai_requests: 0,
-    users_at_free_limit: 0,
-    users_near_premium_limit: 0,
-    conversion_opportunities: 0,
-    free_users_exhausted: 0,
-    premium_users_over_80_percent: 0,
+    stripe_paid_users: 0,
+    api_key_users: 0,
+    starter_pack_users: 0,
+    true_free_users: 0,
+    total_ai_requests_24h: 0,
+    shared_api_configured: false,
   });
   const [aiSettings, setAiSettings] = useState<AISettings>({
     system_prompt: '',
@@ -161,23 +155,37 @@ const AdminOverview = () => {
       if (profilesData) {
         setUsers(profilesData);
         
-        // Calculate enhanced usage stats
+        // Calculate new 4-tier user classification stats
         const freeLimit = parseInt(freeRequestLimit || '15');
-        const premiumLimit = parseInt(monthlyRequestLimit || '1000');
         
-        const freeUsers = profilesData.filter(u => !u.is_paid_user);
-        const premiumUsers = profilesData.filter(u => u.is_paid_user);
+        // Classify users based on the new 4-tier system
+        const stripePaidUsers = profilesData.filter(u => 
+          u.subscription_status === 'active' || u.subscription_tier !== 'free'
+        );
+        
+        const apiKeyUsers = profilesData.filter(u => 
+          u.openai_api_key && u.openai_api_key.trim() !== ''
+        );
+        
+        const starterPackUsers = profilesData.filter(u => 
+          !u.openai_api_key && 
+          (u.subscription_status === 'free' || !u.subscription_status) &&
+          (u.monthly_ai_requests || 0) < freeLimit
+        );
+        
+        const trueFreeUsers = profilesData.filter(u => 
+          !u.openai_api_key && 
+          (u.subscription_status === 'free' || !u.subscription_status) &&
+          (u.monthly_ai_requests || 0) >= freeLimit
+        );
         
         const stats = {
-          total_users: profilesData.length,
-          paid_users: premiumUsers.length,
-          total_ai_requests: profilesData.reduce((sum, u) => sum + (u.monthly_ai_requests || 0), 0),
-          monthly_ai_requests: profilesData.reduce((sum, u) => sum + (u.monthly_ai_requests || 0), 0),
-          users_at_free_limit: freeUsers.filter(u => (u.monthly_ai_requests || 0) >= freeLimit).length,
-          users_near_premium_limit: premiumUsers.filter(u => (u.monthly_ai_requests || 0) >= premiumLimit * 0.8).length,
-          conversion_opportunities: freeUsers.filter(u => (u.monthly_ai_requests || 0) >= freeLimit * 0.8).length,
-          free_users_exhausted: freeUsers.filter(u => (u.monthly_ai_requests || 0) >= freeLimit).length,
-          premium_users_over_80_percent: premiumUsers.filter(u => (u.monthly_ai_requests || 0) >= premiumLimit * 0.8).length,
+          stripe_paid_users: stripePaidUsers.length,
+          api_key_users: apiKeyUsers.length,
+          starter_pack_users: starterPackUsers.length,
+          true_free_users: trueFreeUsers.length,
+          total_ai_requests_24h: profilesData.reduce((sum, u) => sum + (u.monthly_ai_requests || 0), 0),
+          shared_api_configured: false, // Will be set below when fetching shared API key
         };
         setUsageStats(stats);
       }
@@ -191,6 +199,10 @@ const AdminOverview = () => {
 
       if (settingsData) {
         setSharedApiKey(settingsData.setting_value || '');
+        setUsageStats(prev => ({
+          ...prev,
+          shared_api_configured: !!(settingsData.setting_value || '').trim()
+        }));
       }
 
       // Fetch shared Stripe key
@@ -925,245 +937,139 @@ const AdminOverview = () => {
           <p className="text-muted-foreground">Manage users and system settings</p>
         </div>
 
-        {/* Usage Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
+        {/* Primary User Metrics */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-warm-text">User Statistics</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="h-full bg-ceramic-plate border-ceramic-rim">
+              <div className="p-4">
                 <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-warm-text" />
+                  <CreditCard className="w-5 h-5 text-green-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Total Users</p>
+                      <p className="text-sm font-medium text-warm-text">Stripe Paid Users</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Total number of registered users in the system</p>
+                          <p>Users with active Stripe subscriptions</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.total_users}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.stripe_paid_users}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-          
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
+            </Card>
+            
+            <Card className="h-full bg-ceramic-plate border-ceramic-rim">
+              <div className="p-4">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-warm-text" />
+                  <Key className="w-5 h-5 text-blue-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Paid Users</p>
+                      <p className="text-sm font-medium text-warm-text">API Key Users</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Users with active premium subscriptions</p>
+                          <p>Users with their own OpenAI API keys (premium equivalent)</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.paid_users}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.api_key_users}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-          
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
+            </Card>
+            
+            <Card className="h-full bg-ceramic-plate border-ceramic-rim">
+              <div className="p-4">
                 <div className="flex items-center gap-3">
-                  <MessageCircle className="w-5 h-5 text-warm-text" />
+                  <Users className="w-5 h-5 text-orange-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">AI Requests (24h)</p>
+                      <p className="text-sm font-medium text-warm-text">Starter Pack Users</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Number of AI requests made in the last 24 hours across all users</p>
+                          <p>New users with unused free credits (&lt; 15 requests used)</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.monthly_ai_requests}</p>
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.starter_pack_users}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-          
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
+            </Card>
+            
+            <Card className="h-full bg-ceramic-plate border-ceramic-rim">
+              <div className="p-4">
                 <div className="flex items-center gap-3">
-                  <Key className="w-5 h-5 text-warm-text" />
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Shared API Configured</p>
+                      <p className="text-sm font-medium text-warm-text">True Free Users</p>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3 w-3 text-warm-text/60" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Status of shared API key configuration for all users</p>
+                          <p>Users who have exhausted their starter credits and have no subscription/API key</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-lg font-medium text-warm-text">
-                      {sharedApiKey ? 'Configured' : 'Not Set'}
+                    <p className="text-2xl font-bold text-warm-text">{usageStats.true_free_users}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* System Status */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-warm-text">System Status</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Card className="h-20 bg-ceramic-plate border-ceramic-rim">
+              <div className="p-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">
+                    {usageStats.shared_api_configured ? '✅' : '❌'}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-warm-text">Shared API</p>
+                    <p className="text-xs text-muted-foreground">
+                      {usageStats.shared_api_configured ? 'Configured' : 'Not Set'}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
+            </Card>
+            
+            <Card className="h-20 bg-ceramic-plate border-ceramic-rim">
+              <div className="p-3">
                 <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-warm-text" />
+                  <MessageCircle className="w-5 h-5 text-blue-600" />
                   <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Users at Free Limit</p>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-warm-text/60" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Free users who have reached their monthly usage limit and cannot make more requests</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.free_users_exhausted}</p>
+                    <p className="text-sm font-medium text-warm-text">AI Requests (24h)</p>
+                    <p className="text-lg font-bold text-warm-text">{usageStats.total_ai_requests_24h}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-          
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-warm-text" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Premium Near Limit</p>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-warm-text/60" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Premium users who are approaching their monthly usage limit (80%+ used)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.premium_users_over_80_percent}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-warm-text" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Conversion Ready</p>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-warm-text/60" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Free users who have hit their limit and are likely to convert to premium</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.conversion_opportunities}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="w-5 h-5 text-warm-text" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">API Usage</p>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-warm-text/60" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Current month's API costs vs allocated budget limits</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                     <div className="space-y-1">
-                       <Button
-                         onClick={() => setShowUsageStats(!showUsageStats)}
-                         variant="outline"
-                         size="sm"
-                         className="bg-ceramic-base border-ceramic-rim text-warm-text"
-                       >
-                         {showUsageStats ? 'Hide' : 'Show'} Real Usage Data
-                       </Button>
-                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
 
-        {/* Real API Usage Stats */}
-        {showUsageStats && (
+        {/* API Usage Stats */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-warm-text">API Usage Analytics</h2>
           <RealApiUsageStats />
-        )}
-
-        {/* Limit Recommendations */}
-        {(usageStats.free_users_exhausted / Math.max(usageStats.total_users - usageStats.paid_users, 1) > 0.2) && (
-          <Card className="p-4 bg-yellow-50 border-yellow-200">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <div>
-                <p className="font-medium text-yellow-800">Recommendation: Consider Increasing Free Limit</p>
-                <p className="text-sm text-yellow-700">
-                  Over 20% of free users have hit their limit. Consider increasing from {freeRequestLimit} to {parseInt(freeRequestLimit) + 5} requests.
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {(usageStats.premium_users_over_80_percent / Math.max(usageStats.paid_users, 1) > 0.1) && (
-          <Card className="p-4 bg-orange-50 border-orange-200">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
-              <div>
-                <p className="font-medium text-orange-800">Alert: Premium Users Approaching Limit</p>
-                <p className="text-sm text-orange-700">
-                  {usageStats.premium_users_over_80_percent} premium users are using over 80% of their {monthlyRequestLimit} monthly requests.
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
+        </div>
 
         {/* Subscription Settings */}
         <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
