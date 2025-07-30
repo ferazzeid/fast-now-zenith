@@ -202,14 +202,14 @@ export const cleanupLocalStorage = (maxSizeMB = 50): void => {
  * Hybrid upload: local for free users, cloud for paid users
  */
 export const uploadImageHybrid = async (
-  file: File,
-  userId: string,
-  isPaidUser: boolean,
+  file: File, 
+  userId: string, 
+  hasCloudStorage: boolean, 
   supabase: any
 ): Promise<{ success: boolean; imageId: string; url: string; error?: string }> => {
   try {
     // Check storage limit
-    const { canUpload, currentCount, limit } = await checkStorageLimit(userId, isPaidUser);
+    const { canUpload, currentCount, limit } = await checkStorageLimit(userId, hasCloudStorage);
     
     if (!canUpload) {
       return {
@@ -223,7 +223,7 @@ export const uploadImageHybrid = async (
     // Compress image
     const compressed = await compressImage(file);
     
-    if (isPaidUser) {
+    if (hasCloudStorage) {
       // Upload to Supabase Storage for paid users
       const fileName = `${userId}/${Date.now()}_${file.name}`;
       const { data, error } = await supabase.storage

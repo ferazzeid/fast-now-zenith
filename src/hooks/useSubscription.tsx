@@ -12,6 +12,10 @@ interface SubscriptionData {
   request_limit: number;
   free_requests_limit: number;
   can_use_own_api_key: boolean;
+  isPaidUser: boolean;
+  isGiftedPremium: boolean;
+  hasCloudStorage: boolean;
+  hasPremiumFeatures: boolean;
 }
 
 export const useSubscription = () => {
@@ -23,6 +27,10 @@ export const useSubscription = () => {
     request_limit: 1000,
     free_requests_limit: 15,
     can_use_own_api_key: true,
+    isPaidUser: false,
+    isGiftedPremium: false,
+    hasCloudStorage: false,
+    hasPremiumFeatures: false,
   });
   const [loading, setLoading] = useState(true);
   const { user, session } = useAuth();
@@ -37,6 +45,10 @@ export const useSubscription = () => {
         subscription_status: 'free',
         subscription_tier: 'free',
         can_use_own_api_key: true,
+        isPaidUser: false,
+        isGiftedPremium: false,
+        hasCloudStorage: false,
+        hasPremiumFeatures: false,
       }));
       setLoading(false);
       return;
@@ -44,34 +56,43 @@ export const useSubscription = () => {
 
     try {
       console.log('UseSubscription: Checking subscription for user:', user.id);
-      // Check subscription status
+      
+      // Get user profile data first to check for own API key
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('monthly_ai_requests, use_own_api_key, subscription_status, subscription_tier, openai_api_key')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Check if user has their own API key (highest priority)
+      const hasOwnApiKey = !!(profile?.openai_api_key && profile.openai_api_key.trim());
+      console.log('UseSubscription: User has own API key:', hasOwnApiKey);
+
+      // Check Stripe subscription status
       const { data: subData, error: subError } = await supabase.functions.invoke('check-subscription');
       if (subError) {
         console.error('UseSubscription: Subscription check error:', subError);
         // Don't throw on auth errors, just set defaults
         if (subError.message?.includes('authentication') || subError.message?.includes('Session')) {
-          console.log('UseSubscription: Auth error, setting free defaults');
+          console.log('UseSubscription: Auth error, setting defaults with API key status');
           setSubscriptionData(prev => ({
             ...prev,
             subscribed: false,
-            subscription_status: 'free',
-            subscription_tier: 'free',
+            subscription_status: hasOwnApiKey ? 'own_api_key' : 'free',
+            subscription_tier: hasOwnApiKey ? 'own_api_key' : 'free',
             can_use_own_api_key: true,
+            isPaidUser: hasOwnApiKey,
+            isGiftedPremium: false,
+            hasCloudStorage: hasOwnApiKey,
+            hasPremiumFeatures: hasOwnApiKey,
           }));
           setLoading(false);
           return;
         }
         throw subError;
       }
-
-      // Get user profile data
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('monthly_ai_requests, use_own_api_key, subscription_status, subscription_tier')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
 
       // Get shared settings for limits
       const { data: settings, error: settingsError } = await supabase
@@ -85,21 +106,84 @@ export const useSubscription = () => {
       const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '15');
 
       const requestsUsed = profile?.monthly_ai_requests || 0;
-      const isPremium = subData?.subscribed || false;
-      const currentLimit = isPremium ? monthlyLimit : freeLimit;
-      
-      // Can use own API key if: premium user OR haven't exceeded free limit
-      const canUseOwnApiKey = isPremium || requestsUsed < freeLimit;
+      const hasStripeSubscription = subData?.subscribed || false;
+
+      // Determine user status based on priority:
+      // 1. Own API key users (premium equivalent)
+      // 2. Stripe subscription users
+      // 3. Gifted premium users (< 15 requests used)
+      // 4. True free users (exhausted credits, no subscription, no API key)
+
+      let userStatus, userTier, isPaidUser, isGiftedPremium, hasCloudStorage, hasPremiumFeatures, currentLimit;
+
+      if (hasOwnApiKey) {
+        // Users with own API key get premium treatment
+        userStatus = 'own_api_key';
+        userTier = 'own_api_key';
+        isPaidUser = true;
+        isGiftedPremium = false;
+        hasCloudStorage = true;
+        hasPremiumFeatures = true;
+        currentLimit = monthlyLimit; // Give them high limit since they use their own key
+        console.log('UseSubscription: User classified as Own API Key user');
+      } else if (hasStripeSubscription) {
+        // Stripe subscription users
+        userStatus = subData.subscription_status;
+        userTier = subData.subscription_tier;
+        isPaidUser = true;
+        isGiftedPremium = false;
+        hasCloudStorage = true;
+        hasPremiumFeatures = true;
+        currentLimit = monthlyLimit;
+        console.log('UseSubscription: User classified as Stripe subscriber');
+      } else if (requestsUsed < freeLimit) {
+        // Gifted premium users (new users with unused free credits)
+        userStatus = 'gifted_premium';
+        userTier = 'gifted_premium';
+        isPaidUser = false;
+        isGiftedPremium = true;
+        hasCloudStorage = true;
+        hasPremiumFeatures = true;
+        currentLimit = freeLimit;
+        console.log('UseSubscription: User classified as Gifted Premium');
+      } else {
+        // True free users (exhausted credits, no subscription, no API key)
+        userStatus = 'free';
+        userTier = 'free';
+        isPaidUser = false;
+        isGiftedPremium = false;
+        hasCloudStorage = false;
+        hasPremiumFeatures = false;
+        currentLimit = freeLimit;
+        console.log('UseSubscription: User classified as True Free user');
+      }
+
+      // Can use own API key if: premium user OR haven't exceeded free limit OR already have API key
+      const canUseOwnApiKey = isPaidUser || isGiftedPremium || hasOwnApiKey;
 
       setSubscriptionData({
-        subscribed: isPremium,
-        subscription_status: subData?.subscription_status || 'free',
-        subscription_tier: subData?.subscription_tier || 'free',
+        subscribed: hasStripeSubscription,
+        subscription_status: userStatus,
+        subscription_tier: userTier,
         subscription_end_date: subData?.subscription_end_date,
         requests_used: requestsUsed,
         request_limit: currentLimit,
         free_requests_limit: freeLimit,
         can_use_own_api_key: canUseOwnApiKey,
+        isPaidUser,
+        isGiftedPremium,
+        hasCloudStorage,
+        hasPremiumFeatures,
+      });
+
+      console.log('UseSubscription: Final status:', { 
+        userStatus, 
+        userTier, 
+        isPaidUser, 
+        isGiftedPremium, 
+        hasCloudStorage, 
+        hasPremiumFeatures,
+        hasOwnApiKey 
       });
     } catch (error) {
       console.error('Error checking subscription:', error);
