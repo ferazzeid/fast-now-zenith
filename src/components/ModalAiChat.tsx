@@ -255,7 +255,7 @@ When a user shares what motivates them, use the create_motivator function immedi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[95vw] max-h-[85vh] flex flex-col p-0 mx-auto">
+      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[85vh] flex flex-col p-0 left-1/2 top-1/2 translate-x-[-50%] translate-y-[-50%] fixed">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         </DialogHeader>
