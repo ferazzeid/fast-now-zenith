@@ -257,7 +257,7 @@ When a user shares what motivates them, use the create_motivator function immedi
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
@@ -321,12 +321,12 @@ When a user shares what motivates them, use the create_motivator function immedi
                     )}
                     
                     {/* Motivator suggestion buttons */}
-                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && (message.content.includes('Title:') || message.content.includes('created a motivator')) && (
+                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && index === messages.length - 1 && !isProcessing && message.content && (
                       <div className="flex gap-2 mt-3">
                         <Button 
                           size="sm" 
                           onClick={() => handleSendMessage('Yes, create this motivator')}
-                          className="text-xs"
+                          className="text-xs bg-primary text-primary-foreground"
                         >
                           Create It
                         </Button>
