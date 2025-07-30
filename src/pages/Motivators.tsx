@@ -191,6 +191,53 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             </Button>
           </div>
 
+          {/* AI Suggestion Display */}
+          {pendingAiSuggestion && (
+            <div className="mb-6 bg-card border border-border rounded-lg p-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-warm-text">AI Suggestion</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPendingAiSuggestion(null)}
+                  >
+                    ✕
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium">{pendingAiSuggestion.title}</h4>
+                  <p className="text-sm text-muted-foreground">{pendingAiSuggestion.content}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      handleCreateMotivator(pendingAiSuggestion);
+                      setPendingAiSuggestion(null);
+                    }}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    Create Motivator
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditingMotivator({
+                        id: 'new',
+                        title: pendingAiSuggestion.title,
+                        content: pendingAiSuggestion.content,
+                        imageUrl: pendingAiSuggestion.imageUrl
+                      });
+                      setPendingAiSuggestion(null);
+                    }}
+                  >
+                    Edit First
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Goal Ideas Library */}
           {showGoalIdeas && (
             <div className="mb-6 bg-card border border-border rounded-lg p-4">
