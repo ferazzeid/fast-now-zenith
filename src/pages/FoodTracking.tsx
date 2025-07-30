@@ -621,21 +621,22 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     
                      {/* Food Info */}
                      <div className="flex-1 min-w-0">
-                       {/* First Line: Food name and walking time */}
-                       <div className="flex items-center justify-between gap-2">
+                       {/* First Line: Food name only */}
+                       <div className="flex items-center">
                          <span className="font-medium text-warm-text truncate flex-1">{entry.name}</span>
-                         <div className="flex items-center gap-1 text-xs text-muted-foreground flex-shrink-0">
-                           <Footprints className="w-3 h-3" />
-                           <span>{formatWalkingTime(calculateWalkingMinutesForFood(entry.calories))}</span>
-                         </div>
                        </div>
-                       {/* Second Line: Nutrition info */}
+                       {/* Second Line: All data including walking time */}
                        <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
                          <span>{entry.serving_size}g</span>
                          <span className="text-warm-text/60">•</span>
                          <span>{entry.calories}cal</span>
                          <span className="text-warm-text/60">•</span>
                          <span>{entry.carbs}g carbs</span>
+                         <span className="text-warm-text/60">•</span>
+                         <div className="flex items-center gap-1">
+                           <Footprints className="w-3 h-3" />
+                           <span>{formatWalkingTime(calculateWalkingMinutesForFood(entry.calories))}</span>
+                         </div>
                        </div>
                      </div>
                     

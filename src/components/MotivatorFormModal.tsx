@@ -195,7 +195,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowVoiceRecorder(true)}
-                className="h-6 px-2"
+                className="h-6 px-2 border border-ceramic-rim hover:bg-ceramic-base"
               >
                 <Mic className="w-3 h-3 mr-1" />
                 <span className="text-xs">Voice</span>
@@ -211,7 +211,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between">
               <Label htmlFor="content" className="text-warm-text font-medium">
                 Description (Optional)
               </Label>
@@ -220,7 +220,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowVoiceRecorder(true)}
-                className="h-6 px-2 text-xs border border-ceramic-rim hover:bg-ceramic-base"
+                className="h-6 px-2 border border-ceramic-rim hover:bg-ceramic-base"
               >
                 <Mic className="w-3 h-3 mr-1" />
                 <span className="text-xs">Voice</span>
