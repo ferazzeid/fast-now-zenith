@@ -105,8 +105,11 @@ export const ModalAiChat = ({
         content: msg.content
       }));
 
-      // Enhanced system prompt for food tracking
-      const enhancedSystemPrompt = `${systemPrompt}
+      // Enhanced system prompt based on context
+      let enhancedSystemPrompt = systemPrompt;
+      
+      if (title === 'Food Assistant') {
+        enhancedSystemPrompt = `${systemPrompt}
 
 You are helping with food tracking. Your goal is to:
 1. Help users add complete food entries with all required information
@@ -115,13 +118,18 @@ You are helping with food tracking. Your goal is to:
 4. Provide reasonable estimates for calories and carbs based on food type and portion
 5. Be conversational and helpful
 
-When the user provides food information, always confirm:
-- Food name
-- Portion size in grams
-- Calories (estimate if needed)
-- Carbs in grams (estimate if needed)
+When the user provides food information, always use the add_food_entry function to add it to their log.`;
+      } else if (title === 'Motivator Assistant') {
+        enhancedSystemPrompt = `${systemPrompt}
 
-Then ask if they want to add it to their food log.`;
+You are helping users create motivational content for their fasting and health journey. Your goal is to:
+1. Listen to what motivates them and create personalized motivators
+2. Help them articulate their goals, reasons, and inspiration
+3. Create compelling titles and content for their motivators
+4. Be supportive and encouraging
+
+When a user shares what motivates them or asks for motivational content, use the create_motivator function to create it immediately. Create motivators from their specific words and experiences.`;
+      }
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
@@ -135,10 +143,10 @@ Then ask if they want to add it to their food log.`;
 
       if (error) throw error;
 
-      if (data?.choices?.[0]?.message?.content) {
+      if (data?.completion) {
         const aiMessage: Message = {
           role: 'assistant',
-          content: data.choices[0].message.content,
+          content: data.completion,
           timestamp: new Date()
         };
 

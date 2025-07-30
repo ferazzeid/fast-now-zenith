@@ -88,6 +88,68 @@ serve(async (req) => {
         stream: stream,
         temperature: 0.7,
         max_tokens: 1000,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "create_motivator",
+              description: "Create a new motivational message for the user",
+              parameters: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "A short, inspiring title for the motivator (max 50 characters)"
+                  },
+                  content: {
+                    type: "string", 
+                    description: "The main motivational content or message (max 200 characters)"
+                  },
+                  category: {
+                    type: "string",
+                    enum: ["personal", "health", "achievement", "mindset"],
+                    description: "The category that best fits this motivator"
+                  }
+                },
+                required: ["title", "content"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "add_food_entry",
+              description: "Add a food entry to the user's food log",
+              parameters: {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "Name of the food item"
+                  },
+                  serving_size: {
+                    type: "number",
+                    description: "Serving size in grams"
+                  },
+                  calories: {
+                    type: "number",
+                    description: "Number of calories in this serving"
+                  },
+                  carbs: {
+                    type: "number",
+                    description: "Number of carbs in grams in this serving"
+                  },
+                  consumed: {
+                    type: "boolean",
+                    description: "Whether this food was actually consumed"
+                  }
+                },
+                required: ["name", "serving_size", "calories", "carbs"]
+              }
+            }
+          }
+        ],
+        tool_choice: "auto"
       }),
     });
 
@@ -128,8 +190,27 @@ serve(async (req) => {
     } else {
       // Return non-streaming response
       const result = await response.json();
+      
+      // Check if there's a function call in the response
+      let functionCall = null;
+      if (result.choices?.[0]?.message?.tool_calls?.[0]) {
+        const toolCall = result.choices[0].message.tool_calls[0];
+        if (toolCall.type === 'function') {
+          functionCall = {
+            name: toolCall.function.name,
+            arguments: JSON.parse(toolCall.function.arguments)
+          };
+        }
+      }
+      
+      // Format response to match expected structure
+      const formattedResult = {
+        completion: result.choices?.[0]?.message?.content || '',
+        functionCall: functionCall
+      };
+      
       return new Response(
-        JSON.stringify(result),
+        JSON.stringify(formattedResult),
         { 
           headers: { 
             ...corsHeaders, 

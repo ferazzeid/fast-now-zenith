@@ -109,18 +109,28 @@ Please tell me what motivates you or what kind of motivational message you'd lik
   };
 
   const handleAiChatResult = async (result: any) => {
+    console.log('AI Chat Result:', result); // Debug log
     if (result.name === 'create_motivator') {
       const { arguments: args } = result;
       
-      // Create the motivator from AI suggestion
-      await handleCreateMotivator({
-        title: args.title,
-        content: args.content,
-        imageUrl: args.imageUrl || null
-      });
-      
-      // Close the AI chat modal
-      setShowAiChat(false);
+      try {
+        // Create the motivator from AI suggestion
+        await handleCreateMotivator({
+          title: args.title,
+          content: args.content,
+          imageUrl: args.imageUrl || null
+        });
+        
+        // Close the AI chat modal
+        setShowAiChat(false);
+      } catch (error) {
+        console.error('Error creating motivator from AI:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create motivator from AI suggestion",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -212,7 +222,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                             )}
                             {motivator.category && (
                               <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
                                   {motivator.category}
                                 </Badge>
                               </div>
