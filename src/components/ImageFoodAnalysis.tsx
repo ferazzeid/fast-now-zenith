@@ -28,7 +28,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-4">
+      <DialogContent className="max-w-md mx-auto max-h-[85vh]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">
@@ -112,12 +112,12 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
           {/* Estimated Values */}
           <div className="pt-2 border-t border-border">
             <p className="text-sm text-muted-foreground mb-3">
-              {hasAiAnalysis ? 'AI Estimated Values:' : 'Nutritional Information:'}
+              {hasAiAnalysis ? 'AI Estimated Values (for serving):' : 'Nutritional Information (for serving):'}
             </p>
             
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="calories" className="text-sm">Calories</Label>
+                <Label htmlFor="calories" className="text-sm">Calories (for this serving)</Label>
                 <Input
                   id="calories"
                   type="number"
@@ -129,7 +129,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
               </div>
 
               <div>
-                <Label htmlFor="carbs" className="text-sm">Carbs (g)</Label>
+                <Label htmlFor="carbs" className="text-sm">Carbs (g, for this serving)</Label>
                 <Input
                   id="carbs"
                   type="number"
@@ -145,11 +145,18 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
             <Button onClick={onSave} className="flex-1">
-              Add to Food Plan
+              Add to Food Plan & Library
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
+          </div>
+          
+          {/* Workflow Info */}
+          <div className="bg-muted/50 rounded-lg p-3 mt-2">
+            <p className="text-xs text-muted-foreground">
+              This will add {data.servingSize}g to your food plan and calculate per-100g values for your library.
+            </p>
           </div>
         </div>
       </DialogContent>

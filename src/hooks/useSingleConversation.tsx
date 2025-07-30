@@ -14,13 +14,15 @@ export interface Message {
 export const useSingleConversation = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isProcessingMessage, setIsProcessingMessage] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   // Load the single conversation from database (non-archived)
   const loadConversation = async () => {
-    if (!user) return;
+    if (!user || isProcessingMessage) return;
     
+    console.log('DEBUG: Loading conversation for user:', user.id);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -32,11 +34,14 @@ export const useSingleConversation = () => {
         .limit(1)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.log('DEBUG: Query result:', { data, error });
+
+      if (error) {
         throw error;
       }
       
       if (data) {
+        console.log('DEBUG: Found conversation with', data.messages ? 'messages' : 'no messages');
         // Transform the data to match our interface
         let conversationMessages: Message[] = [];
         try {
@@ -54,7 +59,11 @@ export const useSingleConversation = () => {
           timestamp: new Date(msg.timestamp)
         }));
         
+        console.log('DEBUG: Loaded', transformedMessages.length, 'messages from database');
         setMessages(transformedMessages);
+      } else {
+        console.log('DEBUG: No conversation found, starting fresh');
+        setMessages([]);
       }
     } catch (error) {
       console.error('Error loading conversation:', error);
@@ -72,8 +81,13 @@ export const useSingleConversation = () => {
   const addMessage = async (message: Message) => {
     if (!user) return false;
 
+    console.log('DEBUG: addMessage called with:', message);
+    setIsProcessingMessage(true);
+
     try {
+      // Update local state first for immediate display
       const updatedMessages = [...messages, message];
+      setMessages(updatedMessages);
       
       // Serialize messages with timestamps as ISO strings
       const messagesForDb = updatedMessages.map(msg => ({
@@ -81,35 +95,35 @@ export const useSingleConversation = () => {
         timestamp: msg.timestamp.toISOString()
       }));
 
-      // Check if conversation exists (and clean up duplicates if any)
-      const { data: existingConversations } = await supabase
+      console.log('DEBUG: Saving to database, total messages:', messagesForDb.length);
+
+      // Check if conversation exists - get the most recent one
+      const { data: conversations, error: queryError } = await supabase
         .from('chat_conversations')
-        .select('id, created_at')
+        .select('id')
         .eq('user_id', user.id)
         .eq('archived', false)
-        .order('created_at', { ascending: false });
+        .order('last_message_at', { ascending: false })
+        .limit(1);
 
-      if (existingConversations && existingConversations.length > 0) {
-        // If multiple conversations exist, keep the newest and delete others
-        if (existingConversations.length > 1) {
-          const conversationsToDelete = existingConversations.slice(1);
-          await supabase
-            .from('chat_conversations')
-            .delete()
-            .in('id', conversationsToDelete.map(conv => conv.id));
-        }
+      console.log('DEBUG: Existing conversation query result:', { conversations, queryError });
 
-        // Update the newest conversation
+      const existingConversation = conversations && conversations.length > 0 ? conversations[0] : null;
+
+      if (existingConversation) {
+        console.log('DEBUG: Updating existing conversation:', existingConversation.id);
+        // Update existing conversation
         const { error } = await supabase
           .from('chat_conversations')
           .update({
             messages: JSON.stringify(messagesForDb),
             last_message_at: new Date().toISOString()
           })
-          .eq('id', existingConversations[0].id);
+          .eq('id', existingConversation.id);
 
         if (error) throw error;
       } else {
+        console.log('DEBUG: Creating new conversation');
         // Create new conversation
         const title = message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '');
         
@@ -125,17 +139,19 @@ export const useSingleConversation = () => {
         if (error) throw error;
       }
 
-      // Update local state
-      setMessages(updatedMessages);
+      console.log('DEBUG: Message saved successfully, local state updated');
       return true;
     } catch (error) {
       console.error('Error adding message:', error);
+      // If database save fails, still keep the local state for better UX
       toast({
         title: "Error",
         description: "Failed to save message",
         variant: "destructive",
       });
       return false;
+    } finally {
+      setIsProcessingMessage(false);
     }
   };
 
@@ -203,12 +219,14 @@ export const useSingleConversation = () => {
 
   // Load conversation when user changes
   useEffect(() => {
+    console.log('DEBUG: useEffect triggered, user:', user?.id, 'current messages:', messages.length);
     if (user) {
       loadConversation();
     } else {
+      console.log('DEBUG: No user, clearing messages');
       setMessages([]);
     }
-  }, [user]);
+  }, [user?.id]);
 
   return {
     messages,

@@ -68,9 +68,19 @@ serve(async (req) => {
     // Prepare the image content for OpenAI
     let imageContent;
     if (imageUrl) {
-      // If imageUrl is provided, check if it's a relative path and make it absolute
-      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com${imageUrl}`;
-      imageContent = { type: "image_url", image_url: { url: fullImageUrl } };
+      // Handle different URL types properly
+      let finalImageUrl;
+      if (imageUrl.startsWith('data:')) {
+        // Data URL - use as is
+        finalImageUrl = imageUrl;
+      } else if (imageUrl.startsWith('http')) {
+        // Already absolute URL - use as is
+        finalImageUrl = imageUrl;
+      } else {
+        // Relative path - make it absolute
+        finalImageUrl = `https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com${imageUrl}`;
+      }
+      imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
     } else {
       imageContent = { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageData}` } };
     }

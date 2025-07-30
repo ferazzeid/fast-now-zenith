@@ -119,31 +119,26 @@ const Settings = () => {
 
       // Save user preferences to database
       if (user) {
-        console.log('Saving settings for user:', user.id);
-        console.log('API key length:', openAiKey?.length || 0);
-        console.log('Use own key:', useOwnKey);
-        console.log('Will save openai_api_key as:', useOwnKey ? openAiKey : null);
+        const updateData = {
+          use_own_api_key: useOwnKey,
+          speech_model: speechModel,
+          transcription_model: transcriptionModel,
+          tts_model: ttsModel,
+          tts_voice: ttsVoice,
+          openai_api_key: useOwnKey ? openAiKey : null,
+          weight: weight ? parseFloat(weight) : null,
+          height: height ? parseInt(height) : null,
+          age: age ? parseInt(age) : null,
+          daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
+          daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
+          activity_level: activityLevel,
+          units: units
+        };
         
         const { data, error } = await supabase
           .from('profiles')
-          .update({
-            use_own_api_key: useOwnKey,
-            speech_model: speechModel,
-            transcription_model: transcriptionModel,
-            tts_model: ttsModel,
-            tts_voice: ttsVoice,
-            openai_api_key: useOwnKey ? openAiKey : null,
-            weight: weight ? parseFloat(weight) : null,
-            height: height ? parseInt(height) : null,
-            age: age ? parseInt(age) : null,
-            daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
-            daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-            activity_level: activityLevel,
-            units: units
-          })
+          .update(updateData)
           .eq('user_id', user.id);
-
-        console.log('Update result:', { data, error });
 
         if (error) {
           console.error('Settings save error:', error);
@@ -348,32 +343,32 @@ const Settings = () => {
                           <SelectValue placeholder="Select your activity level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sedentary">
-                            <div className="flex flex-col">
+                          <SelectItem value="sedentary" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Sedentary</span>
                               <span className="text-xs text-muted-foreground">Little to no exercise</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="lightly_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="lightly_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Lightly Active</span>
                               <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="moderately_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="moderately_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Moderately Active</span>
                               <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="very_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="very_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Very Active</span>
                               <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="extremely_active">
-                            <div className="flex flex-col">
+                          <SelectItem value="extremely_active" className="text-left">
+                            <div className="flex flex-col items-start">
                               <span className="font-medium">Extremely Active</span>
                               <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
                             </div>
@@ -764,6 +759,7 @@ const Settings = () => {
                               supabase.from('user_foods').delete().eq('user_id', user.id),
                               supabase.from('fasting_sessions').delete().eq('user_id', user.id),
                               supabase.from('walking_sessions').delete().eq('user_id', user.id),
+                              supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
                               supabase.from('ai_usage_logs').delete().eq('user_id', user.id),
                               supabase.from('profiles').update({
                                 weight: null,
@@ -778,11 +774,22 @@ const Settings = () => {
                               }).eq('user_id', user.id)
                             ]);
                             
+                            // Clear localStorage to remove any cached data
+                            localStorage.removeItem('openai_api_key');
+                            localStorage.removeItem('food_analysis_cache');
+                            localStorage.removeItem('walking_stats');
+                            localStorage.removeItem('fasting_context');
+                            
                             toast({
                               title: "Account Reset Complete",
-                              description: "All your data has been deleted. Your account is now fresh.",
+                              description: "All your data has been deleted. Reloading app to clear cache...",
                               variant: "default",
                             });
+                            
+                            // Force reload to clear all React state and caches
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 1500);
                           } catch (error) {
                             toast({
                               title: "Error",

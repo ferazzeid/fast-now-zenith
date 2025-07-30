@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info } from 'lucide-react';
+import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info, RotateCcw } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDailyDeficit } from '@/hooks/useDailyDeficit';
@@ -9,6 +9,7 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 export const DailyStatsPanel = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { deficitData, loading, refreshDeficit } = useDailyDeficit();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -104,7 +105,13 @@ export const DailyStatsPanel = () => {
     }
   }, [isExpanded]);
 
-  // Don't render anything on admin pages, but always show if there's any food data
+  // Debug logging to understand why deficit panel isn't showing
+  console.log('DailyStatsPanel - shouldHidePanel:', shouldHidePanel);
+  console.log('DailyStatsPanel - deficitData:', deficitData);
+  console.log('DailyStatsPanel - loading:', loading);
+  console.log('DailyStatsPanel - caloriesConsumed:', deficitData.caloriesConsumed);
+  
+  // Don't render anything on admin pages, but show when we have profile data (even if no calories consumed yet)
   if (shouldHidePanel) {
     return null;
   }
@@ -126,10 +133,33 @@ export const DailyStatsPanel = () => {
                 Today's Deficit:
               </span>
               <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                {loading ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
+                {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
               </span>
             </div>
             <div className="flex items-center space-x-2">
+              <button 
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  setIsRefreshing(true);
+                  console.log('Refresh button clicked, starting refresh...');
+                  try {
+                    await refreshDeficit();
+                    console.log('Refresh completed successfully');
+                  } catch (error) {
+                    console.error('Refresh failed:', error);
+                  } finally {
+                    setTimeout(() => {
+                      setIsRefreshing(false);
+                      console.log('Refresh button reset');
+                    }, 1000); // Add minimum 1 second loading time for visual feedback
+                  }
+                }}
+                className="p-1 hover:bg-accent rounded-full transition-colors"
+                title="Refresh data"
+                disabled={isRefreshing}
+              >
+                <RotateCcw className={`w-4 h-4 text-muted-foreground hover:text-primary transition-transform ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
               <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
@@ -165,7 +195,7 @@ export const DailyStatsPanel = () => {
                       </Tooltip>
                     </div>
                     <div className={`text-3xl font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                      {loading ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
+                      {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {deficitData.todayDeficit > 0 ? 'Calorie deficit (weight loss)' : 'Calorie surplus (weight gain)'}
@@ -207,14 +237,14 @@ export const DailyStatsPanel = () => {
                              <Info className="w-4 h-4 text-muted-foreground" />
                            </button>
                          </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Total calories burned today: Base Daily Burn + Walking + Fasting Bonus</p>
-                        </TooltipContent>
+                         <TooltipContent>
+                           <p>Total calories burned today: Base Daily Burn + Walking + Manual Activities</p>
+                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <div className="text-lg font-bold text-primary">
-                      {formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.fastingBonus)} cal
-                    </div>
+                     <div className="text-lg font-bold text-primary">
+                       {formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)} cal
+                     </div>
                   </Card>
 
                   {/* Base Daily Burn (TDEE) */}
@@ -268,30 +298,30 @@ export const DailyStatsPanel = () => {
                   </Card>
                 </div>
 
-                {/* Fasting Bonus (if applicable) */}
-                {deficitData.fastingBonus > 0 && (
-                  <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-purple-500" />
-                        <span className="text-sm font-medium text-warm-text">Fasting Bonus</span>
-                         <Tooltip>
-                           <TooltipTrigger>
-                             <button className="p-2 hover:bg-accent rounded-md">
-                               <Info className="w-4 h-4 text-muted-foreground" />
-                             </button>
-                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p>5% metabolic boost while actively fasting</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <div className="text-sm font-bold text-purple-600 dark:text-purple-400">
-                        {formatNumber(deficitData.fastingBonus)} cal
-                      </div>
-                    </div>
-                  </Card>
-                )}
+                 {/* Manual Activities (if applicable) */}
+                 {deficitData.manualCalories > 0 && (
+                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center space-x-2">
+                         <Activity className="w-4 h-4 text-green-500" />
+                         <span className="text-sm font-medium text-warm-text">Manual Activities</span>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <button className="p-2 hover:bg-accent rounded-md">
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                              </button>
+                            </TooltipTrigger>
+                           <TooltipContent>
+                             <p>Calories burned from manually logged activities today</p>
+                           </TooltipContent>
+                         </Tooltip>
+                       </div>
+                       <div className="text-sm font-bold text-green-600 dark:text-green-400">
+                         {formatNumber(deficitData.manualCalories)} cal
+                       </div>
+                     </div>
+                   </Card>
+                 )}
 
                 {/* Manual Calorie Burn Addition */}
                 <div className="mt-4">

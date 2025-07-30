@@ -8,12 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
+import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 
 const Walking = () => {
-  const [timeElapsed, setTimeElapsed] = useState(0);
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
-  const [realTimeCalories, setRealTimeCalories] = useState(0);
-  const [realTimeDistance, setRealTimeDistance] = useState(0);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const { toast } = useToast();
   const { 
@@ -28,47 +26,13 @@ const Walking = () => {
     endWalkingSession,
     updateSessionSpeed
   } = useWalkingSession();
-  const { profile, isProfileComplete, calculateWalkingCalories } = useProfile();
+  const { profile } = useProfile();
+  const { walkingStats } = useWalkingStats();
 
   const isRunning = !!currentSession;
 
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (currentSession && !isPaused) {
-      interval = setInterval(() => {
-        const startTime = new Date(currentSession.start_time);
-        const now = new Date();
-        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-        
-        // Subtract paused time for accurate calculation
-        const pausedTime = currentSession.total_pause_duration || 0;
-        const activeElapsed = Math.max(0, totalElapsed - pausedTime);
-        setTimeElapsed(activeElapsed);
-
-        // Calculate real-time stats based on active time only
-        const activeDurationMinutes = activeElapsed / 60;
-        const speedMph = currentSession.speed_mph || selectedSpeed || 3;
-        
-        if (isProfileComplete()) {
-          const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
-          setRealTimeCalories(calories);
-        }
-        
-        // Convert distance based on unit preference
-        let distance = (activeDurationMinutes / 60) * speedMph;
-        if (profile?.units === 'metric') {
-          distance = distance * 1.60934; // Convert miles to km
-        }
-        setRealTimeDistance(Math.round(distance * 100) / 100);
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories, profile?.units]);
+  // Stats are now managed by WalkingStatsContext
 
   const handleStart = async () => {
     // Start walking session directly without blocking
@@ -121,7 +85,7 @@ const Walking = () => {
     } else {
       toast({
         title: "Walking completed!",
-        description: `Great job! You walked for ${formatTime(timeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`
+        description: `Great job! You walked for ${formatTime(walkingStats.timeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`
       });
     }
   };
@@ -153,7 +117,7 @@ const Walking = () => {
         {/* Timer Display */}
         <div className="relative mb-8">
           <WalkingTimer
-            displayTime={formatTime(timeElapsed)}
+            displayTime={formatTime(walkingStats.timeElapsed)}
             isActive={!!currentSession}
             isPaused={isPaused}
             onStart={handleStart}
@@ -171,8 +135,8 @@ const Walking = () => {
             }}
             realTimeStats={currentSession ? {
               speed: currentSession.speed_mph || selectedSpeed,
-              distance: realTimeDistance,
-              calories: realTimeCalories,
+              distance: walkingStats.realTimeDistance,
+              calories: walkingStats.realTimeCalories,
               startTime: currentSession.start_time
             } : undefined}
           />
@@ -193,9 +157,9 @@ const Walking = () => {
           open={showStopConfirm}
           onOpenChange={setShowStopConfirm}
           onConfirm={handleStopConfirm}
-          currentDuration={formatTime(timeElapsed)}
-          calories={realTimeCalories}
-          distance={realTimeDistance}
+          currentDuration={formatTime(walkingStats.timeElapsed)}
+          calories={walkingStats.realTimeCalories}
+          distance={walkingStats.realTimeDistance}
           units={profile?.units || 'imperial'}
         />
 

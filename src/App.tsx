@@ -22,6 +22,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
+import { WalkingStatsProvider } from "./contexts/WalkingStatsContext";
 
 const queryClient = new QueryClient();
 
@@ -98,7 +99,9 @@ const App = () => (
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <AppContent />
+            <WalkingStatsProvider>
+              <AppContent />
+            </WalkingStatsProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

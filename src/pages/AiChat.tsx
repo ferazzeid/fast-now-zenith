@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,10 +18,14 @@ import { useFastingContext } from '@/hooks/useFastingContext';
 import { useWalkingContext } from '@/hooks/useWalkingContext';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
-import { ImageUpload } from '@/components/ImageUpload';
 import { useNavigate } from 'react-router-dom';
+import { SimpleImageUpload } from '@/components/SimpleImageUpload';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
+import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
+import { GoalSettingNotification } from '@/components/GoalSettingNotification';
+import { useGoalNotification } from '@/hooks/useGoalNotification';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -30,9 +34,11 @@ interface EnhancedMessage {
   timestamp: Date;
   audioEnabled?: boolean;
   isNotification?: boolean;
+  isProfileMessage?: boolean;
 }
 
 const AiChat = () => {
+  console.log('DEBUG: AiChat component rendered');
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
@@ -41,8 +47,8 @@ const AiChat = () => {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
-  const [crisisInitialized, setCrisisInitialized] = useState(false);
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -61,20 +67,28 @@ const AiChat = () => {
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
   const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
+  const { subscribed, can_use_own_api_key } = useSubscription();
+  const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
 
   // Check for crisis mode
   const isCrisisMode = searchParams.get('crisis') === 'true';
   const crisisData = searchParams.get('data') ? JSON.parse(decodeURIComponent(searchParams.get('data')!)) : null;
 
+  console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
+
   // Combine regular messages with notification messages
-  const allMessages = [...notificationMessages, ...messages];
+  const profileSystemMessage = (!profile?.weight || !profile?.height || !profile?.age) ? [{
+    role: 'system' as const,
+    content: 'Profile information needed',
+    timestamp: new Date(),
+    isProfileMessage: true,
+  }] : [];
+  
+  const allMessages = [...profileSystemMessage, ...notificationMessages, ...messages];
 
   useEffect(() => {
-    // Only auto-scroll if user sent a message recently or processing
-    if (isProcessing || messages[messages.length - 1]?.role === 'user') {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [allMessages, isProcessing]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [allMessages]);
 
   // Auto-show notifications when component mounts
   useEffect(() => {
@@ -93,125 +107,146 @@ const AiChat = () => {
     }
   }, [getAutoShowNotifications, profile, user]);
 
-  // Handle crisis mode initialization - only once when entering crisis mode
+  // Handle crisis mode initialization
   useEffect(() => {
-    if (isCrisisMode && crisisData && messages.length === 0 && !isProcessing && !crisisInitialized) {
-      setCrisisInitialized(true);
+    if (isCrisisMode && crisisData && messages.length === 0) {
+      console.log('DEBUG: Initializing crisis conversation');
       // Add crisis greeting message as a regular message that gets saved
       handleSendMessage(generateProactiveMessage());
     }
-  }, [isCrisisMode, crisisData, messages.length, isProcessing, crisisInitialized, generateProactiveMessage]);
+  }, [isCrisisMode, crisisData, messages.length]);
 
-  // Handle notification responses with AI-powered extraction
+  // Handle notification responses
   const handleNotificationResponse = async (message: string) => {
     // Check if this is a response to profile completion
     const profileNotification = getAutoShowNotifications().find(n => n.type === 'profile_incomplete');
     
     if (profileNotification && notificationMessages.length > 0) {
-      console.log('DEBUG: Processing profile notification response with AI:', message);
+      console.log('DEBUG: Processing profile notification response:', message);
       
-      // Get missing profile fields
-      const missingFields = [];
-      if (!profile?.age) missingFields.push('age');
-      if (!profile?.weight) missingFields.push('weight');
-      if (!profile?.height) missingFields.push('height');
+      // Try to extract profile information from the message with more precise patterns
+      const weightMatch = message.match(/(?:weigh|weight|i\s+(?:am|weigh))\s*(?:about\s*)?(\d+(?:\.\d+)?)\s*(?:lbs?|pounds?|kg|kilos?)?/i);
+      const heightMatch = message.match(/(?:height|tall|i\s+am)\s*(?:about\s*)?(\d+)\s*(?:(?:feet?|ft|')\s*)?(\d+)?\s*(?:inches?|in|"|cm)?/i);
+      const ageMatch = message.match(/(\d+)\s*(?:Y|years?|yrs?)\s*(?:old)?|(?:age|old|i\s+am)\s*(?:about\s*)?(\d+)/i);
       
-      // Let AI extract profile information naturally
-      const profileExtractionPrompt = `You are helping extract profile information. The user is missing: ${missingFields.join(', ')}. 
+      let updates: any = {};
+      let extracted = false;
 
-From their message "${message}", extract any profile information and respond in this exact JSON format:
-{
-  "extracted": true/false,
-  "age": number or null,
-  "weight": number or null,
-  "height": number or null,
-  "confirmation": "confirmation message for the user"
-}
+      console.log('DEBUG: Regex matches:', { weightMatch, heightMatch, ageMatch });
 
-Rules for precise extraction:
-- Age: Extract just the number (10-120 years). Examples: "44Y" = 44, "I'm 25" = 25, "25 years old" = 25
-- Weight: Extract in kg (20-500 kg). Convert if needed: "150 lbs" = 68, "70kg" = 70  
-- Height: Extract in cm (100-250 cm). Convert if needed: "5'8\"" = 173, "175cm" = 175
-
-Be precise with numbers - don't add extra digits. "44Y" should be age 44, not 100.
-
-If you can't extract valid information, set extracted to false and ask for clarification.`;
-
-      try {
-        const response = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages: [
-              { role: 'system', content: profileExtractionPrompt },
-              { role: 'user', content: message }
-            ],
-            model: 'gpt-4o-mini'
-          }
-        });
-
-        if (response.error) throw response.error;
-
-        const aiResponse = response.data?.message?.content;
-        console.log('DEBUG: AI profile extraction response:', aiResponse);
-
-        // Try to parse JSON from AI response
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const extractedData = JSON.parse(jsonMatch[0]);
-          
-          if (extractedData.extracted) {
-            const updates: any = {};
-            if (extractedData.age) updates.age = extractedData.age;
-            if (extractedData.weight) updates.weight = extractedData.weight;
-            if (extractedData.height) updates.height = extractedData.height;
-            
-            console.log('DEBUG: Attempting to update profile with:', updates);
-            
-            // Show what we're about to save
-            await addMessage({
-              role: 'assistant',
-              content: `I extracted: ${Object.entries(updates).map(([key, value]) => `${key}: ${value}`).join(', ')}. Let me save this to your profile...`,
-              timestamp: new Date()
-            });
-            
-            const result = await updateProfile(updates);
-            
-            if (result.error) {
-              console.error('DEBUG: Profile update failed:', result.error);
-              await addMessage({
-                role: 'assistant',
-                content: `Sorry, I couldn't save your profile: ${result.error.message}. Please try again or check your Settings.`,
-                timestamp: new Date()
-              });
-            } else {
-              console.log('DEBUG: Profile update succeeded:', result.data);
-              await addMessage({
-                role: 'assistant',
-                content: extractedData.confirmation || 'Perfect! Your profile has been updated successfully.',
-                timestamp: new Date()
-              });
-              
-              // Only clear notification after successful update
-              clearNotification('profile_incomplete');
-              setNotificationMessages([]);
-            }
-            
-            return true;
-          } else {
-            // AI couldn't extract valid data, send AI's clarification message
-            await addMessage({
-              role: 'assistant',
-              content: extractedData.confirmation || 'I need more specific information. Could you please provide your age, weight, and height more clearly?',
-              timestamp: new Date()
-            });
-            return true;
-          }
+      if (weightMatch) {
+        const weight = parseFloat(weightMatch[1]);
+        console.log('DEBUG: Weight parsing - weightMatch:', weightMatch, 'extracted weight:', weight);
+        
+        // Validate weight (20-500kg is reasonable range)
+        if (weight >= 20 && weight <= 500) {
+          updates.weight = weight;
+          extracted = true;
+          console.log('DEBUG: Extracted valid weight:', weight);
+        } else {
+          console.log('DEBUG: Weight rejected - outside valid range (20-500kg):', weight);
         }
-      } catch (error) {
-        console.error('Error in AI profile extraction:', error);
+      }
+
+      if (heightMatch) {
+        let heightInCm;
+        const feet = parseInt(heightMatch[1]);
+        const inches = heightMatch[2] ? parseInt(heightMatch[2]) : 0;
+        
+        // Check if it's likely feet/inches (e.g., "5 10" or "5'10")
+        if (feet <= 8 && (!heightMatch[2] || inches <= 12)) {
+          // Convert feet/inches to cm
+          heightInCm = Math.round((feet * 12 + inches) * 2.54);
+        } else {
+          // Assume it's already in cm
+          heightInCm = feet;
+        }
+        
+        console.log('DEBUG: Height parsing - heightMatch:', heightMatch, 'calculated height:', heightInCm);
+        
+        // Validate height (100-250cm is reasonable range)
+        if (heightInCm >= 100 && heightInCm <= 250) {
+          updates.height = heightInCm;
+          extracted = true;
+          console.log('DEBUG: Extracted valid height:', heightInCm, 'cm');
+        } else {
+          console.log('DEBUG: Height rejected - outside valid range (100-250cm):', heightInCm);
+        }
+      }
+
+      if (ageMatch) {
+        // ageMatch[1] might be from "44Y" pattern, ageMatch[2] from other patterns
+        const ageStr = ageMatch[1] || ageMatch[2];
+        const age = parseInt(ageStr);
+        
+        console.log('DEBUG: Age parsing - ageMatch:', ageMatch, 'extracted age:', age);
+        
+        // Validate age (10-120 years is reasonable range)
+        if (age >= 10 && age <= 120) {
+          updates.age = age;
+          extracted = true;
+          console.log('DEBUG: Extracted valid age:', age);
+        } else {
+          console.log('DEBUG: Age rejected - outside valid range (10-120):', age);
+        }
+      }
+
+      if (extracted) {
+        try {
+          console.log('DEBUG: Updating profile with:', updates);
+          const result = await updateProfile(updates);
+          console.log('DEBUG: Profile update result:', result);
+          
+          // Check if the update was successful
+          if (result.error) {
+            console.error('DEBUG: Profile update failed:', result.error);
+            await addMessage({
+              role: 'assistant',
+              content: `I had trouble saving that information: ${result.error.message}. Please try again or update your profile in Settings.`,
+              timestamp: new Date(),
+            });
+            return true;
+          }
+          
+          // Send confirmation message as regular message
+          const confirmationContent = `Perfect! I've saved your information:${
+            updates.weight ? ` Weight: ${updates.weight}kg` : ''
+          }${
+            updates.height ? ` Height: ${updates.height}cm` : ''
+          }${
+            updates.age ? ` Age: ${updates.age} years` : ''
+          }.${
+            Object.keys(updates).length === 3 
+              ? ' Your profile is now complete and I can provide accurate calorie calculations!' 
+              : ' If you want to add more information, you can tell me here or update it in Settings.'
+          }`;
+
+          await addMessage({
+            role: 'assistant',
+            content: confirmationContent,
+            timestamp: new Date(),
+          });
+          
+          // Clear the notification if we got some profile info
+          clearNotification('profile_incomplete');
+          setNotificationMessages([]); // Clear notification messages
+          
+          return true; // Indicate that we handled this as a notification response
+        } catch (error) {
+          console.error('Error updating profile:', error);
+          await addMessage({
+            role: 'assistant',
+            content: `I encountered an error while saving your information: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or update your profile in Settings.`,
+            timestamp: new Date(),
+          });
+        }
+      } else {
+        console.log('DEBUG: No profile information extracted from message');
+        // If no specific info was extracted, provide guidance
         await addMessage({
           role: 'assistant',
-          content: 'I had trouble processing that information. Could you please provide your age, weight, and height? For example: "I am 25 years old, weigh 70kg, and am 175cm tall"',
-          timestamp: new Date()
+          content: 'I can help you save your profile information. Please tell me your weight, height, and age. For example: "I am 70kg, 175cm tall, and 30 years old" or "I weigh 150 pounds, I am 5 feet 10 inches tall, and I am 25 years old".',
+          timestamp: new Date(),
         });
         return true;
       }
@@ -221,29 +256,21 @@ If you can't extract valid information, set extracted to false and ask for clari
   };
 
   useEffect(() => {
-    // Load API key from localStorage and sync with state
+    // Load API key from localStorage
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
-      // Close the dialog if a key is already present
-      setShowApiDialog(false);
-    } else {
-      // Only show dialog if no key exists and not in crisis mode (will be handled by SOS)
-      setShowApiDialog(false);
     }
   }, []);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    // Validate message before proceeding
-    if (!message || !message.trim()) {
-      console.error('sendToAI called with empty message:', message);
-      return;
-    }
-
-    // Check for API key in both state and localStorage
-    const currentApiKey = apiKey || localStorage.getItem('openai_api_key');
-    if (!currentApiKey?.trim()) {
+    // Only show API dialog if:
+    // 1. No API key is configured AND
+    // 2. User doesn't have premium subscription AND 
+    // 3. User can't use their own API key (exceeded free limit)
+    if (!apiKey.trim() && !subscribed && !can_use_own_api_key) {
       setShowApiDialog(true);
+      // Don't show error toast for missing API key - the dialog explains everything
       return;
     }
 
@@ -273,22 +300,31 @@ If you can't extract valid information, set extracted to false and ask for clari
 4. Creating motivational content and quotes
 5. General health and wellness questions
 
+IMPORTANT: When users ask for motivational content, quotes, or inspiration, ALWAYS use the create_motivator tool. 
+Examples that should trigger create_motivator:
+- "I need motivation"
+- "Create a motivator about weight loss"
+- "Give me an inspiring quote"
+- "I want motivation for my workout"
+
+Ask clarifying questions if needed (category, specific theme), then create the motivator.
+
 You have access to tools to create motivational content when requested.
 
 Current context: ${contextString}
 
-Be conversational, supportive, and helpful. When users ask for motivational content, use the create_motivator tool.`;
+Be conversational, supportive, and helpful. When users mention motivators or inspiration, use the create_motivator tool.`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
-          message: message, // Send the message without concatenating context
+          message: `${contextString}${message}`,
           conversationHistory: [
             { role: 'system', content: systemPrompt },
             ...conversationHistory
           ]
         },
         headers: {
-          'X-OpenAI-API-Key': currentApiKey
+          'X-OpenAI-API-Key': apiKey
         }
       });
 
@@ -368,6 +404,7 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
   const handleVoiceTranscription = async (transcription: string) => {
     if (!transcription.trim()) return;
 
+    // Always add the user message first
     await addMessage({
       role: 'user',
       content: transcription,
@@ -378,29 +415,43 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
     // Check if this is a notification response first
     const wasNotificationResponse = await handleNotificationResponse(transcription);
     
-    if (!wasNotificationResponse) {
-      await sendToAI(transcription, true);
-    }
+    // Always send to AI for a conversational response
+    await sendToAI(transcription, true);
   };
 
-  const handleSendMessage = useCallback(async (presetMessage?: string) => {
+  const handleSendMessage = async (presetMessage?: string) => {
     const messageToSend = presetMessage || inputMessage.trim();
-    console.log('handleSendMessage called with:', { presetMessage, inputMessage, messageToSend });
     if (!messageToSend || isProcessing) return;
 
+    console.log('DEBUG: handleSendMessage called with:', messageToSend);
+
     try {
-      await addMessage({
-        role: 'user',
+      // Always add the user message to chat first
+      console.log('DEBUG: About to add user message');
+      const userMessage = {
+        role: 'user' as const,
         content: messageToSend,
         timestamp: new Date()
-      });
+      };
+      
+      console.log('DEBUG: User message object:', userMessage);
+      const addResult = await addMessage(userMessage);
+      console.log('DEBUG: User message add result:', addResult);
 
       if (!presetMessage) {
         setInputMessage('');
       }
 
-      // Always send directly to AI - let the AI handle everything including profile information
+      // Check if this is a notification response first
+      const wasNotificationResponse = await handleNotificationResponse(messageToSend);
+      console.log('DEBUG: Was notification response:', wasNotificationResponse);
+      
+      // Always send to AI, even if it was a notification response
+      // The AI should handle both profile updates AND provide conversational responses
+      console.log('DEBUG: About to send to AI');
       await sendToAI(messageToSend);
+      console.log('DEBUG: Finished sending to AI');
+      
     } catch (error) {
       console.error('Error handling message:', error);
       toast({
@@ -409,18 +460,85 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         variant: "destructive"
       });
     }
-  }, [inputMessage, isProcessing, addMessage, isCrisisMode, notificationMessages.length, sendToAI, handleNotificationResponse]);
+  };
 
-  const handleImageUpload = (imageUrl: string) => {
+  const handleImageUpload = async (imageUrl: string) => {
     setUploadedImageUrl(imageUrl);
     setShowImageUpload(false);
     
-    // Add a message about the uploaded image
-    addMessage({
-      role: 'user',
-      content: `I've uploaded an image: ${imageUrl}`,
-      timestamp: new Date()
-    });
+    try {
+      // Add image message with proper structure for display
+      const imageMessage = {
+        role: 'user' as const,
+        content: 'Uploaded an image for analysis',
+        timestamp: new Date(),
+        imageUrl: imageUrl
+      };
+      
+      await addMessage(imageMessage);
+
+      // Start analysis with loading state
+      setIsProcessing(true);
+      
+      const analysisMessage = {
+        role: 'assistant' as const,
+        content: 'Analyzing your image...',
+        timestamp: new Date(),
+        isAnalyzing: true
+      };
+      
+      await addMessage(analysisMessage);
+      
+      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+        body: { imageUrl }
+      });
+
+      if (error) {
+        console.error('Image analysis error:', error);
+        const errorMessage = {
+          role: 'assistant' as const,
+          content: 'I can see your image, but I had trouble analyzing it. Can you tell me what you\'d like to do with this image?',
+          timestamp: new Date()
+        };
+        await addMessage(errorMessage);
+        return;
+      }
+
+      // Create detailed analysis result with action options
+      const analysisText = `🍽️ **Food Analysis Results**
+
+**Identified:** ${data.name || 'Unknown food item'}
+**Estimated nutrition per 100g:**
+• Calories: ${data.calories_per_100g || 'Unknown'}
+• Carbs: ${data.carbs_per_100g || 'Unknown'}g
+**Estimated serving size:** ${data.estimated_serving_size || 'Unknown'}g
+**Confidence:** ${Math.round((data.confidence || 0) * 100)}%
+
+${data.description ? `**Notes:** ${data.description}` : ''}
+
+**What would you like to do next?**`;
+
+      const resultMessage = {
+        role: 'assistant' as const,
+        content: analysisText,
+        timestamp: new Date(),
+        foodAnalysis: data,
+        showFoodActions: true
+      };
+
+      await addMessage(resultMessage);
+
+    } catch (error) {
+      console.error('Error handling image upload:', error);
+      const errorMessage = {
+        role: 'assistant' as const,
+        content: 'I can see your image, but I had trouble analyzing it. Can you tell me what you\'d like to do with this image?',
+        timestamp: new Date()
+      };
+      await addMessage(errorMessage);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleClearChat = async () => {
@@ -451,7 +569,8 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
   return (
     <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="flex flex-col h-screen pt-24"> {/* Increased top padding for deficit panel */}
+      <div className="flex flex-col h-screen pt-20">
+        
         {/* Header */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim px-4 py-4 flex-shrink-0 relative z-40">
           <div className="max-w-md mx-auto flex items-center justify-between">
@@ -502,64 +621,147 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
         </div>
 
         {/* Messages - Flexible height with proper spacing */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 min-h-0">
           <div className="max-w-md mx-auto space-y-4">
-            {allMessages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <Card className={`max-w-[85%] p-4 ${
-                  message.role === 'user' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : (message as EnhancedMessage).isNotification
-                      ? 'bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800'
-                      : 'bg-muted'
-                }`}>
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1">
-                      {(message as EnhancedMessage).isNotification && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
-                            Information Needed
-                          </span>
-                        </div>
-                      )}
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                      
-                      {/* Quick action buttons for notifications */}
-                      {(message as EnhancedMessage).isNotification && (
-                        <div className="flex gap-2 mt-3">
-                          <Button 
-                            size="sm" 
-                            onClick={() => setInputMessage("I am ")}
-                            className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300"
-                          >
-                            Tell You Now
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => navigate('/settings')}
-                            className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
-                          >
-                            Go to Settings
-                          </Button>
-                        </div>
-                      )}
-                      
-                      <p className="text-xs opacity-70 mt-2">
-                        {message.timestamp.toLocaleTimeString()}
-                      </p>
-                    </div>
-                    {message.audioEnabled && message.role === 'assistant' && (
-                      <Volume2 className="h-4 w-4 opacity-70" />
-                    )}
+            {allMessages.map((message, index) => {
+              const enhancedMessage = message as EnhancedMessage & { isProfileMessage?: boolean };
+              
+              // Show ProfileSystemMessage for profile messages
+              if (enhancedMessage.isProfileMessage) {
+                return (
+                  <div key={index}>
+                    <ProfileSystemMessage onProfileUpdate={() => {
+                      // Force a re-render by clearing notification messages
+                      setNotificationMessages([]);
+                    }} />
                   </div>
-                </Card>
-              </div>
-            ))}
+                );
+              }
+              
+              return (
+                <div
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <Card className={`max-w-[85%] p-4 ${
+                    message.role === 'user' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : enhancedMessage.isNotification
+                        ? 'bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800'
+                        : 'bg-muted'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1">
+                        {enhancedMessage.isNotification && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                              Information Needed
+                            </span>
+                          </div>
+                        )}
+                        {/* Enhanced image and content display */}
+                        {(message as any).imageUrl ? (
+                          <div className="space-y-2">
+                            <img 
+                              src={(message as any).imageUrl} 
+                              alt="Uploaded image" 
+                              className="max-w-full h-auto rounded-lg border border-border"
+                              style={{ maxHeight: '200px', objectFit: 'contain' }}
+                            />
+                            <p className="text-sm">{message.content}</p>
+                          </div>
+                        ) : (message as any).isAnalyzing ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                            <p className="text-sm">{message.content}</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                        )}
+                        
+                        {/* Food analysis action buttons */}
+                        {(message as any).showFoodActions && (message as any).foodAnalysis && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              onClick={() => {
+                                // Navigate to food tracking with pre-filled data
+                                const analysis = (message as any).foodAnalysis;
+                                const calories = Math.round((analysis.calories_per_100g * analysis.estimated_serving_size) / 100);
+                                navigate(`/food-tracking?add=${encodeURIComponent(JSON.stringify({
+                                  name: analysis.name,
+                                  calories: calories,
+                                  carbs: Math.round((analysis.carbs_per_100g * analysis.estimated_serving_size) / 100),
+                                  serving_size: analysis.estimated_serving_size
+                                }))}`);
+                              }}
+                              className="text-xs bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+                            >
+                              📝 Add to Diary
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                // Navigate to food library with pre-filled data
+                                const analysis = (message as any).foodAnalysis;
+                                navigate(`/food-tracking?library=${encodeURIComponent(JSON.stringify({
+                                  name: analysis.name,
+                                  calories_per_100g: analysis.calories_per_100g,
+                                  carbs_per_100g: analysis.carbs_per_100g
+                                }))}`);
+                              }}
+                              className="text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
+                              📚 Save to Library
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setInputMessage(`Can you help me adjust the details for ${(message as any).foodAnalysis.name}?`);
+                              }}
+                              className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50"
+                            >
+                              ✏️ Edit Details
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {/* Quick action buttons for notifications */}
+                        {enhancedMessage.isNotification && (
+                          <div className="flex gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              onClick={() => setInputMessage("I am ")}
+                              className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300"
+                            >
+                              Tell You Now
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => navigate('/settings')}
+                              className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                            >
+                              Go to Settings
+                            </Button>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs opacity-70 mt-2">
+                          {message.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                      {enhancedMessage.audioEnabled && message.role === 'assistant' && (
+                        <Volume2 className="h-4 w-4 opacity-70" />
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              );
+            })}
             
             {isProcessing && (
               <div className="flex justify-start">
@@ -572,47 +774,53 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
               </div>
             )}
             
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} data-messages-end />
           </div>
         </div>
 
         {/* Input */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-4 flex-shrink-0">
           <div className="max-w-md mx-auto space-y-3">
-            {/* Crisis Quick Replies */}
+            {/* Crisis Quick Replies - Simplified */}
             {isCrisisMode && (
-              <div className="flex flex-wrap gap-2">
-                <div className="text-xs text-muted-foreground mb-2">Quick responses:</div>
-                {generateQuickReplies().map((reply, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('DEBUG: Quick reply clicked:', reply);
-                      try {
-                        await handleSendMessage(reply);
-                      } catch (error) {
-                        console.error('Error sending quick reply:', error);
-                      }
-                    }}
-                    className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer"
-                    disabled={isProcessing}
-                  >
-                    {reply}
-                  </Button>
-                ))}
+              <div className="space-y-2">
+                <div className="text-xs text-muted-foreground">Common responses:</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {generateQuickReplies().map((reply, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log('DEBUG: Quick reply clicked', reply);
+                        handleSendMessage(reply);
+                      }}
+                      className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer justify-start h-auto py-2 px-3"
+                    >
+                      {reply}
+                    </Button>
+                  ))}
+                </div>
               </div>
             )}
             {/* Text Input */}
             <div className="flex gap-2 items-end">
               <Input
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={(e) => {
+                  console.log('DEBUG: Input changed:', e.target.value);
+                  setInputMessage(e.target.value);
+                }}
                 placeholder="Ask me anything about your health journey..."
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                onKeyDown={(e) => {
+                  console.log('DEBUG: Key pressed:', e.key, 'shiftKey:', e.shiftKey);
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('DEBUG: Enter pressed, calling handleSendMessage');
+                    handleSendMessage();
+                  }
+                }}
                 disabled={isProcessing}
                 className="flex-1 bg-ceramic-base border-ceramic-rim"
               />
@@ -625,7 +833,10 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
                 <Camera className="h-4 w-4" />
               </Button>
               <Button
-                onClick={() => handleSendMessage()}
+                onClick={() => {
+                  console.log('DEBUG: Send button clicked');
+                  handleSendMessage();
+                }}
                 disabled={!inputMessage.trim() || isProcessing}
                 size="default"
                 className="flex-shrink-0"
@@ -743,15 +954,15 @@ Be conversational, supportive, and helpful. When users ask for motivational cont
 
       {/* Image Upload Dialog */}
       <Dialog open={showImageUpload} onOpenChange={setShowImageUpload}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg mx-auto">
           <DialogHeader>
-            <DialogTitle>Upload Image</DialogTitle>
+            <DialogTitle>Upload Food Image</DialogTitle>
           </DialogHeader>
-          <ImageUpload 
-            currentImageUrl=""
-            onImageUpload={handleImageUpload}
-            onImageRemove={() => {}}
-          />
+          <div className="py-4">
+            <SimpleImageUpload 
+              onImageUpload={handleImageUpload}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -194,8 +194,17 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     let calories = parseFloat(manualEntryData.calories) || 0;
     let carbs = parseFloat(manualEntryData.carbs) || 0;
 
-    // If calories or carbs are missing, get them from AI
-    if (calories === 0 || carbs === 0) {
+    // Convert per-100g values to actual serving calories/carbs for food plan
+    const servingGrams = parseFloat(manualEntryData.servingSize);
+    const per100gCalories = parseFloat(manualEntryData.calories) || 0;
+    const per100gCarbs = parseFloat(manualEntryData.carbs) || 0;
+    
+    // Calculate actual consumption based on serving size
+    calories = (per100gCalories * servingGrams) / 100;
+    carbs = (per100gCarbs * servingGrams) / 100;
+
+    // If per-100g values are missing, get them from AI
+    if (per100gCalories === 0 || per100gCarbs === 0) {
       try {
         const { data, error } = await supabase.functions.invoke('chat-completion', {
           body: {
@@ -215,12 +224,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         if (data?.content) {
           try {
             const nutritionData = JSON.parse(data.content);
-            const servingGrams = parseFloat(manualEntryData.servingSize);
             
-            if (calories === 0 && nutritionData.calories_per_100g) {
+            if (per100gCalories === 0 && nutritionData.calories_per_100g) {
               calories = (nutritionData.calories_per_100g * servingGrams) / 100;
             }
-            if (carbs === 0 && nutritionData.carbs_per_100g) {
+            if (per100gCarbs === 0 && nutritionData.carbs_per_100g) {
               carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
             }
           } catch (parseError) {
@@ -253,12 +261,17 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       });
       setShowManualEntry(false);
       
-      // Save to personal library
+      // Save to personal library (with per-100g values)
       await saveToLibrary({
         name: manualEntryData.name,
-        calories: parseFloat(manualEntryData.calories) || 0,
-        carbs: parseFloat(manualEntryData.carbs) || 0,
-        serving_size: parseFloat(manualEntryData.servingSize)
+        calories: parseFloat(manualEntryData.calories) || 0, // This is already per 100g
+        carbs: parseFloat(manualEntryData.carbs) || 0, // This is already per 100g
+        serving_size: 100 // Always save as per 100g in library
+      });
+      
+      toast({
+        title: "Added to library too!",
+        description: `${manualEntryData.name} saved for future use`
       });
     }
   };
@@ -406,9 +419,14 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         .single();
 
       if (!existing) {
-        // Calculate per 100g values
-        const caloriesPer100g = (entry.calories / entry.serving_size) * 100;
-        const carbsPer100g = (entry.carbs / entry.serving_size) * 100;
+        // If serving_size is 100, values are already per 100g
+        // Otherwise, calculate per 100g values
+        const caloriesPer100g = entry.serving_size === 100 
+          ? entry.calories 
+          : (entry.calories / entry.serving_size) * 100;
+        const carbsPer100g = entry.serving_size === 100 
+          ? entry.carbs 
+          : (entry.carbs / entry.serving_size) * 100;
 
         await supabase
           .from('user_foods')
