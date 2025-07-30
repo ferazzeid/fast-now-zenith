@@ -96,6 +96,7 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
         
         // Reset state
         audioChunksRef.current = [];
+        setHasRecording(false);
       } else {
         throw new Error('No transcription received');
       }
@@ -129,15 +130,27 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
 
   return (
     <div className="space-y-2">
-      <Button
-        onClick={startRecording}
-        disabled={isDisabled}
-        size="lg"
-        className="w-full h-16 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
-      >
-        <Mic className="h-6 w-6 mr-2" />
-        <span>Record Message</span>
-      </Button>
+      {isRecording ? (
+        <Button
+          onClick={sendRecording}
+          disabled={isDisabled}
+          size="lg"
+          className="w-full h-16 text-base font-medium bg-green-500 hover:bg-green-600 text-white"
+        >
+          <Send className="h-6 w-6 mr-2" />
+          <span>Send</span>
+        </Button>
+      ) : (
+        <Button
+          onClick={startRecording}
+          disabled={isDisabled}
+          size="lg"
+          className="w-full h-16 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Mic className="h-6 w-6 mr-2" />
+          <span>Record Message</span>
+        </Button>
+      )}
     </div>
   );
 };

@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, X, Volume2, VolumeX, Edit, Mic } from 'lucide-react';
+import { Send, X, Edit, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +15,6 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  audioEnabled?: boolean;
 }
 
 interface ModalAiChatProps {
@@ -45,7 +43,6 @@ export const ModalAiChat = ({
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
   
   const [showEditForm, setShowEditForm] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -74,8 +71,7 @@ export const ModalAiChat = ({
         const contextMessage: Message = {
           role: 'assistant',
           content: context,
-          timestamp: new Date(),
-          audioEnabled: false
+          timestamp: new Date()
         };
         initialMessages.push(contextMessage);
       }
@@ -85,8 +81,7 @@ export const ModalAiChat = ({
         const proactiveMsg: Message = {
           role: 'assistant',
           content: proactiveMessage,
-          timestamp: new Date(),
-          audioEnabled: false
+          timestamp: new Date()
         };
         initialMessages.push(proactiveMsg);
       }
@@ -144,16 +139,10 @@ Then ask if they want to add it to their food log.`;
         const aiMessage: Message = {
           role: 'assistant',
           content: data.choices[0].message.content,
-          timestamp: new Date(),
-          audioEnabled: audioEnabled && fromVoice
+          timestamp: new Date()
         };
 
         setMessages(prev => [...prev, aiMessage]);
-
-        // Play audio if enabled and this was a voice message
-        if (audioEnabled && fromVoice) {
-          await playTextAsAudio(data.choices[0].message.content);
-        }
       }
 
       // Handle function call results and pass to parent
@@ -177,30 +166,6 @@ Then ask if they want to add it to their food log.`;
     }
   };
 
-  const playTextAsAudio = async (text: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text, voice: 'alloy' }
-      });
-
-      if (error) throw error;
-
-      if (data?.audioContent) {
-        // Convert base64 to audio blob and play
-        const audioBytes = atob(data.audioContent);
-        const audioArray = new Uint8Array(audioBytes.length);
-        for (let i = 0; i < audioBytes.length; i++) {
-          audioArray[i] = audioBytes.charCodeAt(i);
-        }
-        const audioBlob = new Blob([audioArray], { type: 'audio/mp3' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audio.play();
-      }
-    } catch (error) {
-      console.error('Error playing text as audio:', error);
-    }
-  };
 
   const handleVoiceTranscription = async (transcription: string) => {
     if (!transcription.trim()) return;
@@ -208,12 +173,11 @@ Then ask if they want to add it to their food log.`;
     const userMessage: Message = {
       role: 'user',
       content: transcription,
-      timestamp: new Date(),
-      audioEnabled: true
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    await sendToAI(transcription, true);
+    await sendToAI(transcription);
   };
 
   const handleSendMessage = async (presetMessage?: string) => {
@@ -277,20 +241,7 @@ Then ask if they want to add it to their food log.`;
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh] mt-4 flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
-            <div className="flex items-center gap-2 mr-8">
-              <Switch
-                id="modal-audio-mode"
-                checked={audioEnabled}
-                onCheckedChange={setAudioEnabled}
-                className="scale-75"
-              />
-              <Label htmlFor="modal-audio-mode" className="text-sm">
-                {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-              </Label>
-            </div>
-          </div>
+          <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         </DialogHeader>
 
         {/* Messages with better spacing and scrolling */}
@@ -353,9 +304,6 @@ Then ask if they want to add it to their food log.`;
                       {message.timestamp.toLocaleTimeString()}
                     </p>
                   </div>
-                  {message.audioEnabled && message.role === 'assistant' && (
-                    <Volume2 className="h-4 w-4 opacity-70" />
-                  )}
                 </div>
               </Card>
             </div>
