@@ -97,6 +97,7 @@ export const ModalAiChat = ({
   }, [isOpen, context, conversationType, proactiveMessage]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
+    console.log('📤 sendToAI called:', { message, fromVoice, isProcessing });
     setIsProcessing(true);
 
     try {
@@ -151,6 +152,8 @@ When a user shares what motivates them, use the create_motivator function immedi
 
       if (error) throw error;
 
+      console.log('🤖 AI Response received:', { data, completion: data?.completion, functionCall: data?.functionCall });
+
       if (data?.completion) {
         const aiMessage: Message = {
           role: 'assistant',
@@ -158,7 +161,14 @@ When a user shares what motivates them, use the create_motivator function immedi
           timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, aiMessage]);
+        console.log('💬 Adding AI message to chat:', aiMessage.content);
+        setMessages(prev => {
+          const newMessages = [...prev, aiMessage];
+          console.log('📝 Messages after adding AI response:', newMessages.length);
+          return newMessages;
+        });
+      } else {
+        console.log('⚠️ No completion in AI response');
       }
 
       // Handle function call results and pass to parent
@@ -187,6 +197,7 @@ When a user shares what motivates them, use the create_motivator function immedi
 
 
   const handleVoiceTranscription = async (transcription: string) => {
+    console.log('🎤 Voice transcription received:', transcription);
     if (!transcription.trim()) return;
 
     const userMessage: Message = {
@@ -195,8 +206,9 @@ When a user shares what motivates them, use the create_motivator function immedi
       timestamp: new Date()
     };
 
+    console.log('👤 Adding user voice message to chat');
     setMessages(prev => [...prev, userMessage]);
-    await sendToAI(transcription);
+    await sendToAI(transcription, true);
   };
 
   const handleSendMessage = async (presetMessage?: string) => {
