@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.generate-image]
 verify_jwt = true
+
+[functions.transcribe]
+verify_jwt = true
+
+[functions.chat-completion]
+verify_jwt = true
+
+[functions.text-to-speech]
+verify_jwt = true
