@@ -1,5 +1,7 @@
 # Nixpacks configuration for Fast Now Zenith
 
+providers = ["node"]
+
 [variables]
 NODE_ENV = "production"
 
