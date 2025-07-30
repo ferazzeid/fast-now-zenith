@@ -6,6 +6,8 @@ import { Plus, Edit, Trash2, Image, Sparkles, Mic } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
+import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
+import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -17,7 +19,9 @@ const Motivators = () => {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
+  const [showGoalIdeas, setShowGoalIdeas] = useState(false);
   const [aiChatContext, setAiChatContext] = useState('');
+  const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
   const handleCreateMotivator = async (motivatorData) => {
     try {
@@ -113,34 +117,41 @@ Please tell me what motivates you or what kind of motivational message you'd lik
     if (result.name === 'create_motivator') {
       const { arguments: args } = result;
       
-      try {
-        // Create the motivator from AI suggestion
-        await handleCreateMotivator({
-          title: args.title,
-          content: args.content,
-          imageUrl: args.imageUrl || null
-        });
-        
-        // Close the AI chat modal
-        setShowAiChat(false);
-      } catch (error) {
-        console.error('Error creating motivator from AI:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create motivator from AI suggestion",
-          variant: "destructive"
-        });
-      }
+      // Create a more specific and focused motivator
+      const suggestionData = {
+        title: args.title.split(' ').slice(0, 3).join(' '), // Max 3 words
+        content: args.content,
+        imageUrl: args.imageUrl || null
+      };
+      
+      // Store the suggestion and show it in chat first
+      setPendingAiSuggestion(suggestionData);
+      
+      // Don't auto-create, let the user review first
+      setShowAiChat(false);
+    }
+  };
+  
+  const handleSelectGoalIdea = async (goal: AdminGoalIdea) => {
+    try {
+      await handleCreateMotivator({
+        title: goal.title,
+        content: goal.description,
+        imageUrl: goal.imageUrl || null
+      });
+      setShowGoalIdeas(false);
+    } catch (error) {
+      console.error('Error creating motivator from goal idea:', error);
     }
   };
 
 
   return (
-    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <div className="px-4 pt-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
+      <div className="px-4 pt-20 pb-24">
         <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-2 mb-8">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Motivators</h1>
             <p className="text-muted-foreground">
               Your personal collection of inspiration and motivation
@@ -165,6 +176,30 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               <span className="text-sm font-medium">Manual</span>
             </Button>
           </div>
+
+          {/* Goal Ideas Library Button */}
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowGoalIdeas(!showGoalIdeas)}
+              className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
+            >
+              <svg className="w-5 h-5 mr-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <span className="text-muted-foreground font-medium">Goal Ideas</span>
+            </Button>
+          </div>
+
+          {/* Goal Ideas Library */}
+          {showGoalIdeas && (
+            <div className="mb-6 bg-card border border-border rounded-lg p-4">
+              <GoalIdeasLibrary
+                onSelectGoal={handleSelectGoalIdea}
+                onClose={() => setShowGoalIdeas(false)}
+              />
+            </div>
+          )}
 
           {/* Motivators List */}
           {loading ? (

@@ -124,11 +124,19 @@ When the user provides food information, always use the add_food_entry function 
 
 You are helping users create motivational content for their fasting and health journey. Your goal is to:
 1. Listen to what motivates them and create personalized motivators
-2. Help them articulate their goals, reasons, and inspiration
+2. Help them articulate their goals, reasons, and inspiration  
 3. Create compelling titles and content for their motivators
 4. Be supportive and encouraging
+5. Focus on their SPECIFIC motivation, not generic health advice
 
-When a user shares what motivates them or asks for motivational content, use the create_motivator function to create it immediately. Create motivators from their specific words and experiences.`;
+CRITICAL: When creating motivators, be SPECIFIC to what the user said:
+- If they mention wanting to "impress a girl", focus on confidence and attraction, not generic health
+- If they mention a specific event, reference that event
+- If they mention a person, acknowledge that motivation
+- Keep titles to 3 words maximum
+- Make content personal and specific to their exact words
+
+When a user shares what motivates them, use the create_motivator function immediately with their specific motivation.`;
       }
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
