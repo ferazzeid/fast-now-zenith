@@ -114,15 +114,26 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
   const handleAiChatResult = async (result: any) => {
     console.log('AI Chat Result:', result); // Debug log
-    if (result.name === 'create_motivator') {
-      const { arguments: args } = result;
+    
+    // Handle both 'create_motivator' function calls and text-based confirmations
+    if (result.name === 'create_motivator' || (result.arguments && result.arguments.title)) {
+      let suggestionData;
       
-      // Create a more specific and focused motivator
-      const suggestionData = {
-        title: args.title.split(' ').slice(0, 3).join(' '), // Max 3 words
-        content: args.content,
-        imageUrl: args.imageUrl || null
-      };
+      if (result.name === 'create_motivator') {
+        const { arguments: args } = result;
+        suggestionData = {
+          title: args.title.split(' ').slice(0, 3).join(' '), // Max 3 words
+          content: args.content,
+          imageUrl: args.imageUrl || null
+        };
+      } else {
+        // Handle direct arguments
+        suggestionData = {
+          title: result.arguments.title.split(' ').slice(0, 3).join(' '),
+          content: result.arguments.content,
+          imageUrl: result.arguments.imageUrl || null
+        };
+      }
       
       // Store the suggestion - keep the chat open for review
       setPendingAiSuggestion(suggestionData);

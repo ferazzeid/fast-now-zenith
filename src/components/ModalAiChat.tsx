@@ -168,6 +168,9 @@ When a user shares what motivates them, use the create_motivator function immedi
           setLastFoodSuggestion(data.functionCall.arguments);
         }
         onResult(data.functionCall);
+      } else if (data.functionCall && !onResult) {
+        // If there's a function call but no onResult handler, log it
+        console.log('Function call received but no onResult handler:', data.functionCall);
       }
 
     } catch (error) {
@@ -255,7 +258,7 @@ When a user shares what motivates them, use the create_motivator function immedi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[85vh] flex flex-col p-0 left-1/2 top-1/2 translate-x-[-50%] translate-y-[-50%] fixed">
+      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="border-b border-border p-4 flex-shrink-0">
           <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         </DialogHeader>
@@ -318,7 +321,7 @@ When a user shares what motivates them, use the create_motivator function immedi
                     )}
                     
                     {/* Motivator suggestion buttons */}
-                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && message.content.includes('Title:') && message.content.includes('Content:') && (
+                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && (message.content.includes('Title:') || message.content.includes('created a motivator')) && (
                       <div className="flex gap-2 mt-3">
                         <Button 
                           size="sm" 
