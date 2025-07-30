@@ -46,7 +46,7 @@ export const ModalAiChat = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  
   const [showEditForm, setShowEditForm] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: '',
@@ -63,13 +63,6 @@ export const ModalAiChat = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    // Load API key from localStorage
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -109,15 +102,6 @@ export const ModalAiChat = ({
   }, [isOpen, context, conversationType, proactiveMessage]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your OpenAI API key in Settings first",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsProcessing(true);
 
     try {
@@ -146,23 +130,20 @@ Then ask if they want to add it to their food log.`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
-          message,
-          conversationHistory: [
+          messages: [
             { role: 'system', content: enhancedSystemPrompt },
-            ...conversationHistory
+            ...conversationHistory,
+            { role: 'user', content: message }
           ]
-        },
-        headers: {
-          'X-OpenAI-API-Key': apiKey
         }
       });
 
       if (error) throw error;
 
-      if (data.completion) {
+      if (data?.choices?.[0]?.message?.content) {
         const aiMessage: Message = {
           role: 'assistant',
-          content: data.completion,
+          content: data.choices[0].message.content,
           timestamp: new Date(),
           audioEnabled: audioEnabled && fromVoice
         };
@@ -171,7 +152,7 @@ Then ask if they want to add it to their food log.`;
 
         // Play audio if enabled and this was a voice message
         if (audioEnabled && fromVoice) {
-          await playTextAsAudio(data.completion);
+          await playTextAsAudio(data.choices[0].message.content);
         }
       }
 
@@ -204,8 +185,16 @@ Then ask if they want to add it to their food log.`;
 
       if (error) throw error;
 
-      if (data.audioUrl) {
-        const audio = new Audio(data.audioUrl);
+      if (data?.audioContent) {
+        // Convert base64 to audio blob and play
+        const audioBytes = atob(data.audioContent);
+        const audioArray = new Uint8Array(audioBytes.length);
+        for (let i = 0; i < audioBytes.length; i++) {
+          audioArray[i] = audioBytes.charCodeAt(i);
+        }
+        const audioBlob = new Blob([audioArray], { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
         audio.play();
       }
     } catch (error) {
