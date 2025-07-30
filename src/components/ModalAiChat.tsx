@@ -137,7 +137,13 @@ CRITICAL: When creating motivators, be SPECIFIC to what the user said:
 - Keep titles to 3 words maximum
 - Make content personal and specific to their exact words
 
-When a user shares what motivates them, use the create_motivator function immediately with their specific motivation.`;
+IMPORTANT: ALWAYS respond with BOTH:
+1. A conversational message explaining what you're creating and acknowledging their motivation
+2. The create_motivator function call with the specific details
+
+For example, if they say "I want to impress a girl", respond with a message like "I understand you want to feel confident and attractive! Let me create a motivator specifically for that goal..." AND call the create_motivator function.
+
+When a user shares what motivates them, ALWAYS provide both a conversational response AND use the create_motivator function with their specific motivation.`;
       }
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
@@ -154,10 +160,27 @@ When a user shares what motivates them, use the create_motivator function immedi
 
       console.log('🤖 AI Response received:', { data, completion: data?.completion, functionCall: data?.functionCall });
 
-      if (data?.completion) {
+      // Handle AI response - always create a message, even if only function call
+      let responseContent = data?.completion || '';
+      
+      // If no completion but there's a function call, create a default response
+      if (!responseContent && data?.functionCall) {
+        if (data.functionCall.name === 'create_motivator' && title === 'Motivator Assistant') {
+          responseContent = "I've created a motivator suggestion for you based on what you shared. Here are the details:\n\n" +
+            `**Title:** ${data.functionCall.arguments?.title || 'Personal Motivator'}\n\n` +
+            `**Content:** ${data.functionCall.arguments?.content || 'Motivational content based on your goals'}`;
+        } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
+          responseContent = "I've prepared a food entry for you. Here are the details:";
+        } else {
+          responseContent = "I've processed your request and prepared a suggestion for you.";
+        }
+      }
+
+      // Always add a message if we have content
+      if (responseContent) {
         const aiMessage: Message = {
           role: 'assistant',
-          content: data.completion,
+          content: responseContent,
           timestamp: new Date()
         };
 
@@ -168,7 +191,7 @@ When a user shares what motivates them, use the create_motivator function immedi
           return newMessages;
         });
       } else {
-        console.log('⚠️ No completion in AI response');
+        console.log('⚠️ No completion or function call in AI response');
       }
 
       // Handle function call results and pass to parent
