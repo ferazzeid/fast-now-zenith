@@ -197,13 +197,15 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <ScrollArea className="h-screen">
-        <div className="px-4 pt-8 pb-24">
-          <div className="max-w-md mx-auto space-y-6 bg-ceramic-base">
+        <div className="max-w-md mx-auto pt-20 pb-24">
+          <div className="space-y-6">
             {/* Header */}
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-warm-text">Settings</h1>
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Settings
+              </h1>
               <p className="text-muted-foreground">Customize your fasting experience</p>
             </div>
 
@@ -214,14 +216,8 @@ const Settings = () => {
                   <Palette className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-warm-text">Theme</p>
-                      <p className="text-xs text-muted-foreground">Choose your preferred color scheme</p>
-                    </div>
-                    <ThemeToggle />
-                  </div>
+                <div className="flex justify-center">
+                  <ThemeToggle />
                 </div>
               </div>
             </Card>
@@ -269,36 +265,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Motivators */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Heart className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Motivators</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      onClick={() => setShowMotivatorsModal(true)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    >
-                      <Heart className="w-4 h-4 mr-2" />
-                      Manage
-                    </Button>
-                    <Button
-                      onClick={() => setShowAiGeneratorModal(true)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate with AI
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Create, edit, and organize your personal motivational content, images, and quotes. Use AI to automatically generate personalized motivators for your fasting journey.
-                  </p>
-                </div>
-              </div>
-            </Card>
 
             {/* User Profile & Goals */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
@@ -572,148 +538,150 @@ const Settings = () => {
           </div>
         </Card>
 
-            {/* Premium Subscription */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Premium Subscription</h3>
+            {/* Premium Subscription - Only show if not using own API key */}
+            {!useOwnKey && (
+              <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-semibold text-warm-text">Premium Subscription</h3>
+                  </div>
+
+              {subscription.loading ? (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Loading subscription status...</p>
                 </div>
-
-            {subscription.loading ? (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Loading subscription status...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Subscription Status */}
-                <div className="bg-accent/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {subscription.subscribed ? (
-                        <Crown className="w-5 h-5 text-yellow-500" />
-                      ) : (
-                        <CreditCard className="w-5 h-5 text-muted-foreground" />
-                      )}
-                      <span className="font-medium text-warm-text">
-                        {subscription.subscribed ? 'Premium' : 'Free'} Plan
-                      </span>
-                    </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      subscription.subscribed 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    }`}>
-                      {subscription.subscription_status}
-                    </span>
-                  </div>
-
-                  {/* Usage Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">AI Requests Used</span>
-                      <span className="text-warm-text">
-                        {subscription.requests_used} / {subscription.request_limit}
-                      </span>
-                    </div>
-                    <div className="w-full bg-ceramic-base rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          (subscription.requests_used / subscription.request_limit) >= 0.9 
-                            ? 'bg-red-500' 
-                            : (subscription.requests_used / subscription.request_limit) >= 0.8 
-                            ? 'bg-amber-500' 
-                            : 'bg-primary'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, (subscription.requests_used / subscription.request_limit) * 100)}%` 
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Usage Warning */}
-                  {subscription.getUsageWarning() && (
-                    <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
-                      subscription.getUsageWarning()?.level === 'critical' 
-                        ? 'bg-red-500/10 border border-red-500/20'
-                        : subscription.getUsageWarning()?.level === 'warning'
-                        ? 'bg-amber-500/10 border border-amber-500/20'
-                        : 'bg-blue-500/10 border border-blue-500/20'
-                    }`}>
-                      <AlertTriangle className={`w-4 h-4 ${
-                        subscription.getUsageWarning()?.level === 'critical' 
-                          ? 'text-red-500'
-                          : subscription.getUsageWarning()?.level === 'warning'
-                          ? 'text-amber-500'
-                          : 'text-blue-500'
-                      }`} />
-                      <p className={`text-sm ${
-                        subscription.getUsageWarning()?.level === 'critical' 
-                          ? 'text-red-600 dark:text-red-400'
-                          : subscription.getUsageWarning()?.level === 'warning'
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-blue-600 dark:text-blue-400'
+              ) : (
+                <div className="space-y-4">
+                  {/* Subscription Status */}
+                  <div className="bg-accent/20 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {subscription.subscribed ? (
+                          <Crown className="w-5 h-5 text-yellow-500" />
+                        ) : (
+                          <CreditCard className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        <span className="font-medium text-warm-text">
+                          {subscription.subscribed ? 'Premium' : 'Free'} Plan
+                        </span>
+                      </div>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        subscription.subscribed 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                       }`}>
-                        {subscription.getUsageWarning()?.message}
-                      </p>
+                        {subscription.subscription_status}
+                      </span>
+                    </div>
+
+                    {/* Usage Progress */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">AI Requests Used</span>
+                        <span className="text-warm-text">
+                          {subscription.requests_used} / {subscription.request_limit}
+                        </span>
+                      </div>
+                      <div className="w-full bg-ceramic-base rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            (subscription.requests_used / subscription.request_limit) >= 0.9 
+                              ? 'bg-red-500' 
+                              : (subscription.requests_used / subscription.request_limit) >= 0.8 
+                              ? 'bg-amber-500' 
+                              : 'bg-primary'
+                          }`}
+                          style={{ 
+                            width: `${Math.min(100, (subscription.requests_used / subscription.request_limit) * 100)}%` 
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Usage Warning */}
+                    {subscription.getUsageWarning() && (
+                      <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
+                        subscription.getUsageWarning()?.level === 'critical' 
+                          ? 'bg-red-500/10 border border-red-500/20'
+                          : subscription.getUsageWarning()?.level === 'warning'
+                          ? 'bg-amber-500/10 border border-amber-500/20'
+                          : 'bg-blue-500/10 border border-blue-500/20'
+                      }`}>
+                        <AlertTriangle className={`w-4 h-4 ${
+                          subscription.getUsageWarning()?.level === 'critical' 
+                            ? 'text-red-500'
+                            : subscription.getUsageWarning()?.level === 'warning'
+                            ? 'text-amber-500'
+                            : 'text-blue-500'
+                        }`} />
+                        <p className={`text-sm ${
+                          subscription.getUsageWarning()?.level === 'critical' 
+                            ? 'text-red-600 dark:text-red-400'
+                            : subscription.getUsageWarning()?.level === 'warning'
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {subscription.getUsageWarning()?.message}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Subscription Actions */}
+                  <div className="space-y-3">
+                    {!subscription.subscribed ? (
+                      <Button
+                        onClick={subscription.createSubscription}
+                        className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+                      >
+                        <Crown className="w-4 h-4 mr-2" />
+                        Upgrade to Premium - $9/month
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={subscription.openCustomerPortal}
+                        variant="outline"
+                        className="w-full bg-ceramic-base border-ceramic-rim"
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Manage Subscription
+                      </Button>
+                    )}
+
+                    <Button
+                      onClick={subscription.checkSubscription}
+                      variant="ghost"
+                      className="w-full text-muted-foreground hover:text-warm-text"
+                    >
+                      Refresh Status
+                    </Button>
+                  </div>
+
+                  {/* Premium Benefits */}
+                  {!subscription.subscribed && (
+                    <div className="bg-primary/5 p-3 rounded-lg">
+                      <h4 className="font-medium text-warm-text mb-2">Premium Benefits:</h4>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 1,000 AI requests per month (generous limit)</li>
+                        <li>• Priority support</li>
+                        <li>• All AI features included</li>
+                        <li>• Cancel anytime, no hassle</li>
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Free users info - Compact */}
+                  {!subscription.subscribed && subscription.requests_used < subscription.free_requests_limit && (
+                    <div className="text-xs text-muted-foreground p-2 rounded bg-ceramic-base/30">
+                      {subscription.free_requests_limit - subscription.requests_used} free requests remaining.
                     </div>
                   )}
                 </div>
-
-                {/* Subscription Actions */}
-                <div className="space-y-3">
-                  {!subscription.subscribed ? (
-                    <Button
-                      onClick={subscription.createSubscription}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium - $9/month
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={subscription.openCustomerPortal}
-                      variant="outline"
-                      className="w-full bg-ceramic-base border-ceramic-rim"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Manage Subscription
-                    </Button>
-                  )}
-
-                  <Button
-                    onClick={subscription.checkSubscription}
-                    variant="ghost"
-                    className="w-full text-muted-foreground hover:text-warm-text"
-                  >
-                    Refresh Status
-                  </Button>
-                </div>
-
-                {/* Premium Benefits */}
-                {!subscription.subscribed && (
-                  <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-medium text-warm-text mb-2">Premium Benefits:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• 1,000 AI requests per month (generous limit)</li>
-                      <li>• Priority support</li>
-                      <li>• All AI features included</li>
-                      <li>• Cancel anytime, no hassle</li>
-                    </ul>
-                  </div>
-                )}
-
-                {/* Free users info - Compact */}
-                {!subscription.subscribed && subscription.requests_used < subscription.free_requests_limit && (
-                  <div className="text-xs text-muted-foreground p-2 rounded bg-ceramic-base/30">
-                    {subscription.free_requests_limit - subscription.requests_used} free requests remaining.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </Card>
+              )}
+            </div>
+          </Card>
+        )}
 
 
 
