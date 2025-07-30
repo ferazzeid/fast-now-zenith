@@ -82,7 +82,18 @@ serve(async (req) => {
       }
       imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
     } else {
-      imageContent = { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageData}` } };
+      // Handle imageData - check if it's already a complete data URL
+      let finalImageData;
+      if (imageData.startsWith('data:')) {
+        // Already a complete data URL - use as is
+        finalImageData = imageData;
+        console.log('Using existing data URL format');
+      } else {
+        // Raw base64 - add the data URL prefix
+        finalImageData = `data:image/jpeg;base64,${imageData}`;
+        console.log('Added data URL prefix to base64 data');
+      }
+      imageContent = { type: "image_url", image_url: { url: finalImageData } };
     }
 
     // Call OpenAI Vision API
