@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Lightbulb, Plus } from 'lucide-react';
+import { Search, Lightbulb, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,7 @@ interface GoalIdeasLibraryProps {
 
 export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const { goalIdeas, loading } = useAdminGoalIdeas();
 
   const filteredGoals = goalIdeas.filter(goal =>
@@ -56,48 +57,72 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
             <p className="text-muted-foreground">No goal ideas found</p>
           </div>
         ) : (
-          filteredGoals.map((goal) => (
-            <Card
-              key={goal.id}
-              className="p-3 cursor-pointer hover:bg-ceramic-base border-ceramic-rim transition-colors"
-              onClick={() => onSelectGoal(goal)}
-            >
-              <div className="flex gap-3">
-                {/* Goal Image */}
-                <div className="w-12 h-12 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                  {goal.imageUrl ? (
-                    <img 
-                      src={goal.imageUrl} 
-                      alt={goal.title}
-                      className="w-full h-full object-cover rounded"
-                    />
-                  ) : (
-                    <Lightbulb className="w-6 h-6 text-muted-foreground" />
-                  )}
-                </div>
-                
-                {/* Goal Content */}
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-warm-text text-sm">{goal.title}</h4>
-                    <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                      {goal.category}
-                    </Badge>
+          filteredGoals.map((goal) => {
+            const isExpanded = expandedGoal === goal.id;
+            
+            return (
+              <Card key={goal.id} className="border-ceramic-rim transition-colors">
+                <div 
+                  className="p-3 cursor-pointer hover:bg-ceramic-base"
+                  onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                >
+                  <div className="flex gap-3">
+                    {/* Goal Image */}
+                    <div className="w-12 h-12 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                      {goal.imageUrl ? (
+                        <img 
+                          src={goal.imageUrl} 
+                          alt={goal.title}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      ) : (
+                        <Lightbulb className="w-6 h-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    
+                    {/* Goal Content */}
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-warm-text text-sm">{goal.title}</h4>
+                        <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                          {goal.category}
+                        </Badge>
+                      </div>
+                      <p className={`text-xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
+                        {goal.description}
+                      </p>
+                    </div>
+                    
+                    {/* Expand/Add Button */}
+                    <div className="flex items-center gap-1">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {goal.description}
-                  </p>
                 </div>
                 
-                {/* Add Button */}
-                <div className="flex items-center">
-                  <Button size="sm" variant="ghost" className="p-1 h-8 w-8">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))
+                {/* Add Button - Only shown when expanded */}
+                {isExpanded && (
+                  <div className="px-3 pb-3">
+                    <Button 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectGoal(goal);
+                      }}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add This Goal
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

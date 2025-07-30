@@ -229,9 +229,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               {motivators.map((motivator) => (
                 <Card key={motivator.id} className="overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="flex">
-                      {/* Image */}
-                      <div className="w-20 h-20 bg-muted flex items-center justify-center flex-shrink-0">
+                    <div className="flex h-full">
+                      {/* Image - bigger and full height */}
+                      <div className="w-24 h-auto bg-muted flex items-center justify-center flex-shrink-0">
                         {motivator.imageUrl ? (
                           <img 
                             src={motivator.imageUrl} 
@@ -239,13 +239,13 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Image className="w-8 h-8 text-muted-foreground" />
+                          <Image className="w-10 h-10 text-muted-foreground" />
                         )}
                       </div>
                       
                       {/* Content */}
-                      <div className="flex-1 p-4">
-                        <div className="flex items-start justify-between">
+                      <div className="flex-1 p-4 pr-2">
+                        <div className="flex items-start justify-between h-full">
                           <div className="flex-1 space-y-1">
                             <h3 className="font-semibold text-warm-text line-clamp-1">
                               {motivator.title}
@@ -264,19 +264,20 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                             )}
                           </div>
                           
-                          {/* Actions */}
-                          <div className="flex gap-1 ml-2">
+                          {/* Actions - combined in single column */}
+                          <div className="flex flex-col gap-1 ml-2">
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => handleEditMotivator(motivator)}
+                              className="p-1 h-6 w-6"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="ghost">
-                                  <Trash2 className="w-4 h-4" />
+                                <Button size="sm" variant="ghost" className="p-1 h-6 w-6">
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>

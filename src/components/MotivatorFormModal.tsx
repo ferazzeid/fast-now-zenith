@@ -211,9 +211,21 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content" className="text-warm-text font-medium">
-              Description (Optional)
-            </Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="content" className="text-warm-text font-medium">
+                Description (Optional)
+              </Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceRecorder(true)}
+                className="h-6 px-2 text-xs border border-ceramic-rim hover:bg-ceramic-base"
+              >
+                <Mic className="w-3 h-3 mr-1" />
+                <span className="text-xs">Voice</span>
+              </Button>
+            </div>
             <Textarea
               id="content"
               value={content}
@@ -221,9 +233,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               className="bg-ceramic-base border-ceramic-rim min-h-[80px]"
               placeholder="Optional: Add more details about this motivation..."
             />
-            <p className="text-xs text-muted-foreground">
-              Focus on the title - it's what you'll see most often. Description is optional background info.
-            </p>
           </div>
 
           <div className="space-y-2">
@@ -257,7 +266,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   }}
                   className="flex-1"
                 >
-                  📷 Upload/Camera
+                  Upload Image
                 </Button>
                 
                 <Button
@@ -272,10 +281,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                       Generating...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI
-                    </>
+                    'Generate Image'
                   )}
                 </Button>
               </div>
@@ -308,10 +314,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 </div>
               )}
             </div>
-            
-            <p className="text-xs text-muted-foreground">
-              💡 <strong>Pro tip:</strong> Personal photos are usually more motivating than AI-generated images.
-            </p>
           </div>
         </div>
 
