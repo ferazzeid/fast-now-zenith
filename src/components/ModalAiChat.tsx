@@ -256,6 +256,16 @@ When a user shares what motivates them, use the create_motivator function immedi
     return hasKeywords && !content.toLowerCase().includes('what food') && (seemsLikeFood || content.toLowerCase().includes('add'));
   };
 
+  // Helper function to check if message contains motivator suggestion
+  const containsMotivatorSuggestion = (content: string) => {
+    const motivatorKeywords = ['title:', 'content:', 'motivator', 'suggestion ready'];
+    const hasKeywords = motivatorKeywords.some(keyword => content.toLowerCase().includes(keyword));
+    const hasStructure = content.includes('Title:') || content.includes('Content:') || content.includes('**Title');
+    const isGreeting = content.toLowerCase().includes('hello') || content.toLowerCase().includes('welcome') || content.toLowerCase().includes('help you create');
+    
+    return (hasKeywords || hasStructure) && !isGreeting;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[85vh] flex flex-col p-0">
@@ -321,7 +331,7 @@ When a user shares what motivates them, use the create_motivator function immedi
                     )}
                     
                     {/* Motivator suggestion buttons */}
-                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && index === messages.length - 1 && !isProcessing && message.content && (
+                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
                       <div className="flex gap-2 mt-3">
                         <Button 
                           size="sm" 
