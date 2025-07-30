@@ -7,7 +7,6 @@ import { CompactImageUpload } from '@/components/CompactImageUpload';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
-import { ModalAiChat } from '@/components/ModalAiChat';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { ImageFoodAnalysis } from '@/components/ImageFoodAnalysis';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -27,7 +26,6 @@ const FoodTracking = () => {
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
-  const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showImageAnalysis, setShowImageAnalysis] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -44,64 +42,18 @@ const FoodTracking = () => {
     carbs: '',
     imageUrl: ''
   });
-  const [aiChatContext, setAiChatContext] = useState('');
+  
   const { toast } = useToast();
   const { user } = useAuth();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
   const handleVoiceFood = () => {
-    const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
-
-To add a food item, I'll need:
-• Food name (what did you eat?)
-• Portion size in grams 
-• Calories (I can estimate if needed)
-• Carbs in grams (I can estimate if needed)
-
-Please tell me what food you'd like to add and how much you had. For example: "I had 150 grams of grilled chicken breast" or "I ate a medium apple, about 180 grams".`;
-    
-    setAiChatContext(contextMessage);
-    setShowAiChat(true);
-  };
-
-  const handleAiChatResult = async (result: any) => {
-    if (result.name === 'add_food_entry') {
-      const { arguments: args } = result;
-      
-      // Add the food entry from AI suggestion
-      const foodResult = await addFoodEntry({
-        name: args.name,
-        calories: parseFloat(args.calories),
-        carbs: parseFloat(args.carbs),
-        serving_size: parseFloat(args.serving_size),
-        consumed: args.consumed || false
-      });
-
-      if (foodResult.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: foodResult.error.message
-        });
-      } else {
-        toast({
-          title: "Food Added Successfully!",
-          description: `${args.name} has been added to your food plan`
-        });
-        
-        // Close the AI chat modal
-        setShowAiChat(false);
-        
-        // Save to personal library
-        await saveToLibrary({
-          name: args.name,
-          calories: parseFloat(args.calories),
-          carbs: parseFloat(args.carbs),
-          serving_size: parseFloat(args.serving_size)
-        });
-      }
-    }
+    toast({
+      title: "Voice feature temporarily disabled",
+      description: "Please use manual entry for now",
+      variant: "destructive"
+    });
   };
 
   const handleManualEntry = () => {
@@ -826,17 +778,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           onDataChange={setImageAnalysisData}
         />
 
-        {/* AI Chat Modal */}
-        <PremiumGate feature="AI Chat Assistant" showUpgrade={false}>
-          <ModalAiChat
-            isOpen={showAiChat}
-            onClose={() => setShowAiChat(false)}
-            onResult={handleAiChatResult}
-            context={aiChatContext}
-            title="Food Assistant"
-            systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
-          />
-        </PremiumGate>
 
         {/* Food History Modal */}
         {showHistory && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette } from 'lucide-react';
+import { User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Heart, Sparkles, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,20 +17,12 @@ import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
 import { useArchivedConversations } from '@/hooks/useArchivedConversations';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
-import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
+
 import { ThemeToggle } from '@/components/ThemeToggle';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
-  const [openAiKey, setOpenAiKey] = useState('');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [useOwnKey, setUseOwnKey] = useState(false);
-  const [speechModel, setSpeechModel] = useState('gpt-4o-mini-realtime');
-  const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
-  const [ttsModel, setTtsModel] = useState('tts-1');
-  const [ttsVoice, setTtsVoice] = useState('alloy');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
@@ -44,15 +36,8 @@ const Settings = () => {
   const subscription = useSubscription();
   const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
-  const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
 
   useEffect(() => {
-    // Load saved API key from localStorage
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setOpenAiKey(savedApiKey);
-    }
-
     const checkAdminRole = async () => {
       if (user) {
         const { data } = await supabase
@@ -69,16 +54,11 @@ const Settings = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
+          .select('weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
           .eq('user_id', user.id)
           .single();
 
         if (profile) {
-          setUseOwnKey(profile.use_own_api_key ?? true);
-          setSpeechModel(profile.speech_model || 'gpt-4o-mini-realtime');
-          setTranscriptionModel(profile.transcription_model || 'whisper-1');
-          setTtsModel(profile.tts_model || 'tts-1');
-          setTtsVoice(profile.tts_voice || 'alloy');
           setWeight(profile.weight?.toString() || '');
           setHeight(profile.height?.toString() || '');
           setAge(profile.age?.toString() || '');
@@ -86,11 +66,6 @@ const Settings = () => {
           setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
           setActivityLevel(profile.activity_level || 'sedentary');
           setUnits((profile.units as 'metric' | 'imperial') || 'imperial');
-          
-          // Load API key from database if available
-          if (profile.openai_api_key) {
-            setOpenAiKey(profile.openai_api_key);
-          }
         }
       }
     };
@@ -101,32 +76,9 @@ const Settings = () => {
 
   const handleSaveSettings = async () => {
     try {
-      // Simple validation for API key
-      if (useOwnKey && openAiKey.trim()) {
-        if (!openAiKey.startsWith('sk-')) {
-          toast({
-            title: "Invalid API Key",
-            description: "Please enter a valid OpenAI API key starting with 'sk-'",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        // Store API key in localStorage
-        localStorage.setItem('openai_api_key', openAiKey);
-      } else if (!useOwnKey) {
-        localStorage.removeItem('openai_api_key');
-      }
-
       // Save user preferences to database
       if (user) {
         const updateData = {
-          use_own_api_key: useOwnKey,
-          speech_model: speechModel,
-          transcription_model: transcriptionModel,
-          tts_model: ttsModel,
-          tts_voice: ttsVoice,
-          openai_api_key: useOwnKey ? openAiKey : null,
           weight: weight ? parseFloat(weight) : null,
           height: height ? parseInt(height) : null,
           age: age ? parseInt(age) : null,
@@ -149,7 +101,7 @@ const Settings = () => {
         console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",
-          description: useOwnKey ? "Using your own API key with selected models" : "Using shared service with selected models",
+          description: "Profile settings have been updated successfully",
         });
       }
     } catch (error) {
@@ -161,14 +113,6 @@ const Settings = () => {
     }
   };
 
-  const handleClearApiKey = () => {
-    setOpenAiKey('');
-    localStorage.removeItem('openai_api_key');
-    toast({
-      title: "🗑️ API Key Removed",
-      description: "AI features have been disabled.",
-    });
-  };
 
   const handleClearWalkingHistory = async () => {
     if (!user) return;
@@ -277,24 +221,15 @@ const Settings = () => {
                   <h3 className="text-lg font-semibold text-warm-text">Motivators</h3>
                 </div>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      onClick={() => setShowMotivatorsModal(true)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    >
-                      <Heart className="w-4 h-4 mr-2" />
-                      Manage
-                    </Button>
-                    <Button
-                      onClick={() => setShowAiGeneratorModal(true)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate with AI
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => setShowMotivatorsModal(true)}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    Manage Motivators
+                  </Button>
                   <p className="text-sm text-muted-foreground">
-                    Create, edit, and organize your personal motivational content, images, and quotes. Use AI to automatically generate personalized motivators for your fasting journey.
+                    Create, edit, and organize your personal motivational content, images, and quotes to inspire your fasting journey.
                   </p>
                 </div>
               </div>
@@ -455,122 +390,6 @@ const Settings = () => {
             {/* REMOVED: Notifications section as per plan */}
 
 
-        {/* AI Settings */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Key className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">AI Settings</h3>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="use-own-key" className="text-warm-text font-medium">Use your own API key</Label>
-                <p className="text-xs text-muted-foreground">Toggle to configure your own OpenAI API key</p>
-              </div>
-              <Switch
-                id="use-own-key"
-                checked={useOwnKey}
-                onCheckedChange={setUseOwnKey}
-              />
-            </div>
-            
-            {useOwnKey ? (
-              <div className="space-y-4 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
-                <div className="space-y-2">
-                  <Label htmlFor="openai-key" className="text-warm-text">OpenAI API Key</Label>
-                  <div className="relative">
-                    <Input
-                      id="openai-key"
-                      type={isKeyVisible ? 'text' : 'password'}
-                      placeholder="Enter your OpenAI API key"
-                      value={openAiKey}
-                      onChange={(e) => setOpenAiKey(e.target.value)}
-                      className="bg-ceramic-base border-ceramic-rim pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute inset-y-0 right-0 px-3 py-0 h-full"
-                      onClick={() => setIsKeyVisible(!isKeyVisible)}
-                    >
-                      {isKeyVisible ? '🙈' : '👁️'}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Get your API key from{" "}
-                    <a 
-                      href="https://platform.openai.com/api-keys" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      OpenAI Platform
-                    </a>
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-warm-text">Chat Model</Label>
-                  <Select value={speechModel} onValueChange={setSpeechModel}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue placeholder="Select chat model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-4o-mini-realtime">GPT-4o Mini (Recommended)</SelectItem>
-                      <SelectItem value="gpt-4o-realtime">GPT-4o (Premium)</SelectItem>
-                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Fast)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={handleClearApiKey}
-                    variant="outline"
-                    className="flex-1 bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-                  >
-                    Clear API Key
-                  </Button>
-                  <Button 
-                    onClick={handleSaveSettings}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    Save AI Settings
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground p-3 rounded-lg bg-ceramic-base/30">
-                Using shared service with default models and voice settings.
-              </p>
-            )}
-
-            {/* Voice Settings - Available for all users */}
-            <div className="space-y-2 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
-              <Label className="text-warm-text">AI Voice</Label>
-              <Select value={ttsVoice} onValueChange={setTtsVoice} disabled={!useOwnKey && !subscription.subscribed}>
-                <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                  <SelectValue placeholder="Select voice" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alloy">Alloy</SelectItem>
-                  <SelectItem value="echo">Echo</SelectItem>
-                  <SelectItem value="fable">Fable</SelectItem>
-                  <SelectItem value="onyx">Onyx</SelectItem>
-                  <SelectItem value="nova">Nova</SelectItem>
-                  <SelectItem value="shimmer">Shimmer</SelectItem>
-                </SelectContent>
-              </Select>
-              {!useOwnKey && !subscription.subscribed && (
-                <p className="text-xs text-muted-foreground">
-                  Voice selection available with premium subscription or own API key
-                </p>
-              )}
-            </div>
-          </div>
-        </Card>
 
             {/* Premium Subscription */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
@@ -881,10 +700,6 @@ const Settings = () => {
        {/* Modals */}
        {showMotivatorsModal && (
          <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
-       )}
-       
-       {showAiGeneratorModal && (
-         <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
        )}
      </div>
    );

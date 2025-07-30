@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ModalAiChat } from './ModalAiChat';
+
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 // Removed complex validation - using simple form validation
@@ -47,18 +47,13 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
     'lifestyle'
   ];
 
-  const handleAiTemplateResult = (result: any) => {
-    // Handle AI-generated template data
-    if (result && result.arguments) {
-      const { title, description, category } = result.arguments;
-      
-      setNewTemplate(prev => ({
-        ...prev,
-        title: title || prev.title,
-        description: description || prev.description,
-        category: category || prev.category
-      }));
-    }
+  const handleAiTemplateResult = () => {
+    // Voice functionality temporarily disabled
+    toast({
+      title: "Voice feature temporarily disabled",
+      description: "Please use manual entry for now",
+      variant: "destructive"
+    });
     setShowVoiceRecorder(false);
   };
 
@@ -311,26 +306,6 @@ export const AdminMotivatorCreation = ({ onTemplateCreated, existingTemplates }:
         </Card>
       )}
 
-      {/* AI Chat Modal for Template Creation */}
-      {showVoiceRecorder && (
-        <ModalAiChat
-          isOpen={showVoiceRecorder}
-          onClose={() => setShowVoiceRecorder(false)}
-          onResult={handleAiTemplateResult}
-          context="Hello! I'm here to help you create admin motivator templates that will be available to all users.
-
-To create a motivator template, I'll need:
-• Template title (clear and inspiring)
-• Detailed description (motivational content)  
-• Category (health, appearance, energy, mental-clarity, spiritual, achievement, social, lifestyle)
-
-Please tell me what kind of motivator template you'd like to create. For example: 'I want to create a health motivator about feeling energetic' or 'Create an appearance template about looking confident'.
-
-What motivator template would you like to create today?"
-          title="Admin Template Creator"
-          systemPrompt="You are an admin template creation assistant helping create motivational templates for all users. When users describe what they want, help them create a well-structured template with a clear title, motivational description, and appropriate category. Always respond in a helpful, encouraging tone and ask clarifying questions if needed. When you have enough information, create the template using the create_admin_template function."
-        />
-      )}
     </div>
   );
 };

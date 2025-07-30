@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle, CreditCard, MessageCircle, AlertCircle, TrendingUp, Info } from 'lucide-react';
+import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, Sliders, Plus, AlertTriangle, CreditCard, AlertCircle, TrendingUp, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
 import { RealApiUsageStats } from '@/components/RealApiUsageStats';
@@ -1057,7 +1057,7 @@ const AdminOverview = () => {
             <Card className="h-20 bg-ceramic-plate border-ceramic-rim">
               <div className="p-3">
                 <div className="flex items-center gap-3">
-                  <MessageCircle className="w-5 h-5 text-blue-600" />
+                  <Brain className="w-5 h-5 text-blue-600" />
                   <div>
                     <p className="text-xs font-medium text-warm-text">AI Requests (24h)</p>
                     <p className="text-lg font-bold text-warm-text">{usageStats.total_ai_requests_24h}</p>
@@ -2160,7 +2160,7 @@ const AdminOverview = () => {
         <Card className="p-6 bg-ceramic-base/50 border-ceramic-rim">
           <div className="space-y-6">
             <div className="flex items-center space-x-3">
-              <MessageSquare className="w-5 h-5 text-primary" />
+              <Brain className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-warm-text">AI Response Settings</h3>
             </div>
             

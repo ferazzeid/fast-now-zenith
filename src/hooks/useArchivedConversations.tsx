@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { Message } from './useSingleConversation';
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  audioEnabled?: boolean;
+}
 
 export interface ArchivedConversation {
   id: string;
