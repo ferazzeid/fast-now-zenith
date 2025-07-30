@@ -198,7 +198,7 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <ScrollArea className="h-screen">
+      <ScrollArea className="h-screen w-full">
         <div className="max-w-md mx-auto pt-20 pb-24">
           <div className="space-y-6">
             {/* Header */}
@@ -266,12 +266,12 @@ const Settings = () => {
             </Card>
 
 
-            {/* User Profile & Goals */}
+            {/* User Profile */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Profile & Goals</h3>
+                  <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
                 </div>
                 
                 <div className="space-y-4">
@@ -367,34 +367,6 @@ const Settings = () => {
                     </div>
                   </div>
                   
-                  {/* Goals Section */}
-                  <div className="space-y-4 pt-6 border-t border-ceramic-rim/50">
-                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>
-                        <Input
-                          id="dailyCalorieGoal"
-                          type="number"
-                          placeholder="2000"
-                          value={dailyCalorieGoal}
-                          onChange={(e) => setDailyCalorieGoal(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="dailyCarbGoal" className="text-warm-text">Daily Carb Goal (g)</Label>
-                        <Input
-                          id="dailyCarbGoal"
-                          type="number"
-                          placeholder="150"
-                          value={dailyCarbGoal}
-                          onChange={(e) => setDailyCarbGoal(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                    </div>
-                  </div>
                   
                   {weight && height && age && (
                     <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg">
@@ -513,28 +485,6 @@ const Settings = () => {
               </p>
             )}
 
-            {/* Voice Settings - Available for all users */}
-            <div className="space-y-2 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
-              <Label className="text-warm-text">AI Voice</Label>
-              <Select value={ttsVoice} onValueChange={setTtsVoice} disabled={!useOwnKey && !subscription.subscribed}>
-                <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                  <SelectValue placeholder="Select voice" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alloy">Alloy</SelectItem>
-                  <SelectItem value="echo">Echo</SelectItem>
-                  <SelectItem value="fable">Fable</SelectItem>
-                  <SelectItem value="onyx">Onyx</SelectItem>
-                  <SelectItem value="nova">Nova</SelectItem>
-                  <SelectItem value="shimmer">Shimmer</SelectItem>
-                </SelectContent>
-              </Select>
-              {!useOwnKey && !subscription.subscribed && (
-                <p className="text-xs text-muted-foreground">
-                  Voice selection available with premium subscription or own API key
-                </p>
-              )}
-            </div>
           </div>
         </Card>
 
@@ -817,11 +767,6 @@ const Settings = () => {
               </div>
             </div>
             
-            <div className="bg-accent/20 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground text-center">
-                Made with ❤️ for your wellness journey
-              </p>
-            </div>
             
             <ClearCacheButton />
             
