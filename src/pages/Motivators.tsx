@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, Plus, Settings, Edit, Trash2, Image, Sparkles } from 'lucide-react';
+import { Brain, Plus, Settings, Edit, Trash2, Image, Sparkles } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { useToast } from '@/hooks/use-toast';
@@ -97,7 +97,7 @@ const Motivators = () => {
         <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
-            <Heart className="w-12 h-12 text-primary mx-auto" />
+            <Brain className="w-12 h-12 text-primary mx-auto" />
             <h1 className="text-3xl font-bold text-warm-text">My Motivators</h1>
             <p className="text-muted-foreground">
               Your personal collection of inspiration and motivation
@@ -116,7 +116,7 @@ const Motivators = () => {
             <Button 
               onClick={() => navigate('/settings')}
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-primary/20 text-primary hover:bg-primary/10"
             >
               <Settings className="w-4 h-4 mr-2" />
               Settings
@@ -139,7 +139,7 @@ const Motivators = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Create your first motivator to stay inspired during your fasting journey
                   </p>
-                  <Button onClick={() => setShowFormModal(true)} className="bg-primary">
+                  <Button onClick={() => setShowFormModal(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Your First Motivator
                   </Button>

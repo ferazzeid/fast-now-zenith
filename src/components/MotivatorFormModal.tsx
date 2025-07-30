@@ -30,6 +30,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [title, setTitle] = useState(motivator?.title || '');
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();

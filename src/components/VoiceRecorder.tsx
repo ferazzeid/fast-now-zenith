@@ -1,192 +1,110 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Mic, Square, Play, Pause } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void;
+  onClose?: () => void;
   isDisabled?: boolean;
 }
 
-export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, isDisabled }) => {
+export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
+  onTranscription,
+  onClose,
+  isDisabled = false,
+}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
-  const [noiseDetected, setNoiseDetected] = useState(false);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-      
-      // Set up audio analysis
-      audioContextRef.current = new AudioContext();
-      const source = audioContextRef.current.createMediaStreamSource(stream);
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      source.connect(analyserRef.current);
-      
-      startAudioLevelMonitoring();
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
-      mediaRecorderRef.current = mediaRecorder;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorder.onstop = async () => {
+      mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await transcribeAudio(audioBlob);
-        
-        // Stop audio monitoring and cleanup
-        stopAudioLevelMonitoring();
-        if (audioContextRef.current) {
-          audioContextRef.current.close();
-          audioContextRef.current = null;
-        }
-        
-        // Stop all tracks
+        const url = URL.createObjectURL(audioBlob);
+        setAudioURL(url);
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      mediaRecorderRef.current.start();
       setIsRecording(true);
-      
-      toast({
-        title: "Recording...",
-        description: "Speak your message, then click 'Send Message' when finished",
-      });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
-        title: "Error",
-        description: "Could not access microphone",
+        title: "Recording Error",
+        description: "Could not start recording. Please check your microphone permissions.",
         variant: "destructive"
       });
     }
-  };
-
-  const startAudioLevelMonitoring = () => {
-    if (!analyserRef.current) return;
-    
-    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-    
-    const updateAudioLevel = () => {
-      if (!analyserRef.current || !isRecording) return;
-      
-      analyserRef.current.getByteFrequencyData(dataArray);
-      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-      const normalizedLevel = Math.min(average / 100, 1);
-      
-      setAudioLevel(normalizedLevel);
-      
-      // Detect noise/background issues
-      const highFreqNoise = dataArray.slice(dataArray.length * 0.7).reduce((a, b) => a + b) / (dataArray.length * 0.3);
-      setNoiseDetected(highFreqNoise > 50);
-      
-      animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
-    };
-    
-    updateAudioLevel();
-  };
-
-  const stopAudioLevelMonitoring = () => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    setAudioLevel(0);
-    setNoiseDetected(false);
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      setIsProcessing(true);
-      stopAudioLevelMonitoring();
     }
   };
 
-  const transcribeAudio = async (audioBlob: Blob) => {
+  const playAudio = () => {
+    if (audioURL && audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const transcribeAudio = async () => {
+    if (!audioURL) return;
+
+    setIsProcessing(true);
     try {
-      // CRITICAL: Always check for API key first to prevent transcription failures
-      // This check prevents the recurring "failed to transcribe" error
-      const apiKey = localStorage.getItem('openai_api_key');
-      
-      if (!apiKey) {
-        throw new Error('Please set your OpenAI API key in Settings first');
-      }
-
-      // Convert blob to base64 (process in chunks to avoid stack overflow)
+      // Convert audio to base64
+      const response = await fetch(audioURL);
+      const audioBlob = await response.blob();
       const arrayBuffer = await audioBlob.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      let binary = '';
-      const chunkSize = 8192; // Process in chunks
-      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-        binary += String.fromCharCode(...chunk);
-      }
-      const base64Audio = btoa(binary);
+      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
-      const response = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio },
-        headers: {
-          'X-OpenAI-API-Key': apiKey
-        }
+      // Call transcribe function
+      const { data, error } = await supabase.functions.invoke('transcribe', {
+        body: { audio: base64Audio }
       });
 
-      console.log('Transcription response:', response);
+      if (error) throw error;
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Transcription failed');
-      }
-
-      if (!response.data) {
-        throw new Error('No response data received from transcription service');
-      }
-
-      const { text, error } = response.data;
-      if (error) {
-        throw new Error(error);
-      }
-      
-      if (text && text.trim()) {
-        onTranscription(text.trim());
-        
-        // FIXED: More discrete voice quality feedback - no intrusive notifications
-        // Just show quality status in UI without toast
+      if (data?.text) {
+        onTranscription(data.text);
+        toast({
+          title: "✨ Transcription Complete",
+          description: "Your voice has been converted to text!",
+        });
       } else {
-        // Don't show error notification when canceling - this is expected behavior
-        return;
+        throw new Error('No transcription received');
       }
     } catch (error) {
-      console.error('Error transcribing audio:', error);
+      console.error('Transcription error:', error);
       toast({
-        title: "Error",
-        description: "Failed to transcribe audio",
+        title: "Transcription Failed",
+        description: "Failed to transcribe audio. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -194,41 +112,112 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
     }
   };
 
-  const cancelRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      // Stop recording without processing
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      stopAudioLevelMonitoring();
-      
-      // Clean up streams
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
-      
-      toast({
-        title: "Message canceled",
-        description: "Your message was not sent",
-      });
-    }
+  const resetRecording = () => {
+    setAudioURL(null);
+    setIsPlaying(false);
+    audioChunksRef.current = [];
   };
 
-  const toggleRecording = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  };
+  // Render conditionally based on whether onClose is provided (modal vs inline)
+  if (onClose) {
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-warm-text">Voice Recording</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Recording Controls */}
+            <div className="flex flex-col items-center space-y-4">
+              {!isRecording && !audioURL && (
+                <Button
+                  onClick={startRecording}
+                  disabled={isDisabled}
+                  className="w-20 h-20 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Mic className="w-8 h-8" />
+                </Button>
+              )}
 
+              {isRecording && (
+                <Button
+                  onClick={stopRecording}
+                  className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                >
+                  <Square className="w-8 h-8" />
+                </Button>
+              )}
+
+              {audioURL && !isRecording && (
+                <div className="flex items-center space-x-4">
+                  <Button
+                    onClick={playAudio}
+                    variant="outline"
+                    className="w-12 h-12 rounded-full border-primary/20 text-primary hover:bg-primary/10"
+                  >
+                    {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  </Button>
+                  <Button
+                    onClick={resetRecording}
+                    variant="outline"
+                    className="border-primary/20 text-primary hover:bg-primary/10"
+                  >
+                    Record Again
+                  </Button>
+                </div>
+              )}
+
+              {/* Status Text */}
+              <p className="text-sm text-muted-foreground text-center">
+                {isRecording ? 'Recording... Tap stop when finished' : 
+                 audioURL ? 'Recording complete! Review or transcribe' : 
+                 'Tap the microphone to start recording'}
+              </p>
+            </div>
+
+            {/* Audio Element */}
+            {audioURL && (
+              <audio
+                ref={audioRef}
+                src={audioURL}
+                onEnded={() => setIsPlaying(false)}
+                className="hidden"
+              />
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              {audioURL && (
+                <Button
+                  onClick={transcribeAudio}
+                  disabled={isProcessing}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {isProcessing ? 'Processing...' : 'Transcribe'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Inline version for backwards compatibility
   return (
     <div className="space-y-2">
       {isRecording ? (
         <div className="flex gap-2 w-full">
-          {/* Send button takes most space with consistent font size and red color */}
           <Button
-            onClick={toggleRecording}
+            onClick={stopRecording}
             disabled={isDisabled || isProcessing}
             variant="destructive"
             size="lg"
@@ -245,22 +234,10 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, i
               {isProcessing ? "Processing..." : "Send"}
             </span>
           </Button>
-          
-          {/* Compact cancel button on right with red X */}
-          <Button
-            onClick={cancelRecording}
-            variant="outline"
-            size="lg"
-            className="w-16 h-16 p-0 flex items-center justify-center border-red-300 hover:bg-red-50"
-          >
-            Cancel
-          </Button>
-          
         </div>
       ) : (
-        /* FIXED: Full width record button to match app button style */
         <Button
-          onClick={toggleRecording}
+          onClick={startRecording}
           disabled={isDisabled || isProcessing}
           variant="default"
           size="lg"

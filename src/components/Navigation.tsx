@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Settings, Utensils, Clock, Footprints } from 'lucide-react';
+import { Brain, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
@@ -108,10 +108,9 @@ export const Navigation = () => {
       caloriesBadge: todayTotals.calories > 0 ? todayTotals.calories : null
     },
     { 
-      icon: MessageCircle, 
-      label: 'AI Chat', 
-      path: '/ai-chat',
-      hasNotification: hasActiveNotifications(),
+      icon: Brain, 
+      label: 'Goals', 
+      path: '/motivators',
       isEating: false
     },
     { icon: Settings, label: 'Settings', path: '/settings', isEating: false },
@@ -122,7 +121,7 @@ export const Navigation = () => {
       <div className="w-full">
         <div className="flex justify-around gap-1">
           {/* Navigation Items */}
-          {navItems.map(({ icon: Icon, label, path, badge, hasNotification, isEating, caloriesBadge }) => {
+          {navItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
             const isActive = location.pathname === path;
             
             return (
@@ -138,16 +137,6 @@ export const Navigation = () => {
                 <Icon className="w-5 h-5 mb-1" />
                 <span className="text-xs font-medium">{label}</span>
                 
-                 {/* Notification badge for AI Chat - standardized positioning */}
-                {hasNotification && (
-                  <span className={`absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium ${
-                    getHighPriorityNotifications().some(n => n.type === 'profile_incomplete') 
-                      ? 'bg-amber-500 text-amber-50' 
-                      : 'bg-red-500 text-white'
-                  }`}>
-                    {getHighPriorityNotifications().length > 0 ? '!' : '●'}
-                  </span>
-                )}
                 
                 {/* Timer badge for fasting/walking */}
                 {badge && (

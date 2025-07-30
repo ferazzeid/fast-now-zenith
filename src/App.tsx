@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
-import AiChat from "./pages/AiChat";
+
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -49,11 +49,6 @@ const AppContent = () => {
             <Route path="/motivators" element={
               <ProtectedRoute>
                 <Motivators />
-              </ProtectedRoute>
-            } />
-            <Route path="/ai-chat" element={
-              <ProtectedRoute>
-                <AiChat />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
