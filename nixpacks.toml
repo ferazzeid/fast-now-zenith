@@ -1,6 +1,4 @@
 # Nixpacks configuration for Fast Now Zenith
-# Force Node.js provider to prevent Deno misdetection from Supabase Edge Functions
-providers = ["node"]
 
 [variables]
 NODE_ENV = "production"
