@@ -9,8 +9,10 @@ import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { ImageFoodAnalysis } from '@/components/ImageFoodAnalysis';
+import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
@@ -29,6 +31,7 @@ const FoodTracking = () => {
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showImageAnalysis, setShowImageAnalysis] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [manualEntryData, setManualEntryData] = useState({
     name: '',
     servingSize: '',
@@ -49,8 +52,82 @@ const FoodTracking = () => {
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
   const handleVoiceFood = () => {
-    // Restore voice functionality here with VoiceRecorder component
-    console.log("Voice recording not yet implemented");
+    setShowVoiceRecorder(true);
+  };
+
+  const handleVoiceTranscription = async (transcribedText: string) => {
+    setShowVoiceRecorder(false);
+    
+    try {
+      // Use AI to analyze the voice input and extract food information
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a nutrition expert. Parse food descriptions from voice input and return nutritional information. Return only a JSON object with: name (string), serving_size (number in grams), calories_per_100g (number), carbs_per_100g (number). If serving size is not specified, estimate a reasonable serving.'
+            },
+            {
+              role: 'user',
+              content: `Analyze this food description: "${transcribedText}". Return JSON format: {"name": "food name", "serving_size": 100, "calories_per_100g": number, "carbs_per_100g": number}`
+            }
+          ]
+        }
+      });
+
+      if (data?.message) {
+        try {
+          const foodData = JSON.parse(data.message);
+          
+          // Calculate actual consumption values based on serving size
+          const calories = (foodData.calories_per_100g * foodData.serving_size) / 100;
+          const carbs = (foodData.carbs_per_100g * foodData.serving_size) / 100;
+          
+          setManualEntryData({
+            name: foodData.name || '',
+            servingSize: foodData.serving_size?.toString() || '100',
+            calories: foodData.calories_per_100g?.toString() || '',
+            carbs: foodData.carbs_per_100g?.toString() || ''
+          });
+          setShowManualEntry(true);
+          
+          toast({
+            title: "Voice analyzed!",
+            description: "Review the details and adjust if needed"
+          });
+        } catch (parseError) {
+          console.error('Failed to parse AI food response:', parseError);
+          // Fallback to manual entry with just the transcribed text as food name
+          setManualEntryData({
+            name: transcribedText,
+            servingSize: '100',
+            calories: '',
+            carbs: ''
+          });
+          setShowManualEntry(true);
+          
+          toast({
+            title: "Voice transcribed!",
+            description: "Please complete the nutritional details"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to analyze voice food input:', error);
+      // Fallback to manual entry with just the transcribed text as food name
+      setManualEntryData({
+        name: transcribedText,
+        servingSize: '100',
+        calories: '',
+        carbs: ''
+      });
+      setShowManualEntry(true);
+      
+      toast({
+        title: "Voice transcribed!",
+        description: "Please complete the nutritional details"
+      });
+    }
   };
 
   const handleManualEntry = () => {
@@ -775,6 +852,21 @@ const FoodTracking = () => {
           onDataChange={setImageAnalysisData}
         />
 
+
+        {/* Voice Recorder Modal */}
+        <Dialog open={showVoiceRecorder} onOpenChange={setShowVoiceRecorder}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Voice Food Entry</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <VoiceRecorder 
+                onTranscription={handleVoiceTranscription}
+                isDisabled={false}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Food History Modal */}
         {showHistory && (
