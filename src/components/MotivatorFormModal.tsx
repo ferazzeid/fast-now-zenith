@@ -288,28 +288,30 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
               {/* Image Preview */}
               {imageUrl && (
-                <div className="relative">
-                  <img 
-                    src={imageUrl} 
-                    alt="Motivator preview" 
-                    className="w-full h-32 object-cover rounded-lg border border-ceramic-rim"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setImageUrl('')}
-                    className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                <div className="relative flex justify-center">
+                  <div className="relative w-3/4 max-w-48">
+                    <img 
+                      src={imageUrl} 
+                      alt="Motivator preview" 
+                      className="w-full h-auto object-contain rounded-lg border border-ceramic-rim"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setImageUrl('')}
+                      className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
               {/* Loading state info */}
               {isGeneratingImage && (
-                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    ⏳ Generating your motivational image... This may take a moment. Please be patient!
+                <div className="bg-muted/50 border border-border p-2 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    In progress<span className="animate-pulse">...</span>
                   </p>
                 </div>
               )}
