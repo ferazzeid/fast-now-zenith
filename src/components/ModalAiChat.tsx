@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, X, Volume2, VolumeX, Edit } from 'lucide-react';
+import { Send, X, Volume2, VolumeX, Edit, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -44,6 +44,7 @@ export const ModalAiChat = ({
 }: ModalAiChatProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   
@@ -213,6 +214,7 @@ Then ask if they want to add it to their food log.`;
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setShowVoiceRecorder(false);
     await sendToAI(transcription, true);
   };
 
@@ -456,14 +458,28 @@ Then ask if they want to add it to their food log.`;
             </Button>
           </div>
           
-          {/* Voice Recording */}
-          <VoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            isDisabled={isProcessing}
-          />
+          {/* Voice Recording Button */}
+          <Button
+            onClick={() => setShowVoiceRecorder(true)}
+            disabled={isProcessing}
+            variant="default"
+            size="lg"
+            className="w-full h-16 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Mic className="h-6 w-6 mr-2" />
+            <span>Record Message</span>
+          </Button>
         </div>
         )}
       </DialogContent>
+
+      {/* Voice Recorder Modal */}
+      {showVoiceRecorder && (
+        <VoiceRecorder
+          onTranscription={handleVoiceTranscription}
+          onClose={() => setShowVoiceRecorder(false)}
+        />
+      )}
     </Dialog>
   );
 };
