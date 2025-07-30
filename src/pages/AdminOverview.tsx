@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Settings, Key, BarChart3, DollarSign, Eye, EyeOff, Smartphone, Image, Brain, MessageSquare, Sliders, Plus, AlertTriangle, CreditCard, MessageCircle, AlertCircle, TrendingUp, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { AdminMotivatorCreation } from '@/components/AdminMotivatorCreation';
 import { RealApiUsageStats } from '@/components/RealApiUsageStats';
 import { AdminTierStats } from '@/components/AdminTierStats';
 import { Button } from '@/components/ui/button';
@@ -2198,15 +2197,6 @@ const AdminOverview = () => {
               </p>
             </div>
             
-            <AdminMotivatorCreation
-              onTemplateCreated={(template) => {
-                setAiBehaviorSettings(prev => ({
-                  ...prev,
-                  admin_motivator_templates: [...prev.admin_motivator_templates, template]
-                }));
-              }}
-              existingTemplates={aiBehaviorSettings.admin_motivator_templates}
-            />
             
             <div className="bg-accent/20 p-3 rounded-lg">
               <p className="text-xs text-muted-foreground">
