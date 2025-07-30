@@ -88,10 +88,24 @@ export const useSubscription = () => {
       const isPaidUser = tier === 'paid_user' || tier === 'api_user';
       const hasPremiumFeatures = tier !== 'free_user';
       
+      // Fetch admin-configured request limits
+      const { data: limitsData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+
+      const limitsMap = limitsData?.reduce((acc, setting) => {
+        acc[setting.setting_key] = setting.setting_value;
+        return acc;
+      }, {} as Record<string, string>) || {};
+
+      const paidUserLimit = parseInt(limitsMap.monthly_request_limit || '1000');
+      const freeUserLimit = parseInt(limitsMap.free_request_limit || '15');
+
       // Request limits by tier
       const requestLimit = tier === 'api_user' ? Infinity : 
-                          tier === 'paid_user' ? 500 : 
-                          tier === 'granted_user' ? 15 : 0;
+                          tier === 'paid_user' ? paidUserLimit : 
+                          tier === 'granted_user' ? freeUserLimit : 0;
 
       setSubscriptionData({
         subscribed,

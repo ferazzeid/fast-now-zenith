@@ -926,54 +926,7 @@ const AdminOverview = () => {
         </div>
 
         {/* Usage Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-warm-text" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Total Users</p>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-warm-text/60" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Total number of registered users in the system</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.total_users}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="h-full bg-ceramic-plate border-ceramic-rim">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-warm-text" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-warm-text">Paid Users</p>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-warm-text/60" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Users with active premium subscriptions</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <p className="text-2xl font-bold text-warm-text">{usageStats.paid_users}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+        <AdminTierStats />
           
           <Card className="h-full bg-ceramic-plate border-ceramic-rim">
             <div className="p-4">
@@ -1171,71 +1124,54 @@ const AdminOverview = () => {
             <Settings className="w-5 h-5" />
             Subscription Settings
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-warm-text">Monthly Request Limit (Premium Users)</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Input
-                    type="number"
-                    value={monthlyRequestLimit}
-                    onChange={(e) => setMonthlyRequestLimit(e.target.value)}
-                    className="bg-ceramic-base border-ceramic-rim"
-                    min="100"
-                    max="10000"
-                    step="100"
-                  />
-                  <Button
-                    onClick={updateRequestLimits}
-                    disabled={updateLimitsLoading}
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    {updateLimitsLoading ? 'Saving...' : 'Save'}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Current: {monthlyRequestLimit} requests per month
-                </p>
-              </div>
-
-              <div>
-                <Label className="text-warm-text">Free Request Limit (New Users)</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Input
-                    type="number"
-                    value={freeRequestLimit}
-                    onChange={(e) => setFreeRequestLimit(e.target.value)}
-                    className="bg-ceramic-base border-ceramic-rim"
-                    min="5"
-                    max="100"
-                    step="5"
-                  />
-                  <Button
-                    onClick={updateRequestLimits}
-                    disabled={updateLimitsLoading}
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    {updateLimitsLoading ? 'Saving...' : 'Save'}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Current: {freeRequestLimit} free requests per account
-                </p>
-              </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-warm-text">Monthly Request Limit (Premium Users)</Label>
+              <Input
+                type="number"
+                value={monthlyRequestLimit}
+                onChange={(e) => setMonthlyRequestLimit(e.target.value)}
+                className="bg-ceramic-base border-ceramic-rim"
+                min="100"
+                max="10000"
+                step="100"
+              />
             </div>
-
-            <div className="bg-accent/20 p-4 rounded-lg">
-              <h4 className="font-medium text-warm-text mb-2">Usage Guidelines</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Set generous limits to prevent user frustration</li>
-                <li>• Monitor usage analytics to adjust accordingly</li>
-                <li>• Free limits encourage upgrades without being restrictive</li>
-                <li>• Premium limits should feel unlimited for normal usage</li>
-              </ul>
+            
+            <div>
+              <Label className="text-warm-text">Free Request Limit (New Users)</Label>
+              <Input
+                type="number"
+                value={freeRequestLimit}
+                onChange={(e) => setFreeRequestLimit(e.target.value)}
+                className="bg-ceramic-base border-ceramic-rim"
+                min="5"
+                max="100"
+                step="5"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-warm-text">Crisis Trigger (Hours)</Label>
+              <Input
+                type="number"
+                value={crisisTriggerHours}
+                onChange={(e) => setCrisisTriggerHours(e.target.value)}
+                className="bg-ceramic-base border-ceramic-rim"
+                min="1"
+                max="168"
+                step="1"
+              />
             </div>
           </div>
+          
+          <Button
+            onClick={updateRequestLimits}
+            disabled={updateLimitsLoading}
+            className="bg-primary hover:bg-primary/90"
+          >
+            {updateLimitsLoading ? 'Saving...' : 'Save Subscription Settings'}
+          </Button>
         </Card>
 
         {/* Shared OpenAI Key Management */}
@@ -1509,12 +1445,6 @@ const AdminOverview = () => {
               Save Image Generation Settings
             </Button>
 
-            <div className="bg-accent/20 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">
-                <strong>Content Relevance:</strong> These settings ensure generated images directly relate to motivator content rather than being generic. 
-                The AI will analyze the motivator's message and create visually relevant imagery that supports the specific motivational goal.
-              </p>
-            </div>
           </div>
         </Card>
 
@@ -2267,7 +2197,6 @@ const AdminOverview = () => {
         </Card>
 
       </div>
-      
     </div>
     </TooltipProvider>
   );
