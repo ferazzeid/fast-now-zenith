@@ -9,9 +9,9 @@ import { ImageUpload } from './ImageUpload';
 interface Motivator {
   id: string;
   title: string;
-  description?: string;
+  content?: string; // Changed from description to match other components
   imageUrl?: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface EditMotivatorModalProps {
@@ -22,14 +22,14 @@ interface EditMotivatorModalProps {
 
 export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivatorModalProps) => {
   const [title, setTitle] = useState(motivator.title);
-  const [description, setDescription] = useState(motivator.description || '');
+  const [content, setContent] = useState(motivator.content || '');
   const [imageUrl, setImageUrl] = useState(motivator.imageUrl || '');
 
   const handleSave = () => {
     onSave({
       ...motivator,
       title,
-      description: description || undefined,
+      content: content || undefined,
       imageUrl: imageUrl || undefined,
     });
   };
@@ -66,15 +66,15 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-warm-text font-medium">
-              Description
+            <Label htmlFor="content" className="text-warm-text font-medium">
+              Description (Optional)
             </Label>
             <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
-              placeholder="Enter motivator description"
+              placeholder="Optional: Add more details about this motivation..."
             />
           </div>
 

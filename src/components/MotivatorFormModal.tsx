@@ -241,77 +241,38 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             </Label>
             
             <div className="space-y-3">
-              {/* Two button approach like food page */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    // Trigger file input for upload/camera
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.capture = 'environment'; // This allows camera on mobile
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) {
-                        // Convert to base64 or upload logic here
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                          setImageUrl(e.target?.result as string);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    };
-                    input.click();
-                  }}
-                  className="flex-1"
-                >
-                  Upload Image
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="flex-1"
-                >
-                  {isGeneratingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating...
-                    </>
-                  ) : (
-                    'Generate Image'
-                  )}
-                </Button>
-              </div>
+              {/* Use proper ImageUpload component */}
+              <ImageUpload
+                currentImageUrl={imageUrl}
+                onImageUpload={setImageUrl}
+                onImageRemove={() => setImageUrl('')}
+              />
 
-              {/* Image Preview */}
-              {imageUrl && (
-                <div className="relative flex justify-center">
-                  <div className="relative w-3/4 max-w-48">
-                    <img 
-                      src={imageUrl} 
-                      alt="Motivator preview" 
-                      className="w-full h-auto object-contain rounded-lg border border-ceramic-rim"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setImageUrl('')}
-                      className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {/* AI Generation button */}
+              <Button
+                variant="outline"
+                onClick={handleGenerateImage}
+                disabled={isGeneratingImage}
+                className="w-full"
+              >
+                {isGeneratingImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    Generating AI Image...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Image
+                  </>
+                )}
+              </Button>
 
               {/* Loading state info */}
               {isGeneratingImage && (
                 <div className="bg-muted/50 border border-border p-2 rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    In progress<span className="animate-pulse">...</span>
+                    Creating your motivational image<span className="animate-pulse">...</span>
                   </p>
                 </div>
               )}
