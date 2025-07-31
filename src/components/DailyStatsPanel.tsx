@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
+import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -196,17 +197,20 @@ export const DailyStatsPanel = memo(() => {
 
                  {/* Manual Activities (if applicable) */}
                  {deficitData.manualCalories > 0 && (
-                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                     <div className="flex items-center justify-between">
+                   <Card className="p-3 bg-ceramic-base border-ceramic-rim relative">
+                     {/* Tooltip icon positioned in top-right corner */}
+                     <div className="absolute top-2 right-2">
+                       <ClickableTooltip 
+                         content="Calories burned from manually logged activities today"
+                       >
+                         <Info className="w-3 h-3 text-muted-foreground" />
+                       </ClickableTooltip>
+                     </div>
+                     
+                     <div className="flex items-center justify-between pr-6">
                        <div className="flex items-center space-x-2">
                          <Activity className="w-4 h-4 text-green-500" />
                          <span className="text-sm font-medium text-warm-text">Manual Activities</span>
-                         <ClickableTooltip 
-                           content="Calories burned from manually logged activities today"
-                           side="top"
-                         >
-                           <div className="w-4 h-4 text-muted-foreground" />
-                         </ClickableTooltip>
                        </div>
                        <div className="text-sm font-bold text-green-600 dark:text-green-400">
                          {formatNumber(deficitData.manualCalories)} cal

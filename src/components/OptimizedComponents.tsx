@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
-import { TrendingDown, TrendingUp, Utensils, Activity, Target, Info } from 'lucide-react';
+import { TrendingDown, TrendingUp, Info } from 'lucide-react';
 
 // Optimized stat display component with React.memo
 interface StatDisplayProps {
@@ -22,13 +22,17 @@ export const StatDisplay = memo<StatDisplayProps>(({
   className = '' 
 }) => {
   return (
-    <Card className={`p-3 bg-ceramic-base border-ceramic-rim ${className}`}>
-      <div className="flex items-center space-x-2 mb-2">
+    <Card className={`p-3 bg-ceramic-base border-ceramic-rim relative ${className}`}>
+      {/* Tooltip icon positioned in top-right corner */}
+      <div className="absolute top-2 right-2">
+        <ClickableTooltip content={tooltip}>
+          <Info className="w-3 h-3 text-muted-foreground" />
+        </ClickableTooltip>
+      </div>
+      
+      <div className="flex items-center space-x-2 mb-2 pr-6">
         {icon}
         <span className="text-xs font-medium text-warm-text">{label}</span>
-        <ClickableTooltip content={tooltip} side="top">
-          <Info className="w-4 h-4 text-muted-foreground" />
-        </ClickableTooltip>
       </div>
       <div className="text-lg font-bold text-primary">
         {typeof value === 'number' ? value.toLocaleString() : value} cal
@@ -66,17 +70,20 @@ export const DeficitDisplay = memo<DeficitDisplayProps>(({ deficit, loading, tde
   }, [deficit, loading, tdee]);
 
   return (
-    <Card className="p-4 bg-ceramic-base border-ceramic-rim">
+    <Card className="p-4 bg-ceramic-base border-ceramic-rim relative">
+      {/* Tooltip icon positioned in top-right corner */}
+      <div className="absolute top-3 right-3">
+        <ClickableTooltip 
+          content="Your calorie deficit for today. A positive number means you're burning more than you consume (weight loss)."
+        >
+          <Info className="w-3 h-3 text-muted-foreground" />
+        </ClickableTooltip>
+      </div>
+      
       <div className="text-center space-y-2">
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-center space-x-2 pr-6">
           <DeficitIcon className={`w-6 h-6 ${color}`} />
           <h3 className="text-lg font-semibold text-warm-text">Today's Deficit</h3>
-          <ClickableTooltip 
-            content="Your calorie deficit for today. A positive number means you're burning more than you consume (weight loss)."
-            side="top"
-          >
-            <Info className="w-6 h-6 text-muted-foreground" />
-          </ClickableTooltip>
         </div>
         <div className={`text-3xl font-bold ${color}`}>
           {formattedValue}
