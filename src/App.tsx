@@ -25,12 +25,26 @@ import { useColorTheme } from "./hooks/useColorTheme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
 import { WalkingStatsProvider } from "./contexts/WalkingStatsContext";
+import { initializeAnalytics, trackPageView } from "./utils/analytics";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   // Load color theme on app startup
   useColorTheme();
+  const location = useLocation();
+  
+  // Initialize analytics on app startup
+  useEffect(() => {
+    initializeAnalytics();
+  }, []);
+  
+  // Track page views on route changes
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
   
   return (
     <>

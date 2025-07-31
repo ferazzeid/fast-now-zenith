@@ -13,6 +13,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
+import { trackWalkingEvent } from '@/utils/analytics';
 
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
@@ -78,6 +79,7 @@ const Walking = () => {
         description: result.error.message
       });
     } else {
+      trackWalkingEvent('start', selectedSpeed);
       toast({
         title: "Walking started",
         description: `Walking session started at ${selectedSpeed} mph pace.`
@@ -93,6 +95,8 @@ const Walking = () => {
         title: "Error",
         description: result.error.message
       });
+    } else {
+      trackWalkingEvent('pause', selectedSpeed, localTimeElapsed);
     }
   };
 
@@ -104,6 +108,8 @@ const Walking = () => {
         title: "Error",
         description: result.error.message
       });
+    } else {
+      trackWalkingEvent('resume', selectedSpeed);
     }
   };
 
@@ -125,6 +131,7 @@ const Walking = () => {
         description: result.error.message
       });
     } else {
+      trackWalkingEvent('stop', selectedSpeed, localTimeElapsed);
       toast({
         title: "Walking completed!",
         description: `Great job! You walked for ${formatTime(localTimeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`

@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
+import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 
 
 const Motivators = () => {
@@ -41,6 +42,7 @@ const Motivators = () => {
         imageUrl: motivatorData.imageUrl
       });
       
+      trackMotivatorEvent('create', 'personal');
       setShowFormModal(false);
       
       toast({
@@ -70,6 +72,7 @@ const Motivators = () => {
         imageUrl: updatedMotivator.imageUrl
       });
       
+      trackMotivatorEvent('edit', 'personal');
       setEditingMotivator(null);
       
       toast({
@@ -91,6 +94,7 @@ const Motivators = () => {
     try {
       await deleteMotivator(motivatorId);
       
+      trackMotivatorEvent('delete', 'personal');
       toast({
         title: "🗑️ Motivator Removed",
         description: "Motivator has been deleted.",
@@ -107,6 +111,7 @@ const Motivators = () => {
   };
 
   const handleVoiceMotivator = () => {
+    trackAIEvent('chat', 'motivator_assistant');
     const contextMessage = `Hello! I'm here to help you create a motivational message for your fasting journey.
 
 I can help you create:

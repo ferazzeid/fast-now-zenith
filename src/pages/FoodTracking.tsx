@@ -19,6 +19,7 @@ import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -45,6 +46,7 @@ const FoodTracking = () => {
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
   const handleVoiceFood = () => {
+    trackAIEvent('chat', 'food_assistant');
     const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
 
 To add a food item, I'll need:
@@ -79,6 +81,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           description: foodResult.error.message
         });
       } else {
+        trackFoodEvent('add', 'voice');
         toast({
           title: "✅ Food Added Successfully!",
           description: `${args.name} has been added to your food plan`
@@ -101,6 +104,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
   };
 
   const handleManualEntry = () => {
+    trackFoodEvent('add', 'manual');
     setManualEntryData({
       name: '',
       servingSize: '',
@@ -185,6 +189,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         description: result.error.message
       });
     } else {
+      trackFoodEvent('add', 'manual');
       toast({
         title: "Food added successfully!",
         description: `${manualEntryData.name} has been added to your food plan`
@@ -323,6 +328,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         description: result.error.message
       });
     } else {
+      trackFoodEvent('delete', 'manual');
       toast({
         title: "Food deleted",
         description: "Food entry has been removed"

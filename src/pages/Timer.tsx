@@ -18,6 +18,7 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useCrisisSettings } from '@/hooks/useCrisisSettings';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { SOSButton } from '@/components/SOSButton';
+import { trackFastingEvent } from '@/utils/analytics';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -113,6 +114,7 @@ const Timer = () => {
   const handleFastingStart = async () => {
     const result = await startFastingSession(fastDuration);
     if (result) {
+      trackFastingEvent('start', fastType, fastDuration);
       toast({
         title: "Fast started",
         description: `Your ${formatTimeFasting(fastDuration)} fast has begun!`
@@ -125,6 +127,7 @@ const Timer = () => {
     
     const result = await endFastingSession();
     if (result) {
+      trackFastingEvent('stop', fastType, timeElapsed);
       toast({
         title: "Fast completed", 
         description: `Great job! You fasted for ${formatTimeFasting(timeElapsed)}`

@@ -17,14 +17,33 @@ export const CancellationTracker = () => {
 
   const fetchCancellationData = async () => {
     try {
-      // Remove placeholder data - set to 0 until real cancellation tracking is implemented
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Fetch cancellations from usage_analytics where event_type includes 'cancel' or 'subscription_ended'
+      const { data: todayCancellations } = await supabase
+        .from('usage_analytics')
+        .select('id')
+        .eq('event_type', 'subscription_cancelled')
+        .gte('created_at', startOfDay.toISOString());
+
+      const { data: monthCancellations } = await supabase
+        .from('usage_analytics')
+        .select('id')
+        .eq('event_type', 'subscription_cancelled')
+        .gte('created_at', startOfMonth.toISOString());
+
+      setData({
+        cancellationsToday: todayCancellations?.length || 0,
+        cancellationsThisMonth: monthCancellations?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching cancellation data:', error);
       setData({
         cancellationsToday: 0,
         cancellationsThisMonth: 0
       });
-
-    } catch (error) {
-      console.error('Error fetching cancellation data:', error);
     } finally {
       setLoading(false);
     }
