@@ -179,7 +179,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Mic className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Voice</span>
+              <span className="text-sm font-medium">Voice Add Motivator</span>
             </Button>
             
             <Button 
@@ -187,7 +187,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Manual</span>
+              <span className="text-sm font-medium">Manual Add Motivator</span>
             </Button>
           </div>
 

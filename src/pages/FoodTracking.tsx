@@ -448,7 +448,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Mic className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Voice</span>
+              <span className="text-sm font-medium">Voice Add Food</span>
             </Button>
           </PremiumGate>
           
@@ -459,7 +459,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Plus className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Manual</span>
+            <span className="text-sm font-medium">Manual Add Food</span>
           </Button>
         </div>
 
