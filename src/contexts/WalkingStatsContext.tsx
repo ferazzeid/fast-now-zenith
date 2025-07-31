@@ -128,8 +128,10 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units]);
 
+  const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
+
   return (
-    <WalkingStatsContext.Provider value={{ walkingStats }}>
+    <WalkingStatsContext.Provider value={contextValue}>
       {children}
     </WalkingStatsContext.Provider>
   );

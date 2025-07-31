@@ -55,23 +55,40 @@ const Settings = () => {
 
     const checkAdminRole = async () => {
       if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
-        setIsAdmin(!!data);
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('role', 'admin')
+            .maybeSingle();
+          
+          if (error) {
+            console.log('Admin check error (expected if no role):', error);
+            setIsAdmin(false);
+          } else {
+            setIsAdmin(!!data);
+          }
+        } catch (error) {
+          console.error('Error checking admin role:', error);
+          setIsAdmin(false);
+        }
       }
     };
 
     const fetchUserSettings = async () => {
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
-          .eq('user_id', user.id)
-          .single();
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (error) {
+          console.error('Error loading profile settings:', error);
+          return;
+        }
 
         if (profile) {
           setUseOwnKey(profile.use_own_api_key ?? true);
@@ -91,6 +108,9 @@ const Settings = () => {
           if (profile.openai_api_key) {
             setOpenAiKey(profile.openai_api_key);
           }
+        }
+        } catch (error) {
+          console.error('Error fetching user settings:', error);
         }
       }
     };

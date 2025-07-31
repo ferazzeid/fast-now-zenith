@@ -22,9 +22,9 @@ export const useAdminGoalIdeas = () => {
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'admin_goal_ideas')
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Database error:', error);
         setGoalIdeas([]);
         setLoading(false);

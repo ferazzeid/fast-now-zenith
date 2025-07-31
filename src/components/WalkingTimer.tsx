@@ -50,13 +50,15 @@ export const WalkingTimer = ({
   const { isAnimationsSuspended } = useAnimationControl();
 
   useEffect(() => {
-    if (isActive && !isPaused) {
+    if (isActive && !isPaused && !isAnimationsSuspended) {
       const interval = setInterval(() => {
         setStepAnimation(prev => !prev);
       }, 800);
       return () => clearInterval(interval);
+    } else {
+      setStepAnimation(false);
     }
-  }, [isActive, isPaused]);
+  }, [isActive, isPaused, isAnimationsSuspended]);
 
   const formatPace = (speed: number) => {
     if (units === 'metric') {

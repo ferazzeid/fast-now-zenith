@@ -35,6 +35,7 @@ export const WalkingHistory = () => {
       if (!user) return;
       
       console.log('Fetching walking sessions, refreshTrigger:', refreshTrigger);
+      setLoading(true);
 
       try {
         const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
@@ -167,9 +168,6 @@ export const WalkingHistory = () => {
           size="sm" 
           onClick={() => {
             console.log('Manual refresh triggered');
-            setLoading(true);
-            setSessions([]);
-            // Force a refresh by updating the key
             window.location.reload();
           }}
           className="h-6 px-2 text-xs text-muted-foreground hover:text-primary"

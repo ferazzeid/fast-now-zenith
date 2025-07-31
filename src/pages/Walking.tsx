@@ -173,10 +173,6 @@ const Walking = () => {
               />
             </div>
 
-            {/* Walking Stats - Add the missing stats component */}
-            <div className="mt-8">
-              
-            </div>
           </>
         )}
 

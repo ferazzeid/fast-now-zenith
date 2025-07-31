@@ -38,10 +38,13 @@ export const useWalkingSession = () => {
         .eq('status', 'active')
         .order('start_time', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('Error loading active walking session:', error);
+        setCurrentSession(null);
+        setIsPaused(false);
+        return;
       }
 
       setCurrentSession(data || null);
