@@ -20,8 +20,11 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
       if (reason.includes('Extension context invalidated') ||
           reason.includes('chrome-extension://') ||
           reason.includes('moz-extension://') ||
-          reason.includes('safari-extension://')) {
+          reason.includes('safari-extension://') ||
+          reason.includes('MetaMask') ||
+          reason.includes('connect to MetaMask')) {
         console.log('Ignoring browser extension error:', reason);
+        event.preventDefault();
         return;
       }
       

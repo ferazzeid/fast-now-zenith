@@ -85,16 +85,14 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         distance = distance * 1.60934; // Convert miles to km
       }
 
-      if (mounted) {
-        setWalkingStats({
-          realTimeCalories: calories,
-          realTimeDistance: Math.round(distance * 100) / 100,
-          timeElapsed: activeElapsed,
-          isActive: true,
-          isPaused: false,
-          currentSessionId: currentSession.id
-        });
-      }
+      setWalkingStats({
+        realTimeCalories: calories,
+        realTimeDistance: Math.round(distance * 100) / 100,
+        timeElapsed: activeElapsed,
+        isActive: true,
+        isPaused: false,
+        currentSessionId: currentSession.id
+      });
     };
 
     if (currentSession && !isPaused) {
@@ -104,33 +102,28 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       interval = setInterval(updateStats, 1000);
     } else if (currentSession && isPaused) {
       // Keep last known values but mark as paused
-      if (mounted) {
-        setWalkingStats(prev => ({
-          ...prev,
-          isActive: true,
-          isPaused: true,
-          currentSessionId: currentSession.id
-        }));
-      }
+      setWalkingStats(prev => ({
+        ...prev,
+        isActive: true,
+        isPaused: true,
+        currentSessionId: currentSession.id
+      }));
     } else {
       // No active session
-      if (mounted) {
-        setWalkingStats({
-          realTimeCalories: 0,
-          realTimeDistance: 0,
-          timeElapsed: 0,
-          isActive: false,
-          isPaused: false,
-          currentSessionId: null
-        });
-      }
+      setWalkingStats({
+        realTimeCalories: 0,
+        realTimeDistance: 0,
+        timeElapsed: 0,
+        isActive: false,
+        isPaused: false,
+        currentSessionId: null
+      });
     }
 
     return () => {
       mounted = false;
       if (interval) {
         clearInterval(interval);
-        interval = null;
       }
     };
   }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units]);

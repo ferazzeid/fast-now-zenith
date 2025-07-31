@@ -164,20 +164,13 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
-    let mounted = true;
-    
-    const load = async () => {
-      if (mounted) {
-        await loadProfile();
-      }
-    };
-    
-    load();
-    
-    return () => {
-      mounted = false;
-    };
-  }, [loadProfile]);
+    if (user?.id) {
+      loadProfile();
+    } else {
+      setProfile(null);
+      setLoading(false);
+    }
+  }, [user?.id, loadProfile]);
 
   return {
     profile,
