@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
@@ -137,22 +138,13 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-ceramic-plate rounded-3xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-ceramic-rim shadow-2xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-warm-text">
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
             {isEditing ? 'Edit Motivator' : 'Create New Motivator'}
-          </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="hover:bg-ceramic-rim"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
         {/* Admin Templates (only for new motivators) */}
         {!isEditing && templates.length > 0 && (
@@ -326,7 +318,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             {isEditing ? 'Save Changes' : 'Create Motivator'}
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

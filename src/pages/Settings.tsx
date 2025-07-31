@@ -218,8 +218,7 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <ScrollArea className="h-screen w-full">
-        <div className="max-w-md mx-auto pt-20 pb-24">
+      <div className="max-w-md mx-auto pt-20 pb-24">
           <div className="space-y-6">
             {/* Header */}
             <div className="text-center mb-8">
@@ -804,31 +803,30 @@ const Settings = () => {
               </p>
             </div>
             
-            {isAdmin && (
-              <Button
-                onClick={() => navigate('/admin')}
-                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Admin Dashboard
-              </Button>
-            )}
-             </div>
-           </Card>
-           </div>
-         </div>
-       </ScrollArea>
+             {isAdmin && (
+               <Button
+                 onClick={() => navigate('/admin')}
+                 className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+               >
+                 <Shield className="w-4 h-4 mr-2" />
+                 Admin Dashboard
+               </Button>
+             )}
+            </div>
+          </Card>
+        </div>
+      </div>
 
-       {/* Modals */}
-       {showMotivatorsModal && (
-         <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
-       )}
-       
-       {showAiGeneratorModal && (
-         <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
-       )}
-     </div>
-   );
- };
- 
- export default Settings;
+      {/* Modals */}
+      {showMotivatorsModal && (
+        <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
+      )}
+      
+      {showAiGeneratorModal && (
+        <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
+      )}
+    </div>
+  );
+};
+
+export default Settings;
