@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit, Save, X, Wand2, Trash2 } from 'lucide-react';
+import { Edit, Save, X, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { CompactImageUpload } from '@/components/CompactImageUpload';
-import { generateImage } from '@/integrations/imageGeneration';
+import { ImageUpload } from '@/components/ImageUpload';
+import { generate_image } from '@/utils/imageGeneration';
 
 interface UserFood {
   id: string;
@@ -95,7 +95,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
     try {
       const prompt = `A lightly cartoony and semi-realistic illustration of ${name}, food illustration style, clean background, appetizing, vibrant colors`;
       const filename = `food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`;
-      const generatedImageUrl = await generateImage(prompt, filename);
+      const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
       
       toast({
@@ -113,13 +113,6 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
     }
   };
 
-  const handleImageUpload = (url: string) => {
-    setImageUrl(url);
-  };
-
-  const handleImageRemove = () => {
-    setImageUrl('');
-  };
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
@@ -170,44 +163,47 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
             </div>
           </div>
 
-          <div className="space-y-4">
-            <Label>Food Image</Label>
+          <div className="space-y-2">
+            <Label className="text-warm-text font-medium">
+              Food Image (Optional)
+            </Label>
+            
             <div className="space-y-3">
-              {imageUrl && (
-                <div className="relative">
-                  <img 
-                    src={imageUrl} 
-                    alt={name || 'Food'} 
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleImageRemove}
-                    className="absolute top-2 right-2"
-                    disabled={loading}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+              {/* Use proper ImageUpload component */}
+              <ImageUpload
+                currentImageUrl={imageUrl}
+                onImageUpload={setImageUrl}
+                onImageRemove={() => setImageUrl('')}
+              />
+
+              {/* AI Generation button */}
+              <Button
+                variant="outline"
+                onClick={handleGenerateImage}
+                disabled={loading || generatingImage}
+                className="w-full"
+              >
+                {generatingImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    Generating AI Image...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Image
+                  </>
+                )}
+              </Button>
+
+              {/* Loading state info */}
+              {generatingImage && (
+                <div className="bg-muted/50 border border-border p-2 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Creating your food image<span className="animate-pulse">...</span>
+                  </p>
                 </div>
               )}
-              
-              <div className="flex gap-2">
-                <CompactImageUpload
-                  onImageUpload={handleImageUpload}
-                  onImageRemove={handleImageRemove}
-                  currentImageUrl={imageUrl}
-                />
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateImage}
-                  disabled={loading || generatingImage}
-                  className="flex-1"
-                >
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  {generatingImage ? 'Generating...' : 'Generate AI Image'}
-                </Button>
-              </div>
             </div>
           </div>
 

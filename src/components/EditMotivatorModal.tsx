@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ImageUpload } from './ImageUpload';
+import { useToast } from '@/hooks/use-toast';
+import { generate_image } from '@/utils/imageGeneration';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Motivator {
   id: string;
@@ -24,6 +27,58 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
   const [title, setTitle] = useState(motivator.title);
   const [content, setContent] = useState(motivator.content || '');
   const [imageUrl, setImageUrl] = useState(motivator.imageUrl || '');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const { toast } = useToast();
+
+  const handleGenerateImage = async () => {
+    if (!title.trim() && !content.trim()) {
+      toast({
+        title: "Add some content first",
+        description: "Please add a title or description before generating an image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    try {
+      // Fetch admin image generation settings
+      let stylePrompt = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_value')
+          .eq('setting_key', 'image_gen_style_prompt')
+          .single();
+        
+        if (settingsData?.setting_value) {
+          stylePrompt = settingsData.setting_value;
+        }
+      } catch (error) {
+        console.log('Using default style prompt as fallback');
+      }
+      
+      // Create a prompt for image generation based on the motivator and admin style
+      const prompt = `${stylePrompt}\n\nSpecific subject: ${title}. ${content}`;
+      
+      const newImageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
+      setImageUrl(newImageUrl);
+      
+      toast({
+        title: "✨ Image Generated!",
+        description: "Your AI-generated motivator image is ready.",
+      });
+    } catch (error) {
+      toast({
+        title: "Image generation failed",
+        description: "Please try again or add your own image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
 
   const handleSave = () => {
     onSave({
@@ -80,13 +135,46 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">
-              Image
+              Motivator Image (Optional)
             </Label>
-            <ImageUpload
-              currentImageUrl={imageUrl}
-              onImageUpload={setImageUrl}
-              onImageRemove={() => setImageUrl('')}
-            />
+            
+            <div className="space-y-3">
+              {/* Use proper ImageUpload component */}
+              <ImageUpload
+                currentImageUrl={imageUrl}
+                onImageUpload={setImageUrl}
+                onImageRemove={() => setImageUrl('')}
+              />
+
+              {/* AI Generation button */}
+              <Button
+                variant="outline"
+                onClick={handleGenerateImage}
+                disabled={isGeneratingImage}
+                className="w-full"
+              >
+                {isGeneratingImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    Generating AI Image...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Image
+                  </>
+                )}
+              </Button>
+
+              {/* Loading state info */}
+              {isGeneratingImage && (
+                <div className="bg-muted/50 border border-border p-2 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Creating your motivational image<span className="animate-pulse">...</span>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
