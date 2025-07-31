@@ -1,7 +1,7 @@
 import { Brain, Settings, Utensils, Clock, Footprints } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
@@ -20,39 +20,37 @@ export const Navigation = () => {
   const { isAnimationsSuspended } = useAnimationControl();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Update time every second for real-time badges, but pause when animations are suspended
+  // Optimize timer updates - only update when needed
   useEffect(() => {
     if (isAnimationsSuspended) return;
     
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isAnimationsSuspended]);
+    let interval: NodeJS.Timeout;
+    
+    // Only update time if there's an active fasting session
+    if (fastingSession && fastingSession.status === 'active') {
+      interval = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isAnimationsSuspended, fastingSession?.status]);
 
-  // Load active session on mount and refresh more frequently for better responsiveness
+  // Load active session on mount only - remove frequent polling
   useEffect(() => {
     loadActiveSession();
-    
-    // Set up interval to refresh fasting session more frequently when needed
-    const interval = setInterval(() => {
-      loadActiveSession();
-    }, 2000); // Check every 2 seconds for faster badge updates
-    
-    return () => clearInterval(interval);
-  }, [loadActiveSession]);
+  }, []);
 
-  // Calculate fasting duration and status for badge - UPDATED FOR REAL-TIME
-  const getFastingBadge = () => {
-    console.log('DEBUG: getFastingBadge called', { fastingSession, currentTime });
+  // Memoize fasting badge calculation to prevent unnecessary recalculations
+  const getFastingBadge = useMemo(() => {
     if (!fastingSession || fastingSession.status !== 'active') {
-      console.log('DEBUG: No active fasting session');
       return null;
     }
     
     const startTime = new Date(fastingSession.start_time).getTime();
     const elapsed = Math.floor((currentTime - startTime) / 1000); // seconds
-    console.log('DEBUG: Timer calculation', { startTime, elapsed, currentTime });
     
     // Check if intermittent fasting and determine if in eating window
     const goalDuration = fastingSession.goal_duration_seconds || 0;
@@ -89,17 +87,16 @@ export const Navigation = () => {
       isEating: false,
       label: 'Fasting'
     };
-  };
-
-  const fastingBadge = getFastingBadge();
+  }, [fastingSession, currentTime, formatTime]);
   
-  const navItems = [
+  // Memoize navigation items to prevent unnecessary re-renders
+  const navItems = useMemo(() => [
     { 
       icon: Clock, 
       label: 'Fasting', 
       path: '/',
-      badge: fastingBadge?.time || null,
-      isEating: fastingBadge?.isEating || false
+      badge: getFastingBadge?.time || null,
+      isEating: getFastingBadge?.isEating || false
     },
     { 
       icon: Footprints, 
@@ -122,7 +119,7 @@ export const Navigation = () => {
       isEating: false
     },
     { icon: Settings, label: 'Settings', path: '/settings', isEating: false },
-  ];
+  ], [getFastingBadge, timerStatus.walking, formatTime, todayTotals.calories]);
 
   return (
     <TooltipProvider>

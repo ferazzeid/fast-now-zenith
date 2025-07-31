@@ -108,15 +108,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         distance = distance * 1.60934; // Convert miles to km
       }
 
-      console.log('Timer update:', {
-        sessionId: currentSession.id,
-        activeElapsed,
-        activeDurationMinutes,
-        speedMph,
-        calories,
-        distance: Math.round(distance * 100) / 100,
-        isProfileComplete
-      });
+      // Remove frequent console logging for performance
 
       setWalkingStats({
         realTimeCalories: calories,
@@ -129,16 +121,11 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     if (currentSession && !isPaused) {
-      console.log('🟢 STARTING TIMER for session:', currentSession.id);
       // Update immediately
       updateStats();
       // Then set interval for regular updates
-      interval = setInterval(() => {
-        console.log('⏰ Timer tick for session:', currentSession?.id);
-        updateStats();
-      }, 1000);
+      interval = setInterval(updateStats, 1000);
     } else if (currentSession && isPaused) {
-      console.log('⏸️ SESSION PAUSED, keeping last values');
       // Keep last known values but mark as paused
       setWalkingStats(prev => ({
         ...prev,
@@ -147,7 +134,6 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         currentSessionId: currentSession.id
       }));
     } else {
-      console.log('🔴 NO ACTIVE SESSION, clearing stats');
       // No active session
       setWalkingStats({
         realTimeCalories: 0,
@@ -160,10 +146,8 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     return () => {
-      console.log('🧹 CLEANING UP timer interval');
       mounted = false;
       if (interval) {
-        console.log('🧹 Clearing interval');
         clearInterval(interval);
       }
     };

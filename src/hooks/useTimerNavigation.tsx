@@ -28,7 +28,7 @@ export const useTimerNavigation = () => {
   const { currentSession: fastingSession } = useFastingSession();
   const { currentSession: walkingSession } = useWalkingSession();
 
-  // Update timer status based on active sessions
+  // Optimized timer status - only update when sessions are active
   useEffect(() => {
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
@@ -37,13 +37,13 @@ export const useTimerNavigation = () => {
       let fastingElapsed = 0;
       let walkingElapsed = 0;
 
-      if (fastingSession) {
+      if (fastingSession && fastingActive) {
         const startTime = new Date(fastingSession.start_time);
         const now = new Date();
         fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
       }
 
-      if (walkingSession) {
+      if (walkingSession && walkingActive) {
         const startTime = new Date(walkingSession.start_time);
         const now = new Date();
         let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
@@ -66,12 +66,22 @@ export const useTimerNavigation = () => {
       });
     };
 
-    updateTimerStatus();
+    let interval: NodeJS.Timeout | undefined;
     
-    // Update every second for accurate display
-    const interval = setInterval(updateTimerStatus, 1000);
-    return () => clearInterval(interval);
-  }, [fastingSession, walkingSession]);
+    // Only set up interval if there are active sessions
+    if ((fastingSession && fastingSession.status === 'active') || 
+        (walkingSession && walkingSession.status === 'active')) {
+      updateTimerStatus();
+      interval = setInterval(updateTimerStatus, 1000);
+    } else {
+      // Update once to clear any inactive sessions
+      updateTimerStatus();
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [fastingSession?.status, walkingSession?.status, fastingSession?.start_time, walkingSession?.start_time]);
 
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);
