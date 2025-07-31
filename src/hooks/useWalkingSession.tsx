@@ -201,11 +201,12 @@ export const useWalkingSession = () => {
       if (error) throw error;
 
       // Immediately clear current session to stop timer
+      console.log('🛑 ENDING SESSION - clearing currentSession to null');
       setCurrentSession(null);
       setIsPaused(false);
       
       // Force immediate refresh of context and history
-      console.log('Session ended, clearing timer state immediately');
+      console.log('🔄 Session ended, triggering refresh');
       triggerRefresh();
       
       return { data, error: null };
