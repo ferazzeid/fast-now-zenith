@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Heart, Plus, Search, Trash2, X } from 'lucide-react';
+import { Heart, Plus, Search, Trash2, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +19,7 @@ interface UserFood {
 }
 
 interface PersonalFoodLibraryProps {
-  onSelectFood: (food: UserFood) => void;
+  onSelectFood: (food: UserFood, consumed?: boolean) => void;
   onClose: () => void;
 }
 
@@ -205,14 +206,26 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
                     <Trash2 className="w-3 h-3 text-muted-foreground" />
                   </Button>
                   
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => onSelectFood(food)}
-                    className="h-8 px-3"
-                  >
-                    Add
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="h-8 px-3"
+                      >
+                        Add
+                        <ChevronDown className="w-3 h-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onSelectFood(food, false)}>
+                        Add to Shopping List
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onSelectFood(food, true)}>
+                        Add to Eaten List
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </Card>

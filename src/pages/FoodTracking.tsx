@@ -284,14 +284,22 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     }
   };
 
-  const handleSelectFromLibrary = (food: any) => {
+  const handleSelectFromLibrary = (food: any, consumed: boolean = false) => {
     // Calculate values for 100g serving
     setFoodName(food.name);
     setCalories(food.calories_per_100g.toString());
     setCarbs(food.carbs_per_100g.toString());
     setServingSize('100');
+    setConsumedNow(consumed);
     setShowLibrary(false);
-    setShowForm(true);
+    
+    // If consumed is true, directly save to food entries as consumed
+    // If false, show the form for editing/planning
+    if (consumed) {
+      handleSave(); // This will save as consumed=true 
+    } else {
+      setShowForm(true);
+    }
   };
 
   const handleUpdateFoodEntry = async (id: string, updates: any) => {
