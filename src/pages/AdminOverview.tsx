@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AdminTierStats } from "@/components/AdminTierStats";
-import { RealApiUsageStats } from "@/components/RealApiUsageStats";
 import { ColorManagement } from "@/components/ColorManagement";
 
 interface User {
@@ -168,54 +167,43 @@ const AdminOverview = () => {
         </h1>
       </div>
       
-      {/* Usage Statistics - Improved Typography */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Usage Statistics - Simplified 2 Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-l-4 border-l-primary">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-foreground">User Statistics</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">{usageStats.total_users}</div>
-            <p className="text-xs text-muted-foreground">All registered users</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active (7d)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">{usageStats.active_users}</div>
-            <p className="text-xs text-muted-foreground">Active in last week</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-l-4 border-l-yellow-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Paid Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">{usageStats.paid_users}</div>
-            <p className="text-xs text-muted-foreground">Subscribed users</p>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total Users</span>
+              <span className="text-2xl font-bold text-primary">{usageStats.total_users}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Paid Users</span>
+              <span className="text-2xl font-bold text-green-600">{usageStats.paid_users}</span>
+            </div>
           </CardContent>
         </Card>
         
         <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Requests</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-foreground">Activity Overview</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-600">{usageStats.total_requests}</div>
-            <p className="text-xs text-muted-foreground">AI requests this month</p>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Active (7d)</span>
+              <span className="text-2xl font-bold text-yellow-600">{usageStats.active_users}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total Requests</span>
+              <span className="text-2xl font-bold text-purple-600">{usageStats.total_requests}</span>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Additional Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AdminTierStats />
-        <RealApiUsageStats />
-      </div>
+      <AdminTierStats />
 
       {/* API Configuration - Full Width Cards */}
       <div className="space-y-6">

@@ -204,7 +204,7 @@ export const ColorManagement: React.FC = () => {
         {/* Color Pickers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Primary Color */}
-          <div className="space-y-3">
+          <div className="space-y-3 relative">
             <Label className="text-sm font-medium">Primary Color</Label>
             <div 
               className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
@@ -213,17 +213,26 @@ export const ColorManagement: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">Used for buttons, links, and accents</p>
             {activeColorPicker === 'primary' && (
-              <div className="mt-3">
+              <div className="absolute top-full left-0 mt-2 z-50 bg-background border rounded-lg p-4 shadow-lg">
                 <HexColorPicker 
                   color={colors.primary} 
                   onChange={(color) => handleColorChange('primary', color)}
                 />
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveColorPicker(null)}
+                    className="flex-1"
+                  >
+                    Done
+                  </Button>
+                </div>
               </div>
             )}
           </div>
 
           {/* Primary Hover Color */}
-          <div className="space-y-3">
+          <div className="space-y-3 relative">
             <Label className="text-sm font-medium">Primary Hover</Label>
             <div 
               className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
@@ -232,17 +241,26 @@ export const ColorManagement: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">Used for button hover states</p>
             {activeColorPicker === 'primaryHover' && (
-              <div className="mt-3">
+              <div className="absolute top-full left-0 mt-2 z-50 bg-background border rounded-lg p-4 shadow-lg">
                 <HexColorPicker 
                   color={colors.primaryHover} 
                   onChange={(color) => handleColorChange('primaryHover', color)}
                 />
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveColorPicker(null)}
+                    className="flex-1"
+                  >
+                    Done
+                  </Button>
+                </div>
               </div>
             )}
           </div>
 
           {/* Accent Color */}
-          <div className="space-y-3">
+          <div className="space-y-3 relative">
             <Label className="text-sm font-medium">Accent Color</Label>
             <div 
               className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
@@ -251,11 +269,20 @@ export const ColorManagement: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">Used for highlights and special elements</p>
             {activeColorPicker === 'accent' && (
-              <div className="mt-3">
+              <div className="absolute top-full left-0 mt-2 z-50 bg-background border rounded-lg p-4 shadow-lg">
                 <HexColorPicker 
                   color={colors.accent} 
                   onChange={(color) => handleColorChange('accent', color)}
                 />
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveColorPicker(null)}
+                    className="flex-1"
+                  >
+                    Done
+                  </Button>
+                </div>
               </div>
             )}
           </div>
