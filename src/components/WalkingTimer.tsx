@@ -122,7 +122,7 @@ export const WalkingTimer = ({
             style={{ zIndex: 13 }}
           >
             <div 
-              className="text-4xl font-mono font-semibold text-primary mb-2 tracking-wide"
+              className="text-5xl font-mono font-bold text-primary mb-2 tracking-wide"
               style={{ 
                 fontFeatureSettings: '"tnum" 1',
                 textShadow: '0 1px 2px rgba(0,0,0,0.1)'

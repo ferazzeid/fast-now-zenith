@@ -52,7 +52,7 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Logo/Brand */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
             FastNow
           </h1>
         </div>

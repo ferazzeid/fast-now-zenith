@@ -149,18 +149,18 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               </div>
               
               {/* Main Timer - Centered */}
-              <div 
+               <div 
                 className={cn(
                   "font-mono font-bold tracking-wide transition-colors duration-300",
-                  isActive ? "text-4xl text-primary" : "text-3xl text-muted-foreground"
+                  isActive ? "text-5xl text-primary" : "text-4xl text-muted-foreground"
                 )}
                 style={{ 
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   fontFeatureSettings: '"tnum" 1'
                 }}
-              >
-                {displayTime}
-              </div>
+               >
+                 {displayTime}
+               </div>
               
               {/* Goal Display - Always show during intermittent fasting */}
               {isActive && fastType === 'intermittent' && goalDuration && (
