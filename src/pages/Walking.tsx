@@ -75,8 +75,16 @@ const Walking = () => {
   };
 
   const handleStopConfirm = async () => {
-    const result = await endWalkingSession();
+    console.log('Stop walking confirmed - ending session immediately');
     setShowStopConfirm(false);
+    
+    // Immediately show feedback that session is ending
+    toast({
+      title: "Stopping session...",
+      description: "Saving your walking session data."
+    });
+    
+    const result = await endWalkingSession();
     if (result.error) {
       toast({
         variant: "destructive",

@@ -59,8 +59,31 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     let interval: NodeJS.Timeout | null = null;
     let mounted = true;
 
+    // Immediately clear stats if no current session
+    if (!currentSession) {
+      setWalkingStats({
+        realTimeCalories: 0,
+        realTimeDistance: 0,
+        timeElapsed: 0,
+        isActive: false,
+        isPaused: false,
+        currentSessionId: null
+      });
+      return;
+    }
+
     const updateStats = () => {
-      if (!mounted || !currentSession) return;
+      if (!mounted || !currentSession) {
+        setWalkingStats({
+          realTimeCalories: 0,
+          realTimeDistance: 0,
+          timeElapsed: 0,
+          isActive: false,
+          isPaused: false,
+          currentSessionId: null
+        });
+        return;
+      }
       
       const startTime = new Date(currentSession.start_time);
       const now = new Date();
