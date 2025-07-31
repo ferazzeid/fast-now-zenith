@@ -36,9 +36,18 @@ const AppContent = () => {
   useColorTheme();
   const location = useLocation();
   
-  // Initialize analytics on app startup
+  // Initialize analytics on app startup (non-blocking)
   useEffect(() => {
-    initializeAnalytics();
+    const initAnalytics = async () => {
+      try {
+        await initializeAnalytics();
+      } catch (error) {
+        console.warn('Analytics initialization failed (non-critical):', error);
+      }
+    };
+    
+    // Defer analytics initialization to not block app startup
+    setTimeout(initAnalytics, 1000);
   }, []);
   
   // Track page views on route changes

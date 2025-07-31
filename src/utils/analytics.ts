@@ -11,15 +11,16 @@ let isAnalyticsInitialized = false;
 let currentMeasurementId: string | null = null;
 
 export const initializeAnalytics = async () => {
-  if (isAnalyticsInitialized) return;
+  // Skip if not in browser environment or already initialized
+  if (typeof window === 'undefined' || isAnalyticsInitialized) return;
   
   try {
-    // Fetch GA measurement ID from Supabase
+    // Non-blocking analytics initialization - don't fail app startup
     const { data, error } = await supabase
       .from('shared_settings')
       .select('setting_value')
       .eq('setting_key', 'ga_tracking_id')
-      .single();
+      .maybeSingle(); // Use maybeSingle to handle empty results gracefully
 
     if (error || !data?.setting_value) {
       console.log('No GA tracking ID configured');
@@ -29,45 +30,60 @@ export const initializeAnalytics = async () => {
     const measurementId = data.setting_value;
     currentMeasurementId = measurementId;
 
-    // Load GA script dynamically
-    const script1 = document.createElement('script');
-    script1.async = true;
-    script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-    document.head.appendChild(script1);
+    // Only load GA scripts in browser environment
+    if (typeof document !== 'undefined') {
+      // Load GA script dynamically with error handling
+      const script1 = document.createElement('script');
+      script1.async = true;
+      script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+      script1.onerror = () => console.warn('Failed to load Google Analytics script');
+      document.head.appendChild(script1);
 
-    const script2 = document.createElement('script');
-    script2.textContent = `
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '${measurementId}');
-    `;
-    document.head.appendChild(script2);
+      const script2 = document.createElement('script');
+      script2.textContent = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${measurementId}');
+      `;
+      document.head.appendChild(script2);
 
-    // Set up gtag function
-    window.gtag = window.gtag || function() {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push(arguments);
-    };
+      // Set up gtag function with safety checks
+      window.gtag = window.gtag || function() {
+        if (typeof window !== 'undefined') {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push(arguments);
+        }
+      };
+    }
 
     isAnalyticsInitialized = true;
     console.log('Google Analytics initialized with ID:', measurementId);
   } catch (error) {
-    console.error('Failed to initialize analytics:', error);
+    // Don't let analytics failures break the app
+    console.warn('Analytics initialization failed (non-critical):', error);
   }
 };
 
 export const trackPageView = (path: string) => {
   if (typeof window !== 'undefined' && window.gtag && currentMeasurementId) {
-    window.gtag('config', currentMeasurementId, {
-      page_path: path,
-    });
+    try {
+      window.gtag('config', currentMeasurementId, {
+        page_path: path,
+      });
+    } catch (error) {
+      console.warn('Failed to track page view:', error);
+    }
   }
 };
 
 export const trackEvent = (eventName: string, parameters?: Record<string, any>) => {
   if (typeof window !== 'undefined' && window.gtag && currentMeasurementId) {
-    window.gtag('event', eventName, parameters);
+    try {
+      window.gtag('event', eventName, parameters);
+    } catch (error) {
+      console.warn('Failed to track event:', error);
+    }
   }
 };
 
