@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { TrendingDown, TrendingUp, Info } from 'lucide-react';
@@ -13,14 +13,14 @@ interface StatDisplayProps {
   className?: string;
 }
 
-export const StatDisplay = memo<StatDisplayProps>(({ 
+export const StatDisplay = ({ 
   icon, 
   label, 
   value, 
   subtitle, 
   tooltip,
   className = '' 
-}) => {
+}: StatDisplayProps) => {
   return (
     <Card className={`p-3 bg-ceramic-base border-ceramic-rim relative ${className}`}>
       {/* Tooltip icon positioned in top-right corner */}
@@ -44,9 +44,7 @@ export const StatDisplay = memo<StatDisplayProps>(({
       )}
     </Card>
   );
-});
-
-StatDisplay.displayName = 'StatDisplay';
+};
 
 // Optimized deficit display with memo
 interface DeficitDisplayProps {
@@ -55,7 +53,7 @@ interface DeficitDisplayProps {
   tdee: number;
 }
 
-export const DeficitDisplay = memo<DeficitDisplayProps>(({ deficit, loading, tdee }) => {
+export const DeficitDisplay = ({ deficit, loading, tdee }: DeficitDisplayProps) => {
   const { color, icon: DeficitIcon } = useMemo(() => {
     const color = deficit > 0 ? 'text-green-600 dark:text-green-400' : 
                   deficit < 0 ? 'text-red-600 dark:text-red-400' : 
@@ -94,6 +92,4 @@ export const DeficitDisplay = memo<DeficitDisplayProps>(({ deficit, loading, tde
       </div>
     </Card>
   );
-});
-
-DeficitDisplay.displayName = 'DeficitDisplay';
+};

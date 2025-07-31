@@ -27,6 +27,7 @@ export const useProfile = () => {
 
   const loadProfile = useCallback(async () => {
     if (!user) {
+      setProfile(null);
       setLoading(false);
       return;
     }
@@ -46,21 +47,25 @@ export const useProfile = () => {
       if (error) {
         console.error('Profile load error:', error);
         setProfile(null);
+        // Show toast for actual errors, not missing profiles
+        toast({
+          variant: "destructive",
+          title: "Profile Error",
+          description: "Unable to load profile data. Please try again."
+        });
         return;
       }
 
+      console.log('Profile loaded successfully:', data);
       setProfile(data || null);
     } catch (error) {
       console.error('Error loading profile:', error);
       setProfile(null);
-      // Only show toast on network errors, not missing profiles
-      if (error?.message?.includes('network') || error?.message?.includes('connection')) {
-        toast({
-          variant: "destructive",
-          title: "Connection Error",
-          description: "Unable to load profile. Please check your internet connection."
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to load profile. Please check your internet connection."
+      });
     } finally {
       setLoading(false);
     }
@@ -159,7 +164,19 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
-    loadProfile();
+    let mounted = true;
+    
+    const load = async () => {
+      if (mounted) {
+        await loadProfile();
+      }
+    };
+    
+    load();
+    
+    return () => {
+      mounted = false;
+    };
   }, [loadProfile]);
 
   return {

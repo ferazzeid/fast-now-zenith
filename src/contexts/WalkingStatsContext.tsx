@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -28,59 +28,64 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
 
   const { currentSession, isPaused, selectedSpeed } = useWalkingSession();
-  const { profile, isProfileComplete, calculateWalkingCalories } = useProfile();
+  const { profile } = useProfile();
 
-  // Use stable refs to avoid infinite re-renders
-  const isProfileCompleteStable = useCallback(() => {
+  // Memoize profile checks to prevent re-renders
+  const isProfileComplete = useMemo(() => {
     return !!(profile && profile.weight && profile.height && profile.age);
   }, [profile?.weight, profile?.height, profile?.age]);
 
-  const calculateWalkingCaloriesStable = useCallback((durationMinutes: number, speedMph: number = 3) => {
-    if (!profile || !profile.weight) return 0;
-    
-    const metValues: { [key: number]: number } = {
-      2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
+  const calculateCalories = useMemo(() => {
+    return (durationMinutes: number, speedMph: number = 3) => {
+      if (!profile || !profile.weight) return 0;
+      
+      const metValues: { [key: number]: number } = {
+        2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
+      };
+      const met = metValues[speedMph] || 3.2;
+      
+      let weightKg: number;
+      if (profile?.units === 'metric') {
+        weightKg = profile.weight;
+      } else {
+        weightKg = profile.weight * 0.453592;
+      }
+      
+      return Math.round(met * weightKg * (durationMinutes / 60));
     };
-    const met = metValues[speedMph] || 3.2;
-    
-    let weightKg: number;
-    if (profile.units === 'metric') {
-      weightKg = profile.weight;
-    } else {
-      weightKg = profile.weight * 0.453592;
-    }
-    
-    return Math.round(met * weightKg * (durationMinutes / 60));
   }, [profile?.weight, profile?.units]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout | null = null;
+    let mounted = true;
 
-    if (currentSession && !isPaused) {
-      interval = setInterval(() => {
-        const startTime = new Date(currentSession.start_time);
-        const now = new Date();
-        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-        
-        // Subtract paused time for accurate calculation
-        const pausedTime = currentSession.total_pause_duration || 0;
-        const activeElapsed = Math.max(0, totalElapsed - pausedTime);
+    const updateStats = () => {
+      if (!mounted || !currentSession) return;
+      
+      const startTime = new Date(currentSession.start_time);
+      const now = new Date();
+      let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      
+      // Subtract paused time for accurate calculation
+      const pausedTime = currentSession.total_pause_duration || 0;
+      const activeElapsed = Math.max(0, totalElapsed - pausedTime);
 
-        // Calculate real-time stats based on active time only
-        const activeDurationMinutes = activeElapsed / 60;
-        const speedMph = currentSession.speed_mph || selectedSpeed || 3;
-        
-        let calories = 0;
-        if (isProfileCompleteStable()) {
-          calories = calculateWalkingCaloriesStable(activeDurationMinutes, speedMph);
-        }
-        
-        // Convert distance based on unit preference
-        let distance = (activeDurationMinutes / 60) * speedMph;
-        if (profile?.units === 'metric') {
-          distance = distance * 1.60934; // Convert miles to km
-        }
+      // Calculate real-time stats based on active time only
+      const activeDurationMinutes = activeElapsed / 60;
+      const speedMph = currentSession.speed_mph || selectedSpeed || 3;
+      
+      let calories = 0;
+      if (isProfileComplete) {
+        calories = calculateCalories(activeDurationMinutes, speedMph);
+      }
+      
+      // Convert distance based on unit preference
+      let distance = (activeDurationMinutes / 60) * speedMph;
+      if (profile?.units === 'metric') {
+        distance = distance * 1.60934; // Convert miles to km
+      }
 
+      if (mounted) {
         setWalkingStats({
           realTimeCalories: calories,
           realTimeDistance: Math.round(distance * 100) / 100,
@@ -89,31 +94,46 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           isPaused: false,
           currentSessionId: currentSession.id
         });
-      }, 1000);
+      }
+    };
+
+    if (currentSession && !isPaused) {
+      // Update immediately
+      updateStats();
+      // Then set interval for regular updates
+      interval = setInterval(updateStats, 1000);
     } else if (currentSession && isPaused) {
       // Keep last known values but mark as paused
-      setWalkingStats(prev => ({
-        ...prev,
-        isActive: true,
-        isPaused: true,
-        currentSessionId: currentSession.id
-      }));
+      if (mounted) {
+        setWalkingStats(prev => ({
+          ...prev,
+          isActive: true,
+          isPaused: true,
+          currentSessionId: currentSession.id
+        }));
+      }
     } else {
       // No active session
-      setWalkingStats({
-        realTimeCalories: 0,
-        realTimeDistance: 0,
-        timeElapsed: 0,
-        isActive: false,
-        isPaused: false,
-        currentSessionId: null
-      });
+      if (mounted) {
+        setWalkingStats({
+          realTimeCalories: 0,
+          realTimeDistance: 0,
+          timeElapsed: 0,
+          isActive: false,
+          isPaused: false,
+          currentSessionId: null
+        });
+      }
     }
 
     return () => {
-      if (interval) clearInterval(interval);
+      mounted = false;
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
     };
-  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileCompleteStable, calculateWalkingCaloriesStable, profile?.units]);
+  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units]);
 
   return (
     <WalkingStatsContext.Provider value={{ walkingStats }}>

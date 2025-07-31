@@ -14,9 +14,20 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
   useEffect(() => {
     // Handle unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = String(event.reason);
+      
+      // Ignore browser extension errors that aren't from our app
+      if (reason.includes('Extension context invalidated') ||
+          reason.includes('chrome-extension://') ||
+          reason.includes('moz-extension://') ||
+          reason.includes('safari-extension://')) {
+        console.log('Ignoring browser extension error:', reason);
+        return;
+      }
+      
       console.error('Unhandled promise rejection:', event.reason);
       
-      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+      const error = event.reason instanceof Error ? event.reason : new Error(reason);
       setError(error);
       onError?.(error);
       
@@ -33,9 +44,20 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
 
     // Handle async errors in components
     const handleError = (event: ErrorEvent) => {
+      const message = String(event.error?.message || event.message || event.error);
+      
+      // Ignore browser extension errors
+      if (message.includes('Extension context invalidated') ||
+          message.includes('chrome-extension://') ||
+          message.includes('moz-extension://') ||
+          message.includes('safari-extension://')) {
+        console.log('Ignoring browser extension error:', message);
+        return;
+      }
+      
       console.error('Global error:', event.error);
       
-      const error = event.error instanceof Error ? event.error : new Error(String(event.error));
+      const error = event.error instanceof Error ? event.error : new Error(message);
       setError(error);
       onError?.(error);
     };

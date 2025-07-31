@@ -209,12 +209,24 @@ export const useWalkingSession = () => {
 
   // Load active session on mount
   useEffect(() => {
-    loadActiveSession();
+    let mounted = true;
+    
+    const load = async () => {
+      if (mounted) {
+        await loadActiveSession();
+      }
+    };
+    
+    load();
+    
+    return () => {
+      mounted = false;
+    };
   }, [loadActiveSession]);
 
   // Initialize selectedSpeed from profile
   useEffect(() => {
-    if (profile?.default_walking_speed) {
+    if (profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed) {
       setSelectedSpeed(profile.default_walking_speed);
     }
   }, [profile?.default_walking_speed]);
