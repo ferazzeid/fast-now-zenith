@@ -179,19 +179,45 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
 
   if (loading && dailySummaries.length === 0) {
     return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Food History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="text-muted-foreground">Loading food history...</div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+        <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Food History
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                ✕
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="border-l-4 border-l-primary/20">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted animate-pulse rounded w-24" />
+                        <div className="flex gap-3">
+                          <div className="h-3 bg-muted animate-pulse rounded w-16" />
+                          <div className="h-3 bg-muted animate-pulse rounded w-20" />
+                          <div className="h-3 bg-muted animate-pulse rounded w-12" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                        <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -30,6 +30,29 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { currentSession, isPaused, selectedSpeed } = useWalkingSession();
   const { profile, isProfileComplete, calculateWalkingCalories } = useProfile();
 
+  // Use stable refs to avoid infinite re-renders
+  const isProfileCompleteStable = useCallback(() => {
+    return !!(profile && profile.weight && profile.height && profile.age);
+  }, [profile?.weight, profile?.height, profile?.age]);
+
+  const calculateWalkingCaloriesStable = useCallback((durationMinutes: number, speedMph: number = 3) => {
+    if (!profile || !profile.weight) return 0;
+    
+    const metValues: { [key: number]: number } = {
+      2: 2.8, 3: 3.2, 4: 4.3, 5: 5.5
+    };
+    const met = metValues[speedMph] || 3.2;
+    
+    let weightKg: number;
+    if (profile.units === 'metric') {
+      weightKg = profile.weight;
+    } else {
+      weightKg = profile.weight * 0.453592;
+    }
+    
+    return Math.round(met * weightKg * (durationMinutes / 60));
+  }, [profile?.weight, profile?.units]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -48,8 +71,8 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const speedMph = currentSession.speed_mph || selectedSpeed || 3;
         
         let calories = 0;
-        if (isProfileComplete()) {
-          calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
+        if (isProfileCompleteStable()) {
+          calories = calculateWalkingCaloriesStable(activeDurationMinutes, speedMph);
         }
         
         // Convert distance based on unit preference
@@ -90,7 +113,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentSession, selectedSpeed, isPaused, isProfileComplete, calculateWalkingCalories, profile?.units]);
+  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileCompleteStable, calculateWalkingCaloriesStable, profile?.units]);
 
   return (
     <WalkingStatsContext.Provider value={{ walkingStats }}>

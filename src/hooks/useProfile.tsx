@@ -26,7 +26,10 @@ export const useProfile = () => {
   const { executeWithRetry } = useRetryableSupabase();
 
   const loadProfile = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     try {
@@ -41,21 +44,27 @@ export const useProfile = () => {
       const { data, error } = result;
 
       if (error) {
-        throw error;
+        console.error('Profile load error:', error);
+        setProfile(null);
+        return;
       }
 
       setProfile(data || null);
     } catch (error) {
       console.error('Error loading profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Connection Error",
-        description: "Unable to load profile. Please check your internet connection."
-      });
+      setProfile(null);
+      // Only show toast on network errors, not missing profiles
+      if (error?.message?.includes('network') || error?.message?.includes('connection')) {
+        toast({
+          variant: "destructive",
+          title: "Connection Error",
+          description: "Unable to load profile. Please check your internet connection."
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [user, executeWithRetry, toast]);
+  }, [user?.id, executeWithRetry, toast]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) return { error: { message: 'User not authenticated' } };

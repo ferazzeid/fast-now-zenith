@@ -26,23 +26,29 @@ export const useAdminGoalIdeas = () => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Database error:', error);
-        throw error;
+        setGoalIdeas([]);
+        setLoading(false);
+        return;
       }
 
       console.log('Goal ideas data from DB:', data);
 
       if (data?.setting_value) {
-        const parsedGoalIdeas = JSON.parse(data.setting_value);
-        console.log('Parsed goal ideas:', parsedGoalIdeas);
-        setGoalIdeas(Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : []);
+        try {
+          const parsedGoalIdeas = JSON.parse(data.setting_value);
+          console.log('Parsed goal ideas:', parsedGoalIdeas);
+          setGoalIdeas(Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : []);
+        } catch (parseError) {
+          console.error('Error parsing goal ideas:', parseError);
+          setGoalIdeas([]);
+        }
       } else {
         console.log('No goal ideas found in database, setting empty array');
         setGoalIdeas([]);
       }
     } catch (error) {
       console.error('Error loading admin goal ideas:', error);
-      setGoalIdeas([]); // Set empty array instead of showing error
-      // Don't show error toast for missing goal ideas, it's not critical
+      setGoalIdeas([]);
     } finally {
       setLoading(false);
     }

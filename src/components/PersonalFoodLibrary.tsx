@@ -151,20 +151,19 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
 
       {loading ? (
         <div className="space-y-4">
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="w-4 h-4 bg-muted animate-pulse rounded" />
-            <div className="h-4 bg-muted animate-pulse rounded w-32" />
-          </div>
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="h-4 bg-muted animate-pulse rounded w-40" />
-                  <div className="h-3 bg-muted animate-pulse rounded w-24" />
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="p-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-muted animate-pulse rounded-lg shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
-                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                <div className="flex items-center gap-1 shrink-0">
+                  <div className="w-8 h-8 bg-muted animate-pulse rounded" />
+                  <div className="w-8 h-8 bg-muted animate-pulse rounded" />
+                  <div className="w-8 h-8 bg-muted animate-pulse rounded" />
+                  <div className="w-16 h-8 bg-muted animate-pulse rounded" />
                 </div>
               </div>
             </Card>
