@@ -318,10 +318,12 @@ const Timer = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap with DailyStatsPanel */}
-        {/* Header */}
-        <div className="text-center mb-8">
+        {/* Header with Onboarding Button */}
+        <div className="text-center mb-8 relative">
+          <div className="absolute left-0 top-0">
+            <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
             {currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
           </h1>

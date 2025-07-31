@@ -172,11 +172,13 @@ Please tell me what motivates you or what kind of motivational message you'd lik
   return (
     <TooltipProvider>
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
-        <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
         <div className="px-4 pt-20 pb-24">
           <div className="max-w-md mx-auto space-y-6">
-          {/* Header */}
-          <div className="text-center space-y-2 mb-8">
+          {/* Header with Onboarding Button */}
+          <div className="text-center space-y-2 mb-8 relative">
+            <div className="absolute left-0 top-0">
+              <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+            </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Motivators</h1>
             <p className="text-muted-foreground">
               Your personal collection of inspiration and motivation

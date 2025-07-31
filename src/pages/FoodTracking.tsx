@@ -343,11 +343,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
-        {/* Header */}
+        {/* Header with Onboarding Button */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 relative">
+            <div className="absolute left-0 top-0">
+              <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+            </div>
             <div></div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Food Tracking
