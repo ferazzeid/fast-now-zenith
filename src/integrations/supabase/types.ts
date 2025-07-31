@@ -283,6 +283,7 @@ export type Database = {
           created_at: string
           daily_calorie_goal: number | null
           daily_carb_goal: number | null
+          default_walking_speed: number | null
           display_name: string | null
           height: number | null
           id: string
@@ -313,6 +314,7 @@ export type Database = {
           created_at?: string
           daily_calorie_goal?: number | null
           daily_carb_goal?: number | null
+          default_walking_speed?: number | null
           display_name?: string | null
           height?: number | null
           id?: string
@@ -343,6 +345,7 @@ export type Database = {
           created_at?: string
           daily_calorie_goal?: number | null
           daily_carb_goal?: number | null
+          default_walking_speed?: number | null
           display_name?: string | null
           height?: number | null
           id?: string

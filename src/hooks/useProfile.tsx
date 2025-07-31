@@ -15,6 +15,7 @@ interface UserProfile {
   display_name?: string;
   units?: 'metric' | 'imperial';
   activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  default_walking_speed?: number;
 }
 
 export const useProfile = () => {

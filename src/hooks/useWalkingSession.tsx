@@ -24,7 +24,7 @@ export const useWalkingSession = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
-  const { calculateWalkingCalories } = useProfile();
+  const { profile, calculateWalkingCalories } = useProfile();
 
   const loadActiveSession = useCallback(async () => {
     if (!user) return;
@@ -212,6 +212,13 @@ export const useWalkingSession = () => {
     loadActiveSession();
   }, [loadActiveSession]);
 
+  // Initialize selectedSpeed from profile
+  useEffect(() => {
+    if (profile?.default_walking_speed) {
+      setSelectedSpeed(profile.default_walking_speed);
+    }
+  }, [profile?.default_walking_speed]);
+
   // Update session speed during active session
   const updateSessionSpeed = useCallback(async (newSpeed: number) => {
     if (!currentSession || !user) return { error: null, data: null };
@@ -237,6 +244,26 @@ export const useWalkingSession = () => {
     }
   }, [user, currentSession]);
 
+  // Save selected speed to profile
+  const saveSpeedToProfile = useCallback(async (newSpeed: number) => {
+    if (!user) return;
+    
+    try {
+      await supabase
+        .from('profiles')
+        .update({ default_walking_speed: newSpeed })
+        .eq('user_id', user.id);
+    } catch (error) {
+      console.error('Error saving walking speed to profile:', error);
+    }
+  }, [user]);
+
+  // Enhanced setSelectedSpeed that also saves to profile
+  const updateSelectedSpeed = useCallback((newSpeed: number) => {
+    setSelectedSpeed(newSpeed);
+    saveSpeedToProfile(newSpeed);
+  }, [saveSpeedToProfile]);
+
   // Manual trigger for refresh
   const triggerRefresh = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);
@@ -246,7 +273,7 @@ export const useWalkingSession = () => {
     currentSession,
     loading,
     selectedSpeed,
-    setSelectedSpeed,
+    setSelectedSpeed: updateSelectedSpeed, // Use the enhanced version
     isPaused,
     startWalkingSession,
     pauseWalkingSession,
