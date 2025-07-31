@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { useAnimationControl } from '@/components/AnimationController';
 
@@ -89,7 +90,8 @@ export const WalkingTimer = ({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <TooltipProvider>
+      <div className={`relative ${className}`}>
       {/* Full width layout to match buttons */}
       <div className="w-full space-y-4">
         
@@ -140,24 +142,31 @@ export const WalkingTimer = ({
             
             {/* Speed Selector - positioned below status text, visible for both active and inactive states */}
             <div className="mt-3" style={{ zIndex: 13 }}>
-              <Select
-                value={selectedSpeed.toString()}
-                onValueChange={(value) => onSpeedChange(Number(value))}
-              >
-                <SelectTrigger className="w-40 h-8 text-xs mx-auto">
-                  <div className="flex items-center gap-1">
-                    <Gauge className="w-3 h-3" />
-                    <SelectValue />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="z-50">
-                  {getSpeedOptions(units).map((option) => (
-                    <SelectItem key={option.value} value={option.value.toString()}>
-                      <span className="text-xs">{option.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Select
+                    value={selectedSpeed.toString()}
+                    onValueChange={(value) => onSpeedChange(Number(value))}
+                  >
+                    <SelectTrigger className="w-40 h-8 text-xs mx-auto">
+                      <div className="flex items-center gap-1">
+                        <Gauge className="w-3 h-3" />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="z-50">
+                      {getSpeedOptions(units).map((option) => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          <span className="text-xs">{option.label}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select your walking speed for accurate calorie calculation</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
@@ -196,6 +205,14 @@ export const WalkingTimer = ({
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Your current walking speed, used to calculate distance and calories</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
@@ -311,5 +328,6 @@ export const WalkingTimer = ({
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 };

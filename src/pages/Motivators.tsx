@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Edit, Trash2, Image, Sparkles, Mic } from 'lucide-react';
+import { Plus, Edit, Trash2, Image, Sparkles, Mic, Lightbulb } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
@@ -10,6 +10,7 @@ import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
 import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const Motivators = () => {
@@ -161,9 +162,10 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
-      <div className="px-4 pt-20 pb-24">
-        <div className="max-w-md mx-auto space-y-6">
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
+        <div className="px-4 pt-20 pb-24">
+          <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
           <div className="text-center space-y-2 mb-8">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Motivators</h1>
@@ -174,35 +176,54 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={handleVoiceMotivator}
-              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Mic className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Voice Add Motivator</span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleVoiceMotivator}
+                  className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Mic className="w-6 h-6 mb-1" />
+                  <span className="text-sm font-medium">Voice Add Motivator</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create a motivator using voice input and AI assistance</p>
+              </TooltipContent>
+            </Tooltip>
             
-            <Button 
-              onClick={() => setShowFormModal(true)}
-              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Plus className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Manual Add Motivator</span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  onClick={() => setShowFormModal(true)}
+                  className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Plus className="w-6 h-6 mb-1" />
+                  <span className="text-sm font-medium">Manual Add Motivator</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create a motivator by typing title, description, and adding images</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Goal Ideas Library Button */}
           <div className="mb-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowGoalIdeas(!showGoalIdeas)}
-              className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
-            >
-              <svg className="w-5 h-5 mr-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-              <span className="text-muted-foreground font-medium">Goal Ideas</span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowGoalIdeas(!showGoalIdeas)}
+                  className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
+                >
+                  <Lightbulb className="w-5 h-5 mr-2 text-muted-foreground" />
+                  <span className="text-muted-foreground font-medium">Goal Ideas Library</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Browse pre-made motivational examples and templates to get inspired</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Goal Ideas Library */}
@@ -280,20 +301,34 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                           
                           {/* Actions - combined in single column */}
                           <div className="flex flex-col gap-1 ml-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditMotivator(motivator)}
-                              className="p-1 h-6 w-6"
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="ghost" className="p-1 h-6 w-6">
-                                  <Trash2 className="w-3 h-3" />
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEditMotivator(motivator)}
+                                  className="p-1 h-6 w-6"
+                                >
+                                  <Edit className="w-3 h-3" />
                                 </Button>
-                              </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit this motivator</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            <AlertDialog>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <AlertDialogTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="p-1 h-6 w-6">
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete this motivator</p>
+                                </TooltipContent>
+                              </Tooltip>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
@@ -345,9 +380,10 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               title="Motivator Assistant"
             />
           )}
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 

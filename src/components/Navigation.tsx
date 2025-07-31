@@ -1,4 +1,5 @@
 import { Brain, Settings, Utensils, Clock, Footprints } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
@@ -124,43 +125,61 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
-      <div className="w-full">
-        <div className="flex justify-around gap-1">
-          {/* Navigation Items */}
-          {navItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
-            const isActive = location.pathname === path;
-            
-            return (
-              <Link
-                key={path}
-                to={path}
-                className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 ${
-                  isActive 
-                    ? 'bg-primary text-primary-foreground shadow-lg' 
-                    : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
-                }`}
-              >
-                <Icon className="w-5 h-5 mb-1" />
-                <span className="text-xs font-medium">{label}</span>
-                
-                
-                {/* Timer badge for fasting/walking */}
-                {badge && (
-                  <TimerBadge time={badge} isEating={isEating} />
-                )}
-                
-                {/* Calorie badge for food */}
-                {caloriesBadge && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
-                    {caloriesBadge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+    <TooltipProvider>
+      <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
+        <div className="w-full">
+          <div className="flex justify-around gap-1">
+            {/* Navigation Items */}
+            {navItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
+              const isActive = location.pathname === path;
+              
+              const getTooltipText = (label: string) => {
+                switch (label) {
+                  case 'Fasting': return 'Start or manage your fasting sessions';
+                  case 'Walking': return 'Track your walking sessions and burn calories';
+                  case 'Food': return 'Log your meals and track daily intake';
+                  case 'Goals': return 'View and create motivational content';
+                  case 'Settings': return 'Customize your app preferences';
+                  default: return label;
+                }
+              };
+              
+              return (
+                <Tooltip key={path}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      to={path}
+                      className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 ${
+                        isActive 
+                          ? 'bg-primary text-primary-foreground shadow-lg' 
+                          : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 mb-1" />
+                      <span className="text-xs font-medium">{label}</span>
+                      
+                      {/* Timer badge for fasting/walking */}
+                      {badge && (
+                        <TimerBadge time={badge} isEating={isEating} />
+                      )}
+                      
+                      {/* Calorie badge for food */}
+                      {caloriesBadge && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
+                          {caloriesBadge}
+                        </span>
+                      )}
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{getTooltipText(label)}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </TooltipProvider>
   );
 };
