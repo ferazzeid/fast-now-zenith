@@ -21,4 +21,4 @@ RUN npm install -g serve
 EXPOSE 80
 
 # Start the application
-CMD ["serve", "-s", "dist", "-l", "80", "--config", "serve.json"]
+CMD ["serve", "-s", "dist", "-l", "80"]
