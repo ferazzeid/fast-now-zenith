@@ -123,7 +123,7 @@ const Walking = () => {
     } else {
       toast({
         title: "Walking completed!",
-        description: `Great job! You walked for ${formatTime(walkingStats.timeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`
+        description: `Great job! You walked for ${formatTime(localTimeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`
       });
     }
   };
