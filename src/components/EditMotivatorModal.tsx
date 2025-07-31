@@ -140,11 +140,12 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
             
             <div className="space-y-3">
               {/* Use proper ImageUpload component */}
-              <ImageUpload
-                currentImageUrl={imageUrl}
-                onImageUpload={setImageUrl}
-                onImageRemove={() => setImageUrl('')}
-              />
+            <ImageUpload
+              currentImageUrl={imageUrl}
+              onImageUpload={setImageUrl}
+              onImageRemove={() => setImageUrl('')}
+              showUploadOptionsWhenImageExists={true}
+            />
 
               {/* AI Generation button */}
               <Button

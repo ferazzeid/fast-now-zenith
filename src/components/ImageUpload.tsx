@@ -12,9 +12,10 @@ interface ImageUploadProps {
   currentImageUrl?: string;
   onImageUpload: (url: string) => void;
   onImageRemove: () => void;
+  showUploadOptionsWhenImageExists?: boolean;
 }
 
-export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: ImageUploadProps) => {
+export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, showUploadOptionsWhenImageExists = false }: ImageUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
@@ -134,23 +135,67 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
   return (
     <div className="space-y-4">
       {previewUrl ? (
-        <div className="relative">
-          <div className="aspect-video bg-ceramic-rim rounded-lg overflow-hidden">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="aspect-video bg-ceramic-rim rounded-lg overflow-hidden">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleRemoveImage}
+              className="absolute top-2 right-2"
+              disabled={isUploading}
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleRemoveImage}
-            className="absolute top-2 right-2"
-            disabled={isUploading}
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          
+          {showUploadOptionsWhenImageExists && (
+            <div className="space-y-3">
+              {/* Mobile: Separate buttons */}
+              {isMobile && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleFileSelect}
+                    disabled={isUploading}
+                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                  >
+                    <Image className="w-4 h-4" />
+                    <span className="text-xs">Gallery</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleCameraCapture}
+                    disabled={isUploading}
+                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span className="text-xs">Camera</span>
+                  </Button>
+                </div>
+              )}
+
+              {/* Desktop: Single upload button */}
+              {!isMobile && (
+                <Button
+                  variant="outline"
+                  onClick={handleFileSelect}
+                  disabled={isUploading}
+                  className="w-full bg-ceramic-base border-ceramic-rim"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload New Image
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-4">

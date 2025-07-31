@@ -169,11 +169,12 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
             </Label>
             
             <div className="space-y-3">
-              {/* Use proper ImageUpload component */}
+              {/* Use proper ImageUpload component with upload options always visible */}
               <ImageUpload
                 currentImageUrl={imageUrl}
                 onImageUpload={setImageUrl}
                 onImageRemove={() => setImageUrl('')}
+                showUploadOptionsWhenImageExists={true}
               />
 
               {/* AI Generation button */}
