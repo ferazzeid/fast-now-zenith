@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
+import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
@@ -39,6 +40,7 @@ export const useDailyDeficit = () => {
   const { profile } = useProfile();
   const { todayTotals } = useFoodEntries();
   const { todayTotal: manualCalorieTotal } = useManualCalorieBurns();
+  const { todayOverride } = useDailyActivityOverride();
   const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
 
@@ -94,9 +96,12 @@ export const useDailyDeficit = () => {
 
   const tdeeCalculation = useMemo(() => {
     if (!bmrCalculation || !profile?.activity_level) return 0;
-    const multiplier = ACTIVITY_MULTIPLIERS[profile.activity_level as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
+    
+    // Use today's override if available, otherwise use profile default
+    const effectiveActivityLevel = todayOverride?.activity_level || profile.activity_level;
+    const multiplier = ACTIVITY_MULTIPLIERS[effectiveActivityLevel as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
     return Math.round(bmrCalculation * multiplier);
-  }, [bmrCalculation, profile?.activity_level]);
+  }, [bmrCalculation, profile?.activity_level, todayOverride?.activity_level]);
 
   const calculateDeficit = useCallback(async () => {
     if (!profile?.weight || !profile?.height || !profile?.age) {
@@ -144,7 +149,7 @@ export const useDailyDeficit = () => {
         caloriesConsumed,
         walkingCalories,
         manualCalories,
-        activityLevel: profile.activity_level || 'sedentary'
+        activityLevel: todayOverride?.activity_level || profile.activity_level || 'sedentary'
       });
       
     } catch (error) {
@@ -157,7 +162,7 @@ export const useDailyDeficit = () => {
         caloriesConsumed: todayTotals.calories || 0,
         walkingCalories: 0,
         manualCalories: manualCalorieTotal || 0,
-        activityLevel: profile?.activity_level || 'sedentary'
+        activityLevel: todayOverride?.activity_level || profile?.activity_level || 'sedentary'
       };
       
       setDeficitData(fallbackData);
@@ -171,7 +176,7 @@ export const useDailyDeficit = () => {
     if (profile && user) {
       calculateDeficit();
     }
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, manualCalorieTotal, walkingStats.realTimeCalories, walkingStats.isActive, walkingStats.currentSessionId, calculateDeficit]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayOverride?.activity_level, todayTotals.calories, manualCalorieTotal, walkingStats.realTimeCalories, walkingStats.isActive, walkingStats.currentSessionId, calculateDeficit]);
 
   // Optimized recalculation - only when walking is active and not paused
   useEffect(() => {

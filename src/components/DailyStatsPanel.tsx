@@ -9,6 +9,7 @@ import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
 import { DeficitAnalysisButton } from '@/components/DeficitAnalysisButton';
+import { ActivityLevelOverride } from '@/components/ActivityLevelOverride';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
@@ -179,13 +180,18 @@ export const DailyStatsPanel = memo(() => {
                   />
 
                   {/* Base Daily Burn (TDEE) */}
-                  <StatDisplay
-                    icon={<Target className="w-3 h-3 text-primary" />}
-                    label="Base Daily Burn"
-                    value={deficitData.tdee}
-                    subtitle={getActivityLevelDisplay(deficitData.activityLevel)}
-                    tooltip="Calories your body burns naturally based on your metabolism and activity level"
-                  />
+                  <div className="space-y-1">
+                    <StatDisplay
+                      icon={<Target className="w-3 h-3 text-primary" />}
+                      label="Base Daily Burn"
+                      value={deficitData.tdee}
+                      subtitle={getActivityLevelDisplay(deficitData.activityLevel)}
+                      tooltip="Calories your body burns naturally based on your metabolism and activity level"
+                    />
+                    <div className="flex justify-center">
+                      <ActivityLevelOverride currentDisplayLevel={deficitData.activityLevel} />
+                    </div>
+                  </div>
 
                   {/* Walking */}
                   <StatDisplay

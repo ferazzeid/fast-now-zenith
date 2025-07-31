@@ -137,6 +137,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_activity_overrides: {
+        Row: {
+          activity_level: string
+          created_at: string
+          date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_level: string
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_level?: string
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fasting_sessions: {
         Row: {
           created_at: string
