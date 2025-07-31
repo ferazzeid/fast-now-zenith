@@ -167,6 +167,9 @@ const AdminOverview = () => {
         </h1>
       </div>
       
+      {/* Most Important Metric - User Tiers Overview */}
+      <AdminTierStats />
+      
       {/* Usage Statistics - Simplified 2 Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-l-4 border-l-primary">
@@ -201,9 +204,6 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Additional Statistics */}
-      <AdminTierStats />
 
       {/* API Configuration - Full Width Cards */}
       <div className="space-y-6">

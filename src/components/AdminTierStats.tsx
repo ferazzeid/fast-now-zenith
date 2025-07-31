@@ -7,6 +7,7 @@ interface TierStats {
   tier: string;
   total: number;
   active: number;
+  inactive: number;
 }
 
 export const AdminTierStats = () => {
@@ -35,11 +36,11 @@ export const AdminTierStats = () => {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       // Process data to calculate stats
-      const tierCounts: Record<string, { total: number; active: number }> = {
-        api_user: { total: 0, active: 0 },
-        paid_user: { total: 0, active: 0 },
-        granted_user: { total: 0, active: 0 },
-        free_user: { total: 0, active: 0 }
+      const tierCounts: Record<string, { total: number; active: number; inactive: number }> = {
+        api_user: { total: 0, active: 0, inactive: 0 },
+        paid_user: { total: 0, active: 0, inactive: 0 },
+        granted_user: { total: 0, active: 0, inactive: 0 },
+        free_user: { total: 0, active: 0, inactive: 0 }
       };
 
       data?.forEach(profile => {
@@ -49,14 +50,36 @@ export const AdminTierStats = () => {
         // Check if user was active in last 7 days
         if (profile.last_activity_at && new Date(profile.last_activity_at) > sevenDaysAgo) {
           tierCounts[tier].active++;
+        } else {
+          tierCounts[tier].inactive++;
         }
       });
 
       const statsArray: TierStats[] = [
-        { tier: 'API Users', total: tierCounts.api_user.total, active: tierCounts.api_user.active },
-        { tier: 'Paid Users', total: tierCounts.paid_user.total, active: tierCounts.paid_user.active },
-        { tier: 'Granted Users', total: tierCounts.granted_user.total, active: tierCounts.granted_user.active },
-        { tier: 'Free Users', total: tierCounts.free_user.total, active: tierCounts.free_user.active }
+        { 
+          tier: 'API Users', 
+          total: tierCounts.api_user.total, 
+          active: tierCounts.api_user.active,
+          inactive: tierCounts.api_user.inactive
+        },
+        { 
+          tier: 'Paid Users', 
+          total: tierCounts.paid_user.total, 
+          active: tierCounts.paid_user.active,
+          inactive: tierCounts.paid_user.inactive
+        },
+        { 
+          tier: 'Granted Users', 
+          total: tierCounts.granted_user.total, 
+          active: tierCounts.granted_user.active,
+          inactive: tierCounts.granted_user.inactive
+        },
+        { 
+          tier: 'Free Users', 
+          total: tierCounts.free_user.total, 
+          active: tierCounts.free_user.active,
+          inactive: tierCounts.free_user.inactive
+        }
       ];
 
       setStats(statsArray);
@@ -79,27 +102,39 @@ export const AdminTierStats = () => {
 
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">User Tiers Overview</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        User Tiers Overview
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {stats.map((stat) => (
           <div
             key={stat.tier}
-            className="text-center p-4 bg-muted/50 rounded-lg border"
+            className="p-6 bg-gradient-to-br from-background to-muted/30 rounded-lg border-2 border-primary/20 hover:border-primary/40 transition-all"
           >
-            <h4 className="font-medium text-sm text-muted-foreground mb-1">
+            <h4 className="font-semibold text-lg text-foreground mb-4 text-center">
               {stat.tier}
             </h4>
-            <div className="text-2xl font-bold text-primary">
-              {stat.total}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              ({stat.active} active)
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Active Users</span>
+                <span className="text-2xl font-bold text-green-600">{stat.active}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Inactive Users</span>
+                <span className="text-2xl font-bold text-red-500">{stat.inactive}</span>
+              </div>
+              <div className="pt-2 border-t border-border/50">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-foreground">Total</span>
+                  <span className="text-xl font-bold text-primary">{stat.total}</span>
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
-      <div className="mt-4 text-xs text-muted-foreground">
-        * Active = used app in last 7 days
+      <div className="mt-6 text-center text-xs text-muted-foreground">
+        * Active = used app in last 7 days | Inactive = no activity in last 7 days
       </div>
     </Card>
   );
