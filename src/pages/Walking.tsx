@@ -205,6 +205,7 @@ const Walking = () => {
                   speed: currentSession.speed_mph || selectedSpeed,
                   distance: walkingStats.realTimeDistance,
                   calories: walkingStats.realTimeCalories,
+                  steps: walkingStats.realTimeSteps,
                   startTime: currentSession.start_time
                 } : undefined}
               />

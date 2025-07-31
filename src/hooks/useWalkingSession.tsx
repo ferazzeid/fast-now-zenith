@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { estimateSteps } from '@/utils/stepEstimation';
 
 interface WalkingSession {
   id: string;
@@ -12,6 +13,7 @@ interface WalkingSession {
   distance?: number;
   status: string;
   speed_mph?: number;
+  estimated_steps?: number;
   pause_start_time?: string;
   total_pause_duration?: number;
   session_state?: string;
@@ -183,6 +185,16 @@ export const useWalkingSession = () => {
       
       // Calculate distance (active time × speed)
       const distance = (activeDurationMinutes / 60) * speedMph; // Distance in miles
+      
+      // Calculate estimated steps
+      const userHeight = profile?.height || 70;
+      const units = profile?.units || 'imperial';
+      const estimatedSteps = estimateSteps({
+        durationMinutes: activeDurationMinutes,
+        speedMph,
+        userHeight,
+        units
+      });
 
       const { data, error } = await supabase
         .from('walking_sessions')
@@ -192,6 +204,7 @@ export const useWalkingSession = () => {
           session_state: 'completed',
           calories_burned: calories,
           distance: Math.round(distance * 100) / 100, // Round to 2 decimal places
+          estimated_steps: estimatedSteps,
           total_pause_duration: totalPauseDuration
         })
         .eq('id', currentSession.id)

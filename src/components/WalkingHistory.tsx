@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ interface WalkingSession {
   calories_burned?: number;
   distance?: number;
   speed_mph?: number;
+  estimated_steps?: number;
   status: string;
 }
 
@@ -43,7 +44,7 @@ export const WalkingHistory = () => {
         // First, get the sessions to display
         const { data, error } = await supabase
           .from('walking_sessions')
-          .select('id, start_time, end_time, calories_burned, distance, speed_mph, status')
+          .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status')
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .is('deleted_at', null) // Only get non-deleted sessions
@@ -259,11 +260,23 @@ export const WalkingHistory = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Gauge className="w-4 h-4 text-purple-500" />
+                  <TrendingUp className="w-4 h-4 text-purple-500" />
                   <div>
-                    <p className="text-sm font-medium">{session.speed_mph || 3} mph</p>
-                    <p className="text-xs text-muted-foreground">Speed</p>
+                    <p className="text-sm font-medium">
+                      {session.estimated_steps?.toLocaleString() || 'N/A'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Steps (est.)</p>
                   </div>
+                </div>
+              </div>
+              
+              {/* Speed as additional info below the grid */}
+              <div className="mt-3 pt-3 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <Gauge className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    Average Speed: {session.speed_mph || 3} mph
+                  </span>
                 </div>
               </div>
             </Card>

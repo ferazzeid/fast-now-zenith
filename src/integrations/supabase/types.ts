@@ -516,6 +516,7 @@ export type Database = {
           deleted_at: string | null
           distance: number | null
           end_time: string | null
+          estimated_steps: number | null
           id: string
           pause_start_time: string | null
           session_state: string | null
@@ -532,6 +533,7 @@ export type Database = {
           deleted_at?: string | null
           distance?: number | null
           end_time?: string | null
+          estimated_steps?: number | null
           id?: string
           pause_start_time?: string | null
           session_state?: string | null
@@ -548,6 +550,7 @@ export type Database = {
           deleted_at?: string | null
           distance?: number | null
           end_time?: string | null
+          estimated_steps?: number | null
           id?: string
           pause_start_time?: string | null
           session_state?: string | null
