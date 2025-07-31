@@ -71,20 +71,20 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [currentSession?.id]);
 
+  // Create refs at component level for stable access in intervals
+  const currentSessionRef = useRef(currentSession);
+  const isPausedRef = useRef(isPaused);
+  const selectedSpeedRef = useRef(selectedSpeed);
+  const isProfileCompleteRef = useRef(isProfileComplete);
+  const calculateCaloriesRef = useRef(calculateCalories);
+  const profileUnitsRef = useRef(profile?.units);
+  const estimateStepsRef = useRef(estimateStepsForSession);
+
   // Separate interval effect with minimal dependencies
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     let mounted = true;
 
-    // Use refs to access latest values without triggering re-renders
-    const currentSessionRef = useRef(currentSession);
-    const isPausedRef = useRef(isPaused);
-    const selectedSpeedRef = useRef(selectedSpeed);
-    const isProfileCompleteRef = useRef(isProfileComplete);
-    const calculateCaloriesRef = useRef(calculateCalories);
-    const profileUnitsRef = useRef(profile?.units);
-    const estimateStepsRef = useRef(estimateStepsForSession);
-    
     // Update refs when values change
     currentSessionRef.current = currentSession;
     isPausedRef.current = isPaused;
