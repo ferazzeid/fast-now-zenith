@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Image, Sparkles, Mic, Lightbulb } from 'lucide-reac
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
+import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
 import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useToast } from '@/hooks/use-toast';
@@ -229,10 +230,12 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           {/* Goal Ideas Library */}
           {showGoalIdeas && (
             <div className="mb-6 bg-card border border-border rounded-lg p-4">
-              <GoalIdeasLibrary
-                onSelectGoal={handleSelectGoalIdea}
-                onClose={() => setShowGoalIdeas(false)}
-              />
+              <ComponentErrorBoundary>
+                <GoalIdeasLibrary
+                  onSelectGoal={handleSelectGoalIdea}
+                  onClose={() => setShowGoalIdeas(false)}
+                />
+              </ComponentErrorBoundary>
             </div>
           )}
 
@@ -367,29 +370,35 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
           {/* Form Modals */}
           {showFormModal && (
-            <MotivatorFormModal
-              onSave={handleCreateMotivator}
-              onClose={() => setShowFormModal(false)}
-            />
+            <ComponentErrorBoundary>
+              <MotivatorFormModal
+                onSave={handleCreateMotivator}
+                onClose={() => setShowFormModal(false)}
+              />
+            </ComponentErrorBoundary>
           )}
           
           {editingMotivator && (
-            <MotivatorFormModal
-              motivator={editingMotivator}
-              onSave={handleSaveMotivator}
-              onClose={() => setEditingMotivator(null)}
-            />
+            <ComponentErrorBoundary>
+              <MotivatorFormModal
+                motivator={editingMotivator}
+                onSave={handleSaveMotivator}
+                onClose={() => setEditingMotivator(null)}
+              />
+            </ComponentErrorBoundary>
           )}
 
           {/* AI Chat Modal */}
           {showAiChat && (
-            <ModalAiChat
-              isOpen={showAiChat}
-              context={aiChatContext}
-              onResult={handleAiChatResult}
-              onClose={() => setShowAiChat(false)}
-              title="Motivator Assistant"
-            />
+            <ComponentErrorBoundary>
+              <ModalAiChat
+                isOpen={showAiChat}
+                context={aiChatContext}
+                onResult={handleAiChatResult}
+                onClose={() => setShowAiChat(false)}
+                title="Motivator Assistant"
+              />
+            </ComponentErrorBoundary>
           )}
           </div>
         </div>

@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ErrorBoundary, PageErrorBoundary } from "@/components/ErrorBoundary";
+import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 
@@ -38,41 +40,73 @@ const AppContent = () => {
         <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
           <DailyStatsPanel />
           <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/auth" element={
+              <PageErrorBoundary>
+                <Auth />
+              </PageErrorBoundary>
+            } />
+            <Route path="/reset-password" element={
+              <PageErrorBoundary>
+                <ResetPassword />
+              </PageErrorBoundary>
+            } />
+            <Route path="/update-password" element={
+              <PageErrorBoundary>
+                <UpdatePassword />
+              </PageErrorBoundary>
+            } />
             <Route path="/" element={
               <ProtectedRoute>
-                <Timer />
+                <PageErrorBoundary>
+                  <Timer />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/motivators" element={
               <ProtectedRoute>
-                <Motivators />
+                <PageErrorBoundary>
+                  <Motivators />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
               <ProtectedRoute>
-                <Settings />
+                <PageErrorBoundary>
+                  <Settings />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/walking" element={
               <ProtectedRoute>
-                <Walking />
+                <PageErrorBoundary>
+                  <Walking />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/food-tracking" element={
               <ProtectedRoute>
-                <FoodTracking />
+                <PageErrorBoundary>
+                  <FoodTracking />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
               <ProtectedRoute>
-                <AdminOverview />
+                <PageErrorBoundary>
+                  <AdminOverview />
+                </PageErrorBoundary>
               </ProtectedRoute>  
             } />
-            <Route path="/health" element={<HealthCheck />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/health" element={
+              <PageErrorBoundary>
+                <HealthCheck />
+              </PageErrorBoundary>
+            } />
+            <Route path="*" element={
+              <PageErrorBoundary>
+                <NotFound />
+              </PageErrorBoundary>
+            } />
           </Routes>
           <Navigation />
         </div>
@@ -82,21 +116,31 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            <WalkingStatsProvider>
-              <AppContent />
-            </WalkingStatsProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary 
+    level="critical" 
+    onError={(error, errorInfo) => {
+      console.error('App-level error:', error, errorInfo);
+      // Could send to error tracking service here
+    }}
+  >
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AsyncErrorBoundary>
+            <ThemeProvider>
+              <AuthProvider>
+                <WalkingStatsProvider>
+                  <AppContent />
+                </WalkingStatsProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </AsyncErrorBoundary>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

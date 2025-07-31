@@ -9,6 +9,7 @@ import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
+import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
@@ -480,10 +481,12 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         {/* Personal Food Library */}
         {showLibrary && (
           <div className="mb-6 bg-card border border-border rounded-lg p-4">
-            <PersonalFoodLibrary
-              onSelectFood={handleSelectFromLibrary}
-              onClose={() => setShowLibrary(false)}
-            />
+            <ComponentErrorBoundary>
+              <PersonalFoodLibrary
+                onSelectFood={handleSelectFromLibrary}
+                onClose={() => setShowLibrary(false)}
+              />
+            </ComponentErrorBoundary>
           </div>
         )}
 
@@ -586,30 +589,36 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         )}
 
         {/* Manual Food Entry Modal */}
-        <ManualFoodEntry
-          isOpen={showManualEntry}
-          onClose={() => setShowManualEntry(false)}
-          onSave={handleSaveManualEntry}
-          data={manualEntryData}
-          onDataChange={setManualEntryData}
-        />
+        <ComponentErrorBoundary>
+          <ManualFoodEntry
+            isOpen={showManualEntry}
+            onClose={() => setShowManualEntry(false)}
+            onSave={handleSaveManualEntry}
+            data={manualEntryData}
+            onDataChange={setManualEntryData}
+          />
+        </ComponentErrorBoundary>
 
 
         {/* AI Chat Modal */}
         <PremiumGate feature="AI Chat Assistant" showUpgrade={false}>
-          <ModalAiChat
-            isOpen={showAiChat}
-            onClose={() => setShowAiChat(false)}
-            onResult={handleAiChatResult}
-            context={aiChatContext}
-            title="Food Assistant"
-            systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
-          />
+          <ComponentErrorBoundary>
+            <ModalAiChat
+              isOpen={showAiChat}
+              onClose={() => setShowAiChat(false)}
+              onResult={handleAiChatResult}
+              context={aiChatContext}
+              title="Food Assistant"
+              systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
+            />
+          </ComponentErrorBoundary>
         </PremiumGate>
 
         {/* Food History Modal */}
         {showHistory && (
-          <FoodHistory onClose={() => setShowHistory(false)} />
+          <ComponentErrorBoundary>
+            <FoodHistory onClose={() => setShowHistory(false)} />
+          </ComponentErrorBoundary>
         )}
 
         {/* Today's Food Plan */}
