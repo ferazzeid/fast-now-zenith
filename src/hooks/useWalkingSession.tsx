@@ -79,6 +79,10 @@ export const useWalkingSession = () => {
       setCurrentSession(data);
       setSelectedSpeed(speedMph);
       setIsPaused(false);
+      
+      // Force immediate refresh of the context
+      triggerRefresh();
+      
       return { data, error: null };
     } catch (error: any) {
       console.error('Error starting walking session:', error);
@@ -107,6 +111,7 @@ export const useWalkingSession = () => {
 
       setCurrentSession(data);
       setIsPaused(true);
+      triggerRefresh();
       return { data, error: null };
     } catch (error: any) {
       console.error('Error pausing walking session:', error);
@@ -140,6 +145,7 @@ export const useWalkingSession = () => {
 
       setCurrentSession(data);
       setIsPaused(false);
+      triggerRefresh();
       return { data, error: null };
     } catch (error: any) {
       console.error('Error resuming walking session:', error);
@@ -197,9 +203,9 @@ export const useWalkingSession = () => {
       setCurrentSession(null);
       setIsPaused(false);
       
-      // Force immediate refresh
+      // Force immediate refresh of context and history
       console.log('Triggering walking history refresh after session end');
-      setRefreshTrigger(prev => prev + 1);
+      triggerRefresh();
       
       return { data, error: null };
     } catch (error: any) {

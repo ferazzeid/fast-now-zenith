@@ -27,7 +27,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     currentSessionId: null
   });
 
-  const { currentSession, isPaused, selectedSpeed } = useWalkingSession();
+  const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
   const { profile } = useProfile();
 
   // Memoize profile checks to prevent re-renders
@@ -126,7 +126,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         clearInterval(interval);
       }
     };
-  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units]);
+  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units, refreshTrigger]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 
