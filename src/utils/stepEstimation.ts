@@ -4,7 +4,8 @@
  * and should not be considered as accurate as actual step counters
  */
 
-import { useProfile } from '@/hooks/useProfile';
+import { useCallback } from 'react';
+import { useStableProfile } from '@/hooks/useStableProfile';
 
 interface StepEstimationProps {
   durationMinutes: number;
@@ -72,27 +73,28 @@ export const getStepsPerMinute = (speedMph: number, userHeight: number = 70, uni
 };
 
 /**
- * Hook for step estimation utilities that uses profile data
+ * Hook for step estimation utilities that uses stable profile data
  */
 export const useStepEstimation = () => {
-  const { profile } = useProfile();
+  const { profile } = useStableProfile();
 
-  const estimateStepsForSession = (durationMinutes: number, speedMph: number): number => {
+  // Create stable functions with useCallback to prevent re-renders
+  const estimateStepsForSession = useCallback((durationMinutes: number, speedMph: number): number => {
     return estimateSteps({
       durationMinutes,
       speedMph,
       userHeight: profile?.height || 70,
       units: profile?.units || 'imperial'
     });
-  };
+  }, [profile?.height, profile?.units]);
 
-  const getRealTimeStepsPerMinute = (speedMph: number): number => {
+  const getRealTimeStepsPerMinute = useCallback((speedMph: number): number => {
     return getStepsPerMinute(
       speedMph,
       profile?.height || 70,
       profile?.units || 'imperial'
     );
-  };
+  }, [profile?.height, profile?.units]);
 
   return {
     estimateStepsForSession,

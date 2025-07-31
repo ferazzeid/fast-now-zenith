@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { useStableProfile } from '@/hooks/useStableProfile';
 import { estimateSteps } from '@/utils/stepEstimation';
 
 interface WalkingSession {
@@ -26,7 +26,7 @@ export const useWalkingSession = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
-  const { profile, calculateWalkingCalories } = useProfile();
+  const { profile, calculateWalkingCalories } = useStableProfile();
 
   const loadActiveSession = useCallback(async () => {
     if (!user) return;
@@ -248,12 +248,12 @@ export const useWalkingSession = () => {
     };
   }, [loadActiveSession]);
 
-  // Initialize selectedSpeed from profile
+  // Initialize selectedSpeed from profile - stable dependency
   useEffect(() => {
     if (profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed) {
       setSelectedSpeed(profile.default_walking_speed);
     }
-  }, [profile?.default_walking_speed]);
+  }, [profile?.default_walking_speed, selectedSpeed]);
 
   // Update session speed during active session
   const updateSessionSpeed = useCallback(async (newSpeed: number) => {
