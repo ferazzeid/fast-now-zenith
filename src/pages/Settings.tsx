@@ -771,6 +771,130 @@ const Settings = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              {/* Account Deletion Section */}
+              <div className="mt-6 pt-6 border-t border-ceramic-rim">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                  <h4 className="text-md font-semibold text-warm-text">Delete Account</h4>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-4">
+                  <p className="text-sm text-red-800 dark:text-red-200 mb-2">
+                    <strong>Permanently delete your account and all associated data.</strong>
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-300">
+                    {subscription.subscribed 
+                      ? "⚠️ You have an active subscription. Your account will be scheduled for deletion when your subscription expires. Your subscription will be canceled immediately but you can continue using premium features until it expires."
+                      : "⚠️ This action cannot be undone. All your data will be permanently deleted immediately."
+                    }
+                  </p>
+                </div>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete My Account
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-ceramic-base border-ceramic-rim">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-red-600 flex items-center">
+                        <Trash2 className="w-5 h-5 mr-2" />
+                        Delete Account Forever?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-warm-text/80">
+                        {subscription.subscribed ? (
+                          <div className="space-y-3">
+                            <p className="font-semibold text-orange-600">
+                              You have an active subscription. Here's what will happen:
+                            </p>
+                            <ul className="list-disc list-inside space-y-1 text-sm">
+                              <li>Your subscription will be <strong>canceled immediately</strong></li>
+                              <li>You can continue using premium features until <strong>{subscription.subscription_end_date ? new Date(subscription.subscription_end_date).toLocaleDateString() : 'your subscription expires'}</strong></li>
+                              <li>Your account will be <strong>automatically deleted</strong> when your subscription expires</li>
+                              <li>All your data will be permanently deleted at that time</li>
+                            </ul>
+                            <p className="text-red-600 font-semibold text-sm">
+                              No refunds will be provided. You'll keep access until your billing period ends.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <p className="font-semibold text-red-600">
+                              This will permanently delete:
+                            </p>
+                            <ul className="list-disc list-inside space-y-1 text-sm">
+                              <li>Your entire account and login credentials</li>
+                              <li>All food entries and tracking data</li>
+                              <li>All fasting sessions and progress</li>
+                              <li>All walking data and statistics</li>
+                              <li>Profile information and goals</li>
+                              <li>AI usage history and conversations</li>
+                            </ul>
+                            <p className="text-red-600 font-semibold">
+                              This action cannot be undone. Your account will be deleted immediately.
+                            </p>
+                          </div>
+                        )}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-ceramic-base border-ceramic-rim text-warm-text hover:bg-ceramic-base/80">
+                        Cancel - Keep My Account
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          if (user) {
+                            try {
+                              const { data, error } = await supabase.functions.invoke('delete-account');
+                              
+                              if (error) {
+                                throw new Error(error.message);
+                              }
+
+                              if (data.scheduled) {
+                                toast({
+                                  title: "Account Deletion Scheduled",
+                                  description: data.message,
+                                  variant: "default",
+                                });
+                              } else {
+                                toast({
+                                  title: "Account Deleted",
+                                  description: data.message,
+                                  variant: "default",
+                                });
+                                
+                                // Sign out and redirect after a moment
+                                setTimeout(() => {
+                                  signOut();
+                                  navigate('/auth');
+                                }, 2000);
+                              }
+                            } catch (error) {
+                              toast({
+                                title: "Error",
+                                description: "Failed to delete account. Please try again.",
+                                variant: "destructive",
+                              });
+                            }
+                          }
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        {subscription.subscribed 
+                          ? "Yes, Schedule Account Deletion" 
+                          : "Yes, Delete My Account Forever"
+                        }
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </Card>
         )}
