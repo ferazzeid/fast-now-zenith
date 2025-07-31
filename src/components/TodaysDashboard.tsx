@@ -6,7 +6,7 @@ import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { WalkingStats } from '@/components/WalkingStats';
+
 import { DailyStatsPanel } from '@/components/DailyStatsPanel';
 
 interface UserProfile {
@@ -210,7 +210,7 @@ export const TodaysDashboard = () => {
       </Card>
 
       {/* Walking Statistics Section */}
-      <WalkingStats />
+      
     </div>
   );
 };
