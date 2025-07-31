@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AdminTierStats } from "@/components/AdminTierStats";
 import { ColorManagement } from "@/components/ColorManagement";
+import { OpenAIApiStats } from "@/components/OpenAIApiStats";
 
 interface User {
   user_id: string;
@@ -236,6 +237,9 @@ const AdminOverview = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* OpenAI API Statistics */}
+        <OpenAIApiStats />
 
         <Card>
           <CardHeader>

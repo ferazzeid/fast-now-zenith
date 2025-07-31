@@ -213,19 +213,25 @@ export const ColorManagement: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">Used for buttons, links, and accents</p>
             {activeColorPicker === 'primary' && (
-              <div className="absolute top-full left-0 mt-2 z-50 bg-background border rounded-lg p-4 shadow-lg">
-                <HexColorPicker 
-                  color={colors.primary} 
-                  onChange={(color) => handleColorChange('primary', color)}
-                />
-                <div className="flex gap-2 mt-3">
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveColorPicker(null)}
-                    className="flex-1"
-                  >
-                    Done
-                  </Button>
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
+                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Choose Primary Color</Label>
+                  </div>
+                  <HexColorPicker 
+                    color={colors.primary} 
+                    onChange={(color) => handleColorChange('primary', color)}
+                    style={{ width: '100%', height: '200px' }}
+                  />
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setActiveColorPicker(null)}
+                      className="flex-1"
+                    >
+                      Done
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -241,19 +247,25 @@ export const ColorManagement: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">Used for button hover states</p>
             {activeColorPicker === 'primaryHover' && (
-              <div className="absolute top-full left-0 mt-2 z-50 bg-background border rounded-lg p-4 shadow-lg">
-                <HexColorPicker 
-                  color={colors.primaryHover} 
-                  onChange={(color) => handleColorChange('primaryHover', color)}
-                />
-                <div className="flex gap-2 mt-3">
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveColorPicker(null)}
-                    className="flex-1"
-                  >
-                    Done
-                  </Button>
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
+                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Choose Primary Hover Color</Label>
+                  </div>
+                  <HexColorPicker 
+                    color={colors.primaryHover} 
+                    onChange={(color) => handleColorChange('primaryHover', color)}
+                    style={{ width: '100%', height: '200px' }}
+                  />
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setActiveColorPicker(null)}
+                      className="flex-1"
+                    >
+                      Done
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -269,19 +281,25 @@ export const ColorManagement: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">Used for highlights and special elements</p>
             {activeColorPicker === 'accent' && (
-              <div className="absolute top-full left-0 mt-2 z-50 bg-background border rounded-lg p-4 shadow-lg">
-                <HexColorPicker 
-                  color={colors.accent} 
-                  onChange={(color) => handleColorChange('accent', color)}
-                />
-                <div className="flex gap-2 mt-3">
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveColorPicker(null)}
-                    className="flex-1"
-                  >
-                    Done
-                  </Button>
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
+                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Choose Accent Color</Label>
+                  </div>
+                  <HexColorPicker 
+                    color={colors.accent} 
+                    onChange={(color) => handleColorChange('accent', color)}
+                    style={{ width: '100%', height: '200px' }}
+                  />
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setActiveColorPicker(null)}
+                      className="flex-1"
+                    >
+                      Done
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
