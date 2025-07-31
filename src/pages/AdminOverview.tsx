@@ -12,6 +12,7 @@ import { OpenAIApiStats } from "@/components/OpenAIApiStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { CancellationTracker } from "@/components/CancellationTracker";
+import BrandAssetsManager from "@/components/BrandAssetsManager";
 
 interface User {
   user_id: string;
@@ -303,9 +304,14 @@ const AdminOverview = () => {
         </Card>
       </div>
 
-      {/* Color Management */}
+      {/* Brand Customization */}
       <div className="space-y-6 mb-12">
         <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>
+        
+        {/* Brand Assets - Favicon and Logo */}
+        <BrandAssetsManager />
+        
+        {/* Color Management */}
         <ColorManagement />
       </div>
     </div>
