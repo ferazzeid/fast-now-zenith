@@ -14,6 +14,7 @@ interface UserProfile {
   daily_carb_goal?: number;
   display_name?: string;
   units?: 'metric' | 'imperial';
+  goal_weight?: number;
   activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
   default_walking_speed?: number;
 }

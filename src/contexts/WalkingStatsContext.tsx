@@ -32,7 +32,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Memoize profile checks to prevent re-renders
   const isProfileComplete = useMemo(() => {
-    return !!(profile && profile.weight && profile.height && profile.age);
+    return profile?.weight && profile?.height && profile?.age;
   }, [profile?.weight, profile?.height, profile?.age]);
 
   const calculateCalories = useMemo(() => {

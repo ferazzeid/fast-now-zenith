@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
+import { GoalMetrics } from '@/components/GoalMetrics';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
@@ -217,9 +218,12 @@ export const DailyStatsPanel = memo(() => {
                        </div>
                      </div>
                    </Card>
-                 )}
+                  )}
 
-                {/* Manual Calorie Burn Addition */}
+                 {/* Goal Metrics */}
+                 <GoalMetrics />
+
+                 {/* Manual Calorie Burn Addition */}
                 <div className="mt-4">
                   <ManualCalorieModal onCalorieAdded={refreshDeficit} />
                 </div>

@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CopyYesterdayButton } from '@/components/CopyYesterdayButton';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -225,14 +226,23 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center mb-2">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5" />
               Food History
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕
-            </Button>
+            <div className="flex gap-2">
+              <CopyYesterdayButton 
+                onCopied={() => {
+                  onClose();
+                }}
+                variant="outline" 
+                size="sm"
+              />
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
       <CardContent className="space-y-4">

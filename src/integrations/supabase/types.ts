@@ -285,6 +285,7 @@ export type Database = {
           daily_carb_goal: number | null
           default_walking_speed: number | null
           display_name: string | null
+          goal_weight: number | null
           height: number | null
           id: string
           is_paid_user: boolean | null
@@ -316,6 +317,7 @@ export type Database = {
           daily_carb_goal?: number | null
           default_walking_speed?: number | null
           display_name?: string | null
+          goal_weight?: number | null
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
@@ -347,6 +349,7 @@ export type Database = {
           daily_carb_goal?: number | null
           default_walking_speed?: number | null
           display_name?: string | null
+          goal_weight?: number | null
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
