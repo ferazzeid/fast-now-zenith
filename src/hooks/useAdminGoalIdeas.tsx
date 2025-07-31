@@ -17,7 +17,6 @@ export const useAdminGoalIdeas = () => {
 
   const loadGoalIdeas = async () => {
     try {
-      console.log('Loading admin goal ideas...');
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_value')
@@ -31,19 +30,15 @@ export const useAdminGoalIdeas = () => {
         return;
       }
 
-      console.log('Goal ideas data from DB:', data);
-
       if (data?.setting_value) {
         try {
           const parsedGoalIdeas = JSON.parse(data.setting_value);
-          console.log('Parsed goal ideas:', parsedGoalIdeas);
           setGoalIdeas(Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : []);
         } catch (parseError) {
           console.error('Error parsing goal ideas:', parseError);
           setGoalIdeas([]);
         }
       } else {
-        console.log('No goal ideas found in database, setting empty array');
         setGoalIdeas([]);
       }
     } catch (error) {
