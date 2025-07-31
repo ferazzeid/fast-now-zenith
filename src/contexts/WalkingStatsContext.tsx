@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useStepEstimation } from '@/utils/stepEstimation';
@@ -59,35 +59,39 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [profile?.weight, profile?.units]);
 
+  // Stable references to prevent infinite re-renders
+  const sessionIdRef = useRef(currentSession?.id);
+  const wasActiveRef = useRef(false);
+  
+  useEffect(() => {
+    // Only trigger when session actually changes, not on every render
+    if (sessionIdRef.current !== currentSession?.id) {
+      sessionIdRef.current = currentSession?.id;
+      wasActiveRef.current = !!currentSession;
+    }
+  }, [currentSession?.id]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     let mounted = true;
 
-    // Immediately clear stats if no current session
-    if (!currentSession) {
-      setWalkingStats({
-        realTimeCalories: 0,
-        realTimeDistance: 0,
-        realTimeSteps: 0,
-        timeElapsed: 0,
-        isActive: false,
-        isPaused: false,
-        currentSessionId: null
-      });
-      return;
-    }
-
     const updateStats = () => {
-      if (!mounted || !currentSession) {
-        setWalkingStats({
-          realTimeCalories: 0,
-          realTimeDistance: 0,
-          realTimeSteps: 0,
-          timeElapsed: 0,
-          isActive: false,
-          isPaused: false,
-          currentSessionId: null
-        });
+      if (!mounted) return;
+      
+      if (!currentSession) {
+        if (wasActiveRef.current) {
+          // Only update if we were previously active
+          setWalkingStats({
+            realTimeCalories: 0,
+            realTimeDistance: 0,
+            realTimeSteps: 0,
+            timeElapsed: 0,
+            isActive: false,
+            isPaused: false,
+            currentSessionId: null
+          });
+          wasActiveRef.current = false;
+        }
         return;
       }
       
@@ -123,35 +127,23 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         realTimeSteps: estimatedSteps,
         timeElapsed: activeElapsed,
         isActive: true,
-        isPaused: false,
+        isPaused: isPaused || false,
         currentSessionId: currentSession.id
       });
+      
+      wasActiveRef.current = true;
     };
 
     if (currentSession && !isPaused) {
-      // Update immediately
+      // Update immediately then set interval
       updateStats();
-      // Then set interval for regular updates
       interval = setInterval(updateStats, 1000);
     } else if (currentSession && isPaused) {
-      // Keep last known values but mark as paused
-      setWalkingStats(prev => ({
-        ...prev,
-        isActive: true,
-        isPaused: true,
-        currentSessionId: currentSession.id
-      }));
-    } else {
-      // No active session
-      setWalkingStats({
-        realTimeCalories: 0,
-        realTimeDistance: 0,
-        realTimeSteps: 0,
-        timeElapsed: 0,
-        isActive: false,
-        isPaused: false,
-        currentSessionId: null
-      });
+      // Update once to mark as paused
+      updateStats();
+    } else if (!currentSession) {
+      // Clear stats if no session
+      updateStats();
     }
 
     return () => {
@@ -160,7 +152,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         clearInterval(interval);
       }
     };
-  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units, estimateStepsForSession, refreshTrigger]);
+  }, [currentSession, isPaused, selectedSpeed, isProfileComplete, calculateCalories, profile?.units, estimateStepsForSession]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 

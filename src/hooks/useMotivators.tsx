@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useStableAuth } from './useStableAuth';
 import { useToast } from './use-toast';
+import { useLoadingManager } from './useLoadingManager';
 
 export interface Motivator {
   id: string;
@@ -24,13 +25,17 @@ export interface CreateMotivatorData {
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user } = useStableAuth();
   const { toast } = useToast();
+  const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
 
   const loadMotivators = async () => {
-    if (!user) return;
+    if (!user) {
+      stopLoading();
+      return;
+    }
 
+    startLoading();
     try {
       const { data, error } = await supabase
         .from('motivators')
@@ -56,7 +61,7 @@ export const useMotivators = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 

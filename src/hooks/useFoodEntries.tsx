@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useStableAuth } from '@/hooks/useStableAuth';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
+import { useLoadingManager } from '@/hooks/useLoadingManager';
 
 interface FoodEntry {
   id: string;
@@ -26,14 +27,17 @@ interface NewFoodEntry {
 
 export const useFoodEntries = () => {
   const [todayEntries, setTodayEntries] = useState<FoodEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user } = useStableAuth();
   const { executeWithRetry } = useRetryableSupabase();
+  const { loading, startLoading, stopLoading } = useLoadingManager('food-entries');
 
   const loadTodayEntries = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      stopLoading();
+      return;
+    }
     
-    setLoading(true);
+    startLoading();
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -58,14 +62,14 @@ export const useFoodEntries = () => {
     } catch (error) {
       console.error('Error loading today\'s food entries:', error);
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [user, executeWithRetry]);
+  }, [user, executeWithRetry, startLoading, stopLoading]);
 
   const addFoodEntry = useCallback(async (entry: NewFoodEntry) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    setLoading(true);
+    startLoading();
     try {
       const { data, error } = await supabase
         .from('food_entries')
@@ -86,14 +90,14 @@ export const useFoodEntries = () => {
       console.error('Error adding food entry:', error);
       return { error, data: null };
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   }, [user, loadTodayEntries]);
 
   const updateFoodEntry = useCallback(async (entryId: string, updates: Partial<NewFoodEntry>) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    setLoading(true);
+    startLoading();
     try {
       const { data, error } = await supabase
         .from('food_entries')
@@ -113,14 +117,14 @@ export const useFoodEntries = () => {
       console.error('Error updating food entry:', error);
       return { error, data: null };
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   }, [user, loadTodayEntries]);
 
   const deleteFoodEntry = useCallback(async (entryId: string) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    setLoading(true);
+    startLoading();
     try {
       const { error } = await supabase
         .from('food_entries')
@@ -138,7 +142,7 @@ export const useFoodEntries = () => {
       console.error('Error deleting food entry:', error);
       return { error };
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   }, [user, loadTodayEntries]);
 

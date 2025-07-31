@@ -4,7 +4,7 @@ import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useStableAuth } from '@/hooks/useStableAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 
 interface DailyDeficitData {
@@ -41,7 +41,7 @@ export const useDailyDeficit = () => {
   const { todayTotals } = useFoodEntries();
   const { todayTotal: manualCalorieTotal } = useManualCalorieBurns();
   const { todayOverride } = useDailyActivityOverride();
-  const { user } = useAuth();
+  const { user } = useStableAuth();
   const { walkingStats } = useWalkingStats();
 
   const calculateCompletedWalkingCaloriesForDay = useCallback(async () => {
