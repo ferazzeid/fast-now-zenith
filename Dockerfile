@@ -11,8 +11,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Clean any existing build artifacts and build fresh
-RUN rm -rf dist
+# Clean all caches and build artifacts to ensure fresh build
+RUN npm ci --cache /tmp/empty-cache
+RUN rm -rf dist node_modules/.cache .vite
 RUN npm run build
 
 # Production stage with nginx
