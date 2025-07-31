@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
@@ -101,41 +101,37 @@ export const AdminTierStats = () => {
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-        User Tiers Overview
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {stats.map((stat) => (
-          <div
-            key={stat.tier}
-            className="p-6 bg-gradient-to-br from-background to-muted/30 rounded-lg border-2 border-primary/20 hover:border-primary/40 transition-all"
-          >
-            <h4 className="font-semibold text-lg text-foreground mb-4 text-center">
-              {stat.tier}
-            </h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Active Users</span>
-                <span className="text-2xl font-bold text-green-600">{stat.active}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Inactive Users</span>
-                <span className="text-2xl font-bold text-red-500">{stat.inactive}</span>
-              </div>
-              <div className="pt-2 border-t border-border/50">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-foreground">Total</span>
-                  <span className="text-xl font-bold text-primary">{stat.total}</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          User Tiers Overview
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {stats.map((stat) => (
+            <div key={stat.tier} className="space-y-3">
+              <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+                {stat.tier}
+              </h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                  <span className="text-xs text-muted-foreground">Active Users</span>
+                  <span className="text-sm font-semibold text-foreground">{stat.active}</span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                  <span className="text-xs text-muted-foreground">Inactive Users</span>
+                  <span className="text-sm font-semibold text-foreground">{stat.inactive}</span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                  <span className="text-xs text-muted-foreground">Total</span>
+                  <span className="text-sm font-semibold text-foreground">{stat.total}</span>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-6 text-center text-xs text-muted-foreground">
-        * Active = used app in last 7 days | Inactive = no activity in last 7 days
-      </div>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 };

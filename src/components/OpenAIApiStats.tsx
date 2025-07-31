@@ -116,10 +116,9 @@ export const OpenAIApiStats: React.FC = () => {
   }
 
   return (
-    <Card className="border-l-4 border-l-blue-500">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+        <CardTitle className="text-lg">
           OpenAI API Statistics
         </CardTitle>
       </CardHeader>
@@ -159,14 +158,6 @@ export const OpenAIApiStats: React.FC = () => {
               <span className="text-xs text-muted-foreground">Success Rate</span>
               <span className="text-sm font-semibold text-foreground">{stats.successRate}%</span>
             </div>
-          </div>
-        </div>
-
-        {/* Most Used Model */}
-        <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-medium text-foreground">Most Used Model</span>
-            <span className="text-sm font-semibold text-foreground">{stats.mostUsedModel}</span>
           </div>
         </div>
       </CardContent>
