@@ -115,7 +115,10 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      onClick={onDelete}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                      }}
                       className="p-1 h-6 w-6"
                     >
                       <Trash2 className="w-3 h-3" />

@@ -29,7 +29,7 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
       <div
         className={cn(
           "cursor-pointer transition-colors duration-200",
-          isMobile && "active:bg-accent/50 rounded-md p-1 -m-1",
+          isMobile && "active:bg-accent/30 rounded-md p-1 -m-1",
           className
         )}
         onClick={handleToggle}
@@ -49,30 +49,18 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
           )}
           <div
             className={cn(
-              "absolute z-50 px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-md",
-              "whitespace-nowrap max-w-[200px] text-center",
+              "absolute z-50 px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
+              "w-[160px] text-left leading-relaxed",
               "animate-in fade-in-0 zoom-in-95 duration-200",
-              side === 'top' && "bottom-full left-1/2 -translate-x-1/2 mb-2",
-              side === 'bottom' && "top-full left-1/2 -translate-x-1/2 mt-2", 
-              side === 'left' && "right-full top-1/2 -translate-y-1/2 mr-2",
-              side === 'right' && "left-full top-1/2 -translate-y-1/2 ml-2"
+              // Always position in top-right corner
+              "bottom-full right-0 mb-2 transform translate-x-1"
             )}
-            style={{
-              // Ensure consistent positioning in top-right corner of parent
-              ...(side === 'top' && { left: '75%', transform: 'translateX(-75%)' })
-            }}
           >
             {content}
-            {/* Arrow */}
-            <div
-              className={cn(
-                "absolute w-2 h-2 bg-popover border-l border-t border-border rotate-45",
-                side === 'top' && "top-full left-1/2 -translate-x-1/2 -mt-1",
-                side === 'bottom' && "bottom-full left-1/2 -translate-x-1/2 -mb-1",
-                side === 'left' && "left-full top-1/2 -translate-y-1/2 -ml-1",
-                side === 'right' && "right-full top-1/2 -translate-y-1/2 -mr-1"
-              )}
-            />
+            {/* Arrow pointing down from bottom of tooltip */}
+            <div className="absolute top-full right-4 -mt-1">
+              <div className="w-2 h-2 bg-popover border-r border-b border-border rotate-45" />
+            </div>
           </div>
         </>
       )}

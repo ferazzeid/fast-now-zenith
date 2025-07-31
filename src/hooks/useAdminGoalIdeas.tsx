@@ -17,27 +17,32 @@ export const useAdminGoalIdeas = () => {
 
   const loadGoalIdeas = async () => {
     try {
+      console.log('Loading admin goal ideas...');
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'admin_goal_ideas')
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Goal ideas data from DB:', data);
 
       if (data?.setting_value) {
         const parsedGoalIdeas = JSON.parse(data.setting_value);
+        console.log('Parsed goal ideas:', parsedGoalIdeas);
         setGoalIdeas(Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : []);
       } else {
+        console.log('No goal ideas found in database, setting empty array');
         setGoalIdeas([]);
       }
     } catch (error) {
       console.error('Error loading admin goal ideas:', error);
-      toast({
-        title: "Error loading goal ideas",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      setGoalIdeas([]); // Set empty array instead of showing error
+      // Don't show error toast for missing goal ideas, it's not critical
     } finally {
       setLoading(false);
     }

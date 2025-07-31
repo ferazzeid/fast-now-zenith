@@ -268,30 +268,13 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           ) : (
             <div className="space-y-4">
               {motivators.map((motivator) => (
-                <AlertDialog key={motivator.id}>
+                <div key={motivator.id}>
                   <ExpandableMotivatorCard
                     motivator={motivator}
                     onEdit={() => handleEditMotivator(motivator)}
-                    onDelete={() => {}}
+                    onDelete={() => handleDeleteMotivator(motivator.id)}
                   />
-                  <AlertDialogTrigger asChild>
-                    <div style={{ display: 'none' }} />
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteMotivator(motivator.id)}>
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                </div>
               ))}
             </div>
           )}

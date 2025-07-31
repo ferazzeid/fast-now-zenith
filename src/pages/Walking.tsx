@@ -3,6 +3,7 @@ import { WalkingTimer } from '@/components/WalkingTimer';
 import { SpeedSelector } from '@/components/SpeedSelector';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { WalkingHistory } from '@/components/WalkingHistory';
+import { WalkingStats } from '@/components/WalkingStats';
 import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
@@ -170,6 +171,11 @@ const Walking = () => {
                   startTime: currentSession.start_time
                 } : undefined}
               />
+            </div>
+
+            {/* Walking Stats - Add the missing stats component */}
+            <div className="mt-8">
+              <WalkingStats />
             </div>
           </>
         )}
