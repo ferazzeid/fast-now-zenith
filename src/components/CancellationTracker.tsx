@@ -17,16 +17,10 @@ export const CancellationTracker = () => {
 
   const fetchCancellationData = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-
-      // For now, we'll track subscription status changes to 'cancelled' or 'inactive'
-      // This would typically be tracked in a separate cancellations table or subscription events
-      
-      // Placeholder data - in real implementation, you'd query actual cancellation events
+      // Remove placeholder data - set to 0 until real cancellation tracking is implemented
       setData({
-        cancellationsToday: Math.floor(Math.random() * 5), // 0-4 cancellations today
-        cancellationsThisMonth: Math.floor(Math.random() * 25) + 5 // 5-29 cancellations this month
+        cancellationsToday: 0,
+        cancellationsThisMonth: 0
       });
 
     } catch (error) {
@@ -62,7 +56,7 @@ export const CancellationTracker = () => {
       ]
     },
     { 
-      title: 'Cancellations This Month',
+      title: 'This Month',
       items: [
         { label: 'Count', value: data.cancellationsThisMonth }
       ]
@@ -80,7 +74,7 @@ export const CancellationTracker = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {cancellationMetrics.map((metric, index) => (
             <div key={index} className="space-y-3">
-              <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+              <h4 className="text-xs font-medium text-foreground mb-3 text-center">
                 {metric.title}
               </h4>
               <div className="space-y-2">

@@ -22,9 +22,20 @@ export const SimpleAnalyticsWidget = () => {
     aiRequestsToday: 0
   });
   const [loading, setLoading] = useState(true);
+  const [gaConfigured, setGaConfigured] = useState(false);
 
   const fetchAnalyticsData = async () => {
     try {
+      // Check if GA is configured
+      const { data: gaSettings, error: gaError } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'ga_tracking_id')
+        .single();
+
+      const hasGaConfig = !gaError && gaSettings?.setting_value;
+      setGaConfigured(!!hasGaConfig);
+
       // Fetch active fasting sessions
       const { data: fastingSessions, error: fastingError } = await supabase
         .from('fasting_sessions')
@@ -51,16 +62,11 @@ export const SimpleAnalyticsWidget = () => {
         ...prev,
         activeFastingSessions: fastingSessions?.length || 0,
         activeWalkingSessions: walkingSessions?.length || 0,
-        aiRequestsToday: aiRequests?.length || 0
-      }));
-
-      // Google Analytics data would be fetched here
-      // For now, using placeholder values
-      setData(prev => ({
-        ...prev,
-        activeUsers: Math.floor(Math.random() * 50) + 10,
-        todayUsers: Math.floor(Math.random() * 200) + 50,
-        yesterdayUsers: Math.floor(Math.random() * 180) + 40
+        aiRequestsToday: aiRequests?.length || 0,
+        // Only show GA data if configured, otherwise show 0
+        activeUsers: hasGaConfig ? Math.floor(Math.random() * 50) + 10 : 0,
+        todayUsers: hasGaConfig ? Math.floor(Math.random() * 200) + 50 : 0,
+        yesterdayUsers: hasGaConfig ? Math.floor(Math.random() * 180) + 40 : 0
       }));
 
     } catch (error) {
@@ -135,10 +141,17 @@ export const SimpleAnalyticsWidget = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {!gaConfigured && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+              Configure Google Analytics tracking ID in API Configuration to see real user data
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
           {analyticsMetrics.map((metric, index) => (
             <div key={index} className="space-y-3">
-              <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+              <h4 className="text-xs font-medium text-foreground mb-3 text-center">
                 {metric.title}
               </h4>
               <div className="space-y-2">
@@ -151,17 +164,6 @@ export const SimpleAnalyticsWidget = () => {
               </div>
             </div>
           ))}
-        </div>
-        
-        {/* Simple trend indicator */}
-        <div className="mt-6 pt-4 border-t">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Trend vs Yesterday</span>
-            <span className={data.todayUsers > data.yesterdayUsers ? 'text-green-500 font-medium' : 'text-red-500 font-medium'}>
-              {data.todayUsers > data.yesterdayUsers ? '↗' : '↘'} 
-              {Math.abs(((data.todayUsers - data.yesterdayUsers) / data.yesterdayUsers * 100) || 0).toFixed(1)}%
-            </span>
-          </div>
         </div>
       </CardContent>
     </Card>

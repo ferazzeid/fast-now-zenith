@@ -40,6 +40,7 @@ const AdminOverview = () => {
   });
   const [sharedApiKey, setSharedApiKey] = useState('');
   const [stripeApiKey, setStripeApiKey] = useState('');
+  const [gaTrackingId, setGaTrackingId] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,7 +65,7 @@ const AdminOverview = () => {
       const { data: settingsData, error: settingsError } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['shared_api_key', 'stripe_api_key']);
+        .in('setting_key', ['shared_api_key', 'stripe_api_key', 'ga_tracking_id']);
 
       if (settingsError) {
         console.error('Error fetching settings:', settingsError);
@@ -74,6 +75,8 @@ const AdminOverview = () => {
             setSharedApiKey(setting.setting_value || '');
           } else if (setting.setting_key === 'stripe_api_key') {
             setStripeApiKey(setting.setting_value || '');
+          } else if (setting.setting_key === 'ga_tracking_id') {
+            setGaTrackingId(setting.setting_value || '');
           }
         });
       }
@@ -150,6 +153,31 @@ const AdminOverview = () => {
       toast({
         title: "Error",
         description: "Failed to save Stripe API key",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveGaTrackingId = async () => {
+    try {
+      const { error } = await supabase
+        .from('shared_settings')
+        .upsert({
+          setting_key: 'ga_tracking_id',
+          setting_value: gaTrackingId,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Google Analytics tracking ID saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving GA tracking ID:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save Google Analytics tracking ID",
         variant: "destructive",
       });
     }
@@ -242,6 +270,34 @@ const AdminOverview = () => {
             </div>
             <Button onClick={saveStripeApiKey} className="w-full sm:w-auto">
               Save Stripe API Key
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              Google Analytics
+            </CardTitle>
+            <CardDescription>
+              Configure Google Analytics tracking ID for real-time analytics data
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="gaTrackingId" className="text-sm font-medium">Measurement ID</Label>
+              <Input
+                id="gaTrackingId"
+                type="text"
+                value={gaTrackingId}
+                onChange={(e) => setGaTrackingId(e.target.value)}
+                placeholder="G-XXXXXXXXXX"
+                className="font-mono text-sm"
+              />
+            </div>
+            <Button onClick={saveGaTrackingId} className="w-full sm:w-auto">
+              Save Google Analytics ID
             </Button>
           </CardContent>
         </Card>
