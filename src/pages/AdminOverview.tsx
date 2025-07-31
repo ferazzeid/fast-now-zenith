@@ -170,41 +170,6 @@ const AdminOverview = () => {
       
       {/* Most Important Metric - User Tiers Overview */}
       <AdminTierStats />
-      
-      {/* Usage Statistics - Simplified 2 Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-l-4 border-l-primary">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground">User Statistics</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Users</span>
-              <span className="text-2xl font-bold text-primary">{usageStats.total_users}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Paid Users</span>
-              <span className="text-2xl font-bold text-green-600">{usageStats.paid_users}</span>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground">Activity Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Active (7d)</span>
-              <span className="text-2xl font-bold text-yellow-600">{usageStats.active_users}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Requests</span>
-              <span className="text-2xl font-bold text-purple-600">{usageStats.total_requests}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* API Configuration - Full Width Cards */}
       <div className="space-y-6">
