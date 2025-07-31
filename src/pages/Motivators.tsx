@@ -243,19 +243,19 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               {motivators.map((motivator) => (
                 <Card key={motivator.id} className="overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="flex h-full">
-                      {/* Image - bigger and full height */}
-                      <div className="w-24 h-auto bg-muted flex items-center justify-center flex-shrink-0">
-                        {motivator.imageUrl ? (
-                          <img 
-                            src={motivator.imageUrl} 
-                            alt={motivator.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Image className="w-10 h-10 text-muted-foreground" />
-                        )}
-                      </div>
+                     <div className="flex">
+                       {/* Image - fixed square dimensions */}
+                       <div className="w-24 h-24 bg-muted flex items-center justify-center flex-shrink-0">
+                         {motivator.imageUrl ? (
+                           <img 
+                             src={motivator.imageUrl} 
+                             alt={motivator.title}
+                             className="w-full h-full object-cover"
+                           />
+                         ) : (
+                           <Image className="w-10 h-10 text-muted-foreground" />
+                         )}
+                       </div>
                       
                       {/* Content */}
                       <div className="flex-1 p-4 pr-2">
