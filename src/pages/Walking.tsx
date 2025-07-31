@@ -114,33 +114,65 @@ const Walking = () => {
           <p className="text-muted-foreground">Track your walking session and stay active</p>
         </div>
 
-        {/* Timer Display */}
-        <div className="relative mb-8">
-          <WalkingTimer
-            displayTime={formatTime(walkingStats.timeElapsed)}
-            isActive={!!currentSession}
-            isPaused={isPaused}
-            onStart={handleStart}
-            onPause={handlePause}
-            onResume={handleResume}
-            onStop={() => setShowStopConfirm(true)}
-            showSlideshow={true}
-            units={profile?.units || 'imperial'}
-            selectedSpeed={selectedSpeed}
-            onSpeedChange={(newSpeed) => {
-              setSelectedSpeed(newSpeed);
-              if (isRunning) {
-                updateSessionSpeed(newSpeed);
-              }
-            }}
-            realTimeStats={currentSession ? {
-              speed: currentSession.speed_mph || selectedSpeed,
-              distance: walkingStats.realTimeDistance,
-              calories: walkingStats.realTimeCalories,
-              startTime: currentSession.start_time
-            } : undefined}
-          />
-        </div>
+        {/* Loading State */}
+        {loading ? (
+          <div className="space-y-6">
+            {/* Timer skeleton */}
+            <div className="bg-ceramic-plate rounded-3xl p-6 space-y-4">
+              <div className="text-center space-y-4">
+                <div className="h-16 bg-muted animate-pulse rounded w-48 mx-auto" />
+                <div className="h-6 bg-muted animate-pulse rounded w-32 mx-auto" />
+                <div className="h-8 bg-muted animate-pulse rounded w-40 mx-auto" />
+              </div>
+            </div>
+            
+            {/* Stats skeleton */}
+            <div className="grid grid-cols-2 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-ceramic-plate rounded-xl p-4">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted animate-pulse rounded w-16" />
+                    <div className="h-6 bg-muted animate-pulse rounded w-12" />
+                    <div className="h-3 bg-muted animate-pulse rounded w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Button skeleton */}
+            <div className="h-14 bg-muted animate-pulse rounded-lg" />
+          </div>
+        ) : (
+          <>
+            {/* Timer Display */}
+            <div className="relative mb-8">
+              <WalkingTimer
+                displayTime={formatTime(walkingStats.timeElapsed)}
+                isActive={!!currentSession}
+                isPaused={isPaused}
+                onStart={handleStart}
+                onPause={handlePause}
+                onResume={handleResume}
+                onStop={() => setShowStopConfirm(true)}
+                showSlideshow={true}
+                units={profile?.units || 'imperial'}
+                selectedSpeed={selectedSpeed}
+                onSpeedChange={(newSpeed) => {
+                  setSelectedSpeed(newSpeed);
+                  if (isRunning) {
+                    updateSessionSpeed(newSpeed);
+                  }
+                }}
+                realTimeStats={currentSession ? {
+                  speed: currentSession.speed_mph || selectedSpeed,
+                  distance: walkingStats.realTimeDistance,
+                  calories: walkingStats.realTimeCalories,
+                  startTime: currentSession.start_time
+                } : undefined}
+              />
+            </div>
+          </>
+        )}
 
 
 
@@ -163,13 +195,16 @@ const Walking = () => {
           units={profile?.units || 'imperial'}
         />
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Walking History</h3>
-            <ClearWalkingHistoryButton />
+        {/* Walking History - only show when not loading */}
+        {!loading && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Walking History</h3>
+              <ClearWalkingHistoryButton />
+            </div>
+            <WalkingHistory />
           </div>
-          <WalkingHistory />
-        </div>
+        )}
       </div>
     </div>
   );

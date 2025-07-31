@@ -23,8 +23,23 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Loading goal ideas...</p>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <div className="w-4 h-4 bg-muted animate-pulse rounded" />
+          <div className="h-4 bg-muted animate-pulse rounded w-32" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="p-3 border border-ceramic-rim rounded-lg">
+              <div className="space-y-2">
+                <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                <div className="h-3 bg-muted animate-pulse rounded w-full" />
+                <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                <div className="h-5 bg-muted animate-pulse rounded w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

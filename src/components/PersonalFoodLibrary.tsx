@@ -150,8 +150,25 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
       </div>
 
       {loading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading your foods...</p>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-4 h-4 bg-muted animate-pulse rounded" />
+            <div className="h-4 bg-muted animate-pulse rounded w-32" />
+          </div>
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 bg-muted animate-pulse rounded w-40" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-24" />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       ) : filteredFoods.length === 0 ? (
         <div className="text-center py-8">

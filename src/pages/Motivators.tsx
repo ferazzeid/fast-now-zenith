@@ -238,8 +238,19 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
           {/* Motivators List */}
           {loading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Loading your motivators...</p>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <div className="flex">
+                    <div className="w-24 h-24 bg-muted animate-pulse flex-shrink-0" />
+                    <div className="flex-1 p-4 space-y-2">
+                      <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                      <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                      <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : motivators.length === 0 ? (
             <Card className="p-6 text-center">
