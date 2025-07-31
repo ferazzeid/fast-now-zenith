@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Plus, Save, History, Edit, Trash2, Check, X, Mic, Info, Footprints } from 'lucide-react';
+import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { PageOnboardingModal } from '@/components/PageOnboardingModal';
+import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +31,7 @@ const FoodTracking = () => {
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [manualEntryData, setManualEntryData] = useState({
     name: '',
     servingSize: '',
@@ -338,7 +342,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header */}
         <div className="text-center mb-8">
@@ -694,6 +699,34 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
           </div>
         )}
+
+        {/* Onboarding Modal */}
+        <PageOnboardingModal
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          title={onboardingContent.food.title}
+        >
+          <div className="space-y-6">
+            <div className="text-center">
+              <p className="text-lg text-warm-text/80 mb-6">{onboardingContent.food.subtitle}</p>
+            </div>
+            
+            {onboardingContent.food.sections.map((section, index) => {
+              const IconComponent = section.icon;
+              return (
+                <div key={index} className="flex gap-4 p-4 rounded-xl bg-ceramic-base/50">
+                  <div className="flex-shrink-0 w-12 h-12 bg-ceramic-plate rounded-full flex items-center justify-center">
+                    <IconComponent className="w-6 h-6 text-warm-text" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-warm-text mb-2">{section.title}</h3>
+                    <p className="text-warm-text/70 text-sm leading-relaxed">{section.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </PageOnboardingModal>
       </div>
     </div>
   );

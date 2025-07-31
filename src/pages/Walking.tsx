@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { WalkingTimer } from '@/components/WalkingTimer';
+import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { PageOnboardingModal } from '@/components/PageOnboardingModal';
+import { onboardingContent } from '@/data/onboardingContent';
 import { SpeedSelector } from '@/components/SpeedSelector';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { WalkingHistory } from '@/components/WalkingHistory';
@@ -14,6 +17,7 @@ import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [localTimeElapsed, setLocalTimeElapsed] = useState(0);
   const { toast } = useToast();
   const { 
@@ -142,7 +146,8 @@ const Walking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header */}
         <div className="text-center mb-8">
@@ -245,6 +250,34 @@ const Walking = () => {
             <WalkingHistory />
           </div>
         )}
+
+        {/* Onboarding Modal */}
+        <PageOnboardingModal
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          title={onboardingContent.walking.title}
+        >
+          <div className="space-y-6">
+            <div className="text-center">
+              <p className="text-lg text-warm-text/80 mb-6">{onboardingContent.walking.subtitle}</p>
+            </div>
+            
+            {onboardingContent.walking.sections.map((section, index) => {
+              const IconComponent = section.icon;
+              return (
+                <div key={index} className="flex gap-4 p-4 rounded-xl bg-ceramic-base/50">
+                  <div className="flex-shrink-0 w-12 h-12 bg-ceramic-plate rounded-full flex items-center justify-center">
+                    <IconComponent className="w-6 h-6 text-warm-text" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-warm-text mb-2">{section.title}</h3>
+                    <p className="text-warm-text/70 text-sm leading-relaxed">{section.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </PageOnboardingModal>
       </div>
     </div>
   );

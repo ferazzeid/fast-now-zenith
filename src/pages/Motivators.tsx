@@ -1,5 +1,8 @@
 import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { PageOnboardingModal } from '@/components/PageOnboardingModal';
+import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus, Sparkles, Mic, Lightbulb } from 'lucide-react';
@@ -24,6 +27,7 @@ const Motivators = () => {
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
   const [showGoalIdeas, setShowGoalIdeas] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   const [aiChatContext, setAiChatContext] = useState('');
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
@@ -167,7 +171,8 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
+      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
+        <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
         <div className="px-4 pt-20 pb-24">
           <div className="max-w-md mx-auto space-y-6">
           {/* Header */}
@@ -313,6 +318,34 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               />
             </ComponentErrorBoundary>
           )}
+
+          {/* Onboarding Modal */}
+          <PageOnboardingModal
+            isOpen={showOnboarding}
+            onClose={() => setShowOnboarding(false)}
+            title={onboardingContent.motivators.title}
+          >
+            <div className="space-y-6">
+              <div className="text-center">
+                <p className="text-lg text-warm-text/80 mb-6">{onboardingContent.motivators.subtitle}</p>
+              </div>
+              
+              {onboardingContent.motivators.sections.map((section, index) => {
+                const IconComponent = section.icon;
+                return (
+                  <div key={index} className="flex gap-4 p-4 rounded-xl bg-ceramic-base/50">
+                    <div className="flex-shrink-0 w-12 h-12 bg-ceramic-plate rounded-full flex items-center justify-center">
+                      <IconComponent className="w-6 h-6 text-warm-text" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-warm-text mb-2">{section.title}</h3>
+                      <p className="text-warm-text/70 text-sm leading-relaxed">{section.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </PageOnboardingModal>
 
           </div>
         </div>

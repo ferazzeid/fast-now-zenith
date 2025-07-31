@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock } from 'lucide-react';
+import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { PageOnboardingModal } from '@/components/PageOnboardingModal';
+import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
@@ -26,6 +29,7 @@ const Timer = () => {
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Crisis modal static context state
   const [crisisContext, setCrisisContext] = useState<string>('');
@@ -313,7 +317,8 @@ const Timer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap with DailyStatsPanel */}
         {/* Header */}
         <div className="text-center mb-8">
@@ -416,6 +421,34 @@ const Timer = () => {
         }}
         currentDuration={formatTimeFasting(timeElapsed)}
       />
+
+      {/* Onboarding Modal */}
+      <PageOnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        title={onboardingContent.timer.title}
+      >
+        <div className="space-y-6">
+          <div className="text-center">
+            <p className="text-lg text-warm-text/80 mb-6">{onboardingContent.timer.subtitle}</p>
+          </div>
+          
+          {onboardingContent.timer.sections.map((section, index) => {
+            const IconComponent = section.icon;
+            return (
+              <div key={index} className="flex gap-4 p-4 rounded-xl bg-ceramic-base/50">
+                <div className="flex-shrink-0 w-12 h-12 bg-ceramic-plate rounded-full flex items-center justify-center">
+                  <IconComponent className="w-6 h-6 text-warm-text" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-warm-text mb-2">{section.title}</h3>
+                  <p className="text-warm-text/70 text-sm leading-relaxed">{section.description}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </PageOnboardingModal>
 
     </div>
   );
