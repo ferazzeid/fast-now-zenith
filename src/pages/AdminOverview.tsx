@@ -236,7 +236,7 @@ const AdminOverview = () => {
       </div>
 
       {/* Color Management */}
-      <div className="space-y-6">
+      <div className="space-y-6 mb-12">
         <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>
         <ColorManagement />
       </div>

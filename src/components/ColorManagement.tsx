@@ -153,9 +153,12 @@ export const ColorManagement: React.FC = () => {
       for (const update of updates) {
         const { error } = await supabase
           .from('shared_settings')
-          .upsert(update);
+          .upsert(update, { onConflict: 'setting_key' });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error saving color setting:', error);
+          throw error;
+        }
       }
 
       // Reload colors to ensure consistency
@@ -169,7 +172,7 @@ export const ColorManagement: React.FC = () => {
       console.error('Error saving colors:', error);
       toast({
         title: "Error",
-        description: "Failed to save brand colors",
+        description: `Failed to save brand colors: ${error.message}`,
         variant: "destructive",
       });
     }

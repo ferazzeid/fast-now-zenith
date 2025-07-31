@@ -106,7 +106,7 @@ export const OpenAIApiStats: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Central OpenAI API Statistics</CardTitle>
+          <CardTitle>OpenAI API Statistics</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <LoadingSpinner />
@@ -118,64 +118,56 @@ export const OpenAIApiStats: React.FC = () => {
   return (
     <Card className="border-l-4 border-l-blue-500">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          Central OpenAI API Statistics
+          OpenAI API Statistics
         </CardTitle>
-        <CardDescription>
-          Usage and cost metrics for the shared OpenAI API serving all users (last 30 days)
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Left Column */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Total Requests</span>
-              <span className="text-lg font-bold text-primary">{stats.totalRequests.toLocaleString()}</span>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Total Requests</span>
+              <span className="text-sm font-semibold text-foreground">{stats.totalRequests.toLocaleString()}</span>
             </div>
             
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Requests Today</span>
-              <span className="text-lg font-bold text-green-600">{stats.requestsToday.toLocaleString()}</span>
+            <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Requests Today</span>
+              <span className="text-sm font-semibold text-foreground">{stats.requestsToday.toLocaleString()}</span>
             </div>
             
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Daily Average</span>
-              <span className="text-lg font-bold text-blue-600">{stats.averageRequestsPerDay.toLocaleString()}</span>
+            <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Daily Average</span>
+              <span className="text-sm font-semibold text-foreground">{stats.averageRequestsPerDay.toLocaleString()}</span>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Total Cost</span>
-              <span className="text-lg font-bold text-red-600">${stats.totalCost.toFixed(2)}</span>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Total Cost</span>
+              <span className="text-sm font-semibold text-foreground">${stats.totalCost.toFixed(2)}</span>
             </div>
             
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Today's Cost</span>
-              <span className="text-lg font-bold text-orange-600">${stats.costToday.toFixed(2)}</span>
+            <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Today's Cost</span>
+              <span className="text-sm font-semibold text-foreground">${stats.costToday.toFixed(2)}</span>
             </div>
             
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Success Rate</span>
-              <span className="text-lg font-bold text-green-600">{stats.successRate}%</span>
+            <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Success Rate</span>
+              <span className="text-sm font-semibold text-foreground">{stats.successRate}%</span>
             </div>
           </div>
         </div>
 
         {/* Most Used Model */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+        <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-foreground">Most Used Model</span>
-            <span className="text-lg font-bold text-primary">{stats.mostUsedModel}</span>
+            <span className="text-xs font-medium text-foreground">Most Used Model</span>
+            <span className="text-sm font-semibold text-foreground">{stats.mostUsedModel}</span>
           </div>
-        </div>
-
-        {/* Footer Info */}
-        <div className="mt-4 text-xs text-muted-foreground text-center">
-          Statistics based on AI usage logs from the last 30 days
         </div>
       </CardContent>
     </Card>
