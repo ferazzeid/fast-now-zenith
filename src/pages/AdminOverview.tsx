@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AdminTierStats } from "@/components/AdminTierStats";
 import { ColorManagement } from "@/components/ColorManagement";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
+import { UserRequestLimits } from "@/components/UserRequestLimits";
 
 interface User {
   user_id: string;
@@ -170,7 +171,10 @@ const AdminOverview = () => {
       
       {/* Most Important Metric - User Tiers Overview */}
       <AdminTierStats />
-
+      
+      {/* User Request Limits */}
+      <UserRequestLimits />
+      
       {/* API Configuration - Full Width Cards */}
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-foreground">API Configuration</h2>
