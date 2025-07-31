@@ -55,8 +55,18 @@ export const CancellationTracker = () => {
   }
 
   const cancellationMetrics = [
-    { label: 'Cancellations Today', value: data.cancellationsToday },
-    { label: 'Cancellations This Month', value: data.cancellationsThisMonth }
+    { 
+      title: 'Cancellations Today',
+      items: [
+        { label: 'Count', value: data.cancellationsToday }
+      ]
+    },
+    { 
+      title: 'Cancellations This Month',
+      items: [
+        { label: 'Count', value: data.cancellationsThisMonth }
+      ]
+    }
   ];
 
   return (
@@ -71,10 +81,15 @@ export const CancellationTracker = () => {
           {cancellationMetrics.map((metric, index) => (
             <div key={index} className="space-y-3">
               <h4 className="text-sm font-medium text-foreground mb-3 text-center">
-                {metric.label}
+                {metric.title}
               </h4>
-              <div className="flex justify-center items-center p-4 bg-muted/50 rounded-lg">
-                <span className="text-2xl font-bold text-foreground">{metric.value}</span>
+              <div className="space-y-2">
+                {metric.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                    <span className="text-xs text-muted-foreground">{item.label}</span>
+                    <span className="text-sm font-semibold text-foreground">{item.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

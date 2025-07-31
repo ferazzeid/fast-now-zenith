@@ -89,12 +89,42 @@ export const SimpleAnalyticsWidget = () => {
   }
 
   const analyticsMetrics = [
-    { label: 'Active Users Now', value: data.activeUsers },
-    { label: 'Users Today', value: data.todayUsers },
-    { label: 'Users Yesterday', value: data.yesterdayUsers },
-    { label: 'Active Fasting', value: data.activeFastingSessions },
-    { label: 'Active Walking', value: data.activeWalkingSessions },
-    { label: 'AI Requests Today', value: data.aiRequestsToday }
+    { 
+      title: 'Active Users Now',
+      items: [
+        { label: 'Count', value: data.activeUsers }
+      ]
+    },
+    { 
+      title: 'Users Today',
+      items: [
+        { label: 'Count', value: data.todayUsers }
+      ]
+    },
+    { 
+      title: 'Users Yesterday',
+      items: [
+        { label: 'Count', value: data.yesterdayUsers }
+      ]
+    },
+    { 
+      title: 'Active Fasting',
+      items: [
+        { label: 'Sessions', value: data.activeFastingSessions }
+      ]
+    },
+    { 
+      title: 'Active Walking',
+      items: [
+        { label: 'Sessions', value: data.activeWalkingSessions }
+      ]
+    },
+    { 
+      title: 'AI Requests Today',
+      items: [
+        { label: 'Count', value: data.aiRequestsToday }
+      ]
+    }
   ];
 
   return (
@@ -105,14 +135,19 @@ export const SimpleAnalyticsWidget = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
           {analyticsMetrics.map((metric, index) => (
             <div key={index} className="space-y-3">
               <h4 className="text-sm font-medium text-foreground mb-3 text-center">
-                {metric.label}
+                {metric.title}
               </h4>
-              <div className="flex justify-center items-center p-4 bg-muted/50 rounded-lg">
-                <span className="text-2xl font-bold text-foreground">{metric.value}</span>
+              <div className="space-y-2">
+                {metric.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                    <span className="text-xs text-muted-foreground">{item.label}</span>
+                    <span className="text-sm font-semibold text-foreground">{item.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
