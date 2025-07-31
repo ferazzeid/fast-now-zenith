@@ -21,22 +21,33 @@ export const UserRequestLimits: React.FC = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['paid_user_request_limit', 'granted_user_request_limit']);
+        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
 
       if (error) {
         console.error('Error loading request limits:', error);
+        // Set defaults if no data exists
+        setPaidUserLimit('1000');
+        setGrantedUserLimit('15');
         return;
       }
 
+      // Set defaults first
+      setPaidUserLimit('1000');
+      setGrantedUserLimit('15');
+
+      // Then override with database values if they exist
       data?.forEach(setting => {
-        if (setting.setting_key === 'paid_user_request_limit') {
-          setPaidUserLimit(setting.setting_value || '');
-        } else if (setting.setting_key === 'granted_user_request_limit') {
-          setGrantedUserLimit(setting.setting_value || '');
+        if (setting.setting_key === 'monthly_request_limit') {
+          setPaidUserLimit(setting.setting_value || '1000');
+        } else if (setting.setting_key === 'free_request_limit') {
+          setGrantedUserLimit(setting.setting_value || '15');
         }
       });
     } catch (error) {
       console.error('Error loading request limits:', error);
+      // Set defaults on error
+      setPaidUserLimit('1000');
+      setGrantedUserLimit('15');
     } finally {
       setLoading(false);
     }
@@ -46,11 +57,11 @@ export const UserRequestLimits: React.FC = () => {
     try {
       const updates = [
         {
-          setting_key: 'paid_user_request_limit',
+          setting_key: 'monthly_request_limit',
           setting_value: paidUserLimit
         },
         {
-          setting_key: 'granted_user_request_limit',
+          setting_key: 'free_request_limit',
           setting_value: grantedUserLimit
         }
       ];
