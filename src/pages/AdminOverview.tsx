@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AdminTierStats } from "@/components/AdminTierStats";
+import { RealApiUsageStats } from "@/components/RealApiUsageStats";
+import { ColorManagement } from "@/components/ColorManagement";
 
 interface User {
   user_id: string;
@@ -28,7 +29,6 @@ interface UsageStats {
 
 const AdminOverview = () => {
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
   const [usageStats, setUsageStats] = useState<UsageStats>({
     total_users: 0,
     active_users: 0,
@@ -47,16 +47,14 @@ const AdminOverview = () => {
     try {
       setLoading(true);
       
-      // Fetch users from profiles table
+      // Fetch users from profiles table for stats only
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, is_paid_user, monthly_ai_requests, created_at, subscription_status, user_tier')
+        .select('user_id, is_paid_user, monthly_ai_requests, created_at')
         .order('created_at', { ascending: false });
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
-      } else {
-        setUsers(usersData || []);
       }
 
       // Fetch shared settings
@@ -163,127 +161,128 @@ const AdminOverview = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Admin Overview</h1>
+    <div className="container mx-auto p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          Admin Dashboard
+        </h1>
+      </div>
       
-      {/* Usage Statistics */}
+      {/* Usage Statistics - Improved Typography */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+        <Card className="border-l-4 border-l-primary">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{usageStats.total_users}</div>
+            <div className="text-3xl font-bold text-primary">{usageStats.total_users}</div>
+            <p className="text-xs text-muted-foreground">All registered users</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users (7d)</CardTitle>
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active (7d)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{usageStats.active_users}</div>
+            <div className="text-3xl font-bold text-green-600">{usageStats.active_users}</div>
+            <p className="text-xs text-muted-foreground">Active in last week</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid Users</CardTitle>
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Paid Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{usageStats.paid_users}</div>
+            <div className="text-3xl font-bold text-yellow-600">{usageStats.paid_users}</div>
+            <p className="text-xs text-muted-foreground">Subscribed users</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Requests</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{usageStats.total_requests}</div>
+            <div className="text-3xl font-bold text-purple-600">{usageStats.total_requests}</div>
+            <p className="text-xs text-muted-foreground">AI requests this month</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tier Statistics */}
-      <AdminTierStats />
+      {/* Additional Statistics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AdminTierStats />
+        <RealApiUsageStats />
+      </div>
 
-      {/* API Keys */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* API Configuration - Full Width Cards */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold text-foreground">API Configuration</h2>
+        
         <Card>
           <CardHeader>
-            <CardTitle>OpenAI API Key</CardTitle>
-            <CardDescription>Configure the shared OpenAI API key</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              OpenAI API Key
+            </CardTitle>
+            <CardDescription>
+              Configure the shared OpenAI API key used for AI-powered features across the platform
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="apiKey">API Key</Label>
+              <Label htmlFor="apiKey" className="text-sm font-medium">API Key</Label>
               <Input
                 id="apiKey"
                 type="password"
                 value={sharedApiKey}
                 onChange={(e) => setSharedApiKey(e.target.value)}
-                placeholder="Enter OpenAI API key"
+                placeholder="sk-..."
+                className="font-mono text-sm"
               />
             </div>
-            <Button onClick={saveApiKey}>Save API Key</Button>
+            <Button onClick={saveApiKey} className="w-full sm:w-auto">
+              Save OpenAI API Key
+            </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Stripe API Key</CardTitle>
-            <CardDescription>Configure the Stripe API key</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Stripe API Key
+            </CardTitle>
+            <CardDescription>
+              Configure the Stripe API key for payment processing and subscription management
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="stripeKey">Stripe Key</Label>
+              <Label htmlFor="stripeKey" className="text-sm font-medium">Secret Key</Label>
               <Input
                 id="stripeKey"
                 type="password"
                 value={stripeApiKey}
                 onChange={(e) => setStripeApiKey(e.target.value)}
-                placeholder="Enter Stripe API key"
+                placeholder="sk_..."
+                className="font-mono text-sm"
               />
             </div>
-            <Button onClick={saveStripeApiKey}>Save Stripe Key</Button>
+            <Button onClick={saveStripeApiKey} className="w-full sm:w-auto">
+              Save Stripe API Key
+            </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* User Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>Overview of all users</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-border">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left p-2 border-r border-border">Display Name</th>
-                  <th className="text-left p-2 border-r border-border">User Tier</th>
-                  <th className="text-left p-2 border-r border-border">Subscription</th>
-                  <th className="text-left p-2 border-r border-border">Monthly Requests</th>
-                  <th className="text-left p-2">Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.user_id} className="border-b border-border">
-                    <td className="p-2 border-r border-border">{user.display_name || 'N/A'}</td>
-                    <td className="p-2 border-r border-border">{user.user_tier || 'N/A'}</td>
-                    <td className="p-2 border-r border-border">{user.subscription_status || 'free'}</td>
-                    <td className="p-2 border-r border-border">{user.monthly_ai_requests || 0}</td>
-                    <td className="p-2">{new Date(user.created_at).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Color Management */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>
+        <ColorManagement />
+      </div>
     </div>
   );
 };

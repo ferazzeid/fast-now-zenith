@@ -1,0 +1,280 @@
+import React, { useState, useEffect } from 'react';
+import { HexColorPicker } from 'react-colorful';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useColorTheme } from "@/hooks/useColorTheme";
+
+interface ColorValues {
+  primary: string;
+  primaryHover: string;
+  accent: string;
+}
+
+export const ColorManagement: React.FC = () => {
+  const [colors, setColors] = useState<ColorValues>({
+    primary: '#3b82f6',
+    primaryHover: '#2563eb',
+    accent: '#8b5cf6'
+  });
+  
+  const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { loadColors } = useColorTheme();
+
+  useEffect(() => {
+    loadCurrentColors();
+  }, []);
+
+  const loadCurrentColors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color']);
+
+      if (error) {
+        console.error('Error loading colors:', error);
+        return;
+      }
+
+      const newColors = { ...colors };
+      data?.forEach(setting => {
+        if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+          newColors.primary = hslToHex(setting.setting_value);
+        } else if (setting.setting_key === 'brand_primary_hover' && setting.setting_value) {
+          newColors.primaryHover = hslToHex(setting.setting_value);
+        } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+          newColors.accent = hslToHex(setting.setting_value);
+        }
+      });
+      setColors(newColors);
+    } catch (error) {
+      console.error('Error loading current colors:', error);
+    }
+  };
+
+  const hslToHex = (hsl: string): string => {
+    // Parse HSL string like "220 35% 45%" to hex
+    const [h, s, l] = hsl.split(' ').map((val, index) => {
+      if (index === 0) return parseInt(val);
+      return parseInt(val.replace('%', ''));
+    });
+
+    const c = (1 - Math.abs(2 * l / 100 - 1)) * s / 100;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l / 100 - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (0 <= h && h < 60) {
+      r = c; g = x; b = 0;
+    } else if (60 <= h && h < 120) {
+      r = x; g = c; b = 0;
+    } else if (120 <= h && h < 180) {
+      r = 0; g = c; b = x;
+    } else if (180 <= h && h < 240) {
+      r = 0; g = x; b = c;
+    } else if (240 <= h && h < 300) {
+      r = x; g = 0; b = c;
+    } else if (300 <= h && h < 360) {
+      r = c; g = 0; b = x;
+    }
+    
+    r = Math.round((r + m) * 255);
+    g = Math.round((g + m) * 255);
+    b = Math.round((b + m) * 255);
+    
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  };
+
+  const hexToHsl = (hex: string): string => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return '220 35% 45%';
+
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  };
+
+  const handleColorChange = (colorType: keyof ColorValues, newColor: string) => {
+    setColors(prev => ({ ...prev, [colorType]: newColor }));
+    
+    // Apply color immediately for live preview
+    const root = document.documentElement;
+    const hslValue = hexToHsl(newColor);
+    
+    if (colorType === 'primary') {
+      root.style.setProperty('--primary', hslValue);
+      root.style.setProperty('--ring', hslValue);
+    } else if (colorType === 'primaryHover') {
+      root.style.setProperty('--secondary', hslValue);
+    } else if (colorType === 'accent') {
+      root.style.setProperty('--accent', hslValue);
+    }
+  };
+
+  const saveColors = async () => {
+    try {
+      const updates = [
+        {
+          setting_key: 'brand_primary_color',
+          setting_value: hexToHsl(colors.primary)
+        },
+        {
+          setting_key: 'brand_primary_hover',
+          setting_value: hexToHsl(colors.primaryHover)
+        },
+        {
+          setting_key: 'brand_accent_color',
+          setting_value: hexToHsl(colors.accent)
+        }
+      ];
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('shared_settings')
+          .upsert(update);
+
+        if (error) throw error;
+      }
+
+      // Reload colors to ensure consistency
+      await loadColors();
+      
+      toast({
+        title: "Success",
+        description: "Brand colors saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving colors:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save brand colors",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetToDefaults = () => {
+    const defaultColors = {
+      primary: '#3b82f6',
+      primaryHover: '#2563eb',
+      accent: '#8b5cf6'
+    };
+    
+    setColors(defaultColors);
+    
+    // Apply defaults immediately
+    const root = document.documentElement;
+    root.style.setProperty('--primary', hexToHsl(defaultColors.primary));
+    root.style.setProperty('--ring', hexToHsl(defaultColors.primary));
+    root.style.setProperty('--secondary', hexToHsl(defaultColors.primaryHover));
+    root.style.setProperty('--accent', hexToHsl(defaultColors.accent));
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Brand Colors</CardTitle>
+        <CardDescription>
+          Customize your app's brand colors. Changes apply instantly as a preview.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Color Pickers Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Primary Color */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Primary Color</Label>
+            <div 
+              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+              style={{ backgroundColor: colors.primary }}
+              onClick={() => setActiveColorPicker(activeColorPicker === 'primary' ? null : 'primary')}
+            />
+            <p className="text-xs text-muted-foreground">Used for buttons, links, and accents</p>
+            {activeColorPicker === 'primary' && (
+              <div className="mt-3">
+                <HexColorPicker 
+                  color={colors.primary} 
+                  onChange={(color) => handleColorChange('primary', color)}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Primary Hover Color */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Primary Hover</Label>
+            <div 
+              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+              style={{ backgroundColor: colors.primaryHover }}
+              onClick={() => setActiveColorPicker(activeColorPicker === 'primaryHover' ? null : 'primaryHover')}
+            />
+            <p className="text-xs text-muted-foreground">Used for button hover states</p>
+            {activeColorPicker === 'primaryHover' && (
+              <div className="mt-3">
+                <HexColorPicker 
+                  color={colors.primaryHover} 
+                  onChange={(color) => handleColorChange('primaryHover', color)}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Accent Color */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Accent Color</Label>
+            <div 
+              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+              style={{ backgroundColor: colors.accent }}
+              onClick={() => setActiveColorPicker(activeColorPicker === 'accent' ? null : 'accent')}
+            />
+            <p className="text-xs text-muted-foreground">Used for highlights and special elements</p>
+            {activeColorPicker === 'accent' && (
+              <div className="mt-3">
+                <HexColorPicker 
+                  color={colors.accent} 
+                  onChange={(color) => handleColorChange('accent', color)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4 border-t">
+          <Button onClick={saveColors} className="flex-1">
+            Save Colors
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={resetToDefaults}
+            className="flex-1"
+          >
+            Reset to Defaults
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
