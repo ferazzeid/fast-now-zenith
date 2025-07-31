@@ -29,9 +29,16 @@ export const Navigation = () => {
     return () => clearInterval(interval);
   }, [isAnimationsSuspended]);
 
-  // Load active session on mount
+  // Load active session on mount and refresh more frequently for better responsiveness
   useEffect(() => {
     loadActiveSession();
+    
+    // Set up interval to refresh fasting session more frequently when needed
+    const interval = setInterval(() => {
+      loadActiveSession();
+    }, 2000); // Check every 2 seconds for faster badge updates
+    
+    return () => clearInterval(interval);
   }, [loadActiveSession]);
 
   // Calculate fasting duration and status for badge - UPDATED FOR REAL-TIME

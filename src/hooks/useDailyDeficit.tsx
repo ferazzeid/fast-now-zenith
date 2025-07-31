@@ -164,12 +164,12 @@ export const useDailyDeficit = () => {
     }
   }, [profile, todayTotals, calculateCompletedWalkingCaloriesForDay, manualCalorieTotal, walkingStats]);
 
-  // Calculate deficit when relevant data changes
+  // Calculate deficit when relevant data changes - enhanced to detect walking session changes
   useEffect(() => {
     if (profile && user) {
       calculateDeficit();
     }
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, manualCalorieTotal, walkingStats.realTimeCalories, calculateDeficit]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayTotals.calories, manualCalorieTotal, walkingStats.realTimeCalories, walkingStats.isActive, walkingStats.currentSessionId, calculateDeficit]);
 
   // Recalculate every 30 seconds when walking is active
   useEffect(() => {
@@ -183,8 +183,17 @@ export const useDailyDeficit = () => {
   }, [walkingStats.isActive, walkingStats.isPaused, calculateDeficit]);
 
   const refreshDeficit = useCallback(async () => {
+    // Force refresh by invalidating any cached data
     await calculateDeficit();
   }, [calculateDeficit]);
+
+  // Additional effect to trigger refresh when walking sessions end or are deleted
+  useEffect(() => {
+    if (!walkingStats.isActive && walkingStats.currentSessionId === null) {
+      // Walking session just ended or was deleted - refresh to clear old data
+      setTimeout(() => calculateDeficit(), 1000); // Small delay to ensure database is updated
+    }
+  }, [walkingStats.isActive, walkingStats.currentSessionId, calculateDeficit]);
 
   return {
     deficitData,
