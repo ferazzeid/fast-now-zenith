@@ -11,7 +11,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Clean any existing build artifacts and build fresh
+RUN rm -rf dist
 RUN npm run build
 
 # Production stage with nginx
