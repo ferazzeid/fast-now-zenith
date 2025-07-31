@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
+import { CustomMotivatorsImport } from '@/components/CustomMotivatorsImport';
 
 const Motivators = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Motivators = () => {
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
   const [showGoalIdeas, setShowGoalIdeas] = useState(false);
+  const [showCustomImport, setShowCustomImport] = useState(false);
   const [aiChatContext, setAiChatContext] = useState('');
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
@@ -209,21 +211,37 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             </Tooltip>
           </div>
 
-          {/* Goal Ideas Library Button */}
-          <div className="mb-6">
+          {/* Custom Collection and Goal Ideas Buttons */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCustomImport(true)}
+                  className="h-12 flex items-center justify-center border-2 border-dashed border-primary/30 hover:border-primary/50 bg-background/50"
+                >
+                  <Sparkles className="w-5 h-5 mr-2 text-primary" />
+                  <span className="text-primary font-medium">Custom Collection</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Import professionally designed motivators</p>
+              </TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
                   onClick={() => setShowGoalIdeas(!showGoalIdeas)}
-                  className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
+                  className="h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
                 >
                   <Lightbulb className="w-5 h-5 mr-2 text-muted-foreground" />
-                  <span className="text-muted-foreground font-medium">Goal Ideas Library</span>
+                  <span className="text-muted-foreground font-medium">Goal Ideas</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Browse pre-made motivational examples and templates to get inspired</p>
+                <p>Browse pre-made motivational examples and templates</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -310,6 +328,18 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                 title="Motivator Assistant"
               />
             </ComponentErrorBoundary>
+          )}
+
+          {/* Custom Motivators Import Modal */}
+          {showCustomImport && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-background rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <CustomMotivatorsImport onComplete={() => {
+                  setShowCustomImport(false);
+                  refreshMotivators();
+                }} />
+              </div>
+            </div>
           )}
           </div>
         </div>
