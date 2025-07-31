@@ -74,13 +74,13 @@ export const useWalkingSession = () => {
         .select()
         .single();
 
-      if (error) throw error;
-
+      console.log('Walking session started successfully:', data);
       setCurrentSession(data);
       setSelectedSpeed(speedMph);
       setIsPaused(false);
       
       // Force immediate refresh of the context
+      console.log('Triggering refresh after session start');
       triggerRefresh();
       
       return { data, error: null };

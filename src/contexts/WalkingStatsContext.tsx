@@ -108,6 +108,16 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         distance = distance * 1.60934; // Convert miles to km
       }
 
+      console.log('Timer update:', {
+        sessionId: currentSession.id,
+        activeElapsed,
+        activeDurationMinutes,
+        speedMph,
+        calories,
+        distance: Math.round(distance * 100) / 100,
+        isProfileComplete
+      });
+
       setWalkingStats({
         realTimeCalories: calories,
         realTimeDistance: Math.round(distance * 100) / 100,
@@ -119,11 +129,13 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     if (currentSession && !isPaused) {
+      console.log('Starting timer interval for session:', currentSession.id);
       // Update immediately
       updateStats();
       // Then set interval for regular updates
       interval = setInterval(updateStats, 1000);
     } else if (currentSession && isPaused) {
+      console.log('Session paused, keeping last values');
       // Keep last known values but mark as paused
       setWalkingStats(prev => ({
         ...prev,
@@ -132,6 +144,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         currentSessionId: currentSession.id
       }));
     } else {
+      console.log('No active session, clearing stats');
       // No active session
       setWalkingStats({
         realTimeCalories: 0,
