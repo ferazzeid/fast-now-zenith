@@ -458,6 +458,7 @@ export type Database = {
           carbs_per_100g: number
           created_at: string
           id: string
+          image_url: string | null
           is_favorite: boolean | null
           name: string
           updated_at: string
@@ -469,6 +470,7 @@ export type Database = {
           carbs_per_100g: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_favorite?: boolean | null
           name: string
           updated_at?: string
@@ -480,6 +482,7 @@ export type Database = {
           carbs_per_100g?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_favorite?: boolean | null
           name?: string
           updated_at?: string

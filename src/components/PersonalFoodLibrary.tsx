@@ -15,6 +15,7 @@ interface UserFood {
   calories_per_100g: number;
   carbs_per_100g: number;
   is_favorite: boolean;
+  image_url?: string;
   variations: any;
 }
 
@@ -183,8 +184,18 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
           {filteredFoods.map((food) => (
             <Card key={food.id} className="p-2">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                  <span className="text-lg">🍽️</span>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                  {food.image_url ? (
+                    <img 
+                      src={food.image_url} 
+                      alt={food.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-lg">🍽️</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
