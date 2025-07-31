@@ -10,6 +10,7 @@ import { AdminTierStats } from "@/components/AdminTierStats";
 import { ColorManagement } from "@/components/ColorManagement";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
+import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 
 interface User {
   user_id: string;
@@ -168,6 +169,9 @@ const AdminOverview = () => {
           Admin Dashboard
         </h1>
       </div>
+      
+      {/* Real-Time Analytics Dashboard */}
+      <SimpleAnalyticsWidget />
       
       {/* Most Important Metric - User Tiers Overview */}
       <AdminTierStats />
