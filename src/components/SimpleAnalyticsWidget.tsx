@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { Activity, Users, Clock, Footprints, Brain, TrendingUp } from "lucide-react";
 
 interface AnalyticsData {
   activeUsers: number;
@@ -81,106 +80,49 @@ export const SimpleAnalyticsWidget = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Real-Time Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="p-6">
+        <div className="flex items-center justify-center">
           <LoadingSpinner />
-        </CardContent>
+        </div>
       </Card>
     );
   }
 
-  const metrics = [
-    {
-      label: 'Active Users Now',
-      value: data.activeUsers,
-      icon: Activity,
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/10'
-    },
-    {
-      label: 'Users Today',
-      value: data.todayUsers,
-      icon: Users,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10'
-    },
-    {
-      label: 'Users Yesterday',
-      value: data.yesterdayUsers,
-      icon: Users,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10'
-    },
-    {
-      label: 'Active Fasting',
-      value: data.activeFastingSessions,
-      icon: Clock,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10'
-    },
-    {
-      label: 'Active Walking',
-      value: data.activeWalkingSessions,
-      icon: Footprints,
-      color: 'text-cyan-500',
-      bgColor: 'bg-cyan-500/10'
-    },
-    {
-      label: 'AI Requests Today',
-      value: data.aiRequestsToday,
-      icon: Brain,
-      color: 'text-pink-500',
-      bgColor: 'bg-pink-500/10'
-    }
+  const analyticsMetrics = [
+    { label: 'Active Users Now', value: data.activeUsers },
+    { label: 'Users Today', value: data.todayUsers },
+    { label: 'Users Yesterday', value: data.yesterdayUsers },
+    { label: 'Active Fasting', value: data.activeFastingSessions },
+    { label: 'Active Walking', value: data.activeWalkingSessions },
+    { label: 'AI Requests Today', value: data.aiRequestsToday }
   ];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" />
+        <CardTitle className="text-lg">
           Real-Time Analytics
         </CardTitle>
-        <CardDescription>
-          Live metrics updated every 30 seconds
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {metrics.map((metric, index) => {
-            const Icon = metric.icon;
-            return (
-              <div
-                key={index}
-                className="flex items-center space-x-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-              >
-                <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                  <Icon className={`w-4 h-4 ${metric.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {metric.value}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {metric.label}
-                  </p>
-                </div>
+          {analyticsMetrics.map((metric, index) => (
+            <div key={index} className="space-y-3">
+              <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+                {metric.label}
+              </h4>
+              <div className="flex justify-center items-center p-4 bg-muted/50 rounded-lg">
+                <span className="text-2xl font-bold text-foreground">{metric.value}</span>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
         
         {/* Simple trend indicator */}
-        <div className="mt-4 pt-4 border-t">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Trend vs Yesterday</span>
-            <span className={data.todayUsers > data.yesterdayUsers ? 'text-green-500' : 'text-red-500'}>
+        <div className="mt-6 pt-4 border-t">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Trend vs Yesterday</span>
+            <span className={data.todayUsers > data.yesterdayUsers ? 'text-green-500 font-medium' : 'text-red-500 font-medium'}>
               {data.todayUsers > data.yesterdayUsers ? '↗' : '↘'} 
               {Math.abs(((data.todayUsers - data.yesterdayUsers) / data.yesterdayUsers * 100) || 0).toFixed(1)}%
             </span>

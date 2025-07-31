@@ -11,6 +11,7 @@ import { ColorManagement } from "@/components/ColorManagement";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
+import { CancellationTracker } from "@/components/CancellationTracker";
 
 interface User {
   user_id: string;
@@ -172,6 +173,9 @@ const AdminOverview = () => {
       
       {/* Real-Time Analytics Dashboard */}
       <SimpleAnalyticsWidget />
+      
+      {/* Cancellation Tracking */}
+      <CancellationTracker />
       
       {/* Most Important Metric - User Tiers Overview */}
       <AdminTierStats />
