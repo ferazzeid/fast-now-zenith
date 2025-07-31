@@ -8,6 +8,7 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
+import { DeficitAnalysisButton } from '@/components/DeficitAnalysisButton';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
@@ -220,13 +221,18 @@ export const DailyStatsPanel = memo(() => {
                    </Card>
                   )}
 
-                 {/* Goal Metrics */}
-                 <GoalMetrics />
+                  {/* Goal Metrics */}
+                  <GoalMetrics />
 
-                 {/* Manual Calorie Burn Addition */}
-                <div className="mt-4">
-                  <ManualCalorieModal onCalorieAdded={refreshDeficit} />
-                </div>
+                  {/* AI Analysis */}
+                  <div className="mt-4">
+                    <DeficitAnalysisButton />
+                  </div>
+
+                  {/* Manual Calorie Burn Addition */}
+                 <div className="mt-4">
+                   <ManualCalorieModal onCalorieAdded={refreshDeficit} />
+                 </div>
               </div>
             </div>
           </>
