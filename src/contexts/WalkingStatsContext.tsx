@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
+import { useStepEstimation } from '@/utils/stepEstimation';
 
 interface WalkingStats {
   realTimeCalories: number;
   realTimeDistance: number;
+  realTimeSteps: number;
   timeElapsed: number;
   isActive: boolean;
   isPaused: boolean;
@@ -21,6 +23,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [walkingStats, setWalkingStats] = useState<WalkingStats>({
     realTimeCalories: 0,
     realTimeDistance: 0,
+    realTimeSteps: 0,
     timeElapsed: 0,
     isActive: false,
     isPaused: false,
@@ -29,6 +32,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
   const { profile } = useProfile();
+  const { estimateStepsForSession } = useStepEstimation();
 
   // Memoize profile checks to prevent re-renders
   const isProfileComplete = useMemo(() => {
@@ -64,6 +68,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setWalkingStats({
         realTimeCalories: 0,
         realTimeDistance: 0,
+        realTimeSteps: 0,
         timeElapsed: 0,
         isActive: false,
         isPaused: false,
@@ -77,6 +82,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setWalkingStats({
           realTimeCalories: 0,
           realTimeDistance: 0,
+          realTimeSteps: 0,
           timeElapsed: 0,
           isActive: false,
           isPaused: false,
@@ -108,11 +114,13 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         distance = distance * 1.60934; // Convert miles to km
       }
 
-      // Remove frequent console logging for performance
+      // Calculate estimated steps
+      const estimatedSteps = estimateStepsForSession(activeDurationMinutes, speedMph);
 
       setWalkingStats({
         realTimeCalories: calories,
         realTimeDistance: Math.round(distance * 100) / 100,
+        realTimeSteps: estimatedSteps,
         timeElapsed: activeElapsed,
         isActive: true,
         isPaused: false,
@@ -138,6 +146,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setWalkingStats({
         realTimeCalories: 0,
         realTimeDistance: 0,
+        realTimeSteps: 0,
         timeElapsed: 0,
         isActive: false,
         isPaused: false,
@@ -151,7 +160,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         clearInterval(interval);
       }
     };
-  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units, refreshTrigger]);
+  }, [currentSession?.id, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.speed_mph, selectedSpeed, isPaused, isProfileComplete, calculateCalories, profile?.units, estimateStepsForSession, refreshTrigger]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 
@@ -170,6 +179,7 @@ export const useWalkingStats = () => {
       walkingStats: {
         realTimeCalories: 0,
         realTimeDistance: 0,
+        realTimeSteps: 0,
         timeElapsed: 0,
         isActive: false,
         isPaused: false,

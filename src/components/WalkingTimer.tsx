@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge, Info } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,6 +22,7 @@ interface WalkingTimerProps {
     speed: number;
     distance: number;
     calories: number;
+    steps?: number;
     startTime: string;
     pace?: number;
   };
@@ -246,7 +247,7 @@ export const WalkingTimer = ({
               </Card>
             </div>
 
-            {/* Calories & Session Info */}
+            {/* Calories & Steps Row */}
             <div className="grid grid-cols-2 gap-3">
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -266,20 +267,44 @@ export const WalkingTimer = ({
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-warm-text">Started</span>
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium text-warm-text">Steps</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Estimated steps based on your height, speed, and stride length</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-purple-500 animate-pulse' : isActive && !isPaused ? 'bg-purple-500' : 'bg-muted'}`} />
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
-                <div className="text-lg font-bold text-primary">
-                  {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
+                <div className="text-xl font-bold text-primary">
+                  {realTimeStats.steps?.toLocaleString() || 0}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">steps</span>
                 </div>
-                <div className="text-xs text-muted-foreground">session start</div>
+                <div className="text-xs text-muted-foreground">estimated</div>
               </Card>
             </div>
+
+            {/* Session Info */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-warm-text">Started</span>
+                </div>
+                <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-purple-500 animate-pulse' : isActive && !isPaused ? 'bg-purple-500' : 'bg-muted'}`} />
+              </div>
+              <div className="text-lg font-bold text-primary">
+                {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </div>
+              <div className="text-xs text-muted-foreground">session start</div>
+            </Card>
           </div>
         )}
 
