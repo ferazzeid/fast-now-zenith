@@ -14,6 +14,7 @@ import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [localTimeElapsed, setLocalTimeElapsed] = useState(0);
   const { toast } = useToast();
   const { 
     currentSession, 
@@ -32,6 +33,34 @@ const Walking = () => {
 
   const isRunning = !!currentSession;
 
+  // Local timer logic - similar to fasting timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (currentSession && !isPaused) {
+      const updateLocalTime = () => {
+        const now = Date.now();
+        const startTime = new Date(currentSession.start_time).getTime();
+        const pausedDuration = currentSession.total_pause_duration || 0;
+        const elapsed = Math.floor((now - startTime - pausedDuration) / 1000);
+        setLocalTimeElapsed(Math.max(0, elapsed));
+      };
+
+      // Update immediately
+      updateLocalTime();
+      // Then set interval
+      interval = setInterval(updateLocalTime, 1000);
+    } else if (!currentSession) {
+      // Reset when no session
+      setLocalTimeElapsed(0);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [currentSession, isPaused]);
 
   // Stats are now managed by WalkingStatsContext
 
@@ -156,7 +185,7 @@ const Walking = () => {
             {/* Timer Display */}
             <div className="relative mb-8">
               <WalkingTimer
-                displayTime={formatTime(walkingStats.timeElapsed)}
+                displayTime={formatTime(localTimeElapsed)}
                 isActive={!!currentSession}
                 isPaused={isPaused}
                 onStart={handleStart}
@@ -199,7 +228,7 @@ const Walking = () => {
           open={showStopConfirm}
           onOpenChange={setShowStopConfirm}
           onConfirm={handleStopConfirm}
-          currentDuration={formatTime(walkingStats.timeElapsed)}
+          currentDuration={formatTime(localTimeElapsed)}
           calories={walkingStats.realTimeCalories}
           distance={walkingStats.realTimeDistance}
           units={profile?.units || 'imperial'}
