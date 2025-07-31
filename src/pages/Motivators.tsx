@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Edit, Trash2, Image, Sparkles, Mic, Lightbulb } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Plus, Sparkles, Mic, Lightbulb } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
@@ -10,9 +10,10 @@ import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
 import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
+import { MotivatorSkeleton } from '@/components/LoadingStates';
 
 const Motivators = () => {
   const navigate = useNavigate();
@@ -243,16 +244,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           {loading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <div className="flex">
-                    <div className="w-24 h-24 bg-muted animate-pulse flex-shrink-0" />
-                    <div className="flex-1 p-4 space-y-2">
-                      <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                      <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-                      <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
-                    </div>
-                  </div>
-                </Card>
+                <MotivatorSkeleton key={i} />
               ))}
             </div>
           ) : motivators.length === 0 ? (
@@ -276,94 +268,30 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           ) : (
             <div className="space-y-4">
               {motivators.map((motivator) => (
-                <Card key={motivator.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                     <div className="flex">
-                       {/* Image - fixed square dimensions */}
-                       <div className="w-24 h-24 bg-muted flex items-center justify-center flex-shrink-0">
-                         {motivator.imageUrl ? (
-                           <img 
-                             src={motivator.imageUrl} 
-                             alt={motivator.title}
-                             className="w-full h-full object-cover"
-                           />
-                         ) : (
-                           <Image className="w-10 h-10 text-muted-foreground" />
-                         )}
-                       </div>
-                      
-                      {/* Content */}
-                      <div className="flex-1 p-4 pr-2">
-                        <div className="flex items-start justify-between h-full">
-                          <div className="flex-1 space-y-1">
-                            <h3 className="font-semibold text-warm-text line-clamp-1">
-                              {motivator.title}
-                            </h3>
-                            {motivator.content && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {motivator.content}
-                              </p>
-                            )}
-                            {motivator.category && (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                                  {motivator.category}
-                                </Badge>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Actions - combined in single column */}
-                          <div className="flex flex-col gap-1 ml-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleEditMotivator(motivator)}
-                                  className="p-1 h-6 w-6"
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Edit this motivator</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            <AlertDialog>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="ghost" className="p-1 h-6 w-6">
-                                      <Trash2 className="w-3 h-3" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete this motivator</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteMotivator(motivator.id)}>
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <AlertDialog key={motivator.id}>
+                  <ExpandableMotivatorCard
+                    motivator={motivator}
+                    onEdit={() => handleEditMotivator(motivator)}
+                    onDelete={() => {}}
+                  />
+                  <AlertDialogTrigger asChild>
+                    <div style={{ display: 'none' }} />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDeleteMotivator(motivator.id)}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ))}
             </div>
           )}

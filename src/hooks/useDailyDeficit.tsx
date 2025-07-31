@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
@@ -73,6 +73,31 @@ export const useDailyDeficit = () => {
   }, [user, profile?.weight]);
 
 
+  // Memoize expensive calculations
+  const { weightKg, heightCm } = useMemo(() => {
+    if (!profile?.weight || !profile?.height) return { weightKg: 0, heightCm: 0 };
+    
+    if (profile.units === 'metric') {
+      return { weightKg: profile.weight, heightCm: profile.height };
+    } else {
+      return {
+        weightKg: profile.weight * 0.453592, // Convert lbs to kg
+        heightCm: profile.height * 2.54 // Convert inches to cm
+      };
+    }
+  }, [profile?.weight, profile?.height, profile?.units]);
+
+  const bmrCalculation = useMemo(() => {
+    if (!profile?.weight || !profile?.height || !profile?.age) return 0;
+    return Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
+  }, [weightKg, heightCm, profile?.age]);
+
+  const tdeeCalculation = useMemo(() => {
+    if (!bmrCalculation || !profile?.activity_level) return 0;
+    const multiplier = ACTIVITY_MULTIPLIERS[profile.activity_level as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
+    return Math.round(bmrCalculation * multiplier);
+  }, [bmrCalculation, profile?.activity_level]);
+
   const calculateDeficit = useCallback(async () => {
     if (!profile?.weight || !profile?.height || !profile?.age) {
       setDeficitData(prev => ({ 
@@ -95,24 +120,9 @@ export const useDailyDeficit = () => {
     }
     
     try {
-      // Calculate BMR using Mifflin-St Jeor equation
-      let weightKg: number;
-      let heightCm: number;
-      
-      if (profile.units === 'metric') {
-        weightKg = profile.weight;
-        heightCm = profile.height;
-      } else {
-        weightKg = profile.weight * 0.453592; // Convert lbs to kg
-        heightCm = profile.height * 2.54; // Convert inches to cm
-      }
-      
-      const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
-      
-      // Use activity level from profile
-      const activityLevel = profile.activity_level || 'sedentary';
-      const multiplier = ACTIVITY_MULTIPLIERS[activityLevel as keyof typeof ACTIVITY_MULTIPLIERS] || 1.2;
-      const tdee = Math.round(bmr * multiplier);
+      // Use memoized calculations
+      const bmr = bmrCalculation;
+      const tdee = tdeeCalculation;
       
       // Get today's data
       const caloriesConsumed = todayTotals.calories || 0;
@@ -121,14 +131,6 @@ export const useDailyDeficit = () => {
       const completedWalkingCalories = await calculateCompletedWalkingCaloriesForDay();
       const activeWalkingCalories = walkingStats.isActive ? walkingStats.realTimeCalories : 0;
       const walkingCalories = completedWalkingCalories + activeWalkingCalories;
-      
-      console.log('Walking calories calculation:', {
-        completedWalkingCalories,
-        activeWalkingCalories,
-        totalWalkingCalories: walkingCalories,
-        walkingStatsIsActive: walkingStats.isActive,
-        walkingStatsRealTimeCalories: walkingStats.realTimeCalories
-      });
       
       const manualCalories = manualCalorieTotal || 0;
       
@@ -142,7 +144,7 @@ export const useDailyDeficit = () => {
         caloriesConsumed,
         walkingCalories,
         manualCalories,
-        activityLevel
+        activityLevel: profile.activity_level || 'sedentary'
       });
       
     } catch (error) {
@@ -155,14 +157,14 @@ export const useDailyDeficit = () => {
         caloriesConsumed: todayTotals.calories || 0,
         walkingCalories: 0,
         manualCalories: manualCalorieTotal || 0,
-        activityLevel: profile.activity_level || 'sedentary'
+        activityLevel: profile?.activity_level || 'sedentary'
       };
       
       setDeficitData(fallbackData);
     } finally {
       setLoading(false);
     }
-  }, [profile, todayTotals, calculateCompletedWalkingCaloriesForDay, manualCalorieTotal, walkingStats]);
+  }, [profile, todayTotals, calculateCompletedWalkingCaloriesForDay, manualCalorieTotal, walkingStats, bmrCalculation, tdeeCalculation]);
 
   // Calculate deficit when relevant data changes - enhanced to detect walking session changes
   useEffect(() => {

@@ -242,6 +242,14 @@ const Settings = () => {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Account Type</span>
+                    <span className="text-warm-text font-medium">
+                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 
+                       subscription.subscription_tier === 'api_user' ? 'API User' : 
+                       subscription.subscription_tier === 'granted_user' ? 'Free User' : 'Free User'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Member since</span>
                     <span className="text-warm-text font-medium">
                       {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
