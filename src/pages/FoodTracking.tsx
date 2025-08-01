@@ -6,7 +6,7 @@ import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
+
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { ShoppingCart, Check } from 'lucide-react';
 import { FoodHistory } from '@/components/FoodHistory';
@@ -31,7 +31,7 @@ const FoodTracking = () => {
   const [servingSize, setServingSize] = useState('100');
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
-  const [showLibrary, setShowLibrary] = useState(false);
+  
   const [showLibraryView, setShowLibraryView] = useState(false);
   const [activeTab, setActiveTab] = useState<'shopping' | 'eaten'>('shopping');
   const [showAiChat, setShowAiChat] = useState(false);
@@ -306,7 +306,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     setCarbs(food.carbs_per_100g.toString());
     setServingSize('100');
     setConsumedNow(consumed);
-    setShowLibrary(false);
+    
     
     // If consumed is true, directly save to food entries as consumed
     // If false, show the form for editing/planning
@@ -499,17 +499,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         )}
 
-        {/* Personal Food Library */}
-        {showLibrary && (
-          <div className="mb-6 bg-card border border-border rounded-lg p-4">
-            <ComponentErrorBoundary>
-              <PersonalFoodLibrary
-                onSelectFood={handleSelectFromLibrary}
-                onClose={() => setShowLibrary(false)}
-              />
-            </ComponentErrorBoundary>
-          </div>
-        )}
 
 
         {/* Food Entry Form */}
