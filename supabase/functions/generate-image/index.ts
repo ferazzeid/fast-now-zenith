@@ -20,10 +20,11 @@ serve(async (req) => {
     console.log('Request body received:', { 
       hasPrompt: !!body.prompt, 
       hasFilename: !!body.filename,
-      hasApiKey: !!body.apiKey 
+      hasApiKey: !!body.apiKey,
+      hasBucket: !!body.bucket
     });
 
-    const { prompt, filename, apiKey } = body;
+    const { prompt, filename, apiKey, bucket = 'motivator-images' } = body;
 
     if (!prompt || !filename) {
       console.error('Missing required fields:', { prompt: !!prompt, filename: !!filename });
@@ -85,9 +86,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Upload to Supabase storage
+    // Upload to Supabase storage - use specified bucket or default to motivator-images
+    const targetBucket = bucket || 'motivator-images';
+    console.log('Uploading to bucket:', targetBucket);
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('motivator-images')
+      .from(targetBucket)
       .upload(filename, imageBlob, {
         contentType: 'image/png',
         upsert: true
@@ -103,7 +107,7 @@ serve(async (req) => {
 
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from('motivator-images')
+      .from(targetBucket)
       .getPublicUrl(filename);
 
     console.log('Image uploaded successfully:', urlData.publicUrl);

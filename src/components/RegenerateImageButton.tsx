@@ -7,6 +7,7 @@ import { generate_image } from '@/utils/imageGeneration';
 interface RegenerateImageButtonProps {
   prompt: string;
   filename: string;
+  bucket?: string;
   onImageGenerated: (imageUrl: string) => void;
   disabled?: boolean;
   className?: string;
@@ -15,6 +16,7 @@ interface RegenerateImageButtonProps {
 export const RegenerateImageButton = ({ 
   prompt, 
   filename, 
+  bucket,
   onImageGenerated, 
   disabled = false,
   className = ""
@@ -25,7 +27,7 @@ export const RegenerateImageButton = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      const newImageUrl = await generate_image(prompt, filename);
+      const newImageUrl = await generate_image(prompt, filename, bucket);
       onImageGenerated(newImageUrl);
       
       toast({

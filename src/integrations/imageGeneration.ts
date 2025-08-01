@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export const generateImage = async (prompt: string, filename: string): Promise<string> => {
+export const generateImage = async (prompt: string, filename: string, bucket?: string): Promise<string> => {
   try {
     // Get user's OpenAI API key if they use their own
     const { data: profile } = await supabase
@@ -15,7 +15,8 @@ export const generateImage = async (prompt: string, filename: string): Promise<s
       body: { 
         prompt,
         filename,
-        apiKey
+        apiKey,
+        bucket
       }
     });
 

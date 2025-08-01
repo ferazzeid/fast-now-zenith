@@ -108,7 +108,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
       const { generateImage } = await import('@/integrations/imageGeneration');
       const prompt = `A high-quality, appetizing photo of ${name.trim()}, food photography, clean background, well-lit`;
       const filename = `default-food-${Date.now()}.jpg`;
-      const newImageUrl = await generateImage(prompt, filename);
+      const newImageUrl = await generateImage(prompt, filename, 'food-images');
       console.log('Generated image URL:', newImageUrl);
       setImageUrl(newImageUrl);
       toast({
@@ -205,6 +205,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
                   <RegenerateImageButton 
                     prompt={`A high-quality, appetizing photo of ${name.trim()}, food photography, clean background, well-lit`}
                     filename={`default-food-${Date.now()}.jpg`}
+                    bucket="food-images"
                     onImageGenerated={setImageUrl}
                     disabled={isGeneratingImage}
                   />
