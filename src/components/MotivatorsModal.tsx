@@ -100,9 +100,9 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="hover:bg-ceramic-rim"
+            className="w-10 h-10 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
           >
-            <X className="w-5 h-5" />
+            <X className="w-8 h-8" />
           </Button>
         </div>
 
@@ -178,13 +178,14 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleEditMotivator(motivator)}
+                              className="p-1 h-6 w-6 hover:bg-accent hover:text-accent-foreground"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="ghost">
-                                  <Trash2 className="w-4 h-4" />
+                                <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive">
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Lightbulb, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Lightbulb, Plus, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -48,8 +48,8 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-warm-text">Goal Ideas</h3>
-        <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground">
-          ✕
+        <Button variant="ghost" size="sm" onClick={onClose} className="w-10 h-10 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
+          <X className="w-8 h-8" />
         </Button>
       </div>
 

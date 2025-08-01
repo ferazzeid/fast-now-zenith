@@ -81,7 +81,7 @@ export const ClearCacheButton = () => {
           variant="outline"
           className="w-full bg-ceramic-base border-ceramic-rim"
         >
-          <RefreshCw className="w-4 h-4 mr-2" />
+          <RefreshCw className="w-3 h-3 mr-2" />
           Clear Cache
         </Button>
       </AlertDialogTrigger>
@@ -98,12 +98,12 @@ export const ClearCacheButton = () => {
           <AlertDialogAction onClick={handleClearCache} disabled={isClearing}>
             {isClearing ? (
               <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
                 Clearing...
               </>
             ) : (
               <>
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-3 h-3 mr-2" />
                 Clear Cache
               </>
             )}
