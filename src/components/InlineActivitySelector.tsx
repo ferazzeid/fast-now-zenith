@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
 import { useProfile } from '@/hooks/useProfile';
+import { useDailyDeficit } from '@/hooks/useDailyDeficit';
 
 interface InlineActivitySelectorProps {
   currentDisplayLevel: string;
@@ -24,14 +25,21 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { todayOverride, loading, setActivityOverride, clearTodayOverride } = useDailyActivityOverride();
   const { profile } = useProfile();
+  const { refreshDeficit } = useDailyDeficit();
 
   const handleValueChange = async (value: string) => {
+    // Don't close dropdown immediately - let user see the change
     if (value === 'clear-override' && todayOverride) {
       await clearTodayOverride();
-    } else if (value !== currentDisplayLevel) {
+    } else if (value !== getCurrentValue()) {
       await setActivityOverride(value, false);
     }
-    setIsOpen(false);
+    
+    // Refresh deficit calculations after change
+    await refreshDeficit();
+    
+    // Close dropdown after a short delay to show the change
+    setTimeout(() => setIsOpen(false), 300);
   };
 
   const getCurrentValue = () => {

@@ -72,12 +72,14 @@ export const DailyStatsPanel = memo(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       
-      // Don't close if clicking inside the panel content or modal dialog
+      // Don't close if clicking inside the panel content, modal dialog, or select dropdown
       if (panelRef.current && !panelRef.current.contains(target)) {
-        // Also check if click is on modal/dialog content
+        // Also check if click is on modal/dialog content or select dropdown
         const isModalClick = target.closest('[role="dialog"]') || 
                             target.closest('.dialog-content') ||
-                            target.closest('[data-radix-portal]');
+                            target.closest('[data-radix-portal]') ||
+                            target.closest('[data-radix-popper-content-wrapper]') ||
+                            target.closest('[role="listbox"]');
         
         if (!isModalClick) {
           setIsExpanded(false);
