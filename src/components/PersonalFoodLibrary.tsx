@@ -135,8 +135,8 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-white">My Food Library</h3>
-        <Button variant="ghost" onClick={onClose} size="sm" className="h-8 w-8 p-0">
-          <X className="w-4 h-4" />
+        <Button variant="ghost" onClick={onClose} size="sm" className="h-12 w-12 p-0 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
+          <X className="w-8 h-8" />
         </Button>
       </div>
 

@@ -30,10 +30,10 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-ceramic-plate/80 hover:bg-ceramic-plate hover:scale-110 transition-all duration-200 flex-shrink-0"
+            className="w-12 h-12 rounded-full bg-ceramic-plate/80 hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 flex-shrink-0"
             title="Close onboarding"
           >
-            <X className="w-4 h-4 text-warm-text" />
+            <X className="w-8 h-8 text-warm-text" />
           </Button>
         </div>
 
