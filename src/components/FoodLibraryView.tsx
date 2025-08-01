@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
+import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,6 +38,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -46,7 +48,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       try {
         await Promise.all([
           loadUserFoods(),
-          loadDefaultFoods()
+          loadDefaultFoods(),
+          checkAdminRole()
         ]);
       } finally {
         setLoading(false);
@@ -57,6 +60,23 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       loadData();
     }
   }, [user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+      
+      if (error) throw error;
+      setIsAdmin(data || false);
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const loadUserFoods = async () => {
     if (!user) return;
@@ -161,6 +181,50 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       toast({
         title: "Error",
         description: "Failed to remove food",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
+    try {
+      const { error } = await supabase
+        .from('default_foods')
+        .update(updates)
+        .eq('id', foodId);
+
+      if (error) throw error;
+
+      setDefaultFoods(defaultFoods.map(food => 
+        food.id === foodId 
+          ? { ...food, ...updates }
+          : food
+      ));
+    } catch (error) {
+      console.error('Error updating default food:', error);
+      throw error;
+    }
+  };
+
+  const deleteDefaultFood = async (foodId: string) => {
+    try {
+      const { error } = await supabase
+        .from('default_foods')
+        .delete()
+        .eq('id', foodId);
+
+      if (error) throw error;
+
+      setDefaultFoods(defaultFoods.filter(food => food.id !== foodId));
+      toast({
+        title: "Default food removed",
+        description: "Default food has been removed from the system"
+      });
+    } catch (error) {
+      console.error('Error deleting default food:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove default food",
         variant: "destructive"
       });
     }
@@ -352,6 +416,25 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 
                 {/* Actions for Default Foods */}
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {isAdmin && (
+                    <>
+                      <EditDefaultFoodModal 
+                        food={food} 
+                        onUpdate={updateDefaultFood}
+                      />
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteDefaultFood(food.id)}
+                        className="p-1 h-6 w-6 hover:bg-destructive/10"
+                        title="Delete default food"
+                      >
+                        <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                      </Button>
+                    </>
+                  )}
+                  
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="p-1 h-6 w-6 hover:bg-primary/10" title="Add food">
