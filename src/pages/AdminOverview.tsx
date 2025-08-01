@@ -13,6 +13,7 @@ import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { CancellationTracker } from "@/components/CancellationTracker";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
+import { PromptManagement } from "@/components/PromptManagement";
 
 interface User {
   user_id: string;
@@ -303,6 +304,9 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Prompt Configuration */}
+      <PromptManagement />
 
       {/* Brand Customization */}
       <div className="space-y-6 mb-12">

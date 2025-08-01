@@ -43,25 +43,36 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
 
     setIsGeneratingImage(true);
     try {
-      // Fetch admin image generation settings
-      let stylePrompt = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.";
+      // Fetch admin prompt settings and color themes
+      let promptTemplate = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}";
+      let primaryColor = "220 35% 45%";
+      let accentColor = "262 83% 58%";
       
       try {
         const { data: settingsData } = await supabase
           .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'image_gen_style_prompt')
-          .single();
+          .select('setting_key, setting_value')
+          .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color', 'brand_accent_color']);
         
-        if (settingsData?.setting_value) {
-          stylePrompt = settingsData.setting_value;
-        }
+        settingsData?.forEach(setting => {
+          if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
+            promptTemplate = setting.setting_value;
+          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+            primaryColor = setting.setting_value;
+          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+            accentColor = setting.setting_value;
+          }
+        });
       } catch (error) {
-        console.log('Using default style prompt as fallback');
+        console.log('Using default prompt template as fallback');
       }
       
-      // Create a prompt for image generation based on the motivator and admin style
-      const prompt = `${stylePrompt}\n\nSpecific subject: ${title}. ${content}`;
+      // Replace variables in the prompt template
+      const prompt = promptTemplate
+        .replace(/{title}/g, title)
+        .replace(/{content}/g, content)
+        .replace(/{primary_color}/g, primaryColor)
+        .replace(/{accent_color}/g, accentColor);
       
       const newImageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
       setImageUrl(newImageUrl);
@@ -179,14 +190,6 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
                 )}
               </div>
 
-              {/* Loading state info */}
-              {isGeneratingImage && (
-                <div className="bg-muted/50 border border-border p-2 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Creating your motivational image<span className="animate-pulse">...</span>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -209,14 +209,6 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
                 )}
               </div>
 
-              {/* Loading state info */}
-              {generatingImage && (
-                <div className="bg-muted/50 border border-border p-2 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Creating your food image<span className="animate-pulse">...</span>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 

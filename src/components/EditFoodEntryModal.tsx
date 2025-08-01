@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FoodEntry {
   id: string;
@@ -97,7 +98,35 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
 
     setGeneratingImage(true);
     try {
-      const prompt = `A lightly cartoony and semi-realistic illustration of ${name}, food illustration style, clean background, appetizing, vibrant colors`;
+      // Fetch admin prompt settings and color themes
+      let promptTemplate = "A lightly cartoony and semi-realistic illustration of {food_name}, food illustration style, clean background, appetizing, vibrant colors. Style should match this color theme: {primary_color} primary, {accent_color} accent. Clean, professional food photography style with soft lighting.";
+      let primaryColor = "220 35% 45%";
+      let accentColor = "262 83% 58%";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
+        
+        settingsData?.forEach(setting => {
+          if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
+            promptTemplate = setting.setting_value;
+          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+            primaryColor = setting.setting_value;
+          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+            accentColor = setting.setting_value;
+          }
+        });
+      } catch (error) {
+        console.log('Using default prompt template as fallback');
+      }
+      
+      // Replace variables in the prompt template
+      const prompt = promptTemplate
+        .replace(/{food_name}/g, name)
+        .replace(/{primary_color}/g, primaryColor)
+        .replace(/{accent_color}/g, accentColor);
       const filename = `food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`;
       const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
@@ -220,13 +249,6 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
                 )}
               </div>
 
-              {generatingImage && (
-                <div className="bg-muted/50 border border-border p-2 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Creating your food image<span className="animate-pulse">...</span>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 

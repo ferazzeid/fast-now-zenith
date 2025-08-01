@@ -10,6 +10,7 @@ import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MotivatorTemplate {
   id: string;
@@ -60,7 +61,36 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
 
     setIsGeneratingImage(true);
     try {
-      const prompt = `${currentTemplate.imagePrompt}: ${currentMotivator.title} - ${currentMotivator.content}. Make it inspiring and motivational for fasting goals. Ultra high resolution.`;
+      // Fetch admin prompt settings and color themes
+      let promptTemplate = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}";
+      let primaryColor = "220 35% 45%";
+      let accentColor = "262 83% 58%";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color', 'brand_accent_color']);
+        
+        settingsData?.forEach(setting => {
+          if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
+            promptTemplate = setting.setting_value;
+          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+            primaryColor = setting.setting_value;
+          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+            accentColor = setting.setting_value;
+          }
+        });
+      } catch (error) {
+        console.log('Using default prompt template as fallback');
+      }
+      
+      // Replace variables in the prompt template
+      const prompt = promptTemplate
+        .replace(/{title}/g, currentMotivator.title)
+        .replace(/{content}/g, currentMotivator.content)
+        .replace(/{primary_color}/g, primaryColor)
+        .replace(/{accent_color}/g, accentColor);
       
       const imageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
       setCurrentMotivator(prev => ({ ...prev, imageUrl }));

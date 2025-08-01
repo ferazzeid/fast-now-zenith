@@ -276,7 +276,32 @@ const Settings = () => {
                   </div>
                 </div>
                 
-                <div className="pt-3 border-t border-ceramic-rim">
+                <div className="pt-3 border-t border-ceramic-rim space-y-3">
+                  {/* Show upgrade button for non-premium users */}
+                  {subscription.subscription_tier !== 'paid_user' && subscription.subscription_tier !== 'api_user' && (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await subscription.createSubscription();
+                          toast({
+                            title: "Redirecting to checkout",
+                            description: "Opening payment page..."
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to create subscription. Please try again.",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      Upgrade to Premium
+                    </Button>
+                  )}
+                  
                   <Button
                     onClick={() => {
                       signOut();
