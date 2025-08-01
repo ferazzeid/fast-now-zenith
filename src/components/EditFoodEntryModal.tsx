@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit, Save, X } from 'lucide-react';
+import { Edit, Save, X, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ImageUpload } from '@/components/ImageUpload';
+import { generate_image } from '@/utils/imageGeneration';
+import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 
 interface FoodEntry {
   id: string;
@@ -32,7 +35,9 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
   const [calories, setCalories] = useState(entry.calories.toString());
   const [carbs, setCarbs] = useState(entry.carbs.toString());
   const [servingSize, setServingSize] = useState(entry.serving_size.toString());
+  const [imageUrl, setImageUrl] = useState(entry.image_url || '');
   const [loading, setLoading] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -51,7 +56,8 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
         name,
         calories: parseFloat(calories),
         carbs: parseFloat(carbs),
-        serving_size: parseFloat(servingSize)
+        serving_size: parseFloat(servingSize),
+        image_url: imageUrl || null
       });
       
       toast({
@@ -76,6 +82,39 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
     setCalories(entry.calories.toString());
     setCarbs(entry.carbs.toString());
     setServingSize(entry.serving_size.toString());
+    setImageUrl(entry.image_url || '');
+  };
+
+  const handleGenerateImage = async () => {
+    if (!name) {
+      toast({
+        variant: "destructive",
+        title: "Missing food name",
+        description: "Please enter a food name before generating an image"
+      });
+      return;
+    }
+
+    setGeneratingImage(true);
+    try {
+      const prompt = `A lightly cartoony and semi-realistic illustration of ${name}, food illustration style, clean background, appetizing, vibrant colors`;
+      const filename = `food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`;
+      const generatedImageUrl = await generate_image(prompt, filename);
+      setImageUrl(generatedImageUrl);
+      
+      toast({
+        title: "Image generated",
+        description: "AI image generated successfully!"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Generation failed",
+        description: "Failed to generate image. Please try again."
+      });
+    } finally {
+      setGeneratingImage(false);
+    }
   };
 
   return (
@@ -88,7 +127,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
           <Edit className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto mx-4">
         <DialogHeader>
           <DialogTitle>Edit Food Entry</DialogTitle>
         </DialogHeader>
@@ -138,15 +177,68 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
             />
           </div>
 
+          <div className="space-y-2">
+            <Label className="text-warm-text font-medium">
+              Food Image (Optional)
+            </Label>
+            
+            <div className="space-y-3">
+              <ImageUpload
+                currentImageUrl={imageUrl}
+                onImageUpload={setImageUrl}
+                onImageRemove={() => setImageUrl('')}
+                showUploadOptionsWhenImageExists={true}
+              />
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateImage}
+                  disabled={loading || generatingImage}
+                  className="flex-1"
+                >
+                  {generatingImage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate AI Image
+                    </>
+                  )}
+                </Button>
+                
+                {imageUrl && (
+                  <RegenerateImageButton
+                    prompt={`Food photography of ${name}, appetizing, high quality, well-lit`}
+                    filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
+                    onImageGenerated={setImageUrl}
+                    disabled={loading || generatingImage}
+                  />
+                )}
+              </div>
+
+              {generatingImage && (
+                <div className="bg-muted/50 border border-border p-2 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Creating your food image<span className="animate-pulse">...</span>
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={loading} className="flex-1">
+            <Button onClick={handleSave} disabled={loading || generatingImage} className="flex-1">
               <Save className="w-4 h-4 mr-2" />
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
             <Button 
               variant="outline" 
               onClick={() => setOpen(false)}
-              disabled={loading}
+              disabled={loading || generatingImage}
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
