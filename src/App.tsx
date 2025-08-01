@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ErrorBoundary, PageErrorBoundary } from "@/components/ErrorBoundary";
+import { CriticalErrorBoundary, PageErrorBoundary } from "@/components/enhanced/ComprehensiveErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
@@ -20,7 +20,7 @@ import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
-import { ConnectionStatus } from "./components/ConnectionStatus";
+import { EnhancedConnectionStatus } from "./components/enhanced/ConnectionRecovery";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -62,7 +62,7 @@ const AppContent = () => {
       <div className="min-h-screen bg-frame-background">
         {/* Mobile-first centered container with phone-like frame */}
         <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
-          <ConnectionStatus />
+          <EnhancedConnectionStatus />
           <DailyStatsPanel />
           <Routes>
             <Route path="/auth" element={
@@ -141,8 +141,7 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <ErrorBoundary 
-    level="critical" 
+  <CriticalErrorBoundary 
     onError={(error, errorInfo) => {
       console.error('App-level error:', error, errorInfo);
       // Could send to error tracking service here
@@ -165,7 +164,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  </ErrorBoundary>
+  </CriticalErrorBoundary>
 );
 
 export default App;

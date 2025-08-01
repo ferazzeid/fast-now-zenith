@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SmartInlineLoading } from './enhanced/SmartLoadingStates';
 
 export const UserRequestLimits: React.FC = () => {
   const [paidUserLimit, setPaidUserLimit] = useState('');
@@ -98,7 +99,7 @@ export const UserRequestLimits: React.FC = () => {
           <CardTitle className="text-lg">User Request Limits</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
-          <div className="text-sm text-muted-foreground">Loading...</div>
+          <SmartInlineLoading text="Loading usage data" />
         </CardContent>
       </Card>
     );

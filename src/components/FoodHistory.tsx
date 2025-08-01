@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useCopyHistoricalDay } from '@/hooks/useCopyHistoricalDay';
 import { supabase } from '@/integrations/supabase/client';
+import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -331,13 +332,14 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
             
             {hasMore && (
               <div className="text-center pt-4">
-                <Button 
+                <SmartLoadingButton 
                   variant="outline" 
                   onClick={loadMore} 
-                  disabled={loading}
+                  isLoading={loading}
+                  loadingText="Loading more"
                 >
-                  {loading ? 'Loading...' : 'Load More'}
-                </Button>
+                  Load More
+                </SmartLoadingButton>
               </div>
             )}
           </>

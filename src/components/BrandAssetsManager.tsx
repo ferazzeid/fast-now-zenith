@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Image as ImageIcon, Smartphone } from "lucide-react";
+import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
 
 const BrandAssetsManager = () => {
   const [favicon, setFavicon] = useState<File | null>(null);
@@ -252,13 +253,15 @@ const BrandAssetsManager = () => {
             </div>
           </div>
           
-          <Button 
+          <SmartLoadingButton 
             onClick={saveFavicon} 
-            disabled={!favicon || uploading}
+            disabled={!favicon}
+            isLoading={uploading}
+            loadingText="Uploading..."
             className="w-full sm:w-auto"
           >
-            {uploading ? "Uploading..." : "Save Favicon"}
-          </Button>
+            Save Favicon
+          </SmartLoadingButton>
         </CardContent>
       </Card>
 
@@ -314,13 +317,15 @@ const BrandAssetsManager = () => {
             </div>
           </div>
           
-          <Button 
+          <SmartLoadingButton 
             onClick={saveLogo} 
-            disabled={!logo || uploading}
+            disabled={!logo}
+            isLoading={uploading}
+            loadingText="Uploading..."
             className="w-full sm:w-auto"
           >
-            {uploading ? "Uploading..." : "Save App Logo"}
-          </Button>
+            Save App Logo
+          </SmartLoadingButton>
         </CardContent>
       </Card>
     </div>

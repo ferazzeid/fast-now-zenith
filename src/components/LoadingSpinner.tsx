@@ -1,8 +1,8 @@
-import { ComponentSpinner } from './LoadingStates';
+import { EnhancedLoadingScreen, SmartInlineLoading } from './enhanced/SmartLoadingStates';
 
 export const LoadingSpinner = ({ 
   fullScreen = true, 
-  text = "Loading...",
+  text = "Loading",
   subText = "Preparing your experience" 
 }: {
   fullScreen?: boolean;

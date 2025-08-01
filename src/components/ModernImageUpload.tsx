@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SmartUploadButton } from './enhanced/SmartLoadingStates';
 
 interface ModernImageUploadProps {
   onImageUpload: (imageUrl: string) => void;
@@ -19,8 +20,7 @@ export const ModernImageUpload = ({
 }: ModernImageUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileSelect = async (file: File) => {
     if (!file) return;
 
     // Validate file size
@@ -78,17 +78,12 @@ export const ModernImageUpload = ({
             Upload an image or drag and drop
           </p>
           <label htmlFor="image-upload" className="cursor-pointer">
-            <Button type="button" variant="outline" size="sm" disabled={isUploading}>
-              <Upload className="w-4 h-4 mr-2" />
-              {isUploading ? 'Uploading...' : 'Choose Image'}
-            </Button>
-            <input
-              id="image-upload"
-              type="file"
+            <SmartUploadButton 
+              isUploading={isUploading}
+              onSelect={handleFileSelect}
               accept={accept}
-              onChange={handleFileSelect}
-              className="hidden"
-              disabled={isUploading}
+              variant="outline"
+              size="sm"
             />
           </label>
         </div>
