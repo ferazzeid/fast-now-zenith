@@ -42,14 +42,26 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
   const { toast } = useToast();
 
   useEffect(() => {
-    loadUserFoods();
-    loadDefaultFoods();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          loadUserFoods(),
+          loadDefaultFoods()
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (user) {
+      loadData();
+    }
   }, [user]);
 
   const loadUserFoods = async () => {
     if (!user) return;
     
-    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_foods')
@@ -67,22 +79,31 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
         description: "Failed to load your food library",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadDefaultFoods = async () => {
     try {
+      console.log('Loading default foods...');
       const { data, error } = await supabase
         .from('default_foods')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading default foods:', error);
+        throw error;
+      }
+      
+      console.log('Default foods loaded:', data?.length || 0, 'items');
       setDefaultFoods(data || []);
     } catch (error) {
       console.error('Error loading default foods:', error);
+      toast({
+        title: "Warning",
+        description: "Failed to load common foods",
+        variant: "destructive"
+      });
     }
   };
 
