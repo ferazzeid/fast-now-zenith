@@ -509,6 +509,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                         food={food} 
                         onUpdate={updateDefaultFood}
                       />
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteDefaultFood(food.id)}
+                        className="p-1 h-6 w-6 hover:bg-destructive/10"
+                        title="Delete default food"
+                      >
+                        <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                      </Button>
                     </>
                   )}
                   
