@@ -198,6 +198,39 @@ export const WalkingTimer = ({
           </div>
         </Card>
 
+        {/* Control Buttons - positioned right after main timer card when active */}
+        {isActive && (
+          <div className="flex gap-3">
+            <Button 
+              onClick={isPaused ? onResume : onPause}
+              variant={isPaused ? "default" : "outline"}
+              className="flex-1 h-14 text-lg font-medium"
+              size="lg"
+            >
+              {isPaused ? (
+                <>
+                  <Play className="w-6 h-6 mr-2" />
+                  Resume
+                </>
+              ) : (
+                <>
+                  <Pause className="w-6 h-6 mr-2" />
+                  Pause
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={onStop}
+              variant="secondary"
+              className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground"
+              size="lg"
+            >
+              <Square className="w-6 h-6 mr-2" />
+              Stop
+            </Button>
+          </div>
+        )}
+
         {/* Metrics Stack */}
         {realTimeStats && (
           <div className="space-y-3">
@@ -311,9 +344,9 @@ export const WalkingTimer = ({
         {/* Remove Progress Indicators for Goals section entirely */}
       </div>
 
-      {/* Control Buttons */}
-      <div className="mt-8 space-y-3">
-        {!isActive ? (
+      {/* Start Button - only shown when not active */}
+      {!isActive && (
+        <div className="mt-8">
           <Button 
             onClick={onStart}
             className="w-full h-14 text-lg font-medium"
@@ -322,38 +355,8 @@ export const WalkingTimer = ({
             <Play className="w-6 h-6 mr-2" />
             Start Walking
           </Button>
-        ) : (
-          <div className="flex gap-3">
-            <Button 
-              onClick={isPaused ? onResume : onPause}
-              variant={isPaused ? "default" : "outline"}
-              className="flex-1 h-14 text-lg font-medium"
-              size="lg"
-            >
-              {isPaused ? (
-                <>
-                  <Play className="w-6 h-6 mr-2" />
-                  Resume
-                </>
-              ) : (
-                <>
-                  <Pause className="w-6 h-6 mr-2" />
-                  Pause
-                </>
-              )}
-            </Button>
-            <Button 
-              onClick={onStop}
-              variant="secondary"
-              className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground"
-              size="lg"
-            >
-              <Square className="w-6 h-6 mr-2" />
-              Stop
-            </Button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
     </TooltipProvider>
   );
