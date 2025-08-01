@@ -51,6 +51,7 @@ export const useFoodEntries = () => {
           .eq('user_id', user.id)
           .gte('created_at', today.toISOString())
           .lt('created_at', tomorrow.toISOString())
+          .order('consumed', { ascending: true })
           .order('created_at', { ascending: false });
       });
       
