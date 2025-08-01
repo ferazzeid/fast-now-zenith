@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { RegenerateImageButton } from './RegenerateImageButton';
 import { ImageUpload } from './ImageUpload';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DefaultFood {
   id: string;
@@ -105,8 +106,38 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
     setIsGeneratingImage(true);
     try {
       console.log('Starting image generation for:', name.trim());
+      
+      // Fetch admin prompt settings and color themes
+      let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
+      let primaryColor = "220 35% 45%";
+      let accentColor = "262 83% 58%";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
+        
+        settingsData?.forEach(setting => {
+          if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
+            promptTemplate = setting.setting_value;
+          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+            primaryColor = setting.setting_value;
+          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+            accentColor = setting.setting_value;
+          }
+        });
+      } catch (error) {
+        console.log('Using default prompt template as fallback');
+      }
+      
+      // Replace variables in the prompt template
+      const prompt = promptTemplate
+        .replace(/{food_name}/g, name.trim())
+        .replace(/{primary_color}/g, primaryColor)
+        .replace(/{accent_color}/g, accentColor);
+      
       const { generateImage } = await import('@/integrations/imageGeneration');
-      const prompt = `A high-quality, appetizing photo of ${name.trim()}, food photography, clean background, well-lit`;
       const filename = `default-food-${Date.now()}.jpg`;
       const newImageUrl = await generateImage(prompt, filename, 'food-images');
       console.log('Generated image URL:', newImageUrl);

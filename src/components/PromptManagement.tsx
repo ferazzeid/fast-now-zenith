@@ -141,7 +141,7 @@ export const PromptManagement: React.FC = () => {
       
       toast({
         title: "Test Prompt Copied",
-        description: "The processed prompt has been copied to your clipboard for testing.",
+        description: "The processed prompt has been copied to your clipboard. You can paste it into any AI image generator to test how it looks.",
       });
     } catch (error) {
       toast({

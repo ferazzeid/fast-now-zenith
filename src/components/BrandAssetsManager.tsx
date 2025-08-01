@@ -204,8 +204,7 @@ const BrandAssetsManager = () => {
       {/* Favicon Upload */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
+          <CardTitle className="text-base font-medium">
             App Favicon
           </CardTitle>
           <CardDescription>
@@ -253,23 +252,20 @@ const BrandAssetsManager = () => {
             </div>
           </div>
           
-          <SmartLoadingButton 
+          <Button 
             onClick={saveFavicon} 
-            disabled={!favicon}
-            isLoading={uploading}
-            loadingText="Uploading..."
-            className="w-full sm:w-auto"
+            disabled={!favicon || uploading}
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90"
           >
-            Save Favicon
-          </SmartLoadingButton>
+            {uploading ? "Uploading..." : "Save Favicon"}
+          </Button>
         </CardContent>
       </Card>
 
       {/* App Logo Upload */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Smartphone className="h-5 w-5" />
+          <CardTitle className="text-base font-medium">
             App Logo/Icon
           </CardTitle>
           <CardDescription>
@@ -317,15 +313,13 @@ const BrandAssetsManager = () => {
             </div>
           </div>
           
-          <SmartLoadingButton 
+          <Button 
             onClick={saveLogo} 
-            disabled={!logo}
-            isLoading={uploading}
-            loadingText="Uploading..."
-            className="w-full sm:w-auto"
+            disabled={!logo || uploading}
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90"
           >
-            Save App Logo
-          </SmartLoadingButton>
+            {uploading ? "Uploading..." : "Save App Logo"}
+          </Button>
         </CardContent>
       </Card>
     </div>
