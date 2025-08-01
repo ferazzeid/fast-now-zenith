@@ -133,14 +133,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between px-4">
+      <div className="flex items-center justify-between px-2">
         <h2 className="text-lg font-semibold">My Food Library</h2>
         <span className="text-sm text-muted-foreground">{filteredFoods.length} items</span>
       </div>
 
       {/* Search */}
-      <div className="relative px-4">
-        <Search className="absolute left-7 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="relative px-2">
+        <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Search your foods..."
           value={searchTerm}
@@ -153,24 +153,26 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       {loading ? (
         <div className="space-y-3">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="mx-4 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-muted animate-pulse rounded-lg shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                  <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+            <div key={i} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+                  <div className="w-4 h-4 bg-warm-text/20 rounded animate-pulse" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="h-4 bg-warm-text/20 animate-pulse rounded w-3/4" />
+                  <div className="h-3 bg-warm-text/20 animate-pulse rounded w-1/2" />
                 </div>
                 <div className="flex gap-1">
-                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
-                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
-                  <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                  <div className="w-6 h-6 bg-warm-text/20 animate-pulse rounded" />
+                  <div className="w-6 h-6 bg-warm-text/20 animate-pulse rounded" />
+                  <div className="w-6 h-6 bg-warm-text/20 animate-pulse rounded" />
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       ) : filteredFoods.length === 0 ? (
-        <div className="text-center py-12 px-4">
+        <div className="text-center py-12 px-2">
           <div className="text-6xl mb-4">🍽️</div>
           <h3 className="text-lg font-medium mb-2">
             {searchTerm ? 'No foods found' : 'Your library is empty'}
@@ -182,39 +184,52 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       ) : (
         <div className="space-y-3">
           {filteredFoods.map((food) => (
-            <Card key={food.id} className="mx-4 p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3">
+            <div key={food.id} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors hover:shadow-md">
+              <div className="flex items-center gap-2">
+                {/* Food Image */}
                 {food.image_url ? (
                   <img 
                     src={food.image_url} 
                     alt={food.name}
-                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                    className="w-8 h-8 rounded object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                    <span className="text-muted-foreground text-lg">🍽️</span>
+                  <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+                    <div className="w-4 h-4 bg-warm-text/20 rounded flex items-center justify-center">
+                      <span className="text-xs text-warm-text/60">🍽️</span>
+                    </div>
                   </div>
                 )}
                 
+                {/* Food Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-base truncate">{food.name}</h3>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  {/* First Line: Food name only */}
+                  <div className="flex items-center">
+                    <span className="font-medium text-warm-text truncate flex-1">{food.name}</span>
+                  </div>
+                  {/* Second Line: Nutritional data */}
+                  <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
                     <span>{food.calories_per_100g} cal</span>
+                    <span className="text-warm-text/60">•</span>
                     <span>{food.carbs_per_100g}g carbs</span>
+                    <span className="text-warm-text/60">•</span>
+                    <span>per 100g</span>
                   </div>
                 </div>
                 
+                {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleFavorite(food.id, food.is_favorite)}
-                    className="p-1 h-8 w-8"
+                    className="p-1 h-6 w-6 hover:bg-primary/10"
+                    title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   >
                     {food.is_favorite ? (
-                      <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
                     ) : (
-                      <Heart className="w-4 h-4 text-muted-foreground" />
+                      <Heart className="w-3 h-3 text-muted-foreground" />
                     )}
                   </Button>
                   
@@ -227,15 +242,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteFood(food.id)}
-                    className="p-1 h-8 w-8 text-destructive hover:text-destructive"
+                    className="p-1 h-6 w-6 hover:bg-destructive/10"
+                    title="Delete food"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
                   </Button>
                   
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
-                        <Plus className="w-4 h-4" />
+                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6 hover:bg-primary/10" title="Add food">
+                        <Plus className="w-3 h-3 text-muted-foreground" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -251,7 +267,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   </DropdownMenu>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
