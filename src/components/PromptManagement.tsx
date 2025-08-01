@@ -86,6 +86,8 @@ export const PromptManagement: React.FC = () => {
         .upsert({
           setting_key: key,
           setting_value: prompts[key],
+        }, {
+          onConflict: 'setting_key'
         });
 
       if (error) throw error;
