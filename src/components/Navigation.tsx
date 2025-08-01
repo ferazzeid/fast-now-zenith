@@ -107,14 +107,14 @@ export const Navigation = () => {
     },
     { 
       icon: Utensils, 
-      label: 'Food', 
+      label: 'Eating', 
       path: '/food-tracking', 
       isEating: false,
       caloriesBadge: todayTotals.calories > 0 ? todayTotals.calories : null
     },
     { 
       icon: Brain, 
-      label: 'Goals', 
+      label: 'Focusing', 
       path: '/motivators',
       isEating: false
     },
@@ -134,8 +134,8 @@ export const Navigation = () => {
                 switch (label) {
                   case 'Fasting': return 'Start or manage your fasting sessions';
                   case 'Walking': return 'Track your walking sessions and burn calories';
-                  case 'Food': return 'Log your meals and track daily intake';
-                  case 'Goals': return 'View and create motivational content';
+                  case 'Eating': return 'Log your meals and track daily intake';
+                  case 'Focusing': return 'View and create motivational content';
                   case 'Settings': return 'Customize your app preferences';
                   default: return label;
                 }
