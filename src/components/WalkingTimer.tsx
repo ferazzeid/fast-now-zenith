@@ -248,11 +248,10 @@ export const WalkingTimer = ({
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
                 <div className="text-xl font-bold text-primary mb-2">
-                  {displaySpeed} {units === 'metric' ? 'km/h' : 'mph'}
+                  {storageSpeedToDisplaySpeed(realTimeStats.speed, units)} {units === 'metric' ? 'km/h' : 'mph'}
                 </div>
                 <div className="mb-2">
                   <Select 
-                    value={displaySpeed.toString()} 
                     onValueChange={(value) => {
                       const newDisplaySpeed = parseInt(value);
                       const newStorageSpeed = displaySpeedToStorageSpeed(newDisplaySpeed, units);
@@ -270,9 +269,6 @@ export const WalkingTimer = ({
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {formatPace(realTimeStats.speed)}
                 </div>
               </Card>
 
