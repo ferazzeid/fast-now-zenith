@@ -125,7 +125,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
           <Edit className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto mx-4">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Food in Library</DialogTitle>
         </DialogHeader>
