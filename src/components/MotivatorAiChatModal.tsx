@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { useMotivators } from '@/hooks/useMotivators';
 import { supabase } from '@/integrations/supabase/client';
-import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 
@@ -386,10 +386,13 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
           </div>
           
           {/* Voice Recording */}
-          <VoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            isDisabled={isLoading}
-          />
+          <div className="flex justify-center">
+            <CircularVoiceButton
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isLoading}
+              size="lg"
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

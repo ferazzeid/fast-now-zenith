@@ -88,10 +88,7 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-ceramic-rim">
           <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-bold text-warm-text">My Motivators</h3>
-            </div>
+            <h3 className="text-lg font-semibold text-warm-text">My Motivators</h3>
             <p className="text-sm text-muted-foreground">
               Your personal collection of inspiration
             </p>
@@ -100,9 +97,9 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="w-10 h-10 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
           >
-            <X className="w-8 h-8" />
+            <X className="w-4 h-4" />
           </Button>
         </div>
 

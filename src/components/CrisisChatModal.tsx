@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAuth } from '@/hooks/useAuth';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ModalRoot } from '@/components/ModalRoot';
@@ -314,10 +314,13 @@ export const CrisisChatModal = ({
             </Button>
           </div>
           
-          <VoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            isDisabled={isProcessing}
-          />
+          <div className="flex justify-center">
+            <CircularVoiceButton
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isProcessing}
+              size="lg"
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

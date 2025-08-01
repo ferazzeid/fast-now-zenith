@@ -159,22 +159,22 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             {/* Recording Controls */}
             <div className="flex flex-col items-center space-y-4">
               {!isRecording && !audioURL && (
-                <Button
+                <button
                   onClick={startRecording}
                   disabled={isDisabled}
-                  className="w-20 h-20 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
                 >
                   <Mic className="w-8 h-8" />
-                </Button>
+                </button>
               )}
 
               {isRecording && (
-                <Button
+                <button
                   onClick={stopRecording}
-                  className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                  className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white animate-pulse transition-all duration-200"
                 >
-                  <Square className="w-8 h-8" />
-                </Button>
+                  <Square className="w-8 h-8 fill-white" />
+                </button>
               )}
 
               {audioURL && !isRecording && (
@@ -242,39 +242,28 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Inline version for backwards compatibility
   return (
     <div className="space-y-2">
-      {isRecording ? (
-        <div className="flex gap-2 w-full">
-          <Button
-            onClick={stopRecording}
-            disabled={isDisabled || isProcessing}
-            variant="destructive"
-            size="lg"
-            className="flex-1 h-16 text-base font-medium bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isProcessing ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />
-            ) : (
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            )}
-            <span className="ml-2">
-              {isProcessing ? "Processing..." : "Send"}
-            </span>
-          </Button>
-        </div>
-      ) : (
-        <Button
-          onClick={startRecording}
+      <div className="flex justify-center">
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
           disabled={isDisabled || isProcessing}
-          variant="default"
-          size="lg"
-          className="w-full h-16 text-base font-medium"
+          className={`
+            w-16 h-16 rounded-full transition-all duration-200
+            ${isRecording 
+              ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+              : 'bg-green-500 hover:bg-green-600'
+            } 
+            text-white
+          `}
         >
-          <Mic className="h-6 w-6 mr-2" />
-          <span>Record Message</span>
-        </Button>
-      )}
+          {isProcessing ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto" />
+          ) : isRecording ? (
+            <Square className="w-6 h-6 fill-white mx-auto" />
+          ) : (
+            <Mic className="w-6 h-6 mx-auto" />
+          )}
+        </button>
+      </div>
     </div>
   );
 };

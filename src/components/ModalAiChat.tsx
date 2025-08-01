@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { SimpleVoiceRecorder } from '@/components/SimpleVoiceRecorder';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -512,11 +512,14 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
             </Button>
           </div>
           
-          {/* Simple Voice Recording */}
-          <SimpleVoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            isDisabled={isProcessing}
-          />
+          {/* Voice Recording */}
+          <div className="flex justify-center">
+            <CircularVoiceButton
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isProcessing}
+              size="lg"
+            />
+          </div>
         </div>
         )}
       </DialogContent>

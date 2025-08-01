@@ -186,19 +186,16 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
         <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Food History
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={onClose} className="w-10 h-10 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
-                <X className="w-8 h-8" />
+              <CardTitle className="text-lg font-semibold">Food History</CardTitle>
+              <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <Card key={i} className="border-l-4 border-l-primary/20">
+                <Card key={i}>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 space-y-2">
@@ -229,12 +226,9 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
       <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader>
           <div className="flex justify-between items-center mb-2">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Food History
-            </CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="w-10 h-10 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
-              <X className="w-8 h-8" />
+            <CardTitle className="text-lg font-semibold">Food History</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </CardHeader>
@@ -246,7 +240,7 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
         ) : (
           <>
             {dailySummaries.map((summary) => (
-              <Card key={summary.date} className="border-l-4 border-l-primary/20">
+              <Card key={summary.date}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">

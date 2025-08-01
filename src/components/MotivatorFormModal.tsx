@@ -195,15 +195,12 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="title" className="text-warm-text font-medium">
                 Title *
               </Label>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => setShowVoiceRecorder(true)}
-                className="h-6 px-2 border border-ceramic-rim hover:bg-ceramic-base"
+                className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
               >
-                <Mic className="w-3 h-3 mr-1" />
-                <span className="text-xs">Voice</span>
-              </Button>
+                <Mic className="w-3 h-3 mx-auto" />
+              </button>
             </div>
             <Input
               id="title"
@@ -219,16 +216,12 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="content" className="text-warm-text font-medium">
                 Description (Optional)
               </Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => setShowVoiceRecorder(true)}
-                className="h-6 px-2 border border-ceramic-rim hover:bg-ceramic-base"
+                className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
               >
-                <Mic className="w-3 h-3 mr-1" />
-                <span className="text-xs">Voice</span>
-              </Button>
+                <Mic className="w-3 h-3 mx-auto" />
+              </button>
             </div>
             <Textarea
               id="content"
