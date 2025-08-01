@@ -164,6 +164,35 @@ export type Database = {
         }
         Relationships: []
       }
+      default_food_favorites: {
+        Row: {
+          created_at: string
+          default_food_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_food_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_food_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "default_food_favorites_default_food_id_fkey"
+            columns: ["default_food_id"]
+            isOneToOne: false
+            referencedRelation: "default_foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       default_foods: {
         Row: {
           calories_per_100g: number

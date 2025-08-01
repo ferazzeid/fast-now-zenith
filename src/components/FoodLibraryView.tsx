@@ -26,6 +26,7 @@ interface DefaultFood {
   calories_per_100g: number;
   carbs_per_100g: number;
   image_url?: string;
+  is_favorite?: boolean; // Track if user has favorited this default food
 }
 
 interface FoodLibraryViewProps {
@@ -36,6 +37,7 @@ interface FoodLibraryViewProps {
 export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) => {
   const [foods, setFoods] = useState<UserFood[]>([]);
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
+  const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -49,6 +51,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         await Promise.all([
           loadUserFoods(),
           loadDefaultFoods(),
+          loadDefaultFoodFavorites(),
           checkAdminRole()
         ]);
       } finally {
@@ -114,9 +117,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       console.error('Error loading default foods:', error);
       toast({
         title: "Warning",
-        description: "Failed to load common foods",
+        description: "Failed to load default foods",
         variant: "destructive"
       });
+    }
+  };
+
+  const loadDefaultFoodFavorites = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('default_food_favorites')
+        .select('default_food_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      const favoriteIds = new Set(data?.map(fav => fav.default_food_id) || []);
+      setDefaultFoodFavorites(favoriteIds);
+    } catch (error) {
+      console.error('Error loading default food favorites:', error);
     }
   };
 
@@ -137,6 +158,48 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       ));
     } catch (error) {
       console.error('Error updating favorite:', error);
+    }
+  };
+
+  const toggleDefaultFoodFavorite = async (foodId: string, isFavorite: boolean) => {
+    if (!user) return;
+    
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('default_food_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('default_food_id', foodId);
+
+        if (error) throw error;
+
+        setDefaultFoodFavorites(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(foodId);
+          return newSet;
+        });
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('default_food_favorites')
+          .insert({
+            user_id: user.id,
+            default_food_id: foodId
+          });
+
+        if (error) throw error;
+
+        setDefaultFoodFavorites(prev => new Set([...prev, foodId]));
+      }
+    } catch (error) {
+      console.error('Error updating default food favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorite",
+        variant: "destructive"
+      });
     }
   };
 
@@ -242,7 +305,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const filteredDefaultFoods = defaultFoods.filter(food =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).map(food => ({
+    ...food,
+    is_favorite: defaultFoodFavorites.has(food.id)
+  }));
 
   const allFilteredFoods = [...filteredUserFoods, ...filteredDefaultFoods];
 
@@ -409,7 +475,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-warm-text truncate flex-1">{food.name}</span>
-                    <span className="text-xs bg-muted/50 px-1.5 py-0.5 rounded text-muted-foreground">Common</span>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
                     <span>{food.calories_per_100g} cal</span>
@@ -422,22 +487,28 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 
                 {/* Actions for Default Foods */}
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Favorite button for all users */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleDefaultFoodFavorite(food.id, food.is_favorite || false)}
+                    className="p-1 h-6 w-6 hover:bg-primary/10"
+                    title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    {food.is_favorite ? (
+                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                    ) : (
+                      <Heart className="w-3 h-3 text-muted-foreground" />
+                    )}
+                  </Button>
+                  
+                  {/* Admin-only actions */}
                   {isAdmin && (
                     <>
                       <EditDefaultFoodModal 
                         food={food} 
                         onUpdate={updateDefaultFood}
                       />
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteDefaultFood(food.id)}
-                        className="p-1 h-6 w-6 hover:bg-destructive/10"
-                        title="Delete default food"
-                      >
-                        <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
-                      </Button>
                     </>
                   )}
                   
