@@ -10,6 +10,7 @@ import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
 import { DeficitAnalysisButton } from '@/components/DeficitAnalysisButton';
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
+import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
@@ -206,22 +207,11 @@ export const DailyStatsPanel = memo(() => {
                   {/* Divider */}
                   <div className="border-t border-ceramic-rim my-3"></div>
 
-                  {/* Walking Section */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Activity className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-warm-text">Walking Burn</span>
-                      <ClickableTooltip content="Total calories burned from walking today (includes active sessions)">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
-                    <div className="text-sm font-bold text-warm-text">
-                      {formatNumber(deficitData.walkingCalories)} cal
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1 text-right">
-                    All walking sessions today
-                  </div>
+                  {/* Walking Section with Sessions Breakdown */}
+                  <WalkingSessionsBreakdown 
+                    totalCalories={deficitData.walkingCalories}
+                    onRefresh={refreshDeficit}
+                  />
                 </Card>
 
                  {/* Manual Activities (if applicable) */}

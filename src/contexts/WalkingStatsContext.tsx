@@ -31,22 +31,26 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
 
   const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
-  const { profile } = useStableProfile();
+  const { profile, loading: profileLoading } = useStableProfile();
   const { estimateStepsForSession } = useStepEstimation();
 
   // Memoize profile checks to prevent re-renders - more robust check
   const isProfileComplete = useMemo(() => {
+    // Don't consider profile complete if it's still loading
+    if (profileLoading) return false;
+    
     const complete = !!(profile?.weight && profile?.height && profile?.age && 
       profile.weight > 0 && profile.height > 0 && profile.age > 0);
-    console.log('Profile completeness check:', {
+    console.log('WalkingStats - Profile completeness check:', {
       complete,
+      profileLoading,
       weight: profile?.weight,
       height: profile?.height, 
       age: profile?.age,
       profile: !!profile
     });
     return complete;
-  }, [profile?.weight, profile?.height, profile?.age]);
+  }, [profile?.weight, profile?.height, profile?.age, profileLoading]);
 
   const calculateCalories = useMemo(() => {
     return (durationMinutes: number, speedMph: number = 3) => {
@@ -151,19 +155,22 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       let calories = 0;
       if (profileComplete) {
         calories = calcCalories(activeDurationMinutes, speedMph);
-        console.log('Calories calculation:', {
+        console.log('WalkingStats - Calories calculation:', {
           profileComplete,
           activeDurationMinutes,
           speedMph,
           calories,
-          profile: profile
+          hasProfile: !!profile,
+          profileWeight: profile?.weight,
+          profileUnits: profile?.units
         });
       } else {
-        console.log('Profile incomplete for calories:', {
+        console.log('WalkingStats - Profile incomplete for calories:', {
           profileComplete,
           weight: profile?.weight,
           height: profile?.height,
-          age: profile?.age
+          age: profile?.age,
+          hasProfile: !!profile
         });
       }
       
