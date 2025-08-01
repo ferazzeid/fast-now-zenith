@@ -38,6 +38,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -83,6 +84,38 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
     setImageUrl(food.image_url || '');
   };
 
+  const generatePromptForFood = async (foodName: string) => {
+    // Fetch admin prompt settings and color themes
+    let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
+    let primaryColor = "220 35% 45%";
+    let accentColor = "262 83% 58%";
+    
+    try {
+      const { data: settingsData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
+      
+      settingsData?.forEach(setting => {
+        if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
+          promptTemplate = setting.setting_value;
+        } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+          primaryColor = setting.setting_value;
+        } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+          accentColor = setting.setting_value;
+        }
+      });
+    } catch (error) {
+      console.log('Using default prompt template as fallback');
+    }
+    
+    // Replace variables in the prompt template
+    return promptTemplate
+      .replace(/{food_name}/g, foodName.trim())
+      .replace(/{primary_color}/g, primaryColor)
+      .replace(/{accent_color}/g, accentColor);
+  };
+
   const handleGenerateImage = async () => {
     if (!name) {
       toast({
@@ -95,36 +128,8 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
 
     setGeneratingImage(true);
     try {
-      // Fetch admin prompt settings and color themes
-      let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
-      let primaryColor = "220 35% 45%";
-      let accentColor = "262 83% 58%";
-      
-      try {
-        const { data: settingsData } = await supabase
-          .from('shared_settings')
-          .select('setting_key, setting_value')
-          .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
-        
-        settingsData?.forEach(setting => {
-          if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
-            promptTemplate = setting.setting_value;
-          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-            primaryColor = setting.setting_value;
-          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
-            accentColor = setting.setting_value;
-          }
-        });
-      } catch (error) {
-        console.log('Using default prompt template as fallback');
-      }
-      
-      // Replace variables in the prompt template
-      const prompt = promptTemplate
-        .replace(/{food_name}/g, name)
-        .replace(/{primary_color}/g, primaryColor)
-        .replace(/{accent_color}/g, accentColor);
-      
+      const prompt = await generatePromptForFood(name);
+      setCurrentPrompt(prompt); // Store for regeneration
       const filename = `food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`;
       const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
@@ -232,9 +237,9 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
                   )}
                 </Button>
                 
-                {imageUrl && (
+                {imageUrl && currentPrompt && (
                   <RegenerateImageButton
-                    prompt={`Food photography of ${name}, appetizing, high quality, well-lit`}
+                    prompt={currentPrompt} // Use the admin prompt that was stored
                     filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
                     onImageGenerated={async (newImageUrl) => {
                       setImageUrl(newImageUrl);
