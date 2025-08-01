@@ -180,27 +180,49 @@ export const DailyStatsPanel = memo(() => {
                     value={deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories}
                     tooltip="Total calories burned today: Base Daily Burn + Walking + Manual Activities"
                   />
+                </div>
 
-                  {/* Base Daily Burn (TDEE) */}
-                  <div className="space-y-2">
-                    <StatDisplay
-                      icon={<Target className="w-3 h-3 text-primary" />}
-                      label="Base Daily Burn"
-                      value={deficitData.tdee}
-                      tooltip="Calories your body burns naturally based on your metabolism and activity level"
-                    />
+                {/* Unified Metabolism & Walking Card */}
+                <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+                  {/* Base Daily Burn Section */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
+                      <ClickableTooltip content="Calories your body burns naturally based on your metabolism and activity level">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
+                    <div className="text-sm font-bold text-warm-text">
+                      {formatNumber(deficitData.tdee)} cal
+                    </div>
+                  </div>
+                  
+                  {/* Activity Level Selector */}
+                  <div className="mb-3">
                     <InlineActivitySelector currentDisplayLevel={deficitData.activityLevel} />
                   </div>
 
-                  {/* Walking */}
-                  <StatDisplay
-                    icon={<Activity className="w-3 h-3 text-primary" />}
-                    label="Walking Burn"
-                    value={deficitData.walkingCalories}
-                    subtitle="All walking sessions today"
-                    tooltip="Total calories burned from walking today (includes active sessions)"
-                  />
-                </div>
+                  {/* Divider */}
+                  <div className="border-t border-ceramic-rim my-3"></div>
+
+                  {/* Walking Section */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Activity className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-warm-text">Walking Burn</span>
+                      <ClickableTooltip content="Total calories burned from walking today (includes active sessions)">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
+                    <div className="text-sm font-bold text-warm-text">
+                      {formatNumber(deficitData.walkingCalories)} cal
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1 text-right">
+                    All walking sessions today
+                  </div>
+                </Card>
 
                  {/* Manual Activities (if applicable) */}
                  {deficitData.manualCalories > 0 && (

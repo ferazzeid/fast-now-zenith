@@ -13,10 +13,10 @@ interface InlineActivitySelectorProps {
 
 const ACTIVITY_LEVELS = {
   sedentary: 'Sedentary',
-  lightly_active: 'Lightly Active',
-  moderately_active: 'Moderately Active',
-  very_active: 'Very Active',
-  extremely_active: 'Extremely Active'
+  lightly_active: 'Light',
+  moderately_active: 'Moderate',
+  very_active: 'High',
+  extremely_active: 'Very High'
 };
 
 export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({ 
