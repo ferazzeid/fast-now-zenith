@@ -732,6 +732,18 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             })}
           </div>
         </PageOnboardingModal>
+        
+        {/* Food Library View - Full Screen */}
+        {showLibraryView && (
+          <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+            <div className="container mx-auto p-4 max-w-4xl">
+              <FoodLibraryView 
+                onSelectFood={handleSelectFromLibrary} 
+                onBack={() => setShowLibraryView(false)} 
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
