@@ -47,8 +47,8 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   };
 
   const getDisplayLabel = (level: string) => {
-    const baseLabel = ACTIVITY_LEVELS[level as keyof typeof ACTIVITY_LEVELS] || level;
-    return todayOverride ? `${baseLabel} (Override)` : baseLabel;
+    // Just show the activity level name, no "(Override)" text
+    return ACTIVITY_LEVELS[level as keyof typeof ACTIVITY_LEVELS] || level;
   };
 
   return (
@@ -62,12 +62,15 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
       >
         <SelectTrigger className="h-7 text-xs bg-ceramic-base border-ceramic-rim hover:bg-ceramic-plate transition-colors">
           <SelectValue>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <span>{getDisplayLabel(getCurrentValue())}</span>
               {todayOverride && (
-                <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-                  Today
-                </Badge>
+                <>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                    Today
+                  </Badge>
+                </>
               )}
             </div>
           </SelectValue>
