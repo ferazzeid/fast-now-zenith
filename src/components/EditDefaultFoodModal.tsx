@@ -62,11 +62,12 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
     }
 
     try {
+      console.log('Saving default food with image_url:', imageUrl);
       await onUpdate(food.id, {
         name: name.trim(),
         calories_per_100g: calories,
         carbs_per_100g: carbs,
-        image_url: imageUrl || undefined
+        image_url: imageUrl || null
       });
       
       setIsOpen(false);
@@ -75,6 +76,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
         description: "Default food updated successfully"
       });
     } catch (error) {
+      console.error('Failed to update default food:', error);
       toast({
         title: "Error",
         description: "Failed to update default food",
@@ -102,16 +104,19 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
 
     setIsGeneratingImage(true);
     try {
+      console.log('Starting image generation for:', name.trim());
       const { generateImage } = await import('@/integrations/imageGeneration');
       const prompt = `A high-quality, appetizing photo of ${name.trim()}, food photography, clean background, well-lit`;
       const filename = `default-food-${Date.now()}.jpg`;
       const newImageUrl = await generateImage(prompt, filename);
+      console.log('Generated image URL:', newImageUrl);
       setImageUrl(newImageUrl);
       toast({
         title: "✨ Image Generated!",
         description: "AI-generated image ready for your default food.",
       });
     } catch (error) {
+      console.error('Image generation error:', error);
       toast({
         title: "Generation failed",
         description: "Please try again.",

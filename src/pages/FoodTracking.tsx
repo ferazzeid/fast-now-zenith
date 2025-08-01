@@ -29,6 +29,7 @@ const FoodTracking = () => {
   const [calories, setCalories] = useState('');
   const [carbs, setCarbs] = useState('');
   const [servingSize, setServingSize] = useState('100');
+  const [imageUrl, setImageUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
   
@@ -232,7 +233,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       calories: parseFloat(calories),
       carbs: parseFloat(carbs),
       serving_size: parseFloat(servingSize),
-      consumed: consumedNow
+      consumed: consumedNow,
+      image_url: imageUrl || undefined
     });
 
     if (result.error) {
@@ -251,6 +253,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       setCalories('');
       setCarbs('');
       setServingSize('100');
+      setImageUrl('');
       setConsumedNow(true);
       setShowForm(false);
       
@@ -307,6 +310,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     setServingSize('100');
     setConsumedNow(consumed);
     
+    // Transfer image URL if available
+    if (food.image_url) {
+      setImageUrl(food.image_url);
+    }
     
     // If consumed is true, directly save to food entries as consumed
     // If false, show the form for editing/planning
