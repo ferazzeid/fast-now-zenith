@@ -32,29 +32,35 @@ export const initializeAnalytics = async () => {
 
     // Only load GA scripts in browser environment
     if (typeof document !== 'undefined') {
-      // Load GA script dynamically with error handling
-      const script1 = document.createElement('script');
-      script1.async = true;
-      script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-      script1.onerror = () => console.warn('Failed to load Google Analytics script');
-      document.head.appendChild(script1);
-
-      const script2 = document.createElement('script');
-      script2.textContent = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${measurementId}');
-      `;
-      document.head.appendChild(script2);
-
-      // Set up gtag function with safety checks
-      window.gtag = window.gtag || function() {
-        if (typeof window !== 'undefined') {
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push(arguments);
-        }
+      // Ensure we have a dataLayer first
+      window.dataLayer = window.dataLayer || [];
+      
+      // Set up gtag function immediately
+      window.gtag = function() {
+        window.dataLayer.push(arguments);
       };
+      
+      // Initialize GA with config first
+      window.gtag('js', new Date());
+      window.gtag('config', measurementId, {
+        anonymize_ip: true,
+        allow_google_signals: false,
+        allow_ad_personalization_signals: false
+      });
+
+      // Load GA script after setup
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+      script.onerror = () => console.warn('Failed to load Google Analytics script');
+      
+      // Insert at beginning of head for better detection
+      const firstScript = document.getElementsByTagName('script')[0];
+      if (firstScript) {
+        firstScript.parentNode?.insertBefore(script, firstScript);
+      } else {
+        document.head.appendChild(script);
+      }
     }
 
     isAnalyticsInitialized = true;

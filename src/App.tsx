@@ -27,6 +27,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
 import { WalkingStatsProvider } from "./contexts/WalkingStatsContext";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
+import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -62,6 +63,7 @@ const AppContent = () => {
       <div className="min-h-screen bg-frame-background">
         {/* Mobile-first centered container with phone-like frame */}
         <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
+          <SEOManager />
           <EnhancedConnectionStatus />
           <DailyStatsPanel />
           <Routes>

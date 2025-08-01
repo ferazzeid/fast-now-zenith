@@ -11,6 +11,7 @@ import { ColorManagement } from "@/components/ColorManagement";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
+import { AdminSEOSettings } from "@/components/AdminSEOSettings";
 import { CancellationTracker } from "@/components/CancellationTracker";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PromptManagement } from "@/components/PromptManagement";
@@ -199,6 +200,9 @@ const AdminOverview = () => {
       
       {/* Real-Time Analytics Dashboard */}
       <SimpleAnalyticsWidget />
+      
+      {/* SEO Settings */}
+      <AdminSEOSettings />
       
       {/* Cancellation Tracking */}
       <CancellationTracker />
