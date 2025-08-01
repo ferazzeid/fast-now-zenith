@@ -30,13 +30,26 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     currentSessionId: null
   });
 
+  // Add state for incremental step counting
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
+  const [accumulatedSteps, setAccumulatedSteps] = useState<number>(0);
+
   const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
   const { profile } = useStableProfile();
   const { estimateStepsForSession } = useStepEstimation();
 
-  // Memoize profile checks to prevent re-renders
+  // Memoize profile checks to prevent re-renders - more robust check
   const isProfileComplete = useMemo(() => {
-    return profile?.weight && profile?.height && profile?.age;
+    const complete = !!(profile?.weight && profile?.height && profile?.age && 
+      profile.weight > 0 && profile.height > 0 && profile.age > 0);
+    console.log('Profile completeness check:', {
+      complete,
+      weight: profile?.weight,
+      height: profile?.height, 
+      age: profile?.age,
+      profile: !!profile
+    });
+    return complete;
   }, [profile?.weight, profile?.height, profile?.age]);
 
   const calculateCalories = useMemo(() => {
@@ -107,7 +120,10 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       if (!session) {
         if (wasActiveRef.current) {
-          // Only update if we were previously active
+          // Reset accumulated steps and time when session ends
+          setAccumulatedSteps(0);
+          setLastUpdateTime(0);
+          
           setWalkingStats(prev => {
             // Prevent update if already cleared
             if (!prev.isActive) return prev;
@@ -139,9 +155,24 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const activeDurationMinutes = activeElapsed / 60;
       const speedMph = session.speed_mph || speed || 3;
       
+      // Debug logging for calories calculation
       let calories = 0;
       if (profileComplete) {
         calories = calcCalories(activeDurationMinutes, speedMph);
+        console.log('Calories calculation:', {
+          profileComplete,
+          activeDurationMinutes,
+          speedMph,
+          calories,
+          profile: profile
+        });
+      } else {
+        console.log('Profile incomplete for calories:', {
+          profileComplete,
+          weight: profile?.weight,
+          height: profile?.height,
+          age: profile?.age
+        });
       }
       
       // Convert distance based on unit preference
@@ -150,30 +181,60 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         distance = distance * 1.60934; // Convert miles to km
       }
 
-      // Calculate estimated steps
-      const estimatedSteps = estimateSteps(activeDurationMinutes, speedMph);
+      // Smoother step calculation - calculate steps per second and accumulate
+      const currentTime = Date.now();
+      let newSteps = accumulatedSteps;
+      
+      if (lastUpdateTime > 0) {
+        const timeDiff = (currentTime - lastUpdateTime) / 1000; // seconds
+        
+        // Calculate steps per second based on speed
+        const heightInches = units === 'metric' ? (profile?.height || 70) / 2.54 : (profile?.height || 70);
+        const baseStride = heightInches * 0.414;
+        let speedFactor = 1.0;
+        if (speedMph <= 2.5) speedFactor = 0.9;
+        else if (speedMph <= 3.5) speedFactor = 1.0;
+        else if (speedMph <= 4.5) speedFactor = 1.1;
+        else speedFactor = 1.2;
+        
+        const strideInches = baseStride * speedFactor;
+        const stepsPerMile = 63360 / strideInches;
+        const stepsPerSecond = (speedMph * stepsPerMile) / 3600; // 3600 seconds in an hour
+        
+        const incrementalSteps = stepsPerSecond * timeDiff;
+        newSteps = accumulatedSteps + incrementalSteps;
+        
+        setAccumulatedSteps(newSteps);
+      }
+      
+      setLastUpdateTime(currentTime);
 
       setWalkingStats(prev => {
-        // Only update if values actually changed to prevent unnecessary renders
+        // Use the newly calculated steps for smoother progression
+        const smoothSteps = Math.round(newSteps);
+        
         const newStats = {
           realTimeCalories: calories,
           realTimeDistance: Math.round(distance * 100) / 100,
-          realTimeSteps: estimatedSteps,
+          realTimeSteps: smoothSteps,
           timeElapsed: activeElapsed,
           isActive: true,
           isPaused: paused || false,
           currentSessionId: session.id
         };
         
-        // Shallow comparison to prevent unnecessary updates
-        if (prev.realTimeCalories === newStats.realTimeCalories &&
-            prev.realTimeDistance === newStats.realTimeDistance &&
-            prev.realTimeSteps === newStats.realTimeSteps &&
-            prev.timeElapsed === newStats.timeElapsed &&
-            prev.isActive === newStats.isActive &&
-            prev.isPaused === newStats.isPaused &&
-            prev.currentSessionId === newStats.currentSessionId) {
-          return prev; // No change, return previous state
+        // Only update if significant changes to prevent excessive renders
+        const shouldUpdate = 
+          Math.abs(prev.realTimeCalories - newStats.realTimeCalories) >= 1 ||
+          Math.abs(prev.realTimeDistance - newStats.realTimeDistance) >= 0.01 ||
+          Math.abs(prev.realTimeSteps - newStats.realTimeSteps) >= 1 ||
+          Math.abs(prev.timeElapsed - newStats.timeElapsed) >= 1 ||
+          prev.isActive !== newStats.isActive ||
+          prev.isPaused !== newStats.isPaused ||
+          prev.currentSessionId !== newStats.currentSessionId;
+        
+        if (!shouldUpdate) {
+          return prev;
         }
         
         return newStats;
