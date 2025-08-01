@@ -79,6 +79,7 @@ export const FastSelector = ({
     longterm: [
       { name: '24 Hour Fast', hours: 24 },
       { name: '48 Hour Fast', hours: 48 },
+      { name: '60 Hour Fast', hours: 60 },
       { name: '72 Hour Fast', hours: 72 },
     ]
   };

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
+import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 
 interface MotivatorTemplate {
   id: string;
@@ -214,24 +215,35 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
                   <div className="h-px bg-ceramic-rim flex-1" />
                 </div>
                 
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="w-full"
-                >
-                  {isGeneratingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating AI Image...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Image
-                    </>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleGenerateImage}
+                    disabled={isGeneratingImage}
+                    className="flex-1"
+                  >
+                    {isGeneratingImage ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                        Generating AI Image...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate AI Image
+                      </>
+                    )}
+                  </Button>
+                  
+                  {currentMotivator.imageUrl && (
+                    <RegenerateImageButton
+                      prompt={`${currentMotivator.title}. ${currentMotivator.content}`}
+                      filename={`motivator-${Date.now()}.jpg`}
+                      onImageGenerated={(url) => setCurrentMotivator(prev => ({ ...prev, imageUrl: url }))}
+                      disabled={isGeneratingImage}
+                    />
                   )}
-                </Button>
+                </div>
               </div>
               
               <p className="text-xs text-muted-foreground">

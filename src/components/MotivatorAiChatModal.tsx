@@ -11,6 +11,7 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { generate_image } from '@/utils/imageGeneration';
+import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 
 interface Message {
   role: 'user' | 'assistant';

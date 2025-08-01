@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
 import { generate_image } from '@/utils/imageGeneration';
+import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 
 interface UserFood {
   id: string;
@@ -178,24 +179,35 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
               />
 
               {/* AI Generation button */}
-              <Button
-                variant="outline"
-                onClick={handleGenerateImage}
-                disabled={loading || generatingImage}
-                className="w-full"
-              >
-                {generatingImage ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                    Generating AI Image...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate AI Image
-                  </>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateImage}
+                  disabled={loading || generatingImage}
+                  className="flex-1"
+                >
+                  {generatingImage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate AI Image
+                    </>
+                  )}
+                </Button>
+                
+                {imageUrl && (
+                  <RegenerateImageButton
+                    prompt={`Food photography of ${name}, appetizing, high quality, well-lit`}
+                    filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
+                    onImageGenerated={setImageUrl}
+                    disabled={loading || generatingImage}
+                  />
                 )}
-              </Button>
+              </div>
 
               {/* Loading state info */}
               {generatingImage && (

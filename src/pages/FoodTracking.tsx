@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Save, History, Edit, Trash2, Check, X, Mic, Info, Footprints } from 'lucide-react';
+import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints } from 'lucide-react';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PersonalFoodLibrary } from '@/components/PersonalFoodLibrary';
+import { FoodLibraryView } from '@/components/FoodLibraryView';
+import { ShoppingCart, Check } from 'lucide-react';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
@@ -30,6 +32,8 @@ const FoodTracking = () => {
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showLibraryView, setShowLibraryView] = useState(false);
+  const [activeTab, setActiveTab] = useState<'shopping' | 'eaten'>('shopping');
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -474,7 +478,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         <div className="mb-6">
           <Button
             variant="outline"
-            onClick={() => setShowLibrary(!showLibrary)}
+            onClick={() => setShowLibraryView(true)}
             className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

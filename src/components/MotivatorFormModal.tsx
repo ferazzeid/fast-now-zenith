@@ -10,6 +10,7 @@ import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
+import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { SimpleVoiceRecorder } from './SimpleVoiceRecorder';
@@ -241,24 +242,35 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               />
 
               {/* AI Generation button */}
-              <Button
-                variant="outline"
-                onClick={handleGenerateImage}
-                disabled={isGeneratingImage}
-                className="w-full"
-              >
-                {isGeneratingImage ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                    Generating AI Image...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate AI Image
-                  </>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage}
+                  className="flex-1"
+                >
+                  {isGeneratingImage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                      Generating AI Image...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate AI Image
+                    </>
+                  )}
+                </Button>
+                
+                {imageUrl && (
+                  <RegenerateImageButton
+                    prompt={`${title}. ${content}`}
+                    filename={`motivator-${Date.now()}.jpg`}
+                    onImageGenerated={setImageUrl}
+                    disabled={isGeneratingImage}
+                  />
                 )}
-              </Button>
+              </div>
 
               {/* Loading state info */}
               {isGeneratingImage && (
