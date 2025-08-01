@@ -28,18 +28,23 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   const { refreshDeficit } = useDailyDeficit();
 
   const handleValueChange = async (value: string) => {
-    // Don't close dropdown immediately - let user see the change
-    if (value === 'clear-override' && todayOverride) {
-      await clearTodayOverride();
-    } else if (value !== getCurrentValue()) {
-      await setActivityOverride(value, false);
+    try {
+      // Don't close dropdown immediately - let user see the change
+      if (value === 'clear-override' && todayOverride) {
+        await clearTodayOverride();
+      } else if (value !== getCurrentValue()) {
+        await setActivityOverride(value, false);
+      }
+      
+      // Refresh deficit calculations after change
+      await refreshDeficit();
+      
+      // Close dropdown after a short delay to show the change
+      setTimeout(() => setIsOpen(false), 300);
+    } catch (error) {
+      console.error('Error handling activity level change:', error);
+      // Keep dropdown open on error so user can try again
     }
-    
-    // Refresh deficit calculations after change
-    await refreshDeficit();
-    
-    // Close dropdown after a short delay to show the change
-    setTimeout(() => setIsOpen(false), 300);
   };
 
   const getCurrentValue = () => {

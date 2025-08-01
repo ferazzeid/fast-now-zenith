@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
+import { storageSpeedToDisplaySpeed, displaySpeedToStorageSpeed } from '@/utils/unitConversion';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -62,14 +63,17 @@ export const WalkingTimer = ({
     }
   }, [isActive, isPaused, isAnimationsSuspended]);
 
-  const formatPace = (speed: number) => {
+  const formatPace = (speedMph: number) => {
+    // Convert stored speed (MPH) to display speed for calculations
+    const displaySpeed = storageSpeedToDisplaySpeed(speedMph, units);
+    
     if (units === 'metric') {
-      const paceMinPerKm = 60 / speed;
+      const paceMinPerKm = 60 / displaySpeed;
       const minutes = Math.floor(paceMinPerKm);
       const seconds = Math.round((paceMinPerKm - minutes) * 60);
       return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
     } else {
-      const paceMinPerMile = 60 / speed;
+      const paceMinPerMile = 60 / displaySpeed;
       const minutes = Math.floor(paceMinPerMile);
       const seconds = Math.round((paceMinPerMile - minutes) * 60);
       return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
@@ -92,6 +96,9 @@ export const WalkingTimer = ({
       { value: 5, label: 'Fast (5 mph)' }
     ];
   };
+
+  // Convert stored speed (MPH) to display speed for the select component
+  const displaySpeed = storageSpeedToDisplaySpeed(selectedSpeed, units);
 
   return (
     <TooltipProvider>
@@ -149,8 +156,12 @@ export const WalkingTimer = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Select
-                    value={selectedSpeed.toString()}
-                    onValueChange={(value) => onSpeedChange(Number(value))}
+                    value={displaySpeed.toString()}
+                    onValueChange={(value) => {
+                      const displaySpeedValue = Number(value);
+                      const storageSpeedValue = displaySpeedToStorageSpeed(displaySpeedValue, units);
+                      onSpeedChange(storageSpeedValue);
+                    }}
                   >
                     <SelectTrigger className="w-40 h-8 text-xs mx-auto">
                       <div className="flex items-center gap-1">
@@ -249,7 +260,7 @@ export const WalkingTimer = ({
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
                 <div className="text-xl font-bold text-primary">
-                  {realTimeStats.speed}
+                  {storageSpeedToDisplaySpeed(realTimeStats.speed, units)}
                   <span className="text-sm font-normal text-muted-foreground ml-1">
                     {units === 'metric' ? 'km/h' : 'mph'}
                   </span>

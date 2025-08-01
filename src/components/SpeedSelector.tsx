@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Gauge } from 'lucide-react';
+import { displaySpeedToStorageSpeed, storageSpeedToDisplaySpeed } from '@/utils/unitConversion';
 
 interface SpeedSelectorProps {
   selectedSpeed: number;
@@ -27,6 +28,17 @@ const getSpeedOptions = (units: 'metric' | 'imperial') => {
 
 export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled, units = 'imperial' }: SpeedSelectorProps) => {
   const speedOptions = getSpeedOptions(units);
+  
+  // Convert stored speed (MPH) to display speed based on units
+  const displaySpeed = storageSpeedToDisplaySpeed(selectedSpeed, units);
+  
+  // Handle speed change by converting display speed to storage speed (MPH)
+  const handleSpeedChange = (value: string) => {
+    const displaySpeedValue = Number(value);
+    const storageSpeedValue = displaySpeedToStorageSpeed(displaySpeedValue, units);
+    onSpeedChange(storageSpeedValue);
+  };
+  
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -34,8 +46,8 @@ export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled, units = 
         <span className="text-sm font-medium text-foreground">Walking Speed {units === 'metric' ? '(km/h)' : '(mph)'}</span>
       </div>
       <Select
-        value={selectedSpeed.toString()}
-        onValueChange={(value) => onSpeedChange(Number(value))}
+        value={displaySpeed.toString()}
+        onValueChange={handleSpeedChange}
         disabled={disabled}
       >
         <SelectTrigger className="w-full">

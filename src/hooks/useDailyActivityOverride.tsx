@@ -49,6 +49,8 @@ export const useDailyActivityOverride = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
 
+      console.log('Setting activity override:', { activityLevel, isPermanent, userId: user.id, date: today });
+
       // Upsert the override for today
       const { data, error } = await supabase
         .from('daily_activity_overrides')
@@ -60,7 +62,12 @@ export const useDailyActivityOverride = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error setting activity override:', error);
+        throw error;
+      }
+
+      console.log('Successfully set activity override:', data);
 
       setTodayOverride(data);
 
@@ -90,12 +97,20 @@ export const useDailyActivityOverride = () => {
           description: "Activity level changed for today only."
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting activity override:', error);
+      
+      let errorMessage = "Unable to set activity override. Please try again.";
+      if (error?.message?.includes('Failed to fetch')) {
+        errorMessage = "Network connection issue. Please check your connection and try again.";
+      } else if (error?.code) {
+        errorMessage = `Database error (${error.code}). Please try again.`;
+      }
+      
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Unable to set activity override. Please try again."
+        description: errorMessage
       });
     } finally {
       setLoading(false);
