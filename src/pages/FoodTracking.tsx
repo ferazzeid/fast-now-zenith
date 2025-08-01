@@ -402,7 +402,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   <ClickableTooltip
                     content="Calories planned to be consumed today, often from go-to food items"
                   >
-                    <Info className="w-3 h-3 text-warm-text/60 hover:text-warm-text transition-colors" />
+                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
                   </ClickableTooltip>
                 </div>
               </div>
@@ -414,7 +414,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   <ClickableTooltip
                     content="Carbs calculated from planned food items in your daily plan"
                   >
-                    <Info className="w-3 h-3 text-warm-text/60 hover:text-warm-text transition-colors" />
+                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
                   </ClickableTooltip>
                 </div>
               </div>
@@ -426,7 +426,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   <ClickableTooltip
                     content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results."
                   >
-                    <Info className="w-3 h-3 text-warm-text/60 hover:text-warm-text transition-colors" />
+                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
                   </ClickableTooltip>
                 </div>
               </div>
@@ -438,7 +438,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   <ClickableTooltip
                     content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable."
                   >
-                    <Info className="w-3 h-3 text-warm-text/60 hover:text-warm-text transition-colors" />
+                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
                   </ClickableTooltip>
                 </div>
               </div>

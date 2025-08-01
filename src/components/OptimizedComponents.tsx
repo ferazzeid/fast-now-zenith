@@ -26,7 +26,7 @@ export const StatDisplay = ({
       {/* Tooltip icon positioned in top-right corner */}
       <div className="absolute top-2 right-2">
         <ClickableTooltip content={tooltip}>
-          <Info className="w-3 h-3 text-muted-foreground" />
+          <Info className="w-5 h-5 text-muted-foreground" />
         </ClickableTooltip>
       </div>
       
@@ -74,7 +74,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee }: DeficitDisplayProps) 
         <ClickableTooltip 
           content="Your calorie deficit for today. A positive number means you're burning more than you consume (weight loss)."
         >
-          <Info className="w-3 h-3 text-muted-foreground" />
+          <Info className="w-5 h-5 text-muted-foreground" />
         </ClickableTooltip>
       </div>
       

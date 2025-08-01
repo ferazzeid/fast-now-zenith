@@ -211,7 +211,7 @@ export const DailyStatsPanel = memo(() => {
                        <ClickableTooltip 
                          content="Calories burned from manually logged activities today"
                        >
-                         <Info className="w-3 h-3 text-muted-foreground" />
+                         <Info className="w-5 h-5 text-muted-foreground" />
                        </ClickableTooltip>
                      </div>
                      

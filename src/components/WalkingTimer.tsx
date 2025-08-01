@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
+import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 
 interface WalkingTimerProps {
@@ -241,14 +242,9 @@ export const WalkingTimer = ({
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="w-3 h-3 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Your current walking speed, used to calculate distance and calories</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <ClickableTooltip content="Your current walking speed, used to calculate distance and calories">
+                      <Info className="w-5 h-5 text-muted-foreground" />
+                    </ClickableTooltip>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
@@ -302,14 +298,9 @@ export const WalkingTimer = ({
                   <div className="flex items-center space-x-2">
                     <TrendingUp className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Steps</span>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="w-3 h-3 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Estimated steps based on your height, speed, and stride length</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <ClickableTooltip content="Estimated steps based on your height, speed, and stride length">
+                      <Info className="w-5 h-5 text-muted-foreground" />
+                    </ClickableTooltip>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
