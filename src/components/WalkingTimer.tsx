@@ -247,10 +247,10 @@ export const WalkingTimer = ({
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-primary mb-2">
-                  {storageSpeedToDisplaySpeed(realTimeStats.speed, units)} {units === 'metric' ? 'km/h' : 'mph'}
-                </div>
-                <div className="mb-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-bold text-primary">
+                    {storageSpeedToDisplaySpeed(realTimeStats.speed, units)} {units === 'metric' ? 'km/h' : 'mph'}
+                  </div>
                   <Select 
                     onValueChange={(value) => {
                       const newDisplaySpeed = parseInt(value);
@@ -258,7 +258,7 @@ export const WalkingTimer = ({
                       onSpeedChange(newStorageSpeed);
                     }}
                   >
-                    <SelectTrigger className="h-8 text-sm bg-background border-muted">
+                    <SelectTrigger className="h-8 w-16 text-sm bg-background border-muted">
                       <SelectValue placeholder="Set" />
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-background border-border">
