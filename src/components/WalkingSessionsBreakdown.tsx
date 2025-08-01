@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { supabase } from '@/integrations/supabase/client';
-import { useStableAuth } from '@/hooks/useStableAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -33,7 +33,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const [isExpanded, setIsExpanded] = useState(false);
   const [completedSessions, setCompletedSessions] = useState<WalkingSession[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useStableAuth();
+  const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
   const { profile } = useProfile();
 

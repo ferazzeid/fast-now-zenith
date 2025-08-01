@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useStableAuth } from './useStableAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
 import { useLoadingManager } from './useLoadingManager';
 
@@ -25,7 +25,7 @@ export interface CreateMotivatorData {
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
-  const { user } = useStableAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
 

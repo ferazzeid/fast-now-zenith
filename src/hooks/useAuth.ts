@@ -1,0 +1,200 @@
+import { useAuthStore } from '@/stores/authStore';
+import { useConnectionStore } from '@/stores/connectionStore';
+import { useToast } from '@/hooks/use-toast';
+
+export const useAuth = () => {
+  const { toast } = useToast();
+  const authState = useAuthStore();
+  const queueOperation = useConnectionStore(state => state.queueOperation);
+  const isConnected = useConnectionStore(state => state.isConnected);
+
+  // Create wrapped auth methods that handle toasts and offline queueing
+  const signIn = async (email: string, password: string) => {
+    const operation = async () => {
+      const result = await authState.signIn(email, password);
+      
+      if (result.error) {
+        toast({
+          title: "Sign In Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+      }
+      
+      return result;
+    };
+
+    if (isConnected) {
+      return await operation();
+    } else {
+      queueOperation(operation);
+      toast({
+        title: "Queued for retry",
+        description: "Sign in will be attempted when connection is restored.",
+      });
+      return { error: new Error("No connection - queued for retry") };
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const operation = async () => {
+      const result = await authState.signUp(email, password);
+      
+      if (result.error) {
+        toast({
+          title: "Sign Up Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email to verify your account.",
+        });
+      }
+      
+      return result;
+    };
+
+    if (isConnected) {
+      return await operation();
+    } else {
+      queueOperation(operation);
+      toast({
+        title: "Queued for retry",
+        description: "Sign up will be attempted when connection is restored.",
+      });
+      return { error: new Error("No connection - queued for retry") };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    const operation = async () => {
+      const result = await authState.signInWithGoogle();
+      
+      if (result.error) {
+        toast({
+          title: "Google Sign In Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      }
+      
+      return result;
+    };
+
+    if (isConnected) {
+      return await operation();
+    } else {
+      toast({
+        title: "No connection",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+      return { error: new Error("No connection") };
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    const operation = async () => {
+      const result = await authState.resetPassword(email);
+      
+      if (result.error) {
+        toast({
+          title: "Password Reset Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset Link Sent",
+          description: "Check your email for a password reset link.",
+        });
+      }
+      
+      return result;
+    };
+
+    if (isConnected) {
+      return await operation();
+    } else {
+      queueOperation(operation);
+      toast({
+        title: "Queued for retry",
+        description: "Password reset will be attempted when connection is restored.",
+      });
+      return { error: new Error("No connection - queued for retry") };
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    const operation = async () => {
+      const result = await authState.updatePassword(password);
+      
+      if (result.error) {
+        toast({
+          title: "Password Update Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password Updated",
+          description: "Your password has been successfully updated.",
+        });
+      }
+      
+      return result;
+    };
+
+    if (isConnected) {
+      return await operation();
+    } else {
+      queueOperation(operation);
+      toast({
+        title: "Queued for retry",
+        description: "Password update will be attempted when connection is restored.",
+      });
+      return { error: new Error("No connection - queued for retry") };
+    }
+  };
+
+  const signOut = async () => {
+    const operation = async () => {
+      const result = await authState.signOut();
+      
+      if (result?.error) {
+        toast({
+          title: "Sign Out Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Signed Out",
+          description: "You have been successfully signed out.",
+        });
+      }
+    };
+
+    // Always allow sign out, even offline
+    return await operation();
+  };
+
+  return {
+    user: authState.user,
+    session: authState.session,
+    loading: authState.loading,
+    signIn,
+    signUp,
+    signOut,
+    signInWithGoogle,
+    resetPassword,
+    updatePassword,
+  };
+};

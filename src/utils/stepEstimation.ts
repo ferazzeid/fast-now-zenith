@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { useStableProfile } from '@/hooks/useStableProfile';
+import { useProfileQuery } from '@/hooks/useProfileQuery';
 
 interface StepEstimationProps {
   durationMinutes: number;
@@ -76,7 +76,7 @@ export const getStepsPerMinute = (speedMph: number, userHeight: number = 70, uni
  * Hook for step estimation utilities that uses stable profile data
  */
 export const useStepEstimation = () => {
-  const { profile } = useStableProfile();
+  const { profile } = useProfileQuery();
 
   // Create stable functions with useCallback to prevent re-renders
   const estimateStepsForSession = useCallback((durationMinutes: number, speedMph: number): number => {
@@ -84,7 +84,7 @@ export const useStepEstimation = () => {
       durationMinutes,
       speedMph,
       userHeight: profile?.height || 70,
-      units: profile?.units || 'imperial'
+      units: (profile?.units as 'metric' | 'imperial') || 'imperial'
     });
   }, [profile?.height, profile?.units]);
 
@@ -92,7 +92,7 @@ export const useStepEstimation = () => {
     return getStepsPerMinute(
       speedMph,
       profile?.height || 70,
-      profile?.units || 'imperial'
+      (profile?.units as 'metric' | 'imperial') || 'imperial'
     );
   }, [profile?.height, profile?.units]);
 

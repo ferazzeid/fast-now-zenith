@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useStableProfile } from '@/hooks/useStableProfile';
+import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { estimateSteps } from '@/utils/stepEstimation';
 
 interface WalkingSession {
@@ -26,7 +26,7 @@ export const useWalkingSession = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
-  const { profile, calculateWalkingCalories } = useStableProfile();
+  const { profile, calculateWalkingCalories } = useProfileQuery();
 
   const loadActiveSession = useCallback(async () => {
     if (!user) return;
@@ -188,7 +188,7 @@ export const useWalkingSession = () => {
       
       // Calculate estimated steps
       const userHeight = profile?.height || 70;
-      const units = profile?.units || 'imperial';
+      const units = (profile?.units as 'metric' | 'imperial') || 'imperial';
       const estimatedSteps = estimateSteps({
         durationMinutes: activeDurationMinutes,
         speedMph,

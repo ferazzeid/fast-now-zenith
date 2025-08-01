@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
-import { useStableProfile } from '@/hooks/useStableProfile';
+import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { useStepEstimation } from '@/utils/stepEstimation';
 
 interface WalkingStats {
@@ -31,7 +31,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
 
   const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
-  const { profile, loading: profileLoading } = useStableProfile();
+  const { profile, loading: profileLoading } = useProfileQuery();
   const { estimateStepsForSession } = useStepEstimation();
 
   // Memoize profile checks to prevent re-renders - more robust check

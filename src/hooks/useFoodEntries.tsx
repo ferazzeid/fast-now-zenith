@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useStableAuth } from '@/hooks/useStableAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 import { useLoadingManager } from '@/hooks/useLoadingManager';
 
@@ -27,7 +27,7 @@ interface NewFoodEntry {
 
 export const useFoodEntries = () => {
   const [todayEntries, setTodayEntries] = useState<FoodEntry[]>([]);
-  const { user } = useStableAuth();
+  const { user } = useAuth();
   const { executeWithRetry } = useRetryableSupabase();
   const { loading, startLoading, stopLoading } = useLoadingManager('food-entries');
 

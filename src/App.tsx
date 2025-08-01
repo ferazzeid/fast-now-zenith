@@ -19,7 +19,8 @@ import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
-import { AuthProvider } from "./hooks/useAuth";
+import { AuthProvider } from "./providers/AuthProvider";
+import { ConnectionStatus } from "./components/ConnectionStatus";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,6 +62,7 @@ const AppContent = () => {
       <div className="min-h-screen bg-frame-background">
         {/* Mobile-first centered container with phone-like frame */}
         <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
+          <ConnectionStatus />
           <DailyStatsPanel />
           <Routes>
             <Route path="/auth" element={
