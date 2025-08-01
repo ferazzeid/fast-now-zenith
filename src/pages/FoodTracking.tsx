@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints } from 'lucide-react';
+import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp } from 'lucide-react';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -478,15 +478,26 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         <div className="mb-6">
           <Button
             variant="outline"
-            onClick={() => setShowLibraryView(true)}
-            className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
+            onClick={() => setShowLibraryView(!showLibraryView)}
+            className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50 gap-2"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
             <span className="font-medium">My Foods Library</span>
+            {showLibraryView ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </Button>
         </div>
+
+        {/* Food Library View - Inline */}
+        {showLibraryView && (
+          <div className="mb-6 animate-fade-in">
+            <FoodLibraryView 
+              onSelectFood={handleSelectFromLibrary} 
+              onBack={() => setShowLibraryView(false)} 
+            />
+          </div>
+        )}
 
         {/* Personal Food Library */}
         {showLibrary && (
@@ -631,12 +642,58 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </ComponentErrorBoundary>
         )}
 
-        {/* Today's Food Plan */}
-        {todayEntries.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-4 text-lg">Today's Food Plan</h3>
-            <div className="space-y-3">
-              {todayEntries.map((entry) => (
+        {/* Food Plan with Tabs */}
+        <div className="space-y-4">
+          {/* Tabs */}
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('shopping')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'shopping'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Shopping List ({todayEntries.filter(entry => !entry.consumed).length})
+            </button>
+            <button
+              onClick={() => setActiveTab('eaten')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'eaten'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Check className="w-4 h-4" />
+              Eaten Today ({todayEntries.filter(entry => entry.consumed).length})
+            </button>
+          </div>
+
+          {/* Filter entries based on active tab */}
+          {(() => {
+            const filteredEntries = todayEntries.filter(entry => 
+              activeTab === 'shopping' ? !entry.consumed : entry.consumed
+            );
+
+            return filteredEntries.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                <p>
+                  {activeTab === 'shopping' 
+                    ? 'No items in your shopping list.' 
+                    : 'No food consumed today.'
+                  }
+                </p>
+                <p className="text-sm mt-2">
+                  {activeTab === 'shopping' 
+                    ? 'Add meals to plan above!' 
+                    : 'Mark items as eaten or add consumed meals!'
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredEntries.map((entry) => (
                 <div key={entry.id} className={`p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors ${entry.consumed ? 'border-green-300 bg-green-50/10' : 'border-amber-300 bg-amber-50/10'}`}>
                   <div className="flex items-center gap-2">
                     {/* Food Image */}
@@ -700,10 +757,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+                ))}
+              </div>
+            );
+          })()}
+        </div>
 
         {/* Onboarding Modal */}
         <PageOnboardingModal
@@ -733,25 +791,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </PageOnboardingModal>
         
-        {/* Food Library View - Inline */}
-        {showLibraryView && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">My Food Library</h2>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowLibraryView(false)}
-                className="text-sm"
-              >
-                Back to Food Plan
-              </Button>
-            </div>
-            <FoodLibraryView 
-              onSelectFood={handleSelectFromLibrary} 
-              onBack={() => setShowLibraryView(false)} 
-            />
-          </div>
-        )}
       </div>
     </div>
   );

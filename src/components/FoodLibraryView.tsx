@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, ArrowLeft } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -132,7 +132,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">My Food Library</h2>
+        <span className="text-sm text-muted-foreground">{filteredFoods.length} items</span>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -175,45 +180,42 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </p>
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-3 max-h-96 overflow-y-auto">
           {filteredFoods.map((food) => (
-            <Card key={food.id} className="p-3 hover:bg-accent/50 transition-colors">
+            <Card key={food.id} className="p-3 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
-                {/* Food Image */}
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 overflow-hidden bg-accent">
-                  {food.image_url ? (
-                    <img 
-                      src={food.image_url} 
-                      alt={food.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-lg">🍽️</span>
-                  )}
-                </div>
-                
-                {/* Food Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium truncate text-base">{food.name}</h3>
-                    {food.is_favorite && (
-                      <Heart className="w-3 h-3 text-red-500 fill-current shrink-0" />
-                    )}
+                {food.image_url ? (
+                  <img 
+                    src={food.image_url} 
+                    alt={food.name}
+                    className="w-10 h-10 rounded object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-muted-foreground text-xs">🍽️</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {food.calories_per_100g} cal • {food.carbs_per_100g}g carbs
-                  </p>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm truncate">{food.name}</h3>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>{food.calories_per_100g} cal</span>
+                    <span>{food.carbs_per_100g}g carbs</span>
+                  </div>
                 </div>
                 
-                {/* Actions */}
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleFavorite(food.id, food.is_favorite)}
-                    className="h-6 w-6 p-0"
+                    className="p-1 h-6 w-6"
                   >
-                    <Heart className={`w-3 h-3 ${food.is_favorite ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
+                    {food.is_favorite ? (
+                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                    ) : (
+                      <Heart className="w-3 h-3 text-muted-foreground" />
+                    )}
                   </Button>
                   
                   <EditLibraryFoodModal 
@@ -225,27 +227,25 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteFood(food.id)}
-                    className="h-6 w-6 p-0"
+                    className="p-1 h-6 w-6 text-destructive hover:text-destructive"
                   >
-                    <Trash2 className="w-3 h-3 text-muted-foreground" />
+                    <Trash2 className="w-3 h-3" />
                   </Button>
                   
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="h-6 px-2 ml-2"
-                      >
-                        Add
+                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                        <Plus className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onSelectFood(food, false)}>
+                        <ShoppingCart className="w-4 h-4 mr-2" />
                         Add to Shopping List
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onSelectFood(food, true)}>
-                        Add to Eaten List
+                        <Check className="w-4 h-4 mr-2" />
+                        Mark as Eaten
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
