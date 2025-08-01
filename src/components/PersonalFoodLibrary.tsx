@@ -134,7 +134,7 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">My Food Library</h3>
+        <h3 className="text-lg font-semibold text-white">My Food Library</h3>
         <Button variant="ghost" onClick={onClose} size="sm" className="h-8 w-8 p-0">
           <X className="w-4 h-4" />
         </Button>
