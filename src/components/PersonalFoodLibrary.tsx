@@ -199,12 +199,12 @@ export const PersonalFoodLibrary = ({ onSelectFood, onClose }: PersonalFoodLibra
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium truncate">{food.name}</h4>
+                    <h4 className="font-medium truncate text-foreground">{food.name}</h4>
                     {food.is_favorite && (
                       <Heart className="w-3 h-3 text-red-500 fill-current shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-foreground/80">
                     {food.calories_per_100g} cal • {food.carbs_per_100g}g carbs • per 100g
                   </p>
                 </div>

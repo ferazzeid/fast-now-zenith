@@ -14,6 +14,7 @@ import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
@@ -393,61 +394,49 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
             
             <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="p-2 rounded bg-ceramic-base">
-                <div className="text-sm font-semibold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-medium text-warm-text">Planned Cal</span>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-3 h-3 text-warm-text/60" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-48">Calories planned to be consumed today, often from go-to food items</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+              <div className="p-2 rounded bg-ceramic-base relative">
+                <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
+                <div className="text-lg font-bold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
+                <div className="text-xs text-warm-text/70">Calorie</div>
+                <ClickableTooltip
+                  content="Calories planned to be consumed today, often from go-to food items"
+                  className="absolute top-1 right-1"
+                >
+                  <Info className="w-4 h-4 text-warm-text/60 hover:text-warm-text transition-colors" />
+                </ClickableTooltip>
               </div>
-              <div className="p-2 rounded bg-ceramic-base">
-                <div className="text-sm font-semibold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-medium text-warm-text">Planned Carbs</span>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-3 h-3 text-warm-text/60" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-48">Carbs calculated from planned food items in your daily plan</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+              <div className="p-2 rounded bg-ceramic-base relative">
+                <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
+                <div className="text-lg font-bold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+                <div className="text-xs text-warm-text/70">Carbs</div>
+                <ClickableTooltip
+                  content="Carbs calculated from planned food items in your daily plan"
+                  className="absolute top-1 right-1"
+                >
+                  <Info className="w-4 h-4 text-warm-text/60 hover:text-warm-text transition-colors" />
+                </ClickableTooltip>
               </div>
-              <div className="p-2 rounded bg-ceramic-base">
-                <div className="text-sm font-semibold text-warm-text">2000</div>
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-medium text-warm-text">Cal Limit</span>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-3 h-3 text-warm-text/60" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-48">Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+              <div className="p-2 rounded bg-ceramic-base relative">
+                <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
+                <div className="text-lg font-bold text-warm-text">2000</div>
+                <div className="text-xs text-warm-text/70">Calorie</div>
+                <ClickableTooltip
+                  content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results."
+                  className="absolute top-1 right-1"
+                >
+                  <Info className="w-4 h-4 text-warm-text/60 hover:text-warm-text transition-colors" />
+                </ClickableTooltip>
               </div>
-              <div className="p-2 rounded bg-ceramic-base">
-                <div className="text-sm font-semibold text-warm-text">150g</div>
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-medium text-warm-text">Carb Limit</span>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-3 h-3 text-warm-text/60" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-48">Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+              <div className="p-2 rounded bg-ceramic-base relative">
+                <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
+                <div className="text-lg font-bold text-warm-text">150g</div>
+                <div className="text-xs text-warm-text/70">Carbs</div>
+                <ClickableTooltip
+                  content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable."
+                  className="absolute top-1 right-1"
+                >
+                  <Info className="w-4 h-4 text-warm-text/60 hover:text-warm-text transition-colors" />
+                </ClickableTooltip>
               </div>
             </div>
           </div>
