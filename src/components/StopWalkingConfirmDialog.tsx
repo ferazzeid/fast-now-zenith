@@ -30,27 +30,26 @@ export const StopWalkingConfirmDialog = ({
 }: StopWalkingConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Stop Walking Session?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to stop your walking session? You've been walking for {currentDuration || '0:00:00'}.
+      <AlertDialogContent className="max-w-sm mx-4">
+        <AlertDialogHeader className="space-y-2">
+          <AlertDialogTitle className="text-lg">Stop Walking Session?</AlertDialogTitle>
+          <AlertDialogDescription className="text-sm leading-relaxed">
+            You've been walking for <span className="font-medium">{currentDuration || '0:00:00'}</span>.
             {calories && distance && (
-              <div className="mt-2 text-sm">
-                <div>Calories burned: <span className="font-medium">{calories}</span></div>
+              <div className="mt-3 space-y-1 text-xs bg-muted/50 rounded-lg p-2">
+                <div>Calories: <span className="font-medium">{calories}</span></div>
                 <div>Distance: <span className="font-medium">{distance} {units === 'metric' ? 'km' : 'miles'}</span></div>
               </div>
             )}
-            This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Continue Walking</AlertDialogCancel>
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel className="text-sm">Continue</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm"
           >
-            Stop Walking
+            Stop
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
