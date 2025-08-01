@@ -232,7 +232,7 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
             </Button>
           </div>
         </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         {dailySummaries.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-muted-foreground">No food entries found</div>
