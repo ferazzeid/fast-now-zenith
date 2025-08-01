@@ -209,10 +209,21 @@ const Walking = () => {
                 showSlideshow={true}
                 units={profile?.units || 'imperial'}
                 selectedSpeed={selectedSpeed}
-                onSpeedChange={(newSpeed) => {
+                onSpeedChange={async (newSpeed) => {
+                  console.log('Speed change triggered:', { oldSpeed: selectedSpeed, newSpeed });
                   setSelectedSpeed(newSpeed);
                   if (isRunning) {
-                    updateSessionSpeed(newSpeed);
+                    const result = await updateSessionSpeed(newSpeed);
+                    if (result.error) {
+                      console.error('Failed to update session speed:', result.error);
+                      toast({
+                        variant: "destructive",
+                        title: "Speed Update Failed",
+                        description: "Unable to update walking speed. Please try again."
+                      });
+                    } else {
+                      console.log('Speed updated successfully');
+                    }
                   }
                 }}
                 realTimeStats={currentSession ? {

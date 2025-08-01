@@ -259,6 +259,7 @@ export const useWalkingSession = () => {
   const updateSessionSpeed = useCallback(async (newSpeed: number) => {
     if (!currentSession || !user) return { error: null, data: null };
 
+    console.log('Updating session speed:', { currentSpeed: currentSession.speed_mph, newSpeed });
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -268,8 +269,12 @@ export const useWalkingSession = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error updating session speed:', error);
+        throw error;
+      }
 
+      console.log('Successfully updated session speed:', data);
       setCurrentSession(data);
       return { data, error: null };
     } catch (error: any) {
