@@ -56,8 +56,6 @@ export const useDailyActivityOverride = () => {
           user_id: user.id,
           date: today,
           activity_level: activityLevel
-        }, {
-          onConflict: 'user_id,date'
         })
         .select()
         .single();

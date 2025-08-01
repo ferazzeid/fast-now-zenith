@@ -65,12 +65,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
             <div className="flex items-center gap-2">
               <span>{getDisplayLabel(getCurrentValue())}</span>
               {todayOverride && (
-                <>
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-                    Today
-                  </Badge>
-                </>
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
               )}
             </div>
           </SelectValue>
@@ -95,6 +90,10 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
           {todayOverride && (
             <>
               <div className="border-t border-ceramic-rim my-1" />
+              <div className="px-2 py-1 text-[10px] text-muted-foreground flex items-center gap-1">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                <span>Active for today only</span>
+              </div>
               <SelectItem 
                 value="clear-override"
                 className="text-xs text-muted-foreground hover:bg-ceramic-base focus:bg-ceramic-base"
@@ -109,12 +108,6 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
         </SelectContent>
       </Select>
       
-      {todayOverride && (
-        <div className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
-          <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-          <span>Active for today only</span>
-        </div>
-      )}
     </div>
   );
 };
