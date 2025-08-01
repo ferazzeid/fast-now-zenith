@@ -224,8 +224,8 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="border-b border-border py-4 px-6">
-          <div className="flex justify-between items-center">
+        <CardHeader className="border-b border-border py-4 px-0">
+          <div className="flex justify-between items-center px-6">
             <CardTitle className="text-lg font-semibold">Food History</CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
               <X className="w-4 h-4" />

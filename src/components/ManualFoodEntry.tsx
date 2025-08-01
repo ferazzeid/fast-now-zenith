@@ -90,8 +90,8 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh]">
-        <DialogHeader className="border-b border-border py-4 px-6">
-          <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
+        <DialogHeader className="border-b border-border py-4 px-0">
+          <DialogTitle className="text-lg font-semibold px-6">Add Food Manually</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-4">
