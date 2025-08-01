@@ -110,8 +110,9 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
       </Select>
       
       {todayOverride && (
-        <div className="text-[10px] text-muted-foreground text-center">
-          Override active for today only
+        <div className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
+          <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+          <span>Active for today only</span>
         </div>
       )}
     </div>
