@@ -247,11 +247,26 @@ export const WalkingTimer = ({
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-primary">
-                  {storageSpeedToDisplaySpeed(realTimeStats.speed, units)}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">
-                    {units === 'metric' ? 'km/h' : 'mph'}
-                  </span>
+                <div className="mb-2">
+                  <Select 
+                    value={displaySpeed.toString()} 
+                    onValueChange={(value) => {
+                      const newDisplaySpeed = parseInt(value);
+                      const newStorageSpeed = displaySpeedToStorageSpeed(newDisplaySpeed, units);
+                      onSpeedChange(newStorageSpeed);
+                    }}
+                  >
+                    <SelectTrigger className="h-10 text-base font-semibold bg-background border-muted">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 bg-background border-border">
+                      {getSpeedOptions(units).map((option) => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          <span className="font-medium">{option.label}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {formatPace(realTimeStats.speed)}

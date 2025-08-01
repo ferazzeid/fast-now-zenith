@@ -3,7 +3,7 @@ import { WalkingTimer } from '@/components/WalkingTimer';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
-import { SpeedSelector } from '@/components/SpeedSelector';
+
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { WalkingHistory } from '@/components/WalkingHistory';
 
@@ -217,33 +217,25 @@ const Walking = () => {
                 units={profile?.units || 'imperial'}
                 selectedSpeed={selectedSpeed}
                 onSpeedChange={async (newSpeed) => {
-                  console.log('Speed change triggered:', { 
-                    oldSpeed: selectedSpeed, 
-                    newSpeed, 
-                    units: profile?.units,
-                    isMetric: profile?.units === 'metric'
-                  });
                   setSelectedSpeed(newSpeed);
                   if (isRunning) {
                     const result = await updateSessionSpeed(newSpeed);
                     if (result.error) {
-                      console.error('Failed to update session speed:', result.error);
                       toast({
                         variant: "destructive",
                         title: "Speed Update Failed",
                         description: "Unable to update walking speed. Please try again."
                       });
                     } else {
-                      console.log('Speed updated successfully in database');
                       toast({
                         title: "Speed Updated",
-                        description: `Walking speed updated to ${newSpeed} mph`
+                        description: `Walking speed updated`
                       });
                     }
                   } else {
                     toast({
                       title: "Speed Set", 
-                      description: `Walking speed set to ${newSpeed} mph`
+                      description: `Walking speed set for next session`
                     });
                   }
                 }}
@@ -257,45 +249,6 @@ const Walking = () => {
               />
             </div>
 
-            {/* Speed Selector - prominently placed after timer */}
-            <div className="mb-6">
-              <SpeedSelector
-                selectedSpeed={selectedSpeed}
-                onSpeedChange={async (newSpeed) => {
-                  console.log('Speed change triggered from selector:', { 
-                    oldSpeed: selectedSpeed, 
-                    newSpeed, 
-                    units: profile?.units,
-                    isMetric: profile?.units === 'metric'
-                  });
-                  setSelectedSpeed(newSpeed);
-                  if (isRunning) {
-                    const result = await updateSessionSpeed(newSpeed);
-                    if (result.error) {
-                      console.error('Failed to update session speed:', result.error);
-                      toast({
-                        variant: "destructive",
-                        title: "Speed Update Failed",
-                        description: "Unable to update walking speed. Please try again."
-                      });
-                    } else {
-                      console.log('Speed updated successfully in database');
-                      toast({
-                        title: "Speed Updated",
-                        description: `Walking speed updated during session`
-                      });
-                    }
-                  } else {
-                    toast({
-                      title: "Speed Set", 
-                      description: `Walking speed set for next session`
-                    });
-                  }
-                }}
-                disabled={false}
-                units={profile?.units || 'imperial'}
-              />
-            </div>
 
           </>
         )}
