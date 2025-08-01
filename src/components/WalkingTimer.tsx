@@ -247,6 +247,9 @@ export const WalkingTimer = ({
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
                 </div>
+                <div className="text-xl font-bold text-primary mb-2">
+                  {displaySpeed} {units === 'metric' ? 'km/h' : 'mph'}
+                </div>
                 <div className="mb-2">
                   <Select 
                     value={displaySpeed.toString()} 
@@ -256,8 +259,8 @@ export const WalkingTimer = ({
                       onSpeedChange(newStorageSpeed);
                     }}
                   >
-                    <SelectTrigger className="h-10 text-base font-semibold bg-background border-muted">
-                      <SelectValue />
+                    <SelectTrigger className="h-8 text-sm bg-background border-muted">
+                      <SelectValue placeholder="Set" />
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-background border-border">
                       {getSpeedOptions(units).map((option) => (
