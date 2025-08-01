@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -93,6 +94,38 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
     setImageUrl(food.image_url || '');
   };
 
+  const generatePromptForFood = async (foodName: string) => {
+    // Fetch admin prompt settings and color themes
+    let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
+    let primaryColor = "220 35% 45%";
+    let accentColor = "262 83% 58%";
+    
+    try {
+      const { data: settingsData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
+      
+      settingsData?.forEach(setting => {
+        if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
+          promptTemplate = setting.setting_value;
+        } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+          primaryColor = setting.setting_value;
+        } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+          accentColor = setting.setting_value;
+        }
+      });
+    } catch (error) {
+      console.log('Using default prompt template as fallback');
+    }
+    
+    // Replace variables in the prompt template
+    return promptTemplate
+      .replace(/{food_name}/g, foodName.trim())
+      .replace(/{primary_color}/g, primaryColor)
+      .replace(/{accent_color}/g, accentColor);
+  };
+
   const handleGenerateImage = async () => {
     if (!name.trim()) {
       toast({
@@ -107,35 +140,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
     try {
       console.log('Starting image generation for:', name.trim());
       
-      // Fetch admin prompt settings and color themes
-      let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
-      let primaryColor = "220 35% 45%";
-      let accentColor = "262 83% 58%";
-      
-      try {
-        const { data: settingsData } = await supabase
-          .from('shared_settings')
-          .select('setting_key, setting_value')
-          .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
-        
-        settingsData?.forEach(setting => {
-          if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
-            promptTemplate = setting.setting_value;
-          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-            primaryColor = setting.setting_value;
-          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
-            accentColor = setting.setting_value;
-          }
-        });
-      } catch (error) {
-        console.log('Using default prompt template as fallback');
-      }
-      
-      // Replace variables in the prompt template
-      const prompt = promptTemplate
-        .replace(/{food_name}/g, name.trim())
-        .replace(/{primary_color}/g, primaryColor)
-        .replace(/{accent_color}/g, accentColor);
+      const prompt = await generatePromptForFood(name.trim());
+      setCurrentPrompt(prompt); // Store the prompt for regeneration use
       
       const { generateImage } = await import('@/integrations/imageGeneration');
       const filename = `default-food-${Date.now()}.jpg`;
@@ -150,6 +156,34 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
       console.error('Image generation error:', error);
       toast({
         title: "Generation failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const handleRegenerateImage = async () => {
+    if (!name.trim()) return;
+    
+    setIsGeneratingImage(true);
+    try {
+      const prompt = await generatePromptForFood(name.trim());
+      setCurrentPrompt(prompt);
+      
+      const { generateImage } = await import('@/integrations/imageGeneration');
+      const filename = `default-food-${Date.now()}.jpg`;
+      const newImageUrl = await generateImage(prompt, filename, 'food-images');
+      setImageUrl(newImageUrl);
+      
+      toast({
+        title: "✨ Image Regenerated!",
+        description: "Your new AI-generated image is ready.",
+      });
+    } catch (error) {
+      toast({
+        title: "Regeneration failed",
         description: "Please try again.",
         variant: "destructive",
       });
@@ -233,13 +267,16 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
                   {isGeneratingImage ? "Generating..." : "Generate AI Image"}
                 </Button>
                 {imageUrl && (
-                  <RegenerateImageButton 
-                    prompt={`A high-quality, appetizing photo of ${name.trim()}, food photography, clean background, well-lit`}
-                    filename={`default-food-${Date.now()}.jpg`}
-                    bucket="food-images"
-                    onImageGenerated={setImageUrl}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRegenerateImage}
                     disabled={isGeneratingImage}
-                  />
+                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                    title="Regenerate image"
+                  >
+                    <RotateCcw className={`w-3 h-3 ${isGeneratingImage ? 'animate-spin' : ''}`} />
+                  </Button>
                 )}
               </div>
             </div>
