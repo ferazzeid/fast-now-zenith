@@ -234,7 +234,10 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
             <div className="flex gap-2">
               <CopyYesterdayButton 
                 onCopied={() => {
-                  onClose();
+                  // Show success message and delay the close
+                  setTimeout(() => {
+                    onClose();
+                  }, 2000); // Give user time to see the success message
                 }}
                 variant="outline" 
                 size="sm"

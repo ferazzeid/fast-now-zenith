@@ -27,7 +27,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
@@ -42,8 +50,23 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         stream.getTracks().forEach(track => track.stop());
       };
 
+      // Add timeout handling
+      const recordingTimeout = setTimeout(() => {
+        if (isRecording && mediaRecorderRef.current?.state === 'recording') {
+          toast({
+            title: "⏱️ Recording Timeout",
+            description: "Recording automatically stopped after 60 seconds",
+          });
+          stopRecording();
+        }
+      }, 60000); // 60 second timeout for full recorder
+
       mediaRecorderRef.current.start();
       setIsRecording(true);
+      
+      // Store timeout reference
+      (mediaRecorderRef.current as any).timeout = recordingTimeout;
+      
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
@@ -55,6 +78,11 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   const stopRecording = () => {
+    // Clear timeout if exists
+    if (mediaRecorderRef.current && (mediaRecorderRef.current as any).timeout) {
+      clearTimeout((mediaRecorderRef.current as any).timeout);
+    }
+    
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);

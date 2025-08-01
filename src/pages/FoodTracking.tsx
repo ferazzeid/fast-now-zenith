@@ -83,15 +83,15 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         });
       } else {
         trackFoodEvent('add', 'voice');
+        
+        // Show detailed confirmation message
         toast({
           title: "✅ Food Added Successfully!",
-          description: `${args.name} has been added to your food plan`
+          description: `${args.name} (${args.serving_size}g) - ${args.calories} cal, ${args.carbs}g carbs. You can continue adding more foods or close this chat.`
         });
         
-        // Close the AI chat modal after a brief delay
-        setTimeout(() => {
-          setShowAiChat(false);
-        }, 1500);
+        // Don't auto-close - let user decide when to close
+        // The AI chat will remain open for additional food entries
         
         // Save to personal library
         await saveToLibrary({

@@ -43,24 +43,46 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
         stream.getTracks().forEach(track => track.stop());
       };
 
+      // Add timeout handling to prevent hanging recordings
+      const recordingTimeout = setTimeout(() => {
+        if (isRecording && mediaRecorderRef.current?.state === 'recording') {
+          toast({
+            title: "⏱️ Recording Timeout",
+            description: "Recording automatically stopped after 30 seconds. Tap 'Send' to process.",
+            variant: "default"
+          });
+          mediaRecorderRef.current?.stop();
+          setIsRecording(false);
+          setHasRecording(true);
+        }
+      }, 30000); // 30 second timeout
+
       mediaRecorderRef.current.start();
       setIsRecording(true);
       
+      // Store timeout reference for cleanup
+      (mediaRecorderRef.current as any).timeout = recordingTimeout;
+      
       toast({
         title: "🎤 Recording...",
-        description: "Speak your message, then tap 'Send' when done",
+        description: "Speak your message, then tap 'Send' when done (max 30s)",
       });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
         title: "Error",
-        description: "Could not access microphone",
+        description: "Could not access microphone. Please check permissions.",
         variant: "destructive"
       });
     }
   };
 
   const sendRecording = async () => {
+    // Clear any existing timeout
+    if (mediaRecorderRef.current && (mediaRecorderRef.current as any).timeout) {
+      clearTimeout((mediaRecorderRef.current as any).timeout);
+    }
+    
     // Stop recording if still recording, then process
     if (isRecording && mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
@@ -69,7 +91,14 @@ export const SimpleVoiceRecorder: React.FC<SimpleVoiceRecorderProps> = ({
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     
-    if (audioChunksRef.current.length === 0) return;
+    if (audioChunksRef.current.length === 0) {
+      toast({
+        title: "No Recording",
+        description: "Please record a message first",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsProcessing(true);
     try {

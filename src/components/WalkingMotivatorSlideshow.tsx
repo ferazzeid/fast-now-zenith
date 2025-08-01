@@ -105,9 +105,10 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
           style={{ zIndex: 15 }}
         >
           <div 
-            className="text-white font-bold text-xl tracking-wide drop-shadow-lg text-center px-4 animate-zoom-in"
+            className="text-white font-bold text-xl tracking-wide text-center px-6 py-3 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 animate-zoom-in"
             style={{
-              animation: 'zoomIn 8s ease-in-out'
+              animation: 'zoomIn 8s ease-in-out',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8)'
             }}
           >
             {currentMotivator.title.toUpperCase()}
