@@ -210,7 +210,12 @@ const Walking = () => {
                 units={profile?.units || 'imperial'}
                 selectedSpeed={selectedSpeed}
                 onSpeedChange={async (newSpeed) => {
-                  console.log('Speed change triggered:', { oldSpeed: selectedSpeed, newSpeed });
+                  console.log('Speed change triggered:', { 
+                    oldSpeed: selectedSpeed, 
+                    newSpeed, 
+                    units: profile?.units,
+                    isMetric: profile?.units === 'metric'
+                  });
                   setSelectedSpeed(newSpeed);
                   if (isRunning) {
                     const result = await updateSessionSpeed(newSpeed);
@@ -222,7 +227,7 @@ const Walking = () => {
                         description: "Unable to update walking speed. Please try again."
                       });
                     } else {
-                      console.log('Speed updated successfully');
+                      console.log('Speed updated successfully in database');
                     }
                   }
                 }}

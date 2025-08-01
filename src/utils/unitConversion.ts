@@ -20,14 +20,30 @@ export const kmhToMph = (kmh: number): number => {
 
 /**
  * Convert display speed to storage speed (always MPH)
+ * When units are metric, the display speed is in km/h and needs conversion to MPH
+ * When units are imperial, the display speed is already in MPH
  */
 export const displaySpeedToStorageSpeed = (speed: number, units: 'metric' | 'imperial'): number => {
-  return units === 'metric' ? kmhToMph(speed) : speed;
+  if (units === 'metric') {
+    // Display is km/h, convert to MPH for storage
+    return kmhToMph(speed);
+  } else {
+    // Display is MPH, store as-is
+    return speed;
+  }
 };
 
 /**
  * Convert storage speed (MPH) to display speed based on units
+ * When units are metric, convert MPH to km/h for display
+ * When units are imperial, display MPH as-is
  */
 export const storageSpeedToDisplaySpeed = (speedMph: number, units: 'metric' | 'imperial'): number => {
-  return units === 'metric' ? mphToKmh(speedMph) : speedMph;
+  if (units === 'metric') {
+    // Storage is MPH, convert to km/h for display
+    return mphToKmh(speedMph);
+  } else {
+    // Storage is MPH, display as-is
+    return speedMph;
+  }
 };
