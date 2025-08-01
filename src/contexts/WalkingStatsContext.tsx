@@ -30,10 +30,6 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     currentSessionId: null
   });
 
-  // Add state for incremental step counting
-  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
-  const [accumulatedSteps, setAccumulatedSteps] = useState<number>(0);
-
   const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
   const { profile } = useStableProfile();
   const { estimateStepsForSession } = useStepEstimation();
@@ -120,10 +116,6 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       if (!session) {
         if (wasActiveRef.current) {
-          // Reset accumulated steps and time when session ends
-          setAccumulatedSteps(0);
-          setLastUpdateTime(0);
-          
           setWalkingStats(prev => {
             // Prevent update if already cleared
             if (!prev.isActive) return prev;
@@ -181,42 +173,27 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         distance = distance * 1.60934; // Convert miles to km
       }
 
-      // Smoother step calculation - calculate steps per second and accumulate
-      const currentTime = Date.now();
-      let newSteps = accumulatedSteps;
+      // Simpler step calculation - just calculate total steps from total time
+      // Use a more conservative and realistic step calculation
+      const heightInches = units === 'metric' ? (profile?.height || 70) / 2.54 : (profile?.height || 70);
+      const baseStride = heightInches * 0.37; // More conservative stride multiplier
       
-      if (lastUpdateTime > 0) {
-        const timeDiff = (currentTime - lastUpdateTime) / 1000; // seconds
-        
-        // Calculate steps per second based on speed
-        const heightInches = units === 'metric' ? (profile?.height || 70) / 2.54 : (profile?.height || 70);
-        const baseStride = heightInches * 0.414;
-        let speedFactor = 1.0;
-        if (speedMph <= 2.5) speedFactor = 0.9;
-        else if (speedMph <= 3.5) speedFactor = 1.0;
-        else if (speedMph <= 4.5) speedFactor = 1.1;
-        else speedFactor = 1.2;
-        
-        const strideInches = baseStride * speedFactor;
-        const stepsPerMile = 63360 / strideInches;
-        const stepsPerSecond = (speedMph * stepsPerMile) / 3600; // 3600 seconds in an hour
-        
-        const incrementalSteps = stepsPerSecond * timeDiff;
-        newSteps = accumulatedSteps + incrementalSteps;
-        
-        setAccumulatedSteps(newSteps);
-      }
+      // Speed-based stride adjustment (more conservative)
+      let speedFactor = 1.0;
+      if (speedMph <= 2.5) speedFactor = 0.85;      // Slow pace
+      else if (speedMph <= 3.5) speedFactor = 1.0;  // Average pace
+      else if (speedMph <= 4.5) speedFactor = 1.15; // Brisk pace
+      else speedFactor = 1.3;                        // Fast pace
       
-      setLastUpdateTime(currentTime);
+      const strideInches = baseStride * speedFactor;
+      const distanceInches = distance * (units === 'metric' ? 39370.1 : 63360); // Convert km/mi to inches
+      const totalSteps = Math.round(distanceInches / strideInches);
 
       setWalkingStats(prev => {
-        // Use the newly calculated steps for smoother progression
-        const smoothSteps = Math.round(newSteps);
-        
         const newStats = {
           realTimeCalories: calories,
           realTimeDistance: Math.round(distance * 100) / 100,
-          realTimeSteps: smoothSteps,
+          realTimeSteps: totalSteps,
           timeElapsed: activeElapsed,
           isActive: true,
           isPaused: paused || false,
@@ -244,9 +221,9 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     if (currentSession && !isPaused) {
-      // Update immediately then set interval
+      // Update immediately then set interval every 5 seconds for better performance
       updateStats();
-      interval = setInterval(updateStats, 1000);
+      interval = setInterval(updateStats, 5000); // 5 seconds instead of 1 second
     } else if (currentSession && isPaused) {
       // Update once to mark as paused
       updateStats();
