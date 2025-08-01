@@ -132,15 +132,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   );
 
   return (
-    <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between px-4">
         <h2 className="text-lg font-semibold">My Food Library</h2>
         <span className="text-sm text-muted-foreground">{filteredFoods.length} items</span>
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="relative px-4">
+        <Search className="absolute left-7 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Search your foods..."
           value={searchTerm}
@@ -151,9 +151,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Food Grid */}
       {loading ? (
-        <div className="grid gap-3">
+        <div className="space-y-3">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="p-3">
+            <Card key={i} className="mx-4 p-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-muted animate-pulse rounded-lg shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -170,7 +170,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           ))}
         </div>
       ) : filteredFoods.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 px-4">
           <div className="text-6xl mb-4">🍽️</div>
           <h3 className="text-lg font-medium mb-2">
             {searchTerm ? 'No foods found' : 'Your library is empty'}
@@ -180,25 +180,25 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </p>
         </div>
       ) : (
-        <div className="grid gap-3 max-h-96 overflow-y-auto">
+        <div className="space-y-3">
           {filteredFoods.map((food) => (
-            <Card key={food.id} className="p-3 hover:shadow-md transition-shadow">
+            <Card key={food.id} className="mx-4 p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
                 {food.image_url ? (
                   <img 
                     src={food.image_url} 
                     alt={food.name}
-                    className="w-10 h-10 rounded object-cover flex-shrink-0"
+                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded bg-muted flex items-center justify-center flex-shrink-0">
-                    <span className="text-muted-foreground text-xs">🍽️</span>
+                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-muted-foreground text-lg">🍽️</span>
                   </div>
                 )}
                 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{food.name}</h3>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <h3 className="font-medium text-base truncate">{food.name}</h3>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span>{food.calories_per_100g} cal</span>
                     <span>{food.carbs_per_100g}g carbs</span>
                   </div>
@@ -209,12 +209,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleFavorite(food.id, food.is_favorite)}
-                    className="p-1 h-6 w-6"
+                    className="p-1 h-8 w-8"
                   >
                     {food.is_favorite ? (
-                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                      <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                     ) : (
-                      <Heart className="w-3 h-3 text-muted-foreground" />
+                      <Heart className="w-4 h-4 text-muted-foreground" />
                     )}
                   </Button>
                   
@@ -227,15 +227,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteFood(food.id)}
-                    className="p-1 h-6 w-6 text-destructive hover:text-destructive"
+                    className="p-1 h-8 w-8 text-destructive hover:text-destructive"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                   
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
-                        <Plus className="w-3 h-3" />
+                      <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                        <Plus className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
