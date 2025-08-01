@@ -325,13 +325,13 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[85vh] flex flex-col p-0">
-        <DialogHeader className="border-b border-border p-4 flex-shrink-0">
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="border-b border-border p-4">
           <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
         </DialogHeader>
 
         {/* Messages with better spacing and scrolling */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[300px] max-h-[400px]">
+        <div className="space-y-4 p-4 min-h-[300px] max-h-[400px] overflow-y-auto">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -433,7 +433,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
         {/* Edit Form */}
         {showEditForm && (
-          <div className="flex-shrink-0 border-t border-border p-4 bg-muted/30">
+          <div className="border-t border-border p-4 bg-muted/30">
             <h3 className="font-medium mb-3">Adjust Food Details</h3>
             <div className="space-y-3">
               <div>
@@ -491,7 +491,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
         {/* Input */}
         {!showEditForm && (
-          <div className="flex-shrink-0 border-t border-border p-4 space-y-3">
+          <div className="border-t border-border p-4 space-y-3">
           {/* Text Input */}
           <div className="flex gap-2 items-end">
             <Input
