@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
-import { storageSpeedToDisplaySpeed, displaySpeedToStorageSpeed } from '@/utils/unitConversion';
+// Remove unit conversion imports - using static mappings instead
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -63,6 +63,36 @@ export const WalkingTimer = ({
     }
   }, [isActive, isPaused, isAnimationsSuspended]);
 
+  // Static speed mappings - same as SpeedSelector
+  const SPEED_MAPPINGS = {
+    metric: [
+      { displaySpeed: 3, storageSpeed: 1.9 },
+      { displaySpeed: 5, storageSpeed: 3.1 },
+      { displaySpeed: 6, storageSpeed: 3.7 },
+      { displaySpeed: 8, storageSpeed: 5.0 }
+    ],
+    imperial: [
+      { displaySpeed: 2, storageSpeed: 2.0 },
+      { displaySpeed: 3, storageSpeed: 3.0 },
+      { displaySpeed: 4, storageSpeed: 4.0 },
+      { displaySpeed: 5, storageSpeed: 5.0 }
+    ]
+  };
+
+  // Convert storage speed to display speed using static mapping
+  const storageSpeedToDisplaySpeed = (speedMph: number, units: 'metric' | 'imperial'): number => {
+    const mapping = SPEED_MAPPINGS[units].find(option => 
+      Math.abs(option.storageSpeed - speedMph) < 0.1
+    );
+    return mapping ? mapping.displaySpeed : SPEED_MAPPINGS[units][1].displaySpeed;
+  };
+
+  // Convert display speed to storage speed using static mapping
+  const displaySpeedToStorageSpeed = (displaySpeed: number, units: 'metric' | 'imperial'): number => {
+    const mapping = SPEED_MAPPINGS[units].find(option => option.displaySpeed === displaySpeed);
+    return mapping ? mapping.storageSpeed : SPEED_MAPPINGS[units][1].storageSpeed;
+  };
+
   const formatPace = (speedMph: number) => {
     // Convert stored speed (MPH) to display speed for calculations
     const displaySpeed = storageSpeedToDisplaySpeed(speedMph, units);
@@ -81,20 +111,10 @@ export const WalkingTimer = ({
   };
 
   const getSpeedOptions = (units: 'metric' | 'imperial') => {
-    if (units === 'metric') {
-      return [
-        { value: 3, label: 'Slow (3 km/h)' },
-        { value: 5, label: 'Average (5 km/h)' },
-        { value: 6, label: 'Brisk (6 km/h)' },
-        { value: 8, label: 'Fast (8 km/h)' }
-      ];
-    }
-    return [
-      { value: 2, label: 'Slow (2 mph)' },
-      { value: 3, label: 'Average (3 mph)' },
-      { value: 4, label: 'Brisk (4 mph)' },
-      { value: 5, label: 'Fast (5 mph)' }
-    ];
+    return SPEED_MAPPINGS[units].map(option => ({
+      value: option.displaySpeed,
+      label: units === 'metric' ? `${option.displaySpeed} km/h` : `${option.displaySpeed} mph`
+    }));
   };
 
   // Convert stored speed (MPH) to display speed for the select component
