@@ -1,4 +1,4 @@
-import { Clock, Footprints, Camera, Target } from 'lucide-react';
+import { Clock, Footprints, Camera, Target, Zap, Coffee, Scale } from 'lucide-react';
 
 export interface OnboardingSection {
   icon: any;
@@ -9,91 +9,97 @@ export interface OnboardingSection {
 export interface PageOnboardingContent {
   title: string;
   subtitle: string;
+  heroQuote: string;
   sections: OnboardingSection[];
+  backgroundImage?: string;
 }
 
 export const onboardingContent: Record<string, PageOnboardingContent> = {
   timer: {
-    title: "Fasting Timer",
-    subtitle: "Your personal intermittent fasting companion",
+    title: "Start With the Fast",
+    subtitle: "60 hours of silence. No food. Just water. This is where change begins.",
+    heroQuote: "Without this fast, I couldn't begin to lose weight. It trains your body and your mind.",
     sections: [
       {
-        icon: Clock,
-        title: "Two Fasting Modes",
-        description: "Choose intermittent fasting (12-24 hours) for daily routines or long-term fasting (24+ hours) for deeper benefits like autophagy."
+        icon: Zap,
+        title: "The Reset",
+        description: "60-72 hours with just water and coffee shifts your body from burning sugar to burning fat. This breaks the addiction to carbs and emotional eating."
+      },
+      {
+        icon: Coffee,
+        title: "Embrace the Hunger",
+        description: "Hunger becomes something you sit with — not something you fear. This is hard. That's the point. It's the reset your body needs."
       },
       {
         icon: Target,
-        title: "Ceramic Timer Design",
-        description: "Our beautiful ceramic timer helps you stay mindful and motivated throughout your fasting journey with calming visuals."
-      },
-      {
-        icon: Camera,
-        title: "Smart Integration",
-        description: "Your fasting data automatically syncs with your daily deficit calculations and motivational system."
+        title: "Start Your Change",
+        description: "Without this fast, you stay stuck. This is where real change begins — training both your body and your mind for what's ahead."
       }
     ]
   },
   walking: {
-    title: "Walking Tracker",
-    subtitle: "Turn every step into calorie-burning progress",
+    title: "Walk. Don't Run.",
+    subtitle: "Cardio you don't hate. A tool that actually works.",
+    heroQuote: "This isn't about performance. It's about output. Walking lets you go far without quitting.",
     sections: [
       {
         icon: Footprints,
-        title: "Personalized Calorie Burn",
-        description: "Select your walking speed and we'll calculate exact calories burned based on your profile and session duration."
-      },
-      {
-        icon: Target,
-        title: "Deficit Integration",
-        description: "Walking calories automatically add to your daily deficit, helping you reach your goals faster and more sustainably."
+        title: "Underrated Fat Burner",
+        description: "Walking is the most underrated fat-burning tool on Earth. You can walk for 10 minutes or 3 hours. No pressure, no burnout."
       },
       {
         icon: Clock,
-        title: "Session Tracking",
-        description: "Start, pause, and track walking sessions with detailed history to monitor your progress over time."
+        title: "All-Day Output",
+        description: "Especially in a city or while traveling — walk all day, burn all day. This is how you build a calorie deficit without tracking every bite."
+      },
+      {
+        icon: Target,
+        title: "Sustainable Cardio",
+        description: "It's not glamorous. It works. Most people hate running — it doesn't matter. Walking is cardio you can actually stick with."
       }
     ]
   },
   food: {
-    title: "Food Tracking",
-    subtitle: "Smart nutrition logging made simple",
+    title: "What You Eat, You Become",
+    subtitle: "Calories go in. Fat stays in. Let's reverse that.",
+    heroQuote: "I don't count obsessively. I just don't lie to myself. I know what I eat.",
     sections: [
       {
-        icon: Camera,
-        title: "AI Food Analysis",
-        description: "Take photos of your meals and our AI instantly analyzes calories, carbs, and nutritional content with impressive accuracy."
-      },
-      {
-        icon: Footprints,
-        title: "Walking Calculations",
-        description: "See exactly how many minutes of walking you'd need to burn off any meal - making food choices more mindful."
+        icon: Scale,
+        title: "Simple Math",
+        description: "You burn calories all day, even doing nothing. Eat less than you burn — that's the only way fat disappears."
       },
       {
         icon: Target,
-        title: "Deficit Tracking",
-        description: "Every meal automatically updates your daily calorie deficit, helping you stay on track with your goals."
+        title: "Make It a System",
+        description: "Use the app to track. Keep it simple. Save 'safe foods' and log them fast. Hit your daily target without obsession."
+      },
+      {
+        icon: Camera,
+        title: "AI Estimation",
+        description: "Estimate with AI tools when labels are missing. This is how you make food a system, not a struggle."
       }
     ]
   },
   motivators: {
-    title: "Goals & Motivators",
-    subtitle: "Your personal motivation and goal-setting hub",
+    title: "What You Want Is Waiting",
+    subtitle: "This isn't motivation. This is fuel.",
+    heroQuote: "It's not about the weight. It's about getting back to the person you know is in there.",
     sections: [
       {
         icon: Target,
-        title: "AI-Powered Goals",
-        description: "Use voice input to describe your goals and let AI create personalized, motivating content that resonates with you."
+        title: "Real Motivators",
+        description: "These aren't just goals — they're fuel. Clothes that don't fit. People you want to surprise. Moments you don't want to miss."
       },
       {
         icon: Camera,
-        title: "Visual Motivation",
-        description: "Add photos and create visual motivators that remind you why you're working toward your health goals."
+        title: "Lock Them In",
+        description: "Add your own photos, events, test results. I've included 10 real ones from my own journey to get you started."
       },
       {
         icon: Clock,
-        title: "Slideshow Experience",
-        description: "View your motivators in a beautiful slideshow format to boost motivation whenever you need it most."
+        title: "When You Need Them",
+        description: "The app will show them to you when you need them most. These motivators remind you what matters when it gets hard."
       }
     ]
   }

@@ -333,6 +333,8 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             isOpen={showOnboarding}
             onClose={() => setShowOnboarding(false)}
             title={onboardingContent.motivators.title}
+            subtitle={onboardingContent.motivators.subtitle}
+            heroQuote={onboardingContent.motivators.heroQuote}
           >
             <div className="space-y-6">
               <div className="text-center">

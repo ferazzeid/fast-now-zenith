@@ -432,6 +432,8 @@ const Timer = () => {
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         title={onboardingContent.timer.title}
+        subtitle={onboardingContent.timer.subtitle}
+        heroQuote={onboardingContent.timer.heroQuote}
       >
         <div className="space-y-6">
           <div className="text-center">

@@ -265,6 +265,8 @@ const Walking = () => {
           isOpen={showOnboarding}
           onClose={() => setShowOnboarding(false)}
           title={onboardingContent.walking.title}
+          subtitle={onboardingContent.walking.subtitle}
+          heroQuote={onboardingContent.walking.heroQuote}
         >
           <div className="space-y-6">
             <div className="text-center">

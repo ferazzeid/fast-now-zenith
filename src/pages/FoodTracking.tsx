@@ -768,6 +768,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           isOpen={showOnboarding}
           onClose={() => setShowOnboarding(false)}
           title={onboardingContent.food.title}
+          subtitle={onboardingContent.food.subtitle}
+          heroQuote={onboardingContent.food.heroQuote}
         >
           <div className="space-y-6">
             <div className="text-center">
