@@ -94,7 +94,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 p-1">
+        <div className="space-y-4 p-4">
           {/* Required Fields */}
           <div className="space-y-4">
             <div>

@@ -160,7 +160,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
         {/* Admin Templates (only for new motivators) */}
         {!isEditing && templates.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-4 h-4 text-primary" />
               <Label className="text-warm-text font-medium">Get inspired by examples</Label>
@@ -189,7 +189,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         )}
 
         {/* Form */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 p-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="title" className="text-warm-text font-medium">
@@ -310,7 +310,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-3">
+        <div className="flex space-x-3 p-4">
           <Button
             variant="outline"
             onClick={onClose}

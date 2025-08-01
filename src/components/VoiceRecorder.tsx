@@ -151,11 +151,11 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     return (
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="border-b border-border p-4">
             <DialogTitle className="text-warm-text">Voice Recording</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 p-4">
             {/* Recording Controls */}
             <div className="flex flex-col items-center space-y-4">
               {!isRecording && !audioURL && (
