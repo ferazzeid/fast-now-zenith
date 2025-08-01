@@ -21,7 +21,7 @@ const PROMPT_CONFIGS: PromptConfig[] = [
   {
     key: 'ai_image_motivator_prompt',
     title: 'Motivator Image Generation',
-    description: 'Controls how AI generates images for motivational content and personal motivators.',
+    description: 'Controls how AI generates images for motivational content, personal motivators, and goal templates.',
     defaultPrompt: 'Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}',
     variables: ['{title}', '{content}', '{primary_color}', '{accent_color}']
   },
@@ -31,13 +31,6 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     description: 'Controls how AI generates images for food items in the food tracking system.',
     defaultPrompt: 'A lightly cartoony and semi-realistic illustration of {food_name}, food illustration style, clean background, appetizing, vibrant colors. Style should match this color theme: {primary_color} primary, {accent_color} accent. Clean, professional food photography style with soft lighting.',
     variables: ['{food_name}', '{primary_color}', '{accent_color}']
-  },
-  {
-    key: 'ai_image_goal_prompt',
-    title: 'Goal Template Generation',
-    description: 'Controls how AI generates images for goal templates and achievement content.',
-    defaultPrompt: 'Create an inspiring, motivational illustration representing {goal_title}. {goal_description}. Use a clean, modern style with {primary_color} and {accent_color} as the main colors. The image should be uplifting, achievement-focused, and visually appealing for goal setting and tracking.',
-    variables: ['{goal_title}', '{goal_description}', '{primary_color}', '{accent_color}']
   }
 ];
 
