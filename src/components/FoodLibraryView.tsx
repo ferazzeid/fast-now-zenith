@@ -133,14 +133,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" onClick={onBack} size="sm" className="h-8 w-8 p-0">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <h2 className="text-xl font-bold">My Food Library</h2>
-      </div>
-
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />

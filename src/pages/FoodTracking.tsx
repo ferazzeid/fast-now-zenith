@@ -733,15 +733,23 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </PageOnboardingModal>
         
-        {/* Food Library View - Full Screen */}
+        {/* Food Library View - Inline */}
         {showLibraryView && (
-          <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
-            <div className="container mx-auto p-4 max-w-4xl">
-              <FoodLibraryView 
-                onSelectFood={handleSelectFromLibrary} 
-                onBack={() => setShowLibraryView(false)} 
-              />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">My Food Library</h2>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLibraryView(false)}
+                className="text-sm"
+              >
+                Back to Food Plan
+              </Button>
             </div>
+            <FoodLibraryView 
+              onSelectFood={handleSelectFromLibrary} 
+              onBack={() => setShowLibraryView(false)} 
+            />
           </div>
         )}
       </div>
