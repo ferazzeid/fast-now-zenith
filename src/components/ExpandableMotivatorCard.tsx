@@ -30,7 +30,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
       <CardContent className="p-0">
         <div className="flex">
           {/* Image */}
-          <div className="w-24 h-24 bg-muted flex items-center justify-center flex-shrink-0">
+          <div className="w-32 h-32 bg-muted flex items-center justify-center flex-shrink-0">
             {motivator.imageUrl ? (
               <img 
                 src={motivator.imageUrl} 
@@ -46,31 +46,10 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           <div className="flex-1 p-4 pr-2">
             <div className="flex items-start justify-between h-full">
               <div className="flex-1 space-y-1">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center">
                   <h3 className="font-semibold text-warm-text line-clamp-1">
                     {motivator.title}
                   </h3>
-                  {shouldShowExpandButton && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setIsExpanded(!isExpanded)}
-                          className="p-1 h-6 w-6"
-                        >
-                          <ChevronDown 
-                            className={`w-4 h-4 transition-transform duration-200 ${
-                              isExpanded ? 'rotate-180' : ''
-                            }`} 
-                          />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
                 </div>
                 
                 {motivator.content && (
@@ -80,14 +59,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     ) : (
                       <p className="line-clamp-2">{motivator.content}</p>
                     )}
-                  </div>
-                )}
-                
-                {motivator.category && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                      {motivator.category}
-                    </Badge>
                   </div>
                 )}
               </div>
@@ -100,7 +71,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                       size="sm"
                       variant="ghost"
                       onClick={onEdit}
-                      className="p-1 h-6 w-6"
+                      className="p-1 h-6 w-6 hover:bg-accent hover:text-accent-foreground"
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
@@ -119,7 +90,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                         e.stopPropagation();
                         onDelete();
                       }}
-                      className="p-1 h-6 w-6"
+                      className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -132,6 +103,31 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             </div>
           </div>
         </div>
+        
+        {/* Expand button at bottom */}
+        {shouldShowExpandButton && (
+          <div className="flex justify-center border-t border-border bg-muted/20">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                >
+                  <ChevronDown 
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`} 
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
