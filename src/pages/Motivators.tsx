@@ -176,9 +176,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
 
   return (
     <TooltipProvider>
-      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-top safe-bottom">
-        <div className="px-4 pt-20 pb-24">
-          <div className="max-w-md mx-auto space-y-6">
+      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+        <div className="max-w-md mx-auto pt-20 pb-20">
+          <div className="space-y-6">
           {/* Header with Onboarding Button */}
           <div className="text-center space-y-2 mb-8 relative">
             <div className="absolute left-0 top-0">
