@@ -157,8 +157,8 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Food Entry</DialogTitle>
+        <DialogHeader className="border-b border-border p-4">
+          <DialogTitle className="text-lg font-semibold">Edit Food Entry</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">

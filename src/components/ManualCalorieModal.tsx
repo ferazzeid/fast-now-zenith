@@ -84,8 +84,8 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
-        <DialogHeader>
-          <DialogTitle>Add External Activity</DialogTitle>
+        <DialogHeader className="border-b border-border p-4">
+          <DialogTitle className="text-lg font-semibold">Add External Activity</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>

@@ -152,8 +152,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+        <DialogHeader className="border-b border-border p-4">
+          <DialogTitle className="text-lg font-semibold">
             {isEditing ? 'Edit Motivator' : 'Create New Motivator'}
           </DialogTitle>
         </DialogHeader>
