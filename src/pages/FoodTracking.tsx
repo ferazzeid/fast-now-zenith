@@ -84,10 +84,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       } else {
         trackFoodEvent('add', 'voice');
         
-        // Show detailed confirmation message
+        // Show detailed confirmation message with better visibility
         toast({
           title: "✅ Food Added Successfully!",
-          description: `${args.name} (${args.serving_size}g) - ${args.calories} cal, ${args.carbs}g carbs. You can continue adding more foods or close this chat.`
+          description: `${args.name} (${args.serving_size}g) added to your food plan with ${args.calories} cal and ${args.carbs}g carbs. Check your food list below or continue adding more items.`
         });
         
         // Don't auto-close - let user decide when to close

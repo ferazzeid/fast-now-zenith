@@ -3,9 +3,9 @@ import { Calendar, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CopyYesterdayButton } from '@/components/CopyYesterdayButton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useCopyHistoricalDay } from '@/hooks/useCopyHistoricalDay';
 import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
@@ -46,6 +46,7 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { copyDayToToday, loading: copyLoading } = useCopyHistoricalDay();
 
   const ITEMS_PER_PAGE = 7; // Show 7 days at a time
 
@@ -231,21 +232,9 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
               <Calendar className="w-5 h-5" />
               Food History
             </CardTitle>
-            <div className="flex gap-2">
-              <CopyYesterdayButton 
-                onCopied={() => {
-                  // Show success message and delay the close
-                  setTimeout(() => {
-                    onClose();
-                  }, 2000); // Give user time to see the success message
-                }}
-                variant="outline" 
-                size="sm"
-              />
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </CardHeader>
       <CardContent className="space-y-4">
@@ -268,7 +257,16 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                             day: 'numeric' 
                           })}
                         </h3>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyDayToToday(summary.date)}
+                            disabled={copyLoading}
+                            className="h-6 px-2 text-xs"
+                          >
+                            Copy to Today
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
