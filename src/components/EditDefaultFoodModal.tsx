@@ -148,9 +148,13 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
       const newImageUrl = await generateImage(prompt, filename, 'food-images');
       console.log('Generated image URL:', newImageUrl);
       setImageUrl(newImageUrl);
+      
+      // Auto-save the generated image
+      await onUpdate(food.id, { image_url: newImageUrl });
+      
       toast({
-        title: "✨ Image Generated!",
-        description: "AI-generated image ready for your default food.",
+        title: "✨ Image Generated & Saved!",
+        description: "AI-generated image has been automatically saved.",
       });
     } catch (error) {
       console.error('Image generation error:', error);
@@ -177,9 +181,12 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
       const newImageUrl = await generateImage(prompt, filename, 'food-images');
       setImageUrl(newImageUrl);
       
+      // Auto-save the regenerated image
+      await onUpdate(food.id, { image_url: newImageUrl });
+      
       toast({
-        title: "✨ Image Regenerated!",
-        description: "Your new AI-generated image is ready.",
+        title: "✨ Image Regenerated & Saved!",
+        description: "Your new AI-generated image has been automatically saved.",
       });
     } catch (error) {
       toast({

@@ -129,9 +129,12 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
       const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
       
+      // Auto-save the generated image
+      await onUpdate(food.id, { image_url: generatedImageUrl });
+      
       toast({
-        title: "Image generated",
-        description: "AI image generated successfully!"
+        title: "Image generated & saved!",
+        description: "AI image generated and automatically saved!"
       });
     } catch (error) {
       toast({
@@ -233,7 +236,14 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
                   <RegenerateImageButton
                     prompt={`Food photography of ${name}, appetizing, high quality, well-lit`}
                     filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
-                    onImageGenerated={setImageUrl}
+                    onImageGenerated={async (newImageUrl) => {
+                      setImageUrl(newImageUrl);
+                      await onUpdate(food.id, { image_url: newImageUrl });
+                      toast({
+                        title: "Image regenerated & saved!",
+                        description: "New AI image automatically saved!"
+                      });
+                    }}
                     disabled={loading || generatingImage}
                   />
                 )}
