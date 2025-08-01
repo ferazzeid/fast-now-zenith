@@ -475,12 +475,12 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           <Button
             variant="outline"
             onClick={() => setShowLibrary(!showLibrary)}
-            className="w-full h-12 flex items-center justify-center border-2 border-dashed border-white/30 hover:border-white/50 bg-background/50"
+            className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
           >
-            <svg className="w-5 h-5 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            <span className="text-white font-medium">My Foods Library</span>
+            <span className="font-medium">My Foods Library</span>
           </Button>
         </div>
 
