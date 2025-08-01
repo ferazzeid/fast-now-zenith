@@ -36,6 +36,8 @@ export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled, units = 
     Math.abs(option.storageSpeed - selectedSpeed) < 0.1
   ) || speedOptions[1]; // Default to average speed if no match
   
+  console.log('SpeedSelector render:', { selectedSpeed, currentMapping, units });
+  
   // Handle speed change using static mapping
   const handleSpeedChange = (value: string) => {
     const displaySpeedValue = Number(value);
@@ -46,20 +48,21 @@ export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled, units = 
   };
   
   return (
-    <div className="space-y-2">
+    <div className="bg-card rounded-lg border p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Gauge className="w-4 h-4 text-muted-foreground" />
         <span className="text-sm font-medium text-foreground">Walking Speed {units === 'metric' ? '(km/h)' : '(mph)'}</span>
       </div>
       <Select
+        key={`${selectedSpeed}-${units}`} // Force re-render when speed or units change
         value={currentMapping.displaySpeed.toString()}
         onValueChange={handleSpeedChange}
         disabled={disabled}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full bg-background">
           <SelectValue placeholder="Select walking speed" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background border shadow-lg z-50">
           {speedOptions.map((option) => (
             <SelectItem key={option.displaySpeed} value={option.displaySpeed.toString()}>
               <div className="flex flex-col">

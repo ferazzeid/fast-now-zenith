@@ -174,7 +174,14 @@ const Walking = () => {
               <div className="text-center space-y-4">
                 <div className="h-16 bg-muted animate-pulse rounded w-48 mx-auto" />
                 <div className="h-6 bg-muted animate-pulse rounded w-32 mx-auto" />
-                <div className="h-8 bg-muted animate-pulse rounded w-40 mx-auto" />
+              </div>
+            </div>
+            
+            {/* Speed selector skeleton */}
+            <div className="bg-ceramic-plate rounded-xl p-4">
+              <div className="space-y-2">
+                <div className="h-4 bg-muted animate-pulse rounded w-20" />
+                <div className="h-8 bg-muted animate-pulse rounded w-full" />
               </div>
             </div>
             
@@ -197,7 +204,7 @@ const Walking = () => {
         ) : (
           <>
             {/* Timer Display */}
-            <div className="relative mb-8">
+            <div className="relative mb-6">
               <WalkingTimer
                 displayTime={formatTime(localTimeElapsed)}
                 isActive={!!currentSession}
@@ -228,7 +235,16 @@ const Walking = () => {
                       });
                     } else {
                       console.log('Speed updated successfully in database');
+                      toast({
+                        title: "Speed Updated",
+                        description: `Walking speed updated to ${newSpeed} mph`
+                      });
                     }
+                  } else {
+                    toast({
+                      title: "Speed Set", 
+                      description: `Walking speed set to ${newSpeed} mph`
+                    });
                   }
                 }}
                 realTimeStats={currentSession ? {
@@ -238,6 +254,46 @@ const Walking = () => {
                   steps: walkingStats.realTimeSteps,
                   startTime: currentSession.start_time
                 } : undefined}
+              />
+            </div>
+
+            {/* Speed Selector - prominently placed after timer */}
+            <div className="mb-6">
+              <SpeedSelector
+                selectedSpeed={selectedSpeed}
+                onSpeedChange={async (newSpeed) => {
+                  console.log('Speed change triggered from selector:', { 
+                    oldSpeed: selectedSpeed, 
+                    newSpeed, 
+                    units: profile?.units,
+                    isMetric: profile?.units === 'metric'
+                  });
+                  setSelectedSpeed(newSpeed);
+                  if (isRunning) {
+                    const result = await updateSessionSpeed(newSpeed);
+                    if (result.error) {
+                      console.error('Failed to update session speed:', result.error);
+                      toast({
+                        variant: "destructive",
+                        title: "Speed Update Failed",
+                        description: "Unable to update walking speed. Please try again."
+                      });
+                    } else {
+                      console.log('Speed updated successfully in database');
+                      toast({
+                        title: "Speed Updated",
+                        description: `Walking speed updated during session`
+                      });
+                    }
+                  } else {
+                    toast({
+                      title: "Speed Set", 
+                      description: `Walking speed set for next session`
+                    });
+                  }
+                }}
+                disabled={false}
+                units={profile?.units || 'imperial'}
               />
             </div>
 
