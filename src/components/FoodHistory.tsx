@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Trash2, X } from 'lucide-react';
+import { Calendar, Trash2, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -334,11 +334,13 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                       e.stopPropagation();
                       toggleDayExpansion(summary.date);
                     }}
-                    className="h-8 w-8 p-0 rounded-full hover:bg-accent min-w-[44px] min-h-[44px]"
+                    className="h-6 w-6 p-0 rounded-full hover:bg-muted/10"
                   >
-                    <div className={`transition-transform duration-200 ${expandedDays.has(summary.date) ? 'rotate-180' : ''}`}>
-                      ▼
-                    </div>
+                    <ChevronDown 
+                      className={`w-3 h-3 transition-transform duration-200 ${
+                        expandedDays.has(summary.date) ? 'rotate-180' : ''
+                      }`} 
+                    />
                   </Button>
                 </div>
               </Card>

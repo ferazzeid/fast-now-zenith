@@ -26,7 +26,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const shouldShowExpandButton = motivator.content && motivator.content.length > 100;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden relative">
       <CardContent className="p-0">
         <div className="flex">
           {/* Image */}
@@ -104,19 +104,19 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           </div>
         </div>
         
-        {/* Expand button at bottom */}
+        {/* Expand button at bottom-right */}
         {shouldShowExpandButton && (
-          <div className="flex justify-center border-t border-border bg-muted/20">
+          <div className="absolute bottom-2 right-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                  className="h-6 w-6 p-0 rounded-full hover:bg-muted/10"
                 >
                   <ChevronDown 
-                    className={`w-4 h-4 transition-transform duration-200 ${
+                    className={`w-3 h-3 transition-transform duration-200 ${
                       isExpanded ? 'rotate-180' : ''
                     }`} 
                   />
