@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
@@ -351,14 +357,24 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const filteredUserFoods = foods.filter(food =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => {
+    // Favorites first, then alphabetical
+    if (a.is_favorite && !b.is_favorite) return -1;
+    if (!a.is_favorite && b.is_favorite) return 1;
+    return a.name.localeCompare(b.name);
+  });
 
   const filteredDefaultFoods = defaultFoods.filter(food =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
   ).map(food => ({
     ...food,
     is_favorite: defaultFoodFavorites.has(food.id)
-  }));
+  })).sort((a, b) => {
+    // Favorites first, then alphabetical
+    if (a.is_favorite && !b.is_favorite) return -1;
+    if (!a.is_favorite && b.is_favorite) return 1;
+    return a.name.localeCompare(b.name);
+  });
 
   // Quick access favorites for My Foods
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
@@ -397,7 +413,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -417,29 +433,41 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </Button>
 
           {isUserFood ? (
-            // User Food Actions: Edit, Delete, Quick Add
+            // User Food Actions: Dropdown for Edit/Delete + Primary Add Button
             <>
-              <EditLibraryFoodModal 
-                food={food as UserFood} 
-                onUpdate={updateFood}
-              />
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => deleteFood(food.id)}
-                className="p-1 h-8 w-8 hover:bg-destructive/10"
-                title="Delete food"
-              >
-                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-              </Button>
+              {/* Edit/Delete Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-1 h-8 w-8 hover:bg-muted"
+                    title="More options"
+                  >
+                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <EditLibraryFoodModal 
+                    food={food as UserFood} 
+                    onUpdate={updateFood}
+                  />
+                  <DropdownMenuItem
+                    onClick={() => deleteFood(food.id)}
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-              {/* Quick Add Button */}
+              {/* Primary Add to Plan Button */}
               <Button
                 variant="default"
                 size="sm"
                 onClick={() => handleQuickSelect(food as UserFood, false)}
-                className="ml-2 h-8 px-3 text-xs"
+                className="h-8 px-4 text-xs font-medium"
                 title="Add to today's plan"
               >
                 <Plus className="w-3 h-3 mr-1" />
@@ -447,44 +475,55 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </Button>
             </>
           ) : (
-            // Default Food Actions: Admin Edit/Delete, Import, Quick Add
+            // Default Food Actions: Import + Primary Add + Admin Dropdown
             <>
-              {isAdmin && (
-                <>
-                  <EditDefaultFoodModal 
-                    food={food as DefaultFood} 
-                    onUpdate={updateDefaultFood}
-                  />
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteDefaultFood(food.id)}
-                    className="p-1 h-8 w-8 hover:bg-destructive/10"
-                    title="Delete default food"
-                  >
-                    <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-                  </Button>
-                </>
-              )}
-
+              {/* Import Button */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => importToMyLibrary(food as DefaultFood)}
-                className="ml-2 h-8 px-3 text-xs"
+                className="h-8 px-3 text-xs"
                 title="Import to your library"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Import
               </Button>
 
-              {/* Quick Add Button */}
+              {/* Admin Edit/Delete Dropdown */}
+              {isAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-8 w-8 hover:bg-muted"
+                      title="Admin options"
+                    >
+                      <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <EditDefaultFoodModal 
+                      food={food as DefaultFood} 
+                      onUpdate={updateDefaultFood}
+                    />
+                    <DropdownMenuItem
+                      onClick={() => deleteDefaultFood(food.id)}
+                      className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Primary Add to Plan Button */}
               <Button
                 variant="default"
                 size="sm"
                 onClick={() => handleQuickSelect(food, false)}
-                className="h-8 px-3 text-xs"
+                className="h-8 px-4 text-xs font-medium"
                 title="Add to today's plan"
               >
                 <Plus className="w-3 h-3 mr-1" />
