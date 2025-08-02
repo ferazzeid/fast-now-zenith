@@ -68,7 +68,7 @@ export const ModernImageUpload = ({
             onClick={handleRemove}
             className="absolute top-2 right-2"
           >
-            <X className="w-4 h-4" />
+            <X className="w-6 h-6" />
           </Button>
         </div>
       ) : (

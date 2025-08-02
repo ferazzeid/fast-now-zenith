@@ -267,7 +267,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
               onClick={() => setOpen(false)}
               disabled={loading || generatingImage}
             >
-              <X className="w-4 h-4 mr-2" />
+              <X className="w-6 h-6 mr-2" />
               Cancel
             </Button>
           </div>

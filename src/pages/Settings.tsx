@@ -435,6 +435,38 @@ const Settings = () => {
                     </div>
                   )}
                   
+                  {/* Daily Goals Section */}
+                  <div className="space-y-4 pt-6 border-t border-ceramic-rim/50">
+                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Calorie Goal</Label>
+                        <Input
+                          id="dailyCalorieGoal"
+                          type="number"
+                          placeholder="2000"
+                          value={dailyCalorieGoal}
+                          onChange={(e) => setDailyCalorieGoal(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dailyCarbGoal" className="text-warm-text">Carb Goal (g)</Label>
+                        <Input
+                          id="dailyCarbGoal"
+                          type="number"
+                          placeholder="150"
+                          value={dailyCarbGoal}
+                          onChange={(e) => setDailyCarbGoal(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Set your daily calorie and carbohydrate targets for better tracking
+                    </p>
+                  </div>
+                  
                   <Button onClick={handleSaveSettings} className="w-full">
                     Save Profile
                   </Button>

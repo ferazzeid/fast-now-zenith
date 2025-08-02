@@ -93,28 +93,28 @@ export const Navigation = () => {
   const navItems = useMemo(() => [
     { 
       icon: Clock, 
-      label: 'Fasting', 
+      label: 'Fast', 
       path: '/',
       badge: getFastingBadge?.time || null,
       isEating: getFastingBadge?.isEating || false
     },
     { 
       icon: Footprints, 
-      label: 'Walking', 
+      label: 'Walk', 
       path: '/walking',
       badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null,
       isEating: false
     },
     { 
       icon: Utensils, 
-      label: 'Eating', 
+      label: 'Food', 
       path: '/food-tracking', 
       isEating: false,
       caloriesBadge: todayTotals.calories > 0 ? todayTotals.calories : null
     },
     { 
       icon: Brain, 
-      label: 'Focusing', 
+      label: 'Goals', 
       path: '/motivators',
       isEating: false
     },
@@ -132,10 +132,10 @@ export const Navigation = () => {
               
               const getTooltipText = (label: string) => {
                 switch (label) {
-                  case 'Fasting': return 'Start or manage your fasting sessions';
-                  case 'Walking': return 'Track your walking sessions and burn calories';
-                  case 'Eating': return 'Log your meals and track daily intake';
-                  case 'Focusing': return 'View and create motivational content';
+                  case 'Fast': return 'Start or manage your fasting sessions';
+                  case 'Walk': return 'Track your walking sessions and burn calories';
+                  case 'Food': return 'Log your meals and track daily intake';
+                  case 'Goals': return 'View and create motivational content';
                   case 'Settings': return 'Customize your app preferences';
                   default: return label;
                 }

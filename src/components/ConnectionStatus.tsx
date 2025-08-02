@@ -14,7 +14,7 @@ export const ConnectionStatus = () => {
 
   if (!isOnline) {
     return (
-      <Alert className="border-destructive bg-destructive/10 fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+      <Alert className="border-destructive bg-destructive/10 fixed top-20 left-1/2 transform -translate-x-1/2 mx-4 max-w-sm z-50">
         <WifiOff className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
           <span>You're offline. Changes will sync when connection is restored.</span>
@@ -25,7 +25,7 @@ export const ConnectionStatus = () => {
 
   if (!isConnected) {
     return (
-      <Alert className="border-warning bg-warning/10 fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+      <Alert className="border-warning bg-warning/10 fixed top-20 left-1/2 transform -translate-x-1/2 mx-4 max-w-sm z-50">
         <WifiOff className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
           <div>
@@ -52,7 +52,7 @@ export const ConnectionStatus = () => {
 
   if (hasQueuedOperations) {
     return (
-      <Alert className="border-info bg-info/10 fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+      <Alert className="border-info bg-info/10 fixed top-20 left-1/2 transform -translate-x-1/2 mx-4 max-w-sm z-50">
         <Wifi className="h-4 w-4" />
         <AlertDescription>
           Processing {queue.length} queued operation{queue.length !== 1 ? 's' : ''}...
