@@ -759,18 +759,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
         {/* Food Library Modal */}
         <Dialog open={showLibraryView} onOpenChange={setShowLibraryView}>
-          <DialogContent className="w-full max-w-md h-[90vh] max-h-[90vh] p-0 mx-auto rounded-lg border border-ceramic-rim md:top-[5vh] md:translate-y-0">
-            <div className="h-full flex flex-col">
-              <DialogHeader className="p-6 pb-4 border-b border-ceramic-rim flex items-center justify-center">
-                <DialogTitle className="text-xl font-semibold">Food Library</DialogTitle>
-              </DialogHeader>
-              <div className="flex-1 overflow-hidden">
-                <FoodLibraryView 
-                  onSelectFood={handleSelectFromLibrary} 
-                  onBack={() => setShowLibraryView(false)} 
-                />
-              </div>
-            </div>
+          <DialogContent className="w-full max-w-full md:max-w-md h-full max-h-full p-0 overflow-hidden">
+            <FoodLibraryView 
+              onSelectFood={handleSelectFromLibrary} 
+              onBack={() => setShowLibraryView(false)} 
+            />
           </DialogContent>
         </Dialog>
         

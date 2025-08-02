@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -489,7 +489,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             className="h-4 px-1 text-xs font-medium flex-shrink-0"
             title={isUserFood ? "Add to today's plan" : "Import to your library"}
           >
-            <Plus className="w-2.5 h-2.5" />
+            {isUserFood ? (
+              <Plus className="w-2.5 h-2.5" />
+            ) : (
+              <Download className="w-2.5 h-2.5" />
+            )}
           </Button>
         </div>
       </div>
