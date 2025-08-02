@@ -15,6 +15,7 @@ import { AdminSEOSettings } from "@/components/AdminSEOSettings";
 import { CancellationTracker } from "@/components/CancellationTracker";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PromptManagement } from "@/components/PromptManagement";
+import { AdminWalkingShareSettings } from "@/components/AdminWalkingShareSettings";
 
 interface User {
   user_id: string;
@@ -307,6 +308,9 @@ const AdminOverview = () => {
 
       {/* AI Prompt Configuration */}
       <PromptManagement />
+
+      {/* Walking Share Configuration */}
+      <AdminWalkingShareSettings />
 
       {/* Brand Customization */}
       <div className="space-y-6 mb-12">
