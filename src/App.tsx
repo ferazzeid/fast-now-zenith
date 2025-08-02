@@ -62,7 +62,7 @@ const AppContent = () => {
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background">
         {/* Mobile-first centered container with phone-like frame */}
-        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
+        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl px-4">
           <SEOManager />
           <EnhancedConnectionStatus />
           <DailyStatsPanel />

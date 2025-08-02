@@ -372,7 +372,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="max-w-md mx-auto pt-20 pb-20 px-4">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
+      <div className="pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header with Onboarding Button */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4 relative">
