@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
-import { TrendingDown, TrendingUp, Info } from 'lucide-react';
+import { TrendingDown, TrendingUp, Info, Flame, Calendar } from 'lucide-react';
 
 // Optimized stat display component with React.memo
 interface StatDisplayProps {
@@ -51,9 +51,12 @@ interface DeficitDisplayProps {
   deficit: number;
   loading: boolean;
   tdee: number;
+  fatInGrams?: number;
+  thirtyDayProjection?: number;
+  userUnits?: 'metric' | 'imperial';
 }
 
-export const DeficitDisplay = ({ deficit, loading, tdee }: DeficitDisplayProps) => {
+export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayProjection, userUnits = 'metric' }: DeficitDisplayProps) => {
   const { color, icon: DeficitIcon } = useMemo(() => {
     const color = deficit > 0 ? 'text-green-600 dark:text-green-400' : 
                   deficit < 0 ? 'text-red-600 dark:text-red-400' : 
@@ -89,6 +92,33 @@ export const DeficitDisplay = ({ deficit, loading, tdee }: DeficitDisplayProps) 
         <p className="text-xs text-muted-foreground">
           {deficit > 0 ? 'Calorie deficit (weight loss)' : 'Calorie surplus (weight gain)'}
         </p>
+        
+        {/* Additional metrics if available */}
+        {fatInGrams !== undefined && thirtyDayProjection !== undefined && deficit > 0 && (
+          <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-ceramic-rim/50">
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-1 mb-1">
+                <Flame className="w-3 h-3 text-orange-500" />
+                <span className="text-xs text-muted-foreground">Today's Fat</span>
+              </div>
+              <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                {fatInGrams}g
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-1 mb-1">
+                <Calendar className="w-3 h-3 text-blue-500" />
+                <span className="text-xs text-muted-foreground">30-Day Loss</span>
+              </div>
+              <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                {userUnits === 'metric' 
+                  ? `${(thirtyDayProjection / 1000).toFixed(1)}kg`
+                  : `${(thirtyDayProjection / 453.592).toFixed(1)}lbs`
+                }
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

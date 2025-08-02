@@ -11,12 +11,16 @@ import { GoalMetrics } from '@/components/GoalMetrics';
 import { DeficitAnalysisButton } from '@/components/DeficitAnalysisButton';
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
+import { useGoalCalculations } from '@/hooks/useGoalCalculations';
+import { useProfile } from '@/hooks/useProfile';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const { deficitData, loading, refreshDeficit } = useDailyDeficit();
+  const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
+  const { profile } = useProfile();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   
@@ -162,6 +166,9 @@ export const DailyStatsPanel = memo(() => {
                   deficit={deficitData.todayDeficit}
                   loading={loading}
                   tdee={deficitData.tdee}
+                  fatInGrams={fatInGrams}
+                  thirtyDayProjection={thirtyDayProjection}
+                  userUnits={profile?.units}
                 />
 
                 {/* Breakdown */}
