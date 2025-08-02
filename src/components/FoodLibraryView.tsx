@@ -499,100 +499,117 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <div className="h-full flex flex-col overflow-x-hidden">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Food Library</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="h-8 w-8 p-0"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+      </div>
+
       {/* Two-Library System Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-2 overflow-x-hidden">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="my-foods" className="flex items-center gap-2">
-            <Heart className="w-4 h-4" />
-            My Foods ({filteredUserFoods.length})
-          </TabsTrigger>
-          <TabsTrigger value="suggested" className="flex items-center gap-2">
-            <Star className="w-4 h-4" />
-            Suggested ({filteredDefaultFoods.length})
-          </TabsTrigger>
-        </TabsList>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col overflow-x-hidden">
+        <div className="sticky top-[60px] z-10 bg-background px-2 pt-2">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="my-foods" className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              My Foods ({filteredUserFoods.length})
+            </TabsTrigger>
+            <TabsTrigger value="suggested" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Suggested ({filteredDefaultFoods.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* My Foods Tab */}
-        <TabsContent value="my-foods" className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 mt-4">
-
-          {/* My Foods List */}
-          {loading ? (
-            <div className="space-y-3">
-              {[...Array(6)].map((_, i) => (
-               <div key={i} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-ceramic-base" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-warm-text/20 rounded w-3/4" />
-                      <div className="h-3 bg-warm-text/20 rounded w-1/2" />
-                    </div>
-                    <div className="flex gap-1">
-                      <div className="w-7 h-7 bg-warm-text/20 rounded" />
-                      <div className="w-7 h-7 bg-warm-text/20 rounded" />
-                      <div className="w-12 h-7 bg-warm-text/20 rounded" />
+        <TabsContent value="my-foods" className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4">
+          <div className="space-y-3 mt-2">
+            {/* My Foods List */}
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                 <div key={i} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded bg-ceramic-base" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-warm-text/20 rounded w-3/4" />
+                        <div className="h-3 bg-warm-text/20 rounded w-1/2" />
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="w-7 h-7 bg-warm-text/20 rounded" />
+                        <div className="w-7 h-7 bg-warm-text/20 rounded" />
+                        <div className="w-12 h-7 bg-warm-text/20 rounded" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredUserFoods.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🍽️</div>
-              <h3 className="text-lg font-medium mb-2">
-                {searchTerm ? 'No foods found' : 'Your library is empty'}
-              </h3>
-              <p className="text-muted-foreground">
-                {searchTerm ? 'Try a different search term' : 'Log foods to automatically add them to your library'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3 overflow-x-hidden">
-              {filteredUserFoods.map((food) => (
-                <FoodCard key={food.id} food={food} isUserFood={true} />
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : filteredUserFoods.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🍽️</div>
+                <h3 className="text-lg font-medium mb-2">
+                  {searchTerm ? 'No foods found' : 'Your library is empty'}
+                </h3>
+                <p className="text-muted-foreground">
+                  {searchTerm ? 'Try a different search term' : 'Log foods to automatically add them to your library'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 overflow-x-hidden">
+                {filteredUserFoods.map((food) => (
+                  <FoodCard key={food.id} food={food} isUserFood={true} />
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Suggested Foods Tab */}
-        <TabsContent value="suggested" className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 mt-4">
-
-          {loading ? (
-            <div className="space-y-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="p-2 rounded-lg bg-ceramic-plate/50 border border-ceramic-rim animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-ceramic-base" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-warm-text/20 rounded w-3/4" />
-                      <div className="h-3 bg-warm-text/20 rounded w-1/2" />
-                    </div>
-                    <div className="flex gap-1">
-                      <div className="w-7 h-7 bg-warm-text/20 rounded" />
-                      <div className="w-12 h-7 bg-warm-text/20 rounded" />
+        <TabsContent value="suggested" className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4">
+          <div className="space-y-3 mt-2">
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="p-2 rounded-lg bg-ceramic-plate/50 border border-ceramic-rim animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded bg-ceramic-base" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-warm-text/20 rounded w-3/4" />
+                        <div className="h-3 bg-warm-text/20 rounded w-1/2" />
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="w-7 h-7 bg-warm-text/20 rounded" />
+                        <div className="w-12 h-7 bg-warm-text/20 rounded" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredDefaultFoods.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🌟</div>
-              <h3 className="text-lg font-medium mb-2">
-                {searchTerm ? 'No suggested foods found' : 'No suggested foods available'}
-              </h3>
-              <p className="text-muted-foreground">
-                {searchTerm ? 'Try a different search term' : 'Check back later for curated food suggestions'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3 overflow-x-hidden">
-              {filteredDefaultFoods.map((food) => (
-                <FoodCard key={`default-${food.id}`} food={food} isUserFood={false} />
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : filteredDefaultFoods.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🌟</div>
+                <h3 className="text-lg font-medium mb-2">
+                  {searchTerm ? 'No suggested foods found' : 'No suggested foods available'}
+                </h3>
+                <p className="text-muted-foreground">
+                  {searchTerm ? 'Try a different search term' : 'Check back later for curated food suggestions'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 overflow-x-hidden">
+                {filteredDefaultFoods.map((food) => (
+                  <FoodCard key={`default-${food.id}`} food={food} isUserFood={false} />
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
         </Tabs>
       </div>
