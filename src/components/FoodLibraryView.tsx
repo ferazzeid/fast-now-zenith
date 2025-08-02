@@ -413,7 +413,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -422,7 +422,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               toggleFavorite(food.id, (food as UserFood).is_favorite) :
               toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
             }
-            className="p-1 h-8 w-8 hover:bg-primary/10"
+            className="p-1 h-7 w-7 hover:bg-primary/10 flex-shrink-0"
             title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
           >
             {food.is_favorite ? (
@@ -441,10 +441,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="p-1 h-8 w-8 hover:bg-muted"
+                    className="p-1 h-7 w-7 hover:bg-muted flex-shrink-0"
                     title="More options"
                   >
-                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                    <MoreVertical className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
@@ -467,11 +467,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 variant="default"
                 size="sm"
                 onClick={() => handleQuickSelect(food as UserFood, false)}
-                className="h-8 px-4 text-xs font-medium"
+                className="h-7 px-2 text-xs font-medium flex-shrink-0"
                 title="Add to today's plan"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                Add to Plan
+                Add
               </Button>
             </>
           ) : (
@@ -482,7 +482,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 variant="outline"
                 size="sm"
                 onClick={() => importToMyLibrary(food as DefaultFood)}
-                className="h-8 px-3 text-xs"
+                className="h-7 px-2 text-xs flex-shrink-0"
                 title="Import to your library"
               >
                 <Plus className="w-3 h-3 mr-1" />
@@ -496,10 +496,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="p-1 h-8 w-8 hover:bg-muted"
+                      className="p-1 h-7 w-7 hover:bg-muted flex-shrink-0"
                       title="Admin options"
                     >
-                      <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                      <MoreVertical className="w-3 h-3 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
@@ -523,11 +523,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 variant="default"
                 size="sm"
                 onClick={() => handleQuickSelect(food, false)}
-                className="h-8 px-4 text-xs font-medium"
+                className="h-7 px-2 text-xs font-medium flex-shrink-0"
                 title="Add to today's plan"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                Add to Plan
+                Add
               </Button>
             </>
           )}
