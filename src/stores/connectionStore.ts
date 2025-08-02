@@ -14,6 +14,7 @@ interface ConnectionState {
   lastConnectedAt: Date | null;
   retryCount: number;
   queue: QueuedOperation[];
+  currentInterval: number; // For exponential backoff
   
   // Actions
   checkConnection: () => Promise<boolean>;
@@ -33,6 +34,7 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   lastConnectedAt: new Date(),
   retryCount: 0,
   queue: [],
+  currentInterval: 120000, // Start with 2 minutes
 
   checkConnection: async () => {
     try {
@@ -43,6 +45,7 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
         isConnected: connected,
         lastConnectedAt: connected ? new Date() : state.lastConnectedAt,
         retryCount: connected ? 0 : state.retryCount + 1,
+        currentInterval: connected ? 120000 : Math.min(state.currentInterval * 1.5, 600000), // Exponential backoff, max 10 minutes
       }));
       
       if (connected) {
@@ -71,9 +74,14 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       clearInterval(monitoringInterval);
     }
     
-    monitoringInterval = setInterval(() => {
-      checkConnection();
-    }, 10000); // Check every 10 seconds
+    const startInterval = () => {
+      const currentState = get();
+      monitoringInterval = setInterval(() => {
+        checkConnection();
+      }, currentState.currentInterval); // Dynamic interval based on connection state
+    };
+    
+    startInterval();
     
     // Listen to online/offline events
     const handleOnline = () => {
@@ -156,7 +164,7 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   },
 
   forceRetry: async () => {
-    set({ retryCount: 0 });
+    set({ retryCount: 0, currentInterval: 120000 }); // Reset to initial interval
     await get().checkConnection();
   },
 }));

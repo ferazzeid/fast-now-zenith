@@ -137,9 +137,12 @@ export const DailyStatsPanel = memo(() => {
           <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim hover:bg-ceramic-plate/98 transition-colors">
             <div className="flex items-center space-x-2">
               <Target className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-warm-text">
+                <span className="text-sm font-medium text-warm-text">
                 Today's Deficit:
               </span>
+              <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
+                <Info className="w-3 h-3 text-muted-foreground" />
+              </ClickableTooltip>
               <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
                 {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
               </span>

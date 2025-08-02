@@ -105,7 +105,7 @@ export const EnhancedConnectionStatus = () => {
               <div className="font-medium">Connection lost</div>
               <div className="text-sm opacity-90 mt-1">
                 {retryCount > 0 && `Attempt ${retryCount} failed. `}
-                Unable to reach our servers.
+                Unable to reach our servers. Checking every 2-10 minutes automatically.
               </div>
             </div>
             <Button 

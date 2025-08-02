@@ -3,6 +3,8 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { useStepEstimation } from '@/utils/stepEstimation';
 
+// Performance optimized walking stats - updates every minute when active
+
 interface WalkingStats {
   realTimeCalories: number;
   realTimeDistance: number;
@@ -228,9 +230,9 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     if (currentSession && !isPaused) {
-      // Update immediately then set interval every 5 seconds for better performance
+      // Update immediately then set interval every minute for conservative performance
       updateStats();
-      interval = setInterval(updateStats, 5000); // 5 seconds instead of 1 second
+      interval = setInterval(updateStats, 60000); // 1 minute - conservative for better performance
     } else if (currentSession && isPaused) {
       // Update once to mark as paused
       updateStats();

@@ -178,12 +178,19 @@ export const useDailyDeficit = () => {
     }
   }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayOverride?.activity_level, todayTotals.calories, manualCalorieTotal, walkingStats.realTimeCalories, walkingStats.isActive, walkingStats.currentSessionId, calculateDeficit]);
 
-  // Optimized recalculation - only when walking is active and not paused
+  // Conservative recalculation - reduced frequency for better performance
   useEffect(() => {
     if (walkingStats.isActive && !walkingStats.isPaused) {
       const interval = setInterval(() => {
         calculateDeficit();
-      }, 30000); // 30 seconds when walking is active
+      }, 900000); // 15 minutes when walking is active - conservative for better performance
+      
+      return () => clearInterval(interval);
+    } else {
+      // When not actively walking, check even less frequently
+      const interval = setInterval(() => {
+        calculateDeficit();
+      }, 3600000); // 1 hour when idle - very conservative
       
       return () => clearInterval(interval);
     }

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
+// Performance optimized analytics - updates every hour to reduce server load
+
 interface AnalyticsData {
   activeUsers: number;
   todayUsers: number;
@@ -79,8 +81,8 @@ export const SimpleAnalyticsWidget = () => {
   useEffect(() => {
     fetchAnalyticsData();
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchAnalyticsData, 30000);
+    // Auto-refresh every hour - conservative for better performance
+    const interval = setInterval(fetchAnalyticsData, 3600000);
     return () => clearInterval(interval);
   }, []);
 
