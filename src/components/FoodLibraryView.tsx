@@ -143,7 +143,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const handleQuickSelect = (food: UserFood | DefaultFood, consumed: boolean) => {
+  const handleQuickSelect = (food: UserFood | DefaultFood, consumed: boolean = false) => {
     const userFood = 'variations' in food ? food : {
       ...food,
       is_favorite: false,
@@ -153,8 +153,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     onSelectFood(userFood, consumed);
     
     toast({
-      title: consumed ? "Added as consumed" : "Added to plan",
-      description: `${food.name} has been added to your food list`,
+      title: "Added to plan",
+      description: `${food.name} has been added to your food plan`,
     });
     
     // Auto-close library after selection
@@ -434,27 +434,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
               </Button>
 
-              {/* Quick Add Buttons */}
+              {/* Quick Add Button */}
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 onClick={() => handleQuickSelect(food as UserFood, false)}
                 className="ml-2 h-8 px-3 text-xs"
                 title="Add to today's plan"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                Plan
-              </Button>
-              
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleQuickSelect(food as UserFood, true)}
-                className="h-8 px-3 text-xs"
-                title="Add as consumed"
-              >
-                <Check className="w-3 h-3 mr-1" />
-                Eaten
+                Add to Plan
               </Button>
             </>
           ) : (
@@ -490,25 +479,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 Import
               </Button>
 
-              {/* Quick Add Buttons */}
+              {/* Quick Add Button */}
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 onClick={() => handleQuickSelect(food, false)}
                 className="h-8 px-3 text-xs"
                 title="Add to today's plan"
               >
-                Plan
-              </Button>
-              
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleQuickSelect(food, true)}
-                className="h-8 px-3 text-xs"
-                title="Add as consumed"
-              >
-                Eaten
+                <Plus className="w-3 h-3 mr-1" />
+                Add to Plan
               </Button>
             </>
           )}
@@ -518,30 +498,22 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   );
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between px-2">
-        <Button variant="ghost" onClick={onBack} className="p-2">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <h2 className="text-lg font-semibold">Food Library</h2>
-        <div className="w-16" />
-      </div>
-
+    <div className="h-full flex flex-col">
       {/* Search */}
-      <div className="relative px-2">
-        <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="relative p-6 pb-4">
+        <Search className="absolute left-9 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Search foods..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-12 text-base"
+          autoFocus
         />
       </div>
 
       {/* Two-Library System Tabs */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="px-2">
+      <div className="flex-1 overflow-hidden">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="my-foods" className="flex items-center gap-2">
             <Heart className="w-4 h-4" />
@@ -554,7 +526,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </TabsList>
 
         {/* My Foods Tab */}
-        <TabsContent value="my-foods" className="space-y-4 mt-4">
+        <TabsContent value="my-foods" className="flex-1 overflow-y-auto space-y-4 mt-4">
           {/* Quick Access Favorites */}
           {favoriteUserFoods.length > 0 && !searchTerm && (
             <div className="space-y-2">
@@ -574,15 +546,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                       title="Add to plan"
                     >
                       <Plus className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleQuickSelect(food, true)}
-                      className="p-1 h-6 w-6"
-                      title="Add as consumed"
-                    >
-                      <Check className="w-3 h-3" />
                     </Button>
                   </div>
                 ))}
@@ -629,7 +592,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </TabsContent>
 
         {/* Suggested Foods Tab */}
-        <TabsContent value="suggested" className="space-y-4 mt-4">
+        <TabsContent value="suggested" className="flex-1 overflow-y-auto space-y-4 mt-4">
           <div className="p-3 rounded-lg bg-blue-50/50 border border-blue-200">
             <p className="text-sm text-blue-800">
               <Star className="w-4 h-4 inline mr-1" />
@@ -673,7 +636,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 };

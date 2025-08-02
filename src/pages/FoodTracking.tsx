@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { ShoppingCart, Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
@@ -479,26 +480,15 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         <div className="mb-6">
           <Button
             variant="outline"
-            onClick={() => setShowLibraryView(!showLibraryView)}
+            onClick={() => setShowLibraryView(true)}
             className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50 gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
             <span className="font-medium">My Foods Library</span>
-            {showLibraryView ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </Button>
         </div>
-
-        {/* Food Library View - Inline */}
-        {showLibraryView && (
-          <div className="mb-6 animate-fade-in">
-            <FoodLibraryView 
-              onSelectFood={handleSelectFromLibrary} 
-              onBack={() => setShowLibraryView(false)} 
-            />
-          </div>
-        )}
 
 
 
@@ -730,6 +720,23 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               </div>
             )}
         </div>
+
+        {/* Food Library Modal */}
+        <Dialog open={showLibraryView} onOpenChange={setShowLibraryView}>
+          <DialogContent className="w-full max-w-full h-full max-h-full m-0 p-0 rounded-none border-0">
+            <div className="h-full flex flex-col">
+              <DialogHeader className="p-6 pb-4 border-b border-ceramic-rim">
+                <DialogTitle className="text-xl font-semibold text-center">Food Library</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 overflow-hidden">
+                <FoodLibraryView 
+                  onSelectFood={handleSelectFromLibrary} 
+                  onBack={() => setShowLibraryView(false)} 
+                />
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Onboarding Modal */}
         <PageOnboardingModal
