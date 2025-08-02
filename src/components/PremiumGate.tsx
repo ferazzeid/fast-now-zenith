@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
-import { Lock, Crown } from 'lucide-react';
+import { Lock, Crown, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { useToast } from '@/hooks/use-toast';
+import { detectPlatform, getPlatformDisplayName } from '@/utils/platformDetection';
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -12,7 +13,7 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, requests_used, request_limit, createSubscription } = useSubscription();
+  const { subscribed, subscription_tier, requests_used, request_limit, createSubscription, platform } = useMultiPlatformSubscription();
   const { toast } = useToast();
 
   // Check if user has access to the feature
@@ -20,11 +21,20 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
   const handleUpgrade = async () => {
     try {
-      await createSubscription();
-      toast({
-        title: "Redirecting to checkout",
-        description: "Opening payment page..."
-      });
+      const result = await createSubscription();
+      const platformName = getPlatformDisplayName(platform as any);
+      
+      if (platform === 'web') {
+        toast({
+          title: "Redirecting to checkout",
+          description: "Opening Stripe payment page..."
+        });
+      } else {
+        toast({
+          title: `${platformName} Purchase Required`,
+          description: `Use ${platformName} billing to purchase premium subscription.`
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",

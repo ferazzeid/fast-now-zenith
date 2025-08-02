@@ -8,3 +8,12 @@ verify_jwt = true
 
 [functions.delete-account]
 verify_jwt = true
+
+[functions.validate-google-play-receipt]
+verify_jwt = true
+
+[functions.validate-apple-receipt]
+verify_jwt = true
+
+[functions.unified-subscription]
+verify_jwt = true

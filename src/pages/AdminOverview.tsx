@@ -17,6 +17,7 @@ import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PromptManagement } from "@/components/PromptManagement";
 import { AdminWalkingShareSettings } from "@/components/AdminWalkingShareSettings";
 import { AdminPredefinedMotivators } from "@/components/AdminPredefinedMotivators";
+import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 
 interface User {
   user_id: string;
@@ -315,6 +316,9 @@ const AdminOverview = () => {
 
       {/* Predefined Motivators Management */}
       <AdminPredefinedMotivators />
+
+      {/* Payment Provider Configuration */}
+      <PaymentProviderSettings />
 
       {/* Brand Customization */}
       <div className="space-y-6 mb-12">

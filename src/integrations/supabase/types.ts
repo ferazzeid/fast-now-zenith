@@ -361,11 +361,81 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_provider_configs: {
+        Row: {
+          config_data: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          config_data?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          config_data?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_receipts: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          provider: string
+          receipt_data: Json
+          subscription_id: string | null
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+          validation_response: Json | null
+          validation_status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          provider: string
+          receipt_data: Json
+          subscription_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+          validation_response?: Json | null
+          validation_status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          provider?: string
+          receipt_data?: Json
+          subscription_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+          validation_response?: Json | null
+          validation_status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           activity_level: string | null
           age: number | null
           ai_requests_reset_date: string | null
+          apple_transaction_id: string | null
           created_at: string
           daily_calorie_goal: number | null
           daily_carb_goal: number | null
@@ -374,6 +444,7 @@ export type Database = {
           deletion_scheduled_at: string | null
           display_name: string | null
           goal_weight: number | null
+          google_play_purchase_token: string | null
           height: number | null
           id: string
           is_paid_user: boolean | null
@@ -381,9 +452,12 @@ export type Database = {
           monthly_ai_requests: number | null
           openai_api_key: string | null
           payment_method: string | null
+          payment_provider: string | null
+          platform_subscription_id: string | null
           speech_model: string | null
           stripe_customer_id: string | null
           subscription_end_date: string | null
+          subscription_product_id: string | null
           subscription_status: string | null
           subscription_tier: string | null
           transcription_model: string | null
@@ -400,6 +474,7 @@ export type Database = {
           activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
+          apple_transaction_id?: string | null
           created_at?: string
           daily_calorie_goal?: number | null
           daily_carb_goal?: number | null
@@ -408,6 +483,7 @@ export type Database = {
           deletion_scheduled_at?: string | null
           display_name?: string | null
           goal_weight?: number | null
+          google_play_purchase_token?: string | null
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
@@ -415,9 +491,12 @@ export type Database = {
           monthly_ai_requests?: number | null
           openai_api_key?: string | null
           payment_method?: string | null
+          payment_provider?: string | null
+          platform_subscription_id?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
+          subscription_product_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           transcription_model?: string | null
@@ -434,6 +513,7 @@ export type Database = {
           activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
+          apple_transaction_id?: string | null
           created_at?: string
           daily_calorie_goal?: number | null
           daily_carb_goal?: number | null
@@ -442,6 +522,7 @@ export type Database = {
           deletion_scheduled_at?: string | null
           display_name?: string | null
           goal_weight?: number | null
+          google_play_purchase_token?: string | null
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
@@ -449,9 +530,12 @@ export type Database = {
           monthly_ai_requests?: number | null
           openai_api_key?: string | null
           payment_method?: string | null
+          payment_provider?: string | null
+          platform_subscription_id?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
+          subscription_product_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           transcription_model?: string | null
@@ -636,6 +720,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_payment_provider_for_platform: {
+        Args: { _platform: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -649,6 +737,17 @@ export type Database = {
           _event_type: string
           _requests_count?: number
           _subscription_status?: string
+        }
+        Returns: undefined
+      }
+      update_subscription_from_receipt: {
+        Args: {
+          _user_id: string
+          _provider: string
+          _subscription_id: string
+          _product_id: string
+          _status: string
+          _expires_at?: string
         }
         Returns: undefined
       }
