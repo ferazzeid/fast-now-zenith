@@ -137,15 +137,58 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           description: `${args.name} (${args.serving_size}g) added to your food plan with ${args.calories} cal and ${args.carbs}g carbs. Check your food list below or continue adding more items.`
         });
         
-        // Don't auto-close - let user decide when to close
-        // The AI chat will remain open for additional food entries
-        
         // Save to personal library
         await saveToLibrary({
           name: args.name,
           calories: parseFloat(args.calories),
           carbs: parseFloat(args.carbs),
           serving_size: parseFloat(args.serving_size)
+        });
+      }
+    } else if (result.name === 'add_multiple_foods') {
+      const { arguments: args } = result;
+      const foods = args.foods || [];
+      
+      let successCount = 0;
+      let totalCalories = 0;
+      let totalCarbs = 0;
+      
+      // Add all foods sequentially
+      for (const food of foods) {
+        const foodResult = await addFoodEntry({
+          name: food.name,
+          calories: parseFloat(food.calories),
+          carbs: parseFloat(food.carbs),
+          serving_size: parseFloat(food.serving_size),
+          consumed: food.consumed || false
+        });
+
+        if (!foodResult.error) {
+          successCount++;
+          totalCalories += parseFloat(food.calories);
+          totalCarbs += parseFloat(food.carbs);
+          
+          // Save each to personal library
+          await saveToLibrary({
+            name: food.name,
+            calories: parseFloat(food.calories),
+            carbs: parseFloat(food.carbs),
+            serving_size: parseFloat(food.serving_size)
+          });
+        }
+      }
+      
+      if (successCount > 0) {
+        trackFoodEvent('add', 'voice');
+        toast({
+          title: "✅ Foods Added Successfully!",
+          description: `${successCount} food items added with ${Math.round(totalCalories)} total calories and ${Math.round(totalCarbs)}g carbs. Check your food list below!`
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to add food items. Please try again."
         });
       }
     }

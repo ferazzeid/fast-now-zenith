@@ -118,8 +118,51 @@ serve(async (req) => {
           {
             type: "function",
             function: {
+              name: "add_multiple_foods",
+              description: "Add multiple food entries to the user's food log at once",
+              parameters: {
+                type: "object",
+                properties: {
+                  foods: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: {
+                          type: "string",
+                          description: "Name of the food item"
+                        },
+                        serving_size: {
+                          type: "number",
+                          description: "Serving size in grams"
+                        },
+                        calories: {
+                          type: "number",
+                          description: "Number of calories in this serving"
+                        },
+                        carbs: {
+                          type: "number",
+                          description: "Number of carbs in grams in this serving"
+                        },
+                        consumed: {
+                          type: "boolean",
+                          description: "Whether this food was actually consumed"
+                        }
+                      },
+                      required: ["name", "serving_size", "calories", "carbs"]
+                    },
+                    description: "Array of food items to add"
+                  }
+                },
+                required: ["foods"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
               name: "add_food_entry",
-              description: "Add a food entry to the user's food log",
+              description: "Add a single food entry to the user's food log",
               parameters: {
                 type: "object",
                 properties: {

@@ -133,14 +133,21 @@ export const ModalAiChat = ({
       if (title === 'Food Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
-You are helping with food tracking. Your goal is to:
-1. Help users add complete food entries with all required information
-2. Ensure every food item has: name, portion size (in grams), calories, and carbs
-3. Ask clarifying questions if information is missing
-4. Provide reasonable estimates for calories and carbs based on food type and portion
-5. Be conversational and helpful
+You are a decisive food tracking assistant. Your goal is to:
+1. IMMEDIATELY process food information and create entries with reasonable estimations
+2. DO NOT ask for more details - make smart estimations based on common serving sizes
+3. For multiple foods mentioned, use add_multiple_foods function to handle them all at once
+4. Provide nutritional tips for high-carb foods (>20g carbs) with lower-carb alternatives
+5. Always format responses as: food list + nutritional tips + "Would you like me to add these to your food log?"
 
-When the user provides food information, always use the add_food_entry function to add it to their log.`;
+CRITICAL RULES:
+- NEVER ask "do you have more information" - estimate and present
+- ALWAYS use reasonable portion sizes (150g apple, 100g chicken breast, 60g bread slice, etc.)
+- For multiple foods, present them in a clean list format
+- Include walking time equivalents when helpful
+- Be decisive and confident in your estimations
+
+When user mentions food(s), immediately call the appropriate function and present a summary.`;
       } else if (title === 'Motivator Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
@@ -190,6 +197,34 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           responseContent = "I've created a motivator suggestion for you based on what you shared. Here are the details:\n\n" +
             `**Title:** ${data.functionCall.arguments?.title || 'Personal Motivator'}\n\n` +
             `**Content:** ${data.functionCall.arguments?.content || 'Motivational content based on your goals'}`;
+        } else if (data.functionCall.name === 'add_multiple_foods' && title === 'Food Assistant') {
+          const foods = data.functionCall.arguments?.foods || [];
+          const totalCalories = foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
+          const totalCarbs = foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0);
+          
+          let baseResponse = `I've prepared ${foods.length} food entries for you:\n\n`;
+          
+          foods.forEach((food: any, index: number) => {
+            const carbCount = food.carbs || 0;
+            const isHighCarb = carbCount > 20;
+            const icon = isHighCarb ? '🟡' : '🟢';
+            baseResponse += `${icon} **${food.name}** (${food.serving_size}g) - ${food.calories} cal, ${carbCount}g carbs\n`;
+          });
+          
+          // Add nutritional tips for high-carb foods
+          const highCarbFoods = foods.filter((food: any) => (food.carbs || 0) > 20);
+          if (highCarbFoods.length > 0) {
+            baseResponse += `\n💡 **Nutrition Tip:** `;
+            if (highCarbFoods.length === 1) {
+              const alternatives = getHighCarbAlternatives(highCarbFoods[0].name);
+              baseResponse += `${highCarbFoods[0].name} is high in carbs (${highCarbFoods[0].carbs}g). ${alternatives ? `Consider ${alternatives} as lower-carb alternatives.` : 'Pair with protein to balance blood sugar.'}`;
+            } else {
+              baseResponse += `${highCarbFoods.map((f: any) => f.name).join(' and ')} are higher in carbs. Consider lower-carb alternatives or pair with protein.`;
+            }
+          }
+          
+          baseResponse += `\n\n**Total:** ${totalCalories} calories, ${totalCarbs}g carbs\n\nWould you like me to add all these foods to your log?`;
+          responseContent = baseResponse;
         } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
           const args = data.functionCall.arguments;
           const carbCount = args?.carbs || 0;
@@ -197,12 +232,13 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           
           // Check if this is a high-carb food (>20g carbs)
           const isHighCarb = carbCount > 20;
+          const icon = isHighCarb ? '🟡' : '🟢';
           
-          let baseResponse = `I've prepared a food entry for you:\n\n**Food:** ${foodName}\n**Portion:** ${args?.serving_size || 0}g\n**Calories:** ${args?.calories || 0} cal\n**Carbs:** ${carbCount}g`;
+          let baseResponse = `I've prepared a food entry for you:\n\n${icon} **${foodName}** (${args?.serving_size || 0}g) - ${args?.calories || 0} cal, ${carbCount}g carbs`;
           
           if (isHighCarb) {
             const alternatives = getHighCarbAlternatives(foodName);
-            baseResponse += `\n\n💡 *Nutrition Tip:* This food contains ${carbCount}g of carbs. ${alternatives ? `You might consider ${alternatives} as lower-carb alternatives for future meals.` : 'Consider pairing it with protein or healthy fats to help balance blood sugar.'} I'm still happy to log this for you!`;
+            baseResponse += `\n\n💡 **Nutrition Tip:** This food contains ${carbCount}g of carbs. ${alternatives ? `Consider ${alternatives} as lower-carb alternatives.` : 'Pair with protein to balance blood sugar.'}`;
           }
           
           responseContent = baseResponse + `\n\nWould you like me to add this to your food log?`;
@@ -234,12 +270,14 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
         // Store the suggestions for button actions
         if (data.functionCall.name === 'add_food_entry') {
           setLastFoodSuggestion(data.functionCall.arguments);
+        } else if (data.functionCall.name === 'add_multiple_foods') {
+          setLastFoodSuggestion(data.functionCall.arguments);
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
         }
         
         // Only pass to parent immediately for certain actions
-        if (onResult && (message.includes('Yes, add it') || message.includes('Yes, create this motivator'))) {
+        if (onResult && (message.includes('Yes, add it') || message.includes('Yes, add all') || message.includes('Yes, create this motivator'))) {
           onResult(data.functionCall);
         }
       }
@@ -293,12 +331,25 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
   const handleAdjustDetails = () => {
     if (lastFoodSuggestion) {
-      setEditFormData({
-        name: lastFoodSuggestion.name || '',
-        portion: lastFoodSuggestion.serving_size?.toString() || '',
-        calories: lastFoodSuggestion.calories?.toString() || '',
-        carbs: lastFoodSuggestion.carbs?.toString() || ''
-      });
+      // Handle both single food and multiple foods
+      if (lastFoodSuggestion.foods) {
+        // For multiple foods, show the first one for now
+        const firstFood = lastFoodSuggestion.foods[0];
+        setEditFormData({
+          name: firstFood?.name || '',
+          portion: firstFood?.serving_size?.toString() || '',
+          calories: firstFood?.calories?.toString() || '',
+          carbs: firstFood?.carbs?.toString() || ''
+        });
+      } else {
+        // Single food
+        setEditFormData({
+          name: lastFoodSuggestion.name || '',
+          portion: lastFoodSuggestion.serving_size?.toString() || '',
+          calories: lastFoodSuggestion.calories?.toString() || '',
+          carbs: lastFoodSuggestion.carbs?.toString() || ''
+        });
+      }
       setShowEditForm(true);
     }
   };
@@ -395,29 +446,29 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                       </div>
                     )}
                     
-                    {/* Conditional confirmation buttons for food suggestions only */}
-                    {conversationType === 'general' && title === 'Food Assistant' && message.role === 'assistant' && containsFoodSuggestion(message.content) && (
-                      <div className="flex gap-2 mt-3">
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleSendMessage('Yes, add it')}
-                          className="text-xs"
-                        >
-                          Yes, Add It
-                        </Button>
-                        {lastFoodSuggestion && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={handleAdjustDetails}
-                            className="text-xs"
-                          >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Adjust Details
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                     {/* Conditional confirmation buttons for food suggestions only */}
+                     {conversationType === 'general' && title === 'Food Assistant' && message.role === 'assistant' && containsFoodSuggestion(message.content) && (
+                       <div className="flex flex-wrap gap-2 mt-3">
+                         <Button 
+                           size="sm" 
+                           onClick={() => handleSendMessage(lastFoodSuggestion?.foods ? 'Yes, add all' : 'Yes, add it')}
+                           className="text-xs"
+                         >
+                           {lastFoodSuggestion?.foods ? 'Add All Foods' : 'Yes, Add It'}
+                         </Button>
+                         {lastFoodSuggestion && (
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={handleAdjustDetails}
+                             className="text-xs"
+                           >
+                             <Edit className="w-3 h-3 mr-1" />
+                             {lastFoodSuggestion?.foods ? 'Quick Edit' : 'Adjust Details'}
+                           </Button>
+                         )}
+                       </div>
+                     )}
                     
                      {/* Motivator suggestion buttons */}
                      {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
