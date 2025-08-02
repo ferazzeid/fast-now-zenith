@@ -693,7 +693,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                        <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
                          <span>{entry.serving_size}g</span>
                          <span className="text-warm-text/60">•</span>
-                         <span>{entry.calories}cal</span>
+                         <span>{Math.round(entry.calories)}cal</span>
                          <span className="text-warm-text/60">•</span>
                          <span>{entry.carbs}g carbs</span>
                          <span className="text-warm-text/60">•</span>
@@ -727,9 +727,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-ceramic-base"
+                            className="h-10 w-10 p-0 hover:bg-ceramic-base"
                           >
-                            <MoreVertical className="w-4 h-4 text-warm-text/60" />
+                            <MoreVertical className="w-5 h-5 text-warm-text/60" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-32">

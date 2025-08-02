@@ -135,7 +135,7 @@ export const WalkingShareModal = ({ isOpen, onClose, walkingStats }: WalkingShar
           <div className="flex flex-col gap-2">
             <Button
               onClick={handleFacebookShare}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start"
               disabled={isLoading || !shareMessage}
             >
               <Facebook className="w-4 h-4 mr-2" />
@@ -145,7 +145,7 @@ export const WalkingShareModal = ({ isOpen, onClose, walkingStats }: WalkingShar
             <Button
               onClick={handleCopyToClipboard}
               variant="outline"
-              className="w-full"
+              className="w-full justify-start"
               disabled={isLoading || !shareMessage}
             >
               <Copy className="w-4 h-4 mr-2" />

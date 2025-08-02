@@ -142,7 +142,7 @@ export const useFoodContext = () => {
 
     if (ctx.weeklyAverageCalories > 0) {
       parts.push(
-        `Weekly averages: ${ctx.weeklyAverageCalories.toFixed(0)} calories/day, ${ctx.weeklyAverageCarbs.toFixed(0)}g carbs/day`
+        `Weekly averages: ${Math.round(ctx.weeklyAverageCalories)} calories/day, ${Math.round(ctx.weeklyAverageCarbs)}g carbs/day`
       );
     }
 
