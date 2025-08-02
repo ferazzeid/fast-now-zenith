@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
@@ -7,9 +7,9 @@ import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
-import { ShoppingCart, Check } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
@@ -667,13 +667,19 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                 })
                 .map((entry) => (
-                <div key={entry.id} className={`p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors ${entry.consumed ? 'border-green-300 bg-green-50/10' : 'border-amber-300 bg-amber-50/10'}`}>
-                  <div className="flex items-center gap-2">
+                <div key={entry.id} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors">
+                  <div className="flex items-center gap-3">
                     {/* Food Image */}
-                    <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-                      <div className="w-4 h-4 bg-warm-text/20 rounded flex items-center justify-center">
-                        <span className="text-xs text-warm-text/60">🍽️</span>
-                      </div>
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-ceramic-base flex items-center justify-center flex-shrink-0">
+                      {entry.image_url ? (
+                        <img 
+                          src={entry.image_url} 
+                          alt={entry.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Utensils className="w-5 h-5 text-warm-text/60" />
+                      )}
                     </div>
                     
                      {/* Food Info */}
@@ -697,36 +703,52 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                        </div>
                      </div>
                     
-                    {/* Status & Actions */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${entry.consumed ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'}`}>
-                        {entry.consumed ? '✓' : '○'}
-                      </div>
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Consumption Toggle Button */}
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="sm"
                         onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className="p-1 h-6 w-6 hover:bg-primary/10"
+                        className="h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90"
                         title={entry.consumed ? "Mark as planned" : "Mark as eaten"}
                       >
                         {entry.consumed ? (
-                          <X className="w-3 h-3 text-amber-600" />
+                          <X className="w-4 h-4" />
                         ) : (
-                          <Check className="w-3 h-3 text-green-600" />
+                          <Check className="w-4 h-4" />
                         )}
                       </Button>
-                      <EditFoodEntryModal 
-                        entry={entry} 
-                        onUpdate={handleUpdateFoodEntry}
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleDeleteFoodEntry(entry.id)}
-                        className="p-1 h-6 w-6 hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
-                      </Button>
+
+                      {/* Three-dot Menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-ceramic-base"
+                          >
+                            <MoreVertical className="w-4 h-4 text-warm-text/60" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem asChild>
+                            <div className="w-full">
+                              <EditFoodEntryModal 
+                                entry={entry} 
+                                onUpdate={handleUpdateFoodEntry}
+                              />
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteFoodEntry(entry.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>
