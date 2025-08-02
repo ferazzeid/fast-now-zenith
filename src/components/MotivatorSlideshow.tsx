@@ -111,10 +111,11 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         <div 
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(${currentMotivator?.imageUrl})`,
+            backgroundImage: currentMotivator?.imageUrl ? `url(${currentMotivator.imageUrl})` : 'none',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
+            backgroundColor: !currentMotivator?.imageUrl ? 'var(--muted)' : 'transparent'
           }}
         />
         

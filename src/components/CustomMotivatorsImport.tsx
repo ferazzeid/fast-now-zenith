@@ -6,78 +6,80 @@ import { Download, Sparkles, Check } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useToast } from '@/hooks/use-toast';
 
-// Import all custom motivator images
-import mirrorWakeUpImage from '@/assets/motivator-mirror-wake-up.jpg';
-import fitOldClothesImage from '@/assets/motivator-fit-old-clothes.jpg';
-import fitNewClothesImage from '@/assets/motivator-fit-new-clothes.jpg';
-import beLookedAtImage from '@/assets/motivator-be-looked-at.jpg';
-import impressThemAllImage from '@/assets/motivator-impress-them-all.jpg';
-import regainSelfRespectImage from '@/assets/motivator-regain-self-respect.jpg';
-import fixInsulinLevelsImage from '@/assets/motivator-fix-insulin-levels.jpg';
-import fixUnexplainedSymptomsImage from '@/assets/motivator-fix-unexplained-symptoms.jpg';
-import eventCountdownImage from '@/assets/motivator-event-countdown.jpg';
-import autophagyCleanUpImage from '@/assets/motivator-autophagy-clean-up.jpg';
+// Use Unsplash images for predefined motivators
+const MOTIVATOR_IMAGES = {
+  mirrorWakeUp: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  fitOldClothes: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  fitNewClothes: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  beLookedAt: 'https://images.unsplash.com/photo-1469474968028-56623f02e425?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  impressThemAll: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  regainSelfRespect: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  fixInsulinLevels: 'https://images.unsplash.com/photo-1485833077593-4278bba3f11f?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  fixUnexplainedSymptoms: 'https://images.unsplash.com/photo-1438565434616-3ef039228b15?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  eventCountdown: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
+  autophagyCleanUp: 'https://images.unsplash.com/photo-1517022812141-236209515c9?w=800&h=600&fit=crop&crop=center&auto=format&q=75'
+};
 
 const CUSTOM_MOTIVATORS = [
   {
     title: "Mirror Wake-Up",
     content: "Seeing myself in the mirror or security camera and hating it. A harsh moment of clarity — when your reflection becomes a trigger. This is often the first jolt that forces real change.",
     category: "personal",
-    imageUrl: mirrorWakeUpImage
+    imageUrl: MOTIVATOR_IMAGES.mirrorWakeUp
   },
   {
     title: "Fit Into Old Clothes",
     content: "Fitting into old clothes again. Nothing proves progress more than slipping into something that once felt impossible. A simple, physical milestone that means everything.",
     category: "personal",
-    imageUrl: fitOldClothesImage
+    imageUrl: MOTIVATOR_IMAGES.fitOldClothes
   },
   {
     title: "Fit Into New Clothes",
     content: "Finally fitting into expensive new clothes I bought and never wore. This is the revenge arc — the clothes you once bought in hope, now finally fitting. Symbolic of reclaiming self-worth.",
     category: "personal",
-    imageUrl: fitNewClothesImage
+    imageUrl: MOTIVATOR_IMAGES.fitNewClothes
   },
   {
     title: "Be Looked At",
     content: "Wanting to be looked at again — to feel attractive and back on the market. After fading into the background, this goal is about becoming visible again — wanting to turn heads, feel attractive, reawaken desire.",
     category: "personal",
-    imageUrl: beLookedAtImage
+    imageUrl: MOTIVATOR_IMAGES.beLookedAt
   },
   {
     title: "Impress Them All",
     content: "Wanting to impress or surprise someone (romantic or not). This is about transformation being seen. To make someone's jaw drop — not for revenge, but satisfaction.",
     category: "personal",
-    imageUrl: impressThemAllImage
+    imageUrl: MOTIVATOR_IMAGES.impressThemAll
   },
   {
     title: "Regain Self-Respect",
     content: "Getting confidence back — regaining self-respect through visible change. When you start showing up for yourself, your posture changes. This is about restoring dignity through action and discipline.",
     category: "personal",
-    imageUrl: regainSelfRespectImage
+    imageUrl: MOTIVATOR_IMAGES.regainSelfRespect
   },
   {
     title: "Fix Insulin Levels",
     content: "Worrying about insulin levels or other early warning signs. A health scare — even minor — can flip the switch. This motivator is about prevention before crisis hits.",
     category: "health",
-    imageUrl: fixInsulinLevelsImage
+    imageUrl: MOTIVATOR_IMAGES.fixInsulinLevels
   },
   {
     title: "Fix Unexplained Symptoms",
     content: "Struggling with weird, unexplained physical symptoms — and hoping weight loss will fix them. Strange symptoms without answers — bloating, aches, fatigue. When nothing works, the hope is that lifestyle change might.",
     category: "health",
-    imageUrl: fixUnexplainedSymptomsImage
+    imageUrl: MOTIVATOR_IMAGES.fixUnexplainedSymptoms
   },
   {
     title: "Event Countdown",
     content: "Getting ready for an upcoming event (wedding, reunion, etc.). A set date creates urgency. You picture yourself walking in transformed — and that image fuels every choice.",
     category: "goals",
-    imageUrl: eventCountdownImage
+    imageUrl: MOTIVATOR_IMAGES.eventCountdown
   },
   {
     title: "Autophagy Clean-Up",
     content: "Autophagy: triggering deep cellular cleanup through extended fasting. For those who fast, this motivator goes deeper — it's about longevity, healing, and total reset from the inside out.",
     category: "health",
-    imageUrl: autophagyCleanUpImage
+    imageUrl: MOTIVATOR_IMAGES.autophagyCleanUp
   }
 ];
 
@@ -164,6 +166,10 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
                 src={motivator.imageUrl} 
                 alt={motivator.title}
                 className="w-16 h-16 object-cover rounded-lg"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-foreground text-sm mb-1">
