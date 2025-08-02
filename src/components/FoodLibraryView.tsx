@@ -380,7 +380,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => (
-    <div className={`p-2 rounded-lg border transition-colors hover:shadow-md ${
+    <div className={`p-1.5 rounded-lg border transition-colors hover:shadow-md ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
       <div className="flex items-center">
@@ -389,16 +389,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           <img 
             src={food.image_url} 
             alt={food.name}
-            className="w-10 h-10 rounded object-cover flex-shrink-0"
+            className="w-9 h-9 rounded object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-10 h-10 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
             <span className="text-lg">🍽️</span>
           </div>
         )}
         
         {/* Food Info with explicit left padding */}
-        <div className="flex-1 min-w-0 pl-3">
+        <div className="flex-1 min-w-0 pl-2.5">
           <div className="flex items-center">
             <span className="font-medium text-warm-text truncate">{food.name}</span>
           </div>
@@ -406,13 +406,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             <span>{food.calories_per_100g} cal</span>
             <span className="text-warm-text/60">•</span>
             <span>{food.carbs_per_100g}g carbs</span>
-            <span className="text-warm-text/60">•</span>
-            <span>per 100g</span>
           </div>
         </div>
         
         {/* Actions with explicit right padding */}
-        <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0 pr-2">
+        <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0 pr-1.5">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -421,13 +419,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               toggleFavorite(food.id, (food as UserFood).is_favorite) :
               toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
             }
-            className="p-1 h-7 w-7 hover:bg-primary/10 flex-shrink-0"
+            className="p-1 h-6 w-6 hover:bg-primary/10 flex-shrink-0"
             title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
           >
             {food.is_favorite ? (
-              <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+              <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
             ) : (
-              <Heart className="w-4 h-4 text-muted-foreground" />
+              <Heart className="w-3.5 h-3.5 text-muted-foreground" />
             )}
           </Button>
 
@@ -437,10 +435,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-1 h-7 w-7 hover:bg-muted flex-shrink-0"
+                className="p-1 h-6 w-6 hover:bg-muted flex-shrink-0"
                 title="More options"
               >
-                <MoreVertical className="w-3 h-3 text-muted-foreground" />
+                <MoreVertical className="w-2.5 h-2.5 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
@@ -488,10 +486,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               handleQuickSelect(food as UserFood, false) : 
               importToMyLibrary(food as DefaultFood)
             }
-            className="h-7 px-2 text-xs font-medium flex-shrink-0 min-w-[60px]"
+            className="h-6 px-1.5 text-xs font-medium flex-shrink-0 min-w-[45px]"
             title={isUserFood ? "Add to today's plan" : "Import to your library"}
           >
-            <Plus className="w-3 h-3 mr-0.5" />
+            <Plus className="w-2.5 h-2.5 mr-0.25" />
             {isUserFood ? 'Add' : 'Import'}
           </Button>
         </div>
