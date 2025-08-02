@@ -325,7 +325,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md mx-auto left-auto right-auto top-[50%] translate-x-0 translate-y-[-50%] transform-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
         <DialogHeader className="border-b border-border py-4 px-0">
           <DialogTitle className="text-lg font-semibold px-6">{title}</DialogTitle>
         </DialogHeader>
