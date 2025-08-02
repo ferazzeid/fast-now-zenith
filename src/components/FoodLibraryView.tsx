@@ -462,8 +462,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         onClick={handleCardClick}
       >
         <div className="flex items-center w-full max-w-full overflow-hidden">
-          {/* Multi-select checkbox (only for user foods in my-foods tab) */}
-          {canMultiSelect && (isMultiSelectMode || isSelected) && (
+          {/* Multi-select checkbox (always visible for user foods in my-foods tab) */}
+          {canMultiSelect && (
             <div className="flex-shrink-0 mr-2">
               <Checkbox
                 checked={isSelected}
@@ -601,31 +601,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   return (
     <div className="h-full flex flex-col max-w-full overflow-hidden">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Food Library</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-            title="Close Food Library"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search foods..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-9"
-          />
-        </div>
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Food Library</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+          title="Close Food Library"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
 
