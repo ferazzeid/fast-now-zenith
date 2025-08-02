@@ -498,10 +498,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-x-hidden">
       {/* Two-Library System Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-2">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-2 overflow-x-hidden">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="my-foods" className="flex items-center gap-2">
             <Heart className="w-4 h-4" />
@@ -514,7 +514,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </TabsList>
 
         {/* My Foods Tab */}
-        <TabsContent value="my-foods" className="flex-1 overflow-y-auto space-y-4 mt-4">
+        <TabsContent value="my-foods" className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 mt-4">
 
           {/* My Foods List */}
           {loading ? (
@@ -556,7 +556,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </TabsContent>
 
         {/* Suggested Foods Tab */}
-        <TabsContent value="suggested" className="flex-1 overflow-y-auto space-y-4 mt-4">
+        <TabsContent value="suggested" className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 mt-4">
 
           {loading ? (
             <div className="space-y-3">
