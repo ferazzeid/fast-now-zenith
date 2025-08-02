@@ -400,14 +400,14 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           <div className="mb-8 p-4 rounded-xl bg-ceramic-plate border border-ceramic-rim">
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="text-center">
-                <div className="text-xl font-bold text-warm-text">{todayTotals.calories}</div>
+                <div className="text-xl font-bold text-warm-text">{Math.round(todayTotals.calories)}</div>
                 <div className="text-xs font-medium text-warm-text">
                   Consumed Calories
                   <div className="text-xs text-warm-text/70 mt-1">today</div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-warm-text">{todayTotals.carbs}g</div>
+                <div className="text-xl font-bold text-warm-text">{Math.round(todayTotals.carbs)}g</div>
                 <div className="text-xs font-medium text-warm-text">
                   Consumed Carbs
                   <div className="text-xs text-warm-text/70 mt-1">today</div>
@@ -493,7 +493,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         </div>
 
         {/* My Foods Library Button */}
-        <div className="mb-4">
+        <div className="mb-3">
           <Button
             onClick={() => setShowLibraryView(true)}
             className="w-full h-12 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground gap-2"

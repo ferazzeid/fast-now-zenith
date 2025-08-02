@@ -380,7 +380,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => (
-    <div className={`p-3 rounded-lg border transition-colors hover:shadow-md ${
+    <div className={`p-2 rounded-lg border transition-colors hover:shadow-md ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
       <div className="flex items-center gap-3">
@@ -475,14 +475,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </Button>
             </>
           ) : (
-            // Default Food Actions: Import + Primary Add + Admin Dropdown
+            // Default Food Actions: Import Button (styled like Add) + Admin Dropdown
             <>
-              {/* Import Button */}
+              {/* Import Button (styled like Add button) */}
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 onClick={() => importToMyLibrary(food as DefaultFood)}
-                className="h-7 px-2 text-xs flex-shrink-0"
+                className="h-7 px-2 text-xs font-medium flex-shrink-0"
                 title="Import to your library"
               >
                 <Plus className="w-3 h-3 mr-1" />
