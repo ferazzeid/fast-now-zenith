@@ -9,6 +9,7 @@ import { useFastingSession } from '@/hooks/useFastingSession';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -18,6 +19,7 @@ export const Navigation = () => {
   const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
   const { todayTotals } = useFoodEntries();
   const { isAnimationsSuspended } = useAnimationControl();
+  const { isOnline, isConnected } = useConnectionStore();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Optimize timer updates - only update when needed
@@ -121,11 +123,30 @@ export const Navigation = () => {
     { icon: Settings, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, timerStatus.walking, formatTime, todayTotals.calories]);
 
+  const getConnectionStatus = () => {
+    if (!isOnline) return { color: 'bg-red-500', tooltip: 'Offline - Changes will sync when connected' };
+    if (!isConnected) return { color: 'bg-yellow-500', tooltip: 'Connection issues - Retrying automatically' };
+    return { color: 'bg-green-500', tooltip: 'Connected' };
+  };
+
+  const connectionStatus = getConnectionStatus();
+
   return (
     <TooltipProvider>
       <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-2 z-40">
         <div className="w-full">
-          <div className="flex justify-around gap-1">
+          <div className="flex justify-around gap-1 relative">
+            {/* Connection Status Indicator */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute -top-1 right-1 z-10">
+                  <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${isConnected ? 'animate-pulse' : ''}`} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{connectionStatus.tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
             {/* Navigation Items */}
             {navItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
               const isActive = location.pathname === path;

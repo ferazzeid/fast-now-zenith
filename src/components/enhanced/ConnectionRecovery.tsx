@@ -1,148 +1,89 @@
-import { useEffect, useState } from 'react';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Wifi, 
-  WifiOff, 
-  RefreshCw, 
-  CheckCircle, 
-  Clock,
-  AlertTriangle,
-  Zap
-} from 'lucide-react';
+import { WifiOff, RefreshCw, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
 export const EnhancedConnectionStatus = () => {
-  const { 
-    isOnline, 
-    isConnected, 
-    retryCount, 
-    queue, 
-    forceRetry,
-    checkConnection 
-  } = useConnectionStore();
-  
-  const [lastSuccessfulConnection, setLastSuccessfulConnection] = useState<Date | null>(null);
-  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+  const { isOnline, isConnected, retryCount, queue, forceRetry } = useConnectionStore();
   const { toast } = useToast();
+  const [lastToastTime, setLastToastTime] = useState(0);
+  const [prolongedOutageStart, setProlongedOutageStart] = useState<number | null>(null);
 
-  // Track successful connections
+  // Track prolonged outages (>5 minutes)
   useEffect(() => {
-    if (isConnected && isOnline) {
-      setLastSuccessfulConnection(new Date());
-      
-      // Show success feedback if we just recovered
-      if (retryCount > 0) {
-        setShowSuccessFeedback(true);
-        toast({
-          title: "Connection restored",
-          description: "You're back online and all queued actions will be processed.",
-          variant: "default",
-        });
-        
-        setTimeout(() => setShowSuccessFeedback(false), 5000);
+    if (!isOnline || !isConnected) {
+      if (!prolongedOutageStart) {
+        setProlongedOutageStart(Date.now());
       }
+    } else {
+      setProlongedOutageStart(null);
+    }
+  }, [isOnline, isConnected, prolongedOutageStart]);
+
+  // Show toast for brief connectivity issues (not too frequent)
+  useEffect(() => {
+    const now = Date.now();
+    if (!isConnected && isOnline && now - lastToastTime > 30000) { // Max one toast per 30 seconds
+      toast({
+        title: "Connection Issue",
+        description: "Checking connection...",
+        duration: 3000,
+      });
+      setLastToastTime(now);
+    }
+  }, [isConnected, isOnline, toast, lastToastTime]);
+
+  // Show toast when connection is restored
+  useEffect(() => {
+    if (isConnected && isOnline && retryCount > 0) {
+      toast({
+        title: "Connected",
+        description: "Connection restored successfully",
+        duration: 2000,
+      });
     }
   }, [isConnected, isOnline, retryCount, toast]);
 
-  const hasQueuedOperations = queue.length > 0;
-  const connectionIssue = !isOnline || !isConnected;
+  // Show prominent alert only for prolonged outages (>5 minutes)
+  const isProlongedOutage = prolongedOutageStart && (Date.now() - prolongedOutageStart) > 5 * 60 * 1000;
 
-  // Don't show anything if everything is working fine
-  if (!connectionIssue && !hasQueuedOperations && !showSuccessFeedback) {
-    return null;
-  }
-
-  const handleRetry = async () => {
-    try {
-      await forceRetry();
-    } catch (error) {
-      toast({
-        title: "Retry failed",
-        description: "Unable to reconnect. Please check your internet connection.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Success feedback
-  if (showSuccessFeedback) {
-    return (
-      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-green-200 bg-green-100/90 dark:border-green-800 dark:bg-green-900/90 backdrop-blur-sm">
-        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-        <AlertDescription className="text-green-800 dark:text-green-200">
-          Connection restored successfully! All systems are working normally.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Offline state
-  if (!isOnline) {
+  if (isProlongedOutage && (!isOnline || !isConnected)) {
     return (
       <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-orange-200 bg-orange-100/90 dark:border-orange-800 dark:bg-orange-900/90 backdrop-blur-sm">
-        <WifiOff className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+        <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
         <AlertDescription className="text-orange-800 dark:text-orange-200">
           <div className="flex items-center justify-between">
-            <span>You're currently offline. Changes will be saved when connection is restored.</span>
-          </div>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Disconnected from server
-  if (!isConnected) {
-    return (
-      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-red-200 bg-red-100/90 dark:border-red-800 dark:bg-red-900/90 backdrop-blur-sm">
-        <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-        <AlertDescription className="text-red-800 dark:text-red-200">
-          <div className="flex items-center justify-between">
             <div className="flex-1">
-              <div className="font-medium">Connection lost</div>
+              <div className="font-medium">{!isOnline ? 'Extended Offline Period' : 'Connection Issues'}</div>
               <div className="text-sm opacity-90 mt-1">
-                {retryCount > 0 && `Attempt ${retryCount} failed. `}
-                Unable to reach our servers. Checking every 2-10 minutes automatically.
+                {!isOnline 
+                  ? 'Working offline for over 5 minutes. Changes will sync when connected.'
+                  : 'Unable to connect for over 5 minutes. Trying automatically every few minutes.'
+                }
               </div>
             </div>
-            <Button 
-              onClick={handleRetry} 
-              size="sm" 
-              variant="outline"
-              className="ml-3 bg-white dark:bg-gray-800 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-            >
-              <RefreshCw className="w-4 h-4 mr-1" />
-              Retry
-            </Button>
+            {isOnline && (
+              <Button 
+                onClick={forceRetry} 
+                size="sm" 
+                variant="outline"
+                className="ml-3"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Retry
+              </Button>
+            )}
           </div>
         </AlertDescription>
       </Alert>
     );
   }
 
-  // Queued operations
-  if (hasQueuedOperations) {
-    return (
-      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-blue-200 bg-blue-100/90 dark:border-blue-800 dark:bg-blue-900/90 backdrop-blur-sm">
-        <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <AlertDescription className="text-blue-800 dark:text-blue-200">
-          <div className="flex items-center justify-between">
-            <span>
-              {queue.length} action{queue.length !== 1 ? 's' : ''} queued and will be processed shortly.
-            </span>
-            <div className="flex items-center gap-1 text-xs">
-              <Zap className="w-3 h-3" />
-              Processing...
-            </div>
-          </div>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
+  // No persistent UI for brief issues - handled by toasts and navigation dot
   return null;
 };
 
