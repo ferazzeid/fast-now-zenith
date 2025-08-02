@@ -28,14 +28,21 @@ export const SimpleAnalyticsWidget = () => {
 
   const fetchAnalyticsData = async () => {
     try {
-      // Check if GA is configured
+      // Check if GA is configured by checking for both service account and property ID
       const { data: gaSettings, error: gaError } = await supabase
         .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'ga_tracking_id')
-        .single();
+        .select('setting_value, setting_key')
+        .in('setting_key', ['google_analytics_service_account', 'google_analytics_property_id']);
 
-      const hasGaConfig = !gaError && gaSettings?.setting_value;
+      const serviceAccountSetting = gaSettings?.find(s => s.setting_key === 'google_analytics_service_account');
+      const propertyIdSetting = gaSettings?.find(s => s.setting_key === 'google_analytics_property_id');
+      
+      const hasGaConfig = !gaError && 
+        serviceAccountSetting?.setting_value && 
+        serviceAccountSetting.setting_value !== '{}' &&
+        propertyIdSetting?.setting_value &&
+        propertyIdSetting.setting_value !== '';
+      
       setGaConfigured(!!hasGaConfig);
 
       // Fetch active fasting sessions
@@ -60,15 +67,35 @@ export const SimpleAnalyticsWidget = () => {
       if (walkingError) console.error('Error fetching walking sessions:', walkingError);
       if (aiError) console.error('Error fetching AI requests:', aiError);
 
+      let gaData = { activeUsers: 0, todayUsers: 0, yesterdayUsers: 0 };
+
+      // If GA is configured, try to fetch real data
+      if (hasGaConfig) {
+        try {
+          const { data: analyticsData, error: analyticsError } = await supabase.functions.invoke('google-analytics-data');
+          
+          if (!analyticsError && analyticsData && !analyticsData.error) {
+            gaData = {
+              activeUsers: analyticsData.activeUsers || 0,
+              todayUsers: analyticsData.todayUsers || 0,
+              yesterdayUsers: analyticsData.yesterdayUsers || 0
+            };
+          } else {
+            console.warn('Failed to fetch Google Analytics data:', analyticsError || analyticsData?.error);
+          }
+        } catch (analyticsError) {
+          console.warn('Error calling Google Analytics function:', analyticsError);
+        }
+      }
+
       setData(prev => ({
         ...prev,
         activeFastingSessions: fastingSessions?.length || 0,
         activeWalkingSessions: walkingSessions?.length || 0,
         aiRequestsToday: aiRequests?.length || 0,
-        // Only show GA data if configured, otherwise show 0
-        activeUsers: hasGaConfig ? Math.floor(Math.random() * 50) + 10 : 0,
-        todayUsers: hasGaConfig ? Math.floor(Math.random() * 200) + 50 : 0,
-        yesterdayUsers: hasGaConfig ? Math.floor(Math.random() * 180) + 40 : 0
+        activeUsers: gaData.activeUsers,
+        todayUsers: gaData.todayUsers,
+        yesterdayUsers: gaData.yesterdayUsers
       }));
 
     } catch (error) {

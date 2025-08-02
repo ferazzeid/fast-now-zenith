@@ -11,6 +11,7 @@ import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
+import { MotivatorIdeasModal } from '@/components/MotivatorIdeasModal';
 import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -28,6 +29,7 @@ const Motivators = () => {
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
   const [showGoalIdeas, setShowGoalIdeas] = useState(false);
+  const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   const [aiChatContext, setAiChatContext] = useState('');
@@ -228,14 +230,13 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="outline"
-                  onClick={() => setShowGoalIdeas(!showGoalIdeas)}
-                  className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-background/50"
+                  onClick={() => setShowMotivatorIdeasModal(true)}
+                  className="w-full h-12 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                   </svg>
-                  <span className="font-medium">Custom Motivator Ideas</span>
+                  <span className="font-medium">Add from Library</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -244,7 +245,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             </Tooltip>
           </div>
 
-          {/* Goal Ideas Library */}
+          {/* Goal Ideas Library - Kept for backward compatibility but hidden */}
           {showGoalIdeas && (
             <div className="mb-6 bg-card border border-border rounded-lg p-4">
               <ComponentErrorBoundary>
@@ -327,6 +328,13 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               />
             </ComponentErrorBoundary>
           )}
+
+          {/* Motivator Ideas Modal */}
+          <MotivatorIdeasModal
+            isOpen={showMotivatorIdeasModal}
+            onClose={() => setShowMotivatorIdeasModal(false)}
+            onSelectGoal={handleSelectGoalIdea}
+          />
 
           {/* Onboarding Modal */}
           <PageOnboardingModal

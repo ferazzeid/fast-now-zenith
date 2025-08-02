@@ -18,6 +18,7 @@ import { PromptManagement } from "@/components/PromptManagement";
 import { AdminWalkingShareSettings } from "@/components/AdminWalkingShareSettings";
 import { AdminPredefinedMotivators } from "@/components/AdminPredefinedMotivators";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
+import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 
 interface User {
   user_id: string;
@@ -319,6 +320,9 @@ const AdminOverview = () => {
 
       {/* Payment Provider Configuration */}
       <PaymentProviderSettings />
+
+      {/* Google Analytics Configuration */}
+      <GoogleAnalyticsSettings />
 
       {/* Brand Customization */}
       <div className="space-y-6 mb-12">

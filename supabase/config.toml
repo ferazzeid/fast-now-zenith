@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.unified-subscription]
 verify_jwt = true
+
+[functions.google-analytics-data]
+verify_jwt = false
