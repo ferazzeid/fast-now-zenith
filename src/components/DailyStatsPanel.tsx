@@ -30,7 +30,7 @@ export const DailyStatsPanel = memo(() => {
   const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
 
   const formatNumber = (num: number) => {
-    return Math.abs(num).toLocaleString();
+    return Math.round(Math.abs(num)).toLocaleString();
   };
 
   const getDeficitColor = useMemo(() => (deficit: number) => {
@@ -180,7 +180,7 @@ export const DailyStatsPanel = memo(() => {
                   <StatDisplay
                     icon={<Utensils className="w-4 h-4 text-primary" />}
                     label="Calories In"
-                    value={deficitData.caloriesConsumed}
+                    value={Math.round(deficitData.caloriesConsumed)}
                     tooltip="Total calories consumed from food today"
                   />
 
@@ -188,7 +188,7 @@ export const DailyStatsPanel = memo(() => {
                   <StatDisplay
                     icon={<Activity className="w-4 h-4 text-primary" />}
                     label="Calories Out"
-                    value={deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories}
+                    value={Math.round(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}
                     tooltip="Total calories burned today: Base Daily Burn + Walking + Manual Activities"
                   />
                 </div>
@@ -241,9 +241,9 @@ export const DailyStatsPanel = memo(() => {
                          <Activity className="w-4 h-4 text-green-500" />
                          <span className="text-sm font-medium text-warm-text">Manual Activities</span>
                        </div>
-                       <div className="text-sm font-bold text-green-600 dark:text-green-400">
-                         {formatNumber(deficitData.manualCalories)} cal
-                       </div>
+                        <div className="text-sm font-bold text-green-600 dark:text-green-400">
+                          {formatNumber(deficitData.manualCalories)} cal
+                        </div>
                      </div>
                    </Card>
                   )}

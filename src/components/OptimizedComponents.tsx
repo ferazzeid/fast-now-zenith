@@ -35,7 +35,7 @@ export const StatDisplay = ({
         <span className="text-xs font-medium text-warm-text">{label}</span>
       </div>
       <div className="text-lg font-bold text-primary">
-        {typeof value === 'number' ? value.toLocaleString() : value} cal
+        {typeof value === 'number' ? Math.round(value).toLocaleString() : value} cal
       </div>
       {subtitle && (
         <div className="text-xs text-muted-foreground mt-1">
@@ -67,7 +67,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
 
   const formattedValue = useMemo(() => {
     if (loading && deficit === 0 && tdee === 0) return '...';
-    return `${Math.abs(deficit).toLocaleString()} cal`;
+    return `${Math.round(Math.abs(deficit)).toLocaleString()} cal`;
   }, [deficit, loading, tdee]);
 
   return (
@@ -104,7 +104,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
                 </ClickableTooltip>
               </div>
               <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
-                {fatInGrams}g
+                {Math.round(fatInGrams)}g
               </div>
             </div>
             <div className="text-center">
@@ -116,8 +116,8 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
               </div>
               <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                 {userUnits === 'metric' 
-                  ? `${(thirtyDayProjection / 1000).toFixed(1)}kg`
-                  : `${(thirtyDayProjection / 453.592).toFixed(1)}lbs`
+                  ? `${Math.round(thirtyDayProjection / 1000)}kg`
+                  : `${Math.round(thirtyDayProjection / 453.592)}lbs`
                 }
               </div>
             </div>
