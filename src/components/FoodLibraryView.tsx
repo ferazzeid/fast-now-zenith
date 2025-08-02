@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +27,7 @@ interface DefaultFood {
   calories_per_100g: number;
   carbs_per_100g: number;
   image_url?: string;
-  is_favorite?: boolean; // Track if user has favorited this default food
+  is_favorite?: boolean;
 }
 
 interface FoodLibraryViewProps {
@@ -41,6 +42,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -117,7 +119,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       console.error('Error loading default foods:', error);
       toast({
         title: "Warning",
-        description: "Failed to load default foods",
+        description: "Failed to load suggested foods",
         variant: "destructive"
       });
     }
@@ -138,6 +140,62 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       setDefaultFoodFavorites(favoriteIds);
     } catch (error) {
       console.error('Error loading default food favorites:', error);
+    }
+  };
+
+  const handleQuickSelect = (food: UserFood | DefaultFood, consumed: boolean) => {
+    const userFood = 'variations' in food ? food : {
+      ...food,
+      is_favorite: false,
+      variations: []
+    } as UserFood;
+    
+    onSelectFood(userFood, consumed);
+    
+    toast({
+      title: consumed ? "Added as consumed" : "Added to plan",
+      description: `${food.name} has been added to your food list`,
+    });
+    
+    // Auto-close library after selection
+    setTimeout(() => {
+      onBack();
+    }, 1000);
+  };
+
+  const importToMyLibrary = async (defaultFood: DefaultFood) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_foods')
+        .insert({
+          user_id: user.id,
+          name: defaultFood.name,
+          calories_per_100g: defaultFood.calories_per_100g,
+          carbs_per_100g: defaultFood.carbs_per_100g,
+          image_url: defaultFood.image_url,
+          is_favorite: false,
+          variations: []
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setFoods(prev => [...prev, data]);
+      
+      toast({
+        title: "Food imported",
+        description: `${defaultFood.name} has been added to your personal library`,
+      });
+    } catch (error) {
+      console.error('Error importing food:', error);
+      toast({
+        title: "Error",
+        description: "Failed to import food to your library",
+        variant: "destructive"
+      });
     }
   };
 
@@ -166,7 +224,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     
     try {
       if (isFavorite) {
-        // Remove from favorites
         const { error } = await supabase
           .from('default_food_favorites')
           .delete()
@@ -181,7 +238,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           return newSet;
         });
       } else {
-        // Add to favorites
         const { error } = await supabase
           .from('default_food_favorites')
           .insert({
@@ -251,19 +307,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
     try {
-      console.log('Updating default food:', foodId, 'with updates:', updates);
       const { error } = await supabase
         .from('default_foods')
         .update(updates)
         .eq('id', foodId);
 
-      if (error) {
-        console.error('Error updating default food:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Default food updated successfully');
-      // Update local state
       setDefaultFoods(defaultFoods.map(food => 
         food.id === foodId 
           ? { ...food, ...updates }
@@ -310,249 +360,320 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     is_favorite: defaultFoodFavorites.has(food.id)
   }));
 
-  const allFilteredFoods = [...filteredUserFoods, ...filteredDefaultFoods];
+  // Quick access favorites for My Foods
+  const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
+
+  const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => (
+    <div className={`p-3 rounded-lg border transition-colors hover:shadow-md ${
+      isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
+    }`}>
+      <div className="flex items-center gap-3">
+        {/* Food Image */}
+        {food.image_url ? (
+          <img 
+            src={food.image_url} 
+            alt={food.name}
+            className="w-10 h-10 rounded object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+            <span className="text-lg">🍽️</span>
+          </div>
+        )}
+        
+        {/* Food Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-warm-text truncate">{food.name}</span>
+            {!isUserFood && <Badge variant="outline" className="text-xs">Suggested</Badge>}
+          </div>
+          <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
+            <span>{food.calories_per_100g} cal</span>
+            <span className="text-warm-text/60">•</span>
+            <span>{food.carbs_per_100g}g carbs</span>
+            <span className="text-warm-text/60">•</span>
+            <span>per 100g</span>
+          </div>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Favorite button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => isUserFood ? 
+              toggleFavorite(food.id, (food as UserFood).is_favorite) :
+              toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
+            }
+            className="p-1 h-8 w-8 hover:bg-primary/10"
+            title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            {food.is_favorite ? (
+              <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+            ) : (
+              <Heart className="w-4 h-4 text-muted-foreground" />
+            )}
+          </Button>
+
+          {isUserFood ? (
+            // User Food Actions: Edit, Delete, Quick Add
+            <>
+              <EditLibraryFoodModal 
+                food={food as UserFood} 
+                onUpdate={updateFood}
+              />
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => deleteFood(food.id)}
+                className="p-1 h-8 w-8 hover:bg-destructive/10"
+                title="Delete food"
+              >
+                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+              </Button>
+
+              {/* Quick Add Buttons */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickSelect(food as UserFood, false)}
+                className="ml-2 h-8 px-3 text-xs"
+                title="Add to today's plan"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Plan
+              </Button>
+              
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => handleQuickSelect(food as UserFood, true)}
+                className="h-8 px-3 text-xs"
+                title="Add as consumed"
+              >
+                <Check className="w-3 h-3 mr-1" />
+                Eaten
+              </Button>
+            </>
+          ) : (
+            // Default Food Actions: Admin Edit/Delete, Import, Quick Add
+            <>
+              {isAdmin && (
+                <>
+                  <EditDefaultFoodModal 
+                    food={food as DefaultFood} 
+                    onUpdate={updateDefaultFood}
+                  />
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteDefaultFood(food.id)}
+                    className="p-1 h-8 w-8 hover:bg-destructive/10"
+                    title="Delete default food"
+                  >
+                    <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                  </Button>
+                </>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => importToMyLibrary(food as DefaultFood)}
+                className="ml-2 h-8 px-3 text-xs"
+                title="Import to your library"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Import
+              </Button>
+
+              {/* Quick Add Buttons */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickSelect(food, false)}
+                className="h-8 px-3 text-xs"
+                title="Add to today's plan"
+              >
+                Plan
+              </Button>
+              
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => handleQuickSelect(food, true)}
+                className="h-8 px-3 text-xs"
+                title="Add as consumed"
+              >
+                Eaten
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between px-2">
-        <h2 className="text-lg font-semibold">My Food Library</h2>
-        <span className="text-sm text-muted-foreground">{allFilteredFoods.length} items</span>
+        <Button variant="ghost" onClick={onBack} className="p-2">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <h2 className="text-lg font-semibold">Food Library</h2>
+        <div className="w-16" />
       </div>
 
       {/* Search */}
       <div className="relative px-2">
         <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search your foods..."
+          placeholder="Search foods..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
         />
       </div>
 
-      {/* Food Grid */}
-      {loading ? (
-        <div className="space-y-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-                  <div className="w-4 h-4 bg-warm-text/20 rounded animate-pulse" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="h-4 bg-warm-text/20 animate-pulse rounded w-3/4" />
-                  <div className="h-3 bg-warm-text/20 animate-pulse rounded w-1/2" />
-                </div>
-                <div className="flex gap-1">
-                  <div className="w-6 h-6 bg-warm-text/20 animate-pulse rounded" />
-                  <div className="w-6 h-6 bg-warm-text/20 animate-pulse rounded" />
-                  <div className="w-6 h-6 bg-warm-text/20 animate-pulse rounded" />
-                </div>
+      {/* Two-Library System Tabs */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="px-2">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="my-foods" className="flex items-center gap-2">
+            <Heart className="w-4 h-4" />
+            My Foods ({filteredUserFoods.length})
+          </TabsTrigger>
+          <TabsTrigger value="suggested" className="flex items-center gap-2">
+            <Star className="w-4 h-4" />
+            Suggested ({filteredDefaultFoods.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* My Foods Tab */}
+        <TabsContent value="my-foods" className="space-y-4 mt-4">
+          {/* Quick Access Favorites */}
+          {favoriteUserFoods.length > 0 && !searchTerm && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                Quick Access Favorites
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {favoriteUserFoods.map((food) => (
+                  <div key={`fav-${food.id}`} className="flex items-center gap-1 p-2 rounded-lg bg-primary/10 border">
+                    <span className="text-sm font-medium">{food.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleQuickSelect(food, false)}
+                      className="p-1 h-6 w-6"
+                      title="Add to plan"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleQuickSelect(food, true)}
+                      className="p-1 h-6 w-6"
+                      title="Add as consumed"
+                    >
+                      <Check className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      ) : allFilteredFoods.length === 0 ? (
-        <div className="text-center py-12 px-2">
-          <div className="text-6xl mb-4">🍽️</div>
-          <h3 className="text-lg font-medium mb-2">
-            {searchTerm ? 'No foods found' : 'Your library is empty'}
-          </h3>
-          <p className="text-muted-foreground">
-            {searchTerm ? 'Try a different search term' : 'Log foods to automatically add them to your library'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {/* User Foods */}
-          {filteredUserFoods.map((food) => (
-            <div key={food.id} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors hover:shadow-md">
-              <div className="flex items-center gap-2">
-                {/* Food Image */}
-                {food.image_url ? (
-                  <img 
-                    src={food.image_url} 
-                    alt={food.name}
-                    className="w-8 h-8 rounded object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-                    <div className="w-4 h-4 bg-warm-text/20 rounded flex items-center justify-center">
-                      <span className="text-xs text-warm-text/60">🍽️</span>
+          )}
+
+          {/* My Foods List */}
+          {loading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-ceramic-base" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-warm-text/20 rounded w-3/4" />
+                      <div className="h-3 bg-warm-text/20 rounded w-1/2" />
+                    </div>
+                    <div className="flex gap-1">
+                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
+                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
                     </div>
                   </div>
-                )}
-                
-                {/* Food Info */}
-                <div className="flex-1 min-w-0">
-                  {/* First Line: Food name only */}
-                  <div className="flex items-center">
-                    <span className="font-medium text-warm-text truncate flex-1">{food.name}</span>
-                  </div>
-                  {/* Second Line: Nutritional data */}
-                  <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
-                    <span>{food.calories_per_100g} cal</span>
-                    <span className="text-warm-text/60">•</span>
-                    <span>{food.carbs_per_100g}g carbs</span>
-                    <span className="text-warm-text/60">•</span>
-                    <span>per 100g</span>
-                  </div>
                 </div>
-                
-                {/* Actions */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleFavorite(food.id, food.is_favorite)}
-                    className="p-1 h-6 w-6 hover:bg-primary/10"
-                    title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    {food.is_favorite ? (
-                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
-                    ) : (
-                      <Heart className="w-3 h-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                  
-                  <EditLibraryFoodModal 
-                    food={food} 
-                    onUpdate={updateFood}
-                  />
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteFood(food.id)}
-                    className="p-1 h-6 w-6 hover:bg-destructive/10"
-                    title="Delete food"
-                  >
-                    <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
-                  </Button>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6 hover:bg-primary/10" title="Add food">
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onSelectFood(food, false)}>
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Add to Shopping List
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onSelectFood(food, true)}>
-                        <Check className="w-4 h-4 mr-2" />
-                        Mark as Eaten
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-          
-          {/* Default Foods */}
-          {filteredDefaultFoods.map((food) => (
-            <div key={`default-${food.id}`} className="p-2 rounded-lg bg-ceramic-plate/50 border border-ceramic-rim transition-colors hover:shadow-md">
-              <div className="flex items-center gap-2">
-                {/* Food Image */}
-                {food.image_url ? (
-                  <img 
-                    src={food.image_url} 
-                    alt={food.name}
-                    className="w-8 h-8 rounded object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-                    <div className="w-4 h-4 bg-warm-text/20 rounded flex items-center justify-center">
-                      <span className="text-xs text-warm-text/60">🍽️</span>
+          ) : filteredUserFoods.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🍽️</div>
+              <h3 className="text-lg font-medium mb-2">
+                {searchTerm ? 'No foods found' : 'Your library is empty'}
+              </h3>
+              <p className="text-muted-foreground">
+                {searchTerm ? 'Try a different search term' : 'Log foods to automatically add them to your library'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredUserFoods.map((food) => (
+                <FoodCard key={food.id} food={food} isUserFood={true} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Suggested Foods Tab */}
+        <TabsContent value="suggested" className="space-y-4 mt-4">
+          <div className="p-3 rounded-lg bg-blue-50/50 border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <Star className="w-4 h-4 inline mr-1" />
+              These are curated foods you can import to your personal library or add directly to your plan.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="p-3 rounded-lg bg-ceramic-plate/50 border border-ceramic-rim animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-ceramic-base" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-warm-text/20 rounded w-3/4" />
+                      <div className="h-3 bg-warm-text/20 rounded w-1/2" />
+                    </div>
+                    <div className="flex gap-1">
+                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
+                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
                     </div>
                   </div>
-                )}
-                
-                {/* Food Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-warm-text truncate flex-1">{food.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
-                    <span>{food.calories_per_100g} cal</span>
-                    <span className="text-warm-text/60">•</span>
-                    <span>{food.carbs_per_100g}g carbs</span>
-                    <span className="text-warm-text/60">•</span>
-                    <span>per 100g</span>
-                  </div>
                 </div>
-                
-                {/* Actions for Default Foods */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Favorite button for all users */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleDefaultFoodFavorite(food.id, food.is_favorite || false)}
-                    className="p-1 h-6 w-6 hover:bg-primary/10"
-                    title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    {food.is_favorite ? (
-                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
-                    ) : (
-                      <Heart className="w-3 h-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                  
-                  {/* Admin-only actions */}
-                  {isAdmin && (
-                    <>
-                      <EditDefaultFoodModal 
-                        food={food} 
-                        onUpdate={updateDefaultFood}
-                      />
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteDefaultFood(food.id)}
-                        className="p-1 h-6 w-6 hover:bg-destructive/10"
-                        title="Delete default food"
-                      >
-                        <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
-                      </Button>
-                    </>
-                  )}
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6 hover:bg-primary/10" title="Add food">
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onSelectFood({
-                        ...food,
-                        is_favorite: false,
-                        variations: []
-                      } as UserFood, false)}>
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Add to Shopping List
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onSelectFood({
-                        ...food,
-                        is_favorite: false,
-                        variations: []
-                      } as UserFood, true)}>
-                        <Check className="w-4 h-4 mr-2" />
-                        Mark as Eaten
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          ) : filteredDefaultFoods.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🌟</div>
+              <h3 className="text-lg font-medium mb-2">
+                {searchTerm ? 'No suggested foods found' : 'No suggested foods available'}
+              </h3>
+              <p className="text-muted-foreground">
+                {searchTerm ? 'Try a different search term' : 'Check back later for curated food suggestions'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredDefaultFoods.map((food) => (
+                <FoodCard key={`default-${food.id}`} food={food} isUserFood={false} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
