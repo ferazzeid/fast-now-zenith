@@ -383,7 +383,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     <div className={`p-2 rounded-lg border transition-colors hover:shadow-md ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-px">
         {/* Food Image */}
         {food.image_url ? (
           <img 
@@ -491,7 +491,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             className="h-7 px-2 text-xs font-medium flex-shrink-0 min-w-[60px]"
             title={isUserFood ? "Add to today's plan" : "Import to your library"}
           >
-            <Plus className="w-3 h-3 mr-1" />
+            <Plus className="w-3 h-3 mr-0.5" />
             {isUserFood ? 'Add' : 'Import'}
           </Button>
         </div>
