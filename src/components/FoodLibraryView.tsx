@@ -585,7 +585,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           {loading ? (
             <div className="space-y-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse">
+               <div key={i} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded bg-ceramic-base" />
                     <div className="flex-1 space-y-2">
@@ -593,8 +593,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                       <div className="h-3 bg-warm-text/20 rounded w-1/2" />
                     </div>
                     <div className="flex gap-1">
-                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
-                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
+                      <div className="w-7 h-7 bg-warm-text/20 rounded" />
+                      <div className="w-7 h-7 bg-warm-text/20 rounded" />
+                      <div className="w-12 h-7 bg-warm-text/20 rounded" />
                     </div>
                   </div>
                 </div>
@@ -633,8 +634,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                       <div className="h-3 bg-warm-text/20 rounded w-1/2" />
                     </div>
                     <div className="flex gap-1">
-                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
-                      <div className="w-8 h-8 bg-warm-text/20 rounded" />
+                      <div className="w-7 h-7 bg-warm-text/20 rounded" />
+                      <div className="w-12 h-7 bg-warm-text/20 rounded" />
                     </div>
                   </div>
                 </div>
