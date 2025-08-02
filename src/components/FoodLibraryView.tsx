@@ -410,7 +410,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
