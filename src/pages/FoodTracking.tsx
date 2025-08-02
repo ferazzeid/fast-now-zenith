@@ -12,7 +12,7 @@ import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { ShoppingCart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FoodHistory } from '@/components/FoodHistory';
-import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
+import { EditFoodEntryForm } from '@/components/EditFoodEntryForm';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -712,7 +712,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                         size="sm"
                         onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
                         className="h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90"
-                        title={entry.consumed ? "Remove from eating" : "Mark as eaten"}
+                        title={entry.consumed ? "Remove from eaten" : "Mark as eaten"}
                       >
                         {entry.consumed ? (
                           <X className="w-4 h-4" />
@@ -735,14 +735,14 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                         <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem 
                             onClick={() => setEditingEntry(entry)}
-                            className="cursor-pointer flex items-center hover:bg-muted/20"
+                            className="cursor-pointer flex items-center hover:bg-muted/10"
                           >
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDeleteFoodEntry(entry.id)}
-                            className="text-destructive focus:text-destructive cursor-pointer flex items-center hover:bg-muted/20"
+                            className="text-destructive focus:text-destructive cursor-pointer flex items-center hover:bg-muted/10"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
@@ -777,13 +777,17 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         {/* Edit Food Entry Modal */}
         <Dialog open={!!editingEntry} onOpenChange={() => setEditingEntry(null)}>
           <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="border-b border-border p-4">
+              <DialogTitle className="text-lg font-semibold">Edit Food Entry</DialogTitle>
+            </DialogHeader>
             {editingEntry && (
-              <EditFoodEntryModal 
+              <EditFoodEntryForm 
                 entry={editingEntry} 
                 onUpdate={async (id: string, updates: any) => {
                   await handleUpdateFoodEntry(id, updates);
                   setEditingEntry(null);
                 }}
+                onCancel={() => setEditingEntry(null)}
               />
             )}
           </DialogContent>
