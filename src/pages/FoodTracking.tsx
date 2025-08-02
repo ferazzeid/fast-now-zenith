@@ -297,25 +297,40 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     }
   };
 
-  const handleSelectFromLibrary = (food: any, consumed: boolean = false) => {
-    // Calculate values for 100g serving
-    setFoodName(food.name);
-    setCalories(food.calories_per_100g.toString());
-    setCarbs(food.carbs_per_100g.toString());
-    setServingSize('100');
-    setConsumedNow(consumed);
-    
-    // Transfer image URL if available
-    if (food.image_url) {
-      setImageUrl(food.image_url);
-    }
-    
-    // If consumed is true, directly save to food entries as consumed
-    // If false, show the form for editing/planning
-    if (consumed) {
-      handleSave(); // This will save as consumed=true 
+  const handleSelectFromLibrary = async (food: any, consumed: boolean = false) => {
+    // Directly add food to today's plan with 100g serving
+    const result = await addFoodEntry({
+      name: food.name,
+      calories: food.calories_per_100g,
+      carbs: food.carbs_per_100g,
+      serving_size: 100,
+      consumed: consumed,
+      image_url: food.image_url || undefined
+    });
+
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
     } else {
-      setShowForm(true);
+      trackFoodEvent('add', 'manual');
+      toast({
+        title: "Food added successfully!",
+        description: `${food.name} (100g) has been added to your food plan`
+      });
+      
+      // Auto-close library view
+      setShowLibraryView(false);
+      
+      // Save to personal library if not already there (for default foods)
+      await saveToLibrary({
+        name: food.name,
+        calories: food.calories_per_100g,
+        carbs: food.carbs_per_100g,
+        serving_size: 100
+      });
     }
   };
 
