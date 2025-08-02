@@ -23,7 +23,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   onDelete 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const shouldShowExpandButton = motivator.content && motivator.content.length > 100;
+  const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
 
   return (
     <Card className="overflow-hidden relative">
@@ -43,7 +43,15 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           </div>
          
           {/* Content */}
-          <div className="flex-1 p-4 pr-2">
+          <div 
+            className="flex-1 p-4 pr-2 cursor-pointer hover:bg-muted/5"
+            onClick={(e) => {
+              if (shouldShowExpandButton) {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }
+            }}
+          >
             <div className="flex items-start justify-between h-full">
               <div className="flex-1 space-y-1">
                 <div className="flex items-center">
@@ -67,12 +75,15 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               <div className="flex flex-col gap-1 ml-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={onEdit}
-                      className="p-1 h-6 w-6 hover:bg-accent hover:text-accent-foreground"
-                    >
+                     <Button
+                       size="sm"
+                       variant="ghost"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         onEdit();
+                       }}
+                       className="p-1 h-6 w-6 hover:bg-accent hover:text-accent-foreground"
+                     >
                       <Edit className="w-3 h-3" />
                     </Button>
                   </TooltipTrigger>
