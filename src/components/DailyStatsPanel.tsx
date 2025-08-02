@@ -134,7 +134,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim hover:bg-ceramic-plate/98 transition-colors">
+          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-ceramic-plate hover:bg-ceramic-plate/98 transition-colors">
             <div className="flex items-center space-x-2">
               <Target className="w-5 h-5 text-primary" />
                 <span className="text-sm font-medium text-warm-text">
@@ -162,7 +162,7 @@ export const DailyStatsPanel = memo(() => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-ceramic-plate border-b border-ceramic-rim max-w-md mx-auto z-50">
+            <div className="bg-ceramic-plate max-w-md mx-auto z-50">
               <div className="px-4 py-4 space-y-4">
                 {/* Main Deficit Display */}
                 <DeficitDisplay 
