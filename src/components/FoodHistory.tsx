@@ -240,8 +240,11 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
         ) : (
           <>
             {dailySummaries.map((summary) => (
-              <Card key={summary.date}>
-                <CardHeader className="pb-2">
+              <Card key={summary.date} className="relative">
+                <CardHeader 
+                  className="pb-2 cursor-pointer hover:bg-muted/20 transition-colors"
+                  onClick={() => toggleDayExpansion(summary.date)}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
@@ -252,28 +255,28 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                             day: 'numeric' 
                           })}
                         </h3>
-                        <div className="flex gap-1">
+                        <div className="flex gap-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => copyDayToToday(summary.date)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyDayToToday(summary.date);
+                            }}
                             disabled={copyLoading}
-                            className="h-6 px-2 text-xs"
+                            className="h-8 px-3 text-xs min-w-[44px]"
                           >
                             Copy to Today
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleDayExpansion(summary.date)}
-                            className="h-6 w-6 p-0"
-                          >
-                            <span className="text-xs">⇅</span>
-                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive">
-                                <Trash2 className="w-3 h-3" />
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-8 w-8 p-0 text-destructive min-w-[44px] min-h-[44px]"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -321,6 +324,23 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                     </div>
                   </CardContent>
                 )}
+                
+                {/* Expand/Collapse button at bottom-right */}
+                <div className="absolute bottom-2 right-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDayExpansion(summary.date);
+                    }}
+                    className="h-8 w-8 p-0 rounded-full hover:bg-accent min-w-[44px] min-h-[44px]"
+                  >
+                    <div className={`transition-transform duration-200 ${expandedDays.has(summary.date) ? 'rotate-180' : ''}`}>
+                      ▼
+                    </div>
+                  </Button>
+                </div>
               </Card>
             ))}
             
