@@ -35,6 +35,7 @@ const FoodTracking = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
+  const [editingEntry, setEditingEntry] = useState<any>(null);
   
   const [showLibraryView, setShowLibraryView] = useState(false);
   // Remove tab state - using unified view now
@@ -492,7 +493,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         </div>
 
         {/* My Foods Library Button */}
-        <div className="mb-6">
+        <div className="mb-4">
           <Button
             onClick={() => setShowLibraryView(true)}
             className="w-full h-12 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
@@ -711,7 +712,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                         size="sm"
                         onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
                         className="h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90"
-                        title={entry.consumed ? "Mark as planned" : "Mark as eaten"}
+                        title={entry.consumed ? "Remove from eating" : "Mark as eaten"}
                       >
                         {entry.consumed ? (
                           <X className="w-4 h-4" />
@@ -732,17 +733,16 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-32">
-                          <DropdownMenuItem asChild>
-                            <div className="w-full">
-                              <EditFoodEntryModal 
-                                entry={entry} 
-                                onUpdate={handleUpdateFoodEntry}
-                              />
-                            </div>
+                          <DropdownMenuItem 
+                            onClick={() => setEditingEntry(entry)}
+                            className="cursor-pointer flex items-center hover:bg-muted/20"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDeleteFoodEntry(entry.id)}
-                            className="text-destructive focus:text-destructive"
+                            className="text-destructive focus:text-destructive cursor-pointer flex items-center hover:bg-muted/20"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
@@ -771,6 +771,21 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                 />
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Food Entry Modal */}
+        <Dialog open={!!editingEntry} onOpenChange={() => setEditingEntry(null)}>
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+            {editingEntry && (
+              <EditFoodEntryModal 
+                entry={editingEntry} 
+                onUpdate={async (id: string, updates: any) => {
+                  await handleUpdateFoodEntry(id, updates);
+                  setEditingEntry(null);
+                }}
+              />
+            )}
           </DialogContent>
         </Dialog>
 
