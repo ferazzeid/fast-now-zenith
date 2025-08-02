@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp } from 'lucide-react';
+import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
-// Remove unit conversion imports - using static mappings instead
+import { WalkingShareModal } from './WalkingShareModal';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -50,6 +50,7 @@ export const WalkingTimer = ({
 }: WalkingTimerProps) => {
   const [stepAnimation, setStepAnimation] = useState(false);
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
+  const [showShareModal, setShowShareModal] = useState(false);
   const { isAnimationsSuspended } = useAnimationControl();
 
   useEffect(() => {
@@ -220,6 +221,15 @@ export const WalkingTimer = ({
               )}
             </Button>
             <Button 
+              onClick={() => setShowShareModal(true)}
+              variant="outline"
+              className="h-14 px-6 border-2 border-blue-500/20 hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              size="lg"
+              disabled={!realTimeStats}
+            >
+              <Share2 className="w-6 h-6 text-blue-600" />
+            </Button>
+            <Button 
               onClick={onStop}
               variant="secondary"
               className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground"
@@ -367,6 +377,21 @@ export const WalkingTimer = ({
             Start Walking
           </Button>
         </div>
+      )}
+      
+      {/* Walking Share Modal */}
+      {realTimeStats && (
+        <WalkingShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          walkingStats={{
+            time: displayTime,
+            distance: realTimeStats.distance,
+            calories: realTimeStats.calories,
+            speed: realTimeStats.speed,
+            units: units
+          }}
+        />
       )}
     </div>
     </TooltipProvider>
