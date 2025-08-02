@@ -167,8 +167,8 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
         console.log('🎤 Transcription successful:', data.text);
         onTranscription(data.text);
         toast({
-          title: "✨ Voice Processed",
-          description: "Your message has been transcribed",
+          title: "Message Received",
+          description: "I heard you clearly and I'm processing your request",
         });
         audioChunksRef.current = [];
       } else {
