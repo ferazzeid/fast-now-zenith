@@ -56,17 +56,17 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // 30 second timeout
+      // 2 minute timeout for longer voice messages
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
           toast({
             title: "⏱️ Recording Timeout",
-            description: "Recording automatically stopped after 30 seconds.",
-            variant: "default"
+            description: "Recording automatically stopped after 2 minutes. For longer messages, please break them into smaller parts.",
+            variant: "destructive"
           });
           stopAndProcess();
         }
-      }, 30000);
+      }, 120000); // 2 minutes
 
       mediaRecorderRef.current.start();
       setIsRecording(true);

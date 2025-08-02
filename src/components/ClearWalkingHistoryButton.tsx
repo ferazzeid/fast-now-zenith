@@ -21,9 +21,8 @@ export const ClearWalkingHistoryButton = () => {
     try {
       const { error } = await supabase
         .from('walking_sessions')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('deleted_at', null);
+        .delete()
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -33,13 +32,13 @@ export const ClearWalkingHistoryButton = () => {
 
       toast({
         title: "Success",
-        description: "Walking history cleared successfully",
+        description: "Walking history permanently deleted",
       });
     } catch (error) {
       console.error('Error clearing walking history:', error);
       toast({
         title: "Error",
-        description: "Failed to clear walking history",
+        description: "Failed to delete walking history",
         variant: "destructive",
       });
     } finally {
@@ -52,14 +51,14 @@ export const ClearWalkingHistoryButton = () => {
       <AlertDialogTrigger asChild>
         <Button variant="outline" size="sm" className="text-xs">
           <Trash2 className="w-3 h-3 mr-1" />
-          Clear History
+          Delete All History
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Clear Walking History</AlertDialogTitle>
+          <AlertDialogTitle>Delete Walking History</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete all your walking session history. This action cannot be undone.
+            This will permanently delete all your walking session history. This action cannot be undone. Your walking data will be completely removed from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -69,7 +68,7 @@ export const ClearWalkingHistoryButton = () => {
             disabled={isClearing}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isClearing ? 'Clearing...' : 'Clear History'}
+            {isClearing ? 'Deleting...' : 'Permanently Delete'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

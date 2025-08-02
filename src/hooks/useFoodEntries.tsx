@@ -169,6 +169,7 @@ export const useFoodEntries = () => {
     updateFoodEntry,
     deleteFoodEntry,
     toggleConsumption,
-    loadTodayEntries
+    loadTodayEntries,
+    refreshEntries: loadTodayEntries // Expose refresh function for external triggers
   };
 };

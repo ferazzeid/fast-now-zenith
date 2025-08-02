@@ -91,7 +91,7 @@ export const WalkingHistory = () => {
     try {
       const { error } = await supabase
         .from('walking_sessions')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', sessionId)
         .eq('user_id', user.id);
 
@@ -102,7 +102,7 @@ export const WalkingHistory = () => {
       
       toast({
         title: "Session deleted",
-        description: "Walking session has been removed from your history.",
+        description: "Walking session has been permanently deleted.",
       });
     } catch (error) {
       console.error('Error deleting session:', error);

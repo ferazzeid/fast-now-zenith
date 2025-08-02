@@ -50,16 +50,17 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // Add timeout handling (standardized to 30 seconds)
+      // Add timeout handling (extended to 120 seconds for longer messages)
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
           toast({
             title: "⏱️ Recording Timeout",
-            description: "Recording automatically stopped after 30 seconds",
+            description: "Recording automatically stopped after 2 minutes. For longer messages, please break them into smaller parts.",
+            variant: "destructive"
           });
           stopRecording();
         }
-      }, 30000); // 30 second timeout (standardized)
+      }, 120000); // 2 minutes
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
