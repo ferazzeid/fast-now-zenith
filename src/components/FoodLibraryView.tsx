@@ -380,10 +380,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => (
-    <div className={`p-1 rounded border transition-colors overflow-x-hidden ${
+    <div className={`p-1 rounded border transition-colors max-w-full overflow-hidden ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
-      <div className="flex items-center w-full overflow-x-hidden">
+      <div className="flex items-center w-full max-w-full overflow-hidden">
         {/* Food Image */}
         {food.image_url ? (
           <img 
@@ -410,7 +410,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-0.5 flex-shrink-0">
+        <div className="flex items-center flex-shrink-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -419,7 +419,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               toggleFavorite(food.id, (food as UserFood).is_favorite) :
               toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
             }
-            className="p-1 h-5 w-5 hover:bg-primary/10"
+            className="p-0.5 h-4 w-4 hover:bg-primary/10"
             title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
           >
             {food.is_favorite ? (
@@ -435,13 +435,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-1 h-5 w-5 hover:bg-muted"
+                className="p-0.5 h-4 w-4 hover:bg-muted"
                 title="More options"
               >
                 <MoreVertical className="w-2.5 h-2.5 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuContent align="end" className="w-20 z-50">
               {isUserFood ? (
                 <>
                   <EditLibraryFoodModal 
@@ -486,7 +486,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               handleQuickSelect(food as UserFood, false) : 
               importToMyLibrary(food as DefaultFood)
             }
-            className="h-5 px-1 text-xs font-medium flex-shrink-0"
+            className="h-4 px-1 text-xs font-medium flex-shrink-0"
             title={isUserFood ? "Add to today's plan" : "Import to your library"}
           >
             <Plus className="w-2.5 h-2.5" />
@@ -497,7 +497,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   );
 
   return (
-    <div className="h-full flex flex-col overflow-x-hidden">
+    <div className="h-full flex flex-col max-w-full overflow-hidden">
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Food Library</h2>
@@ -514,7 +514,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Two-Library System Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col overflow-x-hidden">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col max-w-full overflow-hidden">
         <div className="px-1 pt-1">
           <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="my-foods" className="flex items-center gap-1 text-xs">
