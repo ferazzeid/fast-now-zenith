@@ -722,7 +722,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
         {/* Food Library Modal */}
         <Dialog open={showLibraryView} onOpenChange={setShowLibraryView}>
-          <DialogContent className="w-full max-w-full h-full max-h-full m-0 p-0 rounded-none border-0">
+          <DialogContent className="w-full max-w-md h-[90vh] max-h-[90vh] p-0 mx-auto rounded-lg border border-ceramic-rim md:top-[5vh] md:translate-y-0">
             <div className="h-full flex flex-col">
               <DialogHeader className="p-6 pb-4 border-b border-ceramic-rim">
                 <DialogTitle className="text-xl font-semibold text-center">Food Library</DialogTitle>
