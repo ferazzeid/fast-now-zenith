@@ -60,31 +60,51 @@ const FoodTracking = () => {
   const handleVoiceFood = async () => {
     trackAIEvent('chat', 'food_assistant');
     
-    // Try to load the admin-configured prompt, fall back to default
-    let contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
+    // Load admin-configured prompts and user preferences
+    const unitLabel = profile?.units === 'metric' ? 'grams' : 'ounces';
+    const unitExample = profile?.units === 'metric' ? '150 grams' : '5 ounces';
+    
+    let systemPrompt = `Hello! I'm here to help you add food to your nutrition log.
+
+User preferences: ${profile?.units || 'metric'} units
 
 To add a food item, I'll need:
 • Food name (what did you eat?)
-• Portion size in grams 
+• Portion size in ${unitLabel} (how much?)
 • Calories (I can estimate if needed)
 • Carbs in grams (I can estimate if needed)
 
-Please tell me what food you'd like to add and how much you had. For example: "I had 150 grams of grilled chicken breast" or "I ate a medium apple, about 180 grams".`;
+Please tell me what food you'd like to add and how much you had. For example: "I had ${unitExample} of grilled chicken breast" or "I ate a medium apple".`;
+
+    let philosophyContext = '';
 
     try {
-      const { data } = await supabase
+      // Load system prompt
+      const { data: systemData } = await supabase
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'ai_food_assistant_system_prompt')
         .single();
       
-      if (data?.setting_value) {
-        contextMessage = data.setting_value;
+      if (systemData?.setting_value) {
+        systemPrompt = systemData.setting_value.replace('{units}', profile?.units || 'metric').replace('{unit_label}', unitLabel).replace('{unit_example}', unitExample);
+      }
+
+      // Load program philosophy
+      const { data: philosophyData } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'ai_program_philosophy_prompt')
+        .single();
+      
+      if (philosophyData?.setting_value) {
+        philosophyContext = `\n\nProgram Philosophy: ${philosophyData.setting_value}`;
       }
     } catch (error) {
-      console.log('Using default food assistant prompt');
+      console.log('Using default prompts');
     }
-    
+
+    const contextMessage = systemPrompt + philosophyContext;
     setAiChatContext(contextMessage);
     setShowAiChat(true);
   };

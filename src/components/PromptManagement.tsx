@@ -52,6 +52,20 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     description: 'Guidelines for the AI when estimating nutritional values for foods.',
     defaultPrompt: 'When estimating nutrition values, use these guidelines: Provide realistic estimates based on common food databases. For proteins like chicken/fish, estimate ~165-200 calories and 0-2g carbs per 100g. For fruits, estimate 40-80 calories and 10-20g carbs per 100g. For vegetables, estimate 20-50 calories and 3-10g carbs per 100g. Always ask for clarification if the food description is vague.',
     variables: []
+  },
+  {
+    key: 'ai_program_philosophy_prompt',
+    title: 'Program Philosophy & Food Guidance',
+    description: 'Your program\'s core principles and guidance for food choices.',
+    defaultPrompt: 'This nutrition program focuses on balanced eating with mindful carbohydrate intake. When users log high-carb foods (bread, pasta, rice, sugary items), gently acknowledge their choice while offering educational insights about the carb content and suggesting lower-carb alternatives when appropriate. Always remain supportive and non-judgmental - the goal is education, not restriction.',
+    variables: []
+  },
+  {
+    key: 'ai_high_carb_food_guidance',
+    title: 'High-Carb Food Response Template',
+    description: 'How to respond when users log high-carbohydrate foods.',
+    defaultPrompt: 'I\'ve logged your {food_name}! Since this contains about {carbs}g of carbs, you might want to consider pairing it with some protein or healthy fats to help balance your blood sugar. Some great lower-carb alternatives for next time could be {alternatives}. This would take approximately {walking_time} of walking to burn off.',
+    variables: ['{food_name}', '{carbs}', '{alternatives}', '{walking_time}']
   }
 ];
 

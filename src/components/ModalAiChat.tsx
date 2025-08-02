@@ -99,6 +99,24 @@ export const ModalAiChat = ({
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
 
+  const getHighCarbAlternatives = (foodName: string): string | null => {
+    const lowercaseFood = foodName.toLowerCase();
+    
+    if (lowercaseFood.includes('bread') || lowercaseFood.includes('toast')) {
+      return 'lettuce wraps, cloud bread, or cauliflower bread';
+    } else if (lowercaseFood.includes('pasta') || lowercaseFood.includes('noodle')) {
+      return 'zucchini noodles, spaghetti squash, or shirataki noodles';
+    } else if (lowercaseFood.includes('rice')) {
+      return 'cauliflower rice, broccoli rice, or shirataki rice';
+    } else if (lowercaseFood.includes('potato')) {
+      return 'roasted cauliflower, turnips, or radishes';
+    } else if (lowercaseFood.includes('cereal') || lowercaseFood.includes('oat')) {
+      return 'chia seed pudding, Greek yogurt with nuts, or scrambled eggs';
+    }
+    
+    return null;
+  };
+
   const sendToAI = async (message: string, fromVoice = false) => {
     console.log('📤 sendToAI called:', { message, fromVoice, isProcessing });
     setIsProcessing(true);
@@ -174,7 +192,20 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
             `**Content:** ${data.functionCall.arguments?.content || 'Motivational content based on your goals'}`;
         } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
           const args = data.functionCall.arguments;
-          responseContent = `I've prepared a food entry for you:\n\n**Food:** ${args?.name || 'Food item'}\n**Portion:** ${args?.serving_size || 0}g\n**Calories:** ${args?.calories || 0} cal\n**Carbs:** ${args?.carbs || 0}g\n\nThis looks good for your nutrition tracking! Would you like me to add this to your food log?`;
+          const carbCount = args?.carbs || 0;
+          const foodName = args?.name || 'Food item';
+          
+          // Check if this is a high-carb food (>20g carbs)
+          const isHighCarb = carbCount > 20;
+          
+          let baseResponse = `I've prepared a food entry for you:\n\n**Food:** ${foodName}\n**Portion:** ${args?.serving_size || 0}g\n**Calories:** ${args?.calories || 0} cal\n**Carbs:** ${carbCount}g`;
+          
+          if (isHighCarb) {
+            const alternatives = getHighCarbAlternatives(foodName);
+            baseResponse += `\n\n💡 *Nutrition Tip:* This food contains ${carbCount}g of carbs. ${alternatives ? `You might consider ${alternatives} as lower-carb alternatives for future meals.` : 'Consider pairing it with protein or healthy fats to help balance blood sugar.'} I'm still happy to log this for you!`;
+          }
+          
+          responseContent = baseResponse + `\n\nWould you like me to add this to your food log?`;
         } else {
           responseContent = "I've processed your request and prepared a suggestion for you.";
         }
