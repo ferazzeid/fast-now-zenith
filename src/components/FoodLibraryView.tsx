@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   DropdownMenu, 
@@ -49,6 +50,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
+  
+  // Multi-selection state
+  const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -355,6 +361,57 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
+  // Multi-selection functions
+  const toggleFoodSelection = (foodId: string) => {
+    setSelectedFoods(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(foodId)) {
+        newSet.delete(foodId);
+      } else {
+        newSet.add(foodId);
+      }
+      
+      // Update multi-select mode based on selection count
+      setIsMultiSelectMode(newSet.size > 0);
+      
+      return newSet;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedFoods(new Set());
+    setIsMultiSelectMode(false);
+  };
+
+  const handleBulkAddToMeal = async () => {
+    if (selectedFoods.size === 0) return;
+    
+    const selectedFoodItems = foods.filter(food => selectedFoods.has(food.id));
+    
+    // Add each selected food to the meal plan
+    for (const food of selectedFoodItems) {
+      onSelectFood(food, false);
+    }
+    
+    toast({
+      title: "Added to plan",
+      description: `${selectedFoods.size} foods have been added to your food plan`,
+    });
+
+    // Clear selection and close library
+    clearSelection();
+    setTimeout(() => {
+      onBack();
+    }, 1000);
+  };
+
+  const getSelectedFoodsTotals = () => {
+    const selectedFoodItems = foods.filter(food => selectedFoods.has(food.id));
+    const totalCalories = selectedFoodItems.reduce((sum, food) => sum + food.calories_per_100g, 0);
+    const totalCarbs = selectedFoodItems.reduce((sum, food) => sum + food.carbs_per_100g, 0);
+    return { totalCalories, totalCarbs };
+  };
+
   const filteredUserFoods = foods.filter(food =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
   ).sort((a, b) => {
@@ -379,141 +436,196 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   // Quick access favorites for My Foods
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
-  const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => (
-    <div className={`p-1 rounded border transition-colors max-w-full overflow-hidden ${
-      isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
-    }`}>
-      <div className="flex items-center w-full max-w-full overflow-hidden">
-        {/* Food Image */}
-        {food.image_url ? (
-          <img 
-            src={food.image_url} 
-            alt={food.name}
-            className="w-7 h-7 rounded object-cover flex-shrink-0"
-          />
-        ) : (
-          <div className="w-7 h-7 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-            <span className="text-sm">🍽️</span>
-          </div>
-        )}
-        
-        {/* Food Info */}
-        <div className="flex-1 min-w-0 pl-2 overflow-hidden">
-          <div className="w-full overflow-hidden">
-            <span className="text-sm font-medium text-warm-text truncate block">{food.name}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-warm-text/80 overflow-hidden">
-            <span className="whitespace-nowrap">{food.calories_per_100g}</span>
-            <span className="text-warm-text/60">•</span>
-            <span className="whitespace-nowrap truncate">{food.carbs_per_100g}g</span>
-          </div>
-        </div>
-        
-        {/* Actions */}
-        <div className="flex items-center gap-4 flex-shrink-0">
-          {/* Favorite button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => isUserFood ? 
-              toggleFavorite(food.id, (food as UserFood).is_favorite) :
-              toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
-            }
-            className="p-2 h-8 w-8 hover:bg-primary/10"
-            title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            {food.is_favorite ? (
-              <Heart className="w-5 h-5 fill-red-500 text-red-500" />
-            ) : (
-              <Heart className="w-5 h-5 text-muted-foreground" />
-            )}
-          </Button>
+  const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
+    const isSelected = isUserFood && selectedFoods.has(food.id);
+    const canMultiSelect = isUserFood && activeTab === 'my-foods';
+    
+    const handleCardClick = () => {
+      if (canMultiSelect && isMultiSelectMode) {
+        toggleFoodSelection(food.id);
+      } else if (isUserFood) {
+        handleQuickSelect(food as UserFood, false);
+      } else {
+        importToMyLibrary(food as DefaultFood);
+      }
+    };
 
-          {/* Options Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+    return (
+      <div 
+        className={`p-1 rounded border transition-all duration-200 max-w-full overflow-hidden cursor-pointer ${
+          isSelected 
+            ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/20' 
+            : isUserFood 
+              ? 'bg-ceramic-plate border-ceramic-rim hover:bg-ceramic-plate/80' 
+              : 'bg-ceramic-plate/50 border-ceramic-rim hover:bg-ceramic-plate/70'
+        }`}
+        onClick={handleCardClick}
+      >
+        <div className="flex items-center w-full max-w-full overflow-hidden">
+          {/* Multi-select checkbox (only for user foods in my-foods tab) */}
+          {canMultiSelect && (isMultiSelectMode || isSelected) && (
+            <div className="flex-shrink-0 mr-2">
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => toggleFoodSelection(food.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-4 h-4"
+              />
+            </div>
+          )}
+
+          {/* Food Image */}
+          {food.image_url ? (
+            <img 
+              src={food.image_url} 
+              alt={food.name}
+              className="w-7 h-7 rounded object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+              <span className="text-sm">🍽️</span>
+            </div>
+          )}
+          
+          {/* Food Info */}
+          <div className="flex-1 min-w-0 pl-2 overflow-hidden">
+            <div className="w-full overflow-hidden">
+              <span className="text-sm font-medium text-warm-text truncate block">{food.name}</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-warm-text/80 overflow-hidden">
+              <span className="whitespace-nowrap">{food.calories_per_100g}</span>
+              <span className="text-warm-text/60">•</span>
+              <span className="whitespace-nowrap truncate">{food.carbs_per_100g}g</span>
+            </div>
+          </div>
+          
+          {/* Actions - only show when not in multi-select mode or food is not selectable */}
+          {(!isMultiSelectMode || !canMultiSelect) && (
+            <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+              {/* Favorite button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 h-8 w-8 hover:bg-muted"
-                title="More options"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  isUserFood ? 
+                    toggleFavorite(food.id, (food as UserFood).is_favorite) :
+                    toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
+                }}
+                className="p-1 h-6 w-6 hover:bg-primary/10"
+                title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
               >
-                <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                {food.is_favorite ? (
+                  <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                ) : (
+                  <Heart className="w-3 h-3 text-muted-foreground" />
+                )}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-20 z-50">
-              {isUserFood ? (
-                <>
-                  <EditLibraryFoodModal 
-                    food={food as UserFood} 
-                    onUpdate={updateFood}
-                  />
-                  <DropdownMenuItem
-                    onClick={() => deleteFood(food.id)}
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+
+              {/* Options Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-1 h-6 w-6 hover:bg-muted"
+                    title="More options"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Trash2 className="w-3 h-3" />
-                    Delete
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  {isAdmin && (
+                    <MoreVertical className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-20 z-50">
+                  {isUserFood ? (
                     <>
-                      <EditDefaultFoodModal 
-                        food={food as DefaultFood} 
-                        onUpdate={updateDefaultFood}
+                      <EditLibraryFoodModal 
+                        food={food as UserFood} 
+                        onUpdate={updateFood}
                       />
                       <DropdownMenuItem
-                        onClick={() => deleteDefaultFood(food.id)}
+                        onClick={() => deleteFood(food.id)}
                         className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
                       >
                         <Trash2 className="w-3 h-3" />
                         Delete
                       </DropdownMenuItem>
                     </>
+                  ) : (
+                    <>
+                      {isAdmin && (
+                        <>
+                          <EditDefaultFoodModal 
+                            food={food as DefaultFood} 
+                            onUpdate={updateDefaultFood}
+                          />
+                          <DropdownMenuItem
+                            onClick={() => deleteDefaultFood(food.id)}
+                            className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          {/* Primary Action Button */}
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => isUserFood ? 
-              handleQuickSelect(food as UserFood, false) : 
-              importToMyLibrary(food as DefaultFood)
-            }
-            className="h-8 px-2 text-xs font-medium flex-shrink-0"
-            title={isUserFood ? "Add to today's plan" : "Import to your library"}
-          >
-            {isUserFood ? (
-              <Plus className="w-5 h-5" />
-            ) : (
-              <Download className="w-5 h-5" />
-            )}
-          </Button>
+              {/* Primary Action Button */}
+              <Button
+                variant="default"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  isUserFood ? 
+                    handleQuickSelect(food as UserFood, false) : 
+                    importToMyLibrary(food as DefaultFood)
+                }}
+                className="h-6 px-2 text-xs font-medium flex-shrink-0"
+                title={isUserFood ? "Add to today's plan" : "Import to your library"}
+              >
+                {isUserFood ? (
+                  <Plus className="w-3 h-3" />
+                ) : (
+                  <Download className="w-3 h-3" />
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="h-full flex flex-col max-w-full overflow-hidden">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Food Library</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-          title="Close Food Library"
-        >
-          <X className="w-4 h-4" />
-        </Button>
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Food Library</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+            title="Close Food Library"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search foods..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-9"
+          />
+        </div>
       </div>
 
 
@@ -618,6 +730,45 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </TabsContent>
         </Tabs>
       </div>
+
+      {/* Sticky Action Bar - appears when foods are selected */}
+      {isMultiSelectMode && selectedFoods.size > 0 && (
+        <div className="sticky bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-4 py-3 shadow-lg">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span>{selectedFoods.size} food{selectedFoods.size === 1 ? '' : 's'} selected</span>
+                <div className="text-xs text-muted-foreground">
+                  {(() => {
+                    const { totalCalories, totalCarbs } = getSelectedFoodsTotals();
+                    return `${totalCalories} cal • ${totalCarbs}g carbs`;
+                  })()}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSelection}
+                className="h-9"
+              >
+                Clear
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleBulkAddToMeal}
+                className="h-9 px-4"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add {selectedFoods.size} to plan
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
