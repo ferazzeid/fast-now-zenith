@@ -518,17 +518,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 </DropdownMenu>
               )}
 
-              {/* Primary Add to Plan Button */}
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleQuickSelect(food, false)}
-                className="h-7 px-2 text-xs font-medium flex-shrink-0"
-                title="Add to today's plan"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Add
-              </Button>
             </>
           )}
         </div>
@@ -632,12 +621,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
         {/* Suggested Foods Tab */}
         <TabsContent value="suggested" className="flex-1 overflow-y-auto space-y-4 mt-4">
-          <div className="p-3 rounded-lg bg-blue-50/50 border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <Star className="w-4 h-4 inline mr-1" />
-              These are curated foods you can import to your personal library or add directly to your plan.
-            </p>
-          </div>
 
           {loading ? (
             <div className="space-y-3">
