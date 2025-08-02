@@ -383,7 +383,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     <div className={`p-2 rounded-lg border transition-colors hover:shadow-md ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {/* Food Image */}
         {food.image_url ? (
           <img 
@@ -412,7 +412,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
+        <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
