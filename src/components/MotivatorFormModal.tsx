@@ -151,21 +151,21 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="border-b border-border py-4 px-0">
-          <DialogTitle className="text-lg font-semibold px-6">
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">
             {isEditing ? 'Edit Motivator' : 'Create New Motivator'}
           </DialogTitle>
         </DialogHeader>
 
         {/* Admin Templates (only for new motivators) */}
         {!isEditing && templates.length > 0 && (
-          <div className="mb-6 p-4">
+          <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-4 h-4 text-primary" />
               <Label className="text-warm-text font-medium">Get inspired by examples</Label>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto">
               {templates.map((template) => (
                 <Card 
                   key={template.id} 
@@ -189,7 +189,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         )}
 
         {/* Form */}
-        <div className="space-y-4 mb-6 p-4">
+        <div className="space-y-4 mb-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="title" className="text-warm-text font-medium">
@@ -310,7 +310,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-3 p-4">
+        <div className="flex space-x-3 border-t border-border -mx-6 px-6 pt-4 mt-6">
           <Button
             variant="outline"
             onClick={onClose}
