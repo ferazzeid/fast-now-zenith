@@ -188,7 +188,7 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold">Food History</CardTitle>
               <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
-                <X className="w-6 h-6" />
+                <X className="w-8 h-8" />
               </Button>
             </div>
           </CardHeader>
@@ -228,7 +228,7 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
           <div className="flex justify-between items-center px-6">
             <CardTitle className="text-lg font-semibold">Food History</CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
-              <X className="w-6 h-6" />
+              <X className="w-8 h-8" />
             </Button>
           </div>
         </CardHeader>

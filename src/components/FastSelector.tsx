@@ -96,7 +96,7 @@ export const FastSelector = ({
             onClick={onClose}
             className="hover:bg-ceramic-rim"
           >
-            <X className="w-6 h-6" />
+            <X className="w-8 h-8" />
           </Button>
         </div>
 

@@ -151,7 +151,7 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, sho
               className="absolute top-2 right-2"
               disabled={isUploading}
             >
-              <X className="w-6 h-6" />
+              <X className="w-8 h-8" />
             </Button>
           </div>
           
