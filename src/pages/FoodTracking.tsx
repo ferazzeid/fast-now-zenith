@@ -667,7 +667,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                 })
                 .map((entry) => (
-                <div key={entry.id} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors">
+                <div key={entry.id} className={`p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors ${entry.consumed ? 'opacity-50' : ''}`}>
                   <div className="flex items-center gap-3">
                     {/* Food Image */}
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-ceramic-base flex items-center justify-center flex-shrink-0">
@@ -686,7 +686,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                      <div className="flex-1 min-w-0">
                        {/* First Line: Food name only */}
                        <div className="flex items-center">
-                         <span className="font-medium text-warm-text truncate flex-1">{entry.name}</span>
+                         <span className={`font-medium text-warm-text truncate flex-1 ${entry.consumed ? 'line-through' : ''}`}>{entry.name}</span>
                        </div>
                        {/* Second Line: All data including walking time */}
                        <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
@@ -731,7 +731,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                             <MoreVertical className="w-4 h-4 text-warm-text/60" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem asChild>
                             <div className="w-full">
                               <EditFoodEntryModal 
