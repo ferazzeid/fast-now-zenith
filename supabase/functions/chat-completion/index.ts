@@ -50,14 +50,27 @@ serve(async (req) => {
       throw new Error('Failed to fetch user profile');
     }
 
-    // Get global settings for limits
+    // Get user's food library for context
+    const { data: userFoods } = await supabase
+      .from('user_foods')
+      .select('name, calories_per_100g, carbs_per_100g')
+      .eq('user_id', userId)
+      .order('is_favorite', { ascending: false })
+      .order('name');
+
+    // Get global settings for limits and chat behavior
     const { data: settings } = await supabase
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['free_request_limit', 'monthly_request_limit']);
+      .in('setting_key', ['free_request_limit', 'monthly_request_limit', 'food_chat_strict_mode', 'food_chat_redirect_message', 'food_chat_allowed_topics']);
 
     const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '50');
     const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
+    
+    // Chat behavior settings
+    const strictMode = settings?.find(s => s.setting_key === 'food_chat_strict_mode')?.setting_value === 'true';
+    const redirectMessage = settings?.find(s => s.setting_key === 'food_chat_redirect_message')?.setting_value || 'I\'m your food tracking assistant. Let\'s focus on food and nutrition topics!';
+    const allowedTopics = settings?.find(s => s.setting_key === 'food_chat_allowed_topics')?.setting_value?.split(',') || [];
 
     // Check if user has reached their limit (unless using own API key)
     if (!profile.use_own_api_key) {
@@ -75,6 +88,28 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    // Build enhanced system prompt with user's food library and chat guardrails
+    let systemPrompt = `You are a food tracking assistant. Help users log their meals, analyze nutrition, and manage their food library.`;
+    
+    // Add user's food library context
+    if (userFoods && userFoods.length > 0) {
+      const foodLibraryContext = userFoods.map(food => 
+        `${food.name}: ${food.calories_per_100g} cal, ${food.carbs_per_100g}g carbs per 100g`
+      ).join(', ');
+      systemPrompt += `\n\nUser's saved food library: ${foodLibraryContext}. When the user mentions these foods, use the exact nutritional values from their library.`;
+    }
+    
+    // Add chat guardrails
+    if (strictMode) {
+      systemPrompt += `\n\nIMPORTANT: Keep all conversations focused on food, nutrition, meals, calories, carbs, diet, health, cooking, ingredients, and recipes. If the user asks about unrelated topics, politely redirect them with: "${redirectMessage}"`;
+    }
+    
+    // Enhance messages with system prompt
+    const enhancedMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
+
     // Send to OpenAI Chat Completions API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -84,7 +119,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
-        messages: messages,
+        messages: enhancedMessages,
         stream: stream,
         temperature: 0.7,
         max_tokens: 1000,

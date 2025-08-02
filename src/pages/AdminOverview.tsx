@@ -21,6 +21,7 @@ import {
   PaymentProviderSettings,
   GoogleAnalyticsSettings
 } from "@/components/LazyAdminComponents";
+import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 
 interface User {
   user_id: string;
@@ -313,6 +314,9 @@ const AdminOverview = () => {
 
       {/* AI Prompt Configuration */}
       <PromptManagement />
+
+      {/* Food Chat Settings */}
+      <AdminFoodChatSettings />
 
       {/* Walking Share Configuration */}
       <AdminWalkingShareSettings />
