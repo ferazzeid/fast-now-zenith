@@ -418,7 +418,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             <div className="grid grid-cols-4 gap-2 text-center">
               <div className="p-3 rounded bg-ceramic-base relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
-                <div className="text-lg font-bold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.calories, 0)}</div>
+                <div className="text-lg font-bold text-warm-text">{Math.round(todayEntries.reduce((sum, entry) => sum + entry.calories, 0))}</div>
                 <div className="text-xs text-warm-text/70 mb-2">Calorie</div>
                 <div className="flex justify-center">
                   <ClickableTooltip
