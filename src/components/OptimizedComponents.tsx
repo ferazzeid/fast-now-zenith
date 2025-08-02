@@ -99,7 +99,9 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1 mb-1">
                 <Flame className="w-3 h-3 text-orange-500" />
-                <span className="text-xs text-muted-foreground">Today's Fat</span>
+                <ClickableTooltip content="Fat burned today based on your current calorie deficit">
+                  <span className="text-xs text-muted-foreground cursor-help">Today's Fat Loss</span>
+                </ClickableTooltip>
               </div>
               <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
                 {fatInGrams}g
@@ -108,7 +110,9 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1 mb-1">
                 <Calendar className="w-3 h-3 text-blue-500" />
-                <span className="text-xs text-muted-foreground">30-Day Loss</span>
+                <ClickableTooltip content="Projected weight loss if you maintain today's deficit for 30 days">
+                  <span className="text-xs text-muted-foreground cursor-help">If Maintained</span>
+                </ClickableTooltip>
               </div>
               <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                 {userUnits === 'metric' 
