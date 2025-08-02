@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
-import { SERVING_SIZE_UNITS, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName } from '@/utils/foodConversions';
+import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -102,8 +102,13 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh]">
-        <DialogHeader className="border-b border-border py-4 px-0">
-          <DialogTitle className="text-lg font-semibold px-6">Add Food Manually</DialogTitle>
+        <DialogHeader className="border-b border-border py-2 px-0">
+          <div className="px-6">
+            <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              {getUnitSystemDisplay(profile?.units)} Mode
+            </p>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 p-4">
@@ -145,7 +150,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {SERVING_SIZE_UNITS.map((unit) => (
+                    {getServingUnitsForUser(profile?.units).map((unit) => (
                       <SelectItem key={unit.value} value={unit.value}>
                         {getUnitDisplayName(unit.value)}
                       </SelectItem>
@@ -161,7 +166,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             <div className="mb-3">
               <p className="text-sm font-medium mb-1">Nutritional Information (per 100g)</p>
               <p className="text-xs text-muted-foreground">
-                Enter values per 100g from packaging or use AI to estimate:
+                Enter values per 100g or use AI to estimate
               </p>
             </div>
             
@@ -222,12 +227,6 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             </Button>
           </div>
           
-          {/* Workflow Info */}
-          <div className="bg-muted/50 rounded-lg p-3 mt-2">
-            <p className="text-xs text-muted-foreground">
-              This will add {data.servingSize} {data.servingUnit} to your food plan for today.
-            </p>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

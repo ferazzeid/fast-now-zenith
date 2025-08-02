@@ -5,7 +5,22 @@ export interface UnitConversion {
   label: string;
 }
 
-// Available serving size units
+// Available serving size units by unit system
+export const METRIC_SERVING_UNITS: UnitConversion[] = [
+  { value: 'grams', label: 'grams' },
+  { value: 'pieces', label: 'pieces' },
+  { value: 'cups', label: 'cups' },
+  { value: 'slices', label: 'slices' }
+];
+
+export const IMPERIAL_SERVING_UNITS: UnitConversion[] = [
+  { value: 'ounces', label: 'ounces' },
+  { value: 'pieces', label: 'pieces' },
+  { value: 'cups', label: 'cups' },
+  { value: 'slices', label: 'slices' }
+];
+
+// Legacy export for backward compatibility
 export const SERVING_SIZE_UNITS: UnitConversion[] = [
   { value: 'grams', label: 'grams' },
   { value: 'ounces', label: 'ounces' },
@@ -14,9 +29,19 @@ export const SERVING_SIZE_UNITS: UnitConversion[] = [
   { value: 'slices', label: 'slices' }
 ];
 
+// Get serving units based on user's preference
+export const getServingUnitsForUser = (userUnits: 'imperial' | 'metric' = 'metric'): UnitConversion[] => {
+  return userUnits === 'imperial' ? IMPERIAL_SERVING_UNITS : METRIC_SERVING_UNITS;
+};
+
 // Get default unit based on user's units preference
 export const getDefaultServingSizeUnit = (userUnits: 'imperial' | 'metric' = 'metric'): string => {
   return userUnits === 'imperial' ? 'ounces' : 'grams';
+};
+
+// Get unit system display name
+export const getUnitSystemDisplay = (userUnits: 'imperial' | 'metric' = 'metric'): string => {
+  return userUnits === 'imperial' ? 'Imperial' : 'Metric';
 };
 
 // Convert various units to grams (rough estimates for common foods)
