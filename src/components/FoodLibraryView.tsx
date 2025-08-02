@@ -401,7 +401,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-warm-text truncate">{food.name}</span>
-            {!isUserFood && <Badge variant="outline" className="text-xs">Suggested</Badge>}
           </div>
           <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
             <span>{food.calories_per_100g} cal</span>
@@ -432,22 +431,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             )}
           </Button>
 
-          {isUserFood ? (
-            // User Food Actions: Dropdown for Edit/Delete + Primary Add Button
-            <>
-              {/* Edit/Delete Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-7 w-7 hover:bg-muted flex-shrink-0"
-                    title="More options"
-                  >
-                    <MoreVertical className="w-3 h-3 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
+          {/* Options Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1 h-7 w-7 hover:bg-muted flex-shrink-0"
+                title="More options"
+              >
+                <MoreVertical className="w-3 h-3 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              {isUserFood ? (
+                <>
                   <EditLibraryFoodModal 
                     food={food as UserFood} 
                     onUpdate={updateFood}
@@ -459,67 +457,43 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <Trash2 className="w-4 h-4" />
                     Delete
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Primary Add to Plan Button */}
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleQuickSelect(food as UserFood, false)}
-                className="h-7 px-2 text-xs font-medium flex-shrink-0"
-                title="Add to today's plan"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Add
-              </Button>
-            </>
-          ) : (
-            // Default Food Actions: Import Button (styled like Add) + Admin Dropdown
-            <>
-              {/* Import Button (styled like Add button) */}
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => importToMyLibrary(food as DefaultFood)}
-                className="h-7 px-2 text-xs font-medium flex-shrink-0"
-                title="Import to your library"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Import
-              </Button>
-
-              {/* Admin Edit/Delete Dropdown */}
-              {isAdmin && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-7 w-7 hover:bg-muted flex-shrink-0"
-                      title="Admin options"
-                    >
-                      <MoreVertical className="w-3 h-3 text-muted-foreground" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <EditDefaultFoodModal 
-                      food={food as DefaultFood} 
-                      onUpdate={updateDefaultFood}
-                    />
-                    <DropdownMenuItem
-                      onClick={() => deleteDefaultFood(food.id)}
-                      className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                </>
+              ) : (
+                <>
+                  {isAdmin && (
+                    <>
+                      <EditDefaultFoodModal 
+                        food={food as DefaultFood} 
+                        onUpdate={updateDefaultFood}
+                      />
+                      <DropdownMenuItem
+                        onClick={() => deleteDefaultFood(food.id)}
+                        className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </>
               )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-            </>
-          )}
+          {/* Primary Action Button */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => isUserFood ? 
+              handleQuickSelect(food as UserFood, false) : 
+              importToMyLibrary(food as DefaultFood)
+            }
+            className="h-7 px-2 text-xs font-medium flex-shrink-0 min-w-[60px]"
+            title={isUserFood ? "Add to today's plan" : "Import to your library"}
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            {isUserFood ? 'Add' : 'Import'}
+          </Button>
         </div>
       </div>
     </div>
