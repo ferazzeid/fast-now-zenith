@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Trash2, X, ChevronDown, Target, TrendingUp } from 'lucide-react';
+import { Clock, Calendar, Trash2, X, ChevronDown, Target, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -187,6 +187,33 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
     }
   };
 
+  const deleteAllHistory = async () => {
+    try {
+      const { error } = await supabase
+        .from('fasting_sessions')
+        .delete()
+        .eq('user_id', user?.id)
+        .neq('status', 'active'); // Don't delete active sessions
+
+      if (error) throw error;
+
+      // Reload the history to reflect changes
+      await loadFastingHistory();
+
+      toast({
+        title: "History cleared",
+        description: "All completed and cancelled fasting sessions have been deleted"
+      });
+    } catch (error) {
+      console.error('Error deleting all history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete fasting history",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     loadFastingHistory();
   }, [user]);
@@ -238,17 +265,51 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="border-b border-border py-4 px-0">
+      <Card className="w-full max-w-md mx-auto max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="border-b border-border py-4 px-0 flex-shrink-0">
           <div className="flex justify-between items-center px-6">
             <CardTitle className="text-lg font-semibold">Fasting History</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
-              <X className="w-8 h-8" />
-            </Button>
+            <div className="flex gap-2">
+              {/* Delete All History Button - only show if there are non-active sessions */}
+              {sessions.filter(s => s.status !== 'active').length > 0 && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                    >
+                      <AlertTriangle className="w-4 h-4 mr-1" />
+                      Clear All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete All Fasting History</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete ALL fasting history? This will permanently remove all completed and cancelled sessions (active sessions will remain). This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={deleteAllHistory}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete All History
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
+                <X className="w-8 h-8" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-4 pt-6">
+        <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">{/* Made scrollable */}
           {/* Analytics Summary */}
           {completedSessions.length > 0 && (
             <Card className="bg-muted/20">
