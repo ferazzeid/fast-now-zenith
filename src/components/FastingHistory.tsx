@@ -201,7 +201,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       await loadFastingHistory();
 
       toast({
-        title: "History cleared",
+        title: "History deleted",
         description: "All completed and cancelled fasting sessions have been deleted"
       });
     } catch (error) {
@@ -280,7 +280,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                       className="h-8 px-2 text-destructive hover:bg-destructive/10"
                     >
                       <AlertTriangle className="w-4 h-4 mr-1" />
-                      Clear All
+                      Delete All
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -309,28 +309,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">{/* Made scrollable */}
-          {/* Analytics Summary */}
-          {completedSessions.length > 0 && (
-            <Card className="bg-muted/20">
-              <CardContent className="p-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-lg font-semibold text-primary">{successRate}%</div>
-                    <div className="text-xs text-muted-foreground">Success Rate</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold text-primary">{formatDuration(averageDuration)}</div>
-                    <div className="text-xs text-muted-foreground">Avg Duration</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold text-primary">{longestStreak}</div>
-                    <div className="text-xs text-muted-foreground">Best Streak</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
 
           {sessions.length === 0 ? (
             <div className="text-center py-8">

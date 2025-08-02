@@ -125,7 +125,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
       setHasMore(false);
 
       toast({
-        title: "History cleared",
+        title: "History deleted",
         description: "All completed walking sessions have been deleted"
       });
     } catch (error) {
@@ -182,7 +182,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                       className="h-8 px-2 text-destructive hover:bg-destructive/10"
                     >
                       <AlertTriangle className="w-4 h-4 mr-1" />
-                      Clear All
+                      Delete All
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -212,31 +212,6 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
         </CardHeader>
         
         <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
-          {/* Analytics Summary */}
-          {completedSessions.length > 0 && (
-            <Card className="bg-muted/20">
-              <CardContent className="p-4">
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-primary">{totalSessions}</div>
-                    <div className="text-xs text-muted-foreground">Sessions</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-primary">{totalDistance.toFixed(1)}</div>
-                    <div className="text-xs text-muted-foreground">Miles</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-primary">{totalCalories}</div>
-                    <div className="text-xs text-muted-foreground">Calories</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-primary">{formatDuration(avgDuration)}</div>
-                    <div className="text-xs text-muted-foreground">Avg Duration</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {loading ? (
             <div className="space-y-3">
