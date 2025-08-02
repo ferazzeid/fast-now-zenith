@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock } from 'lucide-react';
+import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History } from 'lucide-react';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -10,6 +10,7 @@ import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { CrisisChatModal } from '@/components/CrisisChatModal';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
+import { FastingHistory } from '@/components/FastingHistory';
 
 import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
@@ -31,6 +32,7 @@ const Timer = () => {
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showFastingHistory, setShowFastingHistory] = useState(false);
   
   // Crisis modal static context state
   const [crisisContext, setCrisisContext] = useState<string>('');
@@ -327,6 +329,19 @@ const Timer = () => {
           <div className="absolute left-0 top-0">
             <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
           </div>
+          {/* History button - only show for fasting mode */}
+          {currentMode === 'fasting' && (
+            <div className="absolute right-0 top-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFastingHistory(true)}
+                className="h-9 w-9 p-0 hover:bg-muted/50"
+              >
+                <History className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
             {currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
           </h1>
@@ -426,6 +441,11 @@ const Timer = () => {
         }}
         currentDuration={formatTimeFasting(timeElapsed)}
       />
+
+      {/* Fasting History Modal */}
+      {showFastingHistory && (
+        <FastingHistory onClose={() => setShowFastingHistory(false)} />
+      )}
 
       {/* Onboarding Modal */}
       <PageOnboardingModal
