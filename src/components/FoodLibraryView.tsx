@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -509,9 +509,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="h-8 w-8 p-0"
+          className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+          title="Close Food Library"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <X className="w-4 h-4" />
         </Button>
       </div>
 
