@@ -35,6 +35,7 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
 
   const startRecording = async () => {
     try {
+      console.log('🎤 Starting recording...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
@@ -45,36 +46,49 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
         }
       });
       
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      console.log('🎤 MediaStream obtained, creating MediaRecorder...');
+      mediaRecorderRef.current = new MediaRecorder(stream, {
+        mimeType: 'audio/webm'
+      });
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        console.log('🎤 Audio data available, size:', event.data.size);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorderRef.current.onstop = () => {
+        console.log('🎤 Recording stopped, cleaning up stream...');
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // 2 minute timeout for longer voice messages
+      mediaRecorderRef.current.onerror = (event) => {
+        console.error('🎤 MediaRecorder error:', event);
+      };
+
+      // 60 second timeout for voice messages
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
+          console.log('🎤 Recording timeout reached');
           toast({
             title: "⏱️ Recording Timeout",
-            description: "Recording automatically stopped after 2 minutes. For longer messages, please break them into smaller parts.",
+            description: "Recording automatically stopped after 60 seconds.",
             variant: "destructive"
           });
           stopAndProcess();
         }
-      }, 120000); // 2 minutes
+      }, 60000); // 60 seconds
 
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.start(100); // Request data every 100ms
       setIsRecording(true);
+      console.log('🎤 Recording started successfully');
       
       (mediaRecorderRef.current as any).timeout = recordingTimeout;
       
     } catch (error) {
-      console.error('Error starting recording:', error);
+      console.error('🎤 Error starting recording:', error);
       toast({
         title: "Error",
         description: "Could not access microphone. Please check permissions.",
@@ -84,6 +98,8 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
   };
 
   const stopAndProcess = async () => {
+    console.log('🎤 Stopping and processing recording...');
+    
     // Clear timeout
     if (mediaRecorderRef.current && (mediaRecorderRef.current as any).timeout) {
       clearTimeout((mediaRecorderRef.current as any).timeout);
@@ -91,12 +107,16 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
     
     // Stop recording
     if (isRecording && mediaRecorderRef.current) {
+      console.log('🎤 Stopping MediaRecorder...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200)); // Wait for onstop event
     }
     
+    console.log('🎤 Audio chunks collected:', audioChunksRef.current.length);
+    
     if (audioChunksRef.current.length === 0) {
+      console.error('🎤 No audio chunks available');
       toast({
         title: "No Recording",
         description: "Please try recording again",
@@ -107,17 +127,44 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
     
     setIsProcessing(true);
     try {
+      console.log('🎤 Creating audio blob...');
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      console.log('🎤 Audio blob size:', audioBlob.size, 'bytes');
+      
+      if (audioBlob.size === 0) {
+        throw new Error('Audio blob is empty');
+      }
 
+      console.log('🎤 Converting to base64...');
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      
+      // Process in chunks to prevent memory issues
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = '';
+      const chunkSize = 0x8000; // 32KB chunks
+      
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+        binary += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      
+      const base64Audio = btoa(binary);
+      console.log('🎤 Base64 length:', base64Audio.length);
+
+      console.log('🎤 Sending to transcribe function...');
       const { data, error } = await supabase.functions.invoke('transcribe', {
         body: { audio: base64Audio }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('🎤 Supabase function error:', error);
+        throw error;
+      }
+
+      console.log('🎤 Transcription response:', data);
 
       if (data?.text) {
+        console.log('🎤 Transcription successful:', data.text);
         onTranscription(data.text);
         toast({
           title: "✨ Voice Processed",
@@ -128,7 +175,7 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
         throw new Error('No transcription received');
       }
     } catch (error) {
-      console.error('Transcription error:', error);
+      console.error('🎤 Transcription error:', error);
       toast({
         title: "Failed to Process",
         description: "Please try recording again",
@@ -159,9 +206,9 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
         transition-all 
         duration-200 
         ${isRecording 
-          ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+          ? 'bg-red-500 hover:bg-red-600 recording-pulse' 
           : 'bg-green-500 hover:bg-green-600'
-        } 
+        }
         text-white
       `}
     >
