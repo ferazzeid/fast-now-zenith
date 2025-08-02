@@ -383,7 +383,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     <div className={`p-2 rounded-lg border transition-colors hover:shadow-md ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
-      <div className="flex items-center gap-0">
+      <div className="flex items-center">
         {/* Food Image */}
         {food.image_url ? (
           <img 
@@ -397,9 +397,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         )}
         
-        {/* Food Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+        {/* Food Info with explicit left padding */}
+        <div className="flex-1 min-w-0 pl-3">
+          <div className="flex items-center">
             <span className="font-medium text-warm-text truncate">{food.name}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
@@ -411,8 +411,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </div>
         
-        {/* Actions */}
-        <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0">
+        {/* Actions with explicit right padding */}
+        <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0 pr-2">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -501,21 +501,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <div className="h-full flex flex-col">
-      {/* Search */}
-      <div className="relative p-6 pb-4">
-        <Search className="absolute left-9 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search foods..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 h-12 text-base"
-          autoFocus
-        />
-      </div>
-
       {/* Two-Library System Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-3">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-2">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="my-foods" className="flex items-center gap-2">
             <Heart className="w-4 h-4" />
