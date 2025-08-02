@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
+import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
+import { Button } from '@/components/ui/button';
 
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
-import { WalkingHistory } from '@/components/WalkingHistory';
+import { WalkingHistoryModal } from '@/components/WalkingHistoryModal';
 
 import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
-import { ClearWalkingHistoryButton } from '@/components/ClearWalkingHistoryButton';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 import { trackWalkingEvent } from '@/utils/analytics';
 
@@ -19,6 +20,7 @@ const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWalkingHistory, setShowWalkingHistory] = useState(false);
   const [localTimeElapsed, setLocalTimeElapsed] = useState(0);
   const { toast } = useToast();
   const { 
@@ -155,10 +157,20 @@ const Walking = () => {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
-        {/* Header with Onboarding Button */}
+        {/* Header with Onboarding and History Buttons */}
         <div className="text-center mb-8 relative">
           <div className="absolute left-0 top-0">
             <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+          </div>
+          <div className="absolute right-0 top-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowWalkingHistory(true)}
+              className="h-8 w-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+            >
+              <History className="w-4 h-4" />
+            </Button>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
             Walking Timer
@@ -262,7 +274,6 @@ const Walking = () => {
           requiredFor="accurate calorie calculation during walking"
         />
 
-        {/* Walking History */}
         {/* Stop Walking Confirmation Dialog */}
         <StopWalkingConfirmDialog
           open={showStopConfirm}
@@ -274,15 +285,9 @@ const Walking = () => {
           units={profile?.units || 'imperial'}
         />
 
-        {/* Walking History - only show when not loading */}
-        {!loading && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Walking History</h3>
-              <ClearWalkingHistoryButton />
-            </div>
-            <WalkingHistory />
-          </div>
+        {/* Walking History Modal */}
+        {showWalkingHistory && (
+          <WalkingHistoryModal onClose={() => setShowWalkingHistory(false)} />
         )}
 
         {/* Onboarding Modal */}
