@@ -36,7 +36,7 @@ const FoodTracking = () => {
   const [consumedNow, setConsumedNow] = useState(true);
   
   const [showLibraryView, setShowLibraryView] = useState(false);
-  const [activeTab, setActiveTab] = useState<'planning' | 'eaten'>('planning');
+  // Remove tab state - using unified view now
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -632,58 +632,37 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </ComponentErrorBoundary>
         )}
 
-        {/* Food Plan with Tabs */}
+        {/* Unified Food Plan */}
         <div className="space-y-4">
-          {/* Tabs */}
-          <div className="flex space-x-1 bg-muted p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab('planning')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'planning'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Today's Food Plan ({todayEntries.filter(entry => !entry.consumed).length})
-            </button>
-            <button
-              onClick={() => setActiveTab('eaten')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'eaten'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Check className="w-4 h-4" />
-              Eaten Today ({todayEntries.filter(entry => entry.consumed).length})
-            </button>
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5" />
+              Today's Food Plan
+            </h2>
+            <div className="text-sm text-muted-foreground">
+              {todayEntries.filter(entry => !entry.consumed).length} planned • {todayEntries.filter(entry => entry.consumed).length} consumed
+            </div>
           </div>
 
-          {/* Filter entries based on active tab */}
-          {(() => {
-            const filteredEntries = todayEntries.filter(entry => 
-              activeTab === 'planning' ? !entry.consumed : entry.consumed
-            );
-
-            return filteredEntries.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <p>
-                  {activeTab === 'planning' 
-                    ? 'No items in your food plan.' 
-                    : 'No food consumed today.'
+          {/* Food Entries */}
+          {todayEntries.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              <p>No food items in your plan yet.</p>
+              <p className="text-sm mt-2">Add food items using the buttons above!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Show planned items first, then consumed */}
+              {[...todayEntries]
+                .sort((a, b) => {
+                  // Sort by consumption status (planned first), then by creation time
+                  if (a.consumed !== b.consumed) {
+                    return a.consumed ? 1 : -1;
                   }
-                </p>
-                <p className="text-sm mt-2">
-                  {activeTab === 'planning' 
-                    ? 'Add meals to plan above!' 
-                    : 'Mark items as eaten or add consumed meals!'
-                  }
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredEntries.map((entry) => (
+                  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                })
+                .map((entry) => (
                 <div key={entry.id} className={`p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors ${entry.consumed ? 'border-green-300 bg-green-50/10' : 'border-amber-300 bg-amber-50/10'}`}>
                   <div className="flex items-center gap-2">
                     {/* Food Image */}
@@ -749,8 +728,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                 </div>
                 ))}
               </div>
-            );
-          })()}
+            )}
         </div>
 
         {/* Onboarding Modal */}
