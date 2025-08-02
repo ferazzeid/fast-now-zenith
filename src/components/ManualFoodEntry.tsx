@@ -4,9 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
+import { SERVING_SIZE_UNITS, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName } from '@/utils/foodConversions';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -15,6 +18,7 @@ interface ManualFoodEntryProps {
   data: {
     name: string;
     servingSize: string;
+    servingUnit: string;
     calories: string;
     carbs: string;
   };
@@ -23,7 +27,14 @@ interface ManualFoodEntryProps {
 
 export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }: ManualFoodEntryProps) => {
   const { session } = useAuth();
+  const { profile } = useProfile();
   const [isAiFilling, setIsAiFilling] = useState(false);
+  
+  // Set default unit if not already set
+  if (!data.servingUnit) {
+    const defaultUnit = getDefaultServingSizeUnit(profile?.units);
+    onDataChange({ ...data, servingUnit: defaultUnit });
+  }
 
   const updateField = (field: string, value: string) => {
     onDataChange({ ...data, [field]: value });
@@ -37,11 +48,12 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
     setIsAiFilling(true);
     try {
-      console.log('Making AI request for:', data.name, data.servingSize);
+      console.log('Making AI request for:', data.name, data.servingSize, data.servingUnit);
       
+      const servingText = `${data.servingSize} ${data.servingUnit}`;
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
-          message: `Please provide the nutritional information per 100g for ${data.name}. Return only the calories and carbs per 100g as numbers. Format: calories: X, carbs: Y`,
+          message: `Please provide the nutritional information per 100g for ${data.name}. The user wants to eat ${servingText}. Return only the calories and carbs per 100g as numbers. Format: calories: X, carbs: Y`,
           conversationHistory: []
         },
         headers: {
@@ -113,17 +125,34 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
             <div>
               <Label htmlFor="serving-size" className="text-sm font-medium">
-                Serving Size (grams) <span className="text-red-500">*</span>
+                Serving Size <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="serving-size"
-                type="number"
-                value={data.servingSize}
-                onChange={(e) => updateField('servingSize', e.target.value)}
-                placeholder="e.g., 150"
-                className="mt-1"
-                required
-              />
+              <div className="flex gap-2 mt-1">
+                <Input
+                  id="serving-size"
+                  type="number"
+                  value={data.servingSize}
+                  onChange={(e) => updateField('servingSize', e.target.value)}
+                  placeholder="e.g., 2"
+                  className="flex-1"
+                  required
+                />
+                <Select
+                  value={data.servingUnit}
+                  onValueChange={(value) => updateField('servingUnit', value)}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SERVING_SIZE_UNITS.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {getUnitDisplayName(unit.value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -186,7 +215,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
             <Button onClick={onSave} className="flex-1">
-              Add to Food Plan & Library
+              Add to Shopping List
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
@@ -196,7 +225,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Workflow Info */}
           <div className="bg-muted/50 rounded-lg p-3 mt-2">
             <p className="text-xs text-muted-foreground">
-              This will add {data.servingSize}g to your food plan and save nutritional data (per 100g) to your library for future use.
+              This will add {data.servingSize} {data.servingUnit} to your shopping list for planning.
             </p>
           </div>
         </div>

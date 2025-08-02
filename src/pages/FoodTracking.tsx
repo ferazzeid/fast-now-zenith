@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp } from 'lucide-react';
+import { convertToGrams } from '@/utils/foodConversions';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -43,6 +44,7 @@ const FoodTracking = () => {
   const [manualEntryData, setManualEntryData] = useState({
     name: '',
     servingSize: '',
+    servingUnit: 'grams',
     calories: '',
     carbs: ''
   });
@@ -116,6 +118,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     setManualEntryData({
       name: '',
       servingSize: '',
+      servingUnit: 'grams',
       calories: '',
       carbs: ''
     });
@@ -136,12 +139,14 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     let calories = parseFloat(manualEntryData.calories) || 0;
     let carbs = parseFloat(manualEntryData.carbs) || 0;
 
-    // Convert per-100g values to actual serving calories/carbs for food plan
-    const servingGrams = parseFloat(manualEntryData.servingSize);
+    // Convert serving amount to grams first
+    const servingAmount = parseFloat(manualEntryData.servingSize);
+    const servingGrams = convertToGrams(servingAmount, manualEntryData.servingUnit, manualEntryData.name);
+    
     const per100gCalories = parseFloat(manualEntryData.calories) || 0;
     const per100gCarbs = parseFloat(manualEntryData.carbs) || 0;
     
-    // Calculate actual consumption based on serving size
+    // Calculate actual consumption based on serving size in grams
     calories = (per100gCalories * servingGrams) / 100;
     carbs = (per100gCarbs * servingGrams) / 100;
 
@@ -186,7 +191,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       name: manualEntryData.name,
       calories: Math.round(calories * 100) / 100,
       carbs: Math.round(carbs * 100) / 100,
-      serving_size: parseFloat(manualEntryData.servingSize),
+      serving_size: Math.round(servingGrams * 100) / 100, // Store the actual grams
       consumed: false
     });
 
@@ -200,22 +205,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       trackFoodEvent('add', 'manual');
       toast({
         title: "Food added successfully!",
-        description: `${manualEntryData.name} has been added to your food plan`
+        description: `${manualEntryData.name} has been added to your shopping list`
       });
       setShowManualEntry(false);
-      
-      // Save to personal library (with per-100g values)
-      await saveToLibrary({
-        name: manualEntryData.name,
-        calories: parseFloat(manualEntryData.calories) || 0, // This is already per 100g
-        carbs: parseFloat(manualEntryData.carbs) || 0, // This is already per 100g
-        serving_size: 100 // Always save as per 100g in library
-      });
-      
-      toast({
-        title: "Added to library too!",
-        description: `${manualEntryData.name} saved for future use`
-      });
     }
   };
 
