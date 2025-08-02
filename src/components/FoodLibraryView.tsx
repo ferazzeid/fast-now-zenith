@@ -410,7 +410,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -419,13 +419,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               toggleFavorite(food.id, (food as UserFood).is_favorite) :
               toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
             }
-            className="p-0.5 h-4 w-4 hover:bg-primary/10"
+            className="p-2 h-8 w-8 hover:bg-primary/10"
             title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
           >
             {food.is_favorite ? (
-              <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+              <Heart className="w-4 h-4 fill-red-500 text-red-500" />
             ) : (
-              <Heart className="w-3 h-3 text-muted-foreground" />
+              <Heart className="w-4 h-4 text-muted-foreground" />
             )}
           </Button>
 
@@ -435,10 +435,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-0.5 h-4 w-4 hover:bg-muted"
+                className="p-2 h-8 w-8 hover:bg-muted"
                 title="More options"
               >
-                <MoreVertical className="w-2.5 h-2.5 text-muted-foreground" />
+                <MoreVertical className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-20 z-50">
@@ -486,13 +486,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               handleQuickSelect(food as UserFood, false) : 
               importToMyLibrary(food as DefaultFood)
             }
-            className="h-4 px-1 text-xs font-medium flex-shrink-0"
+            className="h-8 px-2 text-xs font-medium flex-shrink-0"
             title={isUserFood ? "Add to today's plan" : "Import to your library"}
           >
             {isUserFood ? (
-              <Plus className="w-2.5 h-2.5" />
+              <Plus className="w-4 h-4" />
             ) : (
-              <Download className="w-2.5 h-2.5" />
+              <Download className="w-4 h-4" />
             )}
           </Button>
         </div>
@@ -524,7 +524,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="my-foods" className="flex items-center gap-1 text-xs">
               <Heart className="w-3 h-3" />
-              My ({filteredUserFoods.length})
+              My Food ({filteredUserFoods.length})
             </TabsTrigger>
             <TabsTrigger value="suggested" className="flex items-center gap-1 text-xs">
               <Star className="w-3 h-3" />
