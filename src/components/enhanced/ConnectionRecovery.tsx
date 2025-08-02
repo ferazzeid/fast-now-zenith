@@ -71,7 +71,7 @@ export const EnhancedConnectionStatus = () => {
   // Success feedback
   if (showSuccessFeedback) {
     return (
-      <Alert className="mx-4 mt-4 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
+      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
         <AlertDescription className="text-green-800 dark:text-green-200">
           Connection restored successfully! All systems are working normally.
@@ -83,7 +83,7 @@ export const EnhancedConnectionStatus = () => {
   // Offline state
   if (!isOnline) {
     return (
-      <Alert className="mx-4 mt-4 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
+      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
         <WifiOff className="h-4 w-4 text-orange-600 dark:text-orange-400" />
         <AlertDescription className="text-orange-800 dark:text-orange-200">
           <div className="flex items-center justify-between">
@@ -97,7 +97,7 @@ export const EnhancedConnectionStatus = () => {
   // Disconnected from server
   if (!isConnected) {
     return (
-      <Alert className="mx-4 mt-4 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
         <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
         <AlertDescription className="text-red-800 dark:text-red-200">
           <div className="flex items-center justify-between">
@@ -126,7 +126,7 @@ export const EnhancedConnectionStatus = () => {
   // Queued operations
   if (hasQueuedOperations) {
     return (
-      <Alert className="mx-4 mt-4 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
+      <Alert className="fixed top-24 left-4 right-4 max-w-sm mx-auto z-50 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
         <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
         <AlertDescription className="text-blue-800 dark:text-blue-200">
           <div className="flex items-center justify-between">
