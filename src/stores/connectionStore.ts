@@ -64,29 +64,14 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   },
 
   startMonitoring: () => {
-    const { checkConnection } = get();
+    // Minimal monitoring - only on user action or network events
+    // No background polling to preserve performance
     
-    // Check connection immediately
-    checkConnection();
-    
-    // Set up periodic checks
-    if (monitoringInterval) {
-      clearInterval(monitoringInterval);
-    }
-    
-    const startInterval = () => {
-      const currentState = get();
-      monitoringInterval = setInterval(() => {
-        checkConnection();
-      }, currentState.currentInterval); // Dynamic interval based on connection state
-    };
-    
-    startInterval();
-    
-    // Listen to online/offline events
+    // Listen to online/offline events only
     const handleOnline = () => {
       set({ isOnline: true });
-      checkConnection();
+      // Check connection only when coming back online
+      get().checkConnection();
     };
     
     const handleOffline = () => {

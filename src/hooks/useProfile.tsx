@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
+import { cacheProfile, getCachedProfile, deduplicateRequest } from '@/utils/offlineStorage';
 
 interface UserProfile {
   id: string;
@@ -33,31 +34,48 @@ export const useProfile = () => {
       return;
     }
     
+    // Check cache first
+    const cached = getCachedProfile(user.id);
+    if (cached) {
+      console.log('Using cached profile data');
+      setProfile(cached);
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     try {
-      const result = await executeWithRetry(async () => {
-        return await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-      });
-      
-      const { data, error } = result;
+      // Use request deduplication
+      const data = await deduplicateRequest(
+        `profile_${user.id}`,
+        async () => {
+          const result = await executeWithRetry(async () => {
+            return await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', user.id)
+              .maybeSingle();
+          });
+          
+          const { data, error } = result;
 
-      if (error) {
-        console.error('Profile load error:', error);
-        setProfile(null);
-        // Show toast for actual errors, not missing profiles
-        toast({
-          variant: "destructive",
-          title: "Profile Error",
-          description: "Unable to load profile data. Please try again."
-        });
-        return;
-      }
+          if (error) {
+            console.error('Profile load error:', error);
+            throw error;
+          }
+
+          return data;
+        },
+        30 // 30 minute cache for request deduplication
+      );
 
       console.log('Profile loaded successfully:', data);
+      
+      // Cache the profile data for 24 hours
+      if (data) {
+        cacheProfile(user.id, data, 24);
+      }
+      
       setProfile(data || null);
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -92,6 +110,8 @@ export const useProfile = () => {
 
       if (error) throw error;
 
+      // Update cache with new data
+      cacheProfile(user.id, data, 24);
       setProfile(data);
       toast({
         title: "Profile updated",

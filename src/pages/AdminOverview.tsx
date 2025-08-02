@@ -6,19 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { AdminTierStats } from "@/components/AdminTierStats";
-import { ColorManagement } from "@/components/ColorManagement";
-import { OpenAIApiStats } from "@/components/OpenAIApiStats";
-import { UserRequestLimits } from "@/components/UserRequestLimits";
-import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
-import { AdminSEOSettings } from "@/components/AdminSEOSettings";
-import { CancellationTracker } from "@/components/CancellationTracker";
-import BrandAssetsManager from "@/components/BrandAssetsManager";
-import { PromptManagement } from "@/components/PromptManagement";
-import { AdminWalkingShareSettings } from "@/components/AdminWalkingShareSettings";
-import { AdminPredefinedMotivators } from "@/components/AdminPredefinedMotivators";
-import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
-import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
+import { 
+  AdminTierStats,
+  ColorManagement,
+  OpenAIApiStats,
+  UserRequestLimits,
+  SimpleAnalyticsWidget,
+  AdminSEOSettings,
+  CancellationTracker,
+  BrandAssetsManager,
+  PromptManagement,
+  AdminWalkingShareSettings,
+  AdminPredefinedMotivators,
+  PaymentProviderSettings,
+  GoogleAnalyticsSettings
+} from "@/components/LazyAdminComponents";
 
 interface User {
   user_id: string;

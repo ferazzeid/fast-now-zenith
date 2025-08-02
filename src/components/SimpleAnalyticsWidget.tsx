@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
@@ -105,12 +106,13 @@ export const SimpleAnalyticsWidget = () => {
     }
   };
 
+  const refreshData = () => {
+    fetchAnalyticsData();
+  };
+
   useEffect(() => {
     fetchAnalyticsData();
-    
-    // Auto-refresh every hour - conservative for better performance
-    const interval = setInterval(fetchAnalyticsData, 3600000);
-    return () => clearInterval(interval);
+    // Remove auto-refresh - make it manual only for admin performance
   }, []);
 
   if (loading) {
@@ -165,8 +167,11 @@ export const SimpleAnalyticsWidget = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">
+        <CardTitle className="text-lg flex items-center justify-between">
           Real-Time Analytics
+          <Button variant="outline" size="sm" onClick={refreshData}>
+            Refresh
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
@@ -49,12 +50,13 @@ export const CancellationTracker = () => {
     }
   };
 
+  const refreshData = () => {
+    fetchCancellationData();
+  };
+
   useEffect(() => {
     fetchCancellationData();
-    
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchCancellationData, 30000);
-    return () => clearInterval(interval);
+    // Remove auto-refresh - make it manual only for admin performance
   }, []);
 
   if (loading) {
@@ -85,8 +87,11 @@ export const CancellationTracker = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">
+        <CardTitle className="text-lg flex items-center justify-between">
           Cancellation Tracking
+          <Button variant="outline" size="sm" onClick={refreshData}>
+            Refresh
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>

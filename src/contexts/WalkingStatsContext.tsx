@@ -230,14 +230,14 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     if (currentSession && !isPaused) {
-      // Update immediately then set interval every minute for conservative performance
+      // Update immediately then set interval every 30 seconds only when active
       updateStats();
-      interval = setInterval(updateStats, 60000); // 1 minute - conservative for better performance
+      interval = setInterval(updateStats, 30000); // 30 seconds when active
     } else if (currentSession && isPaused) {
-      // Update once to mark as paused
+      // Update once to mark as paused, then stop updates
       updateStats();
     } else if (!currentSession) {
-      // Clear stats if no session
+      // Clear stats if no session, then stop updates
       updateStats();
     }
 

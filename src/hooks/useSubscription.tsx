@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { cacheSubscription, getCachedSubscription, deduplicateRequest } from '@/utils/offlineStorage';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -45,86 +46,106 @@ export const useSubscription = () => {
     }
 
     try {
-      console.log('UseSubscription: Checking subscription for user:', user.id);
-      
-      // Update user tier based on current conditions
-      const { error: tierError } = await supabase.rpc('update_user_tier', {
-        _user_id: user.id
-      });
-
-      if (tierError) {
-        console.error('Error updating user tier:', tierError);
+      // Check cache first - 24 hour TTL for subscription data
+      const cached = getCachedSubscription(user.id);
+      if (cached) {
+        console.log('UseSubscription: Using cached data');
+        setSubscriptionData(cached);
+        setLoading(false);
+        return;
       }
 
-      // Get updated profile with tier
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      console.log('UseSubscription: Fetching fresh subscription data for user:', user.id);
+      
+      // Use request deduplication to prevent multiple simultaneous checks
+      const subscriptionData = await deduplicateRequest(
+        `subscription_${user.id}`,
+        async () => {
+          // Update user tier based on current conditions
+          const { error: tierError } = await supabase.rpc('update_user_tier', {
+            _user_id: user.id
+          });
 
-      if (profileError) throw profileError;
-
-      const tier = profile?.user_tier || 'granted_user';
-      const requestsUsed = profile?.monthly_ai_requests || 0;
-
-      // Check Stripe subscription for paid users only
-      let stripeSubscriptionData = null;
-      if (tier === 'paid_user') {
-        try {
-          const { data: stripeData, error: stripeError } = await supabase.functions.invoke('check-subscription');
-          if (stripeError) {
-            console.error('Error checking subscription:', stripeError);
-          } else {
-            stripeSubscriptionData = stripeData;
+          if (tierError) {
+            console.error('Error updating user tier:', tierError);
           }
-        } catch (error) {
-          console.error('Error calling check-subscription function:', error);
-        }
-      }
 
-      // Determine subscription status and limits based on tier
-      const subscribed = tier !== 'free_user';
-      const isPaidUser = tier === 'paid_user' || tier === 'api_user';
-      const hasPremiumFeatures = tier !== 'free_user';
-      
-      // Fetch admin-configured request limits
-      const { data: limitsData } = await supabase
-        .from('shared_settings')
-        .select('setting_key, setting_value')
-        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+          // Get updated profile with tier
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
 
-      const limitsMap = limitsData?.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
-        return acc;
-      }, {} as Record<string, string>) || {};
+          if (profileError) throw profileError;
 
-      const paidUserLimit = parseInt(limitsMap.monthly_request_limit || '1000');
-      const freeUserLimit = parseInt(limitsMap.free_request_limit || '15');
+          const tier = profile?.user_tier || 'granted_user';
+          const requestsUsed = profile?.monthly_ai_requests || 0;
 
-      // Request limits by tier
-      const requestLimit = tier === 'api_user' ? Infinity : 
-                          tier === 'paid_user' ? paidUserLimit : 
-                          tier === 'granted_user' ? freeUserLimit : 0;
+          // Check Stripe subscription for paid users only
+          let stripeSubscriptionData = null;
+          if (tier === 'paid_user') {
+            try {
+              const { data: stripeData, error: stripeError } = await supabase.functions.invoke('check-subscription');
+              if (stripeError) {
+                console.error('Error checking subscription:', stripeError);
+              } else {
+                stripeSubscriptionData = stripeData;
+              }
+            } catch (error) {
+              console.error('Error calling check-subscription function:', error);
+            }
+          }
 
-      setSubscriptionData({
-        subscribed,
-        subscription_status: tier === 'api_user' ? 'api_key' : 
-                           tier === 'paid_user' ? (stripeSubscriptionData?.subscription_status || 'active') :
-                           tier === 'granted_user' ? 'granted' : 'free',
-        subscription_tier: tier,
-        subscription_end_date: stripeSubscriptionData?.subscription_end_date,
-        requests_used: requestsUsed,
-        request_limit: requestLimit,
-        isPaidUser,
-        hasPremiumFeatures
-      });
+          // Determine subscription status and limits based on tier
+          const subscribed = tier !== 'free_user';
+          const isPaidUser = tier === 'paid_user' || tier === 'api_user';
+          const hasPremiumFeatures = tier !== 'free_user';
+          
+          // Fetch admin-configured request limits
+          const { data: limitsData } = await supabase
+            .from('shared_settings')
+            .select('setting_key, setting_value')
+            .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+
+          const limitsMap = limitsData?.reduce((acc, setting) => {
+            acc[setting.setting_key] = setting.setting_value;
+            return acc;
+          }, {} as Record<string, string>) || {};
+
+          const paidUserLimit = parseInt(limitsMap.monthly_request_limit || '1000');
+          const freeUserLimit = parseInt(limitsMap.free_request_limit || '15');
+
+          // Request limits by tier
+          const requestLimit = tier === 'api_user' ? Infinity : 
+                              tier === 'paid_user' ? paidUserLimit : 
+                              tier === 'granted_user' ? freeUserLimit : 0;
+
+          return {
+            subscribed,
+            subscription_status: tier === 'api_user' ? 'api_key' : 
+                               tier === 'paid_user' ? (stripeSubscriptionData?.subscription_status || 'active') :
+                               tier === 'granted_user' ? 'granted' : 'free',
+            subscription_tier: tier,
+            subscription_end_date: stripeSubscriptionData?.subscription_end_date,
+            requests_used: requestsUsed,
+            request_limit: requestLimit,
+            isPaidUser,
+            hasPremiumFeatures
+          };
+        },
+        30 // 30 minute cache for request deduplication
+      );
+
+      // Cache the result for 24 hours
+      cacheSubscription(user.id, subscriptionData);
+      setSubscriptionData(subscriptionData);
 
       console.log('UseSubscription: Final status:', { 
-        tier,
-        isPaidUser, 
-        hasPremiumFeatures,
-        requestLimit
+        tier: subscriptionData.subscription_tier,
+        isPaidUser: subscriptionData.isPaidUser, 
+        hasPremiumFeatures: subscriptionData.hasPremiumFeatures,
+        requestLimit: subscriptionData.request_limit
       });
     } catch (error) {
       console.error('Error checking subscription:', error);
