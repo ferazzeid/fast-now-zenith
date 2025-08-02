@@ -20,6 +20,7 @@ import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
@@ -48,6 +49,7 @@ const FoodTracking = () => {
   const [aiChatContext, setAiChatContext] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
@@ -431,7 +433,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               </div>
               <div className="p-3 rounded bg-ceramic-base relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
-                <div className="text-lg font-bold text-warm-text">2000</div>
+                <div className="text-lg font-bold text-warm-text">{profile?.daily_calorie_goal || 2000}</div>
                 <div className="text-xs text-warm-text/70 mb-2">Calorie</div>
                 <div className="flex justify-center">
                   <ClickableTooltip
@@ -443,7 +445,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               </div>
               <div className="p-3 rounded bg-ceramic-base relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
-                <div className="text-lg font-bold text-warm-text">150g</div>
+                <div className="text-lg font-bold text-warm-text">{profile?.daily_carb_goal || 150}g</div>
                 <div className="text-xs text-warm-text/70 mb-2">Carbs</div>
                 <div className="flex justify-center">
                   <ClickableTooltip
