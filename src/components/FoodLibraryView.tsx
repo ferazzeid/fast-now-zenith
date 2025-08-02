@@ -380,10 +380,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => (
-    <div className={`p-1.5 rounded-lg border transition-colors hover:shadow-md ${
+    <div className={`p-1.5 rounded-lg border transition-colors hover:shadow-md overflow-x-hidden ${
       isUserFood ? 'bg-ceramic-plate border-ceramic-rim' : 'bg-ceramic-plate/50 border-ceramic-rim'
     }`}>
-      <div className="flex items-center">
+      <div className="flex items-center w-full max-w-full overflow-x-hidden">
         {/* Food Image */}
         {food.image_url ? (
           <img 
@@ -398,19 +398,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         )}
         
         {/* Food Info with explicit left padding */}
-        <div className="flex-1 min-w-0 pl-2.5">
-          <div className="flex items-center">
-            <span className="font-medium text-warm-text truncate">{food.name}</span>
+        <div className="flex-1 min-w-0 pl-2.5 overflow-hidden">
+          <div className="flex items-center w-full overflow-hidden">
+            <span className="font-medium text-warm-text truncate max-w-full">{food.name}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
-            <span>{food.calories_per_100g} cal</span>
+          <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1 overflow-hidden">
+            <span className="whitespace-nowrap">{food.calories_per_100g} cal</span>
             <span className="text-warm-text/60">•</span>
-            <span>{food.carbs_per_100g}g carbs</span>
+            <span className="whitespace-nowrap truncate">{food.carbs_per_100g}g carbs</span>
           </div>
         </div>
         
         {/* Actions with explicit right padding */}
-        <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0 pr-1.5">
+        <div className="flex items-center gap-0.5 flex-shrink-0 pr-1.5">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -547,7 +547,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-x-hidden">
               {filteredUserFoods.map((food) => (
                 <FoodCard key={food.id} food={food} isUserFood={true} />
               ))}
@@ -587,7 +587,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-x-hidden">
               {filteredDefaultFoods.map((food) => (
                 <FoodCard key={`default-${food.id}`} food={food} isUserFood={false} />
               ))}
