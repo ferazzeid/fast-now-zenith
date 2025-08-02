@@ -410,7 +410,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-4 flex-shrink-0">
           {/* Favorite button */}
           <Button
             variant="ghost"
@@ -423,9 +423,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
           >
             {food.is_favorite ? (
-              <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+              <Heart className="w-5 h-5 fill-red-500 text-red-500" />
             ) : (
-              <Heart className="w-4 h-4 text-muted-foreground" />
+              <Heart className="w-5 h-5 text-muted-foreground" />
             )}
           </Button>
 
@@ -438,7 +438,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 className="p-2 h-8 w-8 hover:bg-muted"
                 title="More options"
               >
-                <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                <MoreVertical className="w-5 h-5 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-20 z-50">
@@ -490,9 +490,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             title={isUserFood ? "Add to today's plan" : "Import to your library"}
           >
             {isUserFood ? (
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
             ) : (
-              <Download className="w-4 h-4" />
+              <Download className="w-5 h-5" />
             )}
           </Button>
         </div>
