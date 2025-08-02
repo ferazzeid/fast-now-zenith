@@ -512,10 +512,24 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </Button>
       </div>
 
+      {/* Search Bar */}
+      <div className="px-4 py-3 border-b border-border">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search foods..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
       {/* Two-Library System Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col overflow-x-hidden">
-        <div className="sticky top-[60px] z-10 bg-background px-2 pt-2">
+        <div className="px-2 pt-2">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="my-foods" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
