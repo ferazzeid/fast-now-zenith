@@ -57,9 +57,11 @@ const FoodTracking = () => {
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
-  const handleVoiceFood = () => {
+  const handleVoiceFood = async () => {
     trackAIEvent('chat', 'food_assistant');
-    const contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
+    
+    // Try to load the admin-configured prompt, fall back to default
+    let contextMessage = `Hello! I'm here to help you add food to your nutrition log. 
 
 To add a food item, I'll need:
 • Food name (what did you eat?)
@@ -68,6 +70,20 @@ To add a food item, I'll need:
 • Carbs in grams (I can estimate if needed)
 
 Please tell me what food you'd like to add and how much you had. For example: "I had 150 grams of grilled chicken breast" or "I ate a medium apple, about 180 grams".`;
+
+    try {
+      const { data } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'ai_food_assistant_system_prompt')
+        .single();
+      
+      if (data?.setting_value) {
+        contextMessage = data.setting_value;
+      }
+    } catch (error) {
+      console.log('Using default food assistant prompt');
+    }
     
     setAiChatContext(contextMessage);
     setShowAiChat(true);

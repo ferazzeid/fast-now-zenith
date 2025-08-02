@@ -31,6 +31,27 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     description: 'Controls how AI generates images for food items in the food tracking system.',
     defaultPrompt: 'A lightly cartoony and semi-realistic illustration of {food_name}, food illustration style, clean background, appetizing, vibrant colors. Style should match this color theme: {primary_color} primary, {accent_color} accent. Clean, professional food photography style with soft lighting.',
     variables: ['{food_name}', '{primary_color}', '{accent_color}']
+  },
+  {
+    key: 'ai_food_assistant_system_prompt',
+    title: 'Food Assistant System Behavior',
+    description: 'Controls how the AI Food Assistant behaves when helping users add food entries.',
+    defaultPrompt: 'You are a helpful nutrition assistant helping users track their food intake. Your goal is to help users add complete food entries with all required information: name, portion size (in grams), calories, and carbs. Ask clarifying questions if information is missing. Provide reasonable estimates for calories and carbs based on food type and portion. Be conversational and helpful. When the user provides food information, always use the add_food_entry function to add it to their log.',
+    variables: []
+  },
+  {
+    key: 'ai_food_response_template',
+    title: 'Food Entry Response Format',
+    description: 'Controls how the AI formats responses when presenting food entry details to users.',
+    defaultPrompt: 'I\'ve prepared a food entry for you:\n\n**Food:** {food_name}\n**Portion:** {serving_size}g\n**Calories:** {calories} cal\n**Carbs:** {carbs}g\n\nThis looks good for your nutrition tracking! Would you like me to add this to your food log?',
+    variables: ['{food_name}', '{serving_size}', '{calories}', '{carbs}']
+  },
+  {
+    key: 'ai_food_estimation_prompt',
+    title: 'Nutrition Estimation Guidelines',
+    description: 'Guidelines for the AI when estimating nutritional values for foods.',
+    defaultPrompt: 'When estimating nutrition values, use these guidelines: Provide realistic estimates based on common food databases. For proteins like chicken/fish, estimate ~165-200 calories and 0-2g carbs per 100g. For fruits, estimate 40-80 calories and 10-20g carbs per 100g. For vegetables, estimate 20-50 calories and 3-10g carbs per 100g. Always ask for clarification if the food description is vague.',
+    variables: []
   }
 ];
 

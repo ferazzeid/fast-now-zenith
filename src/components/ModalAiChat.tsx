@@ -173,7 +173,8 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
             `**Title:** ${data.functionCall.arguments?.title || 'Personal Motivator'}\n\n` +
             `**Content:** ${data.functionCall.arguments?.content || 'Motivational content based on your goals'}`;
         } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
-          responseContent = "I've prepared a food entry for you. Here are the details:";
+          const args = data.functionCall.arguments;
+          responseContent = `I've prepared a food entry for you:\n\n**Food:** ${args?.name || 'Food item'}\n**Portion:** ${args?.serving_size || 0}g\n**Calories:** ${args?.calories || 0} cal\n**Carbs:** ${args?.carbs || 0}g\n\nThis looks good for your nutrition tracking! Would you like me to add this to your food log?`;
         } else {
           responseContent = "I've processed your request and prepared a suggestion for you.";
         }
