@@ -53,6 +53,7 @@ export const ModalAiChat = ({
   });
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
+  const [editingFoodIndex, setEditingFoodIndex] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -137,8 +138,7 @@ You are a decisive food tracking assistant. Your goal is to:
 1. IMMEDIATELY process food information and create entries with reasonable estimations
 2. DO NOT ask for more details - make smart estimations based on common serving sizes
 3. For multiple foods mentioned, use add_multiple_foods function to handle them all at once
-4. Provide nutritional tips for high-carb foods (>20g carbs) with lower-carb alternatives
-5. Always format responses as: food list + nutritional tips + "Would you like me to add these to your food log?"
+4. Always format responses as: food list + total + "Would you like me to add these to your food log?"
 
 CRITICAL RULES:
 - NEVER ask "do you have more information" - estimate and present
@@ -205,41 +205,17 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           let baseResponse = `I've prepared ${foods.length} food entries for you:\n\n`;
           
           foods.forEach((food: any, index: number) => {
-            const carbCount = food.carbs || 0;
-            const isHighCarb = carbCount > 20;
-            const icon = isHighCarb ? '🟡' : '🟢';
-            baseResponse += `${icon} **${food.name}** (${food.serving_size}g) - ${food.calories} cal, ${carbCount}g carbs\n`;
+            baseResponse += `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs\n`;
           });
           
-          // Add nutritional tips for high-carb foods
-          const highCarbFoods = foods.filter((food: any) => (food.carbs || 0) > 20);
-          if (highCarbFoods.length > 0) {
-            baseResponse += `\n💡 **Nutrition Tip:** `;
-            if (highCarbFoods.length === 1) {
-              const alternatives = getHighCarbAlternatives(highCarbFoods[0].name);
-              baseResponse += `${highCarbFoods[0].name} is high in carbs (${highCarbFoods[0].carbs}g). ${alternatives ? `Consider ${alternatives} as lower-carb alternatives.` : 'Pair with protein to balance blood sugar.'}`;
-            } else {
-              baseResponse += `${highCarbFoods.map((f: any) => f.name).join(' and ')} are higher in carbs. Consider lower-carb alternatives or pair with protein.`;
-            }
-          }
-          
-          baseResponse += `\n\n**Total:** ${totalCalories} calories, ${totalCarbs}g carbs\n\nWould you like me to add all these foods to your log?`;
+          baseResponse += `\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nWould you like me to add all these foods to your log?`;
           responseContent = baseResponse;
         } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
           const args = data.functionCall.arguments;
           const carbCount = args?.carbs || 0;
           const foodName = args?.name || 'Food item';
           
-          // Check if this is a high-carb food (>20g carbs)
-          const isHighCarb = carbCount > 20;
-          const icon = isHighCarb ? '🟡' : '🟢';
-          
-          let baseResponse = `I've prepared a food entry for you:\n\n${icon} **${foodName}** (${args?.serving_size || 0}g) - ${args?.calories || 0} cal, ${carbCount}g carbs`;
-          
-          if (isHighCarb) {
-            const alternatives = getHighCarbAlternatives(foodName);
-            baseResponse += `\n\n💡 **Nutrition Tip:** This food contains ${carbCount}g of carbs. ${alternatives ? `Consider ${alternatives} as lower-carb alternatives.` : 'Pair with protein to balance blood sugar.'}`;
-          }
+          let baseResponse = `I've prepared a food entry for you:\n\n${foodName} (${args?.serving_size || 0}g) - ${args?.calories || 0} cal, ${carbCount}g carbs`;
           
           responseContent = baseResponse + `\n\nWould you like me to add this to your food log?`;
         } else {
@@ -272,6 +248,15 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           setLastFoodSuggestion(data.functionCall.arguments);
         } else if (data.functionCall.name === 'add_multiple_foods') {
           setLastFoodSuggestion(data.functionCall.arguments);
+          // Send automatic follow-up message for multi-food entries
+          setTimeout(() => {
+            const followUpMessage: Message = {
+              role: 'assistant',
+              content: 'Need to make adjustments? Click Edit next to any food above, or use voice to make changes.',
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, followUpMessage]);
+          }, 500);
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
         }
@@ -329,17 +314,17 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
     await sendToAI(messageToSend);
   };
 
-  const handleAdjustDetails = () => {
+  const handleAdjustDetails = (foodIndex: number = 0) => {
     if (lastFoodSuggestion) {
+      setEditingFoodIndex(foodIndex);
       // Handle both single food and multiple foods
       if (lastFoodSuggestion.foods) {
-        // For multiple foods, show the first one for now
-        const firstFood = lastFoodSuggestion.foods[0];
+        const foodToEdit = lastFoodSuggestion.foods[foodIndex];
         setEditFormData({
-          name: firstFood?.name || '',
-          portion: firstFood?.serving_size?.toString() || '',
-          calories: firstFood?.calories?.toString() || '',
-          carbs: firstFood?.carbs?.toString() || ''
+          name: foodToEdit?.name || '',
+          portion: foodToEdit?.serving_size?.toString() || '',
+          calories: foodToEdit?.calories?.toString() || '',
+          carbs: foodToEdit?.carbs?.toString() || ''
         });
       } else {
         // Single food
@@ -355,17 +340,34 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
   };
 
   const handleSaveEditedFood = () => {
-    if (onResult) {
-      onResult({
-        name: 'add_food_entry',
-        arguments: {
+    if (onResult && lastFoodSuggestion) {
+      // If editing multiple foods, update the specific food and add all
+      if (lastFoodSuggestion.foods) {
+        const updatedFoods = [...lastFoodSuggestion.foods];
+        updatedFoods[editingFoodIndex] = {
           name: editFormData.name,
           serving_size: parseFloat(editFormData.portion),
           calories: parseFloat(editFormData.calories),
           carbs: parseFloat(editFormData.carbs),
           consumed: false
-        }
-      });
+        };
+        onResult({
+          name: 'add_multiple_foods',
+          arguments: { foods: updatedFoods }
+        });
+      } else {
+        // Single food
+        onResult({
+          name: 'add_food_entry',
+          arguments: {
+            name: editFormData.name,
+            serving_size: parseFloat(editFormData.portion),
+            calories: parseFloat(editFormData.calories),
+            carbs: parseFloat(editFormData.carbs),
+            consumed: false
+          }
+        });
+      }
     }
     setShowEditForm(false);
   };
@@ -429,6 +431,25 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
+                    {/* Individual food edit buttons for multi-food suggestions */}
+                    {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
+                      <div className="mt-3 space-y-2">
+                        {lastFoodSuggestion.foods.map((food: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded text-xs">
+                            <span>{food.name} ({food.serving_size}g)</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleAdjustDetails(index)}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
                     {/* Crisis Quick Reply Buttons */}
                     {conversationType === 'crisis' && message.role === 'assistant' && quickReplies.length > 0 && index === messages.length - 1 && (
                       <div className="flex flex-wrap gap-2 mt-3">
@@ -446,27 +467,38 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                       </div>
                     )}
                     
-                     {/* Conditional confirmation buttons for food suggestions only */}
-                     {conversationType === 'general' && title === 'Food Assistant' && message.role === 'assistant' && containsFoodSuggestion(message.content) && (
-                       <div className="flex flex-wrap gap-2 mt-3">
-                         <Button 
-                           size="sm" 
-                           onClick={() => handleSendMessage(lastFoodSuggestion?.foods ? 'Yes, add all' : 'Yes, add it')}
-                           className="text-xs"
+                     {/* Food assistant action buttons */}
+                     {message.role === 'assistant' && title === 'Food Assistant' && containsFoodSuggestion(message.content) && (
+                       <div className="flex gap-2 mt-3">
+                         <Button
+                           size="sm"
+                           onClick={() => handleSendMessage(lastFoodSuggestion?.foods ? 'Yes, add all these foods' : 'Yes, add it')}
+                           className="flex-1"
                          >
-                           {lastFoodSuggestion?.foods ? 'Add All Foods' : 'Yes, Add It'}
+                           {lastFoodSuggestion?.foods ? 'Add All Foods' : 'Add Food'}
                          </Button>
-                         {lastFoodSuggestion && (
-                           <Button 
-                             size="sm" 
+                         {/* Only show Quick Edit for single food entries */}
+                         {!lastFoodSuggestion?.foods && (
+                           <Button
+                             size="sm"
                              variant="outline"
-                             onClick={handleAdjustDetails}
-                             className="text-xs"
+                             onClick={() => handleAdjustDetails(0)}
+                             className="flex-1"
                            >
-                             <Edit className="w-3 h-3 mr-1" />
-                             {lastFoodSuggestion?.foods ? 'Quick Edit' : 'Adjust Details'}
+                             Quick Edit
                            </Button>
                          )}
+                       </div>
+                     )}
+
+                     {/* Voice correction button for follow-up messages */}
+                     {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (
+                       <div className="flex justify-center mt-3">
+                         <CircularVoiceButton
+                           onTranscription={handleVoiceTranscription}
+                           isDisabled={isProcessing}
+                           size="sm"
+                         />
                        </div>
                      )}
                     
@@ -516,8 +548,11 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
         {/* Edit Form */}
         {showEditForm && (
-          <div className="border-t border-border p-4 bg-muted/30">
-            <h3 className="font-medium mb-3">Adjust Food Details</h3>
+          <Card className="p-4 bg-muted/50">
+            <h4 className="font-medium mb-3">
+              Editing: {editFormData.name}
+              {lastFoodSuggestion?.foods && ` (${editingFoodIndex + 1} of ${lastFoodSuggestion.foods.length})`}
+            </h4>
             <div className="space-y-3">
               <div>
                 <Label htmlFor="edit-name" className="text-sm">Food Name</Label>
@@ -569,7 +604,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                 </Button>
               </div>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Input */}
