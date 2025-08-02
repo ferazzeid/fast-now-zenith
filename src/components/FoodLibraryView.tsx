@@ -515,7 +515,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Two-Library System Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col px-3">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="my-foods" className="flex items-center gap-2">
             <Heart className="w-4 h-4" />
@@ -529,31 +529,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
         {/* My Foods Tab */}
         <TabsContent value="my-foods" className="flex-1 overflow-y-auto space-y-4 mt-4">
-          {/* Quick Access Favorites */}
-          {favoriteUserFoods.length > 0 && !searchTerm && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Star className="w-4 h-4" />
-                Quick Access Favorites
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {favoriteUserFoods.map((food) => (
-                  <div key={`fav-${food.id}`} className="flex items-center gap-1 p-2 rounded-lg bg-primary/10 border">
-                    <span className="text-sm font-medium">{food.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleQuickSelect(food, false)}
-                      className="p-1 h-6 w-6"
-                      title="Add to plan"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* My Foods List */}
           {loading ? (
