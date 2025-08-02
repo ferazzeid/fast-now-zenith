@@ -36,7 +36,7 @@ const FoodTracking = () => {
   const [consumedNow, setConsumedNow] = useState(true);
   
   const [showLibraryView, setShowLibraryView] = useState(false);
-  const [activeTab, setActiveTab] = useState<'shopping' | 'eaten'>('shopping');
+  const [activeTab, setActiveTab] = useState<'planning' | 'eaten'>('planning');
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -202,11 +202,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         description: result.error.message
       });
     } else {
-      trackFoodEvent('add', 'manual');
-      toast({
-        title: "Food added successfully!",
-        description: `${manualEntryData.name} has been added to your shopping list`
-      });
+        trackFoodEvent('add', 'manual');
+        toast({
+          title: "Food added successfully!",
+          description: `${manualEntryData.name} has been added to your food plan`
+        });
       setShowManualEntry(false);
     }
   };
@@ -637,15 +637,15 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           {/* Tabs */}
           <div className="flex space-x-1 bg-muted p-1 rounded-lg">
             <button
-              onClick={() => setActiveTab('shopping')}
+              onClick={() => setActiveTab('planning')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'shopping'
+                activeTab === 'planning'
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <ShoppingCart className="w-4 h-4" />
-              Shopping List ({todayEntries.filter(entry => !entry.consumed).length})
+              Today's Food Plan ({todayEntries.filter(entry => !entry.consumed).length})
             </button>
             <button
               onClick={() => setActiveTab('eaten')}
@@ -663,19 +663,19 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           {/* Filter entries based on active tab */}
           {(() => {
             const filteredEntries = todayEntries.filter(entry => 
-              activeTab === 'shopping' ? !entry.consumed : entry.consumed
+              activeTab === 'planning' ? !entry.consumed : entry.consumed
             );
 
             return filteredEntries.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <p>
-                  {activeTab === 'shopping' 
-                    ? 'No items in your shopping list.' 
+                  {activeTab === 'planning' 
+                    ? 'No items in your food plan.' 
                     : 'No food consumed today.'
                   }
                 </p>
                 <p className="text-sm mt-2">
-                  {activeTab === 'shopping' 
+                  {activeTab === 'planning' 
                     ? 'Add meals to plan above!' 
                     : 'Mark items as eaten or add consumed meals!'
                   }

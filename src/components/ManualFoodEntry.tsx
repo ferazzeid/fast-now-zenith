@@ -215,7 +215,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
             <Button onClick={onSave} className="flex-1">
-              Add to Shopping List
+              Add to Food Plan
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
@@ -225,7 +225,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Workflow Info */}
           <div className="bg-muted/50 rounded-lg p-3 mt-2">
             <p className="text-xs text-muted-foreground">
-              This will add {data.servingSize} {data.servingUnit} to your shopping list for planning.
+              This will add {data.servingSize} {data.servingUnit} to your food plan for today.
             </p>
           </div>
         </div>
