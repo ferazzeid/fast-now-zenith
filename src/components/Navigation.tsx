@@ -110,7 +110,7 @@ export const Navigation = () => {
       label: 'Food', 
       path: '/food-tracking', 
       isEating: false,
-      caloriesBadge: todayTotals.calories > 0 ? todayTotals.calories : null
+      caloriesBadge: todayTotals.calories > 0 ? Math.round(todayTotals.calories) : null
     },
     { 
       icon: Brain, 
