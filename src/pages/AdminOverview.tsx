@@ -16,6 +16,7 @@ import { CancellationTracker } from "@/components/CancellationTracker";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PromptManagement } from "@/components/PromptManagement";
 import { AdminWalkingShareSettings } from "@/components/AdminWalkingShareSettings";
+import { AdminPredefinedMotivators } from "@/components/AdminPredefinedMotivators";
 
 interface User {
   user_id: string;
@@ -311,6 +312,9 @@ const AdminOverview = () => {
 
       {/* Walking Share Configuration */}
       <AdminWalkingShareSettings />
+
+      {/* Predefined Motivators Management */}
+      <AdminPredefinedMotivators />
 
       {/* Brand Customization */}
       <div className="space-y-6 mb-12">

@@ -1,87 +1,17 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Check, Download, Sparkles, Heart, Target, Calendar, Trophy, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Download, Sparkles, Check } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-// Use Unsplash images for predefined motivators
-const MOTIVATOR_IMAGES = {
-  mirrorWakeUp: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  fitOldClothes: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  fitNewClothes: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  beLookedAt: 'https://images.unsplash.com/photo-1469474968028-56623f02e425?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  impressThemAll: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  regainSelfRespect: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  fixInsulinLevels: 'https://images.unsplash.com/photo-1485833077593-4278bba3f11f?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  fixUnexplainedSymptoms: 'https://images.unsplash.com/photo-1438565434616-3ef039228b15?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  eventCountdown: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&h=600&fit=crop&crop=center&auto=format&q=75',
-  autophagyCleanUp: 'https://images.unsplash.com/photo-1517022812141-236209515c9?w=800&h=600&fit=crop&crop=center&auto=format&q=75'
-};
-
-const CUSTOM_MOTIVATORS = [
-  {
-    title: "Mirror Wake-Up",
-    content: "Seeing myself in the mirror or security camera and hating it. A harsh moment of clarity — when your reflection becomes a trigger. This is often the first jolt that forces real change.",
-    category: "personal",
-    imageUrl: MOTIVATOR_IMAGES.mirrorWakeUp
-  },
-  {
-    title: "Fit Into Old Clothes",
-    content: "Fitting into old clothes again. Nothing proves progress more than slipping into something that once felt impossible. A simple, physical milestone that means everything.",
-    category: "personal",
-    imageUrl: MOTIVATOR_IMAGES.fitOldClothes
-  },
-  {
-    title: "Fit Into New Clothes",
-    content: "Finally fitting into expensive new clothes I bought and never wore. This is the revenge arc — the clothes you once bought in hope, now finally fitting. Symbolic of reclaiming self-worth.",
-    category: "personal",
-    imageUrl: MOTIVATOR_IMAGES.fitNewClothes
-  },
-  {
-    title: "Be Looked At",
-    content: "Wanting to be looked at again — to feel attractive and back on the market. After fading into the background, this goal is about becoming visible again — wanting to turn heads, feel attractive, reawaken desire.",
-    category: "personal",
-    imageUrl: MOTIVATOR_IMAGES.beLookedAt
-  },
-  {
-    title: "Impress Them All",
-    content: "Wanting to impress or surprise someone (romantic or not). This is about transformation being seen. To make someone's jaw drop — not for revenge, but satisfaction.",
-    category: "personal",
-    imageUrl: MOTIVATOR_IMAGES.impressThemAll
-  },
-  {
-    title: "Regain Self-Respect",
-    content: "Getting confidence back — regaining self-respect through visible change. When you start showing up for yourself, your posture changes. This is about restoring dignity through action and discipline.",
-    category: "personal",
-    imageUrl: MOTIVATOR_IMAGES.regainSelfRespect
-  },
-  {
-    title: "Fix Insulin Levels",
-    content: "Worrying about insulin levels or other early warning signs. A health scare — even minor — can flip the switch. This motivator is about prevention before crisis hits.",
-    category: "health",
-    imageUrl: MOTIVATOR_IMAGES.fixInsulinLevels
-  },
-  {
-    title: "Fix Unexplained Symptoms",
-    content: "Struggling with weird, unexplained physical symptoms — and hoping weight loss will fix them. Strange symptoms without answers — bloating, aches, fatigue. When nothing works, the hope is that lifestyle change might.",
-    category: "health",
-    imageUrl: MOTIVATOR_IMAGES.fixUnexplainedSymptoms
-  },
-  {
-    title: "Event Countdown",
-    content: "Getting ready for an upcoming event (wedding, reunion, etc.). A set date creates urgency. You picture yourself walking in transformed — and that image fuels every choice.",
-    category: "goals",
-    imageUrl: MOTIVATOR_IMAGES.eventCountdown
-  },
-  {
-    title: "Autophagy Clean-Up",
-    content: "Autophagy: triggering deep cellular cleanup through extended fasting. For those who fast, this motivator goes deeper — it's about longevity, healing, and total reset from the inside out.",
-    category: "health",
-    imageUrl: MOTIVATOR_IMAGES.autophagyCleanUp
-  }
-];
+interface PredefinedMotivator {
+  title: string;
+  content: string;
+  category: string;
+  imageUrl?: string;
+}
 
 interface CustomMotivatorsImportProps {
   onComplete: () => void;
@@ -90,8 +20,35 @@ interface CustomMotivatorsImportProps {
 export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ onComplete }) => {
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState(false);
+  const [motivators, setMotivators] = useState<PredefinedMotivator[]>([]);
+  const [loading, setLoading] = useState(true);
   const { createMotivator } = useMotivators();
   const { toast } = useToast();
+
+  const loadPredefinedMotivators = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'predefined_motivators')
+        .single();
+
+      if (error) throw error;
+
+      const motivatorsList = JSON.parse(data.setting_value || '[]');
+      setMotivators(motivatorsList);
+    } catch (error) {
+      console.error('Error loading predefined motivators:', error);
+      // Fallback to empty array if no predefined motivators found
+      setMotivators([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPredefinedMotivators();
+  }, []);
 
   const handleImportAll = async () => {
     setImporting(true);
@@ -99,124 +56,167 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
     try {
       let successCount = 0;
       
-      for (const motivator of CUSTOM_MOTIVATORS) {
-        const result = await createMotivator(motivator);
-        if (result) {
+      for (const motivator of motivators) {
+        const motivatorId = await createMotivator({
+          title: motivator.title,
+          content: motivator.content,
+          category: motivator.category,
+          imageUrl: motivator.imageUrl,
+        });
+        
+        if (motivatorId) {
           successCount++;
         }
-        // Small delay to avoid overwhelming the database
-        await new Promise(resolve => setTimeout(resolve, 200));
       }
       
-      setImported(true);
-      toast({
-        title: "✨ Custom Motivators Imported!",
-        description: `Successfully imported ${successCount} custom motivators.`,
-      });
-      
-      // Auto close after 2 seconds
-      setTimeout(() => {
-        onComplete();
-      }, 2000);
-      
+      if (successCount === motivators.length) {
+        toast({
+          title: "🎉 Success!",
+          description: `Imported ${successCount} motivators to your collection.`,
+        });
+        setImported(true);
+        setTimeout(() => {
+          onComplete();
+        }, 2000);
+      } else {
+        toast({
+          title: "Partially imported",
+          description: `Imported ${successCount} of ${motivators.length} motivators.`,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
-      console.error('Error importing motivators:', error);
       toast({
+        title: "Import failed",
+        description: "There was an error importing the motivators. Please try again.",
         variant: "destructive",
-        title: "Import Failed",
-        description: "Unable to import custom motivators. Please try again."
       });
     } finally {
       setImporting(false);
     }
   };
 
-  if (imported) {
+  if (loading) {
     return (
-      <Card className="p-6 text-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <Check className="w-8 h-8 text-green-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">Import Complete!</h3>
-            <p className="text-sm text-muted-foreground">
-              All {CUSTOM_MOTIVATORS.length} custom motivators have been added to your collection.
-            </p>
-          </div>
-        </div>
-      </Card>
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
+        <p className="text-warm-text">Loading motivators...</p>
+      </div>
     );
   }
 
+  // If already imported, show success state
+  if (imported) {
+    return (
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
+        <div className="flex justify-center mb-4">
+          <div className="bg-primary/20 rounded-full p-4">
+            <Check className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-warm-text mb-2">All Set!</h3>
+        <p className="text-warm-text/70 mb-6">
+          Your motivational collection has been imported successfully.
+        </p>
+      </div>
+    );
+  }
+
+  // If no motivators available, show empty state
+  if (motivators.length === 0) {
+    return (
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
+        <h3 className="text-xl font-bold text-warm-text mb-2">No Predefined Motivators</h3>
+        <p className="text-warm-text/70 mb-6">
+          No predefined motivators are currently available. Contact your admin to add some.
+        </p>
+        <Button
+          variant="outline"
+          onClick={onComplete}
+          className="bg-ceramic-base border-ceramic-rim"
+        >
+          Continue
+        </Button>
+      </div>
+    );
+  }
+
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'health': return <Heart className="w-4 h-4" />;
+      case 'personal': return <Target className="w-4 h-4" />;
+      case 'confidence': return <Sparkles className="w-4 h-4" />;
+      case 'achievement': return <Trophy className="w-4 h-4" />;
+      case 'deadline': return <Calendar className="w-4 h-4" />;
+      case 'lifestyle': return <Zap className="w-4 h-4" />;
+      default: return <Target className="w-4 h-4" />;
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Custom Motivator Collection</h2>
-        <p className="text-muted-foreground">
-          Import professionally designed motivators based on real transformation triggers
+    <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold text-warm-text mb-2">Import Custom Motivators</h3>
+        <p className="text-warm-text/70">
+          Get started with {motivators.length} professionally crafted motivators designed to trigger real transformation
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-        {CUSTOM_MOTIVATORS.map((motivator, index) => (
-          <Card key={index} className="p-4">
-            <div className="flex items-start space-x-3">
-              <img 
-                src={motivator.imageUrl} 
-                alt={motivator.title}
-                className="w-16 h-16 object-cover rounded-lg"
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-foreground text-sm mb-1">
-                  {motivator.title}
-                </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {motivator.content.split('.')[0]}.
-                </p>
-                <Badge variant="outline" className="mt-2 text-xs">
-                  {motivator.category}
-                </Badge>
-              </div>
-            </div>
-          </Card>
-        ))}
+      <div className="max-h-96 overflow-y-auto space-y-3 mb-6">
+        {motivators.map((motivator, index) => {
+          const IconComponent = getCategoryIcon(motivator.category);
+          return (
+            <Card key={index} className="bg-ceramic-base border-ceramic-rim p-4">
+              <CardContent className="p-0">
+                <div className="flex items-start space-x-4">
+                  {motivator.imageUrl && (
+                    <img 
+                      src={motivator.imageUrl} 
+                      alt={motivator.title}
+                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      {IconComponent}
+                      <h4 className="font-medium text-warm-text text-sm">{motivator.title}</h4>
+                    </div>
+                    <p className="text-xs text-warm-text/70 line-clamp-2 mb-2">
+                      {motivator.content.slice(0, 100)}...
+                    </p>
+                    <span className="inline-block px-2 py-1 bg-primary/20 text-primary text-xs rounded-full capitalize">
+                      {motivator.category}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      <div className="flex flex-col items-center space-y-4">
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground mb-2">
-            <strong>{CUSTOM_MOTIVATORS.length} motivators</strong> covering personal goals, health triggers, and transformation milestones
-          </p>
-        </div>
-        
-        <Button 
+      <div className="flex flex-col space-y-3">
+        <Button
           onClick={handleImportAll}
           disabled={importing}
-          className="w-full max-w-sm"
-          size="lg"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {importing ? (
             <>
-              <Sparkles className="w-4 h-4 mr-2 animate-spin" />
-              Importing...
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              Importing {motivators.length} motivators...
             </>
           ) : (
             <>
               <Download className="w-4 h-4 mr-2" />
-              Import All Custom Motivators
+              Import All {motivators.length} Motivators
             </>
           )}
         </Button>
         
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onComplete}
-          className="text-sm"
+          className="bg-ceramic-base border-ceramic-rim"
         >
           Skip for now
         </Button>
