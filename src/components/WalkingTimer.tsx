@@ -25,7 +25,6 @@ interface WalkingTimerProps {
     speed: number;
     distance: number;
     calories: number;
-    steps?: number;
     startTime: string;
     pace?: number;
   };
@@ -305,18 +304,13 @@ export const WalkingTimer = ({
               </Card>
             </div>
 
-            {/* Calories & Steps Row */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Calories Only - Remove Steps */}
+            <div className="grid grid-cols-1 gap-3">
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Calories</span>
-                    {realTimeStats.calories === 0 && (
-                      <ClickableTooltip content="Calories calculation requires your weight, height, and age to be set in Settings">
-                        <Info className="w-5 h-5 text-amber-500" />
-                      </ClickableTooltip>
-                    )}
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-orange-500 animate-pulse' : isActive && !isPaused ? 'bg-orange-500' : 'bg-muted'}`} />
                 </div>
@@ -325,26 +319,8 @@ export const WalkingTimer = ({
                   <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {realTimeStats.calories === 0 ? 'complete profile to calculate' : 'burned'}
+                  estimated (~5 per minute)
                 </div>
-              </Card>
-
-              <Card className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-warm-text">Steps</span>
-                    <ClickableTooltip content="Estimated steps based on your height, speed, and stride length">
-                      <Info className="w-5 h-5 text-muted-foreground" />
-                    </ClickableTooltip>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
-                </div>
-                <div className="text-xl font-bold text-primary">
-                  {realTimeStats.steps?.toLocaleString() || 0}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">steps</span>
-                </div>
-                <div className="text-xs text-muted-foreground">estimated</div>
               </Card>
             </div>
 

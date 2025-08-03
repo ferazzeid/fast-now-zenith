@@ -13,7 +13,7 @@ import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog'
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
-import { useWalkingStats } from '@/contexts/WalkingStatsContext';
+import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
 
 const Walking = () => {
@@ -37,7 +37,7 @@ const Walking = () => {
     updateSessionSpeed
   } = useWalkingSession();
   const { profile } = useProfile();
-  const { walkingStats } = useWalkingStats();
+  const { walkingStats } = useSimpleWalkingStats();
 
   const isRunning = !!currentSession;
 
@@ -73,19 +73,21 @@ const Walking = () => {
   // Stats are now managed by WalkingStatsContext
 
   const handleStart = async () => {
-    // Start walking session directly without blocking
-    const result = await startWalkingSession(selectedSpeed);
-    if (result.error) {
+    try {
+      // Remove profile dependency - start immediately
+      await startWalkingSession(selectedSpeed);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
+        title: "Walking session started",
+        description: "Good luck on your walk!",
       });
-    } else {
+      
       trackWalkingEvent('start', selectedSpeed);
+    } catch (error) {
+      console.error('Failed to start walking session:', error);
       toast({
-        title: "Walking started",
-        description: `Walking session started at ${selectedSpeed} mph pace.`
+        title: "Error",
+        description: "Failed to start walking session. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -195,93 +197,51 @@ const Walking = () => {
           <p className="text-muted-foreground">Track your walking session and stay active</p>
         </div>
 
-        {/* Loading State */}
-        {loading ? (
-          <div className="space-y-6">
-            {/* Timer skeleton */}
-            <div className="bg-ceramic-plate rounded-3xl p-6 space-y-4">
-              <div className="text-center space-y-4">
-                <div className="h-16 bg-muted animate-pulse rounded w-48 mx-auto" />
-                <div className="h-6 bg-muted animate-pulse rounded w-32 mx-auto" />
-              </div>
-            </div>
-            
-            {/* Speed selector skeleton */}
-            <div className="bg-ceramic-plate rounded-xl p-4">
-              <div className="space-y-2">
-                <div className="h-4 bg-muted animate-pulse rounded w-20" />
-                <div className="h-8 bg-muted animate-pulse rounded w-full" />
-              </div>
-            </div>
-            
-            {/* Stats skeleton */}
-            <div className="grid grid-cols-2 gap-3">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-ceramic-plate rounded-xl p-4">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted animate-pulse rounded w-16" />
-                    <div className="h-6 bg-muted animate-pulse rounded w-12" />
-                    <div className="h-3 bg-muted animate-pulse rounded w-20" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Button skeleton */}
-            <div className="h-14 bg-muted animate-pulse rounded-lg" />
-          </div>
-        ) : (
-          <>
-            {/* Timer Display */}
-            <div className="relative mb-6">
-              <WalkingTimer
-                displayTime={formatTime(localTimeElapsed)}
-                isActive={!!currentSession}
-                isPaused={isPaused}
-                onStart={handleStart}
-                onPause={handlePause}
-                onResume={handleResume}
-                onStop={async () => { setShowStopConfirm(true); return Promise.resolve(); }}
-                onCancel={handleCancel}
-                showSlideshow={profile?.enable_walking_slideshow ?? true}
-                units={profile?.units || 'imperial'}
-                selectedSpeed={selectedSpeed}
-                onSpeedChange={async (newSpeed) => {
-                  setSelectedSpeed(newSpeed);
-                  if (isRunning) {
-                    const result = await updateSessionSpeed(newSpeed);
-                    if (result.error) {
-                      toast({
-                        variant: "destructive",
-                        title: "Speed Update Failed",
-                        description: "Unable to update walking speed. Please try again."
-                      });
-                    } else {
-                      toast({
-                        title: "Speed Updated",
-                        description: `Walking speed updated`
-                      });
-                    }
-                  } else {
-                    toast({
-                      title: "Speed Set", 
-                      description: `Walking speed set for next session`
-                    });
-                  }
-                }}
-                realTimeStats={currentSession ? {
-                  speed: currentSession.speed_mph || selectedSpeed,
-                  distance: walkingStats.realTimeDistance,
-                  calories: walkingStats.realTimeCalories,
-                  steps: walkingStats.realTimeSteps,
-                  startTime: currentSession.start_time
-                } : undefined}
-              />
-            </div>
-
-
-          </>
-        )}
+        {/* Timer Display - No Loading State Blocking */}
+        <div className="relative mb-6">
+          <WalkingTimer
+            displayTime={formatTime(localTimeElapsed)}
+            isActive={!!currentSession}
+            isPaused={isPaused}
+            onStart={handleStart}
+            onPause={handlePause}
+            onResume={handleResume}
+            onStop={async () => { setShowStopConfirm(true); return Promise.resolve(); }}
+            onCancel={handleCancel}
+            showSlideshow={profile?.enable_walking_slideshow ?? true}
+            units={profile?.units || 'imperial'}
+            selectedSpeed={selectedSpeed}
+            onSpeedChange={async (newSpeed) => {
+              setSelectedSpeed(newSpeed);
+              if (isRunning) {
+                const result = await updateSessionSpeed(newSpeed);
+                if (result.error) {
+                  toast({
+                    variant: "destructive",
+                    title: "Speed Update Failed",
+                    description: "Unable to update walking speed. Please try again."
+                  });
+                } else {
+                  toast({
+                    title: "Speed Updated",
+                    description: `Walking speed updated`
+                  });
+                }
+              } else {
+                toast({
+                  title: "Speed Set", 
+                  description: `Walking speed set for next session`
+                });
+              }
+            }}
+            realTimeStats={currentSession ? {
+              speed: currentSession.speed_mph || selectedSpeed,
+              distance: walkingStats.distance,
+              calories: walkingStats.calories,
+              startTime: currentSession.start_time
+            } : undefined}
+          />
+        </div>
 
 
 
@@ -298,8 +258,8 @@ const Walking = () => {
           onOpenChange={setShowStopConfirm}
           onConfirm={handleStopConfirm}
           currentDuration={formatTime(localTimeElapsed)}
-          calories={walkingStats.realTimeCalories}
-          distance={walkingStats.realTimeDistance}
+          calories={walkingStats.calories}
+          distance={walkingStats.distance}
           units={profile?.units || 'imperial'}
         />
 

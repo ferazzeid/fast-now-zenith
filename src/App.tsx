@@ -25,7 +25,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
-import { WalkingStatsProvider } from "./contexts/WalkingStatsContext";
+import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
 import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
@@ -157,9 +157,9 @@ const App = () => (
           <AsyncErrorBoundary>
             <ThemeProvider>
               <AuthProvider>
-                <WalkingStatsProvider>
+                <SimpleWalkingStatsProvider>
                   <AppContent />
-                </WalkingStatsProvider>
+                </SimpleWalkingStatsProvider>
               </AuthProvider>
             </ThemeProvider>
           </AsyncErrorBoundary>
