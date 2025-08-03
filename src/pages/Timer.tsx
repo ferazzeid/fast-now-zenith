@@ -393,8 +393,9 @@ const Timer = () => {
               <div className="space-y-3">
                 <Button 
                   onClick={() => setShowFastSelector(true)}
-                  className="w-full h-16 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                  size="lg"
+                  variant="action-primary"
+                  size="action-main"
+                  className="w-full"
                 >
                   <Play className="w-6 h-6 mr-2" />
                   Start Fast
@@ -404,8 +405,8 @@ const Timer = () => {
               <Button 
                 onClick={() => setShowStopConfirmDialog(true)}
                 variant="ghost"
-                className="w-full h-16 text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
-                size="lg"
+                size="action-main"
+                className="w-full text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
               >
                 <Square className="w-6 h-6 mr-2" />
                 Stop Fast

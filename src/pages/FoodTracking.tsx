@@ -651,13 +651,15 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         </div>
 
         {/* Action Buttons - MOVED BELOW Today's Food Plan */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           {/* Voice Add */}
           <PremiumGate feature="AI Food Assistant">
             <Button
-              onClick={handleVoiceFood}
-              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
+                    onClick={handleVoiceFood}
+                    variant="action-primary"
+                    size="action-tall"
+                    className="flex-col"
+                  >
               <Mic className="w-6 h-6 mb-1" />
               <span className="text-sm font-medium">Voice Add</span>
             </Button>
@@ -666,7 +668,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           {/* Manual Add */}
           <Button
             onClick={handleManualEntry}
-            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+            variant="action-primary"
+            size="action-tall"
+            className="flex-col"
           >
             <Plus className="w-6 h-6 mb-1" />
             <span className="text-sm font-medium">Manual Add</span>
@@ -677,11 +681,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         <div className="mb-3">
           <Button
             onClick={() => setShowLibraryView(true)}
-            className="w-full h-12 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+            variant="action-secondary"
+            size="action-secondary"
+            className="w-full gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
+            <ShoppingCart className="w-5 h-5" />
             <span className="font-medium">Add from Library</span>
           </Button>
         </div>

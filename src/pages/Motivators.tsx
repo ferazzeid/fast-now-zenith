@@ -194,13 +194,15 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Tooltip>
               <TooltipTrigger asChild>
                 <PremiumGate feature="AI Motivator Assistant">
                   <Button
                     onClick={handleVoiceMotivator}
-                    className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+                    variant="action-primary"
+                    size="action-tall"
+                    className="flex-col"
                   >
                     <Mic className="w-6 h-6 mb-1" />
                     <span className="text-sm font-medium">Voice Add</span>
@@ -216,7 +218,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               <TooltipTrigger asChild>
                 <Button 
                   onClick={() => setShowFormModal(true)}
-                  className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+                  variant="action-primary"
+                  size="action-tall"
+                  className="flex-col"
                 >
                   <Plus className="w-6 h-6 mb-1" />
                   <span className="text-sm font-medium">Manual Add</span>
@@ -234,7 +238,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
               <TooltipTrigger asChild>
                 <Button
                   onClick={() => setShowMotivatorIdeasModal(true)}
-                  className="w-full h-12 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                  variant="action-secondary"
+                  size="action-secondary"
+                  className="w-full gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -278,7 +284,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                   <p className="text-sm text-muted-foreground mb-4">
                     Create your first motivator to stay inspired during your fasting journey
                   </p>
-                  <Button onClick={() => setShowFormModal(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button onClick={() => setShowFormModal(true)} variant="action-secondary" size="action-secondary">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Your First Motivator
                   </Button>
