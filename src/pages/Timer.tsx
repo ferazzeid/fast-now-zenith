@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History } from 'lucide-react';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
@@ -339,14 +340,7 @@ const Timer = () => {
           {/* History button - only show for fasting mode */}
           {currentMode === 'fasting' && (
             <div className="absolute right-0 top-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFastingHistory(true)}
-                className="h-9 w-9 p-0 hover:bg-muted/50"
-              >
-                <History className="w-4 h-4" />
-              </Button>
+              <HistoryButton onClick={() => setShowFastingHistory(true)} title="View fasting history" />
             </div>
           )}
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">

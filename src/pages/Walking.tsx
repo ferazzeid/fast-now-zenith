@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
@@ -182,14 +183,7 @@ const Walking = () => {
             <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
           </div>
           <div className="absolute right-0 top-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowWalkingHistory(true)}
-              className="h-8 w-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-            >
-              <History className="w-4 h-4" />
-            </Button>
+            <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
             Walking Timer

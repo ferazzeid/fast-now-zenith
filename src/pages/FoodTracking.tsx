@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
@@ -458,20 +459,16 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             <div className="absolute left-0 top-0">
               <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
             </div>
-            <div></div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Food Tracking
-            </h1>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowHistory(true)}
-              className="p-2"
-            >
-              <History className="w-5 h-5" />
-            </Button>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Food Tracking
+              </h1>
+            </div>
+            <div className="absolute right-0 top-0">
+              <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
+            </div>
           </div>
-          <p className="text-muted-foreground">Log your food intake</p>
+          <p className="text-muted-foreground mb-8">Log your food intake</p>
         </div>
 
         {/* Today's Nutrition Overview */}
@@ -655,12 +652,12 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           {/* Voice Add */}
           <PremiumGate feature="AI Food Assistant">
             <Button
-                    onClick={handleVoiceFood}
-                    variant="action-primary"
-                    size="action-tall"
-                    className="flex-col"
-                  >
-              <Mic className="w-6 h-6 mb-1" />
+              onClick={handleVoiceFood}
+              variant="action-primary"
+              size="action-tall"
+              className="gap-2"
+            >
+              <Mic className="w-5 h-5" />
               <span className="text-sm font-medium">Voice Add</span>
             </Button>
           </PremiumGate>
@@ -670,9 +667,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             onClick={handleManualEntry}
             variant="action-primary"
             size="action-tall"
-            className="flex-col"
+            className="gap-2"
           >
-            <Plus className="w-6 h-6 mb-1" />
+            <Plus className="w-5 h-5" />
             <span className="text-sm font-medium">Manual Add</span>
           </Button>
         </div>
@@ -686,7 +683,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             className="w-full gap-2"
           >
             <ShoppingCart className="w-5 h-5" />
-            <span className="font-medium">Add from Library</span>
+            <span className="text-sm font-medium">Add from Library</span>
           </Button>
         </div>
 
