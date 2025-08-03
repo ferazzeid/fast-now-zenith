@@ -108,7 +108,9 @@ export const CircularMotivatorText = ({ isActive, transitionTime = 15, onModeCha
             displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-60'
           }`}
           style={{ 
-            animation: displayMode === 'motivator-focused' ? 'spin 60s linear infinite' : 'none'
+            animation: displayMode === 'motivator-focused' ? 'spin 60s linear infinite' : 'none',
+            willChange: 'transform',
+            transform: 'translate3d(0, 0, 0)' // GPU acceleration
           }}
         >
           <div className="relative w-full h-full">

@@ -29,21 +29,23 @@ export const useAdminAwareToast = () => {
   const originalToast = require('@/hooks/use-toast').useToast();
   
   const toast = (props: any) => {
-    // For non-admin users, only show user-friendly errors
+    // For non-admin users, filter out ALL technical errors completely
     if (!isAdmin && props.variant === 'destructive') {
-      // Filter out technical errors for regular users
+      // Filter out technical errors for regular users - expanded list
       if (props.description?.includes('subscription') || 
           props.description?.includes('API') ||
           props.description?.includes('database') ||
           props.description?.includes('server') ||
+          props.description?.includes('connection') ||
+          props.description?.includes('network') ||
+          props.description?.includes('archived conversations') ||
           props.title?.includes('Error checking') ||
-          props.title?.includes('Failed to')) {
-        // Show a generic user-friendly message instead
-        return originalToast.toast({
-          title: "Something went wrong",
-          description: "Please try again in a moment",
-          variant: "destructive",
-        });
+          props.title?.includes('Failed to') ||
+          props.title?.includes('Subscription error') ||
+          props.title?.includes('Connection error') ||
+          props.title?.includes('Network error')) {
+        // Silently return - no error shown to regular users
+        return;
       }
     }
     

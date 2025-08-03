@@ -148,19 +148,21 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                    isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
               
-              {/* Main Timer - Centered */}
+              {/* Main Timer - Centered - Fixed font size for consistency */}
                <div 
                 className={cn(
                   "font-mono font-bold tracking-wide transition-colors duration-300",
-                  isActive ? "text-5xl text-primary" : "text-4xl text-muted-foreground"
+                  "text-4xl", // Fixed size to prevent overflow
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
                 style={{ 
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  fontFeatureSettings: '"tnum" 1'
+                  fontFeatureSettings: '"tnum" 1',
+                  lineHeight: '1.1' // Tighter line height to prevent overflow
                 }}
-               >
+              >
                  {displayTime}
-               </div>
+              </div>
               
               {/* Goal Display - Always show during intermittent fasting */}
               {isActive && fastType === 'intermittent' && goalDuration && (

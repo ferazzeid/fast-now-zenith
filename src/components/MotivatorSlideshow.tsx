@@ -106,7 +106,11 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
           displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1 }}
+        style={{ 
+          zIndex: displayMode === 'motivator-focused' ? 8 : 1,
+          willChange: 'transform, opacity',
+          transform: 'translate3d(0, 0, 0)' // GPU acceleration
+        }}
       >
         <div 
           className="absolute inset-0"
