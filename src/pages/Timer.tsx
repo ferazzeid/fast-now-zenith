@@ -366,7 +366,7 @@ const Timer = () => {
                 displayTime={getDisplayTime()}
                 isActive={isRunning}
                 isEatingWindow={isInEatingWindow}
-                showSlideshow={profile?.enable_fasting_slideshow ?? true}
+                showSlideshow={profile?.enable_fasting_slideshow ?? false}
                 eatingWindowTimeRemaining={null}
                 countDirection={countDirection}
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
