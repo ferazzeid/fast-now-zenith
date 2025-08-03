@@ -140,8 +140,8 @@ export const useDailyDeficit = () => {
       const manualCalories = manualCalorieTotal || 0;
       
       // Calculate deficit: TDEE + Walking + Manual Activities - Food Consumed
-      // Round to prevent nervous jumping from micro-changes
-      const todayDeficit = Math.round(tdee + walkingCalories + manualCalories - caloriesConsumed);
+      // Round to prevent nervous jumping from micro-changes  
+      const todayDeficit = Math.round((tdee + walkingCalories + manualCalories - caloriesConsumed) / 10) * 10;
       
       setDeficitData({
         todayDeficit,
@@ -179,19 +179,12 @@ export const useDailyDeficit = () => {
     }
   }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, todayOverride?.activity_level, todayTotals.calories, manualCalorieTotal, walkingStats.realTimeCalories, walkingStats.isActive, walkingStats.currentSessionId, calculateDeficit]);
 
-  // Conservative recalculation - debounced for better performance
+  // Single debounced recalculation to prevent jumping
   useEffect(() => {
     if (walkingStats.isActive && !walkingStats.isPaused) {
       const interval = setInterval(() => {
         calculateDeficit();
-      }, 30000); // 30 seconds when walking is active - reduced frequency to prevent jumping
-      
-      return () => clearInterval(interval);
-    } else {
-      // When not actively walking, check much less frequently
-      const interval = setInterval(() => {
-        calculateDeficit();
-      }, 300000); // 5 minutes when idle
+      }, 60000); // 1 minute when walking is active
       
       return () => clearInterval(interval);
     }

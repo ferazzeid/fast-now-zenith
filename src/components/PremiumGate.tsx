@@ -13,11 +13,16 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, requests_used, request_limit, createSubscription, platform } = useMultiPlatformSubscription();
+  const { subscribed, subscription_tier, requests_used, request_limit, createSubscription, platform, loading } = useMultiPlatformSubscription();
   const { toast } = useToast();
 
   // Check if user has access to the feature
   const hasAccess = subscribed || subscription_tier === 'api_user' || (requests_used < request_limit);
+
+  // Show content while loading to prevent flashing
+  if (loading) {
+    return <>{children}</>;
+  }
 
   const handleUpgrade = async () => {
     try {

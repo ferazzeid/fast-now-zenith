@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
+import { useSubscriptionCache } from './useSubscriptionCache';
+import { debounce } from '@/utils/memoryUtils';
+import { detectPlatform } from '@/utils/platformDetection';
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -29,37 +32,26 @@ export const useMultiPlatformSubscription = () => {
   const [loading, setLoading] = useState(true);
   const { user, session } = useAuthStore();
   const { toast } = useToast();
+  const { getCachedSubscription, setCachedSubscription, clearCache } = useSubscriptionCache();
+  const platform = detectPlatform();
 
-  const detectPlatform = (): string => {
-    // Check if running in Capacitor
-    if (typeof window !== 'undefined') {
-      // @ts-ignore - Capacitor types may not be available
-      if (window.Capacitor) {
-        // @ts-ignore
-        const platform = window.Capacitor.getPlatform();
-        return platform === 'ios' ? 'ios' : platform === 'android' ? 'android' : 'web';
-      }
-      
-      // Fallback detection
-      const userAgent = navigator.userAgent;
-      if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-        return 'ios';
-      } else if (userAgent.includes('Android')) {
-        return 'android';
-      }
+
+  const checkSubscription = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
     }
-    return 'web';
-  };
 
-  const checkSubscription = async () => {
-    if (!user || !session) {
+    // Check cache first
+    const cached = getCachedSubscription();
+    if (cached) {
+      setSubscriptionData(cached);
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      const platform = detectPlatform();
       
       // First, get profile data for basic functionality
       const { data: profile } = await supabase
@@ -84,7 +76,7 @@ export const useMultiPlatformSubscription = () => {
         const hasPremiumFeatures = Boolean(isPaidUser || (requestsUsed < requestLimit));
 
         // Set subscription data from profile - this is reliable
-        setSubscriptionData({
+        const newData = {
           subscribed: isSubscribed,
           subscription_tier: profile?.subscription_tier || 'free',
           requests_used: requestsUsed,
@@ -94,13 +86,16 @@ export const useMultiPlatformSubscription = () => {
           payment_provider: profile?.payment_provider || 'stripe',
           platform,
           subscription_end_date: undefined
-        });
-        setLoading(false); // Allow UI to render with profile data
-        return; // Use profile data as primary source
+        };
+        
+        setSubscriptionData(newData);
+        setCachedSubscription(newData);
+        setLoading(false);
+        return;
       }
 
       // Fallback only if no profile data exists
-      setSubscriptionData({
+      const fallbackData = {
         subscribed: false,
         subscription_tier: 'free',
         requests_used: 0,
@@ -109,12 +104,15 @@ export const useMultiPlatformSubscription = () => {
         hasPremiumFeatures: true, // Allow basic functionality
         payment_provider: 'stripe',
         platform
-      });
+      };
+      
+      setSubscriptionData(fallbackData);
+      setCachedSubscription(fallbackData);
 
     } catch (error) {
       console.error('Error checking subscription:', error);
       // Always provide safe fallback data
-      setSubscriptionData({
+      const fallbackData = {
         subscribed: false,
         subscription_tier: 'free',
         requests_used: 0,
@@ -122,12 +120,15 @@ export const useMultiPlatformSubscription = () => {
         isPaidUser: false,
         hasPremiumFeatures: true, // Allow basic functionality when errors occur
         payment_provider: 'stripe',
-        platform: detectPlatform()
-      });
+        platform
+      };
+      
+      setSubscriptionData(fallbackData);
+      setCachedSubscription(fallbackData);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, platform, getCachedSubscription, setCachedSubscription]);
 
   const createSubscription = async () => {
     if (!user || !session) {
@@ -135,7 +136,6 @@ export const useMultiPlatformSubscription = () => {
     }
 
     try {
-      const platform = detectPlatform();
       
       const { data, error } = await supabase.functions.invoke('unified-subscription', {
         body: {
@@ -169,7 +169,6 @@ export const useMultiPlatformSubscription = () => {
     }
 
     try {
-      const platform = detectPlatform();
       
       const { data, error } = await supabase.functions.invoke('unified-subscription', {
         body: {
@@ -205,7 +204,6 @@ export const useMultiPlatformSubscription = () => {
     }
 
     try {
-      const platform = detectPlatform();
       let functionName = '';
       
       if (platform === 'android') {
@@ -266,18 +264,29 @@ export const useMultiPlatformSubscription = () => {
     return null;
   };
 
+  // Debounced subscription check to prevent spam
+  const debouncedCheckSubscription = useCallback(
+    debounce(checkSubscription, 1000), 
+    [checkSubscription]
+  );
+
+  // Check subscription when user changes - but debounced
   useEffect(() => {
-    checkSubscription();
-  }, [user, session]);
+    if (user) {
+      debouncedCheckSubscription();
+    }
+  }, [user?.id, debouncedCheckSubscription]);
 
   return {
     ...subscriptionData,
     loading,
+    platform,
     checkSubscription,
     createSubscription,
     openCustomerPortal,
     validateNativeReceipt,
     trackUsageEvent,
     getUsageWarning,
+    clearSubscriptionCache: clearCache
   };
 };

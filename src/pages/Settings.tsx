@@ -123,6 +123,43 @@ const Settings = () => {
 
   const handleSaveSettings = async () => {
     try {
+      // Validate required fields first
+      if (units === 'metric') {
+        if (weight && (parseFloat(weight) < 30 || parseFloat(weight) > 300)) {
+          toast({
+            title: "Invalid Weight",
+            description: "Weight must be between 30-300 kg",
+            variant: "destructive"
+          });
+          return;
+        }
+        if (height && (parseInt(height) < 100 || parseInt(height) > 250)) {
+          toast({
+            title: "Invalid Height", 
+            description: "Height must be between 100-250 cm",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        if (weight && (parseFloat(weight) < 60 || parseFloat(weight) > 700)) {
+          toast({
+            title: "Invalid Weight",
+            description: "Weight must be between 60-700 lbs",
+            variant: "destructive"
+          });
+          return;
+        }
+        if (height && (parseInt(height) < 48 || parseInt(height) > 96)) {
+          toast({
+            title: "Invalid Height",
+            description: "Height must be between 48-96 inches", 
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       // Simple validation for API key
       if (useOwnKey && openAiKey.trim()) {
         if (!openAiKey.startsWith('sk-')) {
@@ -165,7 +202,12 @@ const Settings = () => {
 
         if (error) {
           console.error('Settings save error:', error);
-          throw error;
+          toast({
+            title: "Database Error",
+            description: `Failed to save: ${error.message}`,
+            variant: "destructive"
+          });
+          return;
         }
 
         console.log('Settings saved successfully');
@@ -174,10 +216,11 @@ const Settings = () => {
           description: useOwnKey ? "Using your own API key with selected models" : "Using shared service with selected models",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Settings save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save settings",
+        description: error?.message || "Failed to save settings. Please try again.",
         variant: "destructive"
       });
     }
