@@ -26,6 +26,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 import { GoalSettingNotification } from '@/components/GoalSettingNotification';
 import { useGoalNotification } from '@/hooks/useGoalNotification';
+import { PremiumGate } from '@/components/PremiumGate';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -846,10 +847,12 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
             </div>
             
             {/* Voice Recording */}
-            <VoiceRecorder
-              onTranscription={handleVoiceTranscription}
-              isDisabled={isProcessing}
-            />
+            <PremiumGate feature="Voice Input">
+              <VoiceRecorder
+                onTranscription={handleVoiceTranscription}
+                isDisabled={isProcessing}
+              />
+            </PremiumGate>
           </div>
         </div>
       </div>

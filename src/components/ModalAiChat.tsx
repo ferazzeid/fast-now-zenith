@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+import { PremiumGate } from '@/components/PremiumGate';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -493,16 +494,18 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                        </div>
                      )}
 
-                     {/* Voice correction button for follow-up messages */}
-                     {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (
-                       <div className="flex justify-center mt-3">
-                         <CircularVoiceButton
-                           onTranscription={handleVoiceTranscription}
-                           isDisabled={isProcessing}
-                           size="sm"
-                         />
-                       </div>
-                     )}
+                      {/* Voice correction button for follow-up messages */}
+                      {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (
+                        <div className="flex justify-center mt-3">
+                          <PremiumGate feature="Voice Input">
+                            <CircularVoiceButton
+                              onTranscription={handleVoiceTranscription}
+                              isDisabled={isProcessing}
+                              size="sm"
+                            />
+                          </PremiumGate>
+                        </div>
+                      )}
                     
                      {/* Motivator suggestion buttons */}
                      {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
@@ -632,14 +635,16 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
             </Button>
           </div>
           
-          {/* Voice Recording */}
-          <div className="flex justify-center">
-            <CircularVoiceButton
-              onTranscription={handleVoiceTranscription}
-              isDisabled={isProcessing}
-              size="lg"
-            />
-          </div>
+           {/* Voice Recording */}
+           <div className="flex justify-center">
+             <PremiumGate feature="Voice Input">
+               <CircularVoiceButton
+                 onTranscription={handleVoiceTranscription}
+                 isDisabled={isProcessing}
+                 size="lg"
+               />
+             </PremiumGate>
+           </div>
         </div>
         )}
       </DialogContent>

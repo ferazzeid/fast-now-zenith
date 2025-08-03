@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
+import { PremiumGate } from '@/components/PremiumGate';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -385,14 +386,16 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             </Button>
           </div>
           
-          {/* Voice Recording */}
-          <div className="flex justify-center">
-            <CircularVoiceButton
-              onTranscription={handleVoiceTranscription}
-              isDisabled={isLoading}
-              size="lg"
-            />
-          </div>
+           {/* Voice Recording */}
+           <div className="flex justify-center">
+             <PremiumGate feature="Voice Input">
+               <CircularVoiceButton
+                 onTranscription={handleVoiceTranscription}
+                 isDisabled={isLoading}
+                 size="lg"
+               />
+             </PremiumGate>
+           </div>
         </div>
       </DialogContent>
     </Dialog>
