@@ -180,8 +180,8 @@ export const WalkingTimer = ({
                   });
                 }
               }}
-              variant={isPaused ? "default" : "outline"}
-              className="flex-1 h-14 text-lg font-medium min-w-0"
+              variant="outline"
+              className="flex-1 h-14 text-lg font-medium min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
               size="lg"
             >
               {isPaused ? (
@@ -211,7 +211,7 @@ export const WalkingTimer = ({
                   }
                 }}
                 variant="outline"
-                className="h-14 px-4 min-w-0"
+                className="h-14 px-4 min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
                 size="lg"
               >
                 <X className="w-6 h-6" />
@@ -278,7 +278,11 @@ export const WalkingTimer = ({
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-background border-border">
                       {getSpeedOptions(units).map((option) => (
-                        <SelectItem key={option.value} value={option.value.toString()}>
+                        <SelectItem 
+                          key={option.value} 
+                          value={option.value.toString()}
+                          className="focus:bg-muted focus:text-muted-foreground hover:bg-muted hover:text-muted-foreground"
+                        >
                           <span className="font-medium">{option.label}</span>
                         </SelectItem>
                       ))}
