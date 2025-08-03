@@ -92,11 +92,13 @@ export const ModalAiChat = ({
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
     } else if (!isOpen) {
-      // Clear messages when modal closes
-      setMessages([]);
-      setShowEditForm(false);
-      setLastFoodSuggestion(null);
-      setLastMotivatorSuggestion(null);
+      // Clear messages when modal closes - but only after a small delay to prevent flickering
+      setTimeout(() => {
+        setMessages([]);
+        setShowEditForm(false);
+        setLastFoodSuggestion(null);
+        setLastMotivatorSuggestion(null);
+      }, 100);
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
 

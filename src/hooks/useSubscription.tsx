@@ -82,18 +82,24 @@ export const useSubscription = () => {
           const tier = profile?.user_tier || 'granted_user';
           const requestsUsed = profile?.monthly_ai_requests || 0;
 
-          // Check Stripe subscription for paid users only
+          // Check Stripe subscription for paid users only - but only if needed
           let stripeSubscriptionData = null;
-          if (tier === 'paid_user') {
+          if (tier === 'paid_user' && profile?.subscription_status !== 'active') {
             try {
-              const { data: stripeData, error: stripeError } = await supabase.functions.invoke('check-subscription');
+              const { data: stripeData, error: stripeError } = await supabase.functions.invoke('check-subscription', {
+                headers: {
+                  Authorization: `Bearer ${session?.access_token}`,
+                }
+              });
               if (stripeError) {
-                console.error('Error checking subscription:', stripeError);
+                console.warn('Subscription check failed, using profile data:', stripeError);
+                // Continue with profile data instead of failing
               } else {
                 stripeSubscriptionData = stripeData;
               }
             } catch (error) {
-              console.error('Error calling check-subscription function:', error);
+              console.warn('Subscription function unavailable, using profile data:', error);
+              // Continue with profile data
             }
           }
 

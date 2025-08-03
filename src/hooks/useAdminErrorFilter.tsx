@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminUser {
   isAdmin: boolean;
@@ -26,7 +27,7 @@ export const useAdminErrorFilter = (): AdminUser => {
 // Custom toast wrapper that filters errors for non-admin users
 export const useAdminAwareToast = () => {
   const { isAdmin } = useAdminErrorFilter();
-  const originalToast = require('@/hooks/use-toast').useToast();
+  const originalToast = useToast();
   
   const toast = (props: any) => {
     // For non-admin users, filter out ALL technical errors completely

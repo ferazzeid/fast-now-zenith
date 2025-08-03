@@ -48,12 +48,6 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
 
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
-      {/* Circular Title Text - MOVED OUTSIDE ceramic plate structure */}
-      {showSlideshow && isActive && (
-        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
-          <CircularMotivatorText isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
-        </div>
-      )}
       
       
       {/* Main ceramic plate */}

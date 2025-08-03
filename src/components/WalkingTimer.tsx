@@ -139,13 +139,6 @@ export const WalkingTimer = ({
             </div>
           )}
           
-          {/* Small circular progress indicator in corner */}
-          <div className="absolute top-4 right-4" style={{ zIndex: 12 }}>
-            <div className={`w-12 h-12 rounded-full border-4 transition-colors duration-300 ${
-              isActive && !isPaused ? 'border-accent border-t-accent/30' : 
-              isPaused ? 'border-yellow-500 border-t-yellow-500/30' : 'border-muted'
-            }`} />
-          </div>
           
           {/* Main time display */}
           <div 
