@@ -653,13 +653,15 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         {/* Action Buttons - MOVED BELOW Today's Food Plan */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           {/* Voice Add */}
-          <Button
-            onClick={handleVoiceFood}
-            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Mic className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Voice Add</span>
-          </Button>
+          <PremiumGate feature="AI Food Assistant">
+            <Button
+              onClick={handleVoiceFood}
+              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Mic className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">Voice Add</span>
+            </Button>
+          </PremiumGate>
           
           {/* Manual Add */}
           <Button
@@ -796,16 +798,18 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
 
         {/* AI Chat Modal */}
-        <ComponentErrorBoundary>
-          <ModalAiChat
-            isOpen={showAiChat}
-            onClose={() => setShowAiChat(false)}
-            onResult={handleAiChatResult}
-            context={aiChatContext}
-            title="Food Assistant"
-            systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
-          />
-        </ComponentErrorBoundary>
+        <PremiumGate feature="AI Chat Assistant" showUpgrade={false}>
+          <ComponentErrorBoundary>
+            <ModalAiChat
+              isOpen={showAiChat}
+              onClose={() => setShowAiChat(false)}
+              onResult={handleAiChatResult}
+              context={aiChatContext}
+              title="Food Assistant"
+              systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
+            />
+          </ComponentErrorBoundary>
+        </PremiumGate>
 
         {/* Food History Modal */}
         {showHistory && (
