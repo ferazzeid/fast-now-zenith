@@ -21,6 +21,7 @@ import {
   PaymentProviderSettings
 } from "@/components/LazyAdminComponents";
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
+import { AdminDailyAnalysisSettings } from '@/components/AdminDailyAnalysisSettings';
 
 interface User {
   user_id: string;
@@ -310,6 +311,9 @@ const AdminOverview = () => {
 
             {/* Food Chat Settings */}
             <AdminFoodChatSettings />
+
+            {/* Daily Analysis Settings */}
+            <AdminDailyAnalysisSettings />
           </CollapsibleContent>
         </Collapsible>
       </div>

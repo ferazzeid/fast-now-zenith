@@ -134,11 +134,14 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       setHasMore((fastingSessions?.length || 0) === ITEMS_PER_PAGE);
     } catch (error) {
       console.error('Error loading fasting history:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load fasting history",
-        variant: "destructive"
-      });
+      // Only show error toast for actual database errors, not empty results
+      if (error && error.code !== 'PGRST116') {
+        toast({
+          title: "Error",
+          description: "Failed to load fasting history",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -122,6 +122,10 @@ export const useWalkingSession = () => {
       return { data, error: null };
     } catch (error: any) {
       console.error('Error pausing walking session:', error);
+      // Handle network errors gracefully
+      if (error.message?.includes('fetch')) {
+        return { error: { message: 'Network error. Please check your connection and try again.' }, data: null };
+      }
       return { error, data: null };
     } finally {
       setLoading(false);
@@ -156,6 +160,10 @@ export const useWalkingSession = () => {
       return { data, error: null };
     } catch (error: any) {
       console.error('Error resuming walking session:', error);
+      // Handle network errors gracefully
+      if (error.message?.includes('fetch')) {
+        return { error: { message: 'Network error. Please check your connection and try again.' }, data: null };
+      }
       return { error, data: null };
     } finally {
       setLoading(false);
@@ -235,6 +243,10 @@ export const useWalkingSession = () => {
       return { data, error: null };
     } catch (error: any) {
       console.error('Error ending walking session:', error);
+      // Handle network errors gracefully
+      if (error.message?.includes('fetch')) {
+        return { error: { message: 'Network error. Please check your connection and try again.' }, data: null };
+      }
       return { error, data: null };
     } finally {
       setLoading(false);
@@ -265,6 +277,10 @@ export const useWalkingSession = () => {
       return { data: true, error: null };
     } catch (error: any) {
       console.error('Error cancelling walking session:', error);
+      // Handle network errors gracefully
+      if (error.message?.includes('fetch')) {
+        return { error: { message: 'Network error. Please check your connection and try again.' }, data: null };
+      }
       return { error, data: null };
     } finally {
       setLoading(false);

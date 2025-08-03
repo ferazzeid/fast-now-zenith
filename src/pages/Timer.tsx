@@ -388,7 +388,7 @@ const Timer = () => {
 
         {/* Control Buttons - Only show for fasting mode */}
         {currentMode === 'fasting' && (
-          <div className="space-y-4">
+          <div className="space-y-8">
             {!isRunning ? (
               <div className="space-y-3">
                 <Button 

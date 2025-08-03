@@ -241,7 +241,7 @@ const Walking = () => {
                 onStart={handleStart}
                 onPause={handlePause}
                 onResume={handleResume}
-                onStop={() => setShowStopConfirm(true)}
+                onStop={async () => { setShowStopConfirm(true); return Promise.resolve(); }}
                 onCancel={handleCancel}
                 showSlideshow={profile?.enable_walking_slideshow ?? true}
                 units={profile?.units || 'imperial'}

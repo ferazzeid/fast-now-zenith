@@ -30,7 +30,7 @@ export const StopWalkingConfirmDialog = ({
 }: StopWalkingConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm mx-4">
+      <AlertDialogContent className="max-w-sm mx-auto">
         <AlertDialogHeader className="space-y-2">
           <AlertDialogTitle className="text-lg">Stop Walking Session?</AlertDialogTitle>
           <AlertDialogDescription className="text-sm leading-relaxed">

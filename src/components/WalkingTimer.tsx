@@ -8,16 +8,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
+import { useToast } from '@/hooks/use-toast';
 
 interface WalkingTimerProps {
   displayTime: string;
   isActive: boolean;
   isPaused?: boolean;
   onStart: () => void;
-  onPause?: () => void;
-  onResume?: () => void;
-  onStop: () => void;
-  onCancel?: () => void;
+  onPause?: () => Promise<{ error?: { message: string } } | void>;
+  onResume?: () => Promise<{ error?: { message: string } } | void>;
+  onStop: () => Promise<{ error?: { message: string } } | void>;
+  onCancel?: () => Promise<{ error?: { message: string } } | void>;
   className?: string;
   showSlideshow?: boolean;
   realTimeStats?: {
@@ -51,6 +52,7 @@ export const WalkingTimer = ({
 }: WalkingTimerProps) => {
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const { isAnimationsSuspended } = useAnimationControl();
+  const { toast } = useToast();
 
   // Static speed mappings - same as SpeedSelector
   const SPEED_MAPPINGS = {
@@ -161,7 +163,24 @@ export const WalkingTimer = ({
         {isActive && (
           <div className="flex gap-2 w-full">
             <Button 
-              onClick={isPaused ? onResume : onPause}
+              onClick={async () => {
+                 try {
+                  const result = isPaused ? await onResume?.() : await onPause?.();
+                  if (result && 'error' in result && result.error) {
+                    toast({
+                      title: "Error",
+                      description: result.error.message || `Failed to ${isPaused ? 'resume' : 'pause'} session`,
+                      variant: "destructive"
+                    });
+                  }
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Network error. Please try again.",
+                    variant: "destructive"
+                  });
+                }
+              }}
               variant={isPaused ? "default" : "outline"}
               className="flex-1 h-14 text-lg font-medium min-w-0"
               size="lg"
@@ -174,7 +193,24 @@ export const WalkingTimer = ({
             </Button>
             {onCancel && (
               <Button 
-                onClick={onCancel}
+                onClick={async () => {
+                   try {
+                    const result = await onCancel?.();
+                    if (result && 'error' in result && result.error) {
+                      toast({
+                        title: "Error",
+                        description: result.error.message || "Failed to cancel session",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "Network error. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
                 variant="outline"
                 className="h-14 px-4 min-w-0"
                 size="lg"
@@ -183,7 +219,24 @@ export const WalkingTimer = ({
               </Button>
             )}
             <Button 
-              onClick={onStop}
+              onClick={async () => {
+                 try {
+                  const result = await onStop();
+                  if (result && 'error' in result && result.error) {
+                    toast({
+                      title: "Error",
+                      description: result.error.message || "Failed to stop session",
+                      variant: "destructive"
+                    });
+                  }
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Network error. Please try again.",
+                    variant: "destructive"
+                  });
+                }
+              }}
               variant="secondary"
               className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground min-w-0"
               size="lg"
