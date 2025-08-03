@@ -556,7 +556,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Mic className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Voice Add Food</span>
+              <span className="text-sm font-medium">Voice Add</span>
             </Button>
           </PremiumGate>
           
@@ -567,8 +567,111 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Plus className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Manual Add Food</span>
+            <span className="text-sm font-medium">Manual Add</span>
           </Button>
+        </div>
+
+        {/* Today's Food Plan Section */}
+        <div className="mb-8 p-4 rounded-xl bg-ceramic-plate border border-ceramic-rim space-y-4">
+          <h2 className="text-lg font-semibold text-warm-text mb-2">Today's Food Plan</h2>
+          
+          {todayEntries.length === 0 ? (
+            <div className="text-center py-6">
+              <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+              <p className="text-muted-foreground">No foods added yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Add foods using the buttons above</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {todayEntries.map((entry) => (
+                <div key={entry.id} className="bg-ceramic-base/30 rounded-lg p-3 border border-ceramic-rim/50">
+                  <div className="flex items-center gap-3">
+                    {/* Entry Image */}
+                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                      {entry.image_url ? (
+                        <img 
+                          src={entry.image_url} 
+                          alt={entry.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <Utensils className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    
+                    {/* Entry Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-medium text-warm-text text-sm truncate">
+                            {entry.name}
+                          </h3>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                            <span>{Math.round(entry.serving_size)}g</span>
+                            <span>{Math.round(entry.calories)} cal</span>
+                            <span>{Math.round(entry.carbs)}g carbs</span>
+                          </div>
+                          
+                          {/* Walking equivalent */}
+                          <div className="flex items-center gap-1 mt-1">
+                            <Footprints className="w-3 h-3 text-primary" />
+                            <span className="text-xs text-primary font-medium">
+                              {formatWalkingTime(calculateWalkingMinutesForFood(entry.calories))} walk
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 ml-2">
+                          {/* Consumption Toggle */}
+                          <ClickableTooltip content={entry.consumed ? "Mark as not consumed" : "Mark as consumed"}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                              className={`h-7 w-7 p-0 hover:scale-105 transition-all duration-200 ${
+                                entry.consumed 
+                                  ? 'text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950' 
+                                  : 'text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950'
+                              }`}
+                            >
+                              <Check 
+                                className={`w-4 h-4 transition-all duration-200 ${
+                                  entry.consumed ? 'scale-110' : 'scale-90'
+                                }`} 
+                              />
+                            </Button>
+                          </ClickableTooltip>
+                          
+                          {/* More Options */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-accent">
+                                <MoreVertical className="w-3 h-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Entry
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteFoodEntry(entry.id)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Entry
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* My Foods Library Button */}
@@ -716,125 +819,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </ComponentErrorBoundary>
         )}
 
-        {/* Unified Food Plan */}
-        <div className="space-y-4 mt-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              Today's Food Plan
-            </h2>
-            <div className="text-sm text-muted-foreground flex gap-3">
-              <span>{todayEntries.filter(entry => !entry.consumed).length} planned</span>
-              <span>{todayEntries.filter(entry => entry.consumed).length} consumed</span>
-            </div>
-          </div>
-
-          {/* Food Entries */}
-          {todayEntries.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <p>No food items in your plan yet.</p>
-              <p className="text-sm mt-2">Add food items using the buttons above!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {/* Show planned items first, then consumed */}
-              {[...todayEntries]
-                .sort((a, b) => {
-                  // Sort by consumption status (planned first), then by creation time
-                  if (a.consumed !== b.consumed) {
-                    return a.consumed ? 1 : -1;
-                  }
-                  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                })
-                .map((entry) => (
-                <div key={entry.id} className={`p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim transition-colors ${entry.consumed ? 'opacity-50' : ''}`}>
-                  <div className="flex items-center gap-3">
-                    {/* Food Image */}
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-ceramic-base flex items-center justify-center flex-shrink-0">
-                      {entry.image_url ? (
-                        <img 
-                          src={entry.image_url} 
-                          alt={entry.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Utensils className="w-5 h-5 text-warm-text/60" />
-                      )}
-                    </div>
-                    
-                     {/* Food Info */}
-                     <div className="flex-1 min-w-0">
-                       {/* First Line: Food name only */}
-                       <div className="flex items-center">
-                         <span className={`font-medium text-warm-text truncate flex-1 ${entry.consumed ? 'line-through' : ''}`}>{entry.name}</span>
-                       </div>
-                       {/* Second Line: All data including walking time */}
-                       <div className="flex items-center gap-1 text-xs text-warm-text/80 mt-1">
-                         <span>{entry.serving_size}g</span>
-                         <span className="text-warm-text/60">•</span>
-                         <span>{Math.round(entry.calories)}cal</span>
-                         <span className="text-warm-text/60">•</span>
-                         <span>{entry.carbs}g carbs</span>
-                         <span className="text-warm-text/60">•</span>
-                         <div className="flex items-center gap-1">
-                           <Footprints className="w-3 h-3" />
-                           <span>{formatWalkingTime(calculateWalkingMinutesForFood(entry.calories))}</span>
-                         </div>
-                       </div>
-                     </div>
-                    
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Consumption Toggle Button */}
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className="h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90"
-                        title={entry.consumed ? "Remove from eaten" : "Mark as eaten"}
-                      >
-                        {entry.consumed ? (
-                          <X className="w-4 h-4" />
-                        ) : (
-                          <Check className="w-4 h-4" />
-                        )}
-                      </Button>
-
-                      {/* Three-dot Menu */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-10 w-10 p-0 hover:bg-ceramic-base"
-                          >
-                            <MoreVertical className="w-5 h-5 text-warm-text/60" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-32">
-                          <DropdownMenuItem 
-                            onClick={() => setEditingEntry(entry)}
-                            className="cursor-pointer flex items-center hover:bg-muted/10"
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteFoodEntry(entry.id)}
-                            className="text-destructive focus:text-destructive cursor-pointer flex items-center hover:bg-muted/10"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </div>
-                ))}
-              </div>
-            )}
-        </div>
 
         {/* Food Library Modal */}
         <Dialog open={showLibraryView} onOpenChange={setShowLibraryView}>

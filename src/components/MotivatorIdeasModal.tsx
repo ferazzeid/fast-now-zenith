@@ -103,6 +103,10 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                               src={goal.imageUrl} 
                               alt={goal.title}
                               className="w-full h-full object-cover rounded"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=400&fit=crop';
+                              }}
                             />
                           ) : (
                             <Lightbulb className="w-6 h-6 text-muted-foreground" />

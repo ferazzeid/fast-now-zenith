@@ -36,6 +36,10 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                 src={motivator.imageUrl} 
                 alt={motivator.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'https://images.unsplash.com/photo-1581090464777-f3220bbe18b8?w=400&h=400&fit=crop';
+                }}
               />
             ) : (
               <Image className="w-10 h-10 text-muted-foreground" />
