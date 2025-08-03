@@ -228,29 +228,10 @@ export const PromptManagement: React.FC = () => {
       {PROMPT_CONFIGS.map((config) => (
         <Card key={config.key}>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="space-y-2">
               <div>
                 <CardTitle className="text-lg">{config.title}</CardTitle>
                 <CardDescription className="mt-1">{config.description}</CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => testPrompt(config)}
-                  disabled={testing === config.key}
-                  className="flex items-center gap-1"
-                >
-                  <TestTube className="w-4 h-4" />
-                  {testing === config.key ? 'Testing...' : 'Test'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => resetToDefault(config.key)}
-                >
-                  Reset to Default
-                </Button>
               </div>
             </div>
           </CardHeader>
@@ -282,13 +263,33 @@ export const PromptManagement: React.FC = () => {
               </div>
             </div>
             
-            <Button 
-              onClick={() => savePrompt(config.key)}
-              disabled={saving === config.key}
-              className="w-full sm:w-auto"
-            >
-              {saving === config.key ? 'Saving...' : `Save ${config.title} Prompt`}
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button 
+                onClick={() => savePrompt(config.key)}
+                disabled={saving === config.key}
+                className="w-full sm:w-auto"
+              >
+                {saving === config.key ? 'Saving...' : 'Save Settings'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => testPrompt(config)}
+                disabled={testing === config.key}
+                className="w-full sm:w-auto flex items-center gap-1"
+              >
+                <TestTube className="w-4 h-4" />
+                {testing === config.key ? 'Testing...' : 'Test'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => resetToDefault(config.key)}
+                className="w-full sm:w-auto"
+              >
+                Reset to Default
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}

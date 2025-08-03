@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,10 +18,7 @@ import {
   CancellationTracker,
   BrandAssetsManager,
   PromptManagement,
-  AdminWalkingShareSettings,
-  AdminPredefinedMotivators,
-  PaymentProviderSettings,
-  GoogleAnalyticsSettings
+  PaymentProviderSettings
 } from "@/components/LazyAdminComponents";
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 
@@ -51,6 +50,7 @@ const AdminOverview = () => {
   const [sharedApiKey, setSharedApiKey] = useState('');
   const [stripeApiKey, setStripeApiKey] = useState('');
   const [gaTrackingId, setGaTrackingId] = useState('');
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -247,14 +247,19 @@ const AdminOverview = () => {
               />
             </div>
             <Button onClick={saveApiKey} className="w-full sm:w-auto">
-              Save OpenAI API Key
+              Save Settings
             </Button>
           </CardContent>
         </Card>
 
         {/* OpenAI API Statistics */}
         <OpenAIApiStats />
+      </div>
 
+      {/* Payment Configuration */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold text-foreground">Payment Configuration</h2>
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -278,7 +283,7 @@ const AdminOverview = () => {
               />
             </div>
             <Button onClick={saveStripeApiKey} className="w-full sm:w-auto">
-              Save Stripe API Key
+              Save Settings
             </Button>
           </CardContent>
         </Card>
@@ -306,29 +311,39 @@ const AdminOverview = () => {
               />
             </div>
             <Button onClick={saveGaTrackingId} className="w-full sm:w-auto">
-              Save Google Analytics ID
+              Save Settings
             </Button>
           </CardContent>
         </Card>
+
+        {/* Payment Provider Configuration */}
+        <PaymentProviderSettings />
       </div>
 
-      {/* AI Prompt Configuration */}
-      <PromptManagement />
+      {/* Advanced Settings - Collapsible */}
+      <div className="space-y-6">
+        <Collapsible open={showAdvancedSettings} onOpenChange={setShowAdvancedSettings}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Advanced Settings
+              </span>
+              {showAdvancedSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-6 mt-6">
+            {/* AI Prompt Configuration */}
+            <PromptManagement />
 
-      {/* Food Chat Settings */}
-      <AdminFoodChatSettings />
-
-      {/* Walking Share Configuration */}
-      <AdminWalkingShareSettings />
-
-      {/* Predefined Motivators Management */}
-      <AdminPredefinedMotivators />
-
-      {/* Payment Provider Configuration */}
-      <PaymentProviderSettings />
+            {/* Food Chat Settings */}
+            <AdminFoodChatSettings />
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
 
       {/* Brand Customization */}
-      <div className="space-y-6 mb-24">
+      <div className="space-y-6 pb-24">
         <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>
         
         {/* Brand Assets - Favicon and Logo */}
@@ -336,6 +351,9 @@ const AdminOverview = () => {
         
         {/* Color Management */}
         <ColorManagement />
+        
+        {/* Extra spacer to ensure nav doesn't cover content */}
+        <div className="h-8"></div>
       </div>
     </div>
   );

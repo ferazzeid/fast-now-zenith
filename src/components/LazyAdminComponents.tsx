@@ -12,10 +12,7 @@ const LazyAdminSEOSettings = lazy(() => import('./AdminSEOSettings').then(m => (
 const LazyBrandAssetsManager = lazy(() => import('./BrandAssetsManager'));
 const LazyColorManagement = lazy(() => import('./ColorManagement').then(m => ({ default: m.ColorManagement })));
 const LazyPromptManagement = lazy(() => import('./PromptManagement').then(m => ({ default: m.PromptManagement })));
-const LazyAdminWalkingShareSettings = lazy(() => import('./AdminWalkingShareSettings').then(m => ({ default: m.AdminWalkingShareSettings })));
-const LazyAdminPredefinedMotivators = lazy(() => import('./AdminPredefinedMotivators').then(m => ({ default: m.AdminPredefinedMotivators })));
 const LazyPaymentProviderSettings = lazy(() => import('./PaymentProviderSettings').then(m => ({ default: m.PaymentProviderSettings })));
-const LazyGoogleAnalyticsSettings = lazy(() => import('./GoogleAnalyticsSettings').then(m => ({ default: m.GoogleAnalyticsSettings })));
 
 const AdminComponentWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={
@@ -81,26 +78,8 @@ export const PromptManagement = () => (
   </AdminComponentWrapper>
 );
 
-export const AdminWalkingShareSettings = () => (
-  <AdminComponentWrapper>
-    <LazyAdminWalkingShareSettings />
-  </AdminComponentWrapper>
-);
-
-export const AdminPredefinedMotivators = () => (
-  <AdminComponentWrapper>
-    <LazyAdminPredefinedMotivators />
-  </AdminComponentWrapper>
-);
-
 export const PaymentProviderSettings = () => (
   <AdminComponentWrapper>
     <LazyPaymentProviderSettings />
-  </AdminComponentWrapper>
-);
-
-export const GoogleAnalyticsSettings = () => (
-  <AdminComponentWrapper>
-    <LazyGoogleAnalyticsSettings />
   </AdminComponentWrapper>
 );
