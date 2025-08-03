@@ -123,8 +123,19 @@ const pendingRequests = new Map<string, Promise<any>>();
 export const deduplicateRequest = async <T>(
   requestKey: string,
   requestFn: () => Promise<T>,
-  ttlMinutes = 5
+  ttlMinutes = 5,
+  skipIfNotVisible = true
 ): Promise<T> => {
+  // Check if page is visible before making request
+  if (skipIfNotVisible && typeof document !== 'undefined' && document.hidden) {
+    console.log(`Skipping request ${requestKey} - page not visible`);
+    // Return cached data if available, otherwise proceed with request
+    const cached = getCachedRequest(requestKey);
+    if (cached) {
+      return cached;
+    }
+  }
+
   // Check cache first
   const cached = getCachedRequest(requestKey);
   if (cached) {

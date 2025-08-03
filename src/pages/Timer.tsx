@@ -234,6 +234,11 @@ const Timer = () => {
   };
 
   const getCurrentMode = () => {
+    // If there's no active session, show placeholder
+    if (!fastingSession) {
+      return 'Start Your Fast';
+    }
+    
     if (fastType === 'longterm') return 'Extended Fast';
     
     if (fastType === 'intermittent') {

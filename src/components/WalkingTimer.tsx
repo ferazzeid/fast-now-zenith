@@ -201,11 +201,11 @@ export const WalkingTimer = ({
 
         {/* Control Buttons - positioned right after main timer card when active */}
         {isActive && (
-          <div className="flex gap-3">
+          <div className="flex gap-2 w-full">
             <Button 
               onClick={isPaused ? onResume : onPause}
               variant={isPaused ? "default" : "outline"}
-              className="flex-1 h-14 text-lg font-medium"
+              className="flex-1 h-14 text-lg font-medium min-w-0"
               size="lg"
             >
               {isPaused ? (
@@ -223,7 +223,7 @@ export const WalkingTimer = ({
             <Button 
               onClick={() => setShowShareModal(true)}
               variant="outline"
-              className="h-14 px-6 border-2 border-blue-500/20 hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              className="h-14 px-4 border-2 border-blue-500/20 hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex-shrink-0"
               size="lg"
               disabled={!realTimeStats}
             >
@@ -232,11 +232,11 @@ export const WalkingTimer = ({
             <Button 
               onClick={onStop}
               variant="secondary"
-              className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground"
+              className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground min-w-0"
               size="lg"
             >
               <Square className="w-6 h-6 mr-2" />
-              Stop
+              Finish
             </Button>
           </div>
         )}

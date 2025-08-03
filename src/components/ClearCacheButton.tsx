@@ -44,12 +44,33 @@ export const ClearCacheButton = () => {
         );
       }
       
-      // Clear service worker cache
+      // Clear service worker cache and force update
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
           cacheNames.map(name => caches.delete(name))
         );
+      }
+
+      // Force service worker to update
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(
+          registrations.map(registration => {
+            // Send skip waiting message to new service worker
+            if (registration.waiting) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+            return registration.unregister();
+          })
+        );
+        
+        // Re-register service worker
+        try {
+          await navigator.serviceWorker.register('/sw.js');
+        } catch (regError) {
+          console.log('Service worker registration after clear:', regError);
+        }
       }
 
       toast({

@@ -248,12 +248,12 @@ export const useWalkingSession = () => {
     };
   }, [loadActiveSession]);
 
-  // Initialize selectedSpeed from profile - stable dependency
+  // Initialize selectedSpeed from profile - stable dependency with debouncing
   useEffect(() => {
     if (profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed) {
       setSelectedSpeed(profile.default_walking_speed);
     }
-  }, [profile?.default_walking_speed, selectedSpeed]);
+  }, [profile?.default_walking_speed]); // Removed selectedSpeed to prevent infinite loops
 
   // Update session speed during active session
   const updateSessionSpeed = useCallback(async (newSpeed: number) => {
