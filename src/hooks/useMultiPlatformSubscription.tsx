@@ -61,57 +61,101 @@ export const useMultiPlatformSubscription = () => {
       setLoading(true);
       const platform = detectPlatform();
       
-      // Use unified subscription endpoint
-      const { data, error } = await supabase.functions.invoke('unified-subscription', {
-        body: {
-          action: 'check_subscription',
-          platform: platform
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      // Get user profile for additional data
+      // Try profile first for basic functionality
       const { data: profile } = await supabase
         .from('profiles')
         .select('monthly_ai_requests, user_tier, use_own_api_key, openai_api_key, payment_provider')
         .eq('user_id', user.id)
         .single();
 
-      const requestsUsed = profile?.monthly_ai_requests || 0;
-      const userTier = profile?.user_tier || 'granted_user';
-      const hasApiKey = profile?.use_own_api_key && profile?.openai_api_key;
-      
-      let requestLimit = 15; // Default for granted_user
-      if (userTier === 'api_user') requestLimit = 1000;
-      else if (userTier === 'paid_user') requestLimit = 1000;
-      else if (userTier === 'free_user') requestLimit = 15;
+      // If we have profile data, set basic subscription data immediately
+      if (profile) {
+        const requestsUsed = profile?.monthly_ai_requests || 0;
+        const userTier = profile?.user_tier || 'granted_user';
+        const hasApiKey = profile?.use_own_api_key && profile?.openai_api_key;
+        
+        let requestLimit = 15; // Default for granted_user
+        if (userTier === 'api_user') requestLimit = 1000;
+        else if (userTier === 'paid_user') requestLimit = 1000;
+        else if (userTier === 'free_user') requestLimit = 15;
 
-      const subscribed = data?.subscribed || false;
-      const isPaidUser = subscribed || hasApiKey;
-      const hasPremiumFeatures = isPaidUser || (requestsUsed < requestLimit);
+        const hasPremiumFeatures = hasApiKey || (requestsUsed < requestLimit);
 
-      setSubscriptionData({
-        subscribed,
-        subscription_tier: data?.subscription_tier || 'free',
-        requests_used: requestsUsed,
-        request_limit: requestLimit,
-        isPaidUser,
-        hasPremiumFeatures,
-        payment_provider: data?.payment_provider || profile?.payment_provider || 'stripe',
-        platform,
-        subscription_end_date: data?.subscription_end_date
-      });
+        // Set basic subscription data first
+        setSubscriptionData({
+          subscribed: false, // Will be updated below if subscription check succeeds
+          subscription_tier: 'free',
+          requests_used: requestsUsed,
+          request_limit: requestLimit,
+          isPaidUser: Boolean(hasApiKey),
+          hasPremiumFeatures: Boolean(hasPremiumFeatures),
+          payment_provider: profile?.payment_provider || 'stripe',
+          platform,
+          subscription_end_date: undefined
+        });
+        setLoading(false); // Allow UI to render with basic data
+      }
+
+      // Try subscription check, but don't block if it fails
+      try {
+        const { data, error } = await supabase.functions.invoke('unified-subscription', {
+          body: {
+            action: 'check_subscription',
+            platform: platform
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (!error && data && profile) {
+          // Update with full subscription data if available
+          const requestsUsed = profile?.monthly_ai_requests || 0;
+          const userTier = profile?.user_tier || 'granted_user';
+          const hasApiKey = profile?.use_own_api_key && profile?.openai_api_key;
+          
+          let requestLimit = 15;
+          if (userTier === 'api_user') requestLimit = 1000;
+          else if (userTier === 'paid_user') requestLimit = 1000;
+          else if (userTier === 'free_user') requestLimit = 15;
+
+          const subscribed = data?.subscribed || false;
+          const isPaidUser = subscribed || hasApiKey;
+          const hasPremiumFeatures = isPaidUser || (requestsUsed < requestLimit);
+
+          setSubscriptionData({
+            subscribed,
+            subscription_tier: data?.subscription_tier || 'free',
+            requests_used: requestsUsed,
+            request_limit: requestLimit,
+            isPaidUser,
+            hasPremiumFeatures,
+            payment_provider: data?.payment_provider || profile?.payment_provider || 'stripe',
+            platform,
+            subscription_end_date: data?.subscription_end_date
+          });
+        }
+      } catch (subscriptionError) {
+        console.warn('Subscription check failed, using profile data only:', subscriptionError);
+        // Continue with profile-only data - don't show error to user
+      }
+
     } catch (error) {
       console.error('Error checking subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check subscription status",
-        variant: "destructive",
-      });
+      // Don't show error toast for subscription check failures
+      // Just ensure we have fallback data
+      if (!subscriptionData.subscription_tier) {
+        setSubscriptionData({
+          subscribed: false,
+          subscription_tier: 'free',
+          requests_used: 0,
+          request_limit: 15,
+          isPaidUser: false,
+          hasPremiumFeatures: true, // Allow basic functionality when subscription check fails
+          payment_provider: 'stripe',
+          platform: detectPlatform()
+        });
+      }
     } finally {
       setLoading(false);
     }

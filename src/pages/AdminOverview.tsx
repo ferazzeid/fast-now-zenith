@@ -247,7 +247,7 @@ const AdminOverview = () => {
               />
             </div>
             <Button onClick={saveApiKey} className="w-full sm:w-auto">
-              Save Settings
+              Save
             </Button>
           </CardContent>
         </Card>
@@ -256,44 +256,17 @@ const AdminOverview = () => {
         <OpenAIApiStats />
       </div>
 
-      {/* Payment Configuration */}
+      {/* Payment & Analytics Configuration */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-foreground">Payment Configuration</h2>
+        <h2 className="text-2xl font-semibold text-foreground">Payment & Analytics</h2>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              Stripe API Key
-            </CardTitle>
-            <CardDescription>
-              Configure the Stripe API key for payment processing and subscription management
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="stripeKey" className="text-sm font-medium">Secret Key</Label>
-              <Input
-                id="stripeKey"
-                type="password"
-                value={stripeApiKey}
-                onChange={(e) => setStripeApiKey(e.target.value)}
-                placeholder="sk_..."
-                className="font-mono text-sm"
-              />
-            </div>
-            <Button onClick={saveStripeApiKey} className="w-full sm:w-auto">
-              Save Settings
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Payment Provider Configuration */}
+        <PaymentProviderSettings />
 
+        {/* Google Analytics - moved here */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              Google Analytics
-            </CardTitle>
+            <CardTitle className="text-xl font-semibold">Google Analytics</CardTitle>
             <CardDescription>
               Configure Google Analytics tracking ID for real-time analytics data
             </CardDescription>
@@ -310,21 +283,20 @@ const AdminOverview = () => {
                 className="font-mono text-sm"
               />
             </div>
-            <Button onClick={saveGaTrackingId} className="w-full sm:w-auto">
-              Save Settings
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={saveGaTrackingId} className="flex-1 sm:flex-none">
+                Save
+              </Button>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Payment Provider Configuration */}
-        <PaymentProviderSettings />
       </div>
 
-      {/* Advanced Settings - Collapsible */}
+      {/* Advanced Settings */}
       <div className="space-y-6">
         <Collapsible open={showAdvancedSettings} onOpenChange={setShowAdvancedSettings}>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
+            <Button variant="ghost" className="w-full justify-between text-foreground hover:bg-muted">
               <span className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Advanced Settings

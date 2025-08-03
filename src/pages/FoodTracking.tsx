@@ -550,15 +550,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           {/* Voice - 1st */}
-          <PremiumGate feature="AI Voice Assistant">
-            <Button
-              onClick={handleVoiceFood}
-              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Mic className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Voice Add Food</span>
-            </Button>
-          </PremiumGate>
+          <Button
+            onClick={handleVoiceFood}
+            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Mic className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Voice Add Food</span>
+          </Button>
           
           
           {/* Manual - 3rd */}

@@ -252,13 +252,15 @@ const BrandAssetsManager = () => {
             </div>
           </div>
           
-          <Button 
-            onClick={saveFavicon} 
-            disabled={!favicon || uploading}
-            className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-          >
-            {uploading ? "Uploading..." : "Save Favicon"}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={saveFavicon} 
+              disabled={!favicon || uploading}
+              className="flex-1 sm:flex-none"
+            >
+              {uploading ? "Uploading..." : "Save"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -313,13 +315,15 @@ const BrandAssetsManager = () => {
             </div>
           </div>
           
-          <Button 
-            onClick={saveLogo} 
-            disabled={!logo || uploading}
-            className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-          >
-            {uploading ? "Uploading..." : "Save App Logo"}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={saveLogo} 
+              disabled={!logo || uploading}
+              className="flex-1 sm:flex-none"
+            >
+              {uploading ? "Uploading..." : "Save"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

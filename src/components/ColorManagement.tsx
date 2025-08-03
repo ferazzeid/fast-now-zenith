@@ -205,16 +205,16 @@ export const ColorManagement: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Color Pickers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-4">
           {/* Primary Color */}
-          <div className="space-y-3 relative">
-            <Label className="text-sm font-medium">Primary Color</Label>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Color</Label>
             <div 
               className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: colors.primary }}
               onClick={() => setActiveColorPicker(activeColorPicker === 'primary' ? null : 'primary')}
             />
-            <p className="text-xs text-muted-foreground">Used for buttons, links, and accents</p>
+            
             {activeColorPicker === 'primary' && (
               <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
                 <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
@@ -241,14 +241,14 @@ export const ColorManagement: React.FC = () => {
           </div>
 
           {/* Primary Hover Color */}
-          <div className="space-y-3 relative">
-            <Label className="text-sm font-medium">Primary Hover</Label>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Hover</Label>
             <div 
               className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: colors.primaryHover }}
               onClick={() => setActiveColorPicker(activeColorPicker === 'primaryHover' ? null : 'primaryHover')}
             />
-            <p className="text-xs text-muted-foreground">Used for button hover states</p>
+            
             {activeColorPicker === 'primaryHover' && (
               <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
                 <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
@@ -275,14 +275,14 @@ export const ColorManagement: React.FC = () => {
           </div>
 
           {/* Accent Color */}
-          <div className="space-y-3 relative">
-            <Label className="text-sm font-medium">Accent Color</Label>
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Accent</Label>
             <div 
               className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: colors.accent }}
               onClick={() => setActiveColorPicker(activeColorPicker === 'accent' ? null : 'accent')}
             />
-            <p className="text-xs text-muted-foreground">Used for highlights and special elements</p>
+            
             {activeColorPicker === 'accent' && (
               <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
                 <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
@@ -310,9 +310,9 @@ export const ColorManagement: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-2 pt-4 border-t">
           <Button onClick={saveColors} className="flex-1">
-            Save Colors
+            Save
           </Button>
           <Button 
             variant="outline" 
@@ -322,6 +322,7 @@ export const ColorManagement: React.FC = () => {
             Reset to Defaults
           </Button>
         </div>
+        <div className="pb-4"></div>
       </CardContent>
     </Card>
   );
