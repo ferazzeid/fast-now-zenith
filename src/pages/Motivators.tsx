@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
+import { PremiumGate } from '@/components/PremiumGate';
 
 
 const Motivators = () => {
@@ -196,13 +197,15 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           <div className="grid grid-cols-2 gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  onClick={handleVoiceMotivator}
-                  className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  <Mic className="w-6 h-6 mb-1" />
-                  <span className="text-sm font-medium">Voice Add Motivator</span>
-                </Button>
+                <PremiumGate feature="AI Motivator Assistant">
+                  <Button
+                    onClick={handleVoiceMotivator}
+                    className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Mic className="w-6 h-6 mb-1" />
+                    <span className="text-sm font-medium">Voice Add Motivator</span>
+                  </Button>
+                </PremiumGate>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Create a motivator using voice input and AI assistance</p>

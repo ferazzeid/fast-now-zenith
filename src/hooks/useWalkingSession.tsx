@@ -85,6 +85,11 @@ export const useWalkingSession = () => {
       console.log('Triggering refresh after session start');
       triggerRefresh();
       
+      // Additional immediate load to ensure state is fresh
+      setTimeout(() => {
+        loadActiveSession();
+      }, 100);
+      
       return { data, error: null };
     } catch (error: any) {
       console.error('Error starting walking session:', error);
@@ -221,6 +226,11 @@ export const useWalkingSession = () => {
       // Force immediate refresh of context and history
       console.log('🔄 Session ended, triggering refresh');
       triggerRefresh();
+      
+      // Additional immediate load to ensure state is fresh
+      setTimeout(() => {
+        loadActiveSession();
+      }, 100);
       
       return { data, error: null };
     } catch (error: any) {

@@ -83,6 +83,48 @@ export const useTimerNavigation = () => {
     };
   }, [fastingSession?.status, walkingSession?.status, fastingSession?.start_time, walkingSession?.start_time]);
 
+  // Additional effect to monitor the walking session state refresh trigger
+  useEffect(() => {
+    // Re-sync timer status when walking session changes are detected
+    const updateTimerStatus = () => {
+      const fastingActive = !!fastingSession && fastingSession.status === 'active';
+      const walkingActive = !!walkingSession && walkingSession.status === 'active';
+
+      let fastingElapsed = 0;
+      let walkingElapsed = 0;
+
+      if (fastingSession && fastingActive) {
+        const startTime = new Date(fastingSession.start_time);
+        const now = new Date();
+        fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      }
+
+      if (walkingSession && walkingActive) {
+        const startTime = new Date(walkingSession.start_time);
+        const now = new Date();
+        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        
+        // Subtract paused time
+        const pausedTime = walkingSession.total_pause_duration || 0;
+        let currentPauseTime = 0;
+        
+        // If currently paused, add current pause duration
+        if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
+          currentPauseTime = Math.floor((now.getTime() - new Date(walkingSession.pause_start_time).getTime()) / 1000);
+        }
+        
+        walkingElapsed = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
+      }
+
+      setTimerStatus({
+        fasting: { isActive: fastingActive, timeElapsed: fastingElapsed },
+        walking: { isActive: walkingActive, timeElapsed: walkingElapsed }
+      });
+    };
+
+    updateTimerStatus();
+  }, [walkingSession?.id, walkingSession?.status, fastingSession?.id, fastingSession?.status]);
+
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);
     setSheetOpen(false); // Auto-close the sheet
