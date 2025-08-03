@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Pause, FootprintsIcon, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp, X } from 'lucide-react';
+import { Play, Square, Pause, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,20 +49,8 @@ export const WalkingTimer = ({
   selectedSpeed,
   onSpeedChange
 }: WalkingTimerProps) => {
-  const [stepAnimation, setStepAnimation] = useState(false);
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const { isAnimationsSuspended } = useAnimationControl();
-
-  useEffect(() => {
-    if (isActive && !isPaused && !isAnimationsSuspended) {
-      const interval = setInterval(() => {
-        setStepAnimation(prev => !prev);
-      }, 800);
-      return () => clearInterval(interval);
-    } else {
-      setStepAnimation(false);
-    }
-  }, [isActive, isPaused, isAnimationsSuspended]);
 
   // Static speed mappings - same as SpeedSelector
   const SPEED_MAPPINGS = {
@@ -167,29 +155,6 @@ export const WalkingTimer = ({
             
           </div>
 
-          {/* Walking path visualization */}
-          <div 
-            className={cn(
-              "flex justify-center items-center space-x-1 mb-4 transition-opacity duration-1000",
-              motivatorMode === 'motivator-focused' ? 'opacity-10' : 'opacity-100'
-            )}
-            style={{ zIndex: 13 }}
-          >
-            {[...Array(7)].map((_, i) => (
-              <FootprintsIcon 
-                key={i}
-                className={`w-4 h-4 transition-all duration-500 ${
-                  isActive && !isPaused ? 
-                    (stepAnimation && i % 2 === 0 ? 'text-accent scale-110' : 'text-accent/60') :
-                    'text-muted-foreground/30'
-                }`}
-                style={{ 
-                  transitionDelay: `${i * 100}ms`,
-                  transform: i % 2 === 0 ? 'scaleY(-1)' : 'scaleY(1)'
-                }}
-              />
-            ))}
-          </div>
         </Card>
 
         {/* Control Buttons - positioned right after main timer card when active */}

@@ -18,6 +18,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useCrisisSettings } from '@/hooks/useCrisisSettings';
 import { useCrisisConversation } from '@/hooks/useCrisisConversation';
+import { useProfile } from '@/hooks/useProfile';
 import { SOSButton } from '@/components/SOSButton';
 import { trackFastingEvent } from '@/utils/analytics';
 
@@ -46,6 +47,7 @@ const Timer = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
+  const { profile } = useProfile();
   const { settings: crisisSettings } = useCrisisSettings();
   const { 
     generateCrisisContext, 
@@ -364,7 +366,7 @@ const Timer = () => {
                 displayTime={getDisplayTime()}
                 isActive={isRunning}
                 isEatingWindow={isInEatingWindow}
-                showSlideshow={true}
+                showSlideshow={profile?.enable_fasting_slideshow ?? true}
                 eatingWindowTimeRemaining={null}
                 countDirection={countDirection}
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}

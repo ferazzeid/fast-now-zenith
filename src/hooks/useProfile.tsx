@@ -18,6 +18,8 @@ interface UserProfile {
   goal_weight?: number;
   activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
   default_walking_speed?: number;
+  enable_fasting_slideshow?: boolean;
+  enable_walking_slideshow?: boolean;
 }
 
 export const useProfile = () => {
