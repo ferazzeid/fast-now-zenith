@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useToast } from './use-toast';
+import { useAdminAwareToast } from './useAdminErrorFilter';
 import { cacheSubscription, getCachedSubscription, deduplicateRequest } from '@/utils/offlineStorage';
 
 interface SubscriptionData {
@@ -27,7 +27,7 @@ export const useSubscription = () => {
   });
   const [loading, setLoading] = useState(true);
   const { user, session } = useAuth();
-  const { toast } = useToast();
+  const { toast } = useAdminAwareToast();
 
   const checkSubscription = async () => {
     if (!user || !session) {
@@ -149,11 +149,8 @@ export const useSubscription = () => {
       });
     } catch (error) {
       console.error('Error checking subscription:', error);
-      toast({
-        title: "Error checking subscription",
-        description: "Please try again later",
-        variant: "destructive",
-      });
+      // Silent fail for subscription checks - don't show error to users
+      // Admin users will see the error via useAdminAwareToast
     } finally {
       setLoading(false);
     }

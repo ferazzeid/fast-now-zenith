@@ -331,7 +331,7 @@ const AdminOverview = () => {
       <GoogleAnalyticsSettings />
 
       {/* Brand Customization */}
-      <div className="space-y-6 mb-12">
+      <div className="space-y-6 mb-24">
         <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>
         
         {/* Brand Assets - Favicon and Logo */}

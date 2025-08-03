@@ -231,6 +231,36 @@ export const useWalkingSession = () => {
     }
   }, [user, currentSession, selectedSpeed, calculateWalkingCalories, isPaused]);
 
+  const cancelWalkingSession = useCallback(async () => {
+    console.log('Cancelling walking session...');
+    if (!user || !currentSession) return { error: { message: 'No active session' } };
+
+    setLoading(true);
+    try {
+      // Simply delete the session record so it never appears in history
+      const { error } = await supabase
+        .from('walking_sessions')
+        .delete()
+        .eq('id', currentSession.id);
+
+      if (error) throw error;
+
+      // Clear current session
+      setCurrentSession(null);
+      setIsPaused(false);
+      
+      // Trigger refresh
+      triggerRefresh();
+      
+      return { data: true, error: null };
+    } catch (error: any) {
+      console.error('Error cancelling walking session:', error);
+      return { error, data: null };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentSession]);
+
   // Load active session on mount
   useEffect(() => {
     let mounted = true;
@@ -320,6 +350,7 @@ export const useWalkingSession = () => {
     pauseWalkingSession,
     resumeWalkingSession,
     endWalkingSession,
+    cancelWalkingSession,
     loadActiveSession,
     updateSessionSpeed,
     refreshTrigger,

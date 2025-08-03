@@ -236,7 +236,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                   </svg>
-                  <span className="font-medium">Add from Library</span>
+                  <span className="font-medium">Motivator Ideas</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

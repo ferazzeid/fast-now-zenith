@@ -33,6 +33,7 @@ const Walking = () => {
     pauseWalkingSession,
     resumeWalkingSession,
     endWalkingSession,
+    cancelWalkingSession,
     updateSessionSpeed
   } = useWalkingSession();
   const { profile } = useProfile();
@@ -141,6 +142,22 @@ const Walking = () => {
     }
   };
 
+  const handleCancel = async () => {
+    const result = await cancelWalkingSession();
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      toast({
+        title: "Session cancelled",
+        description: "Walking session was cancelled and removed from history."
+      });
+    }
+  };
+
   const handleProfileComplete = () => {
     setShowProfilePrompt(false);
     // Retry starting the session
@@ -225,6 +242,7 @@ const Walking = () => {
                 onPause={handlePause}
                 onResume={handleResume}
                 onStop={() => setShowStopConfirm(true)}
+                onCancel={handleCancel}
                 showSlideshow={true}
                 units={profile?.units || 'imperial'}
                 selectedSpeed={selectedSpeed}

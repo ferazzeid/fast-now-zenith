@@ -717,15 +717,15 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         )}
 
         {/* Unified Food Plan */}
-        <div className="space-y-4">
+        <div className="space-y-4 mt-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
               Today's Food Plan
             </h2>
-            <div className="text-sm text-muted-foreground">
-              {todayEntries.filter(entry => !entry.consumed).length} planned • {todayEntries.filter(entry => entry.consumed).length} consumed
+            <div className="text-sm text-muted-foreground flex gap-3">
+              <span>{todayEntries.filter(entry => !entry.consumed).length} planned</span>
+              <span>{todayEntries.filter(entry => entry.consumed).length} consumed</span>
             </div>
           </div>
 
