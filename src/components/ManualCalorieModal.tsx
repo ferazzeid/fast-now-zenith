@@ -78,7 +78,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-xs px-2 py-1 bg-card border border-border hover:bg-accent">
+        <Button variant="action-secondary" size="action-secondary" className="w-full">
           <Plus className="w-3 h-3 mr-1" />
           Add External Activity
         </Button>

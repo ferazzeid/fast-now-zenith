@@ -536,7 +536,7 @@ const Settings = () => {
             </Card>
 
             {/* Save Button */}
-            <Button onClick={handleSaveSettings} className="w-full h-12 text-lg font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
               Save Settings
             </Button>
 

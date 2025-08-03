@@ -17,8 +17,8 @@ export const DeficitAnalysisButton = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button 
-          variant="outline" 
-          size="sm"
+          variant="action-secondary" 
+          size="action-secondary"
           className="flex items-center gap-2 w-full"
         >
           <Brain className="w-4 h-4" />

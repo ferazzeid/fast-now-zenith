@@ -247,7 +247,7 @@ const AdminOverview = () => {
                 className="font-mono text-sm"
               />
             </div>
-            <Button onClick={saveApiKey} className="w-full sm:w-auto">
+            <Button onClick={saveApiKey} variant="action-secondary" size="action-secondary" className="w-full sm:w-auto">
               Save
             </Button>
           </CardContent>
@@ -285,7 +285,7 @@ const AdminOverview = () => {
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={saveGaTrackingId} className="flex-1 sm:flex-none">
+              <Button onClick={saveGaTrackingId} variant="action-secondary" size="action-secondary" className="flex-1 sm:flex-none">
                 Save
               </Button>
             </div>

@@ -181,8 +181,8 @@ export const WalkingTimer = ({
                 }
               }}
               variant="outline"
-              className="flex-1 h-14 text-lg font-medium min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
-              size="lg"
+              className="flex-1 h-12 min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
+              size="action-secondary"
             >
               {isPaused ? (
                 <Play className="w-6 h-6" />
@@ -211,8 +211,8 @@ export const WalkingTimer = ({
                   }
                 }}
                 variant="outline"
-                className="h-14 px-4 min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
-                size="lg"
+                className="h-12 px-4 min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
+                size="action-secondary"
               >
                 <X className="w-6 h-6" />
               </Button>
@@ -237,8 +237,8 @@ export const WalkingTimer = ({
                 }
               }}
               variant="secondary"
-              className="flex-1 h-14 text-lg font-medium bg-muted hover:bg-muted/80 text-muted-foreground min-w-0"
-              size="lg"
+              className="flex-1 h-12 bg-muted hover:bg-muted/80 text-muted-foreground min-w-0"
+              size="action-secondary"
             >
               <Square className="w-6 h-6 mr-2" />
               Finish
@@ -376,8 +376,9 @@ export const WalkingTimer = ({
         <div className="mt-8">
           <Button 
             onClick={onStart}
-            className="w-full h-14 text-lg font-medium"
-            size="lg"
+            variant="action-primary"
+            size="action-main"
+            className="w-full"
           >
             <Play className="w-6 h-6 mr-2" />
             Start Walking

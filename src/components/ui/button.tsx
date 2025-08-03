@@ -19,21 +19,21 @@ const buttonVariants = cva(
         ghost: "hover:bg-muted hover:text-muted-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         neutral: "bg-muted text-muted-foreground hover:bg-muted/80 border-muted",
-        // Standardized action button variants
-        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-lg",
-        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-md",
-        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-sm",
+        // Standardized action button variants with consistent styling
+        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
+        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
+        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
-        // Standardized action button sizes
-        "action-main": "h-16 px-6 py-4 text-base",
-        "action-secondary": "h-12 px-4 py-3 text-sm",
-        "action-compact": "h-10 px-4 py-2 text-sm",
-        "action-tall": "h-20 px-4 py-4 text-sm",
+        // Standardized action button sizes - consistent heights and font sizes
+        "action-main": "h-12 px-6 py-3",
+        "action-secondary": "h-12 px-4 py-3", 
+        "action-compact": "h-10 px-4 py-2",
+        "action-tall": "h-12 px-4 py-3",
       },
     },
     defaultVariants: {

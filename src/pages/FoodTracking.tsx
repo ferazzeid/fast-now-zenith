@@ -453,8 +453,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header with Onboarding Button */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-between mb-4 relative">
+        <div className="text-center mb-12 mt-4">
+          <div className="flex items-center justify-between mb-6 relative">
             <div className="absolute left-0 top-0">
               <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
             </div>
