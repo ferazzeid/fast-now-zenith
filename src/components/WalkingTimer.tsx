@@ -319,7 +319,7 @@ export const WalkingTimer = ({
                   <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  estimated (~5 per minute)
+                  speed-based estimate
                 </div>
               </Card>
             </div>

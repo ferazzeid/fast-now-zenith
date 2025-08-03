@@ -208,29 +208,39 @@ const Walking = () => {
             onResume={handleResume}
             onStop={async () => { setShowStopConfirm(true); return Promise.resolve(); }}
             onCancel={handleCancel}
-            showSlideshow={profile?.enable_walking_slideshow ?? true}
+            showSlideshow={profile?.enable_walking_slideshow ?? false}
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}
             onSpeedChange={async (newSpeed) => {
               setSelectedSpeed(newSpeed);
+              
+              // Force immediate stats update by triggering context refresh
               if (isRunning) {
-                const result = await updateSessionSpeed(newSpeed);
-                if (result.error) {
+                try {
+                  const result = await updateSessionSpeed(newSpeed);
+                  if (result.error) {
+                    toast({
+                      variant: "destructive",
+                      title: "Speed Update Failed",
+                      description: "Unable to update walking speed. Please try again."
+                    });
+                  } else {
+                    toast({
+                      title: "Speed Updated",
+                      description: `Speed updated to ${newSpeed.toFixed(1)} mph`
+                    });
+                  }
+                } catch (error) {
                   toast({
                     variant: "destructive",
-                    title: "Speed Update Failed",
-                    description: "Unable to update walking speed. Please try again."
-                  });
-                } else {
-                  toast({
-                    title: "Speed Updated",
-                    description: `Walking speed updated`
+                    title: "Network Error",
+                    description: "Failed to update speed. Check your connection."
                   });
                 }
               } else {
                 toast({
                   title: "Speed Set", 
-                  description: `Walking speed set for next session`
+                  description: `Speed set for next session`
                 });
               }
             }}

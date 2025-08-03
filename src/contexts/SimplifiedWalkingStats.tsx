@@ -49,8 +49,9 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
 
       if (activeDurationMinutes <= 0) return;
 
-      // Simple calculations - no complex MET values
-      const calories = Math.round(activeDurationMinutes * 5); // 5 calories per minute
+      // Speed-based calorie calculations (varies by speed)
+      const caloriesPerMinute = Math.max(3, selectedSpeed * 1.2); // More calories for faster speeds
+      const calories = Math.round(activeDurationMinutes * caloriesPerMinute);
       const distanceMiles = (activeDurationMinutes / 60) * selectedSpeed;
       
       // Simple pace calculation
@@ -80,8 +81,8 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     // Update immediately
     updateStats();
 
-    // Set up interval for updates every 2 minutes (reduced frequency)
-    const interval = setInterval(updateStats, 120000);
+    // Set up interval for updates every 30 seconds (for real-time feedback)
+    const interval = setInterval(updateStats, 30000);
 
     return () => {
       clearInterval(interval);
