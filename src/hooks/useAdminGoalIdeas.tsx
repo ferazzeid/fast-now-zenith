@@ -24,7 +24,7 @@ export const useAdminGoalIdeas = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Database error:', error);
+        console.error('Admin Goal Ideas Database error:', error);
         setGoalIdeas([]);
         setLoading(false);
         return;
@@ -33,12 +33,15 @@ export const useAdminGoalIdeas = () => {
       if (data?.setting_value) {
         try {
           const parsedGoalIdeas = JSON.parse(data.setting_value);
-          setGoalIdeas(Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : []);
+          const validIdeas = Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : [];
+          console.log('Admin Goal Ideas loaded:', validIdeas);
+          setGoalIdeas(validIdeas);
         } catch (parseError) {
-          console.error('Error parsing goal ideas:', parseError);
+          console.error('Error parsing admin goal ideas:', parseError);
           setGoalIdeas([]);
         }
       } else {
+        console.log('No admin goal ideas data found in database');
         setGoalIdeas([]);
       }
     } catch (error) {

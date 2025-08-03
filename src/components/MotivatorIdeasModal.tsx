@@ -26,11 +26,10 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5" />
-              Custom Motivator Ideas
+              Motivator Ideas
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -58,11 +57,10 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Lightbulb className="w-5 h-5" />
-            Custom Motivator Ideas
+            Motivator Ideas
           </DialogTitle>
         </DialogHeader>
         
@@ -105,7 +103,8 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                               className="w-full h-full object-cover rounded"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=400&fit=crop';
+                                target.style.display = 'none';
+                                target.parentElement?.classList.add('bg-muted');
                               }}
                             />
                           ) : (

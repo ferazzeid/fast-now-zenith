@@ -36,23 +36,11 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { profile, loading: profileLoading } = useProfileQuery();
   const { estimateStepsForSession } = useStepEstimation();
 
-  // Memoize profile checks to prevent re-renders - more robust check
+  // Simplified profile check - no dependency on loading state for initial display
   const isProfileComplete = useMemo(() => {
-    // Don't consider profile complete if it's still loading
-    if (profileLoading) return false;
-    
-    const complete = !!(profile?.weight && profile?.height && profile?.age && 
+    return !!(profile?.weight && profile?.height && profile?.age && 
       profile.weight > 0 && profile.height > 0 && profile.age > 0);
-    console.log('WalkingStats - Profile completeness check:', {
-      complete,
-      profileLoading,
-      weight: profile?.weight,
-      height: profile?.height, 
-      age: profile?.age,
-      profile: !!profile
-    });
-    return complete;
-  }, [profile?.weight, profile?.height, profile?.age, profileLoading]);
+  }, [profile?.weight, profile?.height, profile?.age]);
 
   const calculateCalories = useMemo(() => {
     return (durationMinutes: number, speedMph: number = 3) => {
@@ -230,9 +218,9 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     if (currentSession && !isPaused) {
-      // Update immediately then set interval every 30 seconds only when active
+      // Update immediately then set interval every 60 seconds only when active
       updateStats();
-      interval = setInterval(updateStats, 30000); // 30 seconds when active
+      interval = setInterval(updateStats, 60000); // 60 seconds when active for better performance
     } else if (currentSession && isPaused) {
       // Update once to mark as paused, then stop updates
       updateStats();

@@ -14,6 +14,7 @@ import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { SimpleVoiceRecorder } from './SimpleVoiceRecorder';
+import { PremiumGate } from '@/components/PremiumGate';
 
 interface Motivator {
   id?: string;
@@ -195,12 +196,14 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="title" className="text-warm-text font-medium">
                 Title *
               </Label>
-              <button
-                onClick={() => setShowVoiceRecorder(true)}
-                className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
-              >
-                <Mic className="w-3 h-3 mx-auto" />
-              </button>
+              <PremiumGate feature="Voice Input" showUpgrade={false}>
+                <button
+                  onClick={() => setShowVoiceRecorder(true)}
+                  className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
+                >
+                  <Mic className="w-3 h-3 mx-auto" />
+                </button>
+              </PremiumGate>
             </div>
             <Input
               id="title"
@@ -216,12 +219,14 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="content" className="text-warm-text font-medium">
                 Description (Optional)
               </Label>
-              <button
-                onClick={() => setShowVoiceRecorder(true)}
-                className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
-              >
-                <Mic className="w-3 h-3 mx-auto" />
-              </button>
+              <PremiumGate feature="Voice Input" showUpgrade={false}>
+                <button
+                  onClick={() => setShowVoiceRecorder(true)}
+                  className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
+                >
+                  <Mic className="w-3 h-3 mx-auto" />
+                </button>
+              </PremiumGate>
             </div>
             <Textarea
               id="content"
@@ -247,24 +252,26 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
               {/* AI Generation button */}
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="flex-1"
-                >
-                  {isGeneratingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating AI Image...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Image
-                    </>
-                  )}
-                </Button>
+                <PremiumGate feature="AI Image Generation">
+                  <Button
+                    variant="outline"
+                    onClick={handleGenerateImage}
+                    disabled={isGeneratingImage}
+                    className="flex-1 hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {isGeneratingImage ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                        Generating AI Image...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate AI Image
+                      </>
+                    )}
+                  </Button>
+                </PremiumGate>
                 
                 {imageUrl && (
                   <RegenerateImageButton
