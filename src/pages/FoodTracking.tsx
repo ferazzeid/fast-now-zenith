@@ -547,31 +547,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </TooltipProvider>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {/* Voice - 1st */}
-          <PremiumGate feature="AI Food Assistant">
-            <Button
-              onClick={handleVoiceFood}
-              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Mic className="w-6 h-6 mb-1" />
-              <span className="text-sm font-medium">Voice Add</span>
-            </Button>
-          </PremiumGate>
-          
-          
-          {/* Manual - 3rd */}
-          <Button
-            onClick={handleManualEntry}
-            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Plus className="w-6 h-6 mb-1" />
-            <span className="text-sm font-medium">Manual Add</span>
-          </Button>
-        </div>
-
-        {/* Today's Food Plan Section */}
+        {/* Today's Food Plan Section - MOVED UP */}
         <div className="mb-8 p-4 rounded-xl bg-ceramic-plate border border-ceramic-rim space-y-4">
           <h2 className="text-lg font-semibold text-warm-text mb-2">Today's Food Plan</h2>
           
@@ -674,7 +650,30 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           )}
         </div>
 
-        {/* My Foods Library Button */}
+        {/* Action Buttons - MOVED BELOW Today's Food Plan */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          {/* Voice Add */}
+          <PremiumGate feature="AI Food Assistant">
+            <Button
+              onClick={handleVoiceFood}
+              className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Mic className="w-6 h-6 mb-1" />
+              <span className="text-sm font-medium">Voice Add</span>
+            </Button>
+          </PremiumGate>
+          
+          {/* Manual Add */}
+          <Button
+            onClick={handleManualEntry}
+            className="h-20 flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Plus className="w-6 h-6 mb-1" />
+            <span className="text-sm font-medium">Manual Add</span>
+          </Button>
+        </div>
+
+        {/* Add from Library Button - MOVED BELOW Action Buttons */}
         <div className="mb-3">
           <Button
             onClick={() => setShowLibraryView(true)}

@@ -152,7 +152,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 style={{ 
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   fontFeatureSettings: '"tnum" 1',
-                  lineHeight: '1.1' // Tighter line height to prevent overflow
+                  lineHeight: '1.1', // Tighter line height to prevent overflow
+                  transform: 'translateY(-4px)' // Move zeros up for better centering
                 }}
               >
                  {displayTime}

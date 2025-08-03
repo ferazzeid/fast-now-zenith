@@ -358,7 +358,7 @@ const Timer = () => {
         </div>
 
         {/* Timer Display */}
-        <div className="relative mb-8">
+        <div className="relative mb-16">
           {currentMode === 'fasting' ? (
             <>
               <CeramicTimer 
