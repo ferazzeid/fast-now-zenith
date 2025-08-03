@@ -119,7 +119,10 @@ Please provide a brief analysis with specific suggestions for the rest of my day
       ];
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: { messages }
+        body: { 
+          messages,
+          timeout: 30000 // 30 second timeout
+        }
       });
 
       if (error) throw error;

@@ -77,6 +77,129 @@ export type Database = {
         }
         Relationships: []
       }
+      app_motivators: {
+        Row: {
+          caption: string | null
+          category: string
+          completed_sessions: number | null
+          created_at: string
+          description: string
+          difficulty: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_predefined: boolean | null
+          sort_order: number | null
+          subcategory: string | null
+          tags: string[] | null
+          timeframe: string | null
+          times_used: number | null
+          title: string
+          total_sessions: number | null
+          total_time_spent: number | null
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          category?: string
+          completed_sessions?: number | null
+          created_at?: string
+          description: string
+          difficulty?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_predefined?: boolean | null
+          sort_order?: number | null
+          subcategory?: string | null
+          tags?: string[] | null
+          timeframe?: string | null
+          times_used?: number | null
+          title: string
+          total_sessions?: number | null
+          total_time_spent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          category?: string
+          completed_sessions?: number | null
+          created_at?: string
+          description?: string
+          difficulty?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_predefined?: boolean | null
+          sort_order?: number | null
+          subcategory?: string | null
+          tags?: string[] | null
+          timeframe?: string | null
+          times_used?: number | null
+          title?: string
+          total_sessions?: number | null
+          total_time_spent?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author: string
+          categories: string[] | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          meta_description: string | null
+          meta_keywords: string | null
+          published_at: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          categories?: string[] | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          categories?: string[] | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           archived: boolean
@@ -223,6 +346,105 @@ export type Database = {
         }
         Relationships: []
       }
+      faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fasting_hours: {
+        Row: {
+          autophagy_milestone: boolean | null
+          body_state: string
+          challenging_symptoms: string[] | null
+          common_feelings: string[] | null
+          created_at: string
+          day: number
+          difficulty: string
+          encouragement: string | null
+          fat_burning_milestone: boolean | null
+          hour: number
+          id: string
+          image_url: string | null
+          ketosis_milestone: boolean | null
+          motivator_tags: string[] | null
+          phase: string
+          positive_symptoms: string[] | null
+          scientific_info: string | null
+          tips: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          autophagy_milestone?: boolean | null
+          body_state: string
+          challenging_symptoms?: string[] | null
+          common_feelings?: string[] | null
+          created_at?: string
+          day: number
+          difficulty?: string
+          encouragement?: string | null
+          fat_burning_milestone?: boolean | null
+          hour: number
+          id?: string
+          image_url?: string | null
+          ketosis_milestone?: boolean | null
+          motivator_tags?: string[] | null
+          phase?: string
+          positive_symptoms?: string[] | null
+          scientific_info?: string | null
+          tips?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          autophagy_milestone?: boolean | null
+          body_state?: string
+          challenging_symptoms?: string[] | null
+          common_feelings?: string[] | null
+          created_at?: string
+          day?: number
+          difficulty?: string
+          encouragement?: string | null
+          fat_burning_milestone?: boolean | null
+          hour?: number
+          id?: string
+          image_url?: string | null
+          ketosis_milestone?: boolean | null
+          motivator_tags?: string[] | null
+          phase?: string
+          positive_symptoms?: string[] | null
+          scientific_info?: string | null
+          tips?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fasting_sessions: {
         Row: {
           created_at: string
@@ -256,6 +478,96 @@ export type Database = {
           status?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      fasting_timeline_posts: {
+        Row: {
+          author: string
+          categories: string[] | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image: string | null
+          hour: number
+          how_youre_feeling: string | null
+          id: string
+          meta_description: string | null
+          meta_keywords: string | null
+          published_at: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          whats_happening: string | null
+        }
+        Insert: {
+          author?: string
+          categories?: string[] | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          hour: number
+          how_youre_feeling?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          whats_happening?: string | null
+        }
+        Update: {
+          author?: string
+          categories?: string[] | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          hour?: number
+          how_youre_feeling?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          whats_happening?: string | null
+        }
+        Relationships: []
+      }
+      feature_screenshots: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          image_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          image_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -295,6 +607,54 @@ export type Database = {
           serving_size?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      general_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -358,6 +718,54 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      page_content: {
+        Row: {
+          button_text: string | null
+          button_url: string | null
+          content: string | null
+          created_at: string
+          featured_image_url: string | null
+          id: string
+          is_published: boolean
+          meta_description: string | null
+          meta_title: string | null
+          page_key: string
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          button_text?: string | null
+          button_url?: string | null
+          content?: string | null
+          created_at?: string
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          page_key: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          button_text?: string | null
+          button_url?: string | null
+          content?: string | null
+          created_at?: string
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          page_key?: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -443,6 +851,8 @@ export type Database = {
           deletion_reason: string | null
           deletion_scheduled_at: string | null
           display_name: string | null
+          enable_fasting_slideshow: boolean | null
+          enable_walking_slideshow: boolean | null
           goal_weight: number | null
           google_play_purchase_token: string | null
           height: number | null
@@ -482,6 +892,8 @@ export type Database = {
           deletion_reason?: string | null
           deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_fasting_slideshow?: boolean | null
+          enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
           height?: number | null
@@ -521,6 +933,8 @@ export type Database = {
           deletion_reason?: string | null
           deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_fasting_slideshow?: boolean | null
+          enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
           height?: number | null
@@ -570,6 +984,30 @@ export type Database = {
           id?: string
           setting_key?: string
           setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json | null
           updated_at?: string
         }
         Relationships: []

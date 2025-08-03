@@ -327,9 +327,6 @@ const AdminOverview = () => {
       {/* Payment Provider Configuration */}
       <PaymentProviderSettings />
 
-      {/* Google Analytics Configuration */}
-      <GoogleAnalyticsSettings />
-
       {/* Brand Customization */}
       <div className="space-y-6 mb-24">
         <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>

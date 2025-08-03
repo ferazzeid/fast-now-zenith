@@ -282,8 +282,15 @@ serve(async (req) => {
       }
       
       // Format response to match expected structure
+      let completion = result.choices?.[0]?.message?.content || '';
+      
+      // Round decimal numbers for calories and carbs to whole numbers
+      completion = completion.replace(/(\d+)\.(\d+)\s*(calories?|cal|carbs?|grams?)/gi, (match, whole, decimal, unit) => {
+        return `${Math.round(parseFloat(whole + '.' + decimal))} ${unit}`;
+      });
+      
       const formattedResult = {
-        completion: result.choices?.[0]?.message?.content || '',
+        completion: completion,
         functionCall: functionCall
       };
       
