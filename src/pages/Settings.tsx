@@ -45,6 +45,7 @@ const Settings = () => {
   const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     // Load saved API key from localStorage
@@ -79,9 +80,9 @@ const Settings = () => {
     const fetchUserSettings = async () => {
       if (user) {
         try {
-          const { data: profile, error } = await supabase
+          const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
+            .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow')
             .eq('user_id', user.id)
             .maybeSingle();
 
@@ -90,23 +91,24 @@ const Settings = () => {
           return;
         }
 
-        if (profile) {
-          setUseOwnKey(profile.use_own_api_key ?? true);
-          setSpeechModel(profile.speech_model || 'gpt-4o-mini-realtime');
-          setTranscriptionModel(profile.transcription_model || 'whisper-1');
-          setTtsModel(profile.tts_model || 'tts-1');
-          setTtsVoice(profile.tts_voice || 'alloy');
-          setWeight(profile.weight?.toString() || '');
-          setHeight(profile.height?.toString() || '');
-          setAge(profile.age?.toString() || '');
-          setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
-          setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
-          setActivityLevel(profile.activity_level || 'sedentary');
-          setUnits((profile.units as 'metric' | 'imperial') || 'imperial');
+        if (profileData) {
+          setProfile(profileData);
+          setUseOwnKey(profileData.use_own_api_key ?? true);
+          setSpeechModel(profileData.speech_model || 'gpt-4o-mini-realtime');
+          setTranscriptionModel(profileData.transcription_model || 'whisper-1');
+          setTtsModel(profileData.tts_model || 'tts-1');
+          setTtsVoice(profileData.tts_voice || 'alloy');
+          setWeight(profileData.weight?.toString() || '');
+          setHeight(profileData.height?.toString() || '');
+          setAge(profileData.age?.toString() || '');
+          setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
+          setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
+          setActivityLevel(profileData.activity_level || 'sedentary');
+          setUnits((profileData.units as 'metric' | 'imperial') || 'imperial');
           
           // Load API key from database if available
-          if (profile.openai_api_key) {
-            setOpenAiKey(profile.openai_api_key);
+          if (profileData.openai_api_key) {
+            setOpenAiKey(profileData.openai_api_key);
           }
         }
         } catch (error) {
@@ -237,6 +239,73 @@ const Settings = () => {
                 </div>
                 <div className="flex justify-center">
                   <ThemeToggle />
+                </div>
+              </div>
+            </Card>
+
+            {/* Animation Settings */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Animations</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Fasting Motivator Slideshow</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_fasting_slideshow ?? true}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_fasting_slideshow: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Fasting slideshow enabled" : "Fasting slideshow disabled",
+                            description: "Changes will take effect immediately"
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Walking Motivator Slideshow</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_walking_slideshow ?? true}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_walking_slideshow: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Walking slideshow enabled" : "Walking slideshow disabled",
+                            description: "Changes will take effect immediately"
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Disabling slideshows may improve performance on slower devices
+                  </p>
                 </div>
               </div>
             </Card>

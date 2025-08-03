@@ -7,6 +7,7 @@ import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -18,6 +19,7 @@ export const Navigation = () => {
   const { isProfileComplete } = useProfile();
   const { currentSession: fastingSession, loadActiveSession } = useFastingSession();
   const { todayTotals } = useFoodEntries();
+  const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline, isConnected } = useConnectionStore();
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -104,7 +106,7 @@ export const Navigation = () => {
       icon: Footprints, 
       label: 'Walk', 
       path: '/walking',
-      badge: timerStatus.walking.isActive ? formatTime(timerStatus.walking.timeElapsed) : null,
+      badge: walkingSession?.status === 'active' ? formatTime(Math.floor((currentTime - new Date(walkingSession.start_time).getTime()) / 1000)) : null,
       isEating: false
     },
     { 
@@ -121,7 +123,7 @@ export const Navigation = () => {
       isEating: false
     },
     { icon: Settings, label: 'Settings', path: '/settings', isEating: false },
-  ], [getFastingBadge, timerStatus.walking, formatTime, todayTotals.calories]);
+  ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
   const getConnectionStatus = () => {
     if (!isOnline) return { color: 'bg-red-500', tooltip: 'Offline - Changes will sync when connected' };
