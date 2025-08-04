@@ -24,6 +24,7 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { EnhancedConnectionStatus } from "./components/enhanced/ConnectionRecovery";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
+import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
 import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
@@ -37,6 +38,8 @@ import { useEffect } from "react";
 const AppContent = () => {
   // Load color theme on app startup
   useColorTheme();
+  // Load dynamic favicon from admin settings
+  useDynamicFavicon();
   const location = useLocation();
   
   // Initialize analytics on app startup (non-blocking)

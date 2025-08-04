@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
 import { useLoadingManager } from './useLoadingManager';
+import { useMotivatorCache } from './useMotivatorCache';
 
 export interface Motivator {
   id: string;
@@ -28,9 +29,18 @@ export const useMotivators = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
+  const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
 
-  const loadMotivators = async () => {
+  const loadMotivators = async (forceRefresh = false) => {
     if (!user) {
+      stopLoading();
+      return;
+    }
+
+    // Use cached data if available and not forcing refresh
+    if (!forceRefresh && cachedMotivators && !shouldFetchMotivators()) {
+      console.log('Using cached motivators, skipping API call');
+      setMotivators(cachedMotivators);
       stopLoading();
       return;
     }
@@ -46,20 +56,31 @@ export const useMotivators = () => {
 
       if (error) throw error;
       
-      // Transform data to include imageUrl property
+      // Transform data to include imageUrl property with proper fallback
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        imageUrl: item.image_url
+        imageUrl: item.image_url || item.imageUrl || null // Handle both field names and provide fallback
       }));
       
       setMotivators(transformedData);
+      // Cache the fresh data
+      cacheMotivators(transformedData);
+      
+      console.log('Loaded fresh motivators from API:', transformedData.length);
     } catch (error) {
       console.error('Error loading motivators:', error);
-      toast({
-        title: "Error loading motivators",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      
+      // If we have cached data, use it as fallback
+      if (cachedMotivators && cachedMotivators.length > 0) {
+        console.log('Using cached motivators as fallback');
+        setMotivators(cachedMotivators);
+      } else {
+        toast({
+          title: "Error loading motivators",
+          description: "Please check your connection and try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       stopLoading();
     }
@@ -174,16 +195,45 @@ export const useMotivators = () => {
     }
   };
 
+  // Load cached motivators immediately on mount, then check for fresh data
   useEffect(() => {
-    loadMotivators();
-  }, [user]);
+    if (user) {
+      // First load cached data if available (instant)
+      if (cachedMotivators) {
+        setMotivators(cachedMotivators);
+        stopLoading();
+      }
+      // Then check if we need fresh data (background)
+      loadMotivators();
+    }
+  }, [user?.id]); // Only depend on user.id to avoid unnecessary re-runs
 
   return {
     motivators,
     loading,
-    createMotivator,
-    updateMotivator,
-    deleteMotivator,
-    refreshMotivators: loadMotivators
+    createMotivator: async (motivatorData: CreateMotivatorData) => {
+      const result = await createMotivator(motivatorData);
+      if (result) {
+        invalidateCache(); // Clear cache when new motivator is created
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    updateMotivator: async (id: string, updates: Partial<CreateMotivatorData>) => {
+      const result = await updateMotivator(id, updates);
+      if (result) {
+        invalidateCache(); // Clear cache when motivator is updated
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    deleteMotivator: async (id: string) => {
+      const result = await deleteMotivator(id);
+      if (result) {
+        invalidateCache(); // Clear cache when motivator is deleted
+      }
+      return result;
+    },
+    refreshMotivators: () => loadMotivators(true) // Always force refresh when manually called
   };
 };
