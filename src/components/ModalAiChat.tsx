@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAuth } from '@/hooks/useAuth';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { PremiumGate } from '@/components/PremiumGate';
 
 interface Message {
