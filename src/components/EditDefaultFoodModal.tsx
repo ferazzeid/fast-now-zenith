@@ -3,7 +3,7 @@ import { Edit, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { RegenerateImageButton } from './RegenerateImageButton';
 import { ImageUpload } from './ImageUpload';
@@ -200,27 +200,43 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) {
-        resetForm();
-      }
-    }}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-1 h-6 w-6 hover:bg-primary/10"
-          title="Edit default food"
-        >
-          <Edit className="w-3 h-3 text-muted-foreground" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Default Food</DialogTitle>
-        </DialogHeader>
-        
+    <>
+      {/* Trigger Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="p-1 h-6 w-6 hover:bg-primary/10"
+        title="Edit default food"
+        onClick={() => setIsOpen(true)}
+      >
+        <Edit className="w-3 h-3 text-muted-foreground" />
+      </Button>
+
+      {/* Modal */}
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+          resetForm();
+        }}
+        title={`Edit ${food.name}`}
+        variant="standard"
+        size="md"
+        footer={
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSave} className="flex-1">
+              Save Changes
+            </Button>
+          </div>
+        }
+      >
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Food Name</Label>
@@ -295,15 +311,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+
+      </UniversalModal>
+    </>
   );
 };
