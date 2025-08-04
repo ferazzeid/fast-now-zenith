@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useMotivators } from '@/hooks/useMotivators';
 import { supabase } from '@/integrations/supabase/client';
@@ -291,29 +291,28 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
 
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8 flex flex-col p-0">
-        <DialogHeader className="border-b border-border p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">AI Motivator Coach</DialogTitle>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Switch
-                  id="modal-audio-mode"
-                  checked={audioEnabled}
-                  onCheckedChange={setAudioEnabled}
-                  className="scale-75"
-                />
-                <Label htmlFor="modal-audio-mode" className="text-sm">
-                  {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-                </Label>
-              </div>
-            </div>
-          </div>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={true}
+      onClose={onClose}
+      title="AI Motivator Coach"
+      variant="standard"
+      size="md"
+    >
+      {/* Audio toggle */}
+      <div className="flex items-center gap-2 mb-4 justify-end">
+        <Switch
+          id="modal-audio-mode"
+          checked={audioEnabled}
+          onCheckedChange={setAudioEnabled}
+          className="scale-75"
+        />
+        <Label htmlFor="modal-audio-mode" className="text-sm">
+          {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+        </Label>
+      </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages */}
+      <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -362,42 +361,41 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
           )}
           
           <div ref={messagesEndRef} />
-        </div>
+      </div>
 
-        {/* Input */}
-        <div className="flex-shrink-0 border-t border-border p-4 space-y-3">
-          {/* Text Input */}
-          <div className="flex gap-2 items-end">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Tell me what motivates you..."
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              disabled={isLoading}
-              className="flex-1"
-            />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isLoading}
-              size="default"
-              className="flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-           {/* Voice Recording */}
-           <div className="flex justify-center">
-             <PremiumGate feature="Voice Input">
-               <CircularVoiceButton
-                 onTranscription={handleVoiceTranscription}
-                 isDisabled={isLoading}
-                 size="lg"
-               />
-             </PremiumGate>
-           </div>
+      {/* Input area */}
+      <div className="border-t border-border pt-4 mt-4 space-y-3">
+        {/* Text Input */}
+        <div className="flex gap-2 items-end">
+          <Input
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Tell me what motivates you..."
+            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+            disabled={isLoading}
+            className="flex-1"
+          />
+          <Button
+            onClick={() => handleSendMessage()}
+            disabled={!inputMessage.trim() || isLoading}
+            size="default"
+            className="flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+        
+        {/* Voice Recording */}
+        <div className="flex justify-center">
+          <PremiumGate feature="Voice Input">
+            <CircularVoiceButton
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isLoading}
+              size="lg"
+            />
+          </PremiumGate>
+        </div>
+      </div>
+    </UniversalModal>
   );
 };

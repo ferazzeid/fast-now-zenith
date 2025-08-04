@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
@@ -211,26 +211,29 @@ export const CrisisChatModal = ({
   };
 
   const ChatInterface = () => (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] mt-4 flex flex-col p-0">
-        <DialogHeader className="border-b border-border p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">Crisis Support</DialogTitle>
-            <div className="flex items-center gap-2 mr-8">
-              <Switch
-                id="crisis-audio-mode"
-                checked={audioEnabled}
-                onCheckedChange={setAudioEnabled}
-                className="scale-75"
-              />
-              <Label htmlFor="crisis-audio-mode" className="text-sm">
-                {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-              </Label>
-            </div>
-          </div>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Crisis Support"
+      variant="standard"
+      size="md"
+      headerClassName="flex items-center justify-between"
+    >
+      {/* Audio toggle in header area */}
+      <div className="flex items-center gap-2 mb-4 justify-end">
+        <Switch
+          id="crisis-audio-mode"
+          checked={audioEnabled}
+          onCheckedChange={setAudioEnabled}
+          className="scale-75"
+        />
+        <Label htmlFor="crisis-audio-mode" className="text-sm">
+          {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+        </Label>
+      </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[300px] max-h-[400px]">
+      {/* Chat messages */}
+      <div className="space-y-3 min-h-[300px] max-h-[400px] overflow-y-auto">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -292,38 +295,38 @@ export const CrisisChatModal = ({
           )}
           
           <div ref={messagesEndRef} />
-        </div>
+      </div>
 
-        <div className="flex-shrink-0 border-t border-border p-4 space-y-3">
-          <div className="flex gap-2 items-end">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Share what you're experiencing..."
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              disabled={isProcessing}
-              className="flex-1"
-            />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isProcessing}
-              size="default"
-              className="flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="flex justify-center">
-            <CircularVoiceButton
-              onTranscription={handleVoiceTranscription}
-              isDisabled={isProcessing}
-              size="lg"
-            />
-          </div>
+      {/* Input area */}
+      <div className="border-t border-border pt-4 mt-4 space-y-3">
+        <div className="flex gap-2 items-end">
+          <Input
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Share what you're experiencing..."
+            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+            disabled={isProcessing}
+            className="flex-1"
+          />
+          <Button
+            onClick={() => handleSendMessage()}
+            disabled={!inputMessage.trim() || isProcessing}
+            size="default"
+            className="flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+        
+        <div className="flex justify-center">
+          <CircularVoiceButton
+            onTranscription={handleVoiceTranscription}
+            isDisabled={isProcessing}
+            size="lg"
+          />
+        </div>
+      </div>
+    </UniversalModal>
   );
 
   return (

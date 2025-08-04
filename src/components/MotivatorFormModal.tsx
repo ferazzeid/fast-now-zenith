@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
@@ -151,13 +151,32 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
-            {isEditing ? 'Edit Motivator' : 'Create New Motivator'}
-          </DialogTitle>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={true}
+      onClose={onClose}
+      title={isEditing ? 'Edit Motivator' : 'Create New Motivator'}
+      variant="standard"
+      size="md"
+      footer={
+        <>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1 bg-ceramic-base border-ceramic-rim"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!title.trim()}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isEditing ? 'Save Changes' : 'Create Motivator'}
+          </Button>
+        </>
+      }
+    >
 
         {/* Admin Templates (only for new motivators) */}
         {!isEditing && templates.length > 0 && (
@@ -316,25 +335,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex space-x-3 border-t border-border -mx-6 px-6 pt-4 mt-6">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 bg-ceramic-base border-ceramic-rim"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!title.trim()}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isEditing ? 'Save Changes' : 'Create Motivator'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </UniversalModal>
   );
 };

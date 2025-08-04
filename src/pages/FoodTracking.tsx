@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { ShoppingCart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryForm } from '@/components/EditFoodEntryForm';
 import { ModalAiChat } from '@/components/ModalAiChat';
@@ -820,15 +821,20 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         )}
 
 
-        {/* Food Library Modal */}
-        <Dialog open={showLibraryView} onOpenChange={setShowLibraryView}>
-          <DialogContent className="w-full max-w-full md:max-w-md h-full max-h-full p-0 overflow-hidden">
-            <FoodLibraryView 
-              onSelectFood={handleSelectFromLibrary} 
-              onBack={() => setShowLibraryView(false)} 
-            />
-          </DialogContent>
-        </Dialog>
+        {/* Food Library Modal - Using fullscreen pattern with content-only mode */}
+        <UniversalModal
+          isOpen={showLibraryView}
+          onClose={() => setShowLibraryView(false)}
+          title="" // Empty title since FoodLibraryView has its own header
+          variant="fullscreen"
+          showCloseButton={false} // FoodLibraryView has its own close button
+          contentClassName="p-0" // Remove padding since FoodLibraryView handles its own spacing
+        >
+          <FoodLibraryView 
+            onSelectFood={handleSelectFromLibrary} 
+            onBack={() => setShowLibraryView(false)} 
+          />
+        </UniversalModal>
         
         {/* Edit Food Entry Modal */}
         <Dialog open={!!editingEntry} onOpenChange={() => setEditingEntry(null)}>

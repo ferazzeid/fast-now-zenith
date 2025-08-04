@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
@@ -412,14 +412,16 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="border-b border-border pb-4">
-          <DialogTitle className="text-lg font-semibold flex items-center justify-center">{title}</DialogTitle>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      variant="standard"
+      size="md"
+    >
 
-        {/* Messages with better spacing and scrolling */}
-        <div className="space-y-4 p-4 min-h-[300px] max-h-[400px] overflow-y-auto">
+      {/* Messages with better spacing and scrolling */}
+      <div className="space-y-4 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -612,9 +614,9 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           </Card>
         )}
 
-        {/* Input */}
-        {!showEditForm && (
-          <div className="border-t border-border p-4 space-y-3">
+      {/* Input area */}
+      {!showEditForm && (
+        <div className="border-t border-border pt-4 mt-4 space-y-3">
           {/* Text Input */}
           <div className="flex gap-2 items-end">
             <Input
@@ -635,19 +637,18 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
             </Button>
           </div>
           
-           {/* Voice Recording */}
-           <div className="flex justify-center">
-             <PremiumGate feature="Voice Input">
-               <CircularVoiceButton
-                 onTranscription={handleVoiceTranscription}
-                 isDisabled={isProcessing}
-                 size="lg"
-               />
-             </PremiumGate>
-           </div>
+        {/* Voice Recording */}
+        <div className="flex justify-center">
+          <PremiumGate feature="Voice Input">
+            <CircularVoiceButton
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isProcessing}
+              size="lg"
+            />
+          </PremiumGate>
         </div>
-        )}
-      </DialogContent>
-    </Dialog>
+      </div>
+      )}
+    </UniversalModal>
   );
 };
