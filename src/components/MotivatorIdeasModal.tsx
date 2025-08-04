@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Search, Lightbulb, Plus, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,13 +25,13 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
 
   if (loading) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-4">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Motivator Ideas
-            </DialogTitle>
-          </DialogHeader>
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Motivator Ideas"
+        variant="standard"
+        size="lg"
+      >
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-4 h-4 bg-muted animate-pulse rounded" />
@@ -50,19 +50,18 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
               ))}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+      </UniversalModal>
     );
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-4">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Motivator Ideas
-          </DialogTitle>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Motivator Ideas"
+      variant="standard"
+      size="lg"
+    >
         
         <div className="space-y-4">
           {/* Search */}
@@ -159,7 +158,6 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+    </UniversalModal>
   );
 };

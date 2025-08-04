@@ -141,19 +141,39 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
-      if (!newOpen) resetForm();
-    }}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="border-b border-border p-4">
-          <DialogTitle className="text-lg font-semibold">Edit Food Entry</DialogTitle>
-        </DialogHeader>
+    <>
+      {/* Trigger Button */}
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        <Edit className="w-4 h-4" />
+      </Button>
+
+      {/* Modal */}
+      <UniversalModal
+        isOpen={open}
+        onClose={() => {
+          setOpen(false);
+          resetForm();
+        }}
+        title="Edit Food Entry"
+        variant="standard"
+        size="md"
+        footer={
+          <div className="flex space-x-2 w-full">
+            <Button onClick={handleSave} disabled={loading || generatingImage} className="flex-1">
+              <Save className="w-4 h-4 mr-2" />
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+              disabled={loading || generatingImage}
+            >
+              <X className="w-8 h-8 mr-2" />
+              Cancel
+            </Button>
+          </div>
+        }
+      >
         
         <div className="space-y-4">
           <div className="space-y-2">
@@ -245,23 +265,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
 
             </div>
           </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={loading || generatingImage} className="flex-1">
-              <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setOpen(false)}
-              disabled={loading || generatingImage}
-            >
-              <X className="w-8 h-8 mr-2" />
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </UniversalModal>
+    </>
   );
 };

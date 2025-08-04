@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,17 +76,44 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="action-secondary" size="action-secondary" className="w-full">
-          <Plus className="w-3 h-3 mr-1" />
-          Add External Activity
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
-        <DialogHeader className="border-b border-border p-4">
-          <DialogTitle className="text-lg font-semibold">Add External Activity</DialogTitle>
-        </DialogHeader>
+    <>
+      {/* Trigger Button */}
+      <Button 
+        variant="action-secondary" 
+        size="action-secondary" 
+        className="w-full"
+        onClick={() => setIsOpen(true)}
+      >
+        <Plus className="w-3 h-3 mr-1" />
+        Add External Activity
+      </Button>
+
+      {/* Modal */}
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Add External Activity"
+        variant="standard"
+        size="md"
+        footer={
+          <div className="flex gap-2 w-full">
+            <Button 
+              onClick={handleSave}
+              disabled={saving || !activityName.trim() || !caloriesBurned}
+              className="flex-1"
+            >
+              {saving ? 'Saving...' : 'Add Activity'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+          </div>
+        }
+      >
         <div className="space-y-4">
           <div>
             <Label htmlFor="activity-name">Activity Name</Label>
@@ -115,25 +142,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               onFocus={(e) => e.stopPropagation()}
             />
           </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button 
-              onClick={handleSave} 
-              disabled={saving}
-              className="flex-1"
-            >
-              {saving ? 'Saving...' : 'Add Activity'}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsOpen(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </UniversalModal>
+    </>
   );
 };
