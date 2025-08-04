@@ -187,9 +187,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             <div className="absolute left-0 top-0">
               <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Motivators</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Goals</h1>
             <p className="text-muted-foreground">
-              Your personal collection of inspiration and motivation
+              Your personal collection of inspiration
             </p>
           </div>
 
@@ -242,7 +242,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                   </svg>
-                  <span className="text-sm font-medium">Motivator Ideas</span>
+                  <span className="text-sm font-medium">Library</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

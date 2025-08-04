@@ -713,7 +713,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                                   carbs_per_100g: analysis.carbs_per_100g
                                 }))}`);
                               }}
-                              className="text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                              className="text-xs border-gray-200 text-gray-600 hover:bg-gray-50"
                             >
                               📚 Save to Library
                             </Button>

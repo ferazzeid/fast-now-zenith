@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { X, Save, Sparkles } from 'lucide-react';
+import { Save, Sparkles, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
@@ -102,51 +103,54 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-ceramic-plate rounded-3xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto border border-ceramic-rim shadow-2xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-warm-text">Edit Motivator</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="hover:bg-ceramic-rim"
-          >
-            <X className="w-8 h-8" />
+    <UniversalModal
+      isOpen={true}
+      onClose={onClose}
+      title="Edit Motivator"
+      variant="standard"
+      size="md"
+      footer={
+        <div className="flex gap-2 w-full">
+          <Button onClick={handleSave} className="flex-1">
+            <Save className="w-4 h-4 mr-2" />
+            Save Changes
+          </Button>
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            Cancel
           </Button>
         </div>
+      }
+    >
 
         {/* Form */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-warm-text font-medium">
+            <Label htmlFor="title" className="font-medium">
               Title
             </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim"
               placeholder="Enter motivator title"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content" className="text-warm-text font-medium">
+            <Label htmlFor="content" className="font-medium">
               Description (Optional)
             </Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim min-h-[100px]"
+              className="min-h-[100px]"
               placeholder="Optional: Add more details about this motivation..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-warm-text font-medium">
+            <Label className="font-medium">
               Motivator Image (Optional)
             </Label>
             
@@ -159,18 +163,18 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
               showUploadOptionsWhenImageExists={true}
             />
 
-              {/* AI Generation button */}
-              <div className="flex gap-2">
+              {/* AI Generation buttons */}
+              <div className="flex gap-3">
                 <Button
                   variant="outline"
                   onClick={handleGenerateImage}
                   disabled={isGeneratingImage}
-                  className="flex-1"
+                  className="flex-1 hover:bg-gray-50"
                 >
                   {isGeneratingImage ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating AI Image...
+                      Generating...
                     </>
                   ) : (
                     <>
@@ -181,37 +185,39 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
                 </Button>
                 
                 {imageUrl && (
-                  <RegenerateImageButton
-                    prompt={`${title}. ${content}`}
-                    filename={`motivator-${Date.now()}.jpg`}
-                    onImageGenerated={setImageUrl}
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      setIsGeneratingImage(true);
+                      try {
+                        const newImageUrl = await generate_image(`${title}. ${content}`, `motivator-${Date.now()}.jpg`);
+                        setImageUrl(newImageUrl);
+                        toast({
+                          title: "✨ Image Regenerated!",
+                          description: "Your new AI-generated image is ready.",
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "Regeneration failed",
+                          description: "Please try again.",
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setIsGeneratingImage(false);
+                      }
+                    }}
                     disabled={isGeneratingImage}
-                  />
+                    className="px-4 hover:bg-gray-50"
+                    title="Regenerate image"
+                  >
+                    <RotateCcw className={`w-4 h-4 ${isGeneratingImage ? 'animate-spin' : ''}`} />
+                  </Button>
                 )}
               </div>
 
             </div>
           </div>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex space-x-3">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 bg-ceramic-base border-ceramic-rim"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
-          </Button>
-        </div>
-      </div>
-    </div>
+    </UniversalModal>
   );
 };

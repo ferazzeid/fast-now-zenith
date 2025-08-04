@@ -33,11 +33,9 @@ export const useAdminTemplates = () => {
       }
     } catch (error) {
       console.error('Error loading admin templates:', error);
-      toast({
-        title: "Error loading templates",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      // Silently fail for non-admin users - don't show error toast
+      // Admin users can check console for debugging
+      setTemplates([]);
     } finally {
       setLoading(false);
     }
