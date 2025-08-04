@@ -648,8 +648,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           )}
         </div>
 
-        {/* Action Buttons - MOVED BELOW Today's Food Plan */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Action Buttons - All on same line */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Voice Add */}
           <PremiumGate feature="AI Food Assistant">
             <Button
@@ -673,18 +673,16 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             <Plus className="w-5 h-5" />
             <span className="text-sm font-medium">Manual Add</span>
           </Button>
-        </div>
 
-        {/* Add from Library Button - MOVED BELOW Action Buttons */}
-        <div className="mb-3">
+          {/* Add from Library */}
           <Button
             onClick={() => setShowLibraryView(true)}
-            variant="action-secondary"
-            size="action-secondary"
-            className="w-full gap-2"
+            variant="action-primary"
+            size="action-tall"
+            className="gap-2"
           >
             <Utensils className="w-5 h-5" />
-            <span className="text-sm font-medium">Add from Library</span>
+            <span className="text-sm font-medium">Library</span>
           </Button>
         </div>
 
