@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { UniversalModal } from '@/components/ui/universal-modal';
 
 interface FastSelectorProps {
   currentType: 'intermittent' | 'longterm';
@@ -85,20 +86,27 @@ export const FastSelector = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-ceramic-plate rounded-3xl p-6 w-full max-w-md border border-ceramic-rim shadow-2xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-warm-text">Select Fast Type</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="hover:bg-ceramic-rim"
+    <UniversalModal
+      isOpen={true}
+      onClose={onClose}
+      title="Select Fast Type"
+      variant="standard"
+      size="md"
+      footer={
+        <div className="flex gap-2 w-full">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirm} 
+            disabled={!isValidDateTime()}
+            className="flex-1"
           >
-            <X className="w-8 h-8" />
+            {startInPast ? 'Start Past Fast' : 'Select Fast'}
           </Button>
         </div>
+      }
+    >
 
         {/* Fast Type Selection */}
         <div className="space-y-4 mb-6">
@@ -252,24 +260,7 @@ export const FastSelector = ({
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex space-x-3">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 bg-ceramic-base border-ceramic-rim"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!isValidDateTime()}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
-          >
-            {startInPast ? 'Start Past Fast' : 'Select Fast'}
-          </Button>
-        </div>
-      </div>
-    </div>
+
+    </UniversalModal>
   );
 };
