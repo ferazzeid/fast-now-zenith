@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
-import { ShoppingCart } from 'lucide-react';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
@@ -683,7 +683,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             size="action-secondary"
             className="w-full gap-2"
           >
-            <ShoppingCart className="w-5 h-5" />
+            <Utensils className="w-5 h-5" />
             <span className="text-sm font-medium">Add from Library</span>
           </Button>
         </div>

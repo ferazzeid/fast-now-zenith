@@ -194,7 +194,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4 mb-6">
             <Tooltip>
               <TooltipTrigger asChild>
                 <PremiumGate feature="AI Motivator Assistant">
@@ -202,9 +202,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                     onClick={handleVoiceMotivator}
                     variant="action-primary"
                     size="action-tall"
-                    className="flex-col"
+                    className="gap-2"
                   >
-                    <Mic className="w-6 h-6 mb-1" />
+                    <Mic className="w-5 h-5" />
                     <span className="text-sm font-medium">Voice Add</span>
                   </Button>
                 </PremiumGate>
@@ -220,9 +220,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                   onClick={() => setShowFormModal(true)}
                   variant="action-primary"
                   size="action-tall"
-                  className="flex-col"
+                  className="gap-2"
                 >
-                  <Plus className="w-6 h-6 mb-1" />
+                  <Plus className="w-5 h-5" />
                   <span className="text-sm font-medium">Manual Add</span>
                 </Button>
               </TooltipTrigger>
@@ -230,22 +230,19 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                 <p>Create a motivator by typing title, description, and adding images</p>
               </TooltipContent>
             </Tooltip>
-          </div>
 
-          {/* Goal Ideas Button */}
-          <div className="mb-6">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   onClick={() => setShowMotivatorIdeasModal(true)}
                   variant="action-secondary"
-                  size="action-secondary"
-                  className="w-full gap-2"
+                  size="action-tall"
+                  className="gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                   </svg>
-                  <span className="font-medium">Motivator Ideas</span>
+                  <span className="text-sm font-medium">Motivator Ideas</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
