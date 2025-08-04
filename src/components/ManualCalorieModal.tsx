@@ -142,6 +142,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               onFocus={(e) => e.stopPropagation()}
             />
           </div>
+        </div>
       </UniversalModal>
     </>
   );

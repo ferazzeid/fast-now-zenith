@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Play, Square, Pause, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -33,7 +33,7 @@ interface WalkingTimerProps {
   onSpeedChange: (speed: number) => void;
 }
 
-export const WalkingTimer = ({ 
+const WalkingTimerComponent = ({ 
   displayTime, 
   isActive, 
   isPaused = false,
@@ -53,8 +53,8 @@ export const WalkingTimer = ({
   const { isAnimationsSuspended } = useAnimationControl();
   const { toast } = useToast();
 
-  // Static speed mappings - same as SpeedSelector
-  const SPEED_MAPPINGS = {
+  // PERFORMANCE: Memoize static speed mappings to prevent recreation
+  const SPEED_MAPPINGS = useMemo(() => ({
     metric: [
       { displaySpeed: 3, storageSpeed: 1.9 },
       { displaySpeed: 5, storageSpeed: 3.1 },
@@ -67,21 +67,20 @@ export const WalkingTimer = ({
       { displaySpeed: 4, storageSpeed: 4.0 },
       { displaySpeed: 5, storageSpeed: 5.0 }
     ]
-  };
+  }), []);
 
-  // Convert storage speed to display speed using static mapping
-  const storageSpeedToDisplaySpeed = (speedMph: number, units: 'metric' | 'imperial'): number => {
+  // PERFORMANCE: Memoize speed conversion functions
+  const storageSpeedToDisplaySpeed = useCallback((speedMph: number, units: 'metric' | 'imperial'): number => {
     const mapping = SPEED_MAPPINGS[units].find(option => 
       Math.abs(option.storageSpeed - speedMph) < 0.1
     );
     return mapping ? mapping.displaySpeed : SPEED_MAPPINGS[units][1].displaySpeed;
-  };
+  }, [SPEED_MAPPINGS]);
 
-  // Convert display speed to storage speed using static mapping
-  const displaySpeedToStorageSpeed = (displaySpeed: number, units: 'metric' | 'imperial'): number => {
+  const displaySpeedToStorageSpeed = useCallback((displaySpeed: number, units: 'metric' | 'imperial'): number => {
     const mapping = SPEED_MAPPINGS[units].find(option => option.displaySpeed === displaySpeed);
     return mapping ? mapping.storageSpeed : SPEED_MAPPINGS[units][1].storageSpeed;
-  };
+  }, [SPEED_MAPPINGS]);
 
   const formatPace = (speedMph: number) => {
     // Convert stored speed (MPH) to display speed for calculations
@@ -389,3 +388,6 @@ export const WalkingTimer = ({
     </TooltipProvider>
   );
 };
+
+// PERFORMANCE: Memoized export to prevent unnecessary re-renders
+export const WalkingTimer = memo(WalkingTimerComponent);
