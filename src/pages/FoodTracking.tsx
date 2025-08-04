@@ -22,7 +22,7 @@ import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,7 +56,7 @@ const FoodTracking = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntries();
+  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
 
   const handleVoiceFood = async () => {

@@ -5,7 +5,7 @@ import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
 import { useProfile } from '@/hooks/useProfile';
-import { useDailyDeficit } from '@/hooks/useDailyDeficit';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 
 interface InlineActivitySelectorProps {
   currentDisplayLevel: string;
@@ -25,7 +25,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { todayOverride, loading, setActivityOverride, clearTodayOverride } = useDailyActivityOverride();
   const { profile } = useProfile();
-  const { refreshDeficit } = useDailyDeficit();
+  const { refreshDeficit } = useDailyDeficitQuery();
 
   const handleValueChange = async (value: string) => {
     try {

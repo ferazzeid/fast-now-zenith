@@ -14,7 +14,7 @@ import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 import { FastingHistory } from '@/components/FastingHistory';
 
 import { useToast } from '@/hooks/use-toast';
-import { useFastingSession } from '@/hooks/useFastingSession';
+import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useCrisisSettings } from '@/hooks/useCrisisSettings';
@@ -44,7 +44,7 @@ const Timer = () => {
   
   const [walkingTime, setWalkingTime] = useState(0);
   
-  const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSession();
+  const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();

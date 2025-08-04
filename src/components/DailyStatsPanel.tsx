@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { ChevronDown, Activity, Utensils, Target } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useDailyDeficit } from '@/hooks/useDailyDeficit';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 import { useLocation } from 'react-router-dom';
 import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
@@ -18,7 +18,7 @@ import { Info } from 'lucide-react';
 export const DailyStatsPanel = memo(() => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const { deficitData, loading, refreshDeficit } = useDailyDeficit();
+  const { deficitData, loading, refreshDeficit } = useDailyDeficitQuery();
   const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
   const { profile } = useProfile();
   const panelRef = useRef<HTMLDivElement>(null);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useDailyDeficit } from '@/hooks/useDailyDeficit';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 import { useProfile } from '@/hooks/useProfile';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 import { useFoodEntries } from '@/hooks/useFoodEntries';
@@ -13,7 +13,7 @@ export const useDeficitAnalysis = () => {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const { user } = useAuth();
-  const { deficitData } = useDailyDeficit();
+  const { deficitData } = useDailyDeficitQuery();
   const { profile } = useProfile();
   const { weeksToGoal, fatInGrams, thirtyDayProjection } = useGoalCalculations();
   const { todayEntries } = useFoodEntries();

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useDailyDeficit } from '@/hooks/useDailyDeficit';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 import { useProfile } from '@/hooks/useProfile';
 
 interface GoalCalculations {
@@ -14,7 +14,7 @@ interface GoalCalculations {
 }
 
 export const useGoalCalculations = (): GoalCalculations => {
-  const { deficitData } = useDailyDeficit();
+  const { deficitData } = useDailyDeficitQuery();
   const { profile } = useProfile();
 
   const calculations = useMemo(() => {
