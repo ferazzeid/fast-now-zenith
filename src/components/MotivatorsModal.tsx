@@ -87,7 +87,7 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
       <div className="bg-ceramic-plate rounded-3xl w-full max-w-md max-h-[85vh] border border-ceramic-rim shadow-2xl mt-4 flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-ceramic-rim">
-          <div className="text-center flex-1">
+          <div className="flex-1">
             <h3 className="text-lg font-semibold text-warm-text">My Motivators</h3>
             <p className="text-sm text-muted-foreground">
               Your personal collection of inspiration

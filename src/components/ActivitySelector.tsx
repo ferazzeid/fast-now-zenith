@@ -47,7 +47,7 @@ export const ActivitySelector = ({ isOpen, onClose, onSelectActivity }: Activity
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">Choose Activity</DialogTitle>
+          <DialogTitle>Choose Activity</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3 mt-4">
           {activities.map(({ id, title, description, icon: Icon, color }) => (
