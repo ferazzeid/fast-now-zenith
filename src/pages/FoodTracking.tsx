@@ -576,10 +576,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     setActiveTab('today');
                     setIsMultiSelectMode(true);
                   }}
-                  className="h-4 w-4 p-0 ml-1 hover:bg-primary/20"
+                  className="h-6 w-6 p-1 ml-1 hover:bg-primary/20 rounded border-2 border-primary/50"
                   title="Edit template"
                 >
-                  <Edit className="w-3 h-3 text-primary" />
+                  <Edit className="w-4 h-4 text-primary" />
                 </Button>
               </TabsTrigger>
             </TabsList>

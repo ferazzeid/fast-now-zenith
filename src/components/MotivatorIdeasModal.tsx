@@ -97,11 +97,20 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                         
                         {/* Goal Content */}
                         <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-between">
                             <h4 className="font-medium text-warm-text text-sm">{goal.title}</h4>
-                            <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                              {goal.category}
-                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Add dismiss functionality here
+                              }}
+                              className="h-5 w-5 p-0 hover:bg-destructive/10"
+                              title="Dismiss this idea"
+                            >
+                              <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                            </Button>
                           </div>
                           <p className={`text-xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
                             {goal.description}
@@ -132,7 +141,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <Plus className="w-4 h-4 mr-2" />
-                          Add This Motivator
+                          Use
                         </Button>
                       </div>
                     )}
