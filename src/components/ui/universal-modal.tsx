@@ -101,6 +101,8 @@ export const UniversalModal = ({
             'border border-gray-200 dark:border-gray-700',
             'rounded-lg shadow-xl',
             'focus:outline-none focus:ring-2 focus:ring-blue-500',
+            // Hide default dialog close button when showCloseButton is false
+            !showCloseButton && '[&>button]:hidden',
             className
           )}
           onPointerDownOutside={closeOnOverlay ? undefined : (e) => e.preventDefault()}
@@ -167,6 +169,8 @@ export const UniversalModal = ({
           // SIZE: Responsive sizing
           sizeClasses[size],
           'focus:outline-none focus:ring-2 focus:ring-blue-500',
+          // Hide default dialog close button when showCloseButton is false
+          !showCloseButton && '[&>button]:hidden',
           className
         )}
         onPointerDownOutside={closeOnOverlay ? undefined : (e) => e.preventDefault()}
