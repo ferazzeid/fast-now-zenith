@@ -300,60 +300,66 @@ const WalkingTimerComponent = ({
                 </div>
               </Card>
 
-              <Card className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="p-3 relative">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Distance</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-primary">
-                  {realTimeStats.distance}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">
-                    {units === 'metric' ? 'km' : 'mi'}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-bold text-primary">
+                    {realTimeStats.distance}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">
+                      {units === 'metric' ? 'km' : 'mi'}
+                    </span>
+                  </div>
+                  <ClickableTooltip content="Distance is estimated based on your walking speed and elapsed time.">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </ClickableTooltip>
                 </div>
-                <ClickableTooltip content="Distance is estimated based on your walking speed and elapsed time.">
-                  <Info className="w-4 h-4 text-muted-foreground absolute bottom-2 right-2" />
-                </ClickableTooltip>
               </Card>
             </div>
 
             {/* Calories & Fat Row */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="p-3 relative">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Calories</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-primary">
-                  {realTimeStats.calories}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-bold text-primary">
+                    {realTimeStats.calories}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
+                  </div>
+                  <ClickableTooltip content="Calories are estimated based on your profile data (weight, age, etc.) and walking intensity.">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </ClickableTooltip>
                 </div>
-                <ClickableTooltip content="Calories are estimated based on your profile data (weight, age, etc.) and walking intensity.">
-                  <Info className="w-4 h-4 text-muted-foreground absolute bottom-2 right-2" />
-                </ClickableTooltip>
               </Card>
 
-              <Card className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="p-3 relative">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
                     <TrendingUp className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Fat</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="text-xl font-bold text-primary">
-                  {(realTimeStats.calories / 9).toFixed(1)}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">g</span>
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-bold text-primary">
+                    {(realTimeStats.calories / 9).toFixed(1)}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">g</span>
+                  </div>
+                  <ClickableTooltip content="Fat burned is estimated based on calories (1g fat = 9 calories).">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </ClickableTooltip>
                 </div>
-                <ClickableTooltip content="Fat burned is estimated based on calories (1g fat = 9 calories).">
-                  <Info className="w-4 h-4 text-muted-foreground absolute bottom-2 right-2" />
-                </ClickableTooltip>
               </Card>
             </div>
           </div>
