@@ -70,7 +70,7 @@ export const FastSelector = ({
             disabled={!isValidDateTime()}
             className="flex-1 h-10 sm:h-auto text-sm sm:text-base"
           >
-            {startInPast ? 'Start Past Fast' : 'Start Fast'}
+            {startInPast ? 'Start Past Fasting' : 'Start Fasting'}
           </Button>
         </div>
       }
