@@ -462,7 +462,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         }`}
         onClick={handleCardClick}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Multi-select checkbox (always visible for user foods in my-foods tab) */}
           {canMultiSelect && (
             <div className="flex-shrink-0">
@@ -470,21 +470,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 checked={isSelected}
                 onCheckedChange={() => toggleFoodSelection(food.id)}
                 onClick={(e) => e.stopPropagation()}
-                className="w-10 h-10"
+                className="w-5 h-5"
               />
             </div>
           )}
 
-          {/* Food Image - 25% larger */}
+          {/* Food Image - Compact size */}
           {food.image_url ? (
             <img 
               src={food.image_url} 
               alt={food.name}
-              className="w-10 h-10 rounded-lg object-cover flex-shrink-0 shadow-sm"
+              className="w-5 h-5 rounded object-cover flex-shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-lg bg-ceramic-base flex items-center justify-center flex-shrink-0 shadow-sm">
-              <span className="text-base">🍽️</span>
+            <div className="w-5 h-5 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
+              <span className="text-xs">🍽️</span>
             </div>
           )}
           
@@ -506,17 +506,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               {/* Space where favorite button was */}
               <div className="w-2"></div>
 
-              {/* Options Dropdown - Bigger dots with subtle hover */}
+              {/* Options Dropdown - Compact with primary dots */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="p-2 h-10 w-10 hover:bg-secondary/80 rounded-lg"
+                    className="p-1 h-5 w-5 hover:bg-secondary/80 rounded"
                     title="More options"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="w-6 h-6 text-primary" />
+                    <MoreVertical className="w-3 h-3 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44 z-50">
@@ -568,13 +568,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     handleQuickSelect(food as UserFood, false) : 
                     importToMyLibrary(food as DefaultFood)
                 }}
-                className="h-10 w-10 p-2 flex-shrink-0 rounded-lg"
+                className="h-5 w-5 p-1 flex-shrink-0 rounded"
                 title={isUserFood ? "Add to today's plan" : "Import to your library"}
               >
                 {isUserFood ? (
-                  <Plus className="w-6 h-6" />
+                  <Plus className="w-3 h-3" />
                 ) : (
-                  <Download className="w-6 h-6" />
+                  <Download className="w-3 h-3" />
                 )}
               </Button>
             </div>
@@ -640,16 +640,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <div className="space-y-1.5">
                 {[...Array(8)].map((_, i) => (
                  <div key={i} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse mb-1.5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-muted" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded bg-muted" />
                       <div className="flex-1 space-y-1">
                         <div className="h-3 bg-muted rounded w-3/4" />
                         <div className="h-2 bg-muted rounded w-1/2" />
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-muted rounded" />
-                        <div className="w-10 h-10 bg-muted rounded-lg" />
-                        <div className="w-10 h-10 bg-muted rounded-lg" />
+                        <div className="w-5 h-5 bg-muted rounded" />
+                        <div className="w-5 h-5 bg-muted rounded" />
                       </div>
                     </div>
                   </div>
@@ -682,16 +682,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <div className="space-y-1.5">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse mb-1.5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-muted" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded bg-muted" />
                       <div className="flex-1 space-y-1">
                         <div className="h-3 bg-muted rounded w-3/4" />
                         <div className="h-2 bg-muted rounded w-1/2" />
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-muted rounded" />
-                        <div className="w-10 h-10 bg-muted rounded-lg" />
-                        <div className="w-10 h-10 bg-muted rounded-lg" />
+                        <div className="w-5 h-5 bg-muted rounded" />
+                        <div className="w-5 h-5 bg-muted rounded" />
                       </div>
                     </div>
                   </div>
