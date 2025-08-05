@@ -470,78 +470,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </div>
 
-        {/* Today's Nutrition Overview */}
-        <TooltipProvider>
-          <div className="mb-8 p-4 rounded-xl bg-card border border-border">
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="text-center">
-                <div className="text-xl font-bold text-warm-text">{Math.round(todayTotals.calories)}</div>
-                <div className="text-xs font-medium text-warm-text">
-                  Consumed Calories
-                  <div className="text-xs text-warm-text/70 mt-1">today</div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-warm-text">{Math.round(todayTotals.carbs)}g</div>
-                <div className="text-xs font-medium text-warm-text">
-                  Consumed Carbs
-                  <div className="text-xs text-warm-text/70 mt-1">today</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="p-3 rounded bg-card border border-border relative">
-                <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
-                <div className="text-lg font-bold text-warm-text">{Math.round(todayEntries.reduce((sum, entry) => sum + entry.calories, 0))}</div>
-                <div className="text-xs text-warm-text/70 mb-2">Calorie</div>
-                <div className="flex justify-center">
-                  <ClickableTooltip
-                    content="Calories planned to be consumed today, often from go-to food items"
-                  >
-                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
-                  </ClickableTooltip>
-                </div>
-              </div>
-              <div className="p-3 rounded bg-card border border-border relative">
-                <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
-                <div className="text-lg font-bold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
-                <div className="text-xs text-warm-text/70 mb-2">Carbs</div>
-                <div className="flex justify-center">
-                  <ClickableTooltip
-                    content="Carbs calculated from planned food items in your daily plan"
-                  >
-                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
-                  </ClickableTooltip>
-                </div>
-              </div>
-              <div className="p-3 rounded bg-card border border-border relative">
-                <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
-                <div className="text-lg font-bold text-warm-text">{profile?.daily_calorie_goal || 2000}</div>
-                <div className="text-xs text-warm-text/70 mb-2">Calorie</div>
-                <div className="flex justify-center">
-                  <ClickableTooltip
-                    content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results."
-                  >
-                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
-                  </ClickableTooltip>
-                </div>
-              </div>
-              <div className="p-3 rounded bg-card border border-border relative">
-                <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
-                <div className="text-lg font-bold text-warm-text">{profile?.daily_carb_goal || 150}g</div>
-                <div className="text-xs text-warm-text/70 mb-2">Carbs</div>
-                <div className="flex justify-center">
-                  <ClickableTooltip
-                    content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable."
-                  >
-                    <Info className="w-5 h-5 text-warm-text/60 hover:text-warm-text transition-colors" />
-                  </ClickableTooltip>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TooltipProvider>
+
 
         {/* Action Buttons - Moved above Today's Food Plan */}
         <div className="my-6">
