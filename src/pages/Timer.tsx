@@ -317,7 +317,7 @@ const Timer = () => {
         </div>
 
         {/* Timer Display */}
-        <div className="relative mb-16">
+        <div className="relative mb-8 mt-12">
           {currentMode === 'fasting' ? (
             <>
               <CeramicTimer 
@@ -346,17 +346,17 @@ const Timer = () => {
 
         {/* Control Buttons - Only show for fasting mode */}
         {currentMode === 'fasting' && (
-          <div className="space-y-8">
+          <div className="space-y-4">
             {!isRunning ? (
               <div className="space-y-3">
                 <Button 
                   onClick={() => setShowFastSelector(true)}
                   variant="action-primary"
-                  size="action-main"
+                  size="start-button"
                   className="w-full"
                 >
-                  <Play className="w-6 h-6 mr-2" />
-                  Start Fast
+                  <Play className="w-8 h-8 mr-3" />
+                  Start Fasting
                 </Button>
               </div>
             ) : (

@@ -69,6 +69,8 @@ const buttonVariants = cva(
         "action-compact": "h-10 px-4 py-2",
         // ✅ TALL ACTIONS: Full-height buttons for grid layouts (h-12)
         "action-tall": "h-12 px-4 py-3",
+        // ✅ START BUTTONS: Extra large buttons for Start Fast/Walking (h-16)
+        "start-button": "h-16 px-8 py-4 text-lg",
       },
     },
     defaultVariants: {

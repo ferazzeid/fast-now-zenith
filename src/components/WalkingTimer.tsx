@@ -366,10 +366,10 @@ const WalkingTimerComponent = ({
           <Button 
             onClick={onStart}
             variant="action-primary"
-            size="action-main"
+            size="start-button"
             className="w-full"
           >
-            <Play className="w-6 h-6 mr-2" />
+            <Play className="w-8 h-8 mr-3" />
             Start Walking
           </Button>
         </div>

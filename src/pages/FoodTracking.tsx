@@ -543,6 +543,47 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </TooltipProvider>
 
+        {/* Action Buttons - Moved above Today's Food Plan */}
+        <div className="my-6">
+          <div className="grid grid-cols-3 gap-4">
+            {/* Voice Add */}
+            <PremiumGate feature="AI Food Assistant">
+              <Button
+                onClick={handleVoiceFood}
+                variant="action-primary"
+                size="action-tall"
+                className="flex items-center justify-center"
+              >
+                <Mic className="w-5 h-5" />
+              </Button>
+            </PremiumGate>
+            
+            {/* Manual Add */}
+            <Button
+              onClick={handleManualEntry}
+              variant="action-primary"
+              size="action-tall"
+              className="gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-sm font-medium">Manual</span>
+            </Button>
+
+            {/* Add from Library */}
+            <Button
+              onClick={() => setShowLibraryView(true)}
+              variant="action-primary"
+              size="action-tall"
+              className="gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              <span className="text-sm font-medium">Library</span>
+            </Button>
+          </div>
+        </div>
+
         {/* Today's Food Plan Section - MOVED UP */}
         <div className="mb-8 p-4 rounded-xl bg-card border border-border space-y-4">
           <h2 className="text-lg font-semibold text-warm-text mb-2">Today's Food Plan</h2>
@@ -645,46 +686,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
           )}
         </div>
-
-        {/* Action Buttons - All on same line */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {/* Voice Add */}
-          <PremiumGate feature="AI Food Assistant">
-            <Button
-              onClick={handleVoiceFood}
-              variant="action-primary"
-              size="action-tall"
-              className="flex items-center justify-center"
-            >
-              <Mic className="w-5 h-5" />
-            </Button>
-          </PremiumGate>
-          
-          {/* Manual Add */}
-          <Button
-            onClick={handleManualEntry}
-            variant="action-primary"
-            size="action-tall"
-            className="gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="text-sm font-medium">Manual</span>
-          </Button>
-
-          {/* Add from Library */}
-          <Button
-            onClick={() => setShowLibraryView(true)}
-            variant="action-primary"
-            size="action-tall"
-            className="gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            <span className="text-sm font-medium">Library</span>
-          </Button>
-        </div>
-
 
 
         {/* Food Entry Form */}
