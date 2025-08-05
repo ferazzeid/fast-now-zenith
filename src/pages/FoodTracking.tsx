@@ -472,7 +472,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
         {/* Today's Nutrition Overview */}
         <TooltipProvider>
-          <div className="mb-8 p-4 rounded-xl bg-ceramic-plate border border-ceramic-rim">
+          <div className="mb-8 p-4 rounded-xl bg-card border border-border">
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="text-center">
                 <div className="text-xl font-bold text-warm-text">{Math.round(todayTotals.calories)}</div>
@@ -491,7 +491,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </div>
             
             <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="p-3 rounded bg-ceramic-base relative">
+              <div className="p-3 rounded bg-card border border-border relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
                 <div className="text-lg font-bold text-warm-text">{Math.round(todayEntries.reduce((sum, entry) => sum + entry.calories, 0))}</div>
                 <div className="text-xs text-warm-text/70 mb-2">Calorie</div>
@@ -503,7 +503,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   </ClickableTooltip>
                 </div>
               </div>
-              <div className="p-3 rounded bg-ceramic-base relative">
+              <div className="p-3 rounded bg-card border border-border relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Planned</div>
                 <div className="text-lg font-bold text-warm-text">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
                 <div className="text-xs text-warm-text/70 mb-2">Carbs</div>
@@ -515,7 +515,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   </ClickableTooltip>
                 </div>
               </div>
-              <div className="p-3 rounded bg-ceramic-base relative">
+              <div className="p-3 rounded bg-card border border-border relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
                 <div className="text-lg font-bold text-warm-text">{profile?.daily_calorie_goal || 2000}</div>
                 <div className="text-xs text-warm-text/70 mb-2">Calorie</div>
@@ -527,7 +527,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   </ClickableTooltip>
                 </div>
               </div>
-              <div className="p-3 rounded bg-ceramic-base relative">
+              <div className="p-3 rounded bg-card border border-border relative">
                 <div className="text-xs font-medium text-warm-text/80 mb-1">Limit</div>
                 <div className="text-lg font-bold text-warm-text">{profile?.daily_carb_goal || 150}g</div>
                 <div className="text-xs text-warm-text/70 mb-2">Carbs</div>
@@ -544,7 +544,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         </TooltipProvider>
 
         {/* Today's Food Plan Section - MOVED UP */}
-        <div className="mb-8 p-4 rounded-xl bg-ceramic-plate border border-ceramic-rim space-y-4">
+        <div className="mb-8 p-4 rounded-xl bg-card border border-border space-y-4">
           <h2 className="text-lg font-semibold text-warm-text mb-2">Today's Food Plan</h2>
           
           {todayEntries.length === 0 ? (
