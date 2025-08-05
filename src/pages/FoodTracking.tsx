@@ -455,21 +455,19 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header with Onboarding Button */}
-        <div className="text-center mb-12 mt-4">
-          <div className="flex items-center justify-between mb-6 relative">
-            <div className="absolute left-0 top-0">
-              <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
-            </div>
-            <div className="flex-1 flex justify-center">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Food Tracking
-              </h1>
-            </div>
-            <div className="absolute right-0 top-0">
-              <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
-            </div>
+        <div className="mb-4 mt-4 relative">
+          <div className="absolute left-0 top-0">
+            <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
           </div>
-          <p className="text-muted-foreground mb-8">Log your food intake</p>
+          <div className="absolute right-0 top-0">
+            <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
+          </div>
+          <div className="pl-12 pr-12">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
+              Food Tracking
+            </h1>
+            <p className="text-sm text-muted-foreground text-left">Log your food intake</p>
+          </div>
         </div>
 
         {/* Today's Nutrition Overview */}

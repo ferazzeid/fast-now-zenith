@@ -183,14 +183,16 @@ Please tell me what motivates you or what kind of motivational message you'd lik
         <div className="max-w-md mx-auto pt-20 pb-20">
           <div className="space-y-6">
           {/* Header with Onboarding Button */}
-          <div className="text-center space-y-2 mb-8 relative">
+          <div className="mb-4 relative">
             <div className="absolute left-0 top-0">
               <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">My Goals</h1>
-            <p className="text-muted-foreground">
-              Your personal collection of inspiration
-            </p>
+            <div className="pl-12 pr-12">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">My Goals</h1>
+              <p className="text-sm text-muted-foreground text-left">
+                Your personal collection of inspiration
+              </p>
+            </div>
           </div>
 
           {/* Action Buttons */}

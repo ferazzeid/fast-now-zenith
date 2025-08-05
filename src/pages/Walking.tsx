@@ -184,17 +184,19 @@ const Walking = () => {
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
         {/* Header with Onboarding and History Buttons */}
-        <div className="text-center mb-8 relative">
+        <div className="mb-4 relative">
           <div className="absolute left-0 top-0">
             <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
           </div>
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
-            Walking Timer
-          </h1>
-          <p className="text-muted-foreground">Track your walking session and stay active</p>
+          <div className="pl-12 pr-12">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
+              Walking Timer
+            </h1>
+            <p className="text-sm text-muted-foreground text-left">Track your walking session and stay active</p>
+          </div>
         </div>
 
         {/* Timer Display - No Loading State Blocking */}
