@@ -482,12 +482,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                 variant="ai"
                 size="action-tall"
                 className="flex items-center justify-center"
-                style={{ 
-                  backgroundColor: '#eab308 !important', 
-                  color: '#1f2937 !important',
-                  opacity: '1 !important',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-                }}
               >
                 <Mic className="w-5 h-5" />
               </Button>
