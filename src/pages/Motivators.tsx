@@ -283,7 +283,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                   </p>
                   <Button onClick={() => setShowFormModal(true)} variant="action-secondary" size="action-secondary">
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Motivator
+                    Create
                   </Button>
                 </div>
               </div>
