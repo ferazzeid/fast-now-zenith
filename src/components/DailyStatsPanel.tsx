@@ -134,7 +134,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors">
+          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-muted-foreground' : ''}`}>
             <div className="flex items-center space-x-2">
               <Target className="w-5 h-5 text-primary" />
                 <span className="text-sm font-medium text-warm-text">
