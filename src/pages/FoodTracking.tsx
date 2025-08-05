@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -53,6 +54,13 @@ const FoodTracking = () => {
     carbs: ''
   });
   const [aiChatContext, setAiChatContext] = useState('');
+  
+  // New state for daily food plan system
+  const [activeTab, setActiveTab] = useState('today');
+  const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
+  const [dailyTemplate, setDailyTemplate] = useState<any[]>([]);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -458,6 +466,40 @@ Please tell me what food you'd like to add and how much you had. For example: "I
     }
   };
 
+  // Template management functions
+  const toggleFoodSelection = (entryId: string) => {
+    setSelectedFoods(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      setIsMultiSelectMode(newSet.size > 0);
+      return newSet;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedFoods(new Set());
+    setIsMultiSelectMode(false);
+  };
+
+  const saveAsTemplate = async () => {
+    if (selectedFoods.size === 0) return;
+    
+    const selectedEntries = todayEntries.filter(entry => selectedFoods.has(entry.id));
+    setDailyTemplate(selectedEntries);
+    
+    toast({
+      variant: "default",
+      title: "Template Saved",
+      description: `${selectedFoods.size} food items saved as daily template`
+    });
+    
+    clearSelection();
+  };
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-20">{/* FIXED: Reduced pt from 20 to 10, added max-width container */}
@@ -518,9 +560,41 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </div>
         </div>
 
-        {/* Today's Food Plan Section - MOVED UP */}
+        {/* Daily Food Plan System with Tabs */}
         <div className="mb-8 p-4 rounded-xl bg-card border border-border space-y-4">
-          <h2 className="text-lg font-semibold text-warm-text mb-2">Today's Food Plan</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-warm-text">Today's Food Plan</h2>
+            {activeTab === 'today' && dailyTemplate.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Template ({dailyTemplate.length})
+              </Button>
+            )}
+          </div>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="today">Today's Plan</TabsTrigger>
+              <TabsTrigger value="template">Daily Template</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="today" className="mt-4">
+          {/* Multi-select toggle */}
+          {todayEntries.length > 0 && !isMultiSelectMode && (
+            <div className="mb-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMultiSelectMode(true)}
+                className="text-xs"
+              >
+                Select Foods for Template
+              </Button>
+            </div>
+          )}
           
           {todayEntries.length === 0 ? (
             <div className="text-center py-6">
@@ -537,6 +611,18 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     : 'bg-ceramic-plate border-ceramic-rim'
                 }`}>
                   <div className="flex items-center gap-3">
+                    {/* Multi-select checkbox */}
+                    {isMultiSelectMode && (
+                      <div className="flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedFoods.has(entry.id)}
+                          onChange={() => toggleFoodSelection(entry.id)}
+                          className="w-4 h-4 rounded border-border"
+                        />
+                      </div>
+                    )}
+                    
                     {/* Entry Image - Compact */}
                     <div className="w-5 h-5 bg-muted rounded flex items-center justify-center flex-shrink-0">
                       {entry.image_url ? (
@@ -616,6 +702,113 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               ))}
             </div>
           )}
+          
+          {/* Multi-select action bar */}
+          {isMultiSelectMode && selectedFoods.size > 0 && (
+            <div className="sticky bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-6 py-3 shadow-lg">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="text-sm font-medium">
+                    <span>{selectedFoods.size} food{selectedFoods.size === 1 ? '' : 's'} selected</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearSelection}
+                    className="h-9"
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={saveAsTemplate}
+                    className="h-9 px-4"
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Save as Template
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          </TabsContent>
+          
+          <TabsContent value="template" className="mt-4">
+            {dailyTemplate.length === 0 ? (
+              <div className="text-center py-6">
+                <Save className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground">No template saved</p>
+                <p className="text-xs text-muted-foreground mt-1">Select foods from Today's Plan to create a template</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {dailyTemplate.map((entry, index) => (
+                  <div key={`template-${index}`} className="bg-ceramic-plate rounded-lg p-3 border border-ceramic-rim mb-1.5">
+                    <div className="flex items-center gap-3">
+                      {/* Entry Image - Compact */}
+                      <div className="w-5 h-5 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                        {entry.image_url ? (
+                          <img 
+                            src={entry.image_url} 
+                            alt={entry.name}
+                            className="w-5 h-5 object-cover rounded"
+                          />
+                        ) : (
+                          <Utensils className="w-3 h-3 text-muted-foreground" />
+                        )}
+                      </div>
+                      
+                      {/* Entry Content - Compact */}
+                      <div className="flex-1 min-w-0">
+                        <div className="mb-0.5">
+                          <h3 className="text-sm font-semibold text-foreground truncate">
+                            {entry.name}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="font-medium">{Math.round(entry.serving_size)}g</span>
+                          <span className="text-muted-foreground/60">•</span>
+                          <ClickableTooltip content="Calories">
+                            <span className="font-medium cursor-pointer">{Math.round(entry.calories)}</span>
+                          </ClickableTooltip>
+                          <span className="text-muted-foreground/60">•</span>
+                          <ClickableTooltip content="Carbs">
+                            <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
+                          </ClickableTooltip>
+                        </div>
+                      </div>
+                      
+                      {/* Template Actions */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            // Remove from template
+                            setDailyTemplate(prev => prev.filter((_, i) => i !== index));
+                            toast({
+                              variant: "default",
+                              title: "Removed from template",
+                              description: `${entry.name} removed from daily template`
+                            });
+                          }}
+                          className="h-5 w-5 p-1 hover:bg-destructive/10 rounded"
+                          title="Remove from template"
+                        >
+                          <X className="w-3 h-3 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          </Tabs>
         </div>
 
 
