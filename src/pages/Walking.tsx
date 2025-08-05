@@ -20,6 +20,7 @@ import { trackWalkingEvent } from '@/utils/analytics';
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWalkingHistory, setShowWalkingHistory] = useState(false);
   const [localTimeElapsed, setLocalTimeElapsed] = useState(0);
@@ -145,7 +146,12 @@ const Walking = () => {
     }
   };
 
-  const handleCancel = async () => {
+  const handleCancel = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    setShowCancelConfirm(false);
     const result = await cancelWalkingSession();
     if (result.error) {
       toast({
@@ -272,6 +278,18 @@ const Walking = () => {
           calories={walkingStats.calories}
           distance={walkingStats.distance}
           units={profile?.units || 'imperial'}
+        />
+
+        {/* Cancel Walking Confirmation Dialog */}
+        <StopWalkingConfirmDialog
+          open={showCancelConfirm}
+          onOpenChange={setShowCancelConfirm}
+          onConfirm={handleCancelConfirm}
+          currentDuration={formatTime(localTimeElapsed)}
+          calories={walkingStats.calories}
+          distance={walkingStats.distance}
+          units={profile?.units || 'imperial'}
+          actionType="cancel"
         />
 
         {/* Walking History Modal */}

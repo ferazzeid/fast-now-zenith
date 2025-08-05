@@ -17,6 +17,7 @@ interface StopWalkingConfirmDialogProps {
   calories?: number;
   distance?: number;
   units?: 'metric' | 'imperial';
+  actionType?: 'finish' | 'cancel';
 }
 
 export const StopWalkingConfirmDialog = ({ 
@@ -26,13 +27,16 @@ export const StopWalkingConfirmDialog = ({
   currentDuration,
   calories,
   distance,
-  units = 'imperial'
+  units = 'imperial',
+  actionType = 'finish'
 }: StopWalkingConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-sm mx-auto">
         <AlertDialogHeader className="space-y-2">
-          <AlertDialogTitle className="text-lg">Stop Walking Session?</AlertDialogTitle>
+          <AlertDialogTitle className="text-lg">
+            {actionType === 'cancel' ? 'Cancel Walking Session?' : 'Finish Walking Session?'}
+          </AlertDialogTitle>
           <AlertDialogDescription className="text-sm leading-relaxed">
             You've been walking for <span className="font-medium">{currentDuration || '0:00:00'}</span>.
             {calories && distance && (
@@ -41,15 +45,29 @@ export const StopWalkingConfirmDialog = ({
                 <div>Distance: <span className="font-medium">{distance} {units === 'metric' ? 'km' : 'miles'}</span></div>
               </div>
             )}
+            {actionType === 'cancel' && (
+              <div className="mt-3 text-amber-600 font-medium text-xs">
+                This will remove your session from history completely.
+              </div>
+            )}
+            {actionType === 'finish' && (
+              <div className="mt-3 text-green-600 font-medium text-xs">
+                This will save your walking progress to history.
+              </div>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="text-sm">Continue</AlertDialogCancel>
+          <AlertDialogCancel className="text-sm">Continue Walking</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm"
+            className={`text-sm ${
+              actionType === 'cancel' 
+                ? "bg-amber-600 text-white hover:bg-amber-700" 
+                : "bg-green-600 text-white hover:bg-green-700"
+            }`}
           >
-            Stop
+            {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

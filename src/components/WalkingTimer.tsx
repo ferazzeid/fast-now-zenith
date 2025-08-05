@@ -153,6 +153,17 @@ const WalkingTimerComponent = ({
               {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
             
+            {/* Start Time - only show when active */}
+            {isActive && realTimeStats && (
+              <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                <span>Started {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}</span>
+              </div>
+            )}
+            
           </div>
 
         </Card>
@@ -307,8 +318,8 @@ const WalkingTimerComponent = ({
               </Card>
             </div>
 
-            {/* Calories Only - Remove Steps */}
-            <div className="grid grid-cols-1 gap-3">
+            {/* Calories & Fat Burned Row */}
+            <div className="grid grid-cols-2 gap-3">
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
@@ -324,26 +335,6 @@ const WalkingTimerComponent = ({
                 <div className="text-xs text-muted-foreground">
                   speed-based estimate
                 </div>
-              </Card>
-            </div>
-
-            {/* Session Info & Fat Burned Row */}
-            <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-warm-text">Started</span>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-purple-500 animate-pulse' : isActive && !isPaused ? 'bg-purple-500' : 'bg-muted'}`} />
-                </div>
-                <div className="text-lg font-bold text-primary">
-                  {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </div>
-                <div className="text-xs text-muted-foreground">session start</div>
               </Card>
 
               <Card className="p-4">

@@ -106,7 +106,22 @@ export const Navigation = () => {
       icon: Footprints, 
       label: 'Walk', 
       path: '/walking',
-      badge: walkingSession?.status === 'active' ? formatTime(Math.floor((currentTime - new Date(walkingSession.start_time).getTime()) / 1000)) : null,
+      badge: walkingSession?.status === 'active' ? (() => {
+        const startTime = new Date(walkingSession.start_time).getTime();
+        let totalElapsed = Math.floor((currentTime - startTime) / 1000);
+        
+        // Subtract paused time
+        const pausedTime = walkingSession.total_pause_duration || 0;
+        let currentPauseTime = 0;
+        
+        // If currently paused, add current pause duration
+        if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
+          currentPauseTime = Math.floor((currentTime - new Date(walkingSession.pause_start_time).getTime()) / 1000);
+        }
+        
+        const activeTime = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
+        return formatTime(activeTime);
+      })() : null,
       isEating: false
     },
     { 
