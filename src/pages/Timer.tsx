@@ -109,7 +109,7 @@ const Timer = () => {
   }, [isRunning, fastingSession?.start_time, fastDuration]);
 
   const handleFastingStart = async () => {
-    const result = await startFastingSession({ goal_duration_seconds: fastDuration });
+    const result = await startFastingSession(fastDuration);
     if (result) {
       trackFastingEvent('start', fastType, fastDuration);
       toast({
@@ -229,7 +229,7 @@ const Timer = () => {
       await handleRetroactiveFastStart(startDateTime, duration);
     } else {
       // Automatically start the fast after selection
-      const result = await startFastingSession({ goal_duration_seconds: duration });
+      const result = await startFastingSession(duration);
       if (result) {
         toast({
           title: "Fast started",
@@ -242,10 +242,7 @@ const Timer = () => {
   const handleRetroactiveFastStart = async (pastStartDateTime: Date, duration: number) => {
     try {
       // Start the fast with the custom start time in the database
-      const result = await startFastingSession({ 
-        goal_duration_seconds: duration, 
-        start_time: pastStartDateTime 
-      });
+      const result = await startFastingSession(duration, pastStartDateTime);
       
       if (result) {
         // Load the session to get accurate timing
