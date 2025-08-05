@@ -317,36 +317,6 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                     </h3>
                     
                     <div className="flex items-center gap-2">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={(e) => e.stopPropagation()}
-                            className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete all food entries for {new Date(summary.date).toLocaleDateString()}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteEntireDay(summary.date)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete Day
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      
                       <ChevronDown 
                         className={`w-5 h-5 text-muted-foreground transition-transform ${
                           expandedDays.has(summary.date) ? 'rotate-180' : ''
@@ -371,8 +341,8 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                       ))}
                     </div>
                     
-                    {/* Copy to Today button - only visible when expanded */}
-                    <div className="mt-3 pt-2 border-t border-border">
+                    {/* Action buttons - only visible when expanded */}
+                    <div className="mt-3 pt-2 border-t border-border flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -385,28 +355,40 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                       >
                         Copy to Today
                       </Button>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete all food entries for {new Date(summary.date).toLocaleDateString()}? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteEntireDay(summary.date)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete Day
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardContent>
                 )}
-                
-                {/* Expand/Collapse button at bottom-right */}
-                <div className="absolute bottom-2 right-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleDayExpansion(summary.date);
-                    }}
-                    className="h-6 w-6 p-0 rounded-full hover:bg-muted/10"
-                  >
-                    <ChevronDown 
-                      className={`w-3 h-3 transition-transform duration-200 ${
-                        expandedDays.has(summary.date) ? 'rotate-180' : ''
-                      }`} 
-                    />
-                  </Button>
-                </div>
+
               </Card>
             ))}
             

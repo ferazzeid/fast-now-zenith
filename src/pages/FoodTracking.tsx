@@ -561,19 +561,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         </div>
 
         {/* Daily Food Plan System with Tabs */}
-        <div className="mb-8 p-4 rounded-xl bg-card border border-border space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-warm-text">Today's Food Plan</h2>
-            {activeTab === 'today' && dailyTemplate.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                Template ({dailyTemplate.length})
-              </Button>
-            )}
-          </div>
+        <div className="mb-6 p-4 rounded-xl bg-card border border-border space-y-3">
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
