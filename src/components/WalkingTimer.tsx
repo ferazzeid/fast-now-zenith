@@ -220,8 +220,9 @@ const WalkingTimerComponent = ({
                     });
                   }
                 }}
-                variant="action-primary"
+                variant="ghost"
                 size="action-secondary"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
               >
                 <X className="w-6 h-6" />
               </Button>

@@ -62,7 +62,11 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       case 'completed':
         return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Completed</Badge>;
       case 'cancelled':
-        return <Badge variant="destructive">Cancelled</Badge>;
+        return (
+          <div className="w-6 h-6 bg-destructive rounded-full flex items-center justify-center">
+            <X className="w-3 h-3 text-destructive-foreground" />
+          </div>
+        );
       case 'active':
         return <Badge variant="secondary">Active</Badge>;
       default:

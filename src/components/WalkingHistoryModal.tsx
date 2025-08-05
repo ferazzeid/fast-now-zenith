@@ -254,7 +254,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 w-6 p-1 hover:bg-destructive/10 hover:text-destructive"
+                              className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
                               disabled={deletingId === session.id}
                             >
                               <Trash2 className="w-3 h-3" />
