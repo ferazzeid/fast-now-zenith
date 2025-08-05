@@ -177,7 +177,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Nutritional Information */}
           <div className="pt-2 border-t border-border">
             <div className="mb-3">
-              <p className="text-sm font-medium mb-1">Nutritional Information (per 100g)</p>
+              <p className="text-sm font-medium mb-1">Nutritional Information (100g)</p>
               <p className="text-xs text-muted-foreground">
                 Enter values per 100g or use AI to estimate
               </p>
@@ -186,7 +186,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="calories" className="text-sm font-medium">
-                  Calories (per 100g) <span className="text-red-500">*</span>
+                  Calories (100g) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="calories"
@@ -201,7 +201,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
               <div>
                 <Label htmlFor="carbs" className="text-sm font-medium">
-                  Carbs (per 100g) <span className="text-red-500">*</span>
+                  Carbs (100g) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="carbs"

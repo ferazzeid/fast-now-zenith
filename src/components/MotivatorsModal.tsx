@@ -90,7 +90,7 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-warm-text">My Motivators</h3>
             <p className="text-sm text-muted-foreground">
-              Your personal collection of inspiration
+              Your personal motivators
             </p>
           </div>
           <Button

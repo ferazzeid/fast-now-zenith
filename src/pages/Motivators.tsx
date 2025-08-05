@@ -190,7 +190,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
             <div className="pl-12 pr-12">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">My Goals</h1>
               <p className="text-sm text-muted-foreground text-left">
-                Your personal collection of inspiration
+                Your personal motivators
               </p>
             </div>
           </div>
