@@ -124,7 +124,7 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
     >
 
         {/* Form */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="space-y-2">
             <Label htmlFor="title" className="font-medium">
               Title
@@ -155,7 +155,7 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
               Motivator Image (Optional)
             </Label>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Use proper ImageUpload component */}
             <ImageUpload
               currentImageUrl={imageUrl}
