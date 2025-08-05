@@ -22,7 +22,7 @@ export const StatDisplay = ({
   className = '' 
 }: StatDisplayProps) => {
   return (
-    <Card className={`p-3 bg-ceramic-base border-ceramic-rim relative ${className}`}>
+    <Card className={`p-3 bg-card border-border relative ${className}`}>
       {/* Tooltip icon positioned in top-right corner */}
       <div className="absolute top-2 right-2">
         <ClickableTooltip content={tooltip}>
@@ -71,7 +71,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
   }, [deficit, loading, tdee]);
 
   return (
-    <Card className="p-4 bg-ceramic-base border-ceramic-rim relative">
+    <Card className="p-4 bg-card border-border relative">
       {/* Tooltip icon positioned in top-right corner */}
       <div className="absolute top-3 right-3">
         <ClickableTooltip 

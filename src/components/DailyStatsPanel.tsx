@@ -134,7 +134,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-ceramic-plate hover:bg-ceramic-plate/98 transition-colors">
+          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors">
             <div className="flex items-center space-x-2">
               <Target className="w-5 h-5 text-primary" />
                 <span className="text-sm font-medium text-warm-text">
@@ -162,7 +162,7 @@ export const DailyStatsPanel = memo(() => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-ceramic-plate max-w-md mx-auto z-50">
+            <div className="bg-card max-w-md mx-auto z-50">
               <div className="px-4 py-4 space-y-4">
                 {/* Main Deficit Display */}
                 <DeficitDisplay 
@@ -194,7 +194,7 @@ export const DailyStatsPanel = memo(() => {
                 </div>
 
                 {/* Unified Metabolism & Walking Card */}
-                <Card className="p-3 bg-ceramic-base border-ceramic-rim">
+                <Card className="p-3 bg-card border-border">
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -215,7 +215,7 @@ export const DailyStatsPanel = memo(() => {
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-ceramic-rim my-3"></div>
+                  <div className="border-t border-border my-3"></div>
 
                   {/* Walking Section with Sessions Breakdown */}
                   <WalkingSessionsBreakdown 
@@ -226,7 +226,7 @@ export const DailyStatsPanel = memo(() => {
 
                  {/* Manual Activities (if applicable) */}
                  {deficitData.manualCalories > 0 && (
-                   <Card className="p-3 bg-ceramic-base border-ceramic-rim relative">
+                   <Card className="p-3 bg-card border-border relative">
                      {/* Tooltip icon positioned in top-right corner */}
                      <div className="absolute top-2 right-2">
                        <ClickableTooltip 
