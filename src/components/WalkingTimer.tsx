@@ -332,7 +332,7 @@ const WalkingTimerComponent = ({
                   <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  speed-based estimate
+                  It's just an estimate
                 </div>
               </Card>
 
@@ -351,7 +351,7 @@ const WalkingTimerComponent = ({
                   {(realTimeStats.calories / 9).toFixed(1)}
                   <span className="text-sm font-normal text-muted-foreground ml-1">g</span>
                 </div>
-                <div className="text-xs text-muted-foreground">estimated</div>
+                <div className="text-xs text-muted-foreground">an estimate</div>
               </Card>
             </div>
           </div>

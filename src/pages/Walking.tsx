@@ -195,7 +195,7 @@ const Walking = () => {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
               Walking Timer
             </h1>
-            <p className="text-sm text-muted-foreground text-left">Track your walking session and stay active</p>
+            <p className="text-sm text-muted-foreground text-left">Track your walking session</p>
           </div>
         </div>
 

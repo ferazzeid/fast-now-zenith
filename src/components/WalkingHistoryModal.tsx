@@ -318,15 +318,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                       </div>
                     </div>
                     
-                    {/* Speed as additional info below the grid */}
-                    <div className="mt-3 pt-3 border-t border-border/50">
-                      <div className="flex items-center gap-2">
-                        <Gauge className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Average Speed: {session.speed_mph || 3} mph
-                        </span>
-                      </div>
-                    </div>
+
                   </Card>
                 );
               })}
