@@ -260,13 +260,13 @@ const WalkingTimerComponent = ({
           <div className="space-y-3">
             {/* Speed & Distance Row - Full width */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4">
+              <Card className="p-4 relative">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
-                    <ClickableTooltip content="Your current walking speed, used to calculate distance and calories">
-                      <Info className="w-5 h-5 text-muted-foreground" />
+                    <ClickableTooltip content="Speed is estimated based on average human walking pace. You can override this in your profile settings.">
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </ClickableTooltip>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
@@ -300,7 +300,7 @@ const WalkingTimerComponent = ({
                 </div>
               </Card>
 
-              <Card className="p-4">
+              <Card className="p-4 relative">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
@@ -314,12 +314,15 @@ const WalkingTimerComponent = ({
                     {units === 'metric' ? 'km' : 'mi'}
                   </span>
                 </div>
+                <ClickableTooltip content="Distance is estimated based on your walking speed and elapsed time.">
+                  <Info className="w-4 h-4 text-muted-foreground absolute bottom-2 right-2" />
+                </ClickableTooltip>
               </Card>
             </div>
 
-            {/* Calories & Fat Burned Row */}
+            {/* Calories & Fat Row */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4">
+              <Card className="p-4 relative">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-primary" />
@@ -331,27 +334,26 @@ const WalkingTimerComponent = ({
                   {realTimeStats.calories}
                   <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  It's just an estimate
-                </div>
+                <ClickableTooltip content="Calories are estimated based on your profile data (weight, age, etc.) and walking intensity.">
+                  <Info className="w-4 h-4 text-muted-foreground absolute bottom-2 right-2" />
+                </ClickableTooltip>
               </Card>
 
-              <Card className="p-4">
+              <Card className="p-4 relative">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <TrendingUp className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-warm-text">Fat Burned</span>
-                    <ClickableTooltip content="Estimated fat burned based on calories (1g fat = 9 calories)">
-                      <Info className="w-5 h-5 text-muted-foreground" />
-                    </ClickableTooltip>
+                    <span className="text-sm font-medium text-warm-text">Fat</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="text-lg font-bold text-primary">
+                <div className="text-xl font-bold text-primary">
                   {(realTimeStats.calories / 9).toFixed(1)}
                   <span className="text-sm font-normal text-muted-foreground ml-1">g</span>
                 </div>
-                <div className="text-xs text-muted-foreground">an estimate</div>
+                <ClickableTooltip content="Fat burned is estimated based on calories (1g fat = 9 calories).">
+                  <Info className="w-4 h-4 text-muted-foreground absolute bottom-2 right-2" />
+                </ClickableTooltip>
               </Card>
             </div>
           </div>
