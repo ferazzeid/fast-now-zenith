@@ -492,10 +492,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               onClick={handleManualEntry}
               variant="action-primary"
               size="action-tall"
-              className="gap-2"
+              className="flex items-center justify-center"
             >
               <Plus className="w-5 h-5" />
-              <span className="text-sm font-medium">Manual</span>
             </Button>
 
             {/* Add from Library */}
@@ -503,12 +502,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
               onClick={() => setShowLibraryView(true)}
               variant="action-primary"
               size="action-tall"
-              className="gap-2"
+              className="flex items-center justify-center"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
-              <span className="text-sm font-medium">Library</span>
             </Button>
           </div>
         </div>
