@@ -63,6 +63,9 @@ All colors MUST be HSL.
     --accent: 140 25% 85%;
     --accent-foreground: 20 15% 25%;
 
+    --ai: 48 96% 53%;
+    --ai-foreground: 20 15% 25%;
+
     --destructive: 0 65% 55%;
     --destructive-foreground: 35 25% 98%;
 
@@ -133,6 +136,9 @@ All colors MUST be HSL.
 
     --accent: 0 0% 15%;
     --accent-foreground: 0 0% 88%;
+
+    --ai: 48 96% 53%;
+    --ai-foreground: 0 0% 8%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 88%;

@@ -5,6 +5,7 @@ interface ColorSettings {
   primary_color?: string;
   secondary_color?: string;
   accent_color?: string;
+  ai_color?: string;
 }
 
 export const useColorTheme = () => {
@@ -16,7 +17,7 @@ export const useColorTheme = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color']);
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color']);
 
       if (error) {
         console.error('Error loading color settings:', error);
@@ -32,6 +33,8 @@ export const useColorTheme = () => {
           settings.secondary_color = setting.setting_value;
         } else if (setting.setting_key === 'brand_accent_color') {
           settings.accent_color = setting.setting_value;
+        } else if (setting.setting_key === 'brand_ai_color') {
+          settings.ai_color = setting.setting_value;
         }
       });
 
@@ -61,6 +64,11 @@ export const useColorTheme = () => {
     if (settings.accent_color) {
       // The values from database are already in HSL format
       root.style.setProperty('--accent', settings.accent_color);
+    }
+
+    if (settings.ai_color) {
+      // The values from database are already in HSL format
+      root.style.setProperty('--ai', settings.ai_color);
     }
   };
 

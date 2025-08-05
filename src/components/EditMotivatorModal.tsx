@@ -167,10 +167,10 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
               {/* AI Generation buttons */}
               <div className="flex gap-3">
                 <Button
-                  variant="outline"
+                  variant="ai"
                   onClick={handleGenerateImage}
                   disabled={isGeneratingImage}
-                  className="flex-1 hover:bg-gray-50"
+                  className="flex-1"
                 >
                   {isGeneratingImage ? (
                     <>

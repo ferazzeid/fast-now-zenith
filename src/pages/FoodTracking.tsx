@@ -550,7 +550,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             <PremiumGate feature="AI Food Assistant">
               <Button
                 onClick={handleVoiceFood}
-                variant="action-primary"
+                variant="ai"
                 size="action-tall"
                 className="flex items-center justify-center"
               >

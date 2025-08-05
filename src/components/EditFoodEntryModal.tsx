@@ -235,7 +235,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
 
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="ai"
                   onClick={handleGenerateImage}
                   disabled={loading || generatingImage}
                   className="flex-1"

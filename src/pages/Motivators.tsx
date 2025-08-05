@@ -202,7 +202,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                 <PremiumGate feature="AI Motivator Assistant">
                   <Button
                     onClick={handleVoiceMotivator}
-                    variant="action-primary"
+                    variant="ai"
                     size="action-tall"
                     className="flex items-center justify-center"
                   >

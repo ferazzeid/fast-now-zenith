@@ -11,13 +11,15 @@ interface ColorValues {
   primary: string;
   primaryHover: string;
   accent: string;
+  ai: string;
 }
 
 export const ColorManagement: React.FC = () => {
   const [colors, setColors] = useState<ColorValues>({
     primary: '#3b82f6',
     primaryHover: '#2563eb',
-    accent: '#22c55e'
+    accent: '#22c55e',
+    ai: '#eab308'
   });
   
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
@@ -33,7 +35,7 @@ export const ColorManagement: React.FC = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color']);
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color']);
 
       if (error) {
         console.error('Error loading colors:', error);
@@ -48,6 +50,8 @@ export const ColorManagement: React.FC = () => {
           newColors.primaryHover = hslToHex(setting.setting_value);
         } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
           newColors.accent = hslToHex(setting.setting_value);
+        } else if (setting.setting_key === 'brand_ai_color' && setting.setting_value) {
+          newColors.ai = hslToHex(setting.setting_value);
         }
       });
       setColors(newColors);
@@ -130,6 +134,8 @@ export const ColorManagement: React.FC = () => {
       root.style.setProperty('--secondary', hslValue);
     } else if (colorType === 'accent') {
       root.style.setProperty('--accent', hslValue);
+    } else if (colorType === 'ai') {
+      root.style.setProperty('--ai', hslValue);
     }
   };
 
@@ -147,6 +153,10 @@ export const ColorManagement: React.FC = () => {
         {
           setting_key: 'brand_accent_color',
           setting_value: hexToHsl(colors.accent)
+        },
+        {
+          setting_key: 'brand_ai_color',
+          setting_value: hexToHsl(colors.ai)
         }
       ];
 
@@ -182,7 +192,8 @@ export const ColorManagement: React.FC = () => {
     const defaultColors = {
       primary: '#3b82f6',
       primaryHover: '#2563eb',
-      accent: '#8b5cf6'
+      accent: '#8b5cf6',
+      ai: '#eab308'
     };
     
     setColors(defaultColors);
@@ -193,6 +204,7 @@ export const ColorManagement: React.FC = () => {
     root.style.setProperty('--ring', hexToHsl(defaultColors.primary));
     root.style.setProperty('--secondary', hexToHsl(defaultColors.primaryHover));
     root.style.setProperty('--accent', hexToHsl(defaultColors.accent));
+    root.style.setProperty('--ai', hexToHsl(defaultColors.ai));
   };
 
   return (
@@ -205,7 +217,7 @@ export const ColorManagement: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Color Pickers Grid */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           {/* Primary Color */}
           <div className="space-y-2">
             <Label className="text-xs font-medium">Color</Label>
@@ -292,6 +304,40 @@ export const ColorManagement: React.FC = () => {
                   <HexColorPicker 
                     color={colors.accent} 
                     onChange={(color) => handleColorChange('accent', color)}
+                    style={{ width: '100%', height: '200px' }}
+                  />
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setActiveColorPicker(null)}
+                      className="flex-1"
+                    >
+                      Done
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* AI Color */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">AI</Label>
+            <div 
+              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+              style={{ backgroundColor: colors.ai }}
+              onClick={() => setActiveColorPicker(activeColorPicker === 'ai' ? null : 'ai')}
+            />
+            
+            {activeColorPicker === 'ai' && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
+                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Choose AI Color</Label>
+                  </div>
+                  <HexColorPicker 
+                    color={colors.ai} 
+                    onChange={(color) => handleColorChange('ai', color)}
                     style={{ width: '100%', height: '200px' }}
                   />
                   <div className="flex gap-2 mt-4">
