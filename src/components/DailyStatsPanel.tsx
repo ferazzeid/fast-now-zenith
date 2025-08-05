@@ -230,7 +230,7 @@ export const DailyStatsPanel = memo(() => {
                         </ClickableTooltip>
                       </div>
                       <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
-                      <div className="text-lg font-bold text-primary">{Math.round(todayEntries.reduce((sum, entry) => sum + entry.calories, 0))}</div>
+                      <div className="text-lg font-bold text-primary">{Math.round((todayEntries || []).reduce((sum, entry) => sum + entry.calories, 0))}</div>
                       <div className="text-xs text-muted-foreground">Calorie</div>
                       {/* Limit value in gray */}
                       <div className="mt-2 pt-2 border-t border-border">
@@ -251,7 +251,7 @@ export const DailyStatsPanel = memo(() => {
                         </ClickableTooltip>
                       </div>
                       <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
-                      <div className="text-lg font-bold text-primary">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+                      <div className="text-lg font-bold text-primary">{(todayEntries || []).reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
                       <div className="text-xs text-muted-foreground">Carbs</div>
                       {/* Limit value in gray */}
                       <div className="mt-2 pt-2 border-t border-border">

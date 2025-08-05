@@ -24,8 +24,15 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
-      // PERFORMANCE: Centralized error logging
-      console.error('Query error:', error, 'Query key:', query.queryKey);
+      // PERFORMANCE: Centralized error logging - reduced noise in development
+      if (process.env.NODE_ENV === 'development') {
+        // Only log critical errors in development to reduce console noise
+        if (error?.status >= 500 || !error?.status) {
+          console.error('Query error:', error, 'Query key:', query.queryKey);
+        }
+      } else {
+        console.error('Query error:', error, 'Query key:', query.queryKey);
+      }
       
       // LOVABLE_PRESERVE: Don't show toast for background errors
       if (query.meta?.showErrorToast !== false) {
