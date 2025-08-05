@@ -304,56 +304,54 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
             {dailySummaries.map((summary) => (
               <Card key={summary.date} className="relative">
                 <CardHeader 
-                  className="pb-2 cursor-pointer hover:bg-muted/20 transition-colors"
+                  className="py-3 cursor-pointer hover:bg-muted/20 transition-colors"
                   onClick={() => toggleDayExpansion(summary.date)}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-sm">
-                          {new Date(summary.date).toLocaleDateString('en-US', { 
-                            weekday: 'short', 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </h3>
-                        <div className="flex gap-2">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={(e) => e.stopPropagation()}
-                                className="h-8 w-8 p-0 text-destructive min-w-[44px] min-h-[44px]"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete all food entries for {new Date(summary.date).toLocaleDateString()}? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteEntireDay(summary.date)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete Day
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                      <div className="flex gap-3 text-xs text-muted-foreground mt-1">
-                        <span>{summary.totalCalories} cal</span>
-                        <span>{summary.totalCarbs}g carbs</span>
-                        <span>{summary.entryCount} items</span>
-                      </div>
+                    <h3 className="font-medium text-sm">
+                      {new Date(summary.date).toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </h3>
+                    
+                    <div className="flex items-center gap-2">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete all food entries for {new Date(summary.date).toLocaleDateString()}? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteEntireDay(summary.date)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete Day
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      
+                      <ChevronDown 
+                        className={`w-5 h-5 text-muted-foreground transition-transform ${
+                          expandedDays.has(summary.date) ? 'rotate-180' : ''
+                        }`}
+                      />
                     </div>
                   </div>
                 </CardHeader>

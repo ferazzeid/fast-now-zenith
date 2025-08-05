@@ -97,10 +97,10 @@ export const UniversalModal = ({
           className={cn(
             // FULLSCREEN: Match Food Library pattern
             'w-full max-w-full md:max-w-md h-full max-h-full p-0 overflow-hidden',
-            'bg-white dark:bg-gray-900',
-            'border border-gray-200 dark:border-gray-700',
+            'bg-background',
+            'border border-border',
             'rounded-lg shadow-xl',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'focus:outline-none focus:ring-2 focus:ring-primary',
             // Hide default dialog close button when showCloseButton is false
             !showCloseButton && '[&>button]:hidden',
             className
@@ -112,10 +112,10 @@ export const UniversalModal = ({
             {/* Sticky header - only show if title exists */}
             {title && (
               <div className={cn(
-                'sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between',
+                'sticky top-0 z-10 bg-muted/50 border-b border-border px-4 py-3 flex items-center justify-between',
                 headerClassName
               )}>
-                <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1 pr-4">
+                <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
                   {title}
                 </DialogTitle>
                 {showCloseButton && (
@@ -142,7 +142,7 @@ export const UniversalModal = ({
             {/* Sticky footer */}
             {footer && (
               <div className={cn(
-                'sticky bottom-0 z-10 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-3 shadow-lg flex justify-end gap-3'
+                'sticky bottom-0 z-10 bg-muted/50 border-t border-border px-4 py-3 shadow-lg flex justify-end gap-3'
               )}>
                 {footer}
               </div>
@@ -159,8 +159,8 @@ export const UniversalModal = ({
       <DialogContent 
         className={cn(
           // STANDARD: Centered with proper margins
-          'bg-white dark:bg-gray-900',
-          'border border-gray-200 dark:border-gray-700',
+          'bg-background',
+          'border border-border',
           'rounded-lg shadow-xl',
           'p-0 overflow-hidden',
           // PROPER_CENTERING: Margins on left/right, not touching edges
@@ -168,7 +168,7 @@ export const UniversalModal = ({
           'max-h-[90vh]',
           // SIZE: Responsive sizing
           sizeClasses[size],
-          'focus:outline-none focus:ring-2 focus:ring-blue-500',
+          'focus:outline-none focus:ring-2 focus:ring-primary',
           // Hide default dialog close button when showCloseButton is false
           !showCloseButton && '[&>button]:hidden',
           className
@@ -179,11 +179,11 @@ export const UniversalModal = ({
         {/* Header - only show if title exists */}
         {title && (
           <div className={cn(
-            'px-6 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between',
-            'bg-gray-50 dark:bg-gray-800/50',
+            'px-6 py-3 border-b border-border flex items-center justify-between',
+            'bg-muted/50',
             headerClassName
           )}>
-            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1 pr-4">
+            <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
               {title}
             </DialogTitle>
             {showCloseButton && (
@@ -193,8 +193,8 @@ export const UniversalModal = ({
                 onClick={handleClose}
                 className={cn(
                   'h-8 w-8 p-0 rounded-md',
-                  'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
-                  'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  'text-muted-foreground hover:text-foreground',
+                  'hover:bg-muted'
                 )}
                 aria-label="Close modal"
               >
@@ -217,8 +217,8 @@ export const UniversalModal = ({
         {/* Footer with divider line */}
         {footer && (
           <div className={cn(
-            'px-6 py-4 border-t border-gray-200 dark:border-gray-700',
-            'bg-gray-50 dark:bg-gray-800/50',
+            'px-6 py-4 border-t border-border',
+            'bg-muted/50',
             'flex justify-end gap-3'
           )}>
             {footer}
