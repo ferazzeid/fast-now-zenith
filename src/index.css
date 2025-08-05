@@ -260,15 +260,25 @@ All colors MUST be HSL.
 }
 
 /* Force AI button visibility in PremiumGate - Enhanced opacity override */
-.opacity-50 button[class*="bg-ai"] {
+.opacity-50 button[class*="bg-ai"],
+.opacity-50 .bg-ai,
+button[class*="bg-ai"] {
   opacity: 1 !important;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
 }
 
 /* Also ensure all AI buttons maintain proper styling */
-[class*="opacity-50"] button[class*="bg-ai"] {
+[class*="opacity-50"] button[class*="bg-ai"],
+[class*="opacity-50"] .bg-ai,
+div[class*="opacity-50"] button[class*="bg-ai"] {
   opacity: 1 !important;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Ensure primary buttons in modals are not washed out */
+button[class*="bg-primary"],
+.bg-primary {
+  opacity: 1 !important;
 }
 
 /* Force hide duplicate close buttons in modals - aggressive fix */
