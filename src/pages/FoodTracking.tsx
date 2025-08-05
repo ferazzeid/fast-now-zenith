@@ -448,6 +448,13 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         title: "Error",
         description: result.error.message
       });
+    } else {
+      // Show success notification
+      toast({
+        variant: "default",
+        title: consumed ? "Marked as eaten" : "Marked as not eaten",
+        description: consumed ? "Food item has been consumed" : "Food item marked as not consumed"
+      });
     }
   };
 
@@ -524,7 +531,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           ) : (
             <div className="space-y-1.5">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className="bg-ceramic-plate rounded-lg p-3 border border-ceramic-rim mb-1.5">
+                <div key={entry.id} className={`rounded-lg p-3 border mb-1.5 transition-all duration-200 ${
+                  entry.consumed 
+                    ? 'bg-ceramic-plate/50 border-ceramic-rim/50 opacity-60' 
+                    : 'bg-ceramic-plate border-ceramic-rim'
+                }`}>
                   <div className="flex items-center gap-3">
                     {/* Entry Image - Compact */}
                     <div className="w-5 h-5 bg-muted rounded flex items-center justify-center flex-shrink-0">
@@ -542,7 +553,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     {/* Entry Content - Compact */}
                     <div className="flex-1 min-w-0">
                       <div className="mb-0.5">
-                        <h3 className="text-sm font-semibold text-foreground truncate">
+                        <h3 className={`text-sm font-semibold truncate ${
+                          entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
+                        }`}>
                           {entry.name}
                         </h3>
                       </div>
@@ -555,23 +568,12 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                       </div>
                     </div>
                     
-                    {/* Actions - Compact */}
+                    {/* Actions - Compact like Food Library */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Prominent Mark as Consumed Button */}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className={`h-5 w-16 px-2 text-xs font-medium rounded transition-all duration-200 ${
-                          entry.consumed 
-                            ? 'bg-green-600 text-white hover:bg-green-700' 
-                            : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
-                        }`}
-                        title={entry.consumed ? "Mark as not consumed" : "Mark as consumed"}
-                      >
-                        {entry.consumed ? 'Done' : 'Eat'}
-                      </Button>
-                      {/* More Options - Compact */}
+                      {/* Space where other button was */}
+                      <div className="w-2"></div>
+                      
+                      {/* More Options with Consume Action */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
@@ -583,6 +585,12 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem 
+                            onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                          >
+                            <Check className="w-4 h-4 mr-2" />
+                            {entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit Entry
