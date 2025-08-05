@@ -182,7 +182,7 @@ const Walking = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <div className="max-w-md mx-auto pt-20 pb-20">{/* FIXED: Increased pt from 8 to 20 to prevent overlap */}
+      <div className="max-w-md mx-auto pt-10 pb-20">{/* FIXED: Reduced pt from 20 to 10 for better spacing */}
         {/* Header with Onboarding and History Buttons */}
         <div className="mb-4 relative">
           <div className="absolute left-0 top-0">

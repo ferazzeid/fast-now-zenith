@@ -180,7 +180,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
   return (
     <TooltipProvider>
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-        <div className="max-w-md mx-auto pt-20 pb-20">
+        <div className="max-w-md mx-auto pt-10 pb-20">
           <div className="space-y-6">
           {/* Header with Onboarding Button */}
           <div className="mb-4 relative">
