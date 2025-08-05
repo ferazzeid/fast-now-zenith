@@ -13,6 +13,7 @@ import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 import { useProfile } from '@/hooks/useProfile';
+import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
@@ -21,6 +22,7 @@ export const DailyStatsPanel = memo(() => {
   const { deficitData, loading, refreshDeficit } = useDailyDeficitQuery();
   const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
   const { profile } = useProfile();
+  const { todayEntries, todayTotals } = useFoodEntries();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   
@@ -191,6 +193,85 @@ export const DailyStatsPanel = memo(() => {
                     value={Math.round(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}
                     tooltip="Total calories burned today: Base Daily Burn + Walking + Manual Activities"
                   />
+                </div>
+
+                {/* Nutrition Overview */}
+                <div className="space-y-4">
+                  {/* Top section - Consumed totals */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <StatDisplay
+                      icon={<Utensils className="w-4 h-4 text-primary" />}
+                      label="Consumed Calories"
+                      value={Math.round(todayTotals.calories)}
+                      tooltip="Total calories consumed from food today"
+                    />
+                    {/* Custom card for Consumed Carbs to avoid "cal" suffix */}
+                    <Card className="p-3 bg-card border-border relative">
+                      <div className="absolute top-2 right-2">
+                        <ClickableTooltip content="Total carbs consumed from food today">
+                          <Info className="w-5 h-5 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
+                      <div className="flex items-center space-x-2 mb-2 pr-6">
+                        <Utensils className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-warm-text">Consumed Carbs</span>
+                      </div>
+                      <div className="text-lg font-bold text-primary">
+                        {Math.round(todayTotals.carbs)}g
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Bottom section - Planned and Limits */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {/* Planned Calorie */}
+                    <Card className="p-3 bg-card border-border relative">
+                      <div className="absolute top-2 right-2">
+                        <ClickableTooltip content="Calories planned to be consumed today, often from go-to food items">
+                          <Info className="w-5 h-5 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
+                      <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
+                      <div className="text-lg font-bold text-primary">{Math.round(todayEntries.reduce((sum, entry) => sum + entry.calories, 0))}</div>
+                      <div className="text-xs text-muted-foreground">Calorie</div>
+                    </Card>
+
+                    {/* Planned Carbs */}
+                    <Card className="p-3 bg-card border-border relative">
+                      <div className="absolute top-2 right-2">
+                        <ClickableTooltip content="Carbs calculated from planned food items in your daily plan">
+                          <Info className="w-5 h-5 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
+                      <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
+                      <div className="text-lg font-bold text-primary">{todayEntries.reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+                      <div className="text-xs text-muted-foreground">Carbs</div>
+                    </Card>
+
+                    {/* Limit Calorie */}
+                    <Card className="p-3 bg-card border-border relative">
+                      <div className="absolute top-2 right-2">
+                        <ClickableTooltip content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.">
+                          <Info className="w-5 h-5 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
+                      <div className="text-xs font-medium text-warm-text mb-1">Limit</div>
+                      <div className="text-lg font-bold text-primary">{profile?.daily_calorie_goal || 2000}</div>
+                      <div className="text-xs text-muted-foreground">Calorie</div>
+                    </Card>
+
+                    {/* Limit Carbs */}
+                    <Card className="p-3 bg-card border-border relative">
+                      <div className="absolute top-2 right-2">
+                        <ClickableTooltip content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.">
+                          <Info className="w-5 h-5 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
+                      <div className="text-xs font-medium text-warm-text mb-1">Limit</div>
+                      <div className="text-lg font-bold text-primary">{profile?.daily_carb_goal || 150}g</div>
+                      <div className="text-xs text-muted-foreground">Carbs</div>
+                    </Card>
+                  </div>
                 </div>
 
                 {/* Unified Metabolism & Walking Card */}
