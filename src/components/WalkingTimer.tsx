@@ -190,9 +190,9 @@ const WalkingTimerComponent = ({
                   });
                 }
               }}
-              variant="outline"
-              className="flex-1 h-12 min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
+              variant="action-primary"
               size="action-secondary"
+              className="flex-1"
             >
               {isPaused ? (
                 <Play className="w-6 h-6" />
@@ -220,8 +220,7 @@ const WalkingTimerComponent = ({
                     });
                   }
                 }}
-                variant="outline"
-                className="h-12 px-4 min-w-0 bg-muted hover:bg-muted/80 text-muted-foreground border-muted"
+                variant="action-primary"
                 size="action-secondary"
               >
                 <X className="w-6 h-6" />
@@ -246,9 +245,9 @@ const WalkingTimerComponent = ({
                   });
                 }
               }}
-              variant="secondary"
-              className="flex-1 h-12 bg-muted hover:bg-muted/80 text-muted-foreground min-w-0"
+              variant="action-primary"
               size="action-secondary"
+              className="flex-1"
             >
               <Square className="w-6 h-6 mr-2" />
               Finish

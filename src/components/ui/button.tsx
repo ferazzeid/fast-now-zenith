@@ -4,6 +4,34 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 🎨 FAST NOW - CENTRALIZED BUTTON DESIGN SYSTEM
+ * 
+ * ✅ CONSISTENT STYLING RULES:
+ * - ALL action buttons use the SAME primary styling (no transparent/muted variants)
+ * - ALL action buttons maintain consistent heights (h-12 for main actions)
+ * - NO manual className overrides for colors - use proper variants
+ * 
+ * 📋 USAGE GUIDELINES:
+ * 
+ * 🔸 MAIN ACTIONS (Start, Add, Save):
+ *   variant="action-primary" size="action-main"
+ * 
+ * 🔸 SECONDARY ACTIONS (Pause, Cancel, Stop):
+ *   variant="action-secondary" size="action-secondary" 
+ *   (Same styling as primary - maintains consistency)
+ * 
+ * 🔸 GRID LAYOUTS (Food Tracking buttons):
+ *   variant="action-primary" size="action-tall"
+ * 
+ * 🔸 COMPACT SPACES:
+ *   variant="action-compact" size="action-compact"
+ * 
+ * ❌ AVOID: ghost, outline with manual bg-muted classes
+ * ❌ AVOID: Manual className color overrides
+ * ✅ USE: Standardized action-* variants only
+ */
+
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
@@ -19,9 +47,12 @@ const buttonVariants = cva(
         ghost: "hover:bg-muted hover:text-muted-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         neutral: "bg-muted text-muted-foreground hover:bg-muted/80 border-muted",
-        // Standardized action button variants with consistent styling
+        // 🎨 STANDARDIZED ACTION BUTTON SYSTEM - USE THESE FOR CONSISTENCY
+        // ✅ PRIMARY ACTIONS: Main user actions (Start, Add, Save, etc.)
         "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
+        // ✅ SECONDARY ACTIONS: Supporting actions (Pause, Cancel, etc.) - SAME STYLING AS PRIMARY
         "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
+        // ✅ COMPACT ACTIONS: Smaller buttons with same primary styling
         "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
       },
       size: {
@@ -29,10 +60,14 @@ const buttonVariants = cva(
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
-        // Standardized action button sizes - consistent heights and font sizes
+        // 📏 STANDARDIZED ACTION BUTTON SIZES - CONSISTENT HEIGHTS
+        // ✅ MAIN ACTIONS: Large buttons for primary actions (h-12)
         "action-main": "h-12 px-6 py-3",
+        // ✅ SECONDARY ACTIONS: Same height as main for consistency (h-12)
         "action-secondary": "h-12 px-4 py-3", 
+        // ✅ COMPACT ACTIONS: Smaller for tight spaces (h-10)
         "action-compact": "h-10 px-4 py-2",
+        // ✅ TALL ACTIONS: Full-height buttons for grid layouts (h-12)
         "action-tall": "h-12 px-4 py-3",
       },
     },

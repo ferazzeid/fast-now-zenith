@@ -367,9 +367,8 @@ const Timer = () => {
                           setStopAction('cancel');
                           setShowStopConfirmDialog(true);
                         }}
-                        variant="ghost"
-                        size="action-main" 
-                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
+                        variant="action-primary"
+                        size="action-main"
                       >
                         <X className="w-5 h-5 mr-2" />
                         Cancel Fast
@@ -388,9 +387,8 @@ const Timer = () => {
                           setStopAction('finish');
                           setShowStopConfirmDialog(true);
                         }}
-                        variant="ghost"
+                        variant="action-primary"
                         size="action-main"
-                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
                       >
                         <CheckCircle className="w-5 h-5 mr-2" />
                         Finish Fast
