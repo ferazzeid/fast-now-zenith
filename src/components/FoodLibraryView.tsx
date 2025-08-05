@@ -439,6 +439,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
     const isSelected = isUserFood && selectedFoods.has(food.id);
     const canMultiSelect = isUserFood && activeTab === 'my-foods';
+    const [showEditModal, setShowEditModal] = useState(false);
     
     const handleCardClick = () => {
       if (canMultiSelect && isMultiSelectMode) {
@@ -452,56 +453,56 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     return (
       <div 
-        className={`p-1 rounded border transition-all duration-200 max-w-full overflow-hidden cursor-pointer ${
+        className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer mb-3 ${
           isSelected 
             ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/20' 
             : isUserFood 
-              ? 'bg-card border-border hover:bg-card/80' 
-              : 'bg-card/90 border-border hover:bg-card'
+              ? 'bg-card border-border hover:bg-card/80 hover:shadow-sm' 
+              : 'bg-card/90 border-border hover:bg-card hover:shadow-sm'
         }`}
         onClick={handleCardClick}
       >
-        <div className="flex items-center w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-4">
           {/* Multi-select checkbox (always visible for user foods in my-foods tab) */}
           {canMultiSelect && (
-            <div className="flex-shrink-0 mr-2">
+            <div className="flex-shrink-0">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={() => toggleFoodSelection(food.id)}
                 onClick={(e) => e.stopPropagation()}
-                className="w-4 h-4"
+                className="w-5 h-5"
               />
             </div>
           )}
 
-          {/* Food Image */}
+          {/* Food Image - 50% larger */}
           {food.image_url ? (
             <img 
               src={food.image_url} 
               alt={food.name}
-              className="w-7 h-7 rounded object-cover flex-shrink-0"
+              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 shadow-sm"
             />
           ) : (
-            <div className="w-7 h-7 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-              <span className="text-sm">🍽️</span>
+            <div className="w-12 h-12 rounded-lg bg-ceramic-base flex items-center justify-center flex-shrink-0 shadow-sm">
+              <span className="text-lg">🍽️</span>
             </div>
           )}
           
-          {/* Food Info */}
-          <div className="flex-1 min-w-0 pl-2 overflow-hidden">
-            <div className="w-full overflow-hidden">
-              <span className="text-sm font-medium text-warm-text truncate block">{food.name}</span>
+          {/* Food Info - Better typography */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-1">
+              <h3 className="text-base font-semibold text-foreground truncate">{food.name}</h3>
             </div>
-            <div className="flex items-center gap-1 text-xs text-warm-text/80 overflow-hidden">
-              <span className="whitespace-nowrap">{food.calories_per_100g}</span>
-              <span className="text-warm-text/60">•</span>
-              <span className="whitespace-nowrap truncate">{food.carbs_per_100g}g</span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium">{food.calories_per_100g} cal</span>
+              <span className="text-muted-foreground/60">•</span>
+              <span className="font-medium">{food.carbs_per_100g}g carbs</span>
             </div>
           </div>
           
-          {/* Actions - only show when not in multi-select mode or food is not selectable */}
+          {/* Actions - Better spacing for mobile */}
           {(!isMultiSelectMode || !canMultiSelect) && (
-            <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
               {/* Favorite button */}
               <Button
                 variant="ghost"
@@ -512,37 +513,37 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     toggleFavorite(food.id, (food as UserFood).is_favorite) :
                     toggleDefaultFoodFavorite(food.id, (food as DefaultFood).is_favorite || false)
                 }}
-                className="p-1 h-6 w-6 hover:bg-primary/10"
+                className="p-2 h-9 w-9 hover:bg-primary/10 rounded-lg"
                 title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
               >
                 {food.is_favorite ? (
-                  <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                  <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                 ) : (
-                  <Heart className="w-3 h-3 text-muted-foreground" />
+                  <Heart className="w-4 h-4 text-muted-foreground" />
                 )}
               </Button>
 
-              {/* Options Dropdown */}
+              {/* Options Dropdown - Better spacing */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="p-1 h-6 w-6 hover:bg-muted"
+                    className="p-2 h-9 w-9 hover:bg-muted rounded-lg"
                     title="More options"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="w-3 h-3 text-muted-foreground" />
+                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44 z-50">
                   {isUserFood ? (
                     <>
-                      <DropdownMenuItem asChild>
-                        <EditLibraryFoodModal 
-                          food={food as UserFood} 
-                          onUpdate={updateFood}
-                        />
+                      <DropdownMenuItem
+                        onClick={() => setShowEditModal(true)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Food
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => deleteFood(food.id)}
@@ -562,9 +563,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           />
                           <DropdownMenuItem
                             onClick={() => deleteDefaultFood(food.id)}
-                            className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                            className="text-destructive focus:text-destructive"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
                         </>
@@ -574,7 +575,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Primary Action Button */}
+              {/* Primary Action Button - Larger for mobile */}
               <Button
                 variant="default"
                 size="sm"
@@ -584,7 +585,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     handleQuickSelect(food as UserFood, false) : 
                     importToMyLibrary(food as DefaultFood)
                 }}
-                className="h-8 px-3 text-xs font-medium flex-shrink-0 min-w-[2rem]"
+                className="h-9 px-4 text-sm font-medium flex-shrink-0 min-w-[3rem] rounded-lg"
                 title={isUserFood ? "Add to today's plan" : "Import to your library"}
               >
                 {isUserFood ? (
@@ -596,61 +597,76 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           )}
         </div>
+        
+        {/* Edit Modal */}
+        {isUserFood && (
+          <EditLibraryFoodModal 
+            food={food as UserFood} 
+            onUpdate={updateFood}
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+          />
+        )}
       </div>
     );
   };
 
   return (
-    <div className="h-full flex flex-col max-w-full overflow-hidden">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Food Library</h2>
+    <div className="h-full flex flex-col bg-background">
+      {/* Clean Header */}
+      <div className="bg-muted/50 border-b border-border px-6 py-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-foreground">🔥 TESTING - NEW FOOD LIBRARY 🔥</h2>
         <Button
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+          className="w-9 h-9 rounded-full hover:bg-muted transition-colors"
           title="Close Food Library"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </Button>
       </div>
 
-
-      {/* Two-Library System Tabs */}
+      {/* Clean Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col max-w-full overflow-hidden">
-        <div className="px-1 pt-1">
-          <TabsList className="grid w-full grid-cols-2 h-8">
-            <TabsTrigger value="my-foods" className="flex items-center gap-1 text-xs">
-              <Heart className="w-3 h-3" />
-              My Food ({filteredUserFoods.length})
-            </TabsTrigger>
-            <TabsTrigger value="suggested" className="flex items-center gap-1 text-xs">
-              <Star className="w-3 h-3" />
-              Suggested ({filteredDefaultFoods.length})
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
+          <div className="px-6 py-3 bg-background border-b border-border">
+            <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
+              <TabsTrigger 
+                value="my-foods" 
+                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <Heart className="w-4 h-4" />
+                My Food ({filteredUserFoods.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="suggested" 
+                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <Star className="w-4 h-4" />
+                Suggested ({filteredDefaultFoods.length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* My Foods Tab */}
-        <TabsContent value="my-foods" className="flex-1 overflow-y-auto overflow-x-hidden px-1 pb-4">
+          {/* My Foods Tab */}
+          <TabsContent value="my-foods" className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-2 mt-1">
             {/* My Foods List */}
             {loading ? (
               <div className="space-y-3">
                 {[...Array(6)].map((_, i) => (
-                 <div key={i} className="p-2 rounded-lg bg-card border border-border animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded bg-ceramic-base" />
+                 <div key={i} className="p-4 rounded-lg bg-card border border-border animate-pulse mb-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-muted" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-warm-text/20 rounded w-3/4" />
-                        <div className="h-3 bg-warm-text/20 rounded w-1/2" />
+                        <div className="h-4 bg-muted rounded w-3/4" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
                       </div>
-                      <div className="flex gap-1">
-                        <div className="w-7 h-7 bg-warm-text/20 rounded" />
-                        <div className="w-7 h-7 bg-warm-text/20 rounded" />
-                        <div className="w-12 h-7 bg-warm-text/20 rounded" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-muted rounded-lg" />
+                        <div className="w-9 h-9 bg-muted rounded-lg" />
+                        <div className="w-12 h-9 bg-muted rounded-lg" />
                       </div>
                     </div>
                   </div>
@@ -676,22 +692,22 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </TabsContent>
 
-        {/* Suggested Foods Tab */}
-        <TabsContent value="suggested" className="flex-1 overflow-y-auto overflow-x-hidden px-1 pb-4">
+          {/* Suggested Foods Tab */}
+          <TabsContent value="suggested" className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-2 mt-1">
             {loading ? (
               <div className="space-y-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="p-2 rounded-lg bg-card border border-border animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded bg-ceramic-base" />
+                  <div key={i} className="p-4 rounded-lg bg-card border border-border animate-pulse mb-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-muted" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-warm-text/20 rounded w-3/4" />
-                        <div className="h-3 bg-warm-text/20 rounded w-1/2" />
+                        <div className="h-4 bg-muted rounded w-3/4" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
                       </div>
-                      <div className="flex gap-1">
-                        <div className="w-7 h-7 bg-warm-text/20 rounded" />
-                        <div className="w-12 h-7 bg-warm-text/20 rounded" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-muted rounded-lg" />
+                        <div className="w-12 h-9 bg-muted rounded-lg" />
                       </div>
                     </div>
                   </div>

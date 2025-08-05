@@ -22,10 +22,13 @@ interface UserFood {
 interface EditLibraryFoodModalProps {
   food: UserFood;
   onUpdate: (id: string, updates: Partial<UserFood>) => Promise<void>;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalProps) => {
+export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLibraryFoodModalProps) => {
   const [open, setOpen] = useState(false);
+  const modalOpen = isOpen !== undefined ? isOpen : open;
   const [name, setName] = useState(food.name);
   const [calories, setCalories] = useState(food.calories_per_100g.toString());
   const [carbs, setCarbs] = useState(food.carbs_per_100g.toString());
@@ -149,17 +152,27 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
 
   return (
     <>
-      {/* Trigger Button */}
-      <div className="flex items-center w-full px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground" onClick={() => setOpen(true)}>
-        <Edit className="w-4 h-4 mr-2" />
-        Edit Food
-      </div>
+      {/* Trigger Button - only show if no external control */}
+      {isOpen === undefined && (
+        <div 
+          className="flex items-center w-full px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm relative select-none outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50" 
+          onClick={() => setOpen(true)}
+          role="menuitem"
+        >
+          <Edit className="w-4 h-4 mr-2" />
+          Edit Food
+        </div>
+      )}
 
       {/* Modal */}
       <UniversalModal
-        isOpen={open}
+        isOpen={modalOpen}
         onClose={() => {
-          setOpen(false);
+          if (onClose) {
+            onClose();
+          } else {
+            setOpen(false);
+          }
           resetForm();
         }}
         title="Edit Food in Library"
