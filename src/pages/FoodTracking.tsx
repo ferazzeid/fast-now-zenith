@@ -566,10 +566,35 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="today">Today's Plan</TabsTrigger>
-              <TabsTrigger value="template">Daily Template</TabsTrigger>
+              <TabsTrigger value="template" className="flex items-center gap-1">
+                Template
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTab('today');
+                    setIsMultiSelectMode(true);
+                  }}
+                  className="h-4 w-4 p-0 ml-1 hover:bg-primary/20"
+                  title="Edit template"
+                >
+                  <Edit className="w-3 h-3 text-primary" />
+                </Button>
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="today" className="mt-4">
+          
+          {/* Edit mode indicator */}
+          {isMultiSelectMode && (
+            <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-primary font-medium">
+                <Edit className="w-4 h-4" />
+                Select foods to save as template
+              </div>
+            </div>
+          )}
           
           {todayEntries.length === 0 ? (
             <div className="text-center py-6">
@@ -584,17 +609,25 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                   entry.consumed 
                     ? 'bg-ceramic-plate/50 border-ceramic-rim/50 opacity-60' 
                     : 'bg-ceramic-plate border-ceramic-rim'
+                } ${
+                  isMultiSelectMode ? 'opacity-50 hover:opacity-60' : ''
                 }`}>
                   <div className="flex items-center gap-3">
-                    {/* Multi-select checkbox */}
+                    {/* Multi-select checkbox - Prominent in edit mode */}
                     {isMultiSelectMode && (
-                      <div className="flex-shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={selectedFoods.has(entry.id)}
-                          onChange={() => toggleFoodSelection(entry.id)}
-                          className="w-4 h-4 rounded border-border"
-                        />
+                      <div className="flex-shrink-0 relative">
+                        <div className={`p-1 rounded border-2 transition-all duration-200 ${
+                          selectedFoods.has(entry.id) 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-primary/50 hover:border-primary bg-background'
+                        }`}>
+                          <input
+                            type="checkbox"
+                            checked={selectedFoods.has(entry.id)}
+                            onChange={() => toggleFoodSelection(entry.id)}
+                            className="w-4 h-4 rounded accent-primary opacity-100"
+                          />
+                        </div>
                       </div>
                     )}
                     
@@ -716,24 +749,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </TabsContent>
           
           <TabsContent value="template" className="mt-4">
-            {/* Edit template button */}
-            {todayEntries.length > 0 && (
-              <div className="mb-3 flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setActiveTab('today');
-                    setIsMultiSelectMode(true);
-                  }}
-                  className="text-xs h-7 px-2"
-                  title="Select foods from Today's Plan to update template"
-                >
-                  <Edit className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-              </div>
-            )}
             
             {dailyTemplate.length === 0 ? (
               <div className="text-center py-6">
