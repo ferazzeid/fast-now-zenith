@@ -37,6 +37,7 @@ export interface FastingSession {
 
 interface StartFastingSessionData {
   goal_duration_seconds: number;
+  start_time?: Date; // Optional custom start time for retroactive fasts
 }
 
 // Query keys for cache management
@@ -114,7 +115,7 @@ export const useFastingSessionQuery = () => {
         .from('fasting_sessions')
         .insert({
           user_id: user.id,
-          start_time: new Date().toISOString(),
+          start_time: sessionData.start_time ? sessionData.start_time.toISOString() : new Date().toISOString(),
           goal_duration_seconds: sessionData.goal_duration_seconds,
           status: 'active',
         })
@@ -131,7 +132,7 @@ export const useFastingSessionQuery = () => {
       const optimisticSession: FastingSession = {
         id: `temp-${Date.now()}`,
         user_id: user?.id || '',
-        start_time: new Date().toISOString(),
+        start_time: sessionData.start_time ? sessionData.start_time.toISOString() : new Date().toISOString(),
         goal_duration_seconds: sessionData.goal_duration_seconds,
         status: 'active',
         created_at: new Date().toISOString(),
