@@ -106,10 +106,9 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                                 onSelectGoal(goal);
                                 onClose();
                               }}
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1 text-xs"
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground h-6 w-6 p-1"
                             >
-                              <Plus className="w-3 h-3 mr-1" />
-                              Use
+                              <Plus className="w-4 h-4" />
                             </Button>
                           </div>
                           <p className={`text-xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
