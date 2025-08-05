@@ -582,19 +582,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
             </TabsList>
             
             <TabsContent value="today" className="mt-4">
-          {/* Multi-select toggle */}
-          {todayEntries.length > 0 && !isMultiSelectMode && (
-            <div className="mb-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsMultiSelectMode(true)}
-                className="text-xs"
-              >
-                Select Foods for Template
-              </Button>
-            </div>
-          )}
           
           {todayEntries.length === 0 ? (
             <div className="text-center py-6">
@@ -658,18 +645,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                       </div>
                     </div>
                     
-                    {/* Actions - Primary consume button and 3-dots menu */}
+                    {/* Actions - 3-dots menu and consume button (consistent with library) */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Primary Consume Button - Like Library Plus Button */}
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
-                        title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                      >
-                        <Check className="w-3 h-3 text-primary-foreground" />
-                      </Button>
+                      {/* Space where other button was */}
+                      <div className="w-2"></div>
                       
                       {/* More Options Menu */}
                       <DropdownMenu>
@@ -696,6 +675,17 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      
+                      {/* Primary Consume Button - After 3-dots (consistent with library) */}
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                        className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                        title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                      >
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -738,6 +728,25 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           </TabsContent>
           
           <TabsContent value="template" className="mt-4">
+            {/* Edit template button */}
+            {todayEntries.length > 0 && (
+              <div className="mb-3 flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setActiveTab('today');
+                    setIsMultiSelectMode(true);
+                  }}
+                  className="text-xs h-7 px-2"
+                  title="Select foods from Today's Plan to update template"
+                >
+                  <Edit className="w-3 h-3 mr-1" />
+                  Edit
+                </Button>
+              </div>
+            )}
+            
             {dailyTemplate.length === 0 ? (
               <div className="text-center py-6">
                 <Save className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
