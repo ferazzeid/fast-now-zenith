@@ -258,3 +258,9 @@ All colors MUST be HSL.
     transform: translateX(-100%);
   }
 }
+
+/* AI Button Opacity Override - Fix for PremiumGate transparency */
+.opacity-50 button[class*="bg-ai"] {
+  opacity: 1 !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
