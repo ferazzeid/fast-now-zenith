@@ -55,7 +55,7 @@ const buttonVariants = cva(
         // ✅ COMPACT ACTIONS: Smaller buttons with same primary styling
         "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
         // ✅ AI ACTIONS: Special AI-related buttons (Generate AI Image, Voice Input, etc.)
-        "ai": "bg-ai text-ai-foreground hover:bg-ai/90 text-sm font-medium shadow-sm",
+        "ai": "bg-ai text-ai-foreground hover:bg-ai/90 text-sm font-medium shadow-sm [.opacity-50_&]:!opacity-100 [.opacity-50_&]:shadow-lg",
       },
       size: {
         default: "h-10 px-4 py-2",
