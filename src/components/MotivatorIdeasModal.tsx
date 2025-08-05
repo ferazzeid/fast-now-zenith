@@ -99,52 +99,33 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium text-warm-text text-sm">{goal.title}</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <Button 
+                              size="sm" 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Add dismiss functionality here
+                                onSelectGoal(goal);
+                                onClose();
                               }}
-                              className="h-5 w-5 p-0 hover:bg-destructive/10"
-                              title="Dismiss this idea"
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1 text-xs"
                             >
-                              <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                              <Plus className="w-3 h-3 mr-1" />
+                              Use
                             </Button>
                           </div>
                           <p className={`text-xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
                             {goal.description}
                           </p>
                         </div>
-                        
-                        {/* Expand/Add Button */}
-                        <div className="flex items-center gap-1">
-                          {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                          )}
-                        </div>
                       </div>
                     </div>
                     
-                    {/* Add Button - Only shown when expanded */}
-                    {isExpanded && (
-                      <div className="px-3 pb-3">
-                        <Button 
-                          size="sm" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectGoal(goal);
-                            onClose();
-                          }}
-                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Use
-                        </Button>
-                      </div>
-                    )}
+                    {/* Bottom expand indicator */}
+                    <div 
+                      className="flex justify-center py-2 bg-muted/30 hover:bg-muted/50 cursor-pointer border-t border-muted/50"
+                      onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                    >
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    </div>
                   </Card>
                 );
               })

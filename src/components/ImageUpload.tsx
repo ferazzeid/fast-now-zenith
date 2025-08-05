@@ -241,7 +241,7 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, sho
                 className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
               >
                 <Image className="w-6 h-6" />
-                <span className="text-sm">Choose from Gallery</span>
+                <span className="text-sm">Choose</span>
               </Button>
               
               <Button
