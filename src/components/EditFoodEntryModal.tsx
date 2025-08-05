@@ -157,6 +157,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
         title="Edit Food Entry"
         variant="standard"
         size="md"
+        showCloseButton={true}
         footer={
           <div className="flex space-x-2 w-full">
             <Button onClick={handleSave} disabled={loading || generatingImage} className="flex-1">

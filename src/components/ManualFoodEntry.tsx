@@ -3,7 +3,7 @@ import { X, Camera, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -100,16 +100,29 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh]">
-        <DialogHeader className="border-b border-border py-2 px-0">
-          <div className="px-6">
-            <DialogTitle className="text-lg font-semibold">Add Food Manually</DialogTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              {getUnitSystemDisplay(profile?.units)} Mode
-            </p>
-          </div>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Add Food Manually"
+      variant="standard"
+      size="md"
+      showCloseButton={true}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            Add to Food Plan
+          </Button>
+        </>
+      }
+    >
+      <div className="mb-4">
+        <p className="text-xs text-muted-foreground">
+          {getUnitSystemDisplay(profile?.units)} Mode
+        </p>
+      </div>
 
         <div className="space-y-4 p-4">
           {/* Required Fields */}
@@ -217,18 +230,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-4">
-            <Button onClick={onSave} className="flex-1">
-              Add to Food Plan
-            </Button>
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-          </div>
-          
         </div>
-      </DialogContent>
-    </Dialog>
+    </UniversalModal>
   );
 };
