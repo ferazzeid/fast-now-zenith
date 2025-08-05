@@ -10,18 +10,14 @@ interface CeramicTimerProps {
   displayTime: string;
   /** Whether timer is active/running */
   isActive: boolean;
-  /** Whether in eating window */
-  isEatingWindow?: boolean;
   /** Show motivator slideshow */
   showSlideshow?: boolean;
-  /** Eating window time remaining (only shown during eating window) */
-  eatingWindowTimeRemaining?: string | null;
   /** Count direction for toggle */
   countDirection?: 'up' | 'down';
   /** Handler for count direction toggle */
   onToggleCountDirection?: () => void;
   /** Fast type for display */
-  fastType?: 'intermittent' | 'longterm';
+  fastType?: 'longterm';
   /** Goal duration in hours */
   goalDuration?: number;
   /** Additional className */
@@ -32,9 +28,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   progress,
   displayTime,
   isActive,
-  isEatingWindow = false,
   showSlideshow = false,
-  eatingWindowTimeRemaining = null,
   countDirection,
   onToggleCountDirection,
   fastType,

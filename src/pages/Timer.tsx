@@ -27,9 +27,7 @@ import { trackFastingEvent } from '@/utils/analytics';
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(72 * 60 * 60); // 72 hours default (water fast)
-  const [fastType, setFastType] = useState<'intermittent' | 'longterm'>('longterm');
-  const [eatingWindow, setEatingWindow] = useState(8 * 60 * 60); // 8 hours
-  const [isInEatingWindow, setIsInEatingWindow] = useState(false);
+  const [fastType] = useState<'longterm'>('longterm');
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
@@ -79,13 +77,7 @@ const Timer = () => {
     if (fastingSession?.goal_duration_seconds) {
       const goalHours = Math.floor(fastingSession.goal_duration_seconds / 3600);
       console.log('Timer: Setting fast type based on goal hours:', goalHours);
-      if (goalHours <= 23) {
-        setFastType('intermittent');
-        setFastDuration(fastingSession.goal_duration_seconds);
-      } else {
-        setFastType('longterm');
-        setFastDuration(fastingSession.goal_duration_seconds);
-      }
+      setFastDuration(fastingSession.goal_duration_seconds);
     }
   }, [fastingSession]);
 
@@ -99,15 +91,7 @@ const Timer = () => {
         const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         setTimeElapsed(elapsed);
 
-        // Check if we should be in eating window for intermittent fasting
-        if (fastType === 'intermittent' && elapsed >= fastDuration) {
-          const totalCycleTime = fastDuration + eatingWindow;
-          const cyclePosition = elapsed % totalCycleTime;
-          const shouldBeInEatingWindow = cyclePosition >= fastDuration;
-          setIsInEatingWindow(shouldBeInEatingWindow);
-        } else {
-          setIsInEatingWindow(false);
-        }
+
       };
 
       // Update immediately
@@ -117,13 +101,12 @@ const Timer = () => {
       interval = setInterval(updateTimer, 1000);
     } else {
       setTimeElapsed(0);
-      setIsInEatingWindow(false);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, fastingSession?.start_time, fastDuration, eatingWindow, fastType]);
+  }, [isRunning, fastingSession?.start_time, fastDuration]);
 
   const handleFastingStart = async () => {
     const result = await startFastingSession(fastDuration);
@@ -213,58 +196,18 @@ const Timer = () => {
   };
 
   const getDisplayTime = () => {
-    if (fastType === 'intermittent') {
-      const totalCycleTime = fastDuration + eatingWindow;
-      const cyclePosition = timeElapsed % totalCycleTime;
-      
-      if (isInEatingWindow) {
-        // Always show countdown for eating window
-        const eatingStartTime = cyclePosition - fastDuration;
-        const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
-        return formatTimeFasting(eatingTimeRemaining);
-      } else {
-        // For fasting phase, respect count direction
-        if (countDirection === 'up') {
-          return formatTimeFasting(cyclePosition);
-        } else {
-          const remaining = Math.max(0, fastDuration - cyclePosition);
-          return formatTimeFasting(remaining);
-        }
-      }
+    if (countDirection === 'up') {
+      return formatTimeFasting(timeElapsed);
     } else {
-      // Long-term fasting logic unchanged
-      if (countDirection === 'up') {
-        return formatTimeFasting(timeElapsed);
-      } else {
-        const remaining = Math.max(0, fastDuration - timeElapsed);
-        return formatTimeFasting(remaining);
-      }
+      const remaining = Math.max(0, fastDuration - timeElapsed);
+      return formatTimeFasting(remaining);
     }
   };
 
-  const getEatingWindowTimeRemaining = () => {
-    if (!isInEatingWindow) return null;
-    const eatingStartTime = timeElapsed - fastDuration;
-    const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
-    return formatTimeFasting(eatingTimeRemaining);
-  };
+
 
   const getProgress = () => {
-    if (fastType === 'intermittent') {
-      const totalCycleTime = fastDuration + eatingWindow;
-      const cyclePosition = timeElapsed % totalCycleTime;
-      
-      if (isInEatingWindow) {
-        // For eating window, show progress of eating time used
-        const eatingStartTime = cyclePosition - fastDuration;
-        return Math.min((eatingStartTime / eatingWindow) * 100, 100);
-      } else {
-        // For fasting phase, show progress of current fast
-        return Math.min((cyclePosition / fastDuration) * 100, 100);
-      }
-    } else {
-      return Math.min((timeElapsed / fastDuration) * 100, 100);
-    }
+    return Math.min((timeElapsed / fastDuration) * 100, 100);
   };
 
   const getCurrentMode = () => {
@@ -273,27 +216,17 @@ const Timer = () => {
       return 'Start Your Fast';
     }
     
-    if (fastType === 'longterm') return 'Extended Fast';
-    
-    if (fastType === 'intermittent') {
-      const totalCycleTime = fastDuration + eatingWindow;
-      const currentCycle = Math.floor(timeElapsed / totalCycleTime) + 1;
-      const baseMode = isInEatingWindow ? 'Eating Window' : 'Fasting';
-      return `${baseMode} - Day ${currentCycle}`;
-    }
-    
-    return isInEatingWindow ? 'Eating Window' : 'Fasting';
+    return 'Extended Fast';
   };
 
-  const handleFastTypeSelect = async (type: 'intermittent' | 'longterm', duration: number, eatingWindowDuration: number, startDate?: Date, startTime?: string) => {
-    setFastType(type);
+  const handleFastTypeSelect = async (duration: number, startDateTime?: Date, displayTime?: string) => {
+    setFastType('longterm');
     setFastDuration(duration);
-    setEatingWindow(eatingWindowDuration);
     setShowFastSelector(false);
     
-    if (startDate && startTime) {
+    if (startDateTime && displayTime) {
       // Handle retroactive fast start
-      await handleRetroactiveFastStart(startDate.toISOString().split('T')[0], startTime, type, duration);
+      await handleRetroactiveFastStart(startDateTime, duration);
     } else {
       // Automatically start the fast after selection
       const result = await startFastingSession(duration);
@@ -306,11 +239,8 @@ const Timer = () => {
     }
   };
 
-  const handleRetroactiveFastStart = async (startDate: string, startTime: string, fastType: 'intermittent' | 'longterm', duration: number) => {
+  const handleRetroactiveFastStart = async (pastStartDateTime: Date, duration: number) => {
     try {
-      // Calculate the past start time
-      const pastStartDateTime = new Date(`${startDate}T${startTime}`);
-      
       // Start the fast with the custom start time in the database
       const result = await startFastingSession(duration, pastStartDateTime);
       
@@ -343,8 +273,7 @@ const Timer = () => {
       fastType,
       timeElapsed,
       goalDuration: fastDuration,
-      progress: getProgress(),
-      isInEatingWindow: isInEatingWindow
+      progress: getProgress()
     });
     const systemPrompt = generateSystemPrompt();
     const proactiveMessage = generateProactiveMessage();
@@ -390,9 +319,7 @@ const Timer = () => {
                 progress={getProgress()}
                 displayTime={getDisplayTime()}
                 isActive={isRunning}
-                isEatingWindow={isInEatingWindow}
                 showSlideshow={profile?.enable_fasting_slideshow ?? false}
-                eatingWindowTimeRemaining={null}
                 countDirection={countDirection}
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
                 fastType={fastType}
@@ -483,9 +410,7 @@ const Timer = () => {
       {/* Fast Selector Modal */}
       {showFastSelector && (
         <FastSelector
-          currentType={fastType}
           currentDuration={fastDuration}
-          currentEatingWindow={eatingWindow}
           onSelect={handleFastTypeSelect}
           onClose={() => setShowFastSelector(false)}
         />
