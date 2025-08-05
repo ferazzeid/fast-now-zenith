@@ -470,7 +470,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 checked={isSelected}
                 onCheckedChange={() => toggleFoodSelection(food.id)}
                 onClick={(e) => e.stopPropagation()}
-                className="w-9 h-9"
+                className="w-10 h-10"
               />
             </div>
           )}
@@ -494,9 +494,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-medium">{food.calories_per_100g} cal</span>
+              <span className="font-medium">{Math.round(food.calories_per_100g)} cal</span>
               <span className="text-muted-foreground/60">•</span>
-              <span className="font-medium">{food.carbs_per_100g}g carbs</span>
+              <span className="font-medium">{Math.round(food.carbs_per_100g)}g carbs</span>
             </div>
           </div>
           
@@ -506,17 +506,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               {/* Space where favorite button was */}
               <div className="w-2"></div>
 
-              {/* Options Dropdown - Primary color and bigger */}
+              {/* Options Dropdown - Bigger dots with subtle hover */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant="default"
+                    variant="ghost"
                     size="sm"
-                    className="p-2 h-10 w-10 bg-primary hover:bg-primary/90 rounded-lg"
+                    className="p-2 h-10 w-10 hover:bg-secondary/80 rounded-lg"
                     title="More options"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="w-5 h-5 text-primary-foreground" />
+                    <MoreVertical className="w-6 h-6 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44 z-50">
@@ -568,13 +568,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     handleQuickSelect(food as UserFood, false) : 
                     importToMyLibrary(food as DefaultFood)
                 }}
-                className="h-8 px-3 text-xs font-medium flex-shrink-0 min-w-[2.5rem] rounded-lg"
+                className="h-10 w-10 p-2 flex-shrink-0 rounded-lg"
                 title={isUserFood ? "Add to today's plan" : "Import to your library"}
               >
                 {isUserFood ? (
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-6 h-6" />
                 ) : (
-                  <Download className="w-3 h-3" />
+                  <Download className="w-6 h-6" />
                 )}
               </Button>
             </div>
@@ -649,7 +649,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-muted rounded" />
                         <div className="w-10 h-10 bg-muted rounded-lg" />
-                        <div className="w-8 h-8 bg-muted rounded-lg" />
+                        <div className="w-10 h-10 bg-muted rounded-lg" />
                       </div>
                     </div>
                   </div>
@@ -691,7 +691,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-muted rounded" />
                         <div className="w-10 h-10 bg-muted rounded-lg" />
-                        <div className="w-8 h-8 bg-muted rounded-lg" />
+                        <div className="w-10 h-10 bg-muted rounded-lg" />
                       </div>
                     </div>
                   </div>
