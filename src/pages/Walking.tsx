@@ -12,7 +12,7 @@ import { WalkingHistoryModal } from '@/components/WalkingHistoryModal';
 
 import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
-import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
@@ -36,7 +36,7 @@ const Walking = () => {
     endWalkingSession,
     cancelWalkingSession,
     updateSessionSpeed
-  } = useWalkingSessionQuery();
+  } = useWalkingSession();
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
 

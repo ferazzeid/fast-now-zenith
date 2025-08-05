@@ -7,7 +7,7 @@ import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -19,7 +19,7 @@ export const Navigation = () => {
   const { isProfileComplete } = useProfile();
   const { currentSession: fastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { todayTotals } = useFoodEntriesQuery();
-  const { currentSession: walkingSession } = useWalkingSessionQuery();
+  const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline, isConnected } = useConnectionStore();
   const [currentTime, setCurrentTime] = useState(Date.now());
