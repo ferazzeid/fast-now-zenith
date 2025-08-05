@@ -111,6 +111,16 @@ export const useFastingSessionQuery = () => {
     mutationFn: async (sessionData: StartFastingSessionData): Promise<FastingSession> => {
       if (!user) throw new Error('User not authenticated');
 
+      // End any existing active sessions first
+      await supabase
+        .from('fasting_sessions')
+        .update({ 
+          status: 'cancelled',
+          end_time: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
       const { data, error } = await supabase
         .from('fasting_sessions')
         .insert({

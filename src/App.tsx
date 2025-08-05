@@ -124,15 +124,7 @@ const AppContent = () => {
             <Route path="/admin" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
-                  <div className="p-8">
-                    <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-                    <p>Admin dashboard is loading...</p>
-                    <div className="mt-4 p-4 bg-card rounded-lg">
-                      <h2 className="text-lg font-semibold mb-2">Debug Info</h2>
-                      <p>If you can see this, the route protection is working.</p>
-                      <p>The error is likely in the AdminOverview component or its dependencies.</p>
-                    </div>
-                  </div>
+                  <AdminOverview />
                 </PageErrorBoundary>
               </ProtectedRoute>  
             } />
