@@ -66,8 +66,8 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
   return (
     <div className={`relative ${className}`}>
-      {/* Grayed out content */}
-      <div className="opacity-50 pointer-events-none">
+      {/* Grayed out content - Special handling for AI buttons */}
+      <div className="opacity-50 pointer-events-none [&_button[class*='bg-ai']]:!opacity-100 [&_button[class*='bg-ai']]:!bg-ai [&_button[class*='bg-ai']]:!text-ai-foreground [&_button[class*='bg-ai']]:shadow-lg">
         {children}
       </div>
       
