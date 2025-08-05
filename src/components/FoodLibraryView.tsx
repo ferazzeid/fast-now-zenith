@@ -456,8 +456,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           isSelected 
             ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/20' 
             : isUserFood 
-              ? 'bg-ceramic-plate border-ceramic-rim hover:bg-ceramic-plate/80' 
-              : 'bg-ceramic-plate/50 border-ceramic-rim hover:bg-ceramic-plate/70'
+              ? 'bg-card border-border hover:bg-card/80' 
+              : 'bg-card/90 border-border hover:bg-card'
         }`}
         onClick={handleCardClick}
       >
@@ -582,13 +582,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     handleQuickSelect(food as UserFood, false) : 
                     importToMyLibrary(food as DefaultFood)
                 }}
-                className="h-6 px-2 text-xs font-medium flex-shrink-0"
+                className="h-8 px-3 text-xs font-medium flex-shrink-0 min-w-[2rem]"
                 title={isUserFood ? "Add to today's plan" : "Import to your library"}
               >
                 {isUserFood ? (
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-4 h-4" />
                 ) : (
-                  <Download className="w-3 h-3" />
+                  <Download className="w-4 h-4" />
                 )}
               </Button>
             </div>
@@ -638,7 +638,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             {loading ? (
               <div className="space-y-3">
                 {[...Array(6)].map((_, i) => (
-                 <div key={i} className="p-2 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse">
+                 <div key={i} className="p-2 rounded-lg bg-card border border-border animate-pulse">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded bg-ceramic-base" />
                       <div className="flex-1 space-y-2">
@@ -680,7 +680,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             {loading ? (
               <div className="space-y-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="p-2 rounded-lg bg-ceramic-plate/50 border border-ceramic-rim animate-pulse">
+                  <div key={i} className="p-2 rounded-lg bg-card border border-border animate-pulse">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded bg-ceramic-base" />
                       <div className="flex-1 space-y-2">
