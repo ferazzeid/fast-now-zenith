@@ -87,6 +87,10 @@ export default {
 				},
 				frame: {
 					background: 'hsl(var(--frame-background))'
+				},
+				ai: {
+					DEFAULT: 'hsl(var(--ai))',
+					foreground: 'hsl(var(--ai-foreground))'
 				}
 			},
 			borderRadius: {
