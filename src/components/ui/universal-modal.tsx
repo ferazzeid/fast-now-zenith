@@ -112,7 +112,7 @@ export const UniversalModal = ({
             {/* Sticky header - only show if title exists */}
             {title && (
               <div className={cn(
-                'sticky top-0 z-10 bg-muted/50 border-b border-border px-4 py-3 flex items-center justify-between',
+                'universal-modal-header sticky top-0 z-10 bg-muted/50 border-b border-border px-4 py-3 flex items-center justify-between',
                 headerClassName
               )}>
                 <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
@@ -179,7 +179,7 @@ export const UniversalModal = ({
         {/* Header - only show if title exists */}
         {title && (
           <div className={cn(
-            'px-6 py-3 border-b border-border flex items-center justify-between',
+            'universal-modal-header px-6 py-3 border-b border-border flex items-center justify-between',
             'bg-muted/50',
             headerClassName
           )}>

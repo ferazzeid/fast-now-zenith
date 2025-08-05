@@ -418,6 +418,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
       title={title}
       variant="standard"
       size="md"
+      showCloseButton={true}
     >
 
       {/* Messages with better spacing and scrolling */}

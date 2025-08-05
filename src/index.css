@@ -270,3 +270,18 @@ All colors MUST be HSL.
   opacity: 1 !important;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
 }
+
+/* Force hide duplicate close buttons in modals - aggressive fix */
+[data-radix-dialog-content] > button[data-radix-dialog-close] {
+  display: none !important;
+}
+
+/* Hide any automatic close buttons that might be added by Radix */
+[data-radix-dialog-content] > button:last-child:has(svg) {
+  display: none !important;
+}
+
+/* Ensure only UniversalModal's close button shows */
+.universal-modal-header button {
+  display: flex !important;
+}
