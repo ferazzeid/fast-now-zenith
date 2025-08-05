@@ -17,7 +17,7 @@ export const ColorManagement: React.FC = () => {
   const [colors, setColors] = useState<ColorValues>({
     primary: '#3b82f6',
     primaryHover: '#2563eb',
-    accent: '#8b5cf6'
+    accent: '#22c55e'
   });
   
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);

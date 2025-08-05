@@ -157,7 +157,7 @@ export const PromptManagement: React.FC = () => {
         '{goal_title}': 'Lose 10 pounds',
         '{goal_description}': 'Achieve a healthier weight through consistent exercise and nutrition',
         '{primary_color}': colorSettings.primary_color || '220 35% 45%',
-        '{accent_color}': colorSettings.accent_color || '262 83% 58%'
+        '{accent_color}': colorSettings.accent_color || '142 71% 45%'
       };
 
       config.variables.forEach(variable => {

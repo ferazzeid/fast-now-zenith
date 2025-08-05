@@ -82,7 +82,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
     // Fetch admin prompt settings and color themes
     let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
     let primaryColor = "220 35% 45%";
-    let accentColor = "262 83% 58%";
+          let accentColor = "142 71% 45%";
     
     try {
       const { data: settingsData } = await supabase

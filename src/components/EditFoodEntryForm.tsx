@@ -93,7 +93,7 @@ export const EditFoodEntryForm = ({ entry, onUpdate, onCancel }: EditFoodEntryFo
       // Fetch admin prompt settings and color themes
       let promptTemplate = "A lightly cartoony and semi-realistic illustration of {food_name}, food illustration style, clean background, appetizing, vibrant colors. Style should match this color theme: {primary_color} primary, {accent_color} accent. Clean, professional food photography style with soft lighting.";
       let primaryColor = "220 35% 45%";
-      let accentColor = "262 83% 58%";
+      let accentColor = "142 71% 45%";
       
       try {
         const { data: settingsData } = await supabase

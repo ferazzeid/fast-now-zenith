@@ -47,7 +47,7 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
       // Fetch admin prompt settings and color themes
       let promptTemplate = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}";
       let primaryColor = "220 35% 45%";
-      let accentColor = "262 83% 58%";
+      let accentColor = "142 71% 45%";
       
       try {
         const { data: settingsData } = await supabase
