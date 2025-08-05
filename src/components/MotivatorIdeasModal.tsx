@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Search, Lightbulb, Plus, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { Lightbulb, Plus, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
@@ -14,14 +13,8 @@ interface MotivatorIdeasModalProps {
 }
 
 export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: MotivatorIdeasModalProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const { goalIdeas, loading } = useAdminGoalIdeas();
-
-  const filteredGoals = goalIdeas.filter(goal =>
-    goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    goal.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (loading) {
     return (
@@ -31,7 +24,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
         title="Motivator Ideas"
         variant="standard"
         size="lg"
-        showCloseButton={false}
+        showCloseButton={true}
       >
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-4">
@@ -62,30 +55,19 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
       title="Motivator Ideas"
       variant="standard"
       size="lg"
-      showCloseButton={false}
+      showCloseButton={true}
     >
         
         <div className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search motivator ideas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-
           {/* Goal Ideas List */}
           <div className="max-h-96 overflow-y-auto space-y-3">
-            {filteredGoals.length === 0 ? (
+            {goalIdeas.length === 0 ? (
               <div className="text-center py-8">
                 <Lightbulb className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
                 <p className="text-muted-foreground">No motivator ideas found</p>
               </div>
             ) : (
-              filteredGoals.map((goal) => {
+              goalIdeas.map((goal) => {
                 const isExpanded = expandedGoal === goal.id;
                 
                 return (

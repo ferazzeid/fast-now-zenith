@@ -157,7 +157,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       title={isEditing ? 'Edit Motivator' : 'Create New Motivator'}
       variant="standard"
       size="md"
-      showCloseButton={false}
+      showCloseButton={true}
       footer={
         <>
           <Button
