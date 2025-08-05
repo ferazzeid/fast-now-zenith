@@ -562,18 +562,30 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="font-medium">{Math.round(entry.serving_size)}g</span>
                         <span className="text-muted-foreground/60">•</span>
-                        <span className="font-medium">{Math.round(entry.calories)} cal</span>
+                        <ClickableTooltip content="Calories">
+                          <span className="font-medium cursor-pointer">{Math.round(entry.calories)}</span>
+                        </ClickableTooltip>
                         <span className="text-muted-foreground/60">•</span>
-                        <span className="font-medium">{Math.round(entry.carbs)}g carbs</span>
+                        <ClickableTooltip content="Carbs">
+                          <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
+                        </ClickableTooltip>
                       </div>
                     </div>
                     
-                    {/* Actions - Compact like Food Library */}
+                    {/* Actions - Primary consume button and 3-dots menu */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Space where other button was */}
-                      <div className="w-2"></div>
+                      {/* Primary Consume Button - Like Library Plus Button */}
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                        className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                        title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                      >
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      </Button>
                       
-                      {/* More Options with Consume Action */}
+                      {/* More Options Menu */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
@@ -585,12 +597,6 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
-                          <DropdownMenuItem 
-                            onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                          >
-                            <Check className="w-4 h-4 mr-2" />
-                            {entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit Entry
