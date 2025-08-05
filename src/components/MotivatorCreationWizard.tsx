@@ -247,7 +247,7 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
                 
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="ai"
                     onClick={handleGenerateImage}
                     disabled={isGeneratingImage}
                     className="flex-1"

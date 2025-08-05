@@ -219,7 +219,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <PremiumGate feature="Voice Input" showUpgrade={false}>
                 <button
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
                 >
                   <Mic className="w-3 h-3 mx-auto" />
                 </button>
@@ -242,7 +242,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <PremiumGate feature="Voice Input" showUpgrade={false}>
                 <button
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
                 >
                   <Mic className="w-3 h-3 mx-auto" />
                 </button>
@@ -274,10 +274,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <div className="flex gap-2">
                 <PremiumGate feature="AI Image Generation">
                   <Button
-                    variant="outline"
+                    variant="ai"
                     onClick={handleGenerateImage}
                     disabled={isGeneratingImage}
-                    className="flex-1 hover:bg-muted hover:text-foreground"
+                    className="flex-1"
                   >
                     {isGeneratingImage ? (
                       <>

@@ -260,7 +260,7 @@ export const UpgradedMotivatorFormModal = ({
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="ai"
                 size="sm"
                 onClick={handleGenerateImage}
                 disabled={isGeneratingImage || (!title && !content)}
