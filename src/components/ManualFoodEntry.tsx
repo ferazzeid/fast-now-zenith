@@ -220,7 +220,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               <Button
                 onClick={handleAiFill}
                 disabled={isAiFilling || !data.name || !data.servingSize}
-                variant="outline"
+                variant="ai"
                 size="sm"
                 className="text-xs"
               >
