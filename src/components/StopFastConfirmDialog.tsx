@@ -14,31 +14,49 @@ interface StopFastConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   currentDuration?: string;
+  actionType?: 'finish' | 'cancel';
 }
 
 export const StopFastConfirmDialog = ({ 
   open, 
   onOpenChange, 
   onConfirm,
-  currentDuration 
+  currentDuration,
+  actionType = 'finish'
 }: StopFastConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Stop Fast?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {actionType === 'cancel' ? 'Cancel Fast?' : 'Finish Fast?'}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to stop your fast? You've been fasting for {currentDuration || '0:00:00'}.
-            This action cannot be undone.
+            {actionType === 'cancel' ? (
+              <>
+                Are you sure you want to cancel your fast? You've been fasting for {currentDuration || '0:00:00'}.
+                <br />
+                <span className="font-medium text-amber-600">This will remove your fast from history completely.</span>
+              </>
+            ) : (
+              <>
+                Are you sure you want to finish your fast? You've been fasting for {currentDuration || '0:00:00'}.
+                <br />
+                <span className="font-medium text-green-600">This will save your fast progress to history.</span>
+              </>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Continue Fasting</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className={actionType === 'cancel' 
+              ? "bg-amber-600 text-white hover:bg-amber-700" 
+              : "bg-green-600 text-white hover:bg-green-700"
+            }
           >
-            Stop Fast
+            {actionType === 'cancel' ? 'Cancel Fast' : 'Finish Fast'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

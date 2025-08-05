@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History } from 'lucide-react';
+import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History, X, CheckCircle } from 'lucide-react';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
@@ -33,6 +34,7 @@ const Timer = () => {
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
+  const [stopAction, setStopAction] = useState<'finish' | 'cancel'>('finish');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showFastingHistory, setShowFastingHistory] = useState(false);
   
@@ -44,7 +46,7 @@ const Timer = () => {
   
   const [walkingTime, setWalkingTime] = useState(0);
   
-  const { currentSession: fastingSession, startFastingSession, endFastingSession, refreshActiveSession } = useFastingSessionQuery();
+  const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
@@ -137,12 +139,34 @@ const Timer = () => {
   const handleFastingStop = async () => {
     if (!fastingSession) return;
     
-    const result = await endFastingSession();
-    if (result) {
-      trackFastingEvent('stop', fastType, timeElapsed);
+    try {
+      if (stopAction === 'cancel') {
+        // Cancel fast - doesn't save to history
+        const result = await cancelFastingSession(fastingSession.id);
+        if (result) {
+          trackFastingEvent('cancel', fastType, timeElapsed);
+          toast({
+            title: "Fast cancelled", 
+            description: "Your fast was cancelled and removed from history."
+          });
+        }
+      } else {
+        // Finish fast - saves to history
+        const result = await endFastingSession(fastingSession.id);
+        if (result) {
+          trackFastingEvent('stop', fastType, timeElapsed);
+          toast({
+            title: "Fast completed", 
+            description: `Great job! You fasted for ${formatTimeFasting(timeElapsed)}`
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error stopping fasting session:', error);
       toast({
-        title: "Fast completed", 
-        description: `Great job! You fasted for ${formatTimeFasting(timeElapsed)}`
+        title: "Error",
+        description: "Failed to stop fasting session. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -403,15 +427,51 @@ const Timer = () => {
                 </Button>
               </div>
             ) : (
-              <Button 
-                onClick={() => setShowStopConfirmDialog(true)}
-                variant="ghost"
-                size="action-main"
-                className="w-full text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
-              >
-                <Square className="w-6 h-6 mr-2" />
-                Stop Fast
-              </Button>
+              <TooltipProvider>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Cancel Fast Button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={() => {
+                          setStopAction('cancel');
+                          setShowStopConfirmDialog(true);
+                        }}
+                        variant="ghost"
+                        size="action-main" 
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
+                      >
+                        <X className="w-5 h-5 mr-2" />
+                        Cancel Fast
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Cancel your fast without saving it to history</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  {/* Finish Fast Button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={() => {
+                          setStopAction('finish');
+                          setShowStopConfirmDialog(true);
+                        }}
+                        variant="ghost"
+                        size="action-main"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-muted"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Finish Fast
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Complete your fast and save it to history</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             )}
           </div>
         )}
@@ -449,6 +509,7 @@ const Timer = () => {
           handleFastingStop();
         }}
         currentDuration={formatTimeFasting(timeElapsed)}
+        actionType={stopAction}
       />
 
       {/* Fasting History Modal */}
