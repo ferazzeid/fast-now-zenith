@@ -535,19 +535,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <MoreVertical className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-20 z-50">
+                <DropdownMenuContent align="end" className="w-44 z-50">
                   {isUserFood ? (
                     <>
-                      <EditLibraryFoodModal 
-                        food={food as UserFood} 
-                        onUpdate={updateFood}
-                      />
+                      <DropdownMenuItem asChild>
+                        <EditLibraryFoodModal 
+                          food={food as UserFood} 
+                          onUpdate={updateFood}
+                        />
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => deleteFood(food.id)}
-                        className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                        className="text-destructive focus:text-destructive"
                       >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Food
                       </DropdownMenuItem>
                     </>
                   ) : (

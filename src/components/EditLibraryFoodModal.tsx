@@ -150,9 +150,10 @@ export const EditLibraryFoodModal = ({ food, onUpdate }: EditLibraryFoodModalPro
   return (
     <>
       {/* Trigger Button */}
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        <Edit className="w-4 h-4" />
-      </Button>
+      <div className="flex items-center w-full px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground" onClick={() => setOpen(true)}>
+        <Edit className="w-4 h-4 mr-2" />
+        Edit Food
+      </div>
 
       {/* Modal */}
       <UniversalModal
