@@ -704,10 +704,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     variant="default"
                     size="sm"
                     onClick={saveAsTemplate}
-                    className="h-9 px-4"
+                    className="h-9 px-3"
                   >
                     <Save className="w-4 h-4 mr-1" />
-                    Save as Template
+                    Save
                   </Button>
                 </div>
               </div>
