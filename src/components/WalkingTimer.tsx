@@ -270,7 +270,7 @@ const WalkingTimerComponent = ({
                       <Info className="w-5 h-5 text-muted-foreground" />
                     </ClickableTooltip>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-blue-500 animate-pulse' : isActive && !isPaused ? 'bg-blue-500' : 'bg-muted'}`} />
+                  <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-primary animate-pulse' : isActive && !isPaused ? 'bg-primary' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
                 <div className="text-xl font-bold text-primary">

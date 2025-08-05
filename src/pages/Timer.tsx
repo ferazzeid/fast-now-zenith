@@ -405,6 +405,7 @@ const Timer = () => {
               isActive={timerStatus.walking.isActive}
               onStart={handleWalkingStart}
               onStop={handleWalkingStop}
+              showSlideshow={profile?.enable_walking_slideshow ?? false}
               selectedSpeed={3}
               onSpeedChange={() => {}}
             />

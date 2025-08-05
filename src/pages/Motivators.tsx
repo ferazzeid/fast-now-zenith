@@ -202,10 +202,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                     onClick={handleVoiceMotivator}
                     variant="action-primary"
                     size="action-tall"
-                    className="gap-2"
+                    className="flex items-center justify-center"
                   >
                     <Mic className="w-5 h-5" />
-                    <span className="text-sm font-medium">Voice Add</span>
                   </Button>
                 </PremiumGate>
               </TooltipTrigger>
@@ -220,10 +219,9 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                   onClick={() => setShowFormModal(true)}
                   variant="action-primary"
                   size="action-tall"
-                  className="gap-2"
+                  className="flex items-center justify-center"
                 >
                   <Plus className="w-5 h-5" />
-                  <span className="text-sm font-medium">Manual Add</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

@@ -109,12 +109,12 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1 mb-1">
-                <Calendar className="w-3 h-3 text-blue-500" />
+                                  <Calendar className="w-3 h-3 text-muted-foreground" />
                 <ClickableTooltip content="Projected weight loss if you maintain today's deficit for 30 days">
                   <span className="text-xs text-muted-foreground cursor-help">If Maintained</span>
                 </ClickableTooltip>
               </div>
-              <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                              <div className="text-sm font-semibold text-primary">
                 {userUnits === 'metric' 
                   ? `${Math.round(thirtyDayProjection / 1000)}kg`
                   : `${Math.round(thirtyDayProjection / 453.592)}lbs`

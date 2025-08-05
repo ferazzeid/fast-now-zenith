@@ -162,7 +162,7 @@ export const TodaysDashboard = () => {
 
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-blue-500" />
+                              <TrendingUp className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">Net Calories</span>
           </div>
           <div className="space-y-1">
