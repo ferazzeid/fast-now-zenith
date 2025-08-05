@@ -261,8 +261,8 @@ const WalkingTimerComponent = ({
           <div className="space-y-3">
             {/* Speed & Distance Row - Full width */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="p-3 relative">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
@@ -283,7 +283,7 @@ const WalkingTimerComponent = ({
                       onSpeedChange(newStorageSpeed);
                     }}
                   >
-                    <SelectTrigger className="h-8 w-16 text-sm bg-background border-muted">
+                    <SelectTrigger className="h-6 w-14 text-xs bg-background border-muted">
                       <SelectValue placeholder="Set" />
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-background border-border">
