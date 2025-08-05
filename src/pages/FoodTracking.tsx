@@ -618,7 +618,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                           {/* More Options */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-accent">
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-muted">
                                 <MoreVertical className="w-3 h-3" />
                               </Button>
                             </DropdownMenuTrigger>

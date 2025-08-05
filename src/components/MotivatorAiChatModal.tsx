@@ -297,6 +297,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
       title="AI Motivator Coach"
       variant="standard"
       size="md"
+      showCloseButton={false}
     >
       {/* Audio toggle */}
       <div className="flex items-center gap-2 mb-4 justify-end">

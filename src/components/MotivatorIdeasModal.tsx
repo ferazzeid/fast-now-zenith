@@ -31,6 +31,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
         title="Motivator Ideas"
         variant="standard"
         size="lg"
+        showCloseButton={false}
       >
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-4">
@@ -61,6 +62,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
       title="Motivator Ideas"
       variant="standard"
       size="lg"
+      showCloseButton={false}
     >
         
         <div className="space-y-4">
