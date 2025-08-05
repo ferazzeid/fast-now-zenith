@@ -109,6 +109,7 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
       title="Edit Motivator"
       variant="standard"
       size="md"
+      showCloseButton={false}
       footer={
         <div className="flex gap-2 w-full">
           <Button onClick={handleSave} className="flex-1">

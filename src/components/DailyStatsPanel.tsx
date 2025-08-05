@@ -8,7 +8,7 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
-import { PremiumGatedDeficitAnalysis } from '@/components/PremiumGatedDeficitAnalysis';
+
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
@@ -251,10 +251,7 @@ export const DailyStatsPanel = memo(() => {
                   {/* Goal Metrics */}
                   <GoalMetrics />
 
-                  {/* AI Analysis */}
-                  <div className="mt-4">
-                    <PremiumGatedDeficitAnalysis />
-                  </div>
+
 
                   {/* Manual Calorie Burn Addition */}
                  <div className="mt-4">

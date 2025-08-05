@@ -46,12 +46,12 @@ export const StopWalkingConfirmDialog = ({
               </div>
             )}
             {actionType === 'cancel' && (
-              <div className="mt-3 text-amber-600 font-medium text-xs">
+              <div className="mt-3 text-muted-foreground font-medium text-xs">
                 This will remove your session from history completely.
               </div>
             )}
             {actionType === 'finish' && (
-              <div className="mt-3 text-green-600 font-medium text-xs">
+              <div className="mt-3 text-muted-foreground font-medium text-xs">
                 This will save your walking progress to history.
               </div>
             )}

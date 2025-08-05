@@ -36,13 +36,13 @@ export const StopFastConfirmDialog = ({
               <>
                 Are you sure you want to cancel your fast? You've been fasting for {currentDuration || '0:00:00'}.
                 <br />
-                <span className="font-medium text-amber-600">This will remove your fast from history completely.</span>
+                <span className="font-medium text-muted-foreground">This will remove your fast from history completely.</span>
               </>
             ) : (
               <>
                 Are you sure you want to finish your fast? You've been fasting for {currentDuration || '0:00:00'}.
                 <br />
-                <span className="font-medium text-green-600">This will save your fast progress to history.</span>
+                <span className="font-medium text-muted-foreground">This will save your fast progress to history.</span>
               </>
             )}
           </AlertDialogDescription>

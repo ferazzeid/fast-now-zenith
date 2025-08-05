@@ -95,6 +95,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
         title="Add External Activity"
         variant="standard"
         size="md"
+        showCloseButton={false}
         footer={
           <div className="flex gap-2 w-full">
             <Button 

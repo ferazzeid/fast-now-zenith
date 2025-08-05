@@ -157,6 +157,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       title={isEditing ? 'Edit Motivator' : 'Create New Motivator'}
       variant="standard"
       size="md"
+      showCloseButton={false}
       footer={
         <>
           <Button
@@ -276,7 +277,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                     variant="outline"
                     onClick={handleGenerateImage}
                     disabled={isGeneratingImage}
-                    className="flex-1 hover:bg-accent hover:text-accent-foreground"
+                    className="flex-1 hover:bg-muted hover:text-foreground"
                   >
                     {isGeneratingImage ? (
                       <>

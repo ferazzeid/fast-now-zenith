@@ -96,25 +96,25 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
         {/* Additional metrics if available */}
         {fatInGrams !== undefined && thirtyDayProjection !== undefined && deficit > 0 && (
           <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-ceramic-rim/50">
-            <div className="text-center">
+                        <div className="text-center">
               <div className="flex items-center justify-center space-x-1 mb-1">
-                <Flame className="w-3 h-3 text-orange-500" />
+                <Flame className="w-3 h-3 text-primary" />
                 <ClickableTooltip content="Fat burned today based on your current calorie deficit">
                   <span className="text-xs text-muted-foreground cursor-help">Today's Fat Loss</span>
                 </ClickableTooltip>
               </div>
-              <div className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+              <div className="text-sm font-semibold text-primary">
                 {Math.round(fatInGrams)}g
               </div>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1 mb-1">
-                                  <Calendar className="w-3 h-3 text-muted-foreground" />
+                <Calendar className="w-3 h-3 text-primary" />
                 <ClickableTooltip content="Projected weight loss if you maintain today's deficit for 30 days">
                   <span className="text-xs text-muted-foreground cursor-help">If Maintained</span>
                 </ClickableTooltip>
               </div>
-                              <div className="text-sm font-semibold text-primary">
+              <div className="text-sm font-semibold text-primary">
                 {userUnits === 'metric' 
                   ? `${Math.round(thirtyDayProjection / 1000)}kg`
                   : `${Math.round(thirtyDayProjection / 453.592)}lbs`
