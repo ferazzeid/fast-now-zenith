@@ -293,7 +293,7 @@ const Timer = () => {
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-20">{/* FIXED: Reduced pt from 20 to 10 for better spacing */}
         {/* Header with Onboarding Button */}
-        <div className="mb-4 relative">
+        <div className="mb-4 mt-4 relative">
           <div className="absolute left-0 top-0">
             <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
           </div>

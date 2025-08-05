@@ -266,7 +266,7 @@ const Settings = () => {
       <div className="max-w-md mx-auto pt-10 pb-24">
           <div className="space-y-6">
             {/* Header */}
-            <div className="mb-4">
+            <div className="mb-4 mt-4">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
                 Settings
               </h1>

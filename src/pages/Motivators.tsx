@@ -183,7 +183,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
         <div className="max-w-md mx-auto pt-10 pb-20">
           <div className="space-y-6">
           {/* Header with Onboarding Button */}
-          <div className="mb-4 relative">
+          <div className="mb-4 mt-4 relative">
             <div className="absolute left-0 top-0">
               <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
             </div>
