@@ -1,13 +1,5 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { UniversalModal } from "@/components/ui/universal-modal";
+import { Button } from "@/components/ui/button";
 
 interface StopWalkingConfirmDialogProps {
   open: boolean;
@@ -30,47 +22,60 @@ export const StopWalkingConfirmDialog = ({
   units = 'imperial',
   actionType = 'finish'
 }: StopWalkingConfirmDialogProps) => {
+  const handleClose = () => onOpenChange(false);
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm mx-auto">
-        <AlertDialogHeader className="space-y-2">
-          <AlertDialogTitle className="text-lg">
-            {actionType === 'cancel' ? 'Cancel Walking Session?' : 'Finish Walking Session?'}
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm leading-relaxed">
-            You've been walking for <span className="font-medium">{currentDuration || '0:00:00'}</span>.
-            {calories && distance && (
-              <div className="mt-3 space-y-1 text-xs bg-muted/50 rounded-lg p-2">
-                <div>Calories: <span className="font-medium">{calories}</span></div>
-                <div>Distance: <span className="font-medium">{distance} {units === 'metric' ? 'km' : 'miles'}</span></div>
-              </div>
-            )}
-            {actionType === 'cancel' && (
-              <div className="mt-3 text-muted-foreground font-medium text-xs">
-                This will remove your session from history completely.
-              </div>
-            )}
-            {actionType === 'finish' && (
-              <div className="mt-3 text-muted-foreground font-medium text-xs">
-                This will save your walking progress to history.
-              </div>
-            )}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="text-sm">Continue Walking</AlertDialogCancel>
-          <AlertDialogAction 
+    <UniversalModal
+      isOpen={open}
+      onClose={handleClose}
+      title={actionType === 'cancel' ? 'Cancel Walking Session?' : 'Finish Walking Session?'}
+      size="small"
+      showCloseButton={false}
+      footer={
+        <div className="flex justify-start gap-3">
+          <Button 
+            variant="outline" 
+            onClick={handleClose}
+            className="text-sm"
+          >
+            Continue Walking
+          </Button>
+          <Button 
+            variant="action-primary"
+            size="action-main"
             onClick={onConfirm}
-            className={`text-sm ${
-              actionType === 'cancel' 
-                ? "bg-amber-600 text-white hover:bg-amber-700" 
-                : "bg-green-600 text-white hover:bg-green-700"
-            }`}
+            className="text-sm"
           >
             {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          You've been walking for <span className="font-medium text-foreground">{currentDuration || '0:00:00'}</span>.
+        </p>
+        
+        {calories && distance && (
+          <div className="space-y-2 text-xs bg-muted/50 rounded-lg p-3 border border-border">
+            <div className="flex justify-between">
+              <span>Calories:</span>
+              <span className="font-medium">{calories}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Distance:</span>
+              <span className="font-medium">{distance} {units === 'metric' ? 'km' : 'miles'}</span>
+            </div>
+          </div>
+        )}
+        
+        <div className="text-xs text-muted-foreground font-medium bg-muted/30 rounded-lg p-3 border border-border">
+          {actionType === 'cancel' 
+            ? 'This will remove your session from history completely.'
+            : 'This will save your walking progress to history.'
+          }
+        </div>
+      </div>
+    </UniversalModal>
   );
 };
