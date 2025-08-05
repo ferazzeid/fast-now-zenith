@@ -335,43 +335,17 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                               weekday: 'short', 
                               month: 'short', 
                               day: 'numeric',
-                              hour: '2-digit',
+                              hour: 'numeric',
                               minute: '2-digit'
                             })}
                           </h3>
                           <div className="flex gap-2 items-center">
                             {getStatusBadge(session)}
-                            {session.status !== 'active' && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="h-8 w-8 p-0 text-destructive"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Fasting Session</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete this fasting session? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteSession(session.id)}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    >
-                                      Delete Session
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
+                            <ChevronDown 
+                              className={`w-5 h-5 text-muted-foreground transition-transform ${
+                                expandedSessions.has(session.id) ? 'rotate-180' : ''
+                              }`}
+                            />
                           </div>
                         </div>
                         <div className="flex gap-3 text-xs text-muted-foreground mt-1">
@@ -430,28 +404,44 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                             </div>
                           </div>
                         )}
+                        
+                        {/* Delete button - only shown in expanded view */}
+                        {session.status !== 'active' && (
+                          <div className="flex justify-end pt-2 border-t border-border/50">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Fasting Session</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this fasting session? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteSession(session.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete Session
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   )}
-                  
-                  {/* Expand/Collapse button at bottom-right */}
-                  <div className="absolute bottom-2 right-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSessionExpansion(session.id);
-                      }}
-                      className="h-6 w-6 p-0 rounded-full hover:bg-muted/10"
-                    >
-                      <ChevronDown 
-                        className={`w-3 h-3 transition-transform duration-200 ${
-                          expandedSessions.has(session.id) ? 'rotate-180' : ''
-                        }`} 
-                      />
-                    </Button>
-                  </div>
+
                 </Card>
               ))}
               
