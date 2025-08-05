@@ -564,9 +564,9 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         <div className="mb-6 p-4 rounded-xl bg-card border border-border space-y-3">
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 p-1">
               <TabsTrigger value="today">Today's Plan</TabsTrigger>
-              <TabsTrigger value="template" className="flex items-center justify-between w-full">
+              <TabsTrigger value="template" className="relative">
                 Template
                 <Button
                   variant="ghost"
@@ -576,10 +576,10 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                     setActiveTab('today');
                     setIsMultiSelectMode(true);
                   }}
-                  className="h-6 w-6 p-1 hover:bg-primary/20 rounded"
+                  className="absolute right-2 h-5 w-5 p-0.5 hover:bg-primary/20 rounded"
                   title="Edit template"
                 >
-                  <Edit className="w-4 h-4 text-primary" />
+                  <Edit className="w-3 h-3 text-primary" />
                 </Button>
               </TabsTrigger>
             </TabsList>
