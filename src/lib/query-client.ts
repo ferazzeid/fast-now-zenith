@@ -171,9 +171,4 @@ export const cacheUtils = {
 };
 
 // LOVABLE_PRESERVE: Development tools integration
-if (process.env.NODE_ENV === 'development') {
-  // Enable React Query DevTools in development
-  import('@tanstack/react-query-devtools').then(({ ReactQueryDevtools }) => {
-    // DevTools available in development
-  });
-}
+// React Query DevTools can be added here when needed

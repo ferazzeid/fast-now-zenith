@@ -49,13 +49,20 @@ const Timer = () => {
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
   const { profile } = useProfile();
-  const { settings: crisisSettings } = useCrisisSettings();
+  // PERFORMANCE FIX: Only load crisis hooks when crisis modal is actually open
+  // This prevents excessive API calls on every Timer page load
+  const { settings: crisisSettings } = showCrisisModal ? useCrisisSettings() : { settings: null };
   const { 
     generateCrisisContext, 
     generateSystemPrompt, 
     generateProactiveMessage, 
     generateQuickReplies 
-  } = useCrisisConversation();
+  } = showCrisisModal ? useCrisisConversation() : {
+    generateCrisisContext: () => '',
+    generateSystemPrompt: () => '',
+    generateProactiveMessage: () => '',
+    generateQuickReplies: () => []
+  };
 
   const isRunning = !!fastingSession;
 
