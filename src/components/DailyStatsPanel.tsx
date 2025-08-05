@@ -162,7 +162,7 @@ export const DailyStatsPanel = memo(() => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-card max-w-md mx-auto z-50">
+            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-muted-foreground">
               <div className="px-8 py-4 space-y-4">
                 {/* Main Deficit Display */}
                 <DeficitDisplay 
