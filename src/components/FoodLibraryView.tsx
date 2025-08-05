@@ -721,17 +721,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Sticky Action Bar - appears when foods are selected */}
       {isMultiSelectMode && selectedFoods.size > 0 && (
-        <div className="sticky bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-4 py-3 shadow-lg">
+        <div className="sticky bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-6 py-3 shadow-lg">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="text-sm font-medium">
                 <span>{selectedFoods.size} food{selectedFoods.size === 1 ? '' : 's'} selected</span>
-                <div className="text-xs text-muted-foreground">
-                  {(() => {
-                    const { totalCalories, totalCarbs } = getSelectedFoodsTotals();
-                    return `${totalCalories} cal • ${totalCarbs}g carbs`;
-                  })()}
-                </div>
               </div>
             </div>
             
