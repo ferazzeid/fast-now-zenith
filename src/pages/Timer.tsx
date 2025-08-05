@@ -44,7 +44,7 @@ const Timer = () => {
   
   const [walkingTime, setWalkingTime] = useState(0);
   
-  const { currentSession: fastingSession, startFastingSession, endFastingSession, loadActiveSession } = useFastingSessionQuery();
+  const { currentSession: fastingSession, startFastingSession, endFastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
@@ -68,8 +68,8 @@ const Timer = () => {
 
   useEffect(() => {
     console.log('Timer: Loading active session...');
-    loadActiveSession();
-  }, [loadActiveSession]);
+    refreshActiveSession();
+  }, [refreshActiveSession]);
 
   useEffect(() => {
     console.log('Timer: Fasting session changed:', fastingSession);
@@ -292,7 +292,7 @@ const Timer = () => {
       
       if (result) {
         // Load the session to get accurate timing
-        await loadActiveSession();
+        await refreshActiveSession();
         
         const now = new Date();
         const timeDiffMs = now.getTime() - pastStartDateTime.getTime();

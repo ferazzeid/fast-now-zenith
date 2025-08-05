@@ -17,7 +17,7 @@ export const Navigation = () => {
   const { timerStatus, formatTime } = useTimerNavigation();
   const { hasActiveNotifications, getHighPriorityNotifications } = useNotificationSystem();
   const { isProfileComplete } = useProfile();
-  const { currentSession: fastingSession, loadActiveSession } = useFastingSessionQuery();
+  const { currentSession: fastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { todayTotals } = useFoodEntriesQuery();
   const { currentSession: walkingSession } = useWalkingSessionQuery();
   const { isAnimationsSuspended } = useAnimationControl();
@@ -44,8 +44,8 @@ export const Navigation = () => {
 
   // Load active session on mount only - remove frequent polling
   useEffect(() => {
-    loadActiveSession();
-  }, []);
+    refreshActiveSession();
+  }, [refreshActiveSession]);
 
   // Memoize fasting badge calculation to prevent unnecessary recalculations
   const getFastingBadge = useMemo(() => {
