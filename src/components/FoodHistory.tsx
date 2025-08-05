@@ -256,18 +256,6 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                           })}
                         </h3>
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              copyDayToToday(summary.date);
-                            }}
-                            disabled={copyLoading}
-                            className="h-8 px-3 text-xs min-w-[44px]"
-                          >
-                            Copy to Today
-                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button 
@@ -321,6 +309,22 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                    
+                    {/* Copy to Today button - only visible when expanded */}
+                    <div className="mt-3 pt-2 border-t border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyDayToToday(summary.date);
+                        }}
+                        disabled={copyLoading}
+                        className="h-7 px-2 text-xs"
+                      >
+                        Copy to Today
+                      </Button>
                     </div>
                   </CardContent>
                 )}
