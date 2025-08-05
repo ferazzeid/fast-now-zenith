@@ -181,7 +181,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                       size="sm" 
                       className="h-8 px-2 text-destructive hover:bg-destructive/10"
                     >
-                      <AlertTriangle className="w-4 h-4 mr-1" />
+                      <Trash2 className="w-4 h-4 mr-1" />
                       Delete All
                     </Button>
                   </AlertDialogTrigger>
