@@ -179,10 +179,9 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                     >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete All
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
