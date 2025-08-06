@@ -27,7 +27,7 @@ import { trackFastingEvent } from '@/utils/analytics';
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(72 * 60 * 60); // 72 hours default (water fast)
-  const [fastType] = useState<'longterm'>('longterm');
+  const [fastType, setFastType] = useState<'longterm'>('longterm');
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
