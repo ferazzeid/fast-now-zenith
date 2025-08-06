@@ -154,11 +154,14 @@ export const useFastingSessionQuery = () => {
       return { optimisticSession };
     },
     onError: (err, sessionData, context) => {
+      // Log the actual error for debugging
+      console.error('Fasting session start error:', err);
+      
       // Rollback on error
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
       toast({
         title: "Error starting fasting session",
-        description: "Please try again.",
+        description: err instanceof Error ? err.message : "Please try again.",
         variant: "destructive",
       });
     },

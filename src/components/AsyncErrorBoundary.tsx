@@ -34,10 +34,10 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
       setError(error);
       onError?.(error);
       
-      // Show user-friendly toast
+      // Show user-friendly toast with more details for debugging
       toast({
         title: "Something went wrong",
-        description: "We encountered an unexpected error. Please try again.",
+        description: `Error: ${reason}`,
         variant: "destructive",
       });
       
