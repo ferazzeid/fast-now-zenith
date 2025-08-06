@@ -93,13 +93,17 @@ export const useDailyDeficitQuery = () => {
         return { bmr: 0, tdee: 0 };
       }
 
-      // BMR calculation using Mifflin-St Jeor Equation
-      let bmr: number;
-      if (profile.gender === 'male') {
-        bmr = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5;
-      } else {
-        bmr = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age - 161;
+      // Convert units to metric if needed
+      let weightKg = profile.weight;
+      let heightCm = profile.height;
+      
+      if (profile.units === 'imperial') {
+        weightKg = profile.weight * 0.453592; // Convert lbs to kg
+        heightCm = profile.height * 2.54; // Convert inches to cm
       }
+      
+      // BMR calculation using Mifflin-St Jeor Equation (assuming male for simplicity)
+      const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
 
       // TDEE calculation based on activity level
       const activityMultipliers = {
@@ -129,7 +133,7 @@ export const useDailyDeficitQuery = () => {
 
       const todaySessions = walkingSessions.filter(session => {
         const sessionDate = new Date(session.start_time).toISOString().split('T')[0];
-        return sessionDate === today && session.status === 'completed';
+        return sessionDate === today;
       });
 
       return todaySessions.reduce((total, session) => {
@@ -142,7 +146,10 @@ export const useDailyDeficitQuery = () => {
         };
         
         const mets = speedToMets[session.speed_mph] || 3.5; // Default to moderate pace
-        const weightKg = profile.weight;
+        let weightKg = profile.weight;
+        if (profile.units === 'imperial') {
+          weightKg = profile.weight * 0.453592; // Convert lbs to kg
+        }
         const durationHours = session.duration_minutes / 60;
         
         // Calories = METs × weight (kg) × time (hours)

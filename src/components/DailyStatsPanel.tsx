@@ -230,12 +230,12 @@ export const DailyStatsPanel = memo(() => {
                         </ClickableTooltip>
                       </div>
                       <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
-                      <div className="text-lg font-bold text-primary">{Math.round((todayEntries || []).reduce((sum, entry) => sum + entry.calories, 0))}</div>
+                      <div className="text-lg font-bold text-primary">{Math.round((todayEntries || []).filter(entry => !entry.consumed).reduce((sum, entry) => sum + entry.calories, 0))}</div>
                       <div className="text-xs text-muted-foreground">Calorie</div>
                       {/* Limit value in gray */}
                       <div className="mt-2 pt-2 border-t border-border">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{profile?.daily_calorie_goal || 2000} limit</span>
+                          <span className="text-xs text-muted-foreground">{profile?.calorie_goal || 2000} limit</span>
                           <ClickableTooltip content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.">
                             <Info className="w-3 h-3 text-muted-foreground" />
                           </ClickableTooltip>
@@ -251,12 +251,12 @@ export const DailyStatsPanel = memo(() => {
                         </ClickableTooltip>
                       </div>
                       <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
-                      <div className="text-lg font-bold text-primary">{(todayEntries || []).reduce((sum, entry) => sum + entry.carbs, 0)}g</div>
+                      <div className="text-lg font-bold text-primary">{Math.round((todayEntries || []).filter(entry => !entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0))}g</div>
                       <div className="text-xs text-muted-foreground">Carbs</div>
                       {/* Limit value in gray */}
                       <div className="mt-2 pt-2 border-t border-border">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{profile?.daily_carb_goal || 150}g limit</span>
+                          <span className="text-xs text-muted-foreground">{profile?.carb_goal || 150}g limit</span>
                           <ClickableTooltip content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.">
                             <Info className="w-3 h-3 text-muted-foreground" />
                           </ClickableTooltip>
