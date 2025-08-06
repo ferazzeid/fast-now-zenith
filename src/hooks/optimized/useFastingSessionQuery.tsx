@@ -29,7 +29,6 @@ export interface FastingSession {
   start_time: string;
   end_time?: string;
   goal_duration_seconds?: number;
-  actual_duration_seconds?: number;
   duration_seconds?: number;
   status: string;
   created_at: string;
@@ -205,7 +204,7 @@ export const useFastingSessionQuery = () => {
         .from('fasting_sessions')
         .update({
           end_time: now.toISOString(),
-          actual_duration_seconds: actualDurationSeconds,
+          duration_seconds: actualDurationSeconds,
           status: 'completed',
         })
         .eq('id', sessionId)
@@ -248,8 +247,8 @@ export const useFastingSessionQuery = () => {
         (old: FastingSession[] = []) => [data, ...old]
       );
 
-      const hours = Math.floor((data.actual_duration_seconds || 0) / 3600);
-      const minutes = Math.floor(((data.actual_duration_seconds || 0) % 3600) / 60);
+      const hours = Math.floor((data.duration_seconds || 0) / 3600);
+      const minutes = Math.floor(((data.duration_seconds || 0) % 3600) / 60);
       
       toast({
         title: "🎉 Fasting Completed!",
