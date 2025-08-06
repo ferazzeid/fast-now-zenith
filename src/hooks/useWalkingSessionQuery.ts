@@ -60,7 +60,7 @@ export const useWalkingSessionQuery = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('session_state', 'active')
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;

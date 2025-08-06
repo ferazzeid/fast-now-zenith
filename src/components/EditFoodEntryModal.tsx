@@ -266,6 +266,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
 
             </div>
           </div>
+        </div>
       </UniversalModal>
     </>
   );
