@@ -26,7 +26,7 @@ export const useTimerNavigation = () => {
   });
 
   const { currentSession: fastingSession } = useFastingSessionQuery();
-  const { currentSession: walkingSession } = useWalkingSessionQuery();
+  const { activeSession: walkingSession } = useWalkingSessionQuery();
 
   // Optimized timer status - only update when sessions are active
   useEffect(() => {

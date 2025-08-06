@@ -53,7 +53,7 @@ export const useDailyDeficitQuery = () => {
   const { user } = useAuth();
   const { profile } = useProfileQuery();
   const { todayTotals } = useFoodEntriesQuery();
-  const { walkingSessions } = useWalkingSessionQuery();
+  const { sessions: walkingSessions } = useWalkingSessionQuery();
   
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];

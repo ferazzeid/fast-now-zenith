@@ -30,7 +30,8 @@ export interface FastingSession {
   end_time?: string;
   goal_duration_seconds?: number;
   actual_duration_seconds?: number;
-  status: 'active' | 'completed' | 'cancelled';
+  duration_seconds?: number;
+  status: string;
   created_at: string;
   updated_at: string;
 }

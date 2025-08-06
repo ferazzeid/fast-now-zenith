@@ -29,7 +29,7 @@ export const StopWalkingConfirmDialog = ({
       isOpen={open}
       onClose={handleClose}
       title={actionType === 'cancel' ? 'Cancel Walking Session?' : 'Finish Walking Session?'}
-      size="small"
+      size="sm"
       showCloseButton={true}
       footer={
         <div className="flex justify-start gap-3">
