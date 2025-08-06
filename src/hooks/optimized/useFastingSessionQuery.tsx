@@ -109,10 +109,14 @@ export const useFastingSessionQuery = () => {
   // PERFORMANCE: Optimistic start fasting session mutation
   const startSessionMutation = useMutation({
     mutationFn: async (sessionData: StartFastingSessionData): Promise<FastingSession> => {
+      console.log('Starting fasting session mutation with data:', sessionData);
+      console.log('User:', user);
+      
       if (!user) throw new Error('User not authenticated');
 
       // End any existing active sessions first
-      await supabase
+      console.log('Cancelling existing active sessions...');
+      const cancelResult = await supabase
         .from('fasting_sessions')
         .update({ 
           status: 'cancelled',
@@ -120,17 +124,25 @@ export const useFastingSessionQuery = () => {
         })
         .eq('user_id', user.id)
         .eq('status', 'active');
+      
+      console.log('Cancel existing sessions result:', cancelResult);
+
+      const insertData = {
+        user_id: user.id,
+        start_time: sessionData.start_time ? sessionData.start_time.toISOString() : new Date().toISOString(),
+        goal_duration_seconds: sessionData.goal_duration_seconds,
+        status: 'active',
+      };
+      
+      console.log('Inserting new session with data:', insertData);
 
       const { data, error } = await supabase
         .from('fasting_sessions')
-        .insert({
-          user_id: user.id,
-          start_time: sessionData.start_time ? sessionData.start_time.toISOString() : new Date().toISOString(),
-          goal_duration_seconds: sessionData.goal_duration_seconds,
-          status: 'active',
-        })
+        .insert(insertData)
         .select()
         .single();
+
+      console.log('Insert result:', { data, error });
 
       if (error) throw error;
       return data;
