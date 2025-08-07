@@ -122,6 +122,18 @@ CRITICAL: Response format must ONLY be:
 Total: 555 calories, 3.5g carbs
 
 NO other text. Immediately call add_multiple_foods function.`;
+      } else if (title === 'Motivator Assistant') {
+        enhancedSystemPrompt = `${systemPrompt}
+
+You are a motivational goal creation assistant. Your task is to:
+
+1. IMMEDIATELY analyze the user's request and create a personalized motivator using the create_motivator function
+2. Extract the key motivation from what they said (like wanting to impress someone, health goals, personal achievement)
+3. Create a short, punchy title (3-8 words max)
+4. Write compelling content that includes their specific trigger/motivation
+5. ALWAYS call create_motivator function immediately - no questions or discussions
+
+CRITICAL: You must ALWAYS call the create_motivator function when the user expresses any goal or motivation. Do NOT ask follow-up questions. Create the motivator directly based on what they told you.`;
       }
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
