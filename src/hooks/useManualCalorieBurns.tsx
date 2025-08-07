@@ -54,10 +54,31 @@ export const useManualCalorieBurns = () => {
     loadTodayManualBurns();
   }, [loadTodayManualBurns]);
 
+  const deleteManualBurn = useCallback(async (burnId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('manual_calorie_burns')
+        .delete()
+        .eq('id', burnId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Refresh the list
+      await loadTodayManualBurns();
+    } catch (error) {
+      console.error('Error deleting manual calorie burn:', error);
+      throw error;
+    }
+  }, [user, loadTodayManualBurns]);
+
   return {
     manualBurns,
     todayTotal,
     loading,
-    refreshManualBurns: loadTodayManualBurns
+    refreshManualBurns: loadTodayManualBurns,
+    deleteManualBurn
   };
 };

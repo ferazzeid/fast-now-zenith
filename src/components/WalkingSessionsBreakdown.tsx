@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info, Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info, Plus, X } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,7 +37,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
   const { profile } = useProfile();
-  const { manualBurns, todayTotal: manualCalorieTotal } = useManualCalorieBurns();
+  const { manualBurns, todayTotal: manualCalorieTotal, deleteManualBurn } = useManualCalorieBurns();
 
   const fetchTodaySessions = async () => {
     if (!user) return;
@@ -99,6 +99,23 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
 
   const hasAnySessions = completedSessions.length > 0 || walkingStats.isActive || manualBurns.length > 0;
   const sessionCount = completedSessions.length + (walkingStats.isActive ? 1 : 0) + manualBurns.length;
+  
+  // Calculate the actual combined total
+  const walkingCalories = walkingStats.isActive ? walkingStats.realTimeCalories : 0;
+  const completedWalkingCalories = completedSessions.reduce((sum, session) => sum + (session.calories_burned || 0), 0);
+  const actualTotalCalories = walkingCalories + completedWalkingCalories + manualCalorieTotal;
+
+  const handleDeleteManualBurn = async (burnId: string) => {
+    try {
+      await deleteManualBurn(burnId);
+      // Trigger refresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Failed to delete manual calorie burn:', error);
+    }
+  };
 
   if (!hasAnySessions) {
     return (
@@ -132,7 +149,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
         </div>
         <div className="flex items-center space-x-2">
           <div className="text-sm font-bold text-warm-text">
-            {Math.round(totalCalories)} cal
+            {Math.round(actualTotalCalories)} cal
           </div>
           {sessionCount > 1 && (
             <Button
@@ -224,8 +241,18 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                     })}
                   </span>
                 </div>
-                <div className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                  {burn.calories_burned} cal
+                <div className="flex items-center space-x-2">
+                  <div className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                    {burn.calories_burned} cal
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteManualBurn(burn.id)}
+                    className="h-4 w-4 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             </Card>
