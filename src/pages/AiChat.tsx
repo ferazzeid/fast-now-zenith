@@ -557,26 +557,16 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
   const handleClearChat = async () => {
     await clearConversation();
     setNotificationMessages([]); // Also clear notification messages
-    toast({
-      title: "Chat Cleared",
-      description: "Your conversation has been cleared."
-    });
+    toast({ title: "Chat cleared" });
   };
 
   const handleArchiveChat = async () => {
     try {
       await archiveConversation();
       setNotificationMessages([]); // Also clear notification messages
-      toast({
-        title: "Chat Archived",
-        description: "Your conversation has been archived and a new chat started."
-      });
+      toast({ title: "Chat archived" });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to archive conversation.",
-        variant: "destructive"
-      });
+      toast({ title: "Archive failed", variant: "destructive" });
     }
   };
 
@@ -610,7 +600,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" aria-label="Open chat menu">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -697,7 +687,16 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                             <p className="text-sm">{message.content}</p>
                           </div>
                         ) : (
-                          <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">{message.content}</p>
+                          <div className="text-sm leading-relaxed break-words space-y-3">
+                            {String(message.content)
+                              .replace(/\n{3,}/g, '\n\n')
+                              .split(/\n\s*\n/)
+                              .map((para, i) => (
+                                <p key={i} className="whitespace-pre-wrap">
+                                  {para}
+                                </p>
+                              ))}
+                          </div>
                         )}
                         
                         {/* Food analysis action buttons */}
