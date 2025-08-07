@@ -493,16 +493,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     return (
       <div 
-        className={`p-3 rounded-lg border transition-all duration-200 cursor-pointer mb-1.5 ${
+        className={`p-2 rounded-lg transition-all duration-200 cursor-pointer mb-1 bg-muted/20 border-0 ${
           isSelected 
-            ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/20' 
-            : isUserFood 
-              ? 'bg-ceramic-plate border-ceramic-rim hover:bg-ceramic-plate/80 hover:shadow-sm' 
-              : 'bg-ceramic-plate/90 border-ceramic-rim hover:bg-ceramic-plate hover:shadow-sm'
+            ? 'ring-2 ring-primary/50 bg-primary/10' 
+            : 'hover:bg-muted/30'
         }`}
         onClick={handleCardClick}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Multi-select checkbox (always visible for user foods in my-foods tab) */}
           {canMultiSelect && (
             <div className="flex-shrink-0">
@@ -515,16 +513,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           )}
 
-          {/* Food Image - Compact size */}
+          {/* Food Image - Compact but visible */}
           {food.image_url ? (
             <img 
               src={food.image_url} 
               alt={food.name}
-              className="w-5 h-5 rounded object-cover flex-shrink-0"
+              className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
             />
           ) : (
-            <div className="w-5 h-5 rounded bg-ceramic-base flex items-center justify-center flex-shrink-0">
-              <span className="text-xs">🍽️</span>
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">🍽️</span>
             </div>
           )}
           
@@ -653,7 +651,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       {/* Clean Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
-          <div className="px-6 py-3 bg-background border-b border-border">
+          <div className="px-6 py-3 bg-background">
             <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 
@@ -688,14 +686,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* My Foods Tab */}
           <TabsContent value="my-foods" className="flex-1 overflow-y-auto px-6 py-4">
-          <div className="space-y-2 mt-1">
+          <div className="space-y-1 mt-1">
             {/* My Foods List */}
             {loading ? (
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
-                 <div key={i} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse mb-1.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded bg-muted" />
+                 <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-muted" />
                       <div className="flex-1 space-y-1">
                         <div className="h-3 bg-muted rounded w-3/4" />
                         <div className="h-2 bg-muted rounded w-1/2" />
@@ -720,7 +718,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 </p>
               </div>
             ) : (
-              <div className="space-y-1.5 overflow-x-hidden">
+              <div className="space-y-1 overflow-x-hidden">
                 {filteredUserFoods.map((food) => (
                   <FoodCard key={food.id} food={food} isUserFood={true} />
                 ))}
@@ -731,13 +729,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* Suggested Foods Tab */}
           <TabsContent value="suggested" className="flex-1 overflow-y-auto px-6 py-4">
-          <div className="space-y-2 mt-1">
+          <div className="space-y-1 mt-1">
             {loading ? (
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="p-3 rounded-lg bg-ceramic-plate border border-ceramic-rim animate-pulse mb-1.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded bg-muted" />
+                  <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-muted" />
                       <div className="flex-1 space-y-1">
                         <div className="h-3 bg-muted rounded w-3/4" />
                         <div className="h-2 bg-muted rounded w-1/2" />
@@ -762,7 +760,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 </p>
               </div>
             ) : (
-              <div className="space-y-1.5 overflow-x-hidden">
+              <div className="space-y-1 overflow-x-hidden">
                 {filteredDefaultFoods.map((food) => (
                   <FoodCard key={`default-${food.id}`} food={food} isUserFood={false} />
                 ))}
