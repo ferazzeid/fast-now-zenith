@@ -583,7 +583,7 @@ const FoodTracking = () => {
         <div className="my-6">
           <div className="grid grid-cols-3 gap-4">
             {/* Voice Add */}
-            <PremiumGate feature="AI Food Assistant">
+            <PremiumGate feature="AI Food Assistant" grayOutForFree={true}>
               <Button
                 onClick={handleVoiceFood}
                 variant="ai"

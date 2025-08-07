@@ -86,7 +86,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
           <Button 
             size="sm" 
             onClick={handleUpgrade}
-            className="mt-2"
+            className="mt-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0"
           >
             <Crown className="w-4 h-4 mr-1" />
             Upgrade to Premium
@@ -101,13 +101,13 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
         onClick={handleGrayedClick}
       >
         {/* Completely disabled content with strong visual indication */}
-        <div className="opacity-40 grayscale pointer-events-none select-none filter brightness-75">
+        <div className="opacity-30 grayscale pointer-events-none select-none filter brightness-50">
           {children}
         </div>
-        {/* More prominent overlay indicator */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="absolute top-2 right-2 bg-background/80 rounded-full p-1">
-            <Lock className="w-4 h-4 text-muted-foreground" />
+        {/* More prominent overlay indicator - better centered */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="bg-background/95 backdrop-blur-sm rounded-full p-2 shadow-lg border border-border/50">
+            <Lock className="w-5 h-5 text-foreground/80" />
           </div>
         </div>
       </div>
@@ -126,10 +126,10 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       </div>
       
       {/* Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+      <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm rounded-lg">
         <div className="text-center p-4 max-w-xs">
           <div className="flex justify-center mb-2">
-            <Lock className="w-8 h-8 text-primary" />
+            <Lock className="w-8 h-8 text-foreground/80" />
           </div>
           <h3 className="font-semibold text-sm mb-1">Premium Feature</h3>
           <p className="text-xs text-muted-foreground mb-3">
@@ -140,7 +140,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
               <Button 
                 size="sm" 
                 onClick={handleUpgrade}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0"
               >
                 <Crown className="w-4 h-4 mr-1" />
                 Upgrade to Premium
