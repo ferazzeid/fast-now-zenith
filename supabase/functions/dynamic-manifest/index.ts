@@ -1,9 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
+  .split(',')
+  .map(o => o.trim());
+
+function buildCorsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  } as const;
 }
 
 interface ManifestIcon {
@@ -15,6 +23,7 @@ interface ManifestIcon {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response('ok', { headers: corsHeaders })
   }
 
@@ -90,6 +99,7 @@ serve(async (req) => {
       ];
     }
 
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(JSON.stringify(manifest, null, 2), {
       headers: { 
         ...corsHeaders, 
@@ -129,6 +139,7 @@ serve(async (req) => {
       ]
     };
 
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(JSON.stringify(fallbackManifest, null, 2), {
       headers: { 
         ...corsHeaders, 

@@ -2,13 +2,34 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
+  .split(',')
+  .map(o => o.trim());
+
+function buildCorsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  } as const;
+}
+
+// Simple in-memory burst limiter per user/function
+const burstTracker = new Map<string, number[]>();
+function checkBurstLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const windowStart = now - windowMs;
+  const timestamps = (burstTracker.get(key) || []).filter(ts => ts > windowStart);
+  if (timestamps.length >= limit) return false;
+  timestamps.push(now);
+  burstTracker.set(key, timestamps);
+  return true;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
+  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -40,6 +61,14 @@ serve(async (req) => {
     }
 
     const userId = user.user.id;
+
+    // Enforce soft burst limit: 5 requests / 10 seconds per user
+    if (!checkBurstLimit(`${userId}:chat-completion`, 5, 10_000)) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Get user profile and food library for enhanced context
     const { data: profile } = await supabase

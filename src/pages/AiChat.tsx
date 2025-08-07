@@ -27,6 +27,7 @@ import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 import { GoalSettingNotification } from '@/components/GoalSettingNotification';
 import { useGoalNotification } from '@/hooks/useGoalNotification';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useAdminErrorFilter } from '@/hooks/useAdminErrorFilter';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -47,6 +48,8 @@ const AiChat = () => {
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  const [imageAnalysisEnabled, setImageAnalysisEnabled] = useState<boolean>(false);
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -70,6 +73,7 @@ const AiChat = () => {
   
   const { subscribed, subscription_tier } = useOptimizedSubscription();
   const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
+  const { isAdmin } = useAdminErrorFilter();
 
 
   // Combine regular messages with notification messages
@@ -102,6 +106,27 @@ const AiChat = () => {
       setNotificationMessages(newNotificationMessages);
     }
   }, [getAutoShowNotifications, profile, user]);
+
+  // Load feature flag for image analysis (admin testing only)
+  useEffect(() => {
+    const loadFlag = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('shared_settings')
+          .select('setting_value')
+          .eq('setting_key', 'ai_image_analysis_enabled')
+          .maybeSingle();
+        if (!error && data?.setting_value) {
+          setImageAnalysisEnabled(String(data.setting_value).toLowerCase() === 'true');
+        } else {
+          setImageAnalysisEnabled(false);
+        }
+      } catch {
+        setImageAnalysisEnabled(false);
+      }
+    };
+    loadFlag();
+  }, []);
 
 
   // Handle notification responses
@@ -611,6 +636,13 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
         {/* Messages - Flexible height with proper spacing */}
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 min-h-0">
           <div className="max-w-md mx-auto space-y-4">
+            {allMessages.length === 0 && (
+              <Card className="p-4 bg-muted">
+                <p className="text-sm text-muted-foreground">
+                  Ask for fasting guidance, food tracking help, or motivation. Example: "Create a motivator about staying focused tonight."
+                </p>
+              </Card>
+            )}
             {allMessages.map((message, index) => {
               const enhancedMessage = message as EnhancedMessage & { isProfileMessage?: boolean };
               
@@ -665,7 +697,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                             <p className="text-sm">{message.content}</p>
                           </div>
                         ) : (
-                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">{message.content}</p>
                         )}
                         
                         {/* Food analysis action buttons */}
@@ -790,14 +822,18 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                 className="flex-1 bg-ceramic-base border-ceramic-rim"
               />
               <Button
+                aria-label="Upload image for analysis"
                 onClick={() => setShowImageUpload(true)}
                 variant="outline"
                 size="default"
                 className="flex-shrink-0 bg-ceramic-base border-ceramic-rim"
+                disabled={!isAdmin || !imageAnalysisEnabled}
+                title={(!isAdmin || !imageAnalysisEnabled) ? 'Image analysis is available for admins only' : undefined}
               >
                 <Camera className="h-4 w-4" />
               </Button>
               <Button
+                aria-label="Send message"
                 onClick={() => {
                   console.log('DEBUG: Send button clicked');
                   handleSendMessage();
@@ -888,12 +924,25 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                         type="password"
                         placeholder="sk-..."
                         value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setApiKey(val);
+                          if (!val) {
+                            setApiKeyError(null);
+                          } else if (!val.startsWith('sk-') || val.length < 20) {
+                            setApiKeyError('This does not look like a valid OpenAI API key. It should start with sk-');
+                          } else {
+                            setApiKeyError(null);
+                          }
+                        }}
                         className="font-mono text-sm"
                       />
+                      {apiKeyError && (
+                        <p className="text-xs text-destructive">{apiKeyError}</p>
+                      )}
                       <Button
                         onClick={() => {
-                          if (apiKey.trim()) {
+                          if (apiKey.trim() && !apiKeyError) {
                             localStorage.setItem('openai_api_key', apiKey);
                             setShowApiDialog(false);
                             toast({
@@ -902,7 +951,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                             });
                           }
                         }}
-                        disabled={!apiKey.trim()}
+                        disabled={!apiKey.trim() || !!apiKeyError}
                         className="w-full"
                       >
                         Save Key & Start Chatting
@@ -920,6 +969,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
       </Dialog>
 
       {/* Image Upload Dialog */}
+      {isAdmin && imageAnalysisEnabled && (
       <Dialog open={showImageUpload} onOpenChange={setShowImageUpload}>
         <DialogContent className="sm:max-w-lg mx-auto">
           <DialogHeader>
@@ -932,6 +982,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
           </div>
         </DialogContent>
       </Dialog>
+      )}
     </div>
   );
 };

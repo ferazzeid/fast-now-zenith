@@ -259,6 +259,7 @@ const Motivators = () => {
                     variant="ai"
                     size="action-tall"
                     className="flex items-center justify-center"
+                    aria-label="Create motivator with voice"
                   >
                     <Mic className="w-5 h-5" />
                   </Button>
@@ -276,6 +277,7 @@ const Motivators = () => {
                   variant="action-primary"
                   size="action-tall"
                   className="flex items-center justify-center"
+                  aria-label="Create motivator manually"
                 >
                   <Plus className="w-5 h-5" />
                 </Button>
@@ -292,6 +294,7 @@ const Motivators = () => {
                   variant="action-secondary"
                   size="action-tall"
                   className="flex items-center justify-center"
+                  aria-label="Browse motivator ideas"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />

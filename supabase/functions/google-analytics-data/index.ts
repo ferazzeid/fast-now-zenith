@@ -1,8 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
+  .split(',')
+  .map(o => o.trim());
+
+function buildCorsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  } as const;
 }
 
 interface GoogleAnalyticsCredentials {
@@ -156,6 +164,7 @@ async function getGoogleAnalyticsData(credentials: GoogleAnalyticsCredentials, p
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -183,6 +192,7 @@ Deno.serve(async (req) => {
 
     if (!serviceAccountSetting?.setting_value || !propertyIdSetting?.setting_value) {
       console.log('[GOOGLE-ANALYTICS-DATA] Google Analytics not configured');
+      const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
       return new Response(
         JSON.stringify({ 
           error: 'Google Analytics not configured',
@@ -213,6 +223,7 @@ Deno.serve(async (req) => {
 
     console.log('[GOOGLE-ANALYTICS-DATA] Analytics data fetched successfully:', analyticsData);
 
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(
       JSON.stringify(analyticsData),
       { 
@@ -224,6 +235,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[GOOGLE-ANALYTICS-DATA] Error:', error);
     
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(
       JSON.stringify({ 
         error: error.message,

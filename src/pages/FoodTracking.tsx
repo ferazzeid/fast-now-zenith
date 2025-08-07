@@ -559,8 +559,8 @@ const FoodTracking = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <div className="max-w-md mx-auto pt-10 pb-20">{/* FIXED: Reduced pt from 20 to 10, added max-width container */}
+    <div className="relative h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding Button */}
         <div className="mb-4 mt-4 relative">
           <div className="absolute left-0 top-0">
@@ -599,7 +599,8 @@ const FoodTracking = () => {
               onClick={handleManualEntry}
               variant="action-primary"
               size="action-tall"
-              className="flex items-center justify-center"
+                className="flex items-center justify-center"
+                aria-label="Add food manually"
             >
               <Plus className="w-5 h-5" />
             </Button>
@@ -609,7 +610,8 @@ const FoodTracking = () => {
               onClick={() => setShowLibraryView(true)}
               variant="action-primary"
               size="action-tall"
-              className="flex items-center justify-center"
+                className="flex items-center justify-center"
+                aria-label="Open food library"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />

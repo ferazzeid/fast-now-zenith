@@ -644,6 +644,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           onClick={onBack}
           className="w-9 h-9 rounded-full hover:bg-muted transition-colors"
           title="Close Food Library"
+          aria-label="Close Food Library"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -670,6 +671,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     }}
                     className="w-4 h-4 text-destructive hover:text-destructive/80 transition-colors"
                     title="Delete all foods"
+                    aria-label="Delete all foods"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

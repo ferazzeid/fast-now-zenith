@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { 
@@ -56,6 +57,7 @@ const AdminOverview = () => {
   const [stripeApiKey, setStripeApiKey] = useState('');
   const [gaTrackingId, setGaTrackingId] = useState('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [imageAnalysisEnabled, setImageAnalysisEnabled] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -80,7 +82,7 @@ const AdminOverview = () => {
       const { data: settingsData, error: settingsError } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['shared_api_key', 'stripe_api_key', 'ga_tracking_id']);
+        .in('setting_key', ['shared_api_key', 'stripe_api_key', 'ga_tracking_id', 'ai_image_analysis_enabled']);
 
       if (settingsError) {
         console.error('Error fetching settings:', settingsError);
@@ -92,6 +94,8 @@ const AdminOverview = () => {
             setStripeApiKey(setting.setting_value || '');
           } else if (setting.setting_key === 'ga_tracking_id') {
             setGaTrackingId(setting.setting_value || '');
+          } else if (setting.setting_key === 'ai_image_analysis_enabled') {
+            setImageAnalysisEnabled(String(setting.setting_value).toLowerCase() === 'true');
           }
         });
       }
@@ -195,6 +199,21 @@ const AdminOverview = () => {
         description: "Failed to save Google Analytics tracking ID",
         variant: "destructive",
       });
+    }
+  };
+
+  const saveImageAnalysisFlag = async (enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('shared_settings')
+        .upsert({
+          setting_key: 'ai_image_analysis_enabled',
+          setting_value: enabled ? 'true' : 'false',
+        });
+      if (error) throw error;
+      toast({ title: 'Saved', description: 'Image analysis testing flag updated.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to save setting', variant: 'destructive' });
     }
   };
 
@@ -321,6 +340,30 @@ const AdminOverview = () => {
 
             {/* Daily Analysis Settings */}
             <AdminDailyAnalysisSettings />
+
+            {/* Image Analysis Testing (Admin-only) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">Image Analysis (Admin Testing)</CardTitle>
+                <CardDescription>
+                  Enable the camera/upload button in AI Chat for admins only. Users will not see this.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="text-sm font-medium">Enable admin-only image analysis</div>
+                  <div className="text-xs text-muted-foreground">Toggles `ai_image_analysis_enabled` in shared settings</div>
+                </div>
+                <Switch
+                  checked={imageAnalysisEnabled}
+                  onCheckedChange={(val) => {
+                    setImageAnalysisEnabled(val);
+                    saveImageAnalysisFlag(val);
+                  }}
+                  aria-label="Toggle admin-only image analysis"
+                />
+              </CardContent>
+            </Card>
           </CollapsibleContent>
         </Collapsible>
       </div>
