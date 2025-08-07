@@ -149,13 +149,13 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, sho
               variant="destructive"
               size="sm"
               onClick={handleRemoveImage}
-              className="absolute top-2 right-2"
+              className="absolute top-2 right-2 h-8 w-8 p-0"
               disabled={isUploading}
             >
               <X className="w-4 h-4" />
             </Button>
             
-            {/* Regenerate button positioned on image */}
+            {/* Regenerate button positioned on image - same size as X button */}
             {regenerateButton && (
               <div className="absolute top-2 right-12">
                 {regenerateButton}
