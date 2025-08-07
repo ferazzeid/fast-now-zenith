@@ -392,7 +392,7 @@ const Timer = () => {
                         size="action-main"
                       >
                         <CheckCircle className="w-5 h-5 mr-2" />
-                        Finish Fast
+                        Finish
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
