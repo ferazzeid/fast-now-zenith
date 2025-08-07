@@ -114,7 +114,6 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
         .update({
           start_time: start.toISOString(),
           end_time: end.toISOString(),
-          duration_minutes: newDuration,
           is_edited: true,
           original_duration_minutes: session.is_edited ? session.duration_minutes : originalDuration,
           edit_reason: editReason || null,
