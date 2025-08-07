@@ -16,7 +16,7 @@ interface UserProfile {
   display_name?: string;
   units?: 'metric' | 'imperial';
   goal_weight?: number;
-  activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  activity_level?: string;
   default_walking_speed?: number;
   enable_fasting_slideshow?: boolean;
   enable_walking_slideshow?: boolean;
@@ -136,7 +136,9 @@ export const useProfile = () => {
   }, [user, executeWithRetry, toast]);
 
   const isProfileComplete = useCallback(() => {
-    const complete = !!(profile && profile.weight && profile.height && profile.age && profile.activity_level);
+    const complete = !!(profile && profile.weight && profile.height && profile.age && 
+      (profile.activity_level || profile['activity-level'])); // Handle both formats
+    console.log('Profile completion check:', { profile, complete, activity_level: profile?.activity_level });
     return complete;
   }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
 

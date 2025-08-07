@@ -59,13 +59,23 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         weightValue = weightValue * 6.35029; // Convert stones to kg
       }
 
-      await updateProfile({
+      console.log('Saving profile data:', {
+        units,
+        weight: weightValue,
+        height: heightValue,
+        age: parseInt(formData.age),
+        activity_level: formData.activityLevel,
+      });
+
+      const result = await updateProfile({
         units: units as 'metric' | 'imperial',
         weight: weightValue,
         height: heightValue,
         age: parseInt(formData.age),
-        activity_level: formData.activityLevel as 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active',
+        activity_level: formData.activityLevel,
       });
+
+      console.log('Profile update result:', result);
 
       toast({
         title: "Profile Updated",
@@ -138,7 +148,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       case 'sex':
         return value.charAt(0).toUpperCase() + value.slice(1);
       case 'activityLevel':
-        return value ? value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not set';
+        return value ? value.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not set';
       default:
         return value;
     }
@@ -312,10 +322,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                 </SelectTrigger>
                 <SelectContent className="bg-background border z-50">
                   <SelectItem value="sedentary">Sedentary (Little/no exercise)</SelectItem>
-                  <SelectItem value="lightly_active">Lightly Active (Light exercise 1-3 days/week)</SelectItem>
-                  <SelectItem value="moderately_active">Moderately Active (Moderate exercise 3-5 days/week)</SelectItem>
-                  <SelectItem value="very_active">Very Active (Hard exercise 6-7 days/week)</SelectItem>
-                  <SelectItem value="extra_active">Extra Active (Very hard exercise, physical job)</SelectItem>
+                  <SelectItem value="lightly-active">Lightly Active (Light exercise 1-3 days/week)</SelectItem>
+                  <SelectItem value="moderately-active">Moderately Active (Moderate exercise 3-5 days/week)</SelectItem>
+                  <SelectItem value="very-active">Very Active (Hard exercise 6-7 days/week)</SelectItem>
+                  <SelectItem value="extra-active">Extra Active (Very hard exercise, physical job)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -114,7 +114,15 @@ const Settings = () => {
           }
 
           // Check if profile is incomplete and show onboarding
-          const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || !profileData.activity_level;
+          const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
+            (!profileData.activity_level && !profileData['activity-level']);
+          console.log('Profile incompleteness check:', { 
+            weight: profileData.weight, 
+            height: profileData.height, 
+            age: profileData.age, 
+            activity_level: profileData.activity_level,
+            isIncomplete 
+          });
           if (isIncomplete) {
             setShowOnboarding(true);
           }
