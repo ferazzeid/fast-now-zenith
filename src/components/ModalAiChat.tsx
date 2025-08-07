@@ -48,10 +48,13 @@ export const ModalAiChat = ({
   
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
+  const [lastMotivatorsSuggestion, setLastMotivatorsSuggestion] = useState<any>(null);
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
+  const [editingMotivatorIndex, setEditingMotivatorIndex] = useState<number | null>(null);
   const [editingMotivator, setEditingMotivator] = useState(false);
   const [motivatorEditData, setMotivatorEditData] = useState<{title: string, content: string}>({title: '', content: ''});
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
+  const [inlineMotivatorEditData, setInlineMotivatorEditData] = useState<{[key: number]: any}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
   // const { toast } = useToast(); // Already imported directly
@@ -87,16 +90,20 @@ export const ModalAiChat = ({
       setMessages(initialMessages);
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
+      setLastMotivatorsSuggestion(null);
     } else if (!isOpen) {
       // Clear messages when modal closes - but only after a small delay to prevent flickering
       setTimeout(() => {
         setMessages([]);
         setEditingFoodIndex(null);
+        setEditingMotivatorIndex(null);
         setEditingMotivator(false);
         setMotivatorEditData({title: '', content: ''});
         setInlineEditData({});
+        setInlineMotivatorEditData({});
         setLastFoodSuggestion(null);
         setLastMotivatorSuggestion(null);
+        setLastMotivatorsSuggestion(null);
       }, 100);
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
@@ -153,13 +160,25 @@ CRITICAL: Always use function calls for food operations. NO manual text response
 
 You are a motivational goal creation assistant. Your task is to:
 
-1. IMMEDIATELY analyze the user's request and create a personalized motivator using the create_motivator function
-2. Extract the key motivation from what they said (like wanting to impress someone, health goals, personal achievement)
+**FOR SINGLE MOTIVATORS:**
+1. If user mentions ONE goal/motivation, use create_motivator function
+2. Extract the key motivation from what they said
 3. Create a short, punchy title (3-8 words max)
 4. Write compelling content that includes their specific trigger/motivation
-5. ALWAYS call create_motivator function immediately - no questions or discussions
 
-CRITICAL: You must ALWAYS call the create_motivator function when the user expresses any goal or motivation. Do NOT ask follow-up questions. Create the motivator directly based on what they told you.`;
+**FOR MULTIPLE MOTIVATORS:**
+1. If user mentions MULTIPLE goals/motivations, use create_multiple_motivators function
+2. Parse each distinct goal into a separate motivator
+3. Examples of multiple goals:
+   - "I want to lose weight, feel confident, and impress my friends" = 3 motivators
+   - "Create motivators for my health and fitness goals" = multiple health/fitness motivators
+   - "I need goals for weight loss, exercise, and confidence" = 3 motivators
+
+**CRITICAL RULES:**
+- ALWAYS call the appropriate function immediately - no questions or discussions
+- For multiple goals, ALWAYS use create_multiple_motivators, not individual create_motivator calls
+- Create the motivators directly based on what they told you
+- Each motivator should be distinct and focused on one specific goal`;
       }
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
@@ -181,6 +200,10 @@ CRITICAL: You must ALWAYS call the create_motivator function when the user expre
         if (data.functionCall.name === 'add_multiple_foods') {
           setLastFoodSuggestion(data.functionCall.arguments);
           // Don't add any AI message for food suggestions - just show the interactive UI
+          return;
+        } else if (data.functionCall.name === 'create_multiple_motivators') {
+          setLastMotivatorsSuggestion(data.functionCall.arguments);
+          // Don't add any AI message for bulk motivators - just show the interactive UI
           return;
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
@@ -427,6 +450,126 @@ ${args.content}`,
       const currentArgs = lastMotivatorSuggestion.arguments;
       // Send a message to AI asking for edits
       handleSendMessage(`I want to edit this motivator. Current title: "${currentArgs?.title}" and content: "${currentArgs?.content}". Please help me modify it.`);
+    }
+  };
+
+  // Handle bulk motivator functions
+  const handleInlineMotivatorEdit = (motivatorIndex: number) => {
+    if (lastMotivatorsSuggestion?.motivators && lastMotivatorsSuggestion.motivators[motivatorIndex]) {
+      const motivator = lastMotivatorsSuggestion.motivators[motivatorIndex];
+      setInlineMotivatorEditData(prev => ({
+        ...prev,
+        [motivatorIndex]: {
+          title: motivator.title || '',
+          content: motivator.content || '',
+          category: motivator.category || ''
+        }
+      }));
+      setEditingMotivatorIndex(motivatorIndex);
+    }
+  };
+
+  const handleSaveInlineMotivatorEdit = (motivatorIndex: number) => {
+    const editData = inlineMotivatorEditData[motivatorIndex];
+    if (editData && lastMotivatorsSuggestion?.motivators) {
+      // Update the motivator data in the lastMotivatorsSuggestion
+      const updatedMotivators = [...lastMotivatorsSuggestion.motivators];
+      updatedMotivators[motivatorIndex] = {
+        ...updatedMotivators[motivatorIndex],
+        title: editData.title,
+        content: editData.content,
+        category: editData.category || updatedMotivators[motivatorIndex].category
+      };
+      
+      // Update the lastMotivatorsSuggestion with new data
+      setLastMotivatorsSuggestion(prev => ({
+        ...prev,
+        motivators: updatedMotivators
+      }));
+      
+      // Clear editing state
+      setEditingMotivatorIndex(null);
+      setInlineMotivatorEditData(prev => {
+        const updated = { ...prev };
+        delete updated[motivatorIndex];
+        return updated;
+      });
+    }
+  };
+
+  const handleCancelInlineMotivatorEdit = (motivatorIndex: number) => {
+    setEditingMotivatorIndex(null);
+    setInlineMotivatorEditData(prev => {
+      const updated = { ...prev };
+      delete updated[motivatorIndex];
+      return updated;
+    });
+  };
+
+  const handleRemoveMotivator = (motivatorIndex: number) => {
+    if (lastMotivatorsSuggestion?.motivators) {
+      const updatedMotivators = lastMotivatorsSuggestion.motivators.filter((_, index) => index !== motivatorIndex);
+      
+      // Update the lastMotivatorsSuggestion with filtered motivators
+      setLastMotivatorsSuggestion(prev => ({
+        ...prev,
+        motivators: updatedMotivators
+      }));
+      
+      // Reset editing state if we were editing the removed item
+      if (editingMotivatorIndex === motivatorIndex) {
+        setEditingMotivatorIndex(null);
+        setInlineMotivatorEditData(prev => {
+          const updated = { ...prev };
+          delete updated[motivatorIndex];
+          return updated;
+        });
+      }
+    }
+  };
+
+  const handleAddAllMotivators = async () => {
+    if (lastMotivatorsSuggestion?.motivators && onResult) {
+      // Show processing state
+      setIsProcessing(true);
+      
+      try {
+        // Call the result callback directly
+        await onResult({
+          name: 'create_multiple_motivators',
+          arguments: { motivators: lastMotivatorsSuggestion.motivators }
+        });
+        
+        // Add only the simple confirmation message
+        const confirmationMessage: Message = {
+          role: 'assistant',
+          content: `✅ Created ${lastMotivatorsSuggestion.motivators.length} motivators successfully!`,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, confirmationMessage]);
+        
+        // Mark motivators as added but keep them visible
+        setLastMotivatorsSuggestion(prev => ({
+          ...prev,
+          added: true
+        }));
+        
+        // Close the modal after a short delay
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error adding motivators:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create motivators. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -745,6 +888,121 @@ ${updatedContent}`
                 onEdit={() => handleEditPreviewManually(preview)}
               />
             ))}
+          </div>
+        )}
+
+        {/* Bulk motivators display */}
+        {lastMotivatorsSuggestion?.motivators && lastMotivatorsSuggestion.motivators.length > 0 && (
+          <div className="space-y-2">
+            {/* Summary header */}
+            <Card className="p-3 bg-muted/50">
+              <div className="text-sm font-medium">
+                {lastMotivatorsSuggestion.motivators.length} Motivators Ready
+                {lastMotivatorsSuggestion.added && (
+                  <span className="ml-2 text-green-600 text-xs">✅ Created successfully</span>
+                )}
+              </div>
+            </Card>
+            
+            {lastMotivatorsSuggestion.motivators.map((motivator: any, index: number) => (
+              <Card key={index} className="p-3 bg-background border">
+                {editingMotivatorIndex === index ? (
+                  // Inline editing mode
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Title</div>
+                      <Input
+                        value={inlineMotivatorEditData[index]?.title || ''}
+                        onChange={(e) => setInlineMotivatorEditData(prev => ({
+                          ...prev,
+                          [index]: { ...prev[index], title: e.target.value }
+                        }))}
+                        placeholder="Motivator title"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Content</div>
+                      <textarea
+                        value={inlineMotivatorEditData[index]?.content || ''}
+                        onChange={(e) => setInlineMotivatorEditData(prev => ({
+                          ...prev,
+                          [index]: { ...prev[index], content: e.target.value }
+                        }))}
+                        placeholder="Motivational content"
+                        className="w-full p-2 border border-input rounded-md resize-none h-16 text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        onClick={() => handleSaveInlineMotivatorEdit(index)}
+                        className="h-8 px-3 text-sm flex-1"
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCancelInlineMotivatorEdit(index)}
+                        className="h-8 px-3 text-sm flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  // Display mode
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{motivator.title}</div>
+                      <div className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {motivator.content}
+                      </div>
+                      {motivator.category && (
+                        <div className="text-xs text-primary mt-1 font-medium">
+                          #{motivator.category}
+                        </div>
+                      )}
+                    </div>
+                    {!lastMotivatorsSuggestion.added && (
+                      <div className="flex gap-1 ml-3">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleInlineMotivatorEdit(index)}
+                          className="h-8 px-3 text-sm"
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleRemoveMotivator(index)}
+                          className="h-8 px-3 text-sm text-destructive"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+            ))}
+            
+            {/* Add All Motivators button - only show if not added yet */}
+            {!lastMotivatorsSuggestion.added && (
+              <div className="flex gap-2 mt-3">
+                <Button
+                  size="sm"
+                  onClick={handleAddAllMotivators}
+                  className="flex-1"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Creating...' : `Create All ${lastMotivatorsSuggestion.motivators.length} Motivators`}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 

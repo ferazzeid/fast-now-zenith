@@ -177,6 +177,40 @@ serve(async (req) => {
           {
             type: "function",
             function: {
+              name: "create_multiple_motivators",
+              description: "Create multiple motivators from user's goals and aspirations",
+              parameters: {
+                type: "object",
+                properties: {
+                  motivators: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: {
+                          type: "string",
+                          description: "Short, punchy title for the motivator (3-8 words)"
+                        },
+                        content: {
+                          type: "string",
+                          description: "Compelling motivational content that addresses the user's specific situation"
+                        },
+                        category: {
+                          type: "string",
+                          description: "Category of motivation (health, appearance, confidence, performance, etc.)"
+                        }
+                      },
+                      required: ["title", "content"]
+                    }
+                  }
+                },
+                required: ["motivators"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
               name: "search_foods_for_edit",
               description: "Search for foods in today's entries, library, or templates to propose edits",
               parameters: {

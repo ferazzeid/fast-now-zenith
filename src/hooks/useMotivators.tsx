@@ -165,6 +165,47 @@ export const useMotivators = () => {
     }
   };
 
+  const createMultipleMotivators = async (motivators: CreateMotivatorData[]): Promise<string[]> => {
+    if (!user || !motivators.length) return [];
+
+    try {
+      const motivatorData = motivators.map(motivator => ({
+        user_id: user.id,
+        title: motivator.title,
+        content: motivator.content,
+        category: motivator.category || 'general',
+        image_url: motivator.imageUrl,
+        is_active: true
+      }));
+
+      const { data, error } = await supabase
+        .from('motivators')
+        .insert(motivatorData)
+        .select();
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url }));
+        setMotivators(prev => [...transformedData as Motivator[], ...prev]);
+        toast({
+          title: "✨ Motivators Created!",
+          description: `Successfully created ${data.length} motivator${data.length > 1 ? 's' : ''}`,
+        });
+        return data.map(item => item.id);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error creating multiple motivators:', error);
+      toast({
+        title: "Error creating motivators",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      return [];
+    }
+  };
+
   const deleteMotivator = async (id: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -215,6 +256,14 @@ export const useMotivators = () => {
       const result = await createMotivator(motivatorData);
       if (result) {
         invalidateCache(); // Clear cache when new motivator is created
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    createMultipleMotivators: async (motivators: CreateMotivatorData[]) => {
+      const result = await createMultipleMotivators(motivators);
+      if (result.length > 0) {
+        invalidateCache(); // Clear cache when new motivators are created
         await loadMotivators(true); // Force refresh
       }
       return result;

@@ -25,7 +25,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 const Motivators = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { motivators, loading, createMotivator, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
+  const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
@@ -130,8 +130,36 @@ const Motivators = () => {
     console.log('🎯 Result name:', result.name);
     console.log('🎯 Result arguments:', result.arguments);
     
+    // Check if it's bulk motivator creation
+    if (result.name === 'create_multiple_motivators') {
+      console.log('🎯 Found create_multiple_motivators result');
+      
+      try {
+        const motivators = result.arguments.motivators.map((motivator: any) => ({
+          title: motivator.title,
+          content: motivator.content,
+          category: motivator.category || 'general'
+        }));
+        
+        const createdIds = await createMultipleMotivators(motivators);
+        console.log('🎯 Successfully created bulk motivators:', createdIds);
+        
+        // Show success toast
+        toast({
+          title: "✅ Motivators Created!",
+          description: `Created ${motivators.length} motivator${motivators.length > 1 ? 's' : ''} successfully!`,
+        });
+      } catch (error) {
+        console.error('🎯 Error creating bulk motivators:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create motivators. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
     // Handle both 'create_motivator' function calls and text-based confirmations
-    if (result.name === 'create_motivator' || (result.arguments && result.arguments.title)) {
+    else if (result.name === 'create_motivator' || (result.arguments && result.arguments.title)) {
       let suggestionData;
       
       if (result.name === 'create_motivator') {
