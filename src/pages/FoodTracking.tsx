@@ -451,7 +451,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
     try {
-      await toggleConsumption(entryId, consumed);
+      await toggleConsumption(entryId);
       handleToggleSuccess(consumed);
     } catch (error) {
       toast({
