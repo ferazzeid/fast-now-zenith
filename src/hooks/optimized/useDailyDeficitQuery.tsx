@@ -118,6 +118,11 @@ export const useDailyDeficitQuery = () => {
       });
 
       return todaySessions.reduce((total, session) => {
+        // Skip edited sessions - they have nulled calculated data
+        if (session.is_edited) {
+          return total;
+        }
+
         // Calculate duration for active sessions or use stored duration
         let durationMinutes = session.duration_minutes;
         if (!durationMinutes && session.session_state === 'active' && session.start_time) {

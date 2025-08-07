@@ -1204,9 +1204,12 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           distance: number | null
+          edit_reason: string | null
           end_time: string | null
           estimated_steps: number | null
           id: string
+          is_edited: boolean | null
+          original_duration_minutes: number | null
           pause_start_time: string | null
           session_state: string | null
           speed_mph: number | null
@@ -1221,9 +1224,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           distance?: number | null
+          edit_reason?: string | null
           end_time?: string | null
           estimated_steps?: number | null
           id?: string
+          is_edited?: boolean | null
+          original_duration_minutes?: number | null
           pause_start_time?: string | null
           session_state?: string | null
           speed_mph?: number | null
@@ -1238,9 +1244,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           distance?: number | null
+          edit_reason?: string | null
           end_time?: string | null
           estimated_steps?: number | null
           id?: string
+          is_edited?: boolean | null
+          original_duration_minutes?: number | null
           pause_start_time?: string | null
           session_state?: string | null
           speed_mph?: number | null

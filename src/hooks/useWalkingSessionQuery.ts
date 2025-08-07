@@ -17,6 +17,9 @@ export interface WalkingSession {
   pause_start_time?: string;
   created_at: string;
   deleted_at?: string;
+  is_edited?: boolean;
+  original_duration_minutes?: number;
+  edit_reason?: string;
 }
 
 const walkingSessionsQueryKey = (userId: string | null) => ['walking-sessions', userId];
