@@ -11,7 +11,7 @@ import Motivators from "./pages/Motivators";
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useProfile } from '@/hooks/useProfile';
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -46,7 +46,7 @@ const AppContent = () => {
   useDynamicFavicon();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
-  const { profile, isProfileComplete } = useProfileQuery();
+  const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Initialize analytics on app startup (non-blocking)

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 
@@ -15,7 +15,7 @@ interface GlobalProfileOnboardingProps {
 }
 
 export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboardingProps) => {
-  const { updateProfile, isUpdating } = useProfileQuery();
+  const { updateProfile, loading: isUpdating } = useProfile();
   const { toast } = useToast();
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -56,7 +56,6 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
       units: formData.units,
       age: parseInt(formData.age),
       sex: formData.sex,
-      onboarding_completed: true,
     };
 
     if (formData.units === 'imperial') {
@@ -79,7 +78,7 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
   };
 
   const handleSkip = () => {
-    updateProfile({ onboarding_completed: true });
+    // Just close the modal for now - user can complete later
     onClose();
   };
 
