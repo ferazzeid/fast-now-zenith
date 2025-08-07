@@ -54,7 +54,8 @@ const FoodTracking = () => {
     servingSize: '',
     servingUnit: 'grams',
     calories: '',
-    carbs: ''
+    carbs: '',
+    imageUrl: ''
   });
   const [aiChatContext, setAiChatContext] = useState('');
   
@@ -210,7 +211,8 @@ const FoodTracking = () => {
       servingSize: '',
       servingUnit: 'grams',
       calories: '',
-      carbs: ''
+      carbs: '',
+      imageUrl: ''
     });
     setShowManualEntry(true);
   };
@@ -282,7 +284,8 @@ const FoodTracking = () => {
       calories: Math.round(calories * 100) / 100,
       carbs: Math.round(carbs * 100) / 100,
       serving_size: Math.round(servingGrams * 100) / 100, // Store the actual grams
-      consumed: false
+      consumed: false,
+      image_url: manualEntryData.imageUrl || undefined
     });
 
     if (!result || 'error' in result) {

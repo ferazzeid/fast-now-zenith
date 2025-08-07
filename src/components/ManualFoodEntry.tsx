@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
+import { ImageUpload } from '@/components/ImageUpload';
 
 
 interface ManualFoodEntryProps {
@@ -23,6 +24,7 @@ interface ManualFoodEntryProps {
     servingUnit: string;
     calories: string;
     carbs: string;
+    imageUrl: string;
   };
   onDataChange: (data: any) => void;
 }
@@ -186,8 +188,19 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             </div>
           </div>
 
+          {/* Image Upload Section */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Food Image (Optional)</Label>
+            <ImageUpload
+              currentImageUrl={data.imageUrl}
+              onImageUpload={(url) => updateField('imageUrl', url)}
+              onImageRemove={() => updateField('imageUrl', '')}
+              showUploadOptionsWhenImageExists={false}
+            />
+          </div>
+
           {/* Nutritional Information */}
-          <div className="pt-2">            
+          <div className="pt-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <div className="flex items-center justify-between">
