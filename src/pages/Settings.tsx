@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import { useArchivedConversations } from '@/hooks/useArchivedConversations';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -45,6 +46,7 @@ const Settings = () => {
   const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -435,9 +437,20 @@ const Settings = () => {
             {/* User Profile */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOnboarding(true)}
+                    className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                    title="Setup Profile Walkthrough"
+                  >
+                    <Brain className="w-4 h-4 text-warm-text" />
+                  </Button>
                 </div>
                 
                 <div className="space-y-4">
@@ -590,6 +603,12 @@ const Settings = () => {
           {showAiGeneratorModal && (
             <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
           )}
+
+          {/* Profile Onboarding Modal */}
+          <GlobalProfileOnboarding
+            isOpen={showOnboarding}
+            onClose={() => setShowOnboarding(false)}
+          />
         </div>
       );
     };
