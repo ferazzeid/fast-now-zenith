@@ -316,15 +316,15 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <MapPin className="w-3 h-3 text-green-500" />
-                                          {session.is_edited ? 'Data removed' : `${session.distance?.toFixed(2) || 0} mi`}
+                                          {session.is_edited ? 'N/A' : `${session.distance?.toFixed(2) || 0} mi`}
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <Zap className="w-3 h-3 text-orange-500" />
-                                          {session.is_edited ? 'Data removed' : `${session.calories_burned || 0} cal`}
+                                          {session.is_edited ? 'N/A' : `${session.calories_burned || 0} cal`}
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <TrendingUp className="w-3 h-3 text-purple-500" />
-                                          {session.is_edited ? 'Data removed' : `${session.estimated_steps?.toLocaleString() || 'N/A'} steps`}
+                                          {session.is_edited ? 'N/A' : `${session.estimated_steps?.toLocaleString() || 'N/A'} steps`}
                                         </span>
                                       </div>
                                     </div>
