@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import React from 'react';
-import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, X, ChevronDown, ChevronUp, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, X, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, Edit3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
 
 interface WalkingSession {
@@ -20,6 +21,9 @@ interface WalkingSession {
   speed_mph?: number;
   estimated_steps?: number;
   status: string;
+  is_edited?: boolean;
+  original_duration_minutes?: number;
+  edit_reason?: string;
 }
 
 interface WalkingHistoryModalProps {
@@ -33,6 +37,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
+  const [editingSession, setEditingSession] = useState<WalkingSession | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
@@ -49,7 +54,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
         // Get the sessions to display
         const { data, error } = await supabase
           .from('walking_sessions')
-          .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status')
+          .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .is('deleted_at', null)
@@ -306,25 +311,39 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                           <Clock className="w-3 h-3" />
                                           {formatDuration(duration)}
                                         </span>
+                                        {session.is_edited && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            <Clock className="w-2.5 h-2.5 mr-1" />
+                                            Edited
+                                          </Badge>
+                                        )}
                                         <span className="flex items-center gap-1">
                                           <MapPin className="w-3 h-3 text-green-500" />
-                                          {session.distance?.toFixed(2) || 0} mi
+                                          {session.is_edited ? 'Data removed' : `${session.distance?.toFixed(2) || 0} mi`}
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <Zap className="w-3 h-3 text-orange-500" />
-                                          {session.calories_burned || 0} cal
+                                          {session.is_edited ? 'Data removed' : `${session.calories_burned || 0} cal`}
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <TrendingUp className="w-3 h-3 text-purple-500" />
-                                          {session.estimated_steps?.toLocaleString() || 'N/A'} steps
+                                          {session.is_edited ? 'Data removed' : `${session.estimated_steps?.toLocaleString() || 'N/A'} steps`}
                                         </span>
                                       </div>
                                     </div>
                                   </div>
                                 </CardHeader>
                                 
-                                {/* Delete button in top right corner */}
-                                <div className="absolute top-3 right-3">
+                                {/* Edit and Delete buttons in top right corner */}
+                                <div className="absolute top-3 right-3 flex gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 w-6 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                    onClick={() => setEditingSession(session)}
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                  </Button>
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button
@@ -356,6 +375,12 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                     </AlertDialogContent>
                                   </AlertDialog>
                                 </div>
+                                
+                                {session.is_edited && session.edit_reason && (
+                                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                                    <span className="font-medium">Edit reason:</span> {session.edit_reason}
+                                  </div>
+                                )}
                               </Card>
                             );
                           })}
@@ -391,6 +416,43 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
             </div>
           )}
         </CardContent>
+        
+        {editingSession && (
+          <EditWalkingSessionTimeModal
+            session={editingSession}
+            isOpen={!!editingSession}
+            onClose={() => setEditingSession(null)}
+            onSessionEdited={() => {
+              // Refresh the sessions list
+              setLoading(true);
+              const fetchWalkingSessions = async () => {
+                if (!user) return;
+                
+                try {
+                  const limit = showAll ? 50 : 5;
+                  
+                  const { data, error } = await supabase
+                    .from('walking_sessions')
+                    .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
+                    .eq('user_id', user.id)
+                    .eq('status', 'completed')
+                    .is('deleted_at', null)
+                    .order('created_at', { ascending: false })
+                    .limit(limit);
+
+                  if (error) throw error;
+                  setSessions(data || []);
+                } catch (error) {
+                  console.error('Error refreshing sessions:', error);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              
+              fetchWalkingSessions();
+            }}
+          />
+        )}
       </Card>
     </div>
   );

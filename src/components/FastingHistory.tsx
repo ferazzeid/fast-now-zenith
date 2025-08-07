@@ -359,11 +359,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                         <div className="flex flex-col items-end gap-1">
                           {session.duration_seconds >= session.goal_duration_seconds ? (
                             <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Achieved</span>
-                          ) : (
-                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                              {Math.round((session.duration_seconds / session.goal_duration_seconds) * 100)}% of goal
-                            </span>
-                          )}
+                          ) : null}
                           <div className="mt-1">
                             {getStatusBadge(session)}
                           </div>
