@@ -1,9 +1,11 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2 } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { RegenerateImageButton } from './RegenerateImageButton';
+import { useImageGenerationStatus } from '@/hooks/useImageGenerationStatus';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -35,19 +37,50 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   onDelete 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
+  const { getGenerationStatus } = useImageGenerationStatus();
+  
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
+  const generationStatus = getGenerationStatus(motivator.id);
+  const isGenerating = generationStatus === 'generating' || generationStatus === 'pending';
+
+  const handleImageGenerated = (newImageUrl: string) => {
+    setCurrentImageUrl(newImageUrl);
+  };
+
+  // Update image URL when motivator changes or generation completes
+  useEffect(() => {
+    setCurrentImageUrl(motivator.imageUrl || '');
+  }, [motivator.imageUrl]);
 
   return (
     <Card className="overflow-hidden relative">
       <CardContent className="p-0">
         <div className="flex">
           {/* Image */}
-          <div className="w-32 h-32 flex-shrink-0">
+          <div className="w-32 h-32 flex-shrink-0 relative">
             <MotivatorImageWithFallback
-              src={motivator.imageUrl}
+              src={currentImageUrl}
               alt={motivator.title}
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover ${isGenerating ? 'opacity-50' : ''}`}
             />
+            {isGenerating && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            )}
+            {currentImageUrl && (
+              <div className="absolute -top-1 -right-1">
+                <RegenerateImageButton
+                  prompt={`${motivator.title}. ${motivator.content || ''}`}
+                  filename={`motivator-${Date.now()}.jpg`}
+                  onImageGenerated={handleImageGenerated}
+                  motivatorId={motivator.id}
+                  disabled={isGenerating}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              </div>
+            )}
           </div>
          
           {/* Content */}

@@ -21,10 +21,12 @@ serve(async (req) => {
       hasPrompt: !!body.prompt, 
       hasFilename: !!body.filename,
       hasApiKey: !!body.apiKey,
-      hasBucket: !!body.bucket
+      hasBucket: !!body.bucket,
+      hasMotivatorId: !!body.motivatorId,
+      hasUserId: !!body.userId
     });
 
-    const { prompt, filename, apiKey, bucket = 'motivator-images' } = body;
+    const { prompt, filename, apiKey, bucket = 'motivator-images', motivatorId, userId } = body;
 
     if (!prompt || !filename) {
       console.error('Missing required fields:', { prompt: !!prompt, filename: !!filename });
@@ -34,88 +36,176 @@ serve(async (req) => {
       );
     }
 
-    // Use provided API key or fall back to environment variable
-    const openAIApiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('No OpenAI API key available');
-      return new Response(
-        JSON.stringify({ error: 'OpenAI API key not provided' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Generating image with prompt length:', prompt.length);
-
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: prompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'hd',
-        response_format: 'b64_json'
-      }),
-    });
-
-    console.log('OpenAI response status:', response.status);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate image', details: errorData }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const data = await response.json();
-    const imageBase64 = data.data[0].b64_json;
-    console.log('Image generated successfully, uploading to storage...');
-
-    // Convert base64 to blob for upload
-    const imageBlob = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
-
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Upload to Supabase storage - use specified bucket or default to motivator-images
-    const targetBucket = bucket || 'motivator-images';
-    console.log('Uploading to bucket:', targetBucket);
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(targetBucket)
-      .upload(filename, imageBlob, {
-        contentType: 'image/png',
-        upsert: true
-      });
+    let generationId = null;
 
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to upload image', details: uploadError }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // If motivatorId and userId are provided, track this generation
+    if (motivatorId && userId) {
+      const { data: generationData, error: generationError } = await supabase
+        .from('motivator_image_generations')
+        .insert({
+          motivator_id: motivatorId,
+          user_id: userId,
+          status: 'generating',
+          prompt: prompt,
+          filename: filename,
+          bucket: bucket
+        })
+        .select('id')
+        .single();
+
+      if (generationError) {
+        console.error('Error creating generation record:', generationError);
+      } else {
+        generationId = generationData.id;
+        console.log('Created generation record:', generationId);
+      }
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(targetBucket)
-      .getPublicUrl(filename);
+    // Background generation function
+    const generateImage = async () => {
+      try {
+        // Use provided API key or fall back to environment variable
+        const openAIApiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
+        if (!openAIApiKey) {
+          throw new Error('OpenAI API key not provided');
+        }
 
-    console.log('Image uploaded successfully:', urlData.publicUrl);
+        console.log('Generating image with prompt length:', prompt.length);
 
-    return new Response(
-      JSON.stringify({ imageUrl: urlData.publicUrl }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+        const response = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: prompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'hd',
+            response_format: 'b64_json'
+          }),
+        });
+
+        console.log('OpenAI response status:', response.status);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('OpenAI API error:', errorData);
+          throw new Error(`Failed to generate image: ${JSON.stringify(errorData)}`);
+        }
+
+        const data = await response.json();
+        const imageBase64 = data.data[0].b64_json;
+        console.log('Image generated successfully, uploading to storage...');
+
+        // Convert base64 to blob for upload
+        const imageBlob = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
+
+        // Upload to Supabase storage - use specified bucket or default to motivator-images
+        const targetBucket = bucket || 'motivator-images';
+        console.log('Uploading to bucket:', targetBucket);
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from(targetBucket)
+          .upload(filename, imageBlob, {
+            contentType: 'image/png',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Failed to upload image: ${JSON.stringify(uploadError)}`);
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from(targetBucket)
+          .getPublicUrl(filename);
+
+        console.log('Image uploaded successfully:', urlData.publicUrl);
+
+        // Update generation record with success
+        if (generationId) {
+          await supabase
+            .from('motivator_image_generations')
+            .update({
+              status: 'completed',
+              image_url: urlData.publicUrl,
+              completed_at: new Date().toISOString()
+            })
+            .eq('id', generationId);
+
+          console.log('Updated generation record with success:', generationId);
+        }
+
+        // Update the motivator with the new image URL if provided
+        if (motivatorId) {
+          await supabase
+            .from('motivators')
+            .update({ image_url: urlData.publicUrl })
+            .eq('id', motivatorId);
+
+          console.log('Updated motivator with new image URL:', motivatorId);
+        }
+
+        return urlData.publicUrl;
+      } catch (error) {
+        console.error('Background generation error:', error);
+        
+        // Update generation record with failure
+        if (generationId) {
+          await supabase
+            .from('motivator_image_generations')
+            .update({
+              status: 'failed',
+              error_message: error.message,
+              completed_at: new Date().toISOString()
+            })
+            .eq('id', generationId);
+
+          console.log('Updated generation record with failure:', generationId);
+        }
+        
+        throw error;
+      }
+    };
+
+    // If we have tracking info, run in background and return immediately
+    if (motivatorId && userId) {
+      // Use EdgeRuntime.waitUntil for true background processing
+      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+        EdgeRuntime.waitUntil(generateImage());
+      } else {
+        // Fallback for environments without EdgeRuntime
+        generateImage().catch(console.error);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          message: 'Image generation started in background',
+          generationId: generationId
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 202 // Accepted
+        }
+      );
+    } else {
+      // For backward compatibility, run synchronously
+      const imageUrl = await generateImage();
+      return new Response(
+        JSON.stringify({ imageUrl }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
   } catch (error) {
     console.error('Error in generate-image function:', error);

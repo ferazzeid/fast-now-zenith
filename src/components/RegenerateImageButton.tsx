@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
 import { supabase } from '@/integrations/supabase/client';
 
+
 interface RegenerateImageButtonProps {
   prompt: string;
   filename: string;
@@ -12,6 +13,7 @@ interface RegenerateImageButtonProps {
   onImageGenerated: (imageUrl: string) => void;
   disabled?: boolean;
   className?: string;
+  motivatorId?: string;
 }
 
 export const RegenerateImageButton = ({ 
@@ -20,7 +22,8 @@ export const RegenerateImageButton = ({
   bucket,
   onImageGenerated, 
   disabled = false,
-  className = ""
+  className = "",
+  motivatorId
 }: RegenerateImageButtonProps) => {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
@@ -59,13 +62,44 @@ export const RegenerateImageButton = ({
         .replace(/{primary_color}/g, primaryColor)
         .replace(/{accent_color}/g, accentColor);
       
-      const newImageUrl = await generate_image(enhancedPrompt, filename, bucket);
-      onImageGenerated(newImageUrl);
-      
-      toast({
-        title: "✨ Image Regenerated!",
-        description: "Your new AI-generated image is ready.",
-      });
+      // If we have a motivatorId, use background generation
+      if (motivatorId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        // Call the edge function with tracking info for background processing
+        const { data, error } = await supabase.functions.invoke('generate-image', {
+          body: { 
+            prompt: enhancedPrompt,
+            filename,
+            bucket,
+            motivatorId,
+            userId: user.id
+          }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "🎨 Image Generation Started",
+          description: "Your image is being generated in the background. It will appear automatically when ready.",
+        });
+        
+        // Don't update the UI immediately - let the real-time subscription handle it
+      } else {
+        // Fallback to synchronous generation for backward compatibility
+        const newImageUrl = await generate_image(enhancedPrompt, filename, bucket);
+        onImageGenerated(newImageUrl);
+        
+        toast({
+          title: "✨ Image Regenerated!",
+          description: "Your new AI-generated image is ready.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Regeneration failed",

@@ -727,6 +727,54 @@ export type Database = {
         }
         Relationships: []
       }
+      motivator_image_generations: {
+        Row: {
+          bucket: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          filename: string
+          id: string
+          image_url: string | null
+          motivator_id: string
+          prompt: string
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          filename: string
+          id?: string
+          image_url?: string | null
+          motivator_id: string
+          prompt: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          filename?: string
+          id?: string
+          image_url?: string | null
+          motivator_id?: string
+          prompt?: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       motivators: {
         Row: {
           category: string | null
