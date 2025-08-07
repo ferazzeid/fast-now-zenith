@@ -52,6 +52,7 @@ export const ModalAiChat = ({
   const [motivatorEditData, setMotivatorEditData] = useState<{title: string, content: string}>({title: '', content: ''});
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const editFormRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -461,7 +462,13 @@ ${args.content}`,
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => setEditingMotivator(true)}
+                          onClick={() => {
+                            setEditingMotivator(true);
+                            // Scroll to edit form after it renders
+                            setTimeout(() => {
+                              editFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }, 100);
+                          }}
                           className="text-xs"
                         >
                           Edit Language
@@ -480,7 +487,7 @@ ${args.content}`,
 
         {/* Inline motivator editing - positioned OUTSIDE messages loop */}
         {editingMotivator && lastMotivatorSuggestion && (
-          <div className="mt-4 p-4 border-2 border-primary/50 rounded-lg bg-primary/5">
+          <div ref={editFormRef} className="mt-4 p-4 border-2 border-primary/50 rounded-lg bg-primary/5">
             <div className="space-y-3">
               <h4 className="font-medium text-sm">Edit Your Motivator</h4>
               <div>
@@ -522,22 +529,21 @@ ${args.content}`,
                       arguments: updatedArgs
                     }));
                     
-                    // Update the chat message to show the edited version
-                    setMessages(prev => {
-                      const lastMessage = prev[prev.length - 1];
-                      if (lastMessage.role === 'assistant' && lastMotivatorSuggestion) {
-                        return [
-                          ...prev.slice(0, -1),
-                          {
-                            ...lastMessage,
-                            content: `${updatedTitle}
+                    // Update ALL motivator messages in the chat with the new content
+                    setMessages(prev => prev.map(msg => {
+                      // Find motivator messages that match the current suggestion content
+                      if (msg.role === 'assistant' && 
+                          msg.content.includes(lastMotivatorSuggestion.arguments.title) &&
+                          msg.content.includes(lastMotivatorSuggestion.arguments.content)) {
+                        return {
+                          ...msg,
+                          content: `${updatedTitle}
 
 ${updatedContent}`
-                          }
-                        ];
+                        };
                       }
-                      return prev;
-                    });
+                      return msg;
+                    }));
                     
                     setEditingMotivator(false);
                     setMotivatorEditData({title: '', content: ''});
