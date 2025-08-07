@@ -318,9 +318,11 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               </div>
               
               <div className="space-y-4">
-                <SimpleVoiceRecorder
-                  onTranscription={handleVoiceTranscription}
-                />
+                <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                  <SimpleVoiceRecorder
+                    onTranscription={handleVoiceTranscription}
+                  />
+                </PremiumGate>
                 
                 <Button
                   variant="outline"

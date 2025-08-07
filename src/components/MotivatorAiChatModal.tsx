@@ -388,7 +388,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
         
         {/* Voice Recording */}
         <div className="flex justify-center">
-          <PremiumGate feature="Voice Input">
+          <PremiumGate feature="Voice Input" grayOutForFree={true}>
             <CircularVoiceButton
               onTranscription={handleVoiceTranscription}
               isDisabled={isLoading}

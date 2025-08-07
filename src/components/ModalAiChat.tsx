@@ -743,7 +743,7 @@ ${args.content}`,
                   {/* Voice correction button for follow-up messages */}
                   {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (
                     <div className="flex justify-center mt-3">
-                      <PremiumGate feature="Voice Input">
+                      <PremiumGate feature="Voice Input" grayOutForFree={true}>
                         <CircularVoiceButton
                           onTranscription={handleVoiceTranscription}
                           isDisabled={isProcessing}
@@ -1177,7 +1177,7 @@ ${updatedContent}`
           
         {/* Voice Recording */}
         <div className="flex justify-center">
-          <PremiumGate feature="Voice Input">
+          <PremiumGate feature="Voice Input" grayOutForFree={true}>
             <CircularVoiceButton
               onTranscription={handleVoiceTranscription}
               isDisabled={isProcessing}

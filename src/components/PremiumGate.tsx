@@ -4,30 +4,44 @@ import { Button } from '@/components/ui/button';
 import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { detectPlatform, getPlatformDisplayName } from '@/utils/platformDetection';
+import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 
 interface PremiumGateProps {
   children: ReactNode;
   feature: string;
   className?: string;
   showUpgrade?: boolean;
+  grayOutForFree?: boolean; // New prop to gray out instead of blocking
 }
 
-export const PremiumGate = ({ children, feature, className = "", showUpgrade = true }: PremiumGateProps) => {
+export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
   const { subscribed, subscription_tier, requests_used, request_limit, createSubscription, platform, loading } = useMultiPlatformSubscription();
   const { toast } = useToast();
+  const { testRole, isTestingMode } = useRoleTestingContext();
 
-  // Check if user has access to the feature using hasPremiumFeatures from the hook
-  const hasAccess = subscription_tier === 'api_user' || subscribed || (requests_used < request_limit);
+  // Use test role if in testing mode, otherwise use actual subscription data
+  const effectiveRole = isTestingMode ? testRole : subscription_tier;
+  const effectiveRequestsUsed = isTestingMode && testRole === 'free_user' ? 15 : requests_used;
+  const effectiveRequestLimit = isTestingMode && testRole === 'free_user' ? 15 : request_limit;
+  const effectiveSubscribed = isTestingMode ? (testRole === 'paid_user' || testRole === 'api_user') : subscribed;
+
+  // Check if user has access to the feature
+  const hasAccess = effectiveRole === 'api_user' || 
+                   effectiveSubscribed || 
+                   (effectiveRequestsUsed < effectiveRequestLimit) ||
+                   effectiveRole === 'admin';
   
   // Debug logging to understand access decisions
   console.log('[PremiumGate] Access check:', {
     feature,
-    subscribed,
-    subscription_tier,
-    requests_used,
-    request_limit,
+    effectiveRole,
+    effectiveSubscribed,
+    effectiveRequestsUsed,
+    effectiveRequestLimit,
     hasAccess,
-    loading
+    loading,
+    isTestingMode,
+    testRole
   });
 
   // Show content while loading to prevent flashing
@@ -59,6 +73,39 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     }
   };
+
+  // For free users, show grayed out content with click handler
+  if (!hasAccess && (effectiveRole === 'free_user' || grayOutForFree)) {
+    const handleGrayedClick = () => {
+      toast({
+        title: "Premium Feature",
+        description: `${feature} requires a premium subscription or your own OpenAI API key.`,
+        action: showUpgrade ? (
+          <Button 
+            size="sm" 
+            onClick={handleUpgrade}
+            className="mt-2"
+          >
+            <Crown className="w-4 h-4 mr-1" />
+            Upgrade
+          </Button>
+        ) : undefined
+      });
+    };
+
+    return (
+      <div 
+        className={`relative ${className} cursor-pointer opacity-60 hover:opacity-70 transition-opacity`}
+        onClick={handleGrayedClick}
+      >
+        {children}
+        {/* Subtle overlay indicator */}
+        <div className="absolute top-1 right-1 opacity-50">
+          <Lock className="w-3 h-3 text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   if (hasAccess) {
     return <>{children}</>;

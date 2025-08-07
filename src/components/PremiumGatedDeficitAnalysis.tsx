@@ -4,7 +4,7 @@ import { DeficitAnalysisButton } from '@/components/DeficitAnalysisButton';
 
 export const PremiumGatedDeficitAnalysis = () => {
   return (
-    <PremiumGate feature="AI Analysis">
+    <PremiumGate feature="AI Analysis" grayOutForFree={true}>
       <DeficitAnalysisButton />
     </PremiumGate>
   );

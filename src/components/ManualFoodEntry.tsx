@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Camera, Sparkles, Mic } from 'lucide-react';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
+import { PremiumGate } from '@/components/PremiumGate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -274,10 +275,12 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               </div>
               
               <div className="space-y-4">
-                <CircularVoiceButton 
-                  onTranscription={handleVoiceInput}
-                  size="lg"
-                />
+                <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                  <CircularVoiceButton 
+                    onTranscription={handleVoiceInput}
+                    size="lg"
+                  />
+                </PremiumGate>
                 
                 <Button
                   variant="outline"

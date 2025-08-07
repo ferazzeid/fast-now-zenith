@@ -20,6 +20,7 @@ import {
   PromptManagement,
   PaymentProviderSettings
 } from "@/components/LazyAdminComponents";
+import { AdminRoleTester } from '@/components/AdminRoleTester';
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 import { AdminDailyAnalysisSettings } from '@/components/AdminDailyAnalysisSettings';
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
@@ -206,6 +207,9 @@ const AdminOverview = () => {
           Admin Dashboard
         </h1>
       </div>
+      
+      {/* Role Testing Section */}
+      <AdminRoleTester />
       
       {/* Real-Time Analytics Dashboard */}
       <SimpleAnalyticsWidget />

@@ -4,6 +4,7 @@ import './index.css'
 import { AnimationProvider } from './components/AnimationController'
 import { initOfflineStorage } from './utils/offlineStorage'
 import { useDynamicFavicon } from './hooks/useDynamicFavicon'
+import { RoleTestingProvider } from './contexts/RoleTestingContext'
 
 // Initialize offline storage and cleanup
 initOfflineStorage();
@@ -14,7 +15,9 @@ const AppWithFavicon = () => {
 };
 
 createRoot(document.getElementById("root")!).render(
-  <AnimationProvider>
-    <AppWithFavicon />
-  </AnimationProvider>
+  <RoleTestingProvider>
+    <AnimationProvider>
+      <AppWithFavicon />
+    </AnimationProvider>
+  </RoleTestingProvider>
 );

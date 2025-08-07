@@ -243,7 +243,7 @@ export const UpgradedMotivatorFormModal = ({
           
           {showVoiceRecorder && (
             <Card className="p-4 bg-gray-50 dark:bg-gray-800/50">
-              <PremiumGate feature="voice-input" showUpgrade={false}>
+              <PremiumGate feature="Voice Input" grayOutForFree={true} showUpgrade={false}>
                 <SimpleVoiceRecorder
                   onTranscription={handleVoiceTranscription}
                 />
