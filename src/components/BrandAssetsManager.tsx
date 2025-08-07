@@ -78,18 +78,27 @@ const BrandAssetsManager = () => {
     const fileName = `${type}-${Date.now()}.${fileExt}`;
     const filePath = `brand-assets/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    console.log(`Uploading ${type}:`, { fileName, filePath, fileSize: file.size, fileType: file.type });
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from('website-images')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (uploadError) {
-      throw uploadError;
+      console.error(`Upload error for ${type}:`, uploadError);
+      throw new Error(`Upload failed: ${uploadError.message}`);
     }
+
+    console.log(`Upload successful for ${type}:`, uploadData);
 
     const { data } = supabase.storage
       .from('website-images')
       .getPublicUrl(filePath);
 
+    console.log(`Public URL generated for ${type}:`, data.publicUrl);
     return data.publicUrl;
   };
 
@@ -121,7 +130,9 @@ const BrandAssetsManager = () => {
 
     setUploading(true);
     try {
+      console.log('Starting favicon upload:', favicon.name);
       const faviconUrl = await uploadAsset(favicon, 'favicon');
+      console.log('Favicon uploaded successfully:', faviconUrl);
       
       // Save to database
       const { error } = await supabase
@@ -131,7 +142,10 @@ const BrandAssetsManager = () => {
           setting_value: faviconUrl,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw new Error(`Failed to save favicon URL: ${error.message}`);
+      }
 
       setCurrentFavicon(faviconUrl);
       setFavicon(null);
@@ -140,13 +154,16 @@ const BrandAssetsManager = () => {
 
       toast({
         title: "Success",
-        description: "Favicon uploaded successfully! You'll need to redeploy your app to see changes.",
+        description: "Favicon uploaded successfully! The new favicon is now active.",
       });
-    } catch (error) {
+      
+      // Refresh current assets to show updated favicon
+      await fetchCurrentAssets();
+    } catch (error: any) {
       console.error('Error uploading favicon:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload favicon",
+        title: "Upload Failed",
+        description: error?.message || "Failed to upload favicon. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -166,7 +183,9 @@ const BrandAssetsManager = () => {
 
     setUploading(true);
     try {
+      console.log('Starting logo upload:', logo.name);
       const logoUrl = await uploadAsset(logo, 'logo');
+      console.log('Logo uploaded successfully:', logoUrl);
       
       // Save to database
       const { error } = await supabase
@@ -176,7 +195,10 @@ const BrandAssetsManager = () => {
           setting_value: logoUrl,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw new Error(`Failed to save logo URL: ${error.message}`);
+      }
 
       setCurrentLogo(logoUrl);
       setLogo(null);
@@ -185,13 +207,16 @@ const BrandAssetsManager = () => {
 
       toast({
         title: "Success",
-        description: "App logo uploaded successfully! You'll need to redeploy your app to see changes.",
+        description: "App logo uploaded successfully! The new logo is now active.",
       });
-    } catch (error) {
+      
+      // Refresh current assets to show updated logo
+      await fetchCurrentAssets();
+    } catch (error: any) {
       console.error('Error uploading logo:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload logo",
+        title: "Upload Failed",
+        description: error?.message || "Failed to upload logo. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -1,50 +1,80 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Hook to dynamically update favicon based on admin settings
- * This allows the admin-uploaded favicon to override the default one
- */
 export const useDynamicFavicon = () => {
   useEffect(() => {
     const updateFavicon = async () => {
       try {
-        // Fetch the admin-set favicon from shared_settings
         const { data, error } = await supabase
           .from('shared_settings')
           .select('setting_value')
           .eq('setting_key', 'app_favicon')
-          .single();
+          .maybeSingle();
 
-        if (error || !data?.setting_value) {
-          // No custom favicon set, keep default
+        if (error) {
+          console.error('Error fetching favicon:', error);
           return;
         }
 
-        const faviconUrl = data.setting_value;
-        
-        // Update all favicon links in the document head
-        const faviconLinks = document.querySelectorAll('link[rel*="icon"]');
-        faviconLinks.forEach(link => {
-          (link as HTMLLinkElement).href = faviconUrl;
-        });
+        if (data?.setting_value) {
+          // Remove existing favicon links
+          const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
+          existingFavicons.forEach(link => link.remove());
 
-        // Create new favicon link if none exists
-        if (faviconLinks.length === 0) {
+          // Add new favicon
           const link = document.createElement('link');
           link.rel = 'icon';
-          link.type = 'image/x-icon';
-          link.href = faviconUrl;
+          link.type = 'image/png';
+          link.href = data.setting_value;
           document.head.appendChild(link);
-        }
 
-        console.log('Dynamic favicon updated:', faviconUrl);
+          // Also update shortcut icon
+          const shortcutLink = document.createElement('link');
+          shortcutLink.rel = 'shortcut icon';
+          shortcutLink.type = 'image/png';
+          shortcutLink.href = data.setting_value;
+          document.head.appendChild(shortcutLink);
+
+          console.log('Favicon updated to:', data.setting_value);
+        }
       } catch (error) {
-        console.error('Error updating dynamic favicon:', error);
+        console.error('Error updating favicon:', error);
       }
     };
 
-    // Update favicon on mount
+    const updateAppIcons = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('shared_settings')
+          .select('setting_value')
+          .eq('setting_key', 'app_logo')
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching app logo:', error);
+          return;
+        }
+
+        if (data?.setting_value) {
+          // Update apple-touch-icon links
+          const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
+          appleTouchIcons.forEach(link => {
+            (link as HTMLLinkElement).href = data.setting_value;
+          });
+
+          // Update manifest icon references if needed
+          const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+          if (manifestLink) {
+            // Note: Manifest would need to be dynamic too for full support
+            console.log('App logo updated to:', data.setting_value);
+          }
+        }
+      } catch (error) {
+        console.error('Error updating app icons:', error);
+      }
+    };
+
     updateFavicon();
+    updateAppIcons();
   }, []);
 };
