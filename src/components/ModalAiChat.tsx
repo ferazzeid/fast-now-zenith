@@ -427,6 +427,13 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
+                    {/* Show only total summary for food suggestions, not individual items */}
+                    {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
+                      <div className="mt-3 p-2 bg-background/30 rounded text-xs font-medium">
+                        Total: {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0)} calories, {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0)}g carbs
+                      </div>
+                    )}
+
                     {/* Individual food items with inline editing */}
                     {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
                       <div className="mt-3 space-y-2">
@@ -442,45 +449,51 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                                     [index]: { ...prev[index], name: e.target.value }
                                   }))}
                                   placeholder="Food name"
-                                  className="h-6 text-xs"
+                                  className="h-7 text-xs"
                                 />
                                 <div className="grid grid-cols-3 gap-1">
-                                  <Input
-                                    type="number"
-                                    value={inlineEditData[index]?.portion || ''}
-                                    onChange={(e) => setInlineEditData(prev => ({
-                                      ...prev,
-                                      [index]: { ...prev[index], portion: e.target.value }
-                                    }))}
-                                    placeholder="Weight (g)"
-                                    className="h-6 text-xs"
-                                  />
-                                  <Input
-                                    type="number"
-                                    value={inlineEditData[index]?.calories || ''}
-                                    onChange={(e) => setInlineEditData(prev => ({
-                                      ...prev,
-                                      [index]: { ...prev[index], calories: e.target.value }
-                                    }))}
-                                    placeholder="Calories"
-                                    className="h-6 text-xs"
-                                  />
-                                  <Input
-                                    type="number"
-                                    value={inlineEditData[index]?.carbs || ''}
-                                    onChange={(e) => setInlineEditData(prev => ({
-                                      ...prev,
-                                      [index]: { ...prev[index], carbs: e.target.value }
-                                    }))}
-                                    placeholder="Carbs (g)"
-                                    className="h-6 text-xs"
-                                  />
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1">Weight (g)</div>
+                                    <Input
+                                      type="number"
+                                      value={inlineEditData[index]?.portion || ''}
+                                      onChange={(e) => setInlineEditData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], portion: e.target.value }
+                                      }))}
+                                      className="h-7 text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1">Calories</div>
+                                    <Input
+                                      type="number"
+                                      value={inlineEditData[index]?.calories || ''}
+                                      onChange={(e) => setInlineEditData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], calories: e.target.value }
+                                      }))}
+                                      className="h-7 text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1">Carbs (g)</div>
+                                    <Input
+                                      type="number"
+                                      value={inlineEditData[index]?.carbs || ''}
+                                      onChange={(e) => setInlineEditData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], carbs: e.target.value }
+                                      }))}
+                                      className="h-7 text-xs"
+                                    />
+                                  </div>
                                 </div>
                                 <div className="flex gap-1">
                                   <Button
                                     size="sm"
                                     onClick={() => handleSaveInlineEdit(index)}
-                                    className="h-6 px-2 text-xs flex-1"
+                                    className="h-7 px-2 text-xs flex-1"
                                   >
                                     Save
                                   </Button>
@@ -488,7 +501,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleCancelInlineEdit(index)}
-                                    className="h-6 px-2 text-xs flex-1"
+                                    className="h-7 px-2 text-xs flex-1"
                                   >
                                     Cancel
                                   </Button>
@@ -503,7 +516,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                                     size="sm" 
                                     variant="outline" 
                                     onClick={() => handleInlineEdit(index)}
-                                    className="h-6 px-2 text-xs"
+                                    className="h-7 px-2 text-xs"
                                   >
                                     Edit
                                   </Button>
@@ -511,7 +524,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                                     size="sm" 
                                     variant="outline" 
                                     onClick={() => handleRemoveFood(index)}
-                                    className="h-6 px-2 text-xs text-destructive"
+                                    className="h-7 px-2 text-xs text-destructive"
                                   >
                                     Remove
                                   </Button>
