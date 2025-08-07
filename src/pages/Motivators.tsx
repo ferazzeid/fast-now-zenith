@@ -330,6 +330,7 @@ Please tell me what motivates you or what kind of motivational message you'd lik
                 onResult={handleAiChatResult}
                 onClose={() => setShowAiChat(false)}
                 title="Motivator Assistant"
+                systemPrompt="You are a motivational coach who helps users create personalized motivational messages and goals. Focus on understanding their specific motivations and creating compelling, actionable content that will inspire them on their journey."
               />
             </ComponentErrorBoundary>
           )}
