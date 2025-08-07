@@ -14,7 +14,7 @@ import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 import { useProfile } from '@/hooks/useProfile';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
@@ -23,7 +23,7 @@ export const DailyStatsPanel = memo(() => {
   const { deficitData, loading, refreshDeficit } = useDailyDeficitQuery();
   const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
   const { profile } = useProfile();
-  const { todayEntries, todayTotals } = useFoodEntries();
+  const { todayEntries, todayTotals } = useFoodEntriesQuery();
   const { appLogo } = useAppLogo();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();

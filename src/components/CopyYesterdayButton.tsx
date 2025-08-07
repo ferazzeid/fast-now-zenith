@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Clock } from 'lucide-react';
 import { useCopyYesterdayFoods } from '@/hooks/useCopyYesterdayFoods';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 
 interface CopyYesterdayButtonProps {
   onCopied?: () => void;
@@ -16,13 +16,13 @@ export const CopyYesterdayButton = ({
   size = 'default'
 }: CopyYesterdayButtonProps) => {
   const { copyYesterdayFoods, loading } = useCopyYesterdayFoods();
-  const { refreshEntries } = useFoodEntries();
+  const { refreshFoodEntries } = useFoodEntriesQuery();
 
   const handleCopy = async () => {
     const result = await copyYesterdayFoods();
     if (result.success) {
       // Immediately refresh food entries to show copied items
-      await refreshEntries();
+      await refreshFoodEntries();
       if (onCopied) {
         onCopied();
       }

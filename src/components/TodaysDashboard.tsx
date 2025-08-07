@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, Target, Activity, Apple } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,7 +21,7 @@ export const TodaysDashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [todayWalkingStats, setTodayWalkingStats] = useState({ minutes: 0, calories: 0 });
   const { user } = useAuth();
-  const { todayTotals } = useFoodEntries();
+  const { todayTotals } = useFoodEntriesQuery();
   const { currentSession } = useWalkingSession();
 
   useEffect(() => {

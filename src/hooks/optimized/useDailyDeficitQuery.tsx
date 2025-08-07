@@ -20,7 +20,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
+import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
 import { useProfile } from '@/hooks/useProfile';
 import { useCallback } from 'react';
@@ -52,7 +53,7 @@ const bmrTdeeQueryKey = (userId: string | null, profileHash: string) => ['bmr-td
 export const useDailyDeficitQuery = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { todayTotals } = useFoodEntries();
+  const { todayTotals } = useFoodEntriesQuery();
   const { sessions: walkingSessions } = useWalkingSessionQuery();
   
   // Get today's date in YYYY-MM-DD format
@@ -63,8 +64,8 @@ export const useDailyDeficitQuery = () => {
     `${profile.weight}-${profile.height}-${profile.age}-${profile.activity_level}` : 
     'no-profile';
 
-  // Manual calories are zero for now - simplify to avoid type issues
-  const manualCaloriesQuery = { data: 0, isLoading: false };
+  // Get manual calorie burns for today
+  const { todayTotal: manualCaloriesTotal } = useManualCalorieBurns();
 
   // PERFORMANCE: Cached BMR/TDEE calculations (expensive operations)
   const bmrTdeeQuery = useQuery({
@@ -159,7 +160,7 @@ export const useDailyDeficitQuery = () => {
       const bmrTdee = bmrTdeeQuery.data || { bmr: 0, tdee: 0 };
       const caloriesConsumed = todayTotals?.calories || 0;
       const walkingCalories = walkingCaloriesQuery.data || 0;
-      const manualCalories = manualCaloriesQuery.data || 0;
+      const manualCalories = manualCaloriesTotal || 0;
       
       const totalCaloriesBurned = bmrTdee.tdee + walkingCalories + manualCalories;
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
@@ -175,7 +176,7 @@ export const useDailyDeficitQuery = () => {
       };
     },
     enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
-             walkingCaloriesQuery.data !== undefined && manualCaloriesQuery.data !== undefined,
+             walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined,
     staleTime: 1 * 60 * 1000, // PERFORMANCE: 1 minute stale time for real-time feel
     gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
   });

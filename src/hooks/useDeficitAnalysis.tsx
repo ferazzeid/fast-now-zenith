@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 import { useProfile } from '@/hooks/useProfile';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ export const useDeficitAnalysis = () => {
   const { deficitData } = useDailyDeficitQuery();
   const { profile } = useProfile();
   const { weeksToGoal, fatInGrams, thirtyDayProjection } = useGoalCalculations();
-  const { todayEntries } = useFoodEntries();
+  const { todayEntries } = useFoodEntriesQuery();
   const { currentSession: walkingSession } = useWalkingSession();
   const { currentSession: fastingSession } = useFastingSession();
 
