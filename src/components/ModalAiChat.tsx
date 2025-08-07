@@ -315,8 +315,11 @@ NO other text. Immediately call add_multiple_foods function.`;
         
         setMessages(prev => [...prev, confirmationMessage]);
         
-        // Clear the food suggestion to prevent duplicate buttons
-        setLastFoodSuggestion(null);
+        // Mark foods as added but keep them visible
+        setLastFoodSuggestion(prev => ({
+          ...prev,
+          added: true
+        }));
         
       } catch (error) {
         console.error('Error adding foods:', error);
@@ -451,15 +454,20 @@ NO other text. Immediately call add_multiple_foods function.`;
         {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
           <div className="space-y-2">
             {/* Total summary */}
-            <div className="p-2 bg-background/30 rounded text-xs font-medium">
-              Total: {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0)} calories, {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0)}g carbs
-            </div>
+            <Card className="p-3 bg-muted/50">
+              <div className="text-sm font-medium">
+                Total: {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0)} calories, {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0)}g carbs
+                {lastFoodSuggestion.added && (
+                  <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
+                )}
+              </div>
+            </Card>
             
             {lastFoodSuggestion.foods.map((food: any, index: number) => (
-              <div key={index} className="p-2 bg-background/50 rounded text-xs">
+              <Card key={index} className="p-3 bg-background border">
                 {editingFoodIndex === index ? (
                   // Inline editing mode
-                  <div className="space-y-2">
+                  <div className="space-y-2">{/* ... rest of inline editing JSX ... */}
                     <Input
                       value={inlineEditData[index]?.name || ''}
                       onChange={(e) => setInlineEditData(prev => ({
@@ -467,7 +475,7 @@ NO other text. Immediately call add_multiple_foods function.`;
                         [index]: { ...prev[index], name: e.target.value }
                       }))}
                       placeholder="Food name"
-                      className="h-7 text-xs"
+                      className="h-8 text-sm"
                     />
                     <div className="grid grid-cols-3 gap-1">
                       <div>
@@ -479,7 +487,7 @@ NO other text. Immediately call add_multiple_foods function.`;
                             ...prev,
                             [index]: { ...prev[index], portion: e.target.value }
                           }))}
-                          className="h-7 text-xs"
+                          className="h-8 text-sm"
                         />
                       </div>
                       <div>
@@ -491,7 +499,7 @@ NO other text. Immediately call add_multiple_foods function.`;
                             ...prev,
                             [index]: { ...prev[index], calories: e.target.value }
                           }))}
-                          className="h-7 text-xs"
+                          className="h-8 text-sm"
                         />
                       </div>
                       <div>
@@ -503,7 +511,7 @@ NO other text. Immediately call add_multiple_foods function.`;
                             ...prev,
                             [index]: { ...prev[index], carbs: e.target.value }
                           }))}
-                          className="h-7 text-xs"
+                          className="h-8 text-sm"
                         />
                       </div>
                     </div>
@@ -511,7 +519,7 @@ NO other text. Immediately call add_multiple_foods function.`;
                       <Button
                         size="sm"
                         onClick={() => handleSaveInlineEdit(index)}
-                        className="h-7 px-2 text-xs flex-1"
+                        className="h-8 px-3 text-sm flex-1"
                       >
                         Save
                       </Button>
@@ -519,7 +527,7 @@ NO other text. Immediately call add_multiple_foods function.`;
                         size="sm"
                         variant="outline"
                         onClick={() => handleCancelInlineEdit(index)}
-                        className="h-7 px-2 text-xs flex-1"
+                        className="h-8 px-3 text-sm flex-1"
                       >
                         Cancel
                       </Button>
@@ -528,41 +536,50 @@ NO other text. Immediately call add_multiple_foods function.`;
                 ) : (
                   // Display mode
                   <div className="flex items-center justify-between">
-                    <span>{food.name} ({food.serving_size}g) - {food.calories} cal, {food.carbs}g carbs</span>
-                    <div className="flex gap-1">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleInlineEdit(index)}
-                        className="h-7 px-2 text-xs"
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleRemoveFood(index)}
-                        className="h-7 px-2 text-xs text-destructive"
-                      >
-                        Remove
-                      </Button>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{food.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {food.serving_size}g • {food.calories} cal • {food.carbs}g carbs
+                      </div>
                     </div>
+                    {!lastFoodSuggestion.added && (
+                      <div className="flex gap-1 ml-3">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleInlineEdit(index)}
+                          className="h-8 px-3 text-sm"
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleRemoveFood(index)}
+                          className="h-8 px-3 text-sm text-destructive"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
             
-            {/* Add All Foods button */}
-            <div className="flex gap-2 mt-3">
-              <Button
-                size="sm"
-                onClick={handleAddAllFoods}
-                className="flex-1"
-                disabled={isProcessing}
-              >
-                {isProcessing ? 'Adding...' : 'Add All Foods'}
-              </Button>
-            </div>
+            {/* Add All Foods button - only show if not added yet */}
+            {!lastFoodSuggestion.added && (
+              <div className="flex gap-2 mt-3">
+                <Button
+                  size="sm"
+                  onClick={handleAddAllFoods}
+                  className="flex-1"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Adding...' : 'Add All Foods'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
         
