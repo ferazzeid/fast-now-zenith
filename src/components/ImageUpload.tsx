@@ -144,6 +144,39 @@ export const ImageUpload = ({
     }
   };
 
+  const handleGenerateImage = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please sign in to generate images",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!aiGenerationPrompt?.trim()) {
+      toast({
+        title: "Error",
+        description: "Please add content to generate an image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If we have a motivatorId, use background generation like the frontend button
+    if (motivatorId) {
+      if (onAiGenerate) {
+        onAiGenerate();
+      }
+      return;
+    }
+
+    // For other cases, use direct generation (fallback)
+    if (onAiGenerate) {
+      onAiGenerate();
+    }
+  };
+
   const handleRemoveImage = () => {
     setPreviewUrl(null);
     onImageRemove();
@@ -178,7 +211,7 @@ export const ImageUpload = ({
                   <Button
                     variant="ai"
                     size="sm"
-                    onClick={onAiGenerate}
+                    onClick={handleGenerateImage}
                     disabled={isGenerating}
                     className="h-8 w-8 p-0"
                     title={previewUrl && currentImageUrl ? "Regenerate with AI" : "Generate with AI"}
@@ -302,7 +335,7 @@ export const ImageUpload = ({
             <PremiumGate feature="AI Image Generation" showUpgrade={false}>
               <Button
                 variant="ai"
-                onClick={onAiGenerate}
+                onClick={handleGenerateImage}
                 disabled={isGenerating}
                 className="w-full"
               >

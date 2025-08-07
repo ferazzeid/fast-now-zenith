@@ -59,10 +59,42 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       return;
     }
 
+    // If editing existing motivator, use background generation
+    if (motivator?.id) {
+      try {
+        // Trigger background generation via edge function
+        const { error } = await supabase.functions.invoke('generate-image', {
+          body: {
+            prompt: `${title}. ${content}`,
+            filename: `motivator-${motivator.id}-${Date.now()}.jpg`,
+            motivatorId: motivator.id,
+            userId: motivator.id // We'll use the user from edge function auth
+          }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "✨ Generating image...",
+          description: "Your image is being generated in the background. You can safely navigate away.",
+        });
+      } catch (error) {
+        toast({
+          title: "Generation failed",
+          description: "Please try again or add your own image.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // For new motivators, use direct generation
     setIsGeneratingImage(true);
     try {
-      // Use a clean, focused prompt template
-      let promptTemplate = "Create a simple, clean illustration that represents: {title}. {content}. Style: minimalist, modern, inspiring. Colors: {primary_color} and {accent_color}";
+      // Use improved cartoon style prompt template
+      let promptTemplate = "Modern cartoon illustration, minimalist style with soft rounded shapes and clean lines. Use warm, encouraging aesthetic with {primary_color} as main color and {accent_color} for highlights. Subject: {title}. {content}. Style: symbolic representation, simple, uplifting, suitable for wellness app, soft pastel colors, clean background with subtle gradient.";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       

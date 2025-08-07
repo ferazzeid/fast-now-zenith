@@ -22,7 +22,7 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     key: 'ai_image_motivator_prompt',
     title: 'Motivator Image Generation',
     description: 'Controls how AI generates images for motivational content, personal motivators, and goal templates.',
-    defaultPrompt: 'Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}',
+    defaultPrompt: 'Modern cartoon illustration, minimalist style with soft rounded shapes and clean lines. Use warm, encouraging aesthetic with {primary_color} as main color theme and {accent_color} for highlights and accents. Subject: {title}. {content}. Style: symbolic representation rather than literal, simple and uplifting, suitable for wellness/motivation app, soft pastel gradient background, clean composition. Avoid photorealistic elements, focus on iconic/symbolic imagery that represents the concept.',
     variables: ['{title}', '{content}', '{primary_color}', '{accent_color}']
   },
   {
