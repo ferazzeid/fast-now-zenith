@@ -167,7 +167,7 @@ const AppContent = () => {
       </div>
       
       {/* Global Profile Onboarding */}
-      {console.log('Rendering onboarding modal:', { showOnboarding, isOpen: showOnboarding })}
+      
       <GlobalProfileOnboarding
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}

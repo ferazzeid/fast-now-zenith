@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { FastingTimeline } from '@/components/FastingTimeline';
 import { Quote } from '@/hooks/useQuoteSettings';
@@ -18,29 +18,37 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
 }) => {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('quote');
   const [isVisible, setIsVisible] = useState(true);
-
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    // Only rotate if we have quotes to show
     if (quotes.length === 0) return;
 
     const interval = setInterval(() => {
       // Fade out
       setIsVisible(false);
-      
+
       // After fade out completes, switch mode and fade in
-      setTimeout(() => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
         setDisplayMode(prev => prev === 'quote' ? 'timeline' : 'quote');
         setIsVisible(true);
       }, 300); // Match the transition duration
     }, 30000); // 30 seconds
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, [quotes.length]);
 
   // Manual mode switch on tap/click
-  const handleSwitch = () => {
+  const handleSwitch = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setIsVisible(false);
-    setTimeout(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
       setDisplayMode(prev => prev === 'quote' ? 'timeline' : 'quote');
       setIsVisible(true);
     }, 300);
@@ -58,16 +66,20 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
 
   return (
     <div 
-      className={`transition-opacity duration-300 cursor-pointer ${
+      className={`transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       } ${className}`}
-      onClick={handleSwitch}
     >
       {displayMode === 'quote' ? (
         <div>
           <InspirationQuote quotes={quotes} />
           <div className="text-center mt-2">
-            <div className="flex justify-center items-center gap-2">
+            <div 
+              className="flex justify-center items-center gap-2 cursor-pointer select-none"
+              role="button"
+              aria-label="Switch between quote and timeline"
+              onClick={handleSwitch}
+            >
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               <div className="w-2 h-2 rounded-full bg-muted"></div>
               <span className="text-xs text-muted-foreground ml-2">Tap to switch</span>
@@ -78,7 +90,12 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
         <div>
           <FastingTimeline currentHour={currentFastingHour} />
           <div className="text-center mt-2">
-            <div className="flex justify-center items-center gap-2">
+            <div 
+              className="flex justify-center items-center gap-2 cursor-pointer select-none"
+              role="button"
+              aria-label="Switch between quote and timeline"
+              onClick={handleSwitch}
+            >
               <div className="w-2 h-2 rounded-full bg-muted"></div>
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               <span className="text-xs text-muted-foreground ml-2">Tap to switch</span>
