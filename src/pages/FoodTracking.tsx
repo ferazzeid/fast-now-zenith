@@ -66,7 +66,7 @@ const FoodTracking = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntriesQuery();
+  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { templateFoods, saveAsTemplate: saveTemplate, clearTemplate, applyTemplate, loading: templateLoading } = useDailyFoodTemplate();
 
@@ -544,6 +544,9 @@ const FoodTracking = () => {
         variant: "destructive"
       });
     } else {
+      // Refresh the food entries to show the newly added items
+      await refreshFoodEntries();
+      
       toast({
         title: "Template applied",
         description: "Successfully applied your daily template to today's plan."
