@@ -20,9 +20,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useFoodEntriesQuery } from './useFoodEntriesQuery';
+import { useFoodEntries } from '@/hooks/useFoodEntries';
 import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useProfile } from '@/hooks/useProfile';
 import { useCallback } from 'react';
 
 interface DailyDeficitData {
@@ -51,8 +51,8 @@ const bmrTdeeQueryKey = (userId: string | null, profileHash: string) => ['bmr-td
 
 export const useDailyDeficitQuery = () => {
   const { user } = useAuth();
-  const { profile } = useProfileQuery();
-  const { todayTotals } = useFoodEntriesQuery();
+  const { profile } = useProfile();
+  const { todayTotals } = useFoodEntries();
   const { sessions: walkingSessions } = useWalkingSessionQuery();
   
   // Get today's date in YYYY-MM-DD format
@@ -74,15 +74,23 @@ export const useDailyDeficitQuery = () => {
         return { bmr: 0, tdee: 0 };
       }
 
+      // Note: Profile weight/height are stored in metric (kg/cm) regardless of user preference
+      const weightKg = profile.weight;
+      const heightCm = profile.height;
+
       // BMR calculation using Mifflin-St Jeor Equation (using male formula as default)
-      const bmr = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5;
+      const bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5;
 
       // TDEE calculation based on activity level
       const activityMultipliers = {
         sedentary: 1.2,
+        'lightly-active': 1.375,
         lightly_active: 1.375,
+        'moderately-active': 1.55,
         moderately_active: 1.55,
+        'very-active': 1.725,
         very_active: 1.725,
+        'extremely-active': 1.9,
         extremely_active: 1.9,
       };
 
@@ -109,7 +117,16 @@ export const useDailyDeficitQuery = () => {
       });
 
       return todaySessions.reduce((total, session) => {
-        if (!session.duration_minutes || !session.speed_mph) return total;
+        // Calculate duration for active sessions or use stored duration
+        let durationMinutes = session.duration_minutes;
+        if (!durationMinutes && session.session_state === 'active' && session.start_time) {
+          const now = new Date();
+          const startTime = new Date(session.start_time);
+          // For now, calculate simple elapsed time - can add pause handling later
+          durationMinutes = Math.max(0, (now.getTime() - startTime.getTime()) / (1000 * 60));
+        }
+
+        if (!durationMinutes || !session.speed_mph) return total;
 
         // Calculate calories using METs (Metabolic Equivalent of Task)
         // Walking METs based on speed: 2.5mph=2.8, 3mph=3.2, 3.5mph=3.5, 4mph=3.8, 4.5mph=4.3, 5mph=4.8
@@ -117,9 +134,12 @@ export const useDailyDeficitQuery = () => {
           2: 2.8, 2.5: 2.8, 3: 3.2, 3.5: 3.5, 4: 3.8, 4.5: 4.3, 5: 4.8
         };
         
-        const mets = speedToMets[session.speed_mph] || 3.5; // Default to moderate pace
+        const mets = speedToMets[session.speed_mph] || 3.2; // Default to moderate pace
+        
+        // Note: Profile weight is stored in kg regardless of user preference
         const weightKg = profile.weight;
-        const durationHours = session.duration_minutes / 60;
+        
+        const durationHours = durationMinutes / 60;
         
         // Calories = METs × weight (kg) × time (hours)
         const calories = Math.round(mets * weightKg * durationHours);
@@ -128,7 +148,7 @@ export const useDailyDeficitQuery = () => {
       }, 0);
     },
     enabled: !!walkingSessions && !!profile?.weight,
-    staleTime: 2 * 60 * 1000, // PERFORMANCE: 2 minutes stale time
+    staleTime: 30 * 1000, // PERFORMANCE: 30 seconds for active sessions
     gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
   });
 
