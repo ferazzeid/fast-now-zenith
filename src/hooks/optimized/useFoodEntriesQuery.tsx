@@ -67,12 +67,18 @@ export const useFoodEntriesQuery = () => {
     queryFn: async (): Promise<FoodEntry[]> => {
       if (!user) return [];
       
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
         .eq('user_id', user.id)
-        .gte('created_at', `${today}T00:00:00.000Z`)
-        .lt('created_at', `${today}T23:59:59.999Z`)
+        .gte('created_at', today.toISOString())
+        .lt('created_at', tomorrow.toISOString())
+        .order('consumed', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
