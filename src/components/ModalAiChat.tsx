@@ -45,16 +45,10 @@ export const ModalAiChat = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    name: '',
-    portion: '',
-    calories: '',
-    carbs: ''
-  });
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
-  const [editingFoodIndex, setEditingFoodIndex] = useState<number>(0);
+  const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
+  const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -96,7 +90,8 @@ export const ModalAiChat = ({
       // Clear messages when modal closes - but only after a small delay to prevent flickering
       setTimeout(() => {
         setMessages([]);
-        setShowEditForm(false);
+        setEditingFoodIndex(null);
+        setInlineEditData({});
         setLastFoodSuggestion(null);
         setLastMotivatorSuggestion(null);
       }, 100);
@@ -308,62 +303,66 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
     await sendToAI(messageToSend);
   };
 
-  const handleAdjustDetails = (foodIndex: number = 0) => {
-    if (lastFoodSuggestion) {
+  const handleInlineEdit = (foodIndex: number) => {
+    if (lastFoodSuggestion?.foods && lastFoodSuggestion.foods[foodIndex]) {
+      const food = lastFoodSuggestion.foods[foodIndex];
+      setInlineEditData(prev => ({
+        ...prev,
+        [foodIndex]: {
+          name: food.name || '',
+          portion: food.serving_size?.toString() || '',
+          calories: food.calories?.toString() || '',
+          carbs: food.carbs?.toString() || ''
+        }
+      }));
       setEditingFoodIndex(foodIndex);
-      // Handle both single food and multiple foods
-      if (lastFoodSuggestion.foods) {
-        const foodToEdit = lastFoodSuggestion.foods[foodIndex];
-        setEditFormData({
-          name: foodToEdit?.name || '',
-          portion: foodToEdit?.serving_size?.toString() || '',
-          calories: foodToEdit?.calories?.toString() || '',
-          carbs: foodToEdit?.carbs?.toString() || ''
-        });
-      } else {
-        // Single food
-        setEditFormData({
-          name: lastFoodSuggestion.name || '',
-          portion: lastFoodSuggestion.serving_size?.toString() || '',
-          calories: lastFoodSuggestion.calories?.toString() || '',
-          carbs: lastFoodSuggestion.carbs?.toString() || ''
-        });
-      }
-      setShowEditForm(true);
     }
   };
 
-  const handleSaveEditedFood = () => {
-    if (onResult && lastFoodSuggestion) {
-      // If editing multiple foods, update the specific food and add all
-      if (lastFoodSuggestion.foods) {
-        const updatedFoods = [...lastFoodSuggestion.foods];
-        updatedFoods[editingFoodIndex] = {
-          name: editFormData.name,
-          serving_size: parseFloat(editFormData.portion),
-          calories: parseFloat(editFormData.calories),
-          carbs: parseFloat(editFormData.carbs),
-          consumed: false
-        };
-        onResult({
-          name: 'add_multiple_foods',
-          arguments: { foods: updatedFoods }
-        });
-      } else {
-        // Single food
-        onResult({
-          name: 'add_food_entry',
-          arguments: {
-            name: editFormData.name,
-            serving_size: parseFloat(editFormData.portion),
-            calories: parseFloat(editFormData.calories),
-            carbs: parseFloat(editFormData.carbs),
-            consumed: false
-          }
+  const handleSaveInlineEdit = (foodIndex: number) => {
+    const editData = inlineEditData[foodIndex];
+    if (editData && lastFoodSuggestion?.foods) {
+      // Update the food data
+      lastFoodSuggestion.foods[foodIndex] = {
+        ...lastFoodSuggestion.foods[foodIndex],
+        name: editData.name,
+        serving_size: parseInt(editData.portion) || 0,
+        calories: parseInt(editData.calories) || 0,
+        carbs: parseInt(editData.carbs) || 0
+      };
+      
+      // Clear editing state
+      setEditingFoodIndex(null);
+      setInlineEditData(prev => {
+        const updated = { ...prev };
+        delete updated[foodIndex];
+        return updated;
+      });
+    }
+  };
+
+  const handleCancelInlineEdit = (foodIndex: number) => {
+    setEditingFoodIndex(null);
+    setInlineEditData(prev => {
+      const updated = { ...prev };
+      delete updated[foodIndex];
+      return updated;
+    });
+  };
+
+  const handleRemoveFood = (foodIndex: number) => {
+    if (lastFoodSuggestion?.foods) {
+      lastFoodSuggestion.foods = lastFoodSuggestion.foods.filter((_, index) => index !== foodIndex);
+      // Reset editing state if we were editing the removed item
+      if (editingFoodIndex === foodIndex) {
+        setEditingFoodIndex(null);
+        setInlineEditData(prev => {
+          const updated = { ...prev };
+          delete updated[foodIndex];
+          return updated;
         });
       }
     }
-    setShowEditForm(false);
   };
 
   const handleCreateMotivator = () => {
@@ -428,20 +427,97 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
-                    {/* Individual food edit buttons for multi-food suggestions */}
+                    {/* Individual food items with inline editing */}
                     {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
-                      <div className="mt-3 space-y-1">
+                      <div className="mt-3 space-y-2">
                         {lastFoodSuggestion.foods.map((food: any, index: number) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded text-xs">
-                            <span>{food.name} ({food.serving_size}g)</span>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => handleAdjustDetails(index)}
-                              className="h-6 px-2 text-xs"
-                            >
-                              Edit
-                            </Button>
+                          <div key={index} className="p-2 bg-background/50 rounded text-xs">
+                            {editingFoodIndex === index ? (
+                              // Inline editing mode
+                              <div className="space-y-2">
+                                <Input
+                                  value={inlineEditData[index]?.name || ''}
+                                  onChange={(e) => setInlineEditData(prev => ({
+                                    ...prev,
+                                    [index]: { ...prev[index], name: e.target.value }
+                                  }))}
+                                  placeholder="Food name"
+                                  className="h-6 text-xs"
+                                />
+                                <div className="grid grid-cols-3 gap-1">
+                                  <Input
+                                    type="number"
+                                    value={inlineEditData[index]?.portion || ''}
+                                    onChange={(e) => setInlineEditData(prev => ({
+                                      ...prev,
+                                      [index]: { ...prev[index], portion: e.target.value }
+                                    }))}
+                                    placeholder="Weight (g)"
+                                    className="h-6 text-xs"
+                                  />
+                                  <Input
+                                    type="number"
+                                    value={inlineEditData[index]?.calories || ''}
+                                    onChange={(e) => setInlineEditData(prev => ({
+                                      ...prev,
+                                      [index]: { ...prev[index], calories: e.target.value }
+                                    }))}
+                                    placeholder="Calories"
+                                    className="h-6 text-xs"
+                                  />
+                                  <Input
+                                    type="number"
+                                    value={inlineEditData[index]?.carbs || ''}
+                                    onChange={(e) => setInlineEditData(prev => ({
+                                      ...prev,
+                                      [index]: { ...prev[index], carbs: e.target.value }
+                                    }))}
+                                    placeholder="Carbs (g)"
+                                    className="h-6 text-xs"
+                                  />
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSaveInlineEdit(index)}
+                                    className="h-6 px-2 text-xs flex-1"
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleCancelInlineEdit(index)}
+                                    className="h-6 px-2 text-xs flex-1"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              // Display mode
+                              <div className="flex items-center justify-between">
+                                <span>{food.name} ({food.serving_size}g) - {food.calories} cal, {food.carbs}g carbs</span>
+                                <div className="flex gap-1">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => handleInlineEdit(index)}
+                                    className="h-6 px-2 text-xs"
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => handleRemoveFood(index)}
+                                    className="h-6 px-2 text-xs text-destructive"
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -474,17 +550,6 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                          >
                            {lastFoodSuggestion?.foods ? 'Add All Foods' : 'Add Food'}
                          </Button>
-                         {/* Only show Quick Edit for single food entries */}
-                         {!lastFoodSuggestion?.foods && (
-                           <Button
-                             size="sm"
-                             variant="outline"
-                             onClick={() => handleAdjustDetails(0)}
-                             className="flex-1"
-                           >
-                             Quick Edit
-                           </Button>
-                         )}
                        </div>
                      )}
 
@@ -545,69 +610,9 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Edit Form */}
-        {showEditForm && (
-          <Card className="p-4 bg-muted/50">
-            <h4 className="font-medium mb-3">
-              Editing: {editFormData.name}
-              {lastFoodSuggestion?.foods && ` (${editingFoodIndex + 1} of ${lastFoodSuggestion.foods.length})`}
-            </h4>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="edit-name" className="text-sm">Food Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="edit-portion" className="text-sm">Portion (g)</Label>
-                  <Input
-                    id="edit-portion"
-                    type="number"
-                    value={editFormData.portion}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, portion: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-calories" className="text-sm">Calories</Label>
-                  <Input
-                    id="edit-calories"
-                    type="number"
-                    value={editFormData.calories}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, calories: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="edit-carbs" className="text-sm">Carbs (g)</Label>
-                <Input
-                  id="edit-carbs"
-                  type="number"
-                  value={editFormData.carbs}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, carbs: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleSaveEditedFood} className="flex-1">
-                  Add to Food Log
-                </Button>
-                <Button variant="outline" onClick={() => setShowEditForm(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
 
       {/* Input area */}
-      {!showEditForm && (
+      {editingFoodIndex === null && (
         <div className="border-t border-border pt-4 mt-4 space-y-3">
           {/* Text Input */}
           <div className="flex gap-2 items-end">

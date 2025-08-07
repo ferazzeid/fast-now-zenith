@@ -79,6 +79,8 @@ const FoodTracking = () => {
 2. Portion size in ${unitLabel}
 3. Calories (I can estimate)
 4. Carbs in grams (I can estimate)`;
+    
+    const aiChatContext = systemPrompt;
 
     let philosophyContext = '';
 
@@ -108,9 +110,8 @@ const FoodTracking = () => {
       console.log('Using default prompts');
     }
 
-    // Set empty context for clean UX
-    setAiChatContext('');
     setShowAiChat(true);
+    setAiChatContext(aiChatContext);
   };
 
   const handleAiChatResult = async (result: any) => {
