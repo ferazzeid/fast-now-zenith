@@ -31,6 +31,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
+import { FoodPlanSummary } from '@/components/FoodPlanSummary';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -613,6 +614,9 @@ const FoodTracking = () => {
             </Button>
           </div>
         </div>
+
+        {/* Food Plan Summary - Above tabs */}
+        <FoodPlanSummary entries={todayEntries} />
 
         {/* Daily Food Plan System with Tabs - Remove white container */}
         <div className="mb-6 space-y-3">
