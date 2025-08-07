@@ -335,9 +335,6 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                               minute: '2-digit'
                             })}
                           </h3>
-                          <div className="flex gap-2 items-center">
-                            {getStatusBadge(session)}
-                          </div>
                         </div>
                         <div className="flex gap-3 text-xs text-muted-foreground mt-2">
                           {session.duration_seconds && (
@@ -354,6 +351,11 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    {/* Status badge in bottom left corner */}
+                    <div className="absolute bottom-3 left-3">
+                      {getStatusBadge(session)}
                     </div>
 
                     {/* Achievement status in bottom right corner */}

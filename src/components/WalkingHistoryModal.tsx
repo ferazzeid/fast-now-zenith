@@ -268,7 +268,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                   return (
                     <div key={date} className="space-y-2">
                       <div 
-                        className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-between py-2 px-3 bg-muted/20 rounded-lg cursor-pointer hover:bg-muted/30 transition-colors border-0"
                         onClick={() => toggleDateCollapse(date)}
                       >
                         <div className="flex items-center gap-2">
@@ -292,7 +292,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                             const sessionTime = new Date(session.start_time);
                             
                             return (
-                              <Card key={session.id} className="relative">
+                              <Card key={session.id} className="relative bg-muted/20 border-0">
                                 <CardHeader className="pb-4">
                                   <div className="flex items-center justify-between">
                                     <div className="flex-1">
