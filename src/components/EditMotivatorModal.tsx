@@ -93,6 +93,66 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
     }
   };
 
+  const handleRegenerateImage = async () => {
+    if (!title.trim() && !content.trim()) {
+      toast({
+        title: "Add some content first",
+        description: "Please add a title or description before regenerating an image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    try {
+      // Fetch admin prompt settings and color themes (same as generate)
+      let promptTemplate = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}";
+      let primaryColor = "220 35% 45%";
+      let accentColor = "142 71% 45%";
+      
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color', 'brand_accent_color']);
+        
+        settingsData?.forEach(setting => {
+          if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
+            promptTemplate = setting.setting_value;
+          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+            primaryColor = setting.setting_value;
+          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+            accentColor = setting.setting_value;
+          }
+        });
+      } catch (error) {
+        console.log('Using default prompt template as fallback');
+      }
+      
+      // Replace variables in the prompt template
+      const prompt = promptTemplate
+        .replace(/{title}/g, title)
+        .replace(/{content}/g, content)
+        .replace(/{primary_color}/g, primaryColor)
+        .replace(/{accent_color}/g, accentColor);
+      
+      const newImageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
+      setImageUrl(newImageUrl);
+      
+      toast({
+        title: "✨ Image Regenerated!",
+        description: "Your new AI-generated image is ready.",
+      });
+    } catch (error) {
+      toast({
+        title: "Image regeneration failed",
+        description: "Please try again or add your own image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
   const handleSave = () => {
     onSave({
       ...motivator,
@@ -155,69 +215,53 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
               Motivator Image (Optional)
             </Label>
             
-            <div className="space-y-2">
-              {/* Use proper ImageUpload component */}
-            <ImageUpload
-              currentImageUrl={imageUrl}
-              onImageUpload={setImageUrl}
-              onImageRemove={() => setImageUrl('')}
-              showUploadOptionsWhenImageExists={true}
-            />
-
-              {/* AI Generation buttons */}
-              <div className="flex gap-3">
-                <Button
-                  variant="ai"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="flex-1"
-                >
-                  {isGeneratingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Image
-                    </>
-                  )}
-                </Button>
-                
-                {imageUrl && (
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      setIsGeneratingImage(true);
-                      try {
-                        const newImageUrl = await generate_image(`${title}. ${content}`, `motivator-${Date.now()}.jpg`);
-                        setImageUrl(newImageUrl);
-                        toast({
-                          title: "✨ Image Regenerated!",
-                          description: "Your new AI-generated image is ready.",
-                        });
-                      } catch (error) {
-                        toast({
-                          title: "Regeneration failed",
-                          description: "Please try again.",
-                          variant: "destructive",
-                        });
-                      } finally {
-                        setIsGeneratingImage(false);
-                      }
+            <div className="space-y-3">
+              {/* Image Upload with Regenerate Button on top */}
+              <ImageUpload
+                currentImageUrl={imageUrl}
+                onImageUpload={setImageUrl}
+                onImageRemove={() => setImageUrl('')}
+                showUploadOptionsWhenImageExists={true}
+                regenerateButton={imageUrl ? (
+                  <RegenerateImageButton
+                    prompt={`${title}. ${content}`}
+                    filename={`motivator-${Date.now()}.jpg`}
+                    onImageGenerated={(newUrl) => {
+                      setImageUrl(newUrl);
+                      toast({
+                        title: "✨ Image Regenerated!",
+                        description: "Your new AI-generated image is ready.",
+                      });
                     }}
                     disabled={isGeneratingImage}
-                    className="px-4 hover:bg-gray-50"
-                    title="Regenerate image"
-                  >
-                    <RotateCcw className={`w-4 h-4 ${isGeneratingImage ? 'animate-spin' : ''}`} />
-                  </Button>
-                )}
-              </div>
+                  />
+                ) : undefined}
+              />
 
+              {/* Full width AI Generation button */}
+              <Button
+                variant="ai"
+                onClick={handleGenerateImage}
+                disabled={isGeneratingImage}
+                className="w-full"
+              >
+                {isGeneratingImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Image
+                  </>
+                )}
+              </Button>
             </div>
           </div>
+          
+          {/* Add spacing at the bottom */}
+          <div className="h-4" />
         </div>
     </UniversalModal>
   );
