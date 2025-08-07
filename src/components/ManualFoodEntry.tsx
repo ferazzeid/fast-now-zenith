@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Camera, Sparkles } from 'lucide-react';
+import { X, Camera, Sparkles, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   const { session } = useAuth();
   const { profile } = useProfile();
   const [isAiFilling, setIsAiFilling] = useState(false);
+  const [isAiFillingCalories, setIsAiFillingCalories] = useState(false);
+  const [isAiFillingCarbs, setIsAiFillingCarbs] = useState(false);
   
   // Set default unit if not already set
   if (!data.servingUnit) {
@@ -40,29 +43,27 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     onDataChange({ ...data, [field]: value });
   };
 
-  const handleAiFill = async () => {
-    if (!data.name || !data.servingSize) {
-      toast.error('Please enter food name and serving size first');
+  const handleAiEstimate = async (field: 'calories' | 'carbs') => {
+    if (!data.name) {
+      toast.error('Please enter food name first');
       return;
     }
 
-    setIsAiFilling(true);
+    const setLoading = field === 'calories' ? setIsAiFillingCalories : setIsAiFillingCarbs;
+    setLoading(true);
+    
     try {
-      console.log('Making AI request for:', data.name, data.servingSize, data.servingUnit);
+      console.log('Making AI request for:', data.name, field);
       
-      const servingText = `${data.servingSize} ${data.servingUnit}`;
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
-          message: `Please provide the nutritional information per 100g for ${data.name}. The user wants to eat ${servingText}. Return only the calories and carbs per 100g as numbers. Format: calories: X, carbs: Y`,
+          message: `Please provide only the ${field} per 100g for ${data.name}. Return only the number value.`,
           conversationHistory: []
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
         },
       });
-
-      console.log('AI response result:', result);
-      console.log('AI response error:', error);
 
       if (error) {
         console.error('Supabase function error:', error);
@@ -73,30 +74,30 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
         throw new Error('No response from AI service');
       }
 
-      // Parse AI response to extract calories and carbs
+      // Parse AI response to extract the numeric value
       const response = result.completion || result.response || '';
-      console.log('AI response text:', response);
-      
-      const caloriesMatch = response.match(/calories?:\s*(\d+)/i);
-      const carbsMatch = response.match(/carbs?:\s*(\d+(?:\.\d+)?)/i);
+      const numericMatch = response.match(/(\d+(?:\.\d+)?)/);
 
-      if (caloriesMatch && carbsMatch) {
+      if (numericMatch) {
         onDataChange({
           ...data,
-          calories: caloriesMatch[1],
-          carbs: carbsMatch[1]
+          [field]: numericMatch[1]
         });
-        toast.success('Nutritional data filled by AI');
+        toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} estimated by AI`);
       } else {
         console.log('Could not parse response:', response);
         toast.error('Could not parse AI response. Please enter manually.');
       }
     } catch (error) {
-      console.error('AI fill error:', error);
-      toast.error(`Failed to get AI suggestions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('AI estimation error:', error);
+      toast.error(`Failed to get AI estimate: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setIsAiFilling(false);
+      setLoading(false);
     }
+  };
+
+  const handleVoiceInput = (text: string) => {
+    updateField('name', text);
   };
 
   return (
@@ -131,14 +132,22 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               <Label htmlFor="food-name" className="text-sm font-medium">
                 Food Name <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="food-name"
-                value={data.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="e.g., Grilled Chicken Breast"
-                className="mt-1"
-                required
-              />
+              <div className="flex gap-2 mt-1">
+                <Input
+                  id="food-name"
+                  value={data.name}
+                  onChange={(e) => updateField('name', e.target.value)}
+                  placeholder="e.g., Grilled Chicken Breast"
+                  className="flex-1"
+                  required
+                />
+                <div className="flex items-center">
+                  <CircularVoiceButton 
+                    onTranscription={handleVoiceInput}
+                    size="sm"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>
@@ -175,58 +184,65 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           </div>
 
           {/* Nutritional Information */}
-          <div className="pt-2 border-t border-border">
-            <div className="mb-3">
-              <p className="text-sm font-medium mb-1">Nutritional Information (100g)</p>
-              <p className="text-xs text-muted-foreground">
-                Enter values per 100g or use AI to estimate
-              </p>
-            </div>
-            
+          <div className="pt-2">            
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="calories" className="text-sm font-medium">
                   Calories (100g) <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="calories"
-                  type="number"
-                  value={data.calories}
-                  onChange={(e) => updateField('calories', e.target.value)}
-                  placeholder="0"
-                  className="mt-1"
-                  required
-                />
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="calories"
+                    type="number"
+                    value={data.calories}
+                    onChange={(e) => updateField('calories', e.target.value)}
+                    placeholder="0"
+                    className="flex-1"
+                    required
+                  />
+                  <Button
+                    onClick={() => handleAiEstimate('calories')}
+                    disabled={isAiFillingCalories || !data.name}
+                    className="h-10 w-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
+                    size="sm"
+                  >
+                    {isAiFillingCalories ? (
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div>
                 <Label htmlFor="carbs" className="text-sm font-medium">
                   Carbs (100g) <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={data.carbs}
-                  onChange={(e) => updateField('carbs', e.target.value)}
-                  placeholder="0"
-                  className="mt-1"
-                  required
-                />
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="carbs"
+                    type="number"
+                    value={data.carbs}
+                    onChange={(e) => updateField('carbs', e.target.value)}
+                    placeholder="0"
+                    className="flex-1"
+                    required
+                  />
+                  <Button
+                    onClick={() => handleAiEstimate('carbs')}
+                    disabled={isAiFillingCarbs || !data.name}
+                    className="h-10 w-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
+                    size="sm"
+                  >
+                    {isAiFillingCarbs ? (
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-
-            {/* AI Fill Button - Always visible since both fields are required */}
-            <div className="mt-3 flex justify-center">
-              <Button
-                onClick={handleAiFill}
-                disabled={isAiFilling || !data.name || !data.servingSize}
-                variant="ai"
-                size="sm"
-                className="text-xs"
-              >
-                <Sparkles className="w-3 h-3 mr-1" />
-                {isAiFilling ? 'Estimating...' : 'Estimate with AI'}
-              </Button>
             </div>
           </div>
 
