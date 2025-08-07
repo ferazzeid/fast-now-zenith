@@ -18,7 +18,7 @@ export interface FastingHour {
   fat_burning_milestone?: boolean;
 }
 
-const fastingHoursKey = ["fasting", "hours"] as const;
+export const fastingHoursKey = ["fasting", "hours"] as const;
 
 export function useFastingHoursQuery() {
   return useQuery({

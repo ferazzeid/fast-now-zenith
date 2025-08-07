@@ -23,6 +23,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { trackFastingEvent } from '@/utils/analytics';
 import { FastingInspirationRotator } from '@/components/FastingInspirationRotator';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
+import { queryClient } from '@/lib/query-client';
+import { supabase } from '@/integrations/supabase/client';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -50,6 +52,38 @@ const Timer = () => {
     console.log('Timer: Loading active session...');
     refreshActiveSession();
   }, [refreshActiveSession]);
+
+  // Prefetch timeline hours and quotes to make the rotator instant
+  useEffect(() => {
+    // Fasting hours prefetch
+    queryClient.prefetchQuery({
+      queryKey: ['fasting', 'hours'],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('fasting_hours')
+          .select('*')
+          .lte('hour', 72)
+          .order('hour', { ascending: true });
+        if (error) throw error;
+        return data || [];
+      },
+      staleTime: 24 * 60 * 60 * 1000,
+    });
+
+    // Quotes prefetch
+    queryClient.prefetchQuery({
+      queryKey: ['quotes', 'timer'],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('shared_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['fasting_timer_quotes', 'walking_timer_quotes']);
+        if (error) throw error;
+        return data || [];
+      },
+      staleTime: 24 * 60 * 60 * 1000,
+    });
+  }, []);
 
   useEffect(() => {
     console.log('Timer: Fasting session changed:', fastingSession);

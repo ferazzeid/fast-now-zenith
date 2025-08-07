@@ -84,3 +84,9 @@ export const PaymentProviderSettings = () => (
     <LazyPaymentProviderSettings />
   </AdminComponentWrapper>
 );
+
+export const AdminTimelineSettings = () => (
+  <AdminComponentWrapper>
+    <LazyAdminTimelineSettings />
+  </AdminComponentWrapper>
+);

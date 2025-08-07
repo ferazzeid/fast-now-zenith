@@ -18,13 +18,14 @@ import {
   CancellationTracker,
   BrandAssetsManager,
   PromptManagement,
-  PaymentProviderSettings
+  PaymentProviderSettings,
+  AdminTimelineSettings
 } from "@/components/LazyAdminComponents";
 import { AdminRoleTester } from '@/components/AdminRoleTester';
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 import { AdminDailyAnalysisSettings } from '@/components/AdminDailyAnalysisSettings';
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
-import { AdminTimelineSettings } from '@/components/AdminTimelineSettings';
+
 
 interface User {
   user_id: string;
