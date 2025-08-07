@@ -8,6 +8,7 @@ import { ManualCalorieModal } from '@/components/ManualCalorieModal';
 import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
@@ -23,6 +24,7 @@ export const DailyStatsPanel = memo(() => {
   const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
   const { profile } = useProfile();
   const { todayEntries, todayTotals } = useFoodEntries();
+  const { appLogo } = useAppLogo();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   
@@ -138,7 +140,15 @@ export const DailyStatsPanel = memo(() => {
         >
           <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-muted-foreground' : ''}`}>
             <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-primary" />
+              {appLogo ? (
+                <img 
+                  src={appLogo} 
+                  alt="App Logo" 
+                  className="w-5 h-5 object-contain"
+                />
+              ) : (
+                <Target className="w-5 h-5 text-primary" />
+              )}
                 <span className="text-sm font-medium text-warm-text">
                 Today's Deficit:
               </span>
