@@ -9,6 +9,9 @@ import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
+import { useProfileQuery } from '@/hooks/useProfileQuery';
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -31,7 +34,8 @@ import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
 import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAuthStore } from '@/stores/authStore';
 
 // Using optimized query client from @/lib/query-client
 
@@ -41,6 +45,9 @@ const AppContent = () => {
   // Load dynamic favicon from admin settings
   useDynamicFavicon();
   const location = useLocation();
+  const user = useAuthStore(state => state.user);
+  const { profile, isProfileComplete } = useProfileQuery();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Initialize analytics on app startup (non-blocking)
   useEffect(() => {
@@ -60,6 +67,13 @@ const AppContent = () => {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
+
+  // Show onboarding if user is authenticated and profile is incomplete
+  useEffect(() => {
+    if (user && profile !== undefined) {
+      setShowOnboarding(!isProfileComplete());
+    }
+  }, [user, profile, isProfileComplete]);
   
   return (
     <>
@@ -142,6 +156,12 @@ const AppContent = () => {
           <Navigation />
         </div>
       </div>
+      
+      {/* Global Profile Onboarding */}
+      <GlobalProfileOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </>
   );
 };

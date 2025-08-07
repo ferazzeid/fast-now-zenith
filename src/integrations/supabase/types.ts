@@ -860,10 +860,12 @@ export type Database = {
           is_paid_user: boolean | null
           last_activity_at: string | null
           monthly_ai_requests: number | null
+          onboarding_completed: boolean | null
           openai_api_key: string | null
           payment_method: string | null
           payment_provider: string | null
           platform_subscription_id: string | null
+          sex: string | null
           speech_model: string | null
           stripe_customer_id: string | null
           subscription_end_date: string | null
@@ -901,10 +903,12 @@ export type Database = {
           is_paid_user?: boolean | null
           last_activity_at?: string | null
           monthly_ai_requests?: number | null
+          onboarding_completed?: boolean | null
           openai_api_key?: string | null
           payment_method?: string | null
           payment_provider?: string | null
           platform_subscription_id?: string | null
+          sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
@@ -942,10 +946,12 @@ export type Database = {
           is_paid_user?: boolean | null
           last_activity_at?: string | null
           monthly_ai_requests?: number | null
+          onboarding_completed?: boolean | null
           openai_api_key?: string | null
           payment_method?: string | null
           payment_provider?: string | null
           platform_subscription_id?: string | null
+          sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null

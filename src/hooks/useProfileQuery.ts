@@ -16,6 +16,8 @@ export interface UserProfile {
   activity_level?: string;
   default_walking_speed?: number;
   units?: string;
+  sex?: 'male' | 'female';
+  onboarding_completed?: boolean;
   updated_at?: string;
 }
 
@@ -42,7 +44,7 @@ export const useProfileQuery = () => {
         throw error;
       }
 
-      return data || null;
+      return data as UserProfile || null;
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -111,7 +113,7 @@ export const useProfileQuery = () => {
   // Helper functions
   const isProfileComplete = () => {
     const profile = profileQuery.data;
-    return !!(profile?.weight && profile?.height && profile?.age);
+    return profile?.onboarding_completed || !!(profile?.weight && profile?.height && profile?.age && profile?.sex);
   };
 
   const calculateBMR = () => {
@@ -126,8 +128,15 @@ export const useProfileQuery = () => {
       heightCm = profile.height * 2.54; // Convert inches to cm
     }
 
-    // Mifflin-St Jeor equation (assuming male for now)
-    return Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
+    // Enhanced Mifflin-St Jeor equation with sex consideration
+    let bmr: number;
+    if (profile.sex === 'female') {
+      bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 161);
+    } else {
+      // Default to male formula if sex not specified
+      bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
+    }
+    return bmr;
   };
 
   const calculateWalkingCalories = (durationMinutes: number, speedMph: number = 3) => {
