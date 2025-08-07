@@ -156,7 +156,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       onClose={onClose}
       title={isEditing ? 'Edit Motivator' : 'Create New Motivator'}
       variant="standard"
-      size="lg"
+      size="md"
       showCloseButton={true}
       footer={
         <>
@@ -210,7 +210,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         )}
 
         {/* Form */}
-        <div className="space-y-3">{/* Reduced spacing from space-y-4 to space-y-3 */}
+        <div className="space-y-2">{/* Further reduced spacing to make content more compact */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="title" className="text-warm-text font-medium">
@@ -252,7 +252,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim min-h-[60px]"
+              className="bg-ceramic-base border-ceramic-rim min-h-[40px]"
               placeholder="Optional: Add more details about this motivation..."
             />
           </div>
