@@ -210,7 +210,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         )}
 
         {/* Form */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4">{/* Removed mb-6 to reduce excessive bottom margin */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="title" className="text-warm-text font-medium">
@@ -302,6 +302,9 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               </PremiumGate>
             </div>
           </div>
+          
+          {/* Proper spacing before footer buttons */}
+          <div className="h-4" />
         </div>
 
         {/* Voice Recorder Modal */}
