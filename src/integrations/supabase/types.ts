@@ -287,6 +287,45 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_food_templates: {
+        Row: {
+          calories: number
+          carbs: number
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          serving_size: number
+          sort_order: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories: number
+          carbs: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          serving_size?: number
+          sort_order?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          serving_size?: number
+          sort_order?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       default_food_favorites: {
         Row: {
           created_at: string
@@ -581,6 +620,7 @@ export type Database = {
           image_url: string | null
           name: string
           serving_size: number | null
+          source_date: string | null
           updated_at: string
           user_id: string
         }
@@ -593,6 +633,7 @@ export type Database = {
           image_url?: string | null
           name: string
           serving_size?: number | null
+          source_date?: string | null
           updated_at?: string
           user_id: string
         }
@@ -605,6 +646,7 @@ export type Database = {
           image_url?: string | null
           name?: string
           serving_size?: number | null
+          source_date?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -851,6 +893,7 @@ export type Database = {
           deletion_reason: string | null
           deletion_scheduled_at: string | null
           display_name: string | null
+          enable_daily_reset: boolean | null
           enable_fasting_slideshow: boolean | null
           enable_walking_slideshow: boolean | null
           goal_weight: number | null
@@ -894,6 +937,7 @@ export type Database = {
           deletion_reason?: string | null
           deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
@@ -937,6 +981,7 @@ export type Database = {
           deletion_reason?: string | null
           deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null

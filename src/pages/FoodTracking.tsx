@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -29,6 +30,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
+import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -57,15 +59,16 @@ const FoodTracking = () => {
   
   // New state for daily food plan system
   const [activeTab, setActiveTab] = useState('today');
-  const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
-  const [dailyTemplate, setDailyTemplate] = useState<any[]>([]);
-  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
+  const [clearingAll, setClearingAll] = useState(false);
   
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
+  const { templateFoods, saveAsTemplate: saveTemplate, clearTemplate, applyTemplate, loading: templateLoading } = useDailyFoodTemplate();
 
   const handleVoiceFood = async () => {
     trackAIEvent('chat', 'food_assistant');
@@ -461,38 +464,91 @@ const FoodTracking = () => {
     }
   };
 
-  // Template management functions
-  const toggleFoodSelection = (entryId: string) => {
-    setSelectedFoods(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(entryId)) {
-        newSet.delete(entryId);
-      } else {
-        newSet.add(entryId);
+  // Clear All and Template functions
+  const handleClearAll = async () => {
+    setClearingAll(true);
+    try {
+      // Delete all today's entries
+      for (const entry of todayEntries) {
+        await deleteFoodEntry(entry.id);
       }
-      setIsMultiSelectMode(newSet.size > 0);
-      return newSet;
-    });
+      
+      toast({
+        title: "All foods cleared",
+        description: "Successfully cleared all foods from today's plan."
+      });
+    } catch (error) {
+      console.error('Error clearing all foods:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear all foods. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setClearingAll(false);
+      setShowClearAllDialog(false);
+    }
   };
 
-  const clearSelection = () => {
-    setSelectedFoods(new Set());
-    setIsMultiSelectMode(false);
+  const handleSaveAsTemplate = async () => {
+    if (todayEntries.length === 0) {
+      toast({
+        title: "No foods to save",
+        description: "Add some foods to today's plan before saving as template.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const foodsToSave = todayEntries.map(entry => ({
+      name: entry.name,
+      calories: entry.calories,
+      carbs: entry.carbs,
+      serving_size: entry.serving_size,
+      image_url: entry.image_url
+    }));
+
+    const { error } = await saveTemplate(foodsToSave);
+    
+    if (error) {
+      toast({
+        title: "Error saving template",
+        description: "Failed to save daily template. Please try again.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Template saved",
+        description: "Successfully saved today's plan as your daily template."
+      });
+      setShowSaveTemplateDialog(false);
+    }
   };
 
-  const saveAsTemplate = async () => {
-    if (selectedFoods.size === 0) return;
+  const handleApplyTemplate = async () => {
+    if (templateFoods.length === 0) {
+      toast({
+        title: "No template available",
+        description: "Please save a daily template first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const { error } = await applyTemplate();
     
-    const selectedEntries = todayEntries.filter(entry => selectedFoods.has(entry.id));
-    setDailyTemplate(selectedEntries);
-    
-    toast({
-      variant: "default",
-      title: "Template Saved",
-      description: `${selectedFoods.size} food items saved as daily template`
-    });
-    
-    clearSelection();
+    if (error) {
+      toast({
+        title: "Error applying template",
+        description: "Failed to apply daily template. Please try again.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Template applied",
+        description: "Successfully applied your daily template to today's plan."
+      });
+    }
   };
 
   return (
@@ -560,36 +616,39 @@ const FoodTracking = () => {
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 p-1">
-              <TabsTrigger value="today">Today's Plan</TabsTrigger>
-              <TabsTrigger value="template" className="relative">
-                Template
+              <TabsTrigger value="today" className="text-sm relative">
+                Today's Plan
+                {todayEntries.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-2 h-5 w-5 p-0 hover:bg-destructive/10 text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowClearAllDialog(true);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="template" className="text-sm relative">
+                Daily Template
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="ml-2 h-5 w-5 p-0 hover:bg-primary/10"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActiveTab('today');
-                    setIsMultiSelectMode(true);
+                    setShowSaveTemplateDialog(true);
                   }}
-                  className="absolute right-2 h-5 w-5 p-0.5 hover:bg-primary/20 rounded"
-                  title="Edit template"
                 >
-                  <Edit className="w-3 h-3 text-primary" />
+                  <Save className="h-3 w-3" />
                 </Button>
               </TabsTrigger>
             </TabsList>
             
             <TabsContent value="today" className="mt-4">
-          
-          {/* Edit mode indicator */}
-          {isMultiSelectMode && (
-            <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-primary font-medium">
-                <Edit className="w-4 h-4" />
-                Select foods to save as template
-              </div>
-            </div>
-          )}
           
           {todayEntries.length === 0 ? (
             <div className="text-center py-6">
@@ -604,27 +663,8 @@ const FoodTracking = () => {
                   entry.consumed 
                     ? 'bg-ceramic-plate/50 border-ceramic-rim/50 opacity-60' 
                     : 'bg-ceramic-plate border-ceramic-rim'
-                } ${
-                  isMultiSelectMode ? 'opacity-50 hover:opacity-60' : ''
                 }`}>
                   <div className="flex items-center gap-3">
-                    {/* Multi-select checkbox - Prominent in edit mode */}
-                    {isMultiSelectMode && (
-                      <div className="flex-shrink-0 relative">
-                        <div className={`p-1 rounded border-2 transition-all duration-200 ${
-                          selectedFoods.has(entry.id) 
-                            ? 'border-primary bg-primary/10' 
-                            : 'border-primary/50 hover:border-primary bg-background'
-                        }`}>
-                          <input
-                            type="checkbox"
-                            checked={selectedFoods.has(entry.id)}
-                            onChange={() => toggleFoodSelection(entry.id)}
-                            className="w-4 h-4 rounded accent-primary opacity-100"
-                          />
-                        </div>
-                      </div>
-                    )}
                     
                     {/* Entry Image - Compact */}
                     <div className="w-5 h-5 bg-muted rounded flex items-center justify-center flex-shrink-0">
@@ -709,111 +749,56 @@ const FoodTracking = () => {
             </div>
           )}
           
-          {/* Multi-select action bar */}
-          {isMultiSelectMode && selectedFoods.size > 0 && (
-            <div className="sticky bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-6 py-3 shadow-lg">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="text-sm font-medium">
-                    <span>{selectedFoods.size} food{selectedFoods.size === 1 ? '' : 's'} selected</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearSelection}
-                    className="h-9"
-                  >
-                    Clear
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={saveAsTemplate}
-                    className="h-9 px-3"
-                  >
-                    <Save className="w-4 h-4 mr-1" />
-                    Save
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
           </TabsContent>
           
-          <TabsContent value="template" className="mt-4">
-            
-            {dailyTemplate.length === 0 ? (
-              <div className="text-center py-6">
-                <Save className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">No template saved</p>
-                <p className="text-xs text-muted-foreground mt-1">Select foods from Today's Plan to create a template</p>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {dailyTemplate.map((entry, index) => (
-                  <div key={`template-${index}`} className="bg-ceramic-plate rounded-lg p-3 border border-ceramic-rim mb-1.5">
-                    <div className="flex items-center gap-3">
-                      {/* Entry Image - Compact */}
-                      <div className="w-5 h-5 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                        {entry.image_url ? (
-                          <img 
-                            src={entry.image_url} 
-                            alt={entry.name}
-                            className="w-5 h-5 object-cover rounded"
-                          />
-                        ) : (
-                          <Utensils className="w-3 h-3 text-muted-foreground" />
-                        )}
-                      </div>
-                      
-                      {/* Entry Content - Compact */}
-                      <div className="flex-1 min-w-0">
-                        <div className="mb-0.5">
-                          <h3 className="text-sm font-semibold text-foreground truncate">
-                            {entry.name}
-                          </h3>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-medium">{Math.round(entry.serving_size)}g</span>
-                          <span className="text-muted-foreground/60">•</span>
-                          <ClickableTooltip content="Calories">
-                            <span className="font-medium cursor-pointer">{Math.round(entry.calories)}</span>
-                          </ClickableTooltip>
-                          <span className="text-muted-foreground/60">•</span>
-                          <ClickableTooltip content="Carbs">
-                            <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
-                          </ClickableTooltip>
-                        </div>
-                      </div>
-                      
-                      {/* Template Actions */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            // Remove from template
-                            setDailyTemplate(prev => prev.filter((_, i) => i !== index));
-                            toast({
-                              variant: "default",
-                              title: "Removed from template",
-                              description: `${entry.name} removed from daily template`
-                            });
-                          }}
-                          className="h-5 w-5 p-1 hover:bg-destructive/10 rounded"
-                          title="Remove from template"
-                        >
-                          <X className="w-3 h-3 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
+          <TabsContent value="template" className="space-y-4">
+            <div className="space-y-4">
+              {templateFoods.length > 0 ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">
+                      {templateFoods.length} food{templateFoods.length !== 1 ? 's' : ''} in daily template
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleApplyTemplate}
+                      disabled={templateLoading}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Apply Template
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="space-y-2">
+                    {templateFoods.map((food) => (
+                      <div key={food.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          {food.image_url && (
+                            <img
+                              src={food.image_url}
+                              alt={food.name}
+                              className="w-8 h-8 rounded object-cover"
+                            />
+                          )}
+                          <div>
+                            <p className="font-medium">{food.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Save className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No daily template saved</p>
+                  <p className="text-sm mt-2">Add foods to today's plan and save as template</p>
+                </div>
+              )}
+            </div>
           </TabsContent>
           </Tabs>
         </div>
@@ -1013,6 +998,49 @@ const FoodTracking = () => {
             })}
           </div>
         </PageOnboardingModal>
+        
+        {/* Clear All Confirmation Dialog */}
+        <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear all foods?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will remove all foods from today's plan. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleClearAll}
+                disabled={clearingAll}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {clearingAll ? "Clearing..." : "Clear All"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Save Template Confirmation Dialog */}
+        <AlertDialog open={showSaveTemplateDialog} onOpenChange={setShowSaveTemplateDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Save as daily template?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will save today's plan as your daily template. Any existing template will be replaced.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleSaveAsTemplate}
+                disabled={templateLoading}
+              >
+                {templateLoading ? "Saving..." : "Save Template"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         
       </div>
     </div>
