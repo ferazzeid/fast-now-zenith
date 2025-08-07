@@ -382,7 +382,7 @@ export const AdminTimelineSettings = () => {
     setEditingHour(fastingHour);
     setIsModalOpen(true);
   };
-  if (loading) {
+  if (isLoading) {
     return <div className="text-center py-8">Loading timeline settings...</div>;
   }
 
