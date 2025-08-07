@@ -15,6 +15,28 @@ export interface PageOnboardingContent {
 }
 
 export const onboardingContent: Record<string, PageOnboardingContent> = {
+  profile: {
+    title: "Complete Your Profile",
+    subtitle: "Tell us about yourself to unlock personalized calorie calculations and recommendations.",
+    heroQuote: "Your body is unique. Your plan should be too.",
+    sections: [
+      {
+        icon: Target,
+        title: "Personalized Calculations",
+        description: "We'll calculate your exact daily calorie needs based on your weight, height, age, and sex using proven metabolic formulas."
+      },
+      {
+        icon: Scale,
+        title: "Accurate Tracking",
+        description: "Get precise calorie burn estimates for walking and activities. Your profile enables smart deficit tracking."
+      },
+      {
+        icon: Zap,
+        title: "Smarter Recommendations",
+        description: "Unlock personalized food suggestions, goal recommendations, and motivational content tailored to your journey."
+      }
+    ]
+  },
   timer: {
     title: "Start With the Fast",
     subtitle: "60 hours of silence. No food. Just water. This is where change begins.",
