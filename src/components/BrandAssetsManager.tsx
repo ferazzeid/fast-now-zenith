@@ -134,13 +134,31 @@ const BrandAssetsManager = () => {
       const faviconUrl = await uploadAsset(favicon, 'favicon');
       console.log('Favicon uploaded successfully:', faviconUrl);
       
-      // Save to database
-      const { error } = await supabase
+      // Save to database with conflict resolution
+      const { data: existing } = await supabase
         .from('shared_settings')
-        .upsert({
-          setting_key: 'app_favicon',
-          setting_value: faviconUrl,
-        });
+        .select('id')
+        .eq('setting_key', 'app_favicon')
+        .maybeSingle();
+
+      let error;
+      if (existing) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('shared_settings')
+          .update({ setting_value: faviconUrl, updated_at: new Date().toISOString() })
+          .eq('setting_key', 'app_favicon');
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('shared_settings')
+          .insert({
+            setting_key: 'app_favicon',
+            setting_value: faviconUrl,
+          });
+        error = insertError;
+      }
 
       if (error) {
         console.error('Database update error:', error);
@@ -154,7 +172,7 @@ const BrandAssetsManager = () => {
 
       toast({
         title: "Success",
-        description: "Favicon uploaded successfully! The new favicon is now active.",
+        description: "Favicon uploaded successfully! Browser tabs will show the new favicon.",
       });
       
       // Refresh current assets to show updated favicon
@@ -187,13 +205,31 @@ const BrandAssetsManager = () => {
       const logoUrl = await uploadAsset(logo, 'logo');
       console.log('Logo uploaded successfully:', logoUrl);
       
-      // Save to database
-      const { error } = await supabase
+      // Save to database with conflict resolution
+      const { data: existing } = await supabase
         .from('shared_settings')
-        .upsert({
-          setting_key: 'app_logo',
-          setting_value: logoUrl,
-        });
+        .select('id')
+        .eq('setting_key', 'app_logo')
+        .maybeSingle();
+
+      let error;
+      if (existing) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('shared_settings')
+          .update({ setting_value: logoUrl, updated_at: new Date().toISOString() })
+          .eq('setting_key', 'app_logo');
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('shared_settings')
+          .insert({
+            setting_key: 'app_logo',
+            setting_value: logoUrl,
+          });
+        error = insertError;
+      }
 
       if (error) {
         console.error('Database update error:', error);
@@ -206,8 +242,8 @@ const BrandAssetsManager = () => {
       await updateManifestAndFavicon(undefined, logoUrl);
 
       toast({
-        title: "Success",
-        description: "App logo uploaded successfully! The new logo is now active.",
+        title: "Success", 
+        description: "App logo uploaded successfully! This will be used for PWA installation and home screen icons.",
       });
       
       // Refresh current assets to show updated logo
@@ -234,7 +270,7 @@ const BrandAssetsManager = () => {
           </CardTitle>
           <CardDescription>
             Upload a favicon image for your app. This will appear in browser tabs and bookmarks.
-            Recommended size: 32x32px or 64x64px PNG/ICO file.
+            Recommended size: 32x32px or 64x64px PNG file. This is separate from your PWA app icon.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -296,8 +332,8 @@ const BrandAssetsManager = () => {
             App Logo/Icon
           </CardTitle>
           <CardDescription>
-            Upload an app logo/icon for when users install your app on their devices.
-            Recommended size: 512x512px PNG file for best quality across all devices.
+            Upload an app logo/icon for when users install your app on their devices (PWA icon).
+            This is used for home screen icons and app stores. Recommended size: 512x512px PNG file.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

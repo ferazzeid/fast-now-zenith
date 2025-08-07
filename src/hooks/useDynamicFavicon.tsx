@@ -62,19 +62,48 @@ export const useDynamicFavicon = () => {
             (link as HTMLLinkElement).href = data.setting_value;
           });
 
-          // Update manifest icon references if needed
-          const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
-          if (manifestLink) {
-            // Note: Manifest would need to be dynamic too for full support
-            console.log('App logo updated to:', data.setting_value);
+          // Create new apple-touch-icon if none exist
+          if (appleTouchIcons.length === 0) {
+            const appleIcon = document.createElement('link');
+            appleIcon.rel = 'apple-touch-icon';
+            appleIcon.href = data.setting_value;
+            document.head.appendChild(appleIcon);
           }
+
+          console.log('App logo updated to:', data.setting_value);
         }
       } catch (error) {
         console.error('Error updating app icons:', error);
       }
     };
 
+    const updateDynamicManifest = async () => {
+      try {
+        // Update manifest link to point to dynamic endpoint
+        const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+        if (manifestLink) {
+          const dynamicManifestUrl = `${window.location.origin}/api/dynamic-manifest`;
+          
+          // Only update if not already pointing to dynamic manifest
+          if (!manifestLink.href.includes('dynamic-manifest')) {
+            manifestLink.href = dynamicManifestUrl;
+            console.log('Manifest updated to dynamic endpoint');
+          }
+        } else {
+          // Create dynamic manifest link if none exists
+          const newManifestLink = document.createElement('link');
+          newManifestLink.rel = 'manifest';
+          newManifestLink.href = `${window.location.origin}/api/dynamic-manifest`;
+          document.head.appendChild(newManifestLink);
+          console.log('Dynamic manifest link created');
+        }
+      } catch (error) {
+        console.error('Error updating dynamic manifest:', error);
+      }
+    };
+
     updateFavicon();
     updateAppIcons();
+    updateDynamicManifest();
   }, []);
 };
