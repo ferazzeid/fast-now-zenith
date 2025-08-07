@@ -21,6 +21,8 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useProfile } from '@/hooks/useProfile';
 
 import { trackFastingEvent } from '@/utils/analytics';
+import { InspirationQuote } from '@/components/InspirationQuote';
+import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -40,6 +42,7 @@ const Timer = () => {
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
   const { profile } = useProfile();
+  const { quotes } = useQuoteSettings();
 
   const isRunning = !!fastingSession;
 
@@ -359,7 +362,11 @@ const Timer = () => {
           </div>
         )}
 
-        {/* REMOVED: Timer Direction Toggle moved to top-right of timer */}
+        {/* Inspirational Quote */}
+        <InspirationQuote 
+          quotes={quotes.fasting_timer_quotes} 
+          className="mt-8"
+        />
       </div>
 
       {/* Fast Selector Modal */}

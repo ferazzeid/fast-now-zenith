@@ -22,6 +22,7 @@ import {
 } from "@/components/LazyAdminComponents";
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 import { AdminDailyAnalysisSettings } from '@/components/AdminDailyAnalysisSettings';
+import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
 
 interface User {
   user_id: string;
@@ -317,6 +318,9 @@ const AdminOverview = () => {
           </CollapsibleContent>
         </Collapsible>
       </div>
+
+      {/* Quote Management */}
+      <AdminQuoteSettings />
 
       {/* Brand Customization */}
       <div className="space-y-6 pb-24">

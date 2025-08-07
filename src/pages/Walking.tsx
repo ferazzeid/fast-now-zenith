@@ -16,6 +16,8 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
+import { InspirationQuote } from '@/components/InspirationQuote';
+import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
@@ -40,6 +42,7 @@ const Walking = () => {
   } = useWalkingSession();
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
+  const { quotes } = useQuoteSettings();
 
   const isRunning = !!currentSession;
 
@@ -262,6 +265,11 @@ const Walking = () => {
           />
         </div>
 
+        {/* Inspirational Quote */}
+        <InspirationQuote 
+          quotes={quotes.walking_timer_quotes} 
+          className="mt-8"
+        />
 
 
         <ProfileCompletionPrompt 
