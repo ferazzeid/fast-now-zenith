@@ -263,7 +263,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
               onImageRemove={() => setImageUrl('')}
-              showUploadOptionsWhenImageExists={true}
+              showUploadOptionsWhenImageExists={false}
               regenerateButton={imageUrl ? (
                 <RegenerateImageButton
                   prompt={`${title}. ${content}`}
