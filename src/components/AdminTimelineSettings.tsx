@@ -1,0 +1,456 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Save, X, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { FastingTimeline } from '@/components/FastingTimeline';
+
+interface FastingHour {
+  id?: string;
+  hour: number;
+  day: number;
+  title: string;
+  body_state: string;
+  encouragement?: string;
+  tips?: string[];
+  phase: string;
+  difficulty: string;
+  common_feelings?: string[];
+  scientific_info?: string;
+  autophagy_milestone?: boolean;
+  ketosis_milestone?: boolean;
+  fat_burning_milestone?: boolean;
+}
+
+interface FastingHourEditModalProps {
+  fastingHour?: FastingHour;
+  isOpen: boolean;
+  onSave: (fastingHour: FastingHour) => void;
+  onClose: () => void;
+}
+
+const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
+  fastingHour,
+  isOpen,
+  onSave,
+  onClose
+}) => {
+  const [formData, setFormData] = useState<FastingHour>({
+    hour: 1,
+    day: 1,
+    title: '',
+    body_state: '',
+    encouragement: '',
+    tips: [],
+    phase: 'preparation',
+    difficulty: 'easy',
+    common_feelings: [],
+    scientific_info: '',
+    autophagy_milestone: false,
+    ketosis_milestone: false,
+    fat_burning_milestone: false
+  });
+  const [tipsInput, setTipsInput] = useState('');
+  const [feelingsInput, setFeelingsInput] = useState('');
+
+  useEffect(() => {
+    if (fastingHour) {
+      setFormData(fastingHour);
+      setTipsInput(fastingHour.tips?.join('\n') || '');
+      setFeelingsInput(fastingHour.common_feelings?.join(', ') || '');
+    } else {
+      setFormData({
+        hour: 1,
+        day: 1,
+        title: '',
+        body_state: '',
+        encouragement: '',
+        tips: [],
+        phase: 'preparation',
+        difficulty: 'easy',
+        common_feelings: [],
+        scientific_info: '',
+        autophagy_milestone: false,
+        ketosis_milestone: false,
+        fat_burning_milestone: false
+      });
+      setTipsInput('');
+      setFeelingsInput('');
+    }
+  }, [fastingHour, isOpen]);
+
+  const handleSave = () => {
+    const tips = tipsInput.split('\n').filter(tip => tip.trim() !== '');
+    const feelings = feelingsInput.split(',').map(f => f.trim()).filter(f => f !== '');
+    
+    onSave({
+      ...formData,
+      tips,
+      common_feelings: feelings
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {fastingHour ? 'Edit Hour Timeline' : 'Create Hour Timeline'}
+          </DialogTitle>
+          <DialogDescription>
+            Customize the information shown for each hour of fasting.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium">Hour</label>
+              <Input
+                type="number"
+                min={1}
+                max={72}
+                value={formData.hour}
+                onChange={(e) => {
+                  const hour = parseInt(e.target.value) || 1;
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    hour,
+                    day: Math.ceil(hour / 24)
+                  }));
+                }}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Day</label>
+              <Input
+                type="number"
+                min={1}
+                max={3}
+                value={formData.day}
+                onChange={(e) => setFormData(prev => ({ ...prev, day: parseInt(e.target.value) || 1 }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Phase</label>
+              <Select 
+                value={formData.phase} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, phase: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preparation">Preparation</SelectItem>
+                  <SelectItem value="adaptation">Adaptation</SelectItem>
+                  <SelectItem value="fat_burning">Fat Burning</SelectItem>
+                  <SelectItem value="deep_ketosis">Deep Ketosis</SelectItem>
+                  <SelectItem value="autophagy">Autophagy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Difficulty</label>
+              <Select 
+                value={formData.difficulty} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="moderate">Moderate</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Title</label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g., Initial Hunger Pangs"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Body State</label>
+            <Textarea
+              value={formData.body_state}
+              onChange={(e) => setFormData(prev => ({ ...prev, body_state: e.target.value }))}
+              placeholder="Describe what's happening in the body..."
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Encouragement</label>
+            <Textarea
+              value={formData.encouragement || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, encouragement: e.target.value }))}
+              placeholder="Motivational message for this hour..."
+              rows={2}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Tips (one per line)</label>
+            <Textarea
+              value={tipsInput}
+              onChange={(e) => setTipsInput(e.target.value)}
+              placeholder="Drink water&#10;Go for a walk&#10;Practice deep breathing"
+              rows={4}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Common Feelings (comma separated)</label>
+            <Input
+              value={feelingsInput}
+              onChange={(e) => setFeelingsInput(e.target.value)}
+              placeholder="hunger, fatigue, clarity"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Scientific Info (optional)</label>
+            <Textarea
+              value={formData.scientific_info || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, scientific_info: e.target.value }))}
+              placeholder="Scientific explanation of what's happening..."
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>
+            <Save className="w-4 h-4 mr-2" />
+            Save
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export const AdminTimelineSettings = () => {
+  const [fastingHours, setFastingHours] = useState<FastingHour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingHour, setEditingHour] = useState<FastingHour | undefined>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchFastingHours();
+  }, []);
+
+  const fetchFastingHours = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('fasting_hours')
+        .select('*')
+        .lte('hour', 72)
+        .order('hour');
+
+      if (error) throw error;
+      setFastingHours(data || []);
+    } catch (error) {
+      console.error('Error fetching fasting hours:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load fasting timeline data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveFastingHour = async (fastingHour: FastingHour) => {
+    try {
+      const { error } = await supabase
+        .from('fasting_hours')
+        .upsert({
+          id: fastingHour.id,
+          hour: fastingHour.hour,
+          day: fastingHour.day,
+          title: fastingHour.title,
+          body_state: fastingHour.body_state,
+          encouragement: fastingHour.encouragement,
+          tips: fastingHour.tips,
+          phase: fastingHour.phase,
+          difficulty: fastingHour.difficulty,
+          common_feelings: fastingHour.common_feelings,
+          scientific_info: fastingHour.scientific_info,
+          autophagy_milestone: fastingHour.autophagy_milestone,
+          ketosis_milestone: fastingHour.ketosis_milestone,
+          fat_burning_milestone: fastingHour.fat_burning_milestone
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Hour ${fastingHour.hour} timeline updated successfully`
+      });
+
+      fetchFastingHours();
+      setIsModalOpen(false);
+      setEditingHour(undefined);
+    } catch (error) {
+      console.error('Error saving fasting hour:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save timeline data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteFastingHour = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('fasting_hours')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Timeline hour deleted successfully"
+      });
+
+      fetchFastingHours();
+    } catch (error) {
+      console.error('Error deleting fasting hour:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete timeline hour",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const openEditModal = (fastingHour?: FastingHour) => {
+    setEditingHour(fastingHour);
+    setIsModalOpen(true);
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading timeline settings...</div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="w-5 h-5" />
+          Fasting Timeline Settings
+        </CardTitle>
+        <CardDescription>
+          Manage tooltip content for each hour of the fasting timeline (1-72 hours)
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Preview */}
+        <div className="p-4 bg-muted/50 rounded-lg">
+          <p className="text-sm text-muted-foreground mb-4">Preview:</p>
+          <FastingTimeline currentHour={0} />
+        </div>
+
+        {/* Add New Hour Button */}
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium">Timeline Hours ({fastingHours.length}/72)</h3>
+          <Button onClick={() => openEditModal()}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Hour
+          </Button>
+        </div>
+
+        {/* Hours List */}
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {fastingHours.map((hour) => (
+            <div key={hour.id || hour.hour} className="flex items-start gap-3 p-3 border rounded-lg">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline">Hour {hour.hour}</Badge>
+                  <Badge variant={
+                    hour.phase === 'preparation' ? 'default' :
+                    hour.phase === 'adaptation' ? 'secondary' :
+                    hour.phase === 'fat_burning' ? 'secondary' :
+                    'default'
+                  }>
+                    {hour.phase.replace('_', ' ')}
+                  </Badge>
+                  <Badge variant={
+                    hour.difficulty === 'easy' ? 'default' :
+                    hour.difficulty === 'moderate' ? 'secondary' :
+                    'destructive'
+                  }>
+                    {hour.difficulty}
+                  </Badge>
+                </div>
+                <h4 className="font-medium truncate">{hour.title}</h4>
+                <p className="text-sm text-muted-foreground line-clamp-2">{hour.body_state}</p>
+                {hour.encouragement && (
+                  <p className="text-sm italic text-primary/80 mt-1">"{hour.encouragement}"</p>
+                )}
+              </div>
+              <div className="flex gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => openEditModal(hour)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => hour.id && deleteFastingHour(hour.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {fastingHours.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No timeline hours configured yet. Add your first hour to get started.
+          </div>
+        )}
+
+        <FastingHourEditModal
+          fastingHour={editingHour}
+          isOpen={isModalOpen}
+          onSave={saveFastingHour}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingHour(undefined);
+          }}
+        />
+      </CardContent>
+    </Card>
+  );
+};

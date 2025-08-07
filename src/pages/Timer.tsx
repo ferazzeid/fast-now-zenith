@@ -21,7 +21,7 @@ import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useProfile } from '@/hooks/useProfile';
 
 import { trackFastingEvent } from '@/utils/analytics';
-import { InspirationQuote } from '@/components/InspirationQuote';
+import { FastingInspirationRotator } from '@/components/FastingInspirationRotator';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 
 const Timer = () => {
@@ -362,9 +362,10 @@ const Timer = () => {
           </div>
         )}
 
-        {/* Inspirational Quote */}
-        <InspirationQuote 
-          quotes={quotes.fasting_timer_quotes} 
+        {/* Inspirational Content Rotator */}
+        <FastingInspirationRotator 
+          quotes={quotes.fasting_timer_quotes}
+          currentFastingHour={Math.floor(timeElapsed / 3600)}
           className="mt-8"
         />
       </div>

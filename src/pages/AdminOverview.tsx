@@ -24,6 +24,7 @@ import { AdminRoleTester } from '@/components/AdminRoleTester';
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 import { AdminDailyAnalysisSettings } from '@/components/AdminDailyAnalysisSettings';
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
+import { AdminTimelineSettings } from '@/components/AdminTimelineSettings';
 
 interface User {
   user_id: string;
@@ -325,6 +326,9 @@ const AdminOverview = () => {
 
       {/* Quote Management */}
       <AdminQuoteSettings />
+
+      {/* Timeline Management */}
+      <AdminTimelineSettings />
 
       {/* Brand Customization */}
       <div className="space-y-6 pb-24">
