@@ -99,7 +99,10 @@ export const useProfile = () => {
 
     setLoading(true);
     try {
+      console.log('Executing profile update with data:', updates);
+      
       const result = await executeWithRetry(async () => {
+        console.log('Making database upsert call...');
         return await supabase
           .from('profiles')
           .upsert({
@@ -111,29 +114,41 @@ export const useProfile = () => {
       });
       
       const { data, error } = result;
+      console.log('Database response:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
-      // Update cache with new data
-      cacheProfile(user.id, data, 24);
+      if (!data) {
+        console.error('No data returned from database');
+        throw new Error('No data returned from database');
+      }
+
+      // Clear cache and set new profile data
+      console.log('Updating profile state with:', data);
       setProfile(data);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been saved successfully."
-      });
+      
+      // Force a reload of the profile to verify it was saved
+      setTimeout(async () => {
+        console.log('Reloading profile to verify save...');
+        await loadProfile();
+      }, 100);
+
       return { data, error: null };
     } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: "Unable to save profile. Please try again."
+        description: `Unable to save profile: ${error.message || 'Please try again.'}`
       });
       return { error, data: null };
     } finally {
       setLoading(false);
     }
-  }, [user, executeWithRetry, toast]);
+  }, [user, executeWithRetry, toast, loadProfile]);
 
   const isProfileComplete = useCallback(() => {
     const complete = !!(profile && profile.weight && profile.height && profile.age && 

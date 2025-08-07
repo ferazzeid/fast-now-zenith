@@ -59,35 +59,47 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         weightValue = weightValue * 6.35029; // Convert stones to kg
       }
 
-      console.log('Saving profile data:', {
-        units,
-        weight: weightValue,
-        height: heightValue,
-        age: parseInt(formData.age),
-        activity_level: formData.activityLevel,
-      });
-
-      const result = await updateProfile({
+      const profileData = {
         units: units as 'metric' | 'imperial',
         weight: weightValue,
         height: heightValue,
         age: parseInt(formData.age),
         activity_level: formData.activityLevel,
-      });
+        sex: formData.sex,
+      };
+
+      console.log('About to save profile data:', profileData);
+
+      const result = await updateProfile(profileData);
 
       console.log('Profile update result:', result);
+
+      if (result?.error) {
+        console.error('Profile update failed:', result.error);
+        throw new Error(result.error.message || 'Failed to update profile');
+      }
+
+      if (!result?.data) {
+        console.error('No data returned from profile update');
+        throw new Error('No data returned from profile update');
+      }
+
+      console.log('Profile successfully saved:', result.data);
 
       toast({
         title: "Profile Updated",
         description: "Your profile has been successfully updated!",
       });
 
-      onComplete();
+      // Wait a moment to ensure the data is saved before completing
+      setTimeout(() => {
+        onComplete();
+      }, 500);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: `Failed to update profile: ${error instanceof Error ? error.message : 'Please try again.'}`,
         variant: "destructive",
       });
     }
@@ -321,11 +333,11 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                   <SelectValue placeholder="Select activity level" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border z-50">
-                  <SelectItem value="sedentary">Sedentary (Little/no exercise)</SelectItem>
-                  <SelectItem value="lightly-active">Lightly Active (Light exercise 1-3 days/week)</SelectItem>
-                  <SelectItem value="moderately-active">Moderately Active (Moderate exercise 3-5 days/week)</SelectItem>
-                  <SelectItem value="very-active">Very Active (Hard exercise 6-7 days/week)</SelectItem>
-                  <SelectItem value="extra-active">Extra Active (Very hard exercise, physical job)</SelectItem>
+                  <SelectItem value="sedentary">Sedentary</SelectItem>
+                  <SelectItem value="lightly-active">Lightly Active</SelectItem>
+                  <SelectItem value="moderately-active">Moderately Active</SelectItem>
+                  <SelectItem value="very-active">Very Active</SelectItem>
+                  <SelectItem value="extra-active">Extra Active</SelectItem>
                 </SelectContent>
               </Select>
             </div>
