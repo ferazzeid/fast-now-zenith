@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
+
+
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour } from "@/hooks/optimized/useFastingHoursQuery";
 import { useSearchParams } from "react-router-dom";
@@ -16,16 +16,6 @@ interface FastingTimelineV2Props {
 
 const MAX_HOUR = 72;
 
-const dayMarkers = [24, 48, 72];
-const notableHours = [
-  ...Array.from({ length: 24 }, (_, i) => i + 1),
-  30, 36, 42, 48, 54, 60, 66, 72,
-];
-
-function getPercent(hour: number) {
-  const h = Math.min(Math.max(hour, 1), MAX_HOUR);
-  return ((h - 1) / (MAX_HOUR - 1)) * 100;
-}
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
@@ -65,68 +55,6 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
     <div className={cn("w-full", className)}>
       <FastingSliderHeader currentHour={selectedHour} className="mb-3" />
 
-      {/* Slider */}
-      <div className="relative">
-        <Slider
-          min={1}
-          max={MAX_HOUR}
-          step={1}
-          value={[selectedHour]}
-          onValueChange={(v) => setSelectedHour(v[0])}
-          aria-label="Fasting hour selector"
-          aria-valuetext={`Hour ${selectedHour}`}
-        />
-
-        {/* Progress indicator overlay (subtle) */}
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-primary/10"
-          style={{ width: `${getPercent(selectedHour)}%` }}
-          aria-hidden
-        />
-
-        {/* Notable hour dots */}
-        <div className="relative mt-3 h-6">
-          {notableHours.map((h) => (
-            <div
-              key={h}
-              className="absolute -translate-x-1/2 top-1/2 -translate-y-1/2"
-              style={{ left: `${getPercent(h)}%` }}
-            >
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "w-4 h-4 rounded-full border bg-background shadow-sm hover-scale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      h <= selectedHour ? "border-primary bg-primary/20" : "border-muted bg-muted"
-                    )}
-                    aria-label={`Hour ${h}`}
-                    onClick={() => setSelectedHour(h)}
-                  />
-                </PopoverTrigger>
-                <PopoverContent sideOffset={8} className="w-64 p-3" align="center">
-                  <div className="text-sm font-medium mb-1">Hour {h}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {hourMap.get(h)?.title || "No details yet"}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          ))}
-
-          {/* Day markers */}
-          {dayMarkers.map((h) => (
-            <div
-              key={`day-${h}`}
-              className="absolute -translate-x-1/2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground"
-              style={{ left: `${getPercent(h)}%` }}
-              aria-hidden
-            >
-              Day {h / 24}
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Details panel */}
       <Card className="mt-4">
