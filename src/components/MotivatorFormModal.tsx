@@ -302,9 +302,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               </PremiumGate>
             </div>
           </div>
-          
-          {/* Add spacing at the bottom */}
-          <div className="h-8" />
         </div>
 
         {/* Voice Recorder Modal */}

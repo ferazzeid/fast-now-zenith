@@ -3,7 +3,6 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
-import { EditMotivatorModal } from '@/components/EditMotivatorModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -200,7 +199,7 @@ export const AdminPredefinedMotivators = () => {
 
         {/* Edit Modal */}
         {editingMotivator && (
-          <EditMotivatorModal
+          <MotivatorFormModal
             motivator={{
               id: editingMotivator.id || '',
               title: editingMotivator.title,
