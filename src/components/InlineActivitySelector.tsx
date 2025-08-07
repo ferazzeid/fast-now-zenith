@@ -25,7 +25,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { todayOverride, loading, setActivityOverride, clearTodayOverride } = useDailyActivityOverride();
   const { profile } = useProfile();
-  const { refetch } = useDailyDeficitQuery();
+  const { refreshDeficit } = useDailyDeficitQuery();
 
   const handleValueChange = async (value: string) => {
     try {
@@ -37,7 +37,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
       }
       
       // Refresh deficit calculations after change
-      await refetch();
+      await refreshDeficit();
       
       // Close dropdown after a short delay to show the change
       setTimeout(() => setIsOpen(false), 300);

@@ -13,7 +13,7 @@ export const useDeficitAnalysis = () => {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const { user } = useAuth();
-  const { deficit } = useDailyDeficitQuery();
+  const { deficitData } = useDailyDeficitQuery();
   const { profile } = useProfile();
   const { weeksToGoal, fatInGrams, thirtyDayProjection } = useGoalCalculations();
   const { todayEntries } = useFoodEntries();
@@ -35,13 +35,13 @@ export const useDeficitAnalysis = () => {
       // Package all relevant data
       const contextData = {
         deficit: {
-          todayDeficit: deficit.calories,
-          bmr: deficit.bmr,
-          tdee: deficit.bmr,
-          caloriesConsumed: 0,
-          walkingCalories: 0,
-          manualCalories: 0,
-          activityLevel: profile?.activity_level,
+          todayDeficit: deficitData.todayDeficit,
+          bmr: deficitData.bmr,
+          tdee: deficitData.tdee,
+          caloriesConsumed: deficitData.caloriesConsumed,
+          walkingCalories: deficitData.walkingCalories,
+          manualCalories: deficitData.manualCalories,
+          activityLevel: deficitData.activityLevel,
         },
         goals: {
           currentWeight: profile?.weight,
@@ -92,11 +92,11 @@ export const useDeficitAnalysis = () => {
           content: `Please analyze my daily progress and provide insights. Here's my current data:
 
 **Calorie Deficit:**
-- Today's deficit: ${deficit.calories} calories
-- BMR: ${deficit.bmr} | TDEE: ${deficit.bmr}
-- Consumed: 0 calories
-- Burned walking: 0 calories
-- Manual exercise: 0 calories
+- Today's deficit: ${deficitData.todayDeficit} calories
+- BMR: ${deficitData.bmr} | TDEE: ${deficitData.tdee}
+- Consumed: ${deficitData.caloriesConsumed} calories
+- Burned walking: ${deficitData.walkingCalories} calories
+- Manual exercise: ${deficitData.manualCalories} calories
 
 **Goals:**
 - Current weight: ${profile?.weight} ${profile?.units === 'metric' ? 'kg' : 'lbs'}

@@ -14,13 +14,13 @@ interface GoalCalculations {
 }
 
 export const useGoalCalculations = (): GoalCalculations => {
-  const { deficit } = useDailyDeficitQuery();
+  const { deficitData } = useDailyDeficitQuery();
   const { profile } = useProfile();
 
   const calculations = useMemo(() => {
     const currentWeight = profile?.weight || null;
     const goalWeight = profile?.goal_weight || null;
-    const currentDeficit = deficit?.calories || 0;
+    const currentDeficit = deficitData.todayDeficit;
 
     // Convert deficit calories to fat grams (1g fat = 7.7 calories)
     const fatInGrams = Math.round(Math.max(0, currentDeficit) / 7.7 * 10) / 10;
@@ -77,7 +77,7 @@ export const useGoalCalculations = (): GoalCalculations => {
       fatInGrams,
       thirtyDayProjection
     };
-  }, [deficit?.calories, profile?.weight, profile?.goal_weight, profile?.units]);
+  }, [deficitData.todayDeficit, profile?.weight, profile?.goal_weight, profile?.units]);
 
   return calculations;
 };

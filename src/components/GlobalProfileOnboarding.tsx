@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { PageOnboardingModal } from '@/components/PageOnboardingModal';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Progress } from '@/components/ui/progress';
 import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { useToast } from '@/hooks/use-toast';
-import { WeightSelector } from '@/components/WeightSelector';
-import { HeightSelector } from '@/components/HeightSelector';
-import { ModernNumberPicker } from '@/components/ModernNumberPicker';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface GlobalProfileOnboardingProps {
   isOpen: boolean;
@@ -21,14 +20,15 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    detectedUnits: 'metric' as 'metric' | 'imperial',
-    weightKg: 70,
-    heightCm: 170,
-    age: 30,
+    units: 'imperial' as 'metric' | 'imperial',
+    weight: '',
+    height: '',
+    age: '',
     sex: '' as 'male' | 'female' | '',
   });
 
-  const totalSteps = 4;
+  const totalSteps = 6;
+  const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -43,30 +43,39 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
   };
 
   const handleComplete = async () => {
-    if (!formData.sex) {
+    if (!formData.weight || !formData.height || !formData.age || !formData.sex) {
       toast({
         title: "Missing Information",
-        description: "Please select your biological sex to complete your profile.",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
 
-    try {
-      const profileData = {
-        units: formData.detectedUnits,
-        weight: formData.weightKg,
-        height: formData.heightCm,
-        age: formData.age,
-        sex: formData.sex,
-        onboarding_completed: true,
-      };
+    let profileData: any = {
+      units: formData.units,
+      age: parseInt(formData.age),
+      sex: formData.sex,
+      onboarding_completed: true,
+    };
 
-      await updateProfile(profileData);
-      onClose();
-    } catch (error) {
-      console.error('Profile update error:', error);
+    if (formData.units === 'imperial') {
+      // Convert to metric for storage
+      profileData.weight = parseFloat(formData.weight) * 0.453592; // lbs to kg
+      profileData.height = parseFloat(formData.height) * 2.54; // inches to cm
+    } else {
+      profileData.weight = parseFloat(formData.weight);
+      profileData.height = parseFloat(formData.height);
     }
+
+    updateProfile(profileData);
+    
+    toast({
+      title: "Profile Complete!",
+      description: "Your profile has been set up successfully.",
+    });
+    
+    onClose();
   };
 
   const handleSkip = () => {
@@ -76,10 +85,12 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
 
   const isStepValid = () => {
     switch (currentStep) {
-      case 1: return formData.weightKg > 0;
-      case 2: return formData.heightCm > 0;
-      case 3: return formData.age > 0;
-      case 4: return !!formData.sex;
+      case 1: return true; // Welcome
+      case 2: return !!formData.units; // Units
+      case 3: return !!formData.weight; // Weight
+      case 4: return !!formData.height; // Height
+      case 5: return !!formData.age; // Age
+      case 6: return !!formData.sex; // Sex
       default: return false;
     }
   };
@@ -88,42 +99,61 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
     switch (currentStep) {
       case 1:
         return (
-          <div className="text-center space-y-8">
-            <h2 className="text-2xl font-bold">Weight</h2>
-            <WeightSelector
-              value={formData.weightKg}
-              onChange={(kg, detectedUnits) => 
-                setFormData({ ...formData, weightKg: kg, detectedUnits })
-              }
-            />
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Complete Your Profile</h2>
+            <p className="text-muted-foreground">
+              Help us personalize your experience by providing some basic information about yourself. 
+              This will enable accurate calorie calculations and better recommendations.
+            </p>
           </div>
         );
 
       case 2:
         return (
-          <div className="text-center space-y-8">
-            <h2 className="text-2xl font-bold">Height</h2>
-            <HeightSelector
-              value={formData.heightCm}
-              onChange={(cm, detectedUnits) => 
-                setFormData({ ...formData, heightCm: cm, detectedUnits })
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Choose Your Units</h2>
+            <RadioGroup
+              value={formData.units}
+              onValueChange={(value: 'metric' | 'imperial') => 
+                setFormData({ ...formData, units: value })
               }
-            />
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
+                <RadioGroupItem value="imperial" id="imperial" />
+                <Label htmlFor="imperial" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Imperial</div>
+                  <div className="text-sm text-muted-foreground">Pounds, feet & inches</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
+                <RadioGroupItem value="metric" id="metric" />
+                <Label htmlFor="metric" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Metric</div>
+                  <div className="text-sm text-muted-foreground">Kilograms & centimeters</div>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
         );
 
       case 3:
         return (
-          <div className="text-center space-y-8">
-            <h2 className="text-2xl font-bold">Age</h2>
-            <div className="flex justify-center">
-              <ModernNumberPicker
-                value={formData.age}
-                onChange={(age) => setFormData({ ...formData, age })}
-                min={13}
-                max={120}
-                suffix="years"
-                className="max-w-xs"
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">What's Your Weight?</h2>
+            <div className="space-y-2">
+              <Label htmlFor="weight">
+                Weight ({formData.units === 'imperial' ? 'lbs' : 'kg'})
+              </Label>
+              <Input
+                id="weight"
+                type="number"
+                placeholder={formData.units === 'imperial' ? '150' : '68'}
+                value={formData.weight}
+                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
               />
             </div>
           </div>
@@ -131,24 +161,68 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
 
       case 4:
         return (
-          <div className="text-center space-y-8">
-            <h2 className="text-2xl font-bold">Biological Sex</h2>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">What's Your Height?</h2>
+            <div className="space-y-2">
+              <Label htmlFor="height">
+                Height ({formData.units === 'imperial' ? 'inches' : 'cm'})
+              </Label>
+              <Input
+                id="height"
+                type="number"
+                placeholder={formData.units === 'imperial' ? '68' : '173'}
+                value={formData.height}
+                onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+              />
+              {formData.units === 'imperial' && (
+                <p className="text-xs text-muted-foreground">
+                  Tip: 5'8" = 68 inches
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">What's Your Age?</h2>
+            <div className="space-y-2">
+              <Label htmlFor="age">Age (years)</Label>
+              <Input
+                id="age"
+                type="number"
+                placeholder="30"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+              />
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Biological Sex</h2>
+            <p className="text-sm text-muted-foreground">
+              This helps us calculate accurate calorie requirements based on metabolic differences.
+            </p>
             <RadioGroup
               value={formData.sex}
               onValueChange={(value: 'male' | 'female') => 
                 setFormData({ ...formData, sex: value })
               }
-              className="grid grid-cols-2 gap-4 max-w-md mx-auto"
+              className="space-y-3"
             >
-              <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
                 <RadioGroupItem value="male" id="male" />
-                <Label htmlFor="male" className="flex-1 cursor-pointer font-medium">
+                <Label htmlFor="male" className="flex-1 cursor-pointer">
                   Male
                 </Label>
               </div>
-              <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
                 <RadioGroupItem value="female" id="female" />
-                <Label htmlFor="female" className="flex-1 cursor-pointer font-medium">
+                <Label htmlFor="female" className="flex-1 cursor-pointer">
                   Female
                 </Label>
               </div>
@@ -161,49 +235,61 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
     }
   };
 
+  const footer = (
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-2">
+        {currentStep > 1 && (
+          <Button variant="outline" onClick={handleBack} disabled={isUpdating}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        )}
+        {currentStep === 1 && (
+          <Button variant="ghost" onClick={handleSkip} disabled={isUpdating}>
+            Skip for now
+          </Button>
+        )}
+      </div>
+      
+      <div className="text-xs text-muted-foreground">
+        Step {currentStep} of {totalSteps}
+      </div>
+      
+      <div>
+        {currentStep < totalSteps ? (
+          <Button 
+            onClick={handleNext} 
+            disabled={!isStepValid() || isUpdating}
+          >
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        ) : (
+          <Button 
+            onClick={handleComplete} 
+            disabled={!isStepValid() || isUpdating}
+          >
+            {isUpdating ? 'Completing...' : 'Complete Profile'}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <PageOnboardingModal
+    <UniversalModal
       isOpen={isOpen}
       onClose={() => {}} // Prevent closing until completed or skipped
-      title={`Step ${currentStep} of ${totalSteps}`}
+      title=""
+      showCloseButton={false}
+      closeOnOverlay={false}
+      size="md"
+      footer={footer}
     >
-      {renderStep()}
-      
-      {/* Footer actions */}
-      <div className="flex justify-between items-center pt-6 border-t border-border/30">
-        <div className="flex items-center gap-2">
-          {currentStep > 1 ? (
-            <Button variant="outline" onClick={handleBack} disabled={isUpdating}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          ) : (
-            <Button variant="ghost" onClick={handleSkip} disabled={isUpdating}>
-              Skip
-            </Button>
-          )}
-        </div>
-        
-        <div>
-          {currentStep < totalSteps ? (
-            <Button 
-              onClick={handleNext} 
-              disabled={!isStepValid() || isUpdating}
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleComplete} 
-              disabled={!isStepValid() || isUpdating}
-              className="min-w-[120px]"
-            >
-              {isUpdating ? 'Saving...' : 'Complete'}
-            </Button>
-          )}
-        </div>
+      <div className="space-y-6">
+        <Progress value={progress} className="w-full h-2" />
+        {renderStep()}
       </div>
-    </PageOnboardingModal>
+    </UniversalModal>
   );
 };

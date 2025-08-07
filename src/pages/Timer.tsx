@@ -126,8 +126,8 @@ const Timer = () => {
       if (stopAction === 'cancel') {
         // Cancel fast - doesn't save to history
         const result = await cancelFastingSession(fastingSession.id);
-        if (result !== null) {
-          trackFastingEvent('stop', fastType, timeElapsed);
+        if (result) {
+          trackFastingEvent('cancel', fastType, timeElapsed);
           toast({
             title: "Fast cancelled", 
             description: "Your fast was cancelled and removed from history."

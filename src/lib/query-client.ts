@@ -27,7 +27,7 @@ export const queryClient = new QueryClient({
       // PERFORMANCE: Centralized error logging - reduced noise in development
       if (process.env.NODE_ENV === 'development') {
         // Only log critical errors in development to reduce console noise
-        if ((error as any)?.status >= 500 || !(error as any)?.status) {
+        if (error?.status >= 500 || !error?.status) {
           console.error('Query error:', error, 'Query key:', query.queryKey);
         }
       } else {

@@ -132,11 +132,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         consumed: args.consumed || false
       });
 
-      if (!foodResult) {
+      if (foodResult.error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to add food entry"
+          description: foodResult.error.message
         });
       } else {
         trackFoodEvent('add', 'voice');
@@ -173,7 +173,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           consumed: food.consumed || false
         });
 
-        if (foodResult) {
+        if (!foodResult.error) {
           successCount++;
           totalCalories += parseFloat(food.calories);
           totalCarbs += parseFloat(food.carbs);
@@ -286,11 +286,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       consumed: false
     });
 
-    if (!result) {
+    if (result.error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save manual entry"
+        description: result.error.message
       });
     } else {
         trackFoodEvent('add', 'manual');
@@ -322,11 +322,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       image_url: imageUrl || undefined
     });
 
-    if (!result) {
+    if (result.error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save food entry"
+        description: result.error.message
       });
     } else {
       toast({
@@ -398,11 +398,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       image_url: food.image_url || undefined
     });
 
-    if (!result) {
+    if (result.error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add food from library"
+        description: result.error.message
       });
     } else {
       trackFoodEvent('add', 'manual');
@@ -425,49 +425,45 @@ Please tell me what food you'd like to add and how much you had. For example: "I
   };
 
   const handleUpdateFoodEntry = async (id: string, updates: any) => {
-    try {
-      await updateFoodEntry({ id, updates });
-    } catch (error) {
-      throw new Error("Failed to update food entry");
+    const result = await updateFoodEntry(id, updates);
+    if (result.error) {
+      throw new Error(result.error.message);
     }
   };
 
   const handleDeleteFoodEntry = async (id: string) => {
-    try {
-      await deleteFoodEntry(id);
+    const result = await deleteFoodEntry(id);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
       trackFoodEvent('delete', 'manual');
       toast({
         title: "Food deleted",
         description: "Food entry has been removed"
       });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete food entry"
-      });
     }
   };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
-    try {
-      await toggleConsumption(entryId);
-      handleToggleSuccess(consumed);
-    } catch (error) {
+    const result = await toggleConsumption(entryId, consumed);
+    if (result.error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update consumption status"
+        description: result.error.message
+      });
+    } else {
+      // Show success notification
+      toast({
+        variant: "default",
+        title: consumed ? "Marked as eaten" : "Marked as not eaten",
+        description: consumed ? "Food item has been consumed" : "Food item marked as not consumed"
       });
     }
-  };
-  
-  const handleToggleSuccess = (consumed: boolean) => {
-    toast({
-      variant: "default",
-      title: consumed ? "Marked as eaten" : "Marked as not eaten",
-      description: consumed ? "Food item has been consumed" : "Food item marked as not consumed"
-    });
   };
 
   // Template management functions
@@ -705,9 +701,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
                       <Button
                         size="sm"
                         variant="default"
-                        onClick={() => {
-                          handleToggleConsumption(entry.id, !entry.consumed);
-                        }}
+                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
                         className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
                         title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
                       >
