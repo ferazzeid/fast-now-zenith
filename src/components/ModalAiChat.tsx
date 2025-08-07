@@ -342,10 +342,12 @@ ${args.content}`,
 
   const handleCreateMotivator = async () => {
     if (lastMotivatorSuggestion && onResult) {
-      console.log('Creating motivator with data:', lastMotivatorSuggestion);
+      console.log('🎯 Creating motivator with data:', lastMotivatorSuggestion);
+      console.log('🎯 Motivator arguments:', lastMotivatorSuggestion.arguments);
       
       try {
         // Actually create the motivator by calling the result handler
+        console.log('🎯 Calling onResult with:', lastMotivatorSuggestion);
         await onResult(lastMotivatorSuggestion);
         
         // Show success message

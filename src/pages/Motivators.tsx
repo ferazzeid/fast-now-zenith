@@ -126,7 +126,9 @@ const Motivators = () => {
   };
 
   const handleAiChatResult = async (result: any) => {
-    console.log('AI Chat Result:', result); // Debug log
+    console.log('🎯 AI Chat Result received:', result); // Debug log
+    console.log('🎯 Result name:', result.name);
+    console.log('🎯 Result arguments:', result.arguments);
     
     // Handle both 'create_motivator' function calls and text-based confirmations
     if (result.name === 'create_motivator' || (result.arguments && result.arguments.title)) {
@@ -134,28 +136,43 @@ const Motivators = () => {
       
       if (result.name === 'create_motivator') {
         const { arguments: args } = result;
+        console.log('🎯 Processing create_motivator function call:', args);
         suggestionData = {
-          title: args.title.split(' ').slice(0, 3).join(' '), // Max 3 words
+          title: args.title,
           content: args.content,
           imageUrl: args.imageUrl || null
         };
       } else {
-        // Handle direct arguments
+        console.log('🎯 Processing direct arguments:', result.arguments);
         suggestionData = {
-          title: result.arguments.title.split(' ').slice(0, 3).join(' '),
+          title: result.arguments.title,
           content: result.arguments.content,
           imageUrl: result.arguments.imageUrl || null
         };
       }
       
-      // Store the suggestion - keep the chat open for review
-      setPendingAiSuggestion(suggestionData);
+      console.log('🎯 Final suggestion data:', suggestionData);
       
-      // Show success toast
-      toast({
-        title: "✅ Motivator Suggestion Ready!",
-        description: "Review the suggestion in the chat and confirm to create it.",
-      });
+      try {
+        console.log('🎯 Calling handleCreateMotivator with:', suggestionData);
+        await handleCreateMotivator(suggestionData);
+        console.log('🎯 Successfully created motivator!');
+        
+        // Show success toast
+        toast({
+          title: "✅ Motivator Created!",
+          description: "Your AI-generated motivator has been saved.",
+        });
+      } catch (error) {
+        console.error('🎯 Error creating motivator:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create AI motivator. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      console.log('🎯 Result does not match expected format for motivator creation');
     }
   };
   
