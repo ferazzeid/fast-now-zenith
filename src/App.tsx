@@ -71,7 +71,16 @@ const AppContent = () => {
   // Show onboarding if user is authenticated and profile is incomplete
   useEffect(() => {
     if (user && profile !== undefined) {
-      setShowOnboarding(!isProfileComplete());
+      const profileComplete = isProfileComplete();
+      console.log('Profile onboarding check:', {
+        user: !!user,
+        profile: profile,
+        profileComplete,
+        weight: profile?.weight,
+        height: profile?.height,
+        age: profile?.age
+      });
+      setShowOnboarding(!profileComplete);
     }
   }, [user, profile, isProfileComplete]);
   
@@ -158,6 +167,7 @@ const AppContent = () => {
       </div>
       
       {/* Global Profile Onboarding */}
+      {console.log('Rendering onboarding modal:', { showOnboarding, isOpen: showOnboarding })}
       <GlobalProfileOnboarding
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
