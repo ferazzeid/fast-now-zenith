@@ -317,6 +317,34 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
+  const deleteAllUserFoods = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('user_foods')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setFoods([]);
+      clearSelection();
+      
+      toast({
+        title: "All foods removed",
+        description: "All foods have been removed from your library"
+      });
+    } catch (error) {
+      console.error('Error deleting all foods:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove all foods",
+        variant: "destructive"
+      });
+    }
+  };
+
   const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
     try {
       const { error } = await supabase
@@ -634,6 +662,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* My Foods Tab */}
           <TabsContent value="my-foods" className="flex-1 overflow-y-auto px-6 py-4">
+            {/* Delete All Button */}
+            {filteredUserFoods.length > 0 && (
+              <div className="mb-4 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={deleteAllUserFoods}
+                  className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete All My Foods
+                </Button>
+              </div>
+            )}
           <div className="space-y-2 mt-1">
             {/* My Foods List */}
             {loading ? (
