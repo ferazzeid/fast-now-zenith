@@ -16,7 +16,7 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
-import AdminOverview from "./pages/AdminOverview";
+// import AdminOverview from "./pages/AdminOverview";
 
 import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
@@ -34,11 +34,11 @@ import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
 import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 
 // Using optimized query client from @/lib/query-client
-
+const AdminOverview = lazy(() => import("./pages/AdminOverview"));
 const AppContent = () => {
   // Load color theme on app startup
   useColorTheme();
@@ -147,7 +147,9 @@ const AppContent = () => {
             <Route path="/admin" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
-                  <AdminOverview />
+                  <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                    <AdminOverview />
+                  </Suspense>
                 </PageErrorBoundary>
               </ProtectedRoute>  
             } />
