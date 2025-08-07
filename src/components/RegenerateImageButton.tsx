@@ -47,11 +47,11 @@ export const RegenerateImageButton = ({
 
   return (
     <Button
-      variant="ghost"
+      variant="ai"
       size="sm"
       onClick={handleRegenerate}
       disabled={disabled || isRegenerating}
-      className={`h-6 w-6 p-0 opacity-60 hover:opacity-100 ${className}`}
+      className={`h-6 w-6 p-0 opacity-80 hover:opacity-100 ${className}`}
       title="Regenerate image"
     >
       <RotateCcw className={`w-3 h-3 ${isRegenerating ? 'animate-spin' : ''}`} />

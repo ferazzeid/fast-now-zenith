@@ -275,16 +275,42 @@ export const UnifiedFoodEditModal = ({
       >
         
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-name">Food Name</Label>
-            <Input
-              id="edit-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Apple, Chicken Breast"
-            />
-          </div>
+          {/* Food Name and Serving Size - Two columns when serving size is needed */}
+          {!isLibraryMode ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Food Name</Label>
+                <Input
+                  id="edit-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g., Apple, Chicken Breast"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-serving">Serving Size (g)</Label>
+                <Input
+                  id="edit-serving"
+                  type="number"
+                  value={servingSize}
+                  onChange={(e) => setServingSize(e.target.value)}
+                  placeholder="100"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Food Name</Label>
+              <Input
+                id="edit-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Apple, Chicken Breast"
+              />
+            </div>
+          )}
 
+          {/* Calories and Carbs */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-calories">
@@ -311,19 +337,6 @@ export const UnifiedFoodEditModal = ({
               />
             </div>
           </div>
-
-          {!isLibraryMode && (
-            <div className="space-y-2">
-              <Label htmlFor="edit-serving">Serving Size (g)</Label>
-              <Input
-                id="edit-serving"
-                type="number"
-                value={servingSize}
-                onChange={(e) => setServingSize(e.target.value)}
-                placeholder="100"
-              />
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">
