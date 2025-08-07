@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FastingTimelineV2 } from '@/components/FastingTimelineV2';
-
+import { useQueryClient } from '@tanstack/react-query';
+import { useFastingHoursQuery, fastingHoursKey } from '@/hooks/optimized/useFastingHoursQuery';
 interface FastingHour {
   id?: string;
   hour: number;
@@ -252,40 +253,28 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
 };
 
 export const AdminTimelineSettings = () => {
-  const [fastingHours, setFastingHours] = useState<FastingHour[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingHour, setEditingHour] = useState<FastingHour | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: fastingHours = [], isLoading } = useFastingHoursQuery();
 
-  useEffect(() => {
-    fetchFastingHours();
-  }, []);
-
-  const fetchFastingHours = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('fasting_hours')
-        .select('*')
-        .lte('hour', 72)
-        .order('hour');
-
-      if (error) throw error;
-      setFastingHours(data || []);
-    } catch (error) {
-      console.error('Error fetching fasting hours:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load fasting timeline data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const existingHours = new Set(fastingHours.map(h => h.hour));
+  const missingHours = Array.from({ length: 72 }, (_, i) => i + 1).filter(h => !existingHours.has(h));
 
   const saveFastingHour = async (fastingHour: FastingHour) => {
     try {
+      // Client-side validation: duplicate hour check
+      const duplicate = fastingHours.some(h => h.hour === fastingHour.hour && h.id !== fastingHour.id);
+      if (duplicate) {
+        toast({
+          title: "Duplicate hour",
+          description: `Hour ${fastingHour.hour} already exists. Please choose a different hour or edit the existing one.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('fasting_hours')
         .upsert({
@@ -312,7 +301,8 @@ export const AdminTimelineSettings = () => {
         description: `Hour ${fastingHour.hour} timeline updated successfully`
       });
 
-      fetchFastingHours();
+      // refresh cache
+      queryClient.invalidateQueries({ queryKey: fastingHoursKey as any });
       setIsModalOpen(false);
       setEditingHour(undefined);
     } catch (error) {
@@ -324,7 +314,6 @@ export const AdminTimelineSettings = () => {
       });
     }
   };
-
   const deleteFastingHour = async (id: string) => {
     try {
       const { error } = await supabase
@@ -339,7 +328,8 @@ export const AdminTimelineSettings = () => {
         description: "Timeline hour deleted successfully"
       });
 
-      fetchFastingHours();
+      // refresh cache
+      queryClient.invalidateQueries({ queryKey: fastingHoursKey as any });
     } catch (error) {
       console.error('Error deleting fasting hour:', error);
       toast({
@@ -350,11 +340,48 @@ export const AdminTimelineSettings = () => {
     }
   };
 
+  const generateMissingHours = async () => {
+    if (missingHours.length === 0) return;
+    try {
+      const rows = missingHours.map((h) => ({
+        hour: h,
+        day: Math.ceil(h / 24),
+        title: `Hour ${h}`,
+        body_state: "Details coming soon",
+        encouragement: "You're doing great — keep going!",
+        tips: [],
+        phase: 'preparation',
+        difficulty: 'easy',
+        common_feelings: [],
+        scientific_info: '',
+        autophagy_milestone: false,
+        ketosis_milestone: false,
+        fat_burning_milestone: false
+      }));
+
+      const { error } = await supabase.from('fasting_hours').upsert(rows);
+      if (error) throw error;
+
+      toast({
+        title: "Hours generated",
+        description: `Added ${rows.length} placeholder entr${rows.length === 1 ? 'y' : 'ies'}.`
+      });
+
+      queryClient.invalidateQueries({ queryKey: fastingHoursKey as any });
+    } catch (error) {
+      console.error('Error generating hours:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate missing hours",
+        variant: "destructive"
+      });
+    }
+  };
+
   const openEditModal = (fastingHour?: FastingHour) => {
     setEditingHour(fastingHour);
     setIsModalOpen(true);
   };
-
   if (loading) {
     return <div className="text-center py-8">Loading timeline settings...</div>;
   }
