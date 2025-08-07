@@ -96,41 +96,23 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Smart wrapper approach: preserve layout with lock icon
+    // Zero-wrapper approach: clone element directly with disabled styles
     if (isValidElement(children)) {
       const originalChild = children as ReactElement<any>;
-      const childClassName = originalChild.props.className || '';
       
-      // Check if child has absolute positioning
-      const hasAbsolutePositioning = /\b(absolute|fixed|sticky)\b/.test(childClassName);
-      
-      // Use appropriate wrapper based on positioning
-      const WrapperComponent = hasAbsolutePositioning ? 'div' : 'span';
-      const wrapperClassName = hasAbsolutePositioning ? 'relative' : 'relative inline-block';
-      
-      return (
-        <WrapperComponent className={wrapperClassName}>
-          {cloneElement(originalChild, {
-            className: cn(
-              originalChild.props.className,
-              "opacity-40 grayscale cursor-not-allowed",
-              className
-            ),
-            onClick: handleGrayedClick,
-            disabled: true,
-            style: {
-              ...originalChild.props.style,
-              pointerEvents: 'auto' // Override pointer-events to allow click for toast
-            }
-          })}
-          {/* Lock icon overlay */}
-          <div className="absolute top-1 right-1 pointer-events-none z-10">
-            <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
-              <Lock className="w-3 h-3 text-foreground/70" />
-            </div>
-          </div>
-        </WrapperComponent>
-      );
+      return cloneElement(originalChild, {
+        className: cn(
+          originalChild.props.className,
+          "opacity-40 grayscale cursor-not-allowed",
+          className
+        ),
+        onClick: handleGrayedClick,
+        disabled: true,
+        style: {
+          ...originalChild.props.style,
+          pointerEvents: 'auto' // Override pointer-events to allow click for toast
+        }
+      });
     }
 
     // Fallback for non-React elements - simplified wrapper
