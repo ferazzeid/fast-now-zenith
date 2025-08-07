@@ -57,7 +57,6 @@ export const ModalAiChat = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-
   useEffect(() => {
     if (isOpen) {
       // Initialize messages array
@@ -98,24 +97,6 @@ export const ModalAiChat = ({
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
 
-  const getHighCarbAlternatives = (foodName: string): string | null => {
-    const lowercaseFood = foodName.toLowerCase();
-    
-    if (lowercaseFood.includes('bread') || lowercaseFood.includes('toast')) {
-      return 'lettuce wraps, cloud bread, or cauliflower bread';
-    } else if (lowercaseFood.includes('pasta') || lowercaseFood.includes('noodle')) {
-      return 'zucchini noodles, spaghetti squash, or shirataki noodles';
-    } else if (lowercaseFood.includes('rice')) {
-      return 'cauliflower rice, broccoli rice, or shirataki rice';
-    } else if (lowercaseFood.includes('potato')) {
-      return 'roasted cauliflower, turnips, or radishes';
-    } else if (lowercaseFood.includes('cereal') || lowercaseFood.includes('oat')) {
-      return 'chia seed pudding, Greek yogurt with nuts, or scrambled eggs';
-    }
-    
-    return null;
-  };
-
   const sendToAI = async (message: string, fromVoice = false) => {
     console.log('📤 sendToAI called:', { message, fromVoice, isProcessing });
     setIsProcessing(true);
@@ -146,30 +127,6 @@ CRITICAL: Response format must ONLY be:
 Total: 555 calories, 3.5g carbs
 
 NO other text. Immediately call add_multiple_foods function.`;
-      } else if (title === 'Motivator Assistant') {
-        enhancedSystemPrompt = `${systemPrompt}
-
-You are helping users create motivational content for their fasting and health journey. Your goal is to:
-1. Listen to what motivates them and create personalized motivators
-2. Help them articulate their goals, reasons, and inspiration  
-3. Create compelling titles and content for their motivators
-4. Be supportive and encouraging
-5. Focus on their SPECIFIC motivation, not generic health advice
-
-CRITICAL: When creating motivators, be SPECIFIC to what the user said:
-- If they mention wanting to "impress a girl", focus on confidence and attraction, not generic health
-- If they mention a specific event, reference that event
-- If they mention a person, acknowledge that motivation
-- Keep titles to 3 words maximum
-- Make content personal and specific to their exact words
-
-IMPORTANT: ALWAYS respond with BOTH:
-1. A conversational message explaining what you're creating and acknowledging their motivation
-2. The create_motivator function call with the specific details
-
-For example, if they say "I want to impress a girl", respond with a message like "I understand you want to feel confident and attractive! Let me create a motivator specifically for that goal..." AND call the create_motivator function.
-
-When a user shares what motivates them, ALWAYS provide both a conversational response AND use the create_motivator function with their specific motivation.`;
       }
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
@@ -186,74 +143,33 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
       console.log('🤖 AI Response received:', { data, completion: data?.completion, functionCall: data?.functionCall });
 
-      // Handle AI response - always create a message, even if only function call
-      let responseContent = data?.completion || '';
-      
-      // If no completion but there's a function call, create a default response
-      if (!responseContent && data?.functionCall) {
-        if (data.functionCall.name === 'create_motivator' && title === 'Motivator Assistant') {
-          responseContent = "I've created a motivator suggestion for you based on what you shared. Here are the details:\n\n" +
-            `**Title:** ${data.functionCall.arguments?.title || 'Personal Motivator'}\n\n` +
-            `**Content:** ${data.functionCall.arguments?.content || 'Motivational content based on your goals'}`;
-        } else if (data.functionCall.name === 'add_multiple_foods' && title === 'Food Assistant') {
-          const foods = data.functionCall.arguments?.foods || [];
-          const totalCalories = foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
-          const totalCarbs = foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0);
-          
-          let baseResponse = '';
-          
-          foods.forEach((food: any, index: number) => {
-            baseResponse += `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs\n`;
-          });
-          
-          baseResponse += `\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs`;
-          responseContent = baseResponse;
-        } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
-          const args = data.functionCall.arguments;
-          const carbCount = args?.carbs || 0;
-          const foodName = args?.name || 'Food item';
-          
-          let baseResponse = `${foodName} (${args?.serving_size || 0}g) - ${args?.calories || 0} cal, ${carbCount}g carbs`;
-          
-          responseContent = baseResponse;
-        } else {
-          responseContent = "I've processed your request and prepared a suggestion for you.";
-        }
-      }
-
-      // Always add a message if we have content
-      if (responseContent) {
-        const aiMessage: Message = {
-          role: 'assistant',
-          content: responseContent,
-          timestamp: new Date()
-        };
-
-        console.log('💬 Adding AI message to chat:', aiMessage.content);
-        setMessages(prev => {
-          const newMessages = [...prev, aiMessage];
-          console.log('📝 Messages after adding AI response:', newMessages.length);
-          return newMessages;
-        });
-      } else {
-        console.log('⚠️ No completion or function call in AI response');
-      }
-
-      // Handle function call results and store suggestions
+      // Handle function calls for food and motivator suggestions
       if (data.functionCall) {
-        // Store the suggestions for button actions
-        if (data.functionCall.name === 'add_food_entry') {
+        if (data.functionCall.name === 'add_multiple_foods') {
           setLastFoodSuggestion(data.functionCall.arguments);
-        } else if (data.functionCall.name === 'add_multiple_foods') {
-          setLastFoodSuggestion(data.functionCall.arguments);
+          // Don't add any AI message for food suggestions - just show the interactive UI
+          return;
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
+          // Add a simple prompt for motivator
+          const motivatorMessage: Message = {
+            role: 'assistant',
+            content: 'I have a motivator suggestion for you.',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, motivatorMessage]);
+          return;
         }
-        
-        // Only pass to parent immediately for certain actions
-        if (onResult && (message.includes('Yes, add it') || message.includes('Yes, add all') || message.includes('Yes, create this motivator'))) {
-          onResult(data.functionCall);
-        }
+      }
+
+      // Only add completion text if it exists and doesn't contain food suggestions
+      if (data.completion && data.completion.trim() && !containsFoodSuggestion(data.completion)) {
+        const aiMessage: Message = {
+          role: 'assistant',
+          content: data.completion,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiMessage]);
       }
 
     } catch (error) {
@@ -267,7 +183,6 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
       setIsProcessing(false);
     }
   };
-
 
   const handleVoiceTranscription = async (transcription: string) => {
     console.log('🎤 Voice transcription received:', transcription);
@@ -391,7 +306,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           arguments: { foods: lastFoodSuggestion.foods }
         });
         
-        // Add a simple confirmation message
+        // Add only the simple confirmation message
         const confirmationMessage: Message = {
           role: 'assistant',
           content: '✅ Foods added successfully!',
@@ -456,220 +371,214 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
       size="md"
       showCloseButton={true}
     >
-
       {/* Messages with better spacing and scrolling */}
       <div className="space-y-4 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <Card className={`max-w-[85%] p-3 ${
-                message.role === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted'
-              }`}>
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                    
-                    {/* Show only total summary for food suggestions, not individual items */}
-                    {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
-                      <div className="mt-3 p-2 bg-background/30 rounded text-xs font-medium">
-                        Total: {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0)} calories, {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0)}g carbs
-                      </div>
-                    )}
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <Card className={`max-w-[85%] p-3 ${
+              message.role === 'user' 
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-muted'
+            }`}>
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  
+                  {/* Crisis Quick Reply Buttons */}
+                  {conversationType === 'crisis' && message.role === 'assistant' && quickReplies.length > 0 && index === messages.length - 1 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {quickReplies.map((reply, replyIndex) => (
+                        <Button 
+                          key={replyIndex}
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleSendMessage(reply)}
+                          className="text-xs"
+                        >
+                          {reply}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
 
-                    {/* Individual food items with inline editing */}
-                    {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
-                      <div className="mt-3 space-y-2">
-                        {lastFoodSuggestion.foods.map((food: any, index: number) => (
-                          <div key={index} className="p-2 bg-background/50 rounded text-xs">
-                            {editingFoodIndex === index ? (
-                              // Inline editing mode
-                              <div className="space-y-2">
-                                <Input
-                                  value={inlineEditData[index]?.name || ''}
-                                  onChange={(e) => setInlineEditData(prev => ({
-                                    ...prev,
-                                    [index]: { ...prev[index], name: e.target.value }
-                                  }))}
-                                  placeholder="Food name"
-                                  className="h-7 text-xs"
-                                />
-                                <div className="grid grid-cols-3 gap-1">
-                                  <div>
-                                    <div className="text-xs text-muted-foreground mb-1">Weight (g)</div>
-                                    <Input
-                                      type="number"
-                                      value={inlineEditData[index]?.portion || ''}
-                                      onChange={(e) => setInlineEditData(prev => ({
-                                        ...prev,
-                                        [index]: { ...prev[index], portion: e.target.value }
-                                      }))}
-                                      className="h-7 text-xs"
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-xs text-muted-foreground mb-1">Calories</div>
-                                    <Input
-                                      type="number"
-                                      value={inlineEditData[index]?.calories || ''}
-                                      onChange={(e) => setInlineEditData(prev => ({
-                                        ...prev,
-                                        [index]: { ...prev[index], calories: e.target.value }
-                                      }))}
-                                      className="h-7 text-xs"
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-xs text-muted-foreground mb-1">Carbs (g)</div>
-                                    <Input
-                                      type="number"
-                                      value={inlineEditData[index]?.carbs || ''}
-                                      onChange={(e) => setInlineEditData(prev => ({
-                                        ...prev,
-                                        [index]: { ...prev[index], carbs: e.target.value }
-                                      }))}
-                                      className="h-7 text-xs"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleSaveInlineEdit(index)}
-                                    className="h-7 px-2 text-xs flex-1"
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleCancelInlineEdit(index)}
-                                    className="h-7 px-2 text-xs flex-1"
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              // Display mode
-                              <div className="flex items-center justify-between">
-                                <span>{food.name} ({food.serving_size}g) - {food.calories} cal, {food.carbs}g carbs</span>
-                                <div className="flex gap-1">
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    onClick={() => handleInlineEdit(index)}
-                                    className="h-7 px-2 text-xs"
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    onClick={() => handleRemoveFood(index)}
-                                    className="h-7 px-2 text-xs text-destructive"
-                                  >
-                                    Remove
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* Crisis Quick Reply Buttons */}
-                    {conversationType === 'crisis' && message.role === 'assistant' && quickReplies.length > 0 && index === messages.length - 1 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {quickReplies.map((reply, replyIndex) => (
-                          <Button 
-                            key={replyIndex}
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleSendMessage(reply)}
-                            className="text-xs"
-                          >
-                            {reply}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                    
-                     {/* Food assistant action buttons - only show when there are actual foods */}
-                     {message.role === 'assistant' && title === 'Food Assistant' && lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
-                       <div className="flex gap-2 mt-3">
-                         <Button
-                           size="sm"
-                           onClick={handleAddAllFoods}
-                           className="flex-1"
-                           disabled={isProcessing}
-                         >
-                           {isProcessing ? 'Adding...' : 'Add All Foods'}
-                         </Button>
-                       </div>
-                     )}
+                  {/* Voice correction button for follow-up messages */}
+                  {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (
+                    <div className="flex justify-center mt-3">
+                      <PremiumGate feature="Voice Input">
+                        <CircularVoiceButton
+                          onTranscription={handleVoiceTranscription}
+                          isDisabled={isProcessing}
+                          size="sm"
+                        />
+                      </PremiumGate>
+                    </div>
+                  )}
+                
+                   {/* Motivator suggestion buttons */}
+                   {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
+                     <div className="flex gap-2 mt-3">
+                       <Button 
+                         size="sm" 
+                         onClick={handleCreateMotivator}
+                         className="text-xs bg-primary text-primary-foreground"
+                       >
+                         Create It
+                       </Button>
+                       <Button 
+                         size="sm" 
+                         variant="outline"
+                         onClick={handleEditMotivator}
+                         className="text-xs"
+                       >
+                         Edit First
+                       </Button>
+                     </div>
+                   )}
+                  
+                  <p className="text-xs opacity-70 mt-2">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        ))}
 
-                      {/* Voice correction button for follow-up messages */}
-                      {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (
-                        <div className="flex justify-center mt-3">
-                          <PremiumGate feature="Voice Input">
-                            <CircularVoiceButton
-                              onTranscription={handleVoiceTranscription}
-                              isDisabled={isProcessing}
-                              size="sm"
-                            />
-                          </PremiumGate>
-                        </div>
-                      )}
-                    
-                     {/* Motivator suggestion buttons */}
-                     {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
-                       <div className="flex gap-2 mt-3">
-                         <Button 
-                           size="sm" 
-                           onClick={handleCreateMotivator}
-                           className="text-xs bg-primary text-primary-foreground"
-                         >
-                           Create It
-                         </Button>
-                         <Button 
-                           size="sm" 
-                           variant="outline"
-                           onClick={handleEditMotivator}
-                           className="text-xs"
-                         >
-                           Edit First
-                         </Button>
-                       </div>
-                     )}
-                    
-                    <p className="text-xs opacity-70 mt-2">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
+        {/* Individual food items with inline editing - show outside of messages */}
+        {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
+          <div className="space-y-2">
+            {/* Total summary */}
+            <div className="p-2 bg-background/30 rounded text-xs font-medium">
+              Total: {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0)} calories, {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0)}g carbs
+            </div>
+            
+            {lastFoodSuggestion.foods.map((food: any, index: number) => (
+              <div key={index} className="p-2 bg-background/50 rounded text-xs">
+                {editingFoodIndex === index ? (
+                  // Inline editing mode
+                  <div className="space-y-2">
+                    <Input
+                      value={inlineEditData[index]?.name || ''}
+                      onChange={(e) => setInlineEditData(prev => ({
+                        ...prev,
+                        [index]: { ...prev[index], name: e.target.value }
+                      }))}
+                      placeholder="Food name"
+                      className="h-7 text-xs"
+                    />
+                    <div className="grid grid-cols-3 gap-1">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Weight (g)</div>
+                        <Input
+                          type="number"
+                          value={inlineEditData[index]?.portion || ''}
+                          onChange={(e) => setInlineEditData(prev => ({
+                            ...prev,
+                            [index]: { ...prev[index], portion: e.target.value }
+                          }))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Calories</div>
+                        <Input
+                          type="number"
+                          value={inlineEditData[index]?.calories || ''}
+                          onChange={(e) => setInlineEditData(prev => ({
+                            ...prev,
+                            [index]: { ...prev[index], calories: e.target.value }
+                          }))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Carbs (g)</div>
+                        <Input
+                          type="number"
+                          value={inlineEditData[index]?.carbs || ''}
+                          onChange={(e) => setInlineEditData(prev => ({
+                            ...prev,
+                            [index]: { ...prev[index], carbs: e.target.value }
+                          }))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        onClick={() => handleSaveInlineEdit(index)}
+                        className="h-7 px-2 text-xs flex-1"
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCancelInlineEdit(index)}
+                        className="h-7 px-2 text-xs flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                ) : (
+                  // Display mode
+                  <div className="flex items-center justify-between">
+                    <span>{food.name} ({food.serving_size}g) - {food.calories} cal, {food.carbs}g carbs</span>
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleInlineEdit(index)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleRemoveFood(index)}
+                        className="h-7 px-2 text-xs text-destructive"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {/* Add All Foods button */}
+            <div className="flex gap-2 mt-3">
+              <Button
+                size="sm"
+                onClick={handleAddAllFoods}
+                className="flex-1"
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Adding...' : 'Add All Foods'}
+              </Button>
             </div>
-          ))}
-          
-          {isProcessing && (
-            <div className="flex justify-start">
-              <Card className="max-w-[85%] p-3 bg-muted">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  <p className="text-sm">AI is thinking...</p>
-                </div>
-              </Card>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
+          </div>
+        )}
+        
+        {isProcessing && (
+          <div className="flex justify-start">
+            <Card className="max-w-[85%] p-3 bg-muted">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <p className="text-sm">AI is thinking...</p>
+              </div>
+            </Card>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
 
       {/* Input area */}
       {editingFoodIndex === null && (
