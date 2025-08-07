@@ -29,6 +29,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
 import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
@@ -146,12 +147,14 @@ const AppContent = () => {
             } />
             <Route path="/admin" element={
               <ProtectedRoute>
-                <PageErrorBoundary>
-                  <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
-                    <AdminOverview />
-                  </Suspense>
-                </PageErrorBoundary>
-              </ProtectedRoute>  
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminOverview />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
             } />
             <Route path="/health" element={
               <PageErrorBoundary>
