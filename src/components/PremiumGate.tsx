@@ -1,4 +1,4 @@
-import React, { ReactNode, ReactElement, cloneElement, isValidElement } from 'react';
+import React, { ReactNode, ReactElement, cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { Lock, Crown, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
@@ -31,19 +31,39 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
                    effectiveSubscribed || 
                    (effectiveRequestsUsed < effectiveRequestLimit) ||
                    effectiveRole === 'admin';
-  
-  // Debug logging to understand access decisions
-  console.log('[PremiumGate] Access check:', {
-    feature,
-    effectiveRole,
-    effectiveSubscribed,
-    effectiveRequestsUsed,
-    effectiveRequestLimit,
-    hasAccess,
-    loading,
-    isTestingMode,
-    testRole
-  });
+
+  // Throttled debug logging to understand access decisions (logs on change or every 10s)
+  const lastSnapshotRef = useRef<string>("");
+  const lastLogTsRef = useRef<number>(0);
+  useEffect(() => {
+    const snapshot = JSON.stringify({
+      feature,
+      effectiveRole,
+      effectiveSubscribed,
+      effectiveRequestsUsed,
+      effectiveRequestLimit,
+      hasAccess,
+      loading,
+      isTestingMode,
+      testRole
+    });
+    const now = Date.now();
+    if (snapshot !== lastSnapshotRef.current || now - lastLogTsRef.current > 10000) {
+      console.info('[PremiumGate] Access check:', {
+        feature,
+        effectiveRole,
+        effectiveSubscribed,
+        effectiveRequestsUsed,
+        effectiveRequestLimit,
+        hasAccess,
+        loading,
+        isTestingMode,
+        testRole
+      });
+      lastSnapshotRef.current = snapshot;
+      lastLogTsRef.current = now;
+    }
+  }, [feature, effectiveRole, effectiveSubscribed, effectiveRequestsUsed, effectiveRequestLimit, hasAccess, loading, isTestingMode, testRole]);
 
   // Show content while loading to prevent flashing
   if (loading) {

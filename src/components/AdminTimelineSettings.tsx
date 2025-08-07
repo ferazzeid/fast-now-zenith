@@ -407,10 +407,18 @@ export const AdminTimelineSettings = () => {
         {/* Add New Hour Button */}
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-medium">Timeline Hours ({fastingHours.length}/72)</h3>
-          <Button onClick={() => openEditModal()}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Hour
-          </Button>
+          <div className="flex gap-2">
+            {missingHours.length > 0 && (
+              <Button variant="secondary" onClick={generateMissingHours}>
+                <Plus className="w-4 h-4 mr-2" />
+                Generate Missing ({missingHours.length})
+              </Button>
+            )}
+            <Button onClick={() => openEditModal()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Hour
+            </Button>
+          </div>
         </div>
 
         {/* Hours List */}
