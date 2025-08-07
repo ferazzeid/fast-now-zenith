@@ -306,17 +306,14 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                           {format(sessionTime, 'h:mm a')}
                                         </h3>
                                       </div>
-                                      <div className="flex gap-3 text-xs text-muted-foreground mt-2">
+                                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
                                         <span className="flex items-center gap-1">
                                           <Clock className="w-3 h-3" />
                                           {formatDuration(duration)}
+                                          {session.is_edited && (
+                                            <span className="text-xs text-muted-foreground/70 ml-1">(Edited)</span>
+                                          )}
                                         </span>
-                                        {session.is_edited && (
-                                          <Badge variant="secondary" className="text-xs">
-                                            <Clock className="w-2.5 h-2.5 mr-1" />
-                                            Edited
-                                          </Badge>
-                                        )}
                                         <span className="flex items-center gap-1">
                                           <MapPin className="w-3 h-3 text-green-500" />
                                           {session.is_edited ? 'Data removed' : `${session.distance?.toFixed(2) || 0} mi`}
