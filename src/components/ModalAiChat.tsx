@@ -540,15 +540,15 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                       </div>
                     )}
                     
-                     {/* Food assistant action buttons */}
-                     {message.role === 'assistant' && title === 'Food Assistant' && containsFoodSuggestion(message.content) && (
+                     {/* Food assistant action buttons - only show when there are actual foods */}
+                     {message.role === 'assistant' && title === 'Food Assistant' && lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
                        <div className="flex gap-2 mt-3">
                          <Button
                            size="sm"
-                           onClick={() => handleSendMessage(lastFoodSuggestion?.foods ? 'Yes, add all these foods' : 'Yes, add it')}
+                           onClick={() => handleSendMessage('Yes, add all these foods')}
                            className="flex-1"
                          >
-                           {lastFoodSuggestion?.foods ? 'Add All Foods' : 'Add Food'}
+                           Add All Foods
                          </Button>
                        </div>
                      )}
