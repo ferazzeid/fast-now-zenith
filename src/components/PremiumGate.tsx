@@ -96,33 +96,23 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Overlay approach: Add lock icon with proper styling and positioning
+    // Simple approach: just gray out without any wrappers or overlays
     if (isValidElement(children)) {
       const originalChild = children as ReactElement<any>;
       
-      return (
-        <span className="relative inline-block">
-          {cloneElement(originalChild, {
-            className: cn(
-              originalChild.props.className,
-              "opacity-40 grayscale cursor-not-allowed",
-              className
-            ),
-            onClick: handleGrayedClick,
-            disabled: true,
-            style: {
-              ...originalChild.props.style,
-              pointerEvents: 'auto'
-            }
-          })}
-          {/* Lock icon overlay - white on gray background, properly sized and positioned */}
-          <div className="absolute top-0.5 right-0.5 pointer-events-none z-10">
-            <div className="bg-gray-800/90 rounded-full p-0.5 shadow-sm">
-              <Lock className="w-2.5 h-2.5 text-white" />
-            </div>
-          </div>
-        </span>
-      );
+      return cloneElement(originalChild, {
+        className: cn(
+          originalChild.props.className,
+          "opacity-40 grayscale cursor-not-allowed",
+          className
+        ),
+        onClick: handleGrayedClick,
+        disabled: true,
+        style: {
+          ...originalChild.props.style,
+          pointerEvents: 'auto'
+        }
+      });
     }
 
     // Fallback for non-React elements - simplified wrapper
