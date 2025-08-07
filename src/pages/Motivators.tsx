@@ -253,7 +253,7 @@ const Motivators = () => {
           <div className="grid grid-cols-3 gap-4 mb-6">
             <Tooltip>
               <TooltipTrigger asChild>
-                <PremiumGate feature="AI Motivator Assistant">
+                <PremiumGate feature="AI Motivator Assistant" grayOutForFree={true}>
                   <Button
                     onClick={handleVoiceMotivator}
                     variant="ai"

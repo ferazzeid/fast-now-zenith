@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2 } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { RegenerateImageButton } from './RegenerateImageButton';
+import { PremiumGatedRegenerateButton } from './PremiumGatedRegenerateButton';
 import { useImageGenerationStatus } from '@/hooks/useImageGenerationStatus';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -71,7 +72,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             )}
             {currentImageUrl && (
               <div className="absolute -top-1 -right-1">
-                <RegenerateImageButton
+                <PremiumGatedRegenerateButton
                   prompt={`${motivator.title}. ${motivator.content || ''}`}
                   filename={`motivator-${Date.now()}.jpg`}
                   onImageGenerated={handleImageGenerated}
