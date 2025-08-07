@@ -96,7 +96,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
 
   const generatePromptForFood = async (foodName: string) => {
     // Fetch admin prompt settings and color themes
-    let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
+    let promptTemplate = "High-quality product photography of {food_name} on a clean white background. Show only the {food_name}, no other foods, no decorations, no props, no additional ingredients. Professional food photography, well-lit, centered, isolated subject, clean and minimal composition perfect for a food tracking app.";
     let primaryColor = "220 35% 45%";
           let accentColor = "142 71% 45%";
     
@@ -119,9 +119,11 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
       console.log('Using default prompt template as fallback');
     }
     
-    // Replace variables in the prompt template
+    // Replace variables in the prompt template - support both {food_name} and {food_item}
+    const sanitizedFoodName = foodName.trim();
     return promptTemplate
-      .replace(/{food_name}/g, foodName.trim())
+      .replace(/{food_name}/g, sanitizedFoodName)
+      .replace(/{food_item}/g, sanitizedFoodName)
       .replace(/{primary_color}/g, primaryColor)
       .replace(/{accent_color}/g, accentColor);
   };
