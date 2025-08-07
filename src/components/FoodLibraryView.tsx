@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
+import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -621,11 +621,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         
         {/* Edit Modal */}
         {isUserFood && (
-          <EditLibraryFoodModal 
+          <UnifiedFoodEditModal 
             food={food as UserFood} 
             onUpdate={updateFood}
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}
+            mode="library"
           />
         )}
       </div>

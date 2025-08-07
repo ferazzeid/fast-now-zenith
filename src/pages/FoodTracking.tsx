@@ -13,10 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
-import { EditFoodEntryForm } from '@/components/EditFoodEntryForm';
+import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ManualFoodEntry } from '@/components/ManualFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -1011,23 +1011,18 @@ const FoodTracking = () => {
         </UniversalModal>
         
         {/* Edit Food Entry Modal */}
-        <Dialog open={!!editingEntry} onOpenChange={() => setEditingEntry(null)}>
-          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="border-b border-border p-4">
-              <DialogTitle className="text-lg font-semibold">Edit Food Entry</DialogTitle>
-            </DialogHeader>
-            {editingEntry && (
-              <EditFoodEntryForm 
-                entry={editingEntry} 
-                onUpdate={async (id: string, updates: any) => {
-                  await handleUpdateFoodEntry(id, updates);
-                  setEditingEntry(null);
-                }}
-                onCancel={() => setEditingEntry(null)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        {editingEntry && (
+          <UnifiedFoodEditModal
+            entry={editingEntry}
+            onUpdate={async (id: string, updates: any) => {
+              await handleUpdateFoodEntry(id, updates);
+              setEditingEntry(null);
+            }}
+            isOpen={!!editingEntry}
+            onClose={() => setEditingEntry(null)}
+            mode="entry"
+          />
+        )}
 
         {/* Onboarding Modal */}
         <PageOnboardingModal

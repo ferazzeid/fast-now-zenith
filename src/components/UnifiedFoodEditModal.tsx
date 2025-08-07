@@ -10,6 +10,16 @@ import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
 
+// Unified interfaces for both types
+interface FoodEntry {
+  id: string;
+  name: string;
+  calories: number;
+  carbs: number;
+  serving_size: number;
+  image_url?: string;
+}
+
 interface UserFood {
   id: string;
   name: string;
@@ -19,20 +29,43 @@ interface UserFood {
   image_url?: string;
 }
 
-interface EditLibraryFoodModalProps {
-  food: UserFood;
-  onUpdate: (id: string, updates: Partial<UserFood>) => Promise<void>;
+interface UnifiedFoodEditModalProps {
+  food?: UserFood;
+  entry?: FoodEntry;
+  onUpdate: (id: string, updates: any) => Promise<void>;
   isOpen?: boolean;
   onClose?: () => void;
+  mode?: 'library' | 'entry';
 }
 
-export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLibraryFoodModalProps) => {
+export const UnifiedFoodEditModal = ({ 
+  food, 
+  entry, 
+  onUpdate, 
+  isOpen, 
+  onClose,
+  mode = 'library'
+}: UnifiedFoodEditModalProps) => {
   const [open, setOpen] = useState(false);
   const modalOpen = isOpen !== undefined ? isOpen : open;
-  const [name, setName] = useState(food.name);
-  const [calories, setCalories] = useState(food.calories_per_100g.toString());
-  const [carbs, setCarbs] = useState(food.carbs_per_100g.toString());
-  const [imageUrl, setImageUrl] = useState(food.image_url || '');
+  
+  // Get current values based on mode
+  const currentItem = food || entry;
+  const isLibraryMode = mode === 'library' || !!food;
+  
+  const [name, setName] = useState(currentItem?.name || '');
+  const [calories, setCalories] = useState(
+    isLibraryMode 
+      ? (food?.calories_per_100g?.toString() || '') 
+      : (entry?.calories?.toString() || '')
+  );
+  const [carbs, setCarbs] = useState(
+    isLibraryMode 
+      ? (food?.carbs_per_100g?.toString() || '') 
+      : (entry?.carbs?.toString() || '')
+  );
+  const [servingSize, setServingSize] = useState(entry?.serving_size?.toString() || '');
+  const [imageUrl, setImageUrl] = useState(currentItem?.image_url || '');
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
@@ -48,18 +81,35 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
       return;
     }
 
+    if (!isLibraryMode && !servingSize) {
+      toast({
+        variant: "destructive",
+        title: "Missing serving size",
+        description: "Please enter a serving size"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      await onUpdate(food.id, {
+      const updates = isLibraryMode ? {
         name,
         calories_per_100g: parseFloat(calories),
         carbs_per_100g: parseFloat(carbs),
         image_url: imageUrl || null
-      });
+      } : {
+        name,
+        calories: parseFloat(calories),
+        carbs: parseFloat(carbs),
+        serving_size: parseFloat(servingSize),
+        image_url: imageUrl || null
+      };
+
+      await onUpdate(currentItem!.id, updates);
       
       toast({
-        title: "Food updated",
-        description: "Food has been updated in your library"
+        title: isLibraryMode ? "Food updated" : "Entry updated",
+        description: isLibraryMode ? "Food has been updated in your library" : "Food entry has been updated successfully"
       });
       
       setOpen(false);
@@ -67,7 +117,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update food in library"
+        description: isLibraryMode ? "Failed to update food in library" : "Failed to update food entry"
       });
     } finally {
       setLoading(false);
@@ -75,17 +125,27 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
   };
 
   const resetForm = () => {
-    setName(food.name);
-    setCalories(food.calories_per_100g.toString());
-    setCarbs(food.carbs_per_100g.toString());
-    setImageUrl(food.image_url || '');
+    if (!currentItem) return;
+    setName(currentItem.name);
+    setCalories(
+      isLibraryMode 
+        ? (food?.calories_per_100g?.toString() || '') 
+        : (entry?.calories?.toString() || '')
+    );
+    setCarbs(
+      isLibraryMode 
+        ? (food?.carbs_per_100g?.toString() || '') 
+        : (entry?.carbs?.toString() || '')
+    );
+    setServingSize(entry?.serving_size?.toString() || '');
+    setImageUrl(currentItem.image_url || '');
   };
 
   const generatePromptForFood = async (foodName: string) => {
     // Fetch admin prompt settings and color themes
     let promptTemplate = "A high-quality photo of {food_name} on a white background, no other items or decorative elements, clean food photography, well-lit, appetizing";
     let primaryColor = "220 35% 45%";
-          let accentColor = "142 71% 45%";
+    let accentColor = "142 71% 45%";
     
     try {
       const { data: settingsData } = await supabase
@@ -131,12 +191,9 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
       const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
       
-      // Auto-save the generated image
-      await onUpdate(food.id, { image_url: generatedImageUrl });
-      
       toast({
-        title: "Image generated & saved!",
-        description: "AI image generated and automatically saved!"
+        title: "Image generated!",
+        description: "AI image generated successfully!"
       });
     } catch (error) {
       toast({
@@ -149,6 +206,20 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
     }
   };
 
+  const createRegenerateButton = () => {
+    if (!imageUrl || !currentPrompt) return null;
+
+    return (
+      <RegenerateImageButton
+        prompt={currentPrompt}
+        filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
+        onImageGenerated={setImageUrl}
+        disabled={loading || generatingImage}
+      />
+    );
+  };
+
+  if (!currentItem) return null;
 
   return (
     <>
@@ -175,7 +246,7 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
           }
           resetForm();
         }}
-        title="Edit Food in Library"
+        title={isLibraryMode ? "Edit Food in Library" : "Edit Food Entry"}
         variant="standard"
         size="md"
         footer={
@@ -186,10 +257,17 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  setOpen(false);
+                }
+                resetForm();
+              }}
               disabled={loading || generatingImage}
             >
-              <X className="w-8 h-8 mr-2" />
+              <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
           </div>
@@ -198,9 +276,9 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-lib-name">Food Name</Label>
+            <Label htmlFor="edit-name">Food Name</Label>
             <Input
-              id="edit-lib-name"
+              id="edit-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Apple, Chicken Breast"
@@ -209,26 +287,43 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-lib-calories">Calories per 100g</Label>
+              <Label htmlFor="edit-calories">
+                {isLibraryMode ? 'Calories per 100g' : 'Calories'}
+              </Label>
               <Input
-                id="edit-lib-calories"
+                id="edit-calories"
                 type="number"
                 value={calories}
                 onChange={(e) => setCalories(e.target.value)}
-                placeholder="per 100g"
+                placeholder={isLibraryMode ? "per 100g" : "per serving"}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-lib-carbs">Carbs per 100g (g)</Label>
+              <Label htmlFor="edit-carbs">
+                {isLibraryMode ? 'Carbs per 100g (g)' : 'Carbs (g)'}
+              </Label>
               <Input
-                id="edit-lib-carbs"
+                id="edit-carbs"
                 type="number"
                 value={carbs}
                 onChange={(e) => setCarbs(e.target.value)}
-                placeholder="grams per 100g"
+                placeholder={isLibraryMode ? "grams per 100g" : "grams"}
               />
             </div>
           </div>
+
+          {!isLibraryMode && (
+            <div className="space-y-2">
+              <Label htmlFor="edit-serving">Serving Size (g)</Label>
+              <Input
+                id="edit-serving"
+                type="number"
+                value={servingSize}
+                onChange={(e) => setServingSize(e.target.value)}
+                placeholder="100"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">
@@ -236,52 +331,34 @@ export const EditLibraryFoodModal = ({ food, onUpdate, isOpen, onClose }: EditLi
             </Label>
             
             <div className="space-y-3">
-              {/* Use proper ImageUpload component with upload options always visible */}
+              {/* Use ImageUpload with regenerate button positioned on the image */}
               <ImageUpload
                 currentImageUrl={imageUrl}
                 onImageUpload={setImageUrl}
                 onImageRemove={() => setImageUrl('')}
                 showUploadOptionsWhenImageExists={true}
+                regenerateButton={createRegenerateButton()}
               />
 
-              {/* AI Generation button */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateImage}
-                  disabled={loading || generatingImage}
-                  className="flex-1"
-                >
-                  {generatingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Image
-                    </>
-                  )}
-                </Button>
-                
-                {imageUrl && currentPrompt && (
-                  <RegenerateImageButton
-                    prompt={currentPrompt} // Use the admin prompt that was stored
-                    filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
-                    onImageGenerated={async (newImageUrl) => {
-                      setImageUrl(newImageUrl);
-                      await onUpdate(food.id, { image_url: newImageUrl });
-                      toast({
-                        title: "Image regenerated & saved!",
-                        description: "New AI image automatically saved!"
-                      });
-                    }}
-                    disabled={loading || generatingImage}
-                  />
+              {/* Full-width AI Generation button */}
+              <Button
+                variant="ai"
+                onClick={handleGenerateImage}
+                disabled={loading || generatingImage}
+                className="w-full"
+              >
+                {generatingImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate AI Image
+                  </>
                 )}
-              </div>
-
+              </Button>
             </div>
           </div>
         </div>

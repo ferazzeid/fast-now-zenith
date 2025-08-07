@@ -13,9 +13,10 @@ interface ImageUploadProps {
   onImageUpload: (url: string) => void;
   onImageRemove: () => void;
   showUploadOptionsWhenImageExists?: boolean;
+  regenerateButton?: React.ReactNode;
 }
 
-export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, showUploadOptionsWhenImageExists = false }: ImageUploadProps) => {
+export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, showUploadOptionsWhenImageExists = false, regenerateButton }: ImageUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
@@ -151,8 +152,15 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, sho
               className="absolute top-2 right-2"
               disabled={isUploading}
             >
-              <X className="w-8 h-8" />
+              <X className="w-4 h-4" />
             </Button>
+            
+            {/* Regenerate button positioned on image */}
+            {regenerateButton && (
+              <div className="absolute top-2 right-12">
+                {regenerateButton}
+              </div>
+            )}
           </div>
           
           {showUploadOptionsWhenImageExists && (
