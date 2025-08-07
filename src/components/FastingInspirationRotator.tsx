@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { FastingTimeline } from '@/components/FastingTimeline';
+import { FastingSliderHeader } from '@/components/FastingSliderHeader';
 import { Quote } from '@/hooks/useQuoteSettings';
 
 interface FastingInspirationRotatorProps {
@@ -88,6 +89,7 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
         </div>
       ) : (
         <div>
+          <FastingSliderHeader currentHour={currentFastingHour} className="mb-2" />
           <FastingTimeline currentHour={currentFastingHour} />
           <div className="text-center mt-2">
             <div 
