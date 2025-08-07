@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check } from 'lucide-react';
+import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { HistoryButton } from '@/components/HistoryButton';
@@ -775,14 +775,18 @@ const FoodTracking = () => {
                   <div className="space-y-2">
                     {templateFoods.map((food) => (
                       <div key={food.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          {food.image_url && (
-                            <img
-                              src={food.image_url}
-                              alt={food.name}
-                              className="w-8 h-8 rounded object-cover"
-                            />
-                          )}
+                         <div className="flex items-center space-x-3">
+                           {food.image_url ? (
+                             <img
+                               src={food.image_url}
+                               alt={food.name}
+                               className="w-8 h-8 rounded object-cover"
+                             />
+                           ) : (
+                             <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                               <Camera className="w-4 h-4 text-muted-foreground" />
+                             </div>
+                           )}
                           <div>
                             <p className="font-medium">{food.name}</p>
                             <p className="text-sm text-muted-foreground">
