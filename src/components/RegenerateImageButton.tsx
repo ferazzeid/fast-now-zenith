@@ -31,8 +31,8 @@ export const RegenerateImageButton = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Use the same admin settings as EditMotivatorModal
-      let promptTemplate = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}";
+      // Use a clean, focused prompt template
+      let promptTemplate = "Create a simple, clean illustration that represents: {title}. {content}. Style: minimalist, modern, inspiring. Colors: {primary_color} and {accent_color}";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       

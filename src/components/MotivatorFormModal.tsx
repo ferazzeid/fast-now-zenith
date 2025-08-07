@@ -61,8 +61,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
     setIsGeneratingImage(true);
     try {
-      // Fetch admin prompt settings and color themes
-      let promptTemplate = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.\n\nSubject: {title}. {content}\n\nIncorporate these brand colors naturally: Primary: {primary_color}, Accent: {accent_color}";
+      // Use a clean, focused prompt template
+      let promptTemplate = "Create a simple, clean illustration that represents: {title}. {content}. Style: minimalist, modern, inspiring. Colors: {primary_color} and {accent_color}";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       
@@ -258,54 +258,16 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           </div>
 
           <div className="space-y-2">
-            {/* Use proper ImageUpload component with regenerate button */}
             <ImageUpload
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
               onImageRemove={() => setImageUrl('')}
               showUploadOptionsWhenImageExists={false}
-              regenerateButton={imageUrl ? (
-                <RegenerateImageButton
-                  prompt={`${title}. ${content}`}
-                  filename={`motivator-${Date.now()}.jpg`}
-                  onImageGenerated={setImageUrl}
-                  disabled={isGeneratingImage}
-                />
-              ) : undefined}
+              aiGenerationPrompt={title || content ? `${title}. ${content}` : undefined}
+              motivatorId={motivator?.id}
+              onAiGenerate={handleGenerateImage}
+              isGenerating={isGeneratingImage}
             />
-
-            {/* Upload and Generate buttons on same line - 50% each */}
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {}} 
-                className="flex-1 bg-ceramic-base border-ceramic-rim"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload New Image
-              </Button>
-              
-              <PremiumGate feature="AI Image Generation">
-                <Button
-                  variant="ai"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="flex-1"
-                >
-                  {isGeneratingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Image
-                    </>
-                  )}
-                </Button>
-              </PremiumGate>
-            </div>
           </div>
           
           {/* Minimal spacing before footer buttons */}

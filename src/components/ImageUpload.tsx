@@ -1,5 +1,5 @@
 import { useState, useRef, DragEvent } from 'react';
-import { Upload, Camera, X, Loader2, Image } from 'lucide-react';
+import { Upload, Camera, X, Loader2, Image, Sparkles, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { uploadImageHybrid } from '@/utils/imageUtils';
 import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PremiumGate } from '@/components/PremiumGate';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -14,9 +15,24 @@ interface ImageUploadProps {
   onImageRemove: () => void;
   showUploadOptionsWhenImageExists?: boolean;
   regenerateButton?: React.ReactNode;
+  // New props for AI generation
+  aiGenerationPrompt?: string;
+  motivatorId?: string;
+  onAiGenerate?: () => void;
+  isGenerating?: boolean;
 }
 
-export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, showUploadOptionsWhenImageExists = false, regenerateButton }: ImageUploadProps) => {
+export const ImageUpload = ({ 
+  currentImageUrl, 
+  onImageUpload, 
+  onImageRemove, 
+  showUploadOptionsWhenImageExists = false, 
+  regenerateButton,
+  aiGenerationPrompt,
+  motivatorId,
+  onAiGenerate,
+  isGenerating = false
+}: ImageUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
@@ -155,10 +171,27 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove, sho
               <X className="w-4 h-4" />
             </Button>
             
-            {/* Regenerate button positioned on image - same size as X button */}
-            {regenerateButton && (
+            {/* AI Generate/Regenerate button positioned on image */}
+            {aiGenerationPrompt && (
               <div className="absolute top-2 right-12">
-                {regenerateButton}
+                <PremiumGate feature="AI Image Generation" showUpgrade={false}>
+                  <Button
+                    variant="ai"
+                    size="sm"
+                    onClick={onAiGenerate}
+                    disabled={isGenerating}
+                    className="h-8 w-8 p-0"
+                    title={currentImageUrl ? "Regenerate with AI" : "Generate with AI"}
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : currentImageUrl ? (
+                      <RotateCcw className="w-4 h-4" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                  </Button>
+                </PremiumGate>
               </div>
             )}
           </div>
