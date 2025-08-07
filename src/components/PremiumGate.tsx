@@ -96,45 +96,33 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Use cloneElement to preserve original element structure and classes
+    // Zero-wrapper approach: clone element directly with disabled styles
     if (isValidElement(children)) {
       const originalChild = children as ReactElement<any>;
       
-      return (
-        <div className="relative inline-block">
-          {cloneElement(originalChild, {
-            className: cn(
-              originalChild.props.className,
-              "opacity-40 grayscale pointer-events-none select-none cursor-not-allowed",
-              className
-            ),
-            onClick: handleGrayedClick,
-            disabled: true
-          })}
-          {/* Small lock indicator */}
-          <div className="absolute top-1 right-1 pointer-events-none z-10">
-            <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
-              <Lock className="w-3 h-3 text-foreground/70" />
-            </div>
-          </div>
-        </div>
-      );
+      return cloneElement(originalChild, {
+        className: cn(
+          originalChild.props.className,
+          "opacity-40 grayscale cursor-not-allowed",
+          className
+        ),
+        onClick: handleGrayedClick,
+        disabled: true,
+        style: {
+          ...originalChild.props.style,
+          pointerEvents: 'auto' // Override pointer-events to allow click for toast
+        }
+      });
     }
 
-    // Fallback for non-React elements
+    // Fallback for non-React elements - simplified wrapper
     return (
       <div 
-        className={`relative inline-flex w-fit h-fit ${className} cursor-not-allowed`}
+        className={cn("opacity-40 grayscale cursor-not-allowed", className)}
         onClick={handleGrayedClick}
+        style={{ pointerEvents: 'auto' }}
       >
-        <div className="opacity-40 grayscale pointer-events-none select-none">
-          {children}
-        </div>
-        <div className="absolute top-1 right-1 pointer-events-none">
-          <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
-            <Lock className="w-3 h-3 text-foreground/70" />
-          </div>
-        </div>
+        {children}
       </div>
     );
   }
