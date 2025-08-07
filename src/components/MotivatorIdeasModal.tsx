@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Lightbulb, Plus, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { Lightbulb, Plus, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MotivatorIdeasModalProps {
   isOpen: boolean;
@@ -70,53 +70,101 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
             ) : (
               goalIdeas.map((goal) => {
                 const isExpanded = expandedGoal === goal.id;
+                const shouldShowExpandButton = goal.description && goal.description.length > 50;
                 
                 return (
-                  <Card key={goal.id} className="border-ceramic-rim transition-colors">
-                    <div 
-                      className="p-3 cursor-pointer hover:bg-ceramic-base"
-                      onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
-                    >
-                      <div className="flex gap-3">
-                        {/* Goal Image */}
-                        <div className="w-12 h-12 flex-shrink-0">
+                  <Card key={goal.id} className="overflow-hidden relative">
+                    <CardContent className="p-0">
+                      <div className="flex">
+                        {/* Image */}
+                        <div className="w-32 h-32 flex-shrink-0">
                           <MotivatorImageWithFallback
                             src={goal.imageUrl}
                             alt={goal.title}
-                            className="w-full h-full object-cover rounded"
+                            className="w-full h-full object-cover"
                           />
                         </div>
-                        
-                        {/* Goal Content */}
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-warm-text text-sm">{goal.title}</h4>
-                            <Button 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onSelectGoal(goal);
-                                onClose();
-                              }}
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground h-6 w-6 p-1"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
+                       
+                        {/* Content */}
+                        <div 
+                          className="flex-1 p-4 pr-2 cursor-pointer hover:bg-muted/5"
+                          onClick={(e) => {
+                            if (shouldShowExpandButton) {
+                              e.stopPropagation();
+                              setExpandedGoal(isExpanded ? null : goal.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-start justify-between h-full">
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center">
+                                <h3 className="font-semibold text-warm-text line-clamp-1">
+                                  {goal.title}
+                                </h3>
+                              </div>
+                              
+                              {goal.description && (
+                                <div className="text-sm text-muted-foreground">
+                                  {isExpanded ? (
+                                    <p className="whitespace-pre-wrap">{goal.description}</p>
+                                  ) : (
+                                    <p className="line-clamp-2">{goal.description}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Add Button */}
+                            <div className="flex flex-col gap-1 ml-2">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onSelectGoal(goal);
+                                      onClose();
+                                    }}
+                                    className="p-1 h-6 w-6 hover:bg-primary/10 hover:text-primary"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Add this motivator to your goals</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
                           </div>
-                          <p className={`text-xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
-                            {goal.description}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Bottom expand indicator */}
-                    <div 
-                      className="flex justify-center py-2 bg-muted/30 hover:bg-muted/50 cursor-pointer border-t border-muted/50"
-                      onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
-                    >
-                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                    </div>
+                      
+                      {/* Expand button at bottom-right */}
+                      {shouldShowExpandButton && (
+                        <div className="absolute bottom-2 right-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                                className="h-6 w-6 p-0 rounded-full hover:bg-muted/10"
+                              >
+                                <ChevronDown 
+                                  className={`w-3 h-3 transition-transform duration-200 ${
+                                    isExpanded ? 'rotate-180' : ''
+                                  }`} 
+                                />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )}
+                    </CardContent>
                   </Card>
                 );
               })
