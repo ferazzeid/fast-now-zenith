@@ -97,7 +97,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
     return (
       <div 
-        className={`relative ${className} cursor-not-allowed`}
+        className={`relative inline-flex ${className} cursor-not-allowed`}
         onClick={handleGrayedClick}
       >
         {/* Completely disabled content with strong visual indication */}
