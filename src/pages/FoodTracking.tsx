@@ -68,7 +68,7 @@ const FoodTracking = () => {
   const { profile } = useProfile();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
-  const { templateFoods, saveAsTemplate: saveTemplate, clearTemplate, applyTemplate, loading: templateLoading } = useDailyFoodTemplate();
+  const { templateFoods, saveAsTemplate: saveTemplate, clearTemplate, applyTemplate, loadTemplate, loading: templateLoading } = useDailyFoodTemplate();
 
   const handleVoiceFood = async () => {
     trackAIEvent('chat', 'food_assistant');
@@ -775,7 +775,7 @@ const FoodTracking = () => {
                     <div className="space-y-1">
                      {templateFoods.map((food) => (
                        <div key={food.id} className="flex items-center justify-between p-2 bg-muted/20 border-0 rounded-lg">
-                         <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2">
                            {food.image_url ? (
                              <img
                                src={food.image_url}
@@ -787,16 +787,65 @@ const FoodTracking = () => {
                                <Camera className="w-5 h-5 text-muted-foreground" />
                              </div>
                            )}
-                          <div>
-                            <p className="font-medium">{food.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                           <div className="flex-1 min-w-0">
+                             <p className="font-medium truncate">{food.name}</p>
+                             <p className="text-sm text-muted-foreground">
+                               {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
+                             </p>
+                           </div>
+                         </div>
+                         
+                         {/* Actions - 3-dots menu */}
+                         <div className="flex items-center gap-1 flex-shrink-0">
+                           <div className="w-1"></div>
+                           
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button 
+                                 size="sm" 
+                                 variant="ghost" 
+                                 className="h-5 w-5 p-1 hover:bg-secondary/80 rounded"
+                               >
+                                 <MoreVertical className="w-3 h-3 text-primary" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end" className="w-44">
+                               <DropdownMenuItem onClick={() => setEditingEntry(food)}>
+                                 <Edit className="w-4 h-4 mr-2" />
+                                 Edit Template Item
+                               </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={async () => {
+                                    try {
+                                      await supabase
+                                        .from('daily_food_templates')
+                                        .delete()
+                                        .eq('id', food.id);
+                                      // Refresh template
+                                      await loadTemplate();
+                                      toast({
+                                        title: "Template item deleted",
+                                        description: "Item removed from daily template"
+                                      });
+                                    } catch (error) {
+                                      toast({
+                                        variant: "destructive",
+                                        title: "Error",
+                                        description: "Failed to delete template item"
+                                      });
+                                    }
+                                  }}
+                                 className="text-destructive focus:text-destructive"
+                               >
+                                 <Trash2 className="w-4 h-4 mr-2" />
+                                 Delete from Template
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
                 </>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
