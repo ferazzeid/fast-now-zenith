@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Camera, Sparkles, Mic } from 'lucide-react';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
-import { CircularVoiceButton } from '@/components/CircularVoiceButton';
+
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   const [isAiFilling, setIsAiFilling] = useState(false);
   const [isAiFillingCalories, setIsAiFillingCalories] = useState(false);
   const [isAiFillingCarbs, setIsAiFillingCarbs] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   
   // Set default unit if not already set
   if (!data.servingUnit) {
@@ -98,6 +100,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
   const handleVoiceInput = (text: string) => {
     updateField('name', text);
+    setShowVoiceRecorder(false);
   };
 
   return (
@@ -129,25 +132,25 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           {/* Required Fields */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="food-name" className="text-sm font-medium">
-                Food Name <span className="text-red-500">*</span>
-              </Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  id="food-name"
-                  value={data.name}
-                  onChange={(e) => updateField('name', e.target.value)}
-                  placeholder="e.g., Grilled Chicken Breast"
-                  className="flex-1"
-                  required
-                />
-                <div className="flex items-center">
-                  <CircularVoiceButton 
-                    onTranscription={handleVoiceInput}
-                    size="sm"
-                  />
-                </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="food-name" className="text-sm font-medium">
+                  Food Name <span className="text-red-500">*</span>
+                </Label>
+                <button
+                  onClick={() => setShowVoiceRecorder(true)}
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                >
+                  <Mic className="w-3 h-3 mx-auto" />
+                </button>
               </div>
+              <Input
+                id="food-name"
+                value={data.name}
+                onChange={(e) => updateField('name', e.target.value)}
+                placeholder="e.g., Grilled Chicken Breast"
+                className="mt-1"
+                required
+              />
             </div>
 
             <div>
@@ -187,66 +190,94 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           <div className="pt-2">            
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="calories" className="text-sm font-medium">
-                  Calories (100g) <span className="text-red-500">*</span>
-                </Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    id="calories"
-                    type="number"
-                    value={data.calories}
-                    onChange={(e) => updateField('calories', e.target.value)}
-                    placeholder="0"
-                    className="flex-1"
-                    required
-                  />
-                  <Button
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="calories" className="text-sm font-medium">
+                    Calories (100g) <span className="text-red-500">*</span>
+                  </Label>
+                  <button
                     onClick={() => handleAiEstimate('calories')}
                     disabled={isAiFillingCalories || !data.name}
-                    className="h-10 w-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
-                    size="sm"
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
                   >
                     {isAiFillingCalories ? (
-                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
                     ) : (
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-3 h-3 mx-auto" />
                     )}
-                  </Button>
+                  </button>
                 </div>
+                <Input
+                  id="calories"
+                  type="number"
+                  value={data.calories}
+                  onChange={(e) => updateField('calories', e.target.value)}
+                  placeholder="0"
+                  className="mt-1"
+                  required
+                />
               </div>
 
               <div>
-                <Label htmlFor="carbs" className="text-sm font-medium">
-                  Carbs (100g) <span className="text-red-500">*</span>
-                </Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    id="carbs"
-                    type="number"
-                    value={data.carbs}
-                    onChange={(e) => updateField('carbs', e.target.value)}
-                    placeholder="0"
-                    className="flex-1"
-                    required
-                  />
-                  <Button
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="carbs" className="text-sm font-medium">
+                    Carbs (100g) <span className="text-red-500">*</span>
+                  </Label>
+                  <button
                     onClick={() => handleAiEstimate('carbs')}
                     disabled={isAiFillingCarbs || !data.name}
-                    className="h-10 w-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
-                    size="sm"
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
                   >
                     {isAiFillingCarbs ? (
-                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
                     ) : (
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-3 h-3 mx-auto" />
                     )}
-                  </Button>
+                  </button>
                 </div>
+                <Input
+                  id="carbs"
+                  type="number"
+                  value={data.carbs}
+                  onChange={(e) => updateField('carbs', e.target.value)}
+                  placeholder="0"
+                  className="mt-1"
+                  required
+                />
               </div>
             </div>
           </div>
 
         </div>
+
+        {/* Voice Recorder Modal */}
+        {showVoiceRecorder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+            <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
+              <div className="text-center mb-4">
+                <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
+                <p className="text-sm text-muted-foreground">
+                  Speak the food name
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <CircularVoiceButton 
+                  onTranscription={handleVoiceInput}
+                  size="lg"
+                />
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setShowVoiceRecorder(false)}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
     </UniversalModal>
   );
 };
