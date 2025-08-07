@@ -68,7 +68,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
           </div>
         );
       case 'active':
-        return <Badge variant="secondary">Active</Badge>;
+        return <Badge className="bg-green-500 text-white hover:bg-green-600 font-medium">Active</Badge>;
       default:
         return null;
     }
@@ -362,7 +362,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                           {session.goal_duration_seconds && (
                             <span className="flex items-center gap-1">
                               <Target className="w-3 h-3" />
-                              Goal: {formatDuration(session.goal_duration_seconds)}
+                              Target: {formatDuration(session.goal_duration_seconds)}
                             </span>
                           )}
                         </div>

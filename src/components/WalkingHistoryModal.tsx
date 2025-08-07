@@ -31,6 +31,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
@@ -155,6 +156,28 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
     return `${mins}m`;
   };
 
+  // Group sessions by date
+  const sessionsByDate = sessions.reduce((acc, session) => {
+    const date = format(new Date(session.start_time), 'yyyy-MM-dd');
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(session);
+    return acc;
+  }, {} as Record<string, WalkingSession[]>);
+
+  const toggleDateCollapse = (date: string) => {
+    setCollapsedDates(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(date)) {
+        newSet.delete(date);
+      } else {
+        newSet.add(date);
+      }
+      return newSet;
+    });
+  };
+
   // Calculate analytics
   const completedSessions = sessions.filter(s => s.status === 'completed');
   const totalSessions = completedSessions.length;
@@ -228,100 +251,123 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
               <p className="text-sm text-muted-foreground mt-1">Start your first walk to see your progress here!</p>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {sessions.map((session) => {
-                const duration = calculateDuration(session.start_time, session.end_time);
-                const date = new Date(session.start_time);
-                
-                return (
-                  <Card key={session.id} className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          {format(date, 'MMM d, yyyy')}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(date, 'h:mm a')}
-                        </span>
+            <div className="space-y-4">
+              {Object.entries(sessionsByDate)
+                .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+                .map(([date, dateSessions]) => {
+                  const isCollapsed = collapsedDates.has(date);
+                  const displayDate = format(new Date(date), 'MMM d, yyyy');
+                  
+                  return (
+                    <div key={date} className="space-y-2">
+                      <div 
+                        className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => toggleDateCollapse(date)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium text-sm">{displayDate}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({dateSessions.length} session{dateSessions.length > 1 ? 's' : ''})
+                          </span>
+                        </div>
+                        <ChevronDown 
+                          className={`w-4 h-4 text-muted-foreground transition-transform ${
+                            isCollapsed ? '' : 'rotate-180'
+                          }`}
+                        />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          Completed
-                        </Badge>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                              disabled={deletingId === session.id}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Walking Session</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this walking session from {format(date, 'MMM d, yyyy')}? 
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteSession(session.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                      
+                      {!isCollapsed && (
+                        <div className="space-y-2 ml-4">
+                          {dateSessions.map((session) => {
+                            const duration = calculateDuration(session.start_time, session.end_time);
+                            const sessionTime = new Date(session.start_time);
+                            
+                            return (
+                              <Card key={session.id} className="p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-sm font-medium">
+                                      {format(sessionTime, 'h:mm a')}
+                                    </span>
+                                  </div>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                        disabled={deletingId === session.id}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Walking Session</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete this walking session from {displayDate}? 
+                                          This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => handleDeleteSession(session.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-muted-foreground" />
+                                    <div>
+                                      <p className="text-sm font-medium">{formatDuration(duration)}</p>
+                                      <p className="text-xs text-muted-foreground">Duration</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-green-500" />
+                                    <div>
+                                      <p className="text-sm font-medium">{session.distance?.toFixed(2) || 0} mi</p>
+                                      <p className="text-xs text-muted-foreground">Distance</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-orange-500" />
+                                    <div>
+                                      <p className="text-sm font-medium">{session.calories_burned || 0} cal</p>
+                                      <p className="text-xs text-muted-foreground">Burned</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-4 h-4 text-purple-500" />
+                                    <div>
+                                      <p className="text-sm font-medium">
+                                        {session.estimated_steps?.toLocaleString() || 'N/A'}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">Steps (est.)</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">{formatDuration(duration)}</p>
-                          <p className="text-xs text-muted-foreground">Duration</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-green-500" />
-                        <div>
-                          <p className="text-sm font-medium">{session.distance?.toFixed(2) || 0} mi</p>
-                          <p className="text-xs text-muted-foreground">Distance</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-orange-500" />
-                        <div>
-                          <p className="text-sm font-medium">{session.calories_burned || 0} cal</p>
-                          <p className="text-xs text-muted-foreground">Burned</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-purple-500" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {session.estimated_steps?.toLocaleString() || 'N/A'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Steps (est.)</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-
-                  </Card>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
 
