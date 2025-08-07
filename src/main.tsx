@@ -6,9 +6,13 @@ import { initOfflineStorage } from './utils/offlineStorage'
 import { useDynamicFavicon } from './hooks/useDynamicFavicon'
 import { RoleTestingProvider } from './contexts/RoleTestingContext'
 
+// Production logging guard - reduce noise in prod
+if (process.env.NODE_ENV === 'production') {
+  console.debug = () => {};
+  console.info = () => {};
+}
 // Initialize offline storage and cleanup
 initOfflineStorage();
-
 const AppWithFavicon = () => {
   useDynamicFavicon();
   return <App />;

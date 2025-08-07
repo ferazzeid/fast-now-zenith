@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminProtectedRouteProps {
   children: ReactNode;
@@ -13,6 +14,7 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const check = async () => {
@@ -45,13 +47,20 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
     check();
   }, [user, loading]);
 
-  useEffect(() => {
-    if (!loading && !checking) {
-      if (!user || !isAdmin) {
-        navigate('/');
-      }
+useEffect(() => {
+  if (!loading && !checking) {
+    if (!user) {
+      navigate('/auth');
+    } else if (!isAdmin) {
+      toast({
+        title: 'Admins only',
+        description: 'You don’t have access to this section.',
+        variant: 'destructive',
+      });
+      navigate('/');
     }
-  }, [loading, checking, isAdmin, user, navigate]);
+  }
+}, [loading, checking, isAdmin, user, navigate, toast]);
 
   if (loading || checking) {
     return <LoadingSpinner />;

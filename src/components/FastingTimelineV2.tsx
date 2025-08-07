@@ -130,7 +130,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
 
       {/* Details panel */}
       <Card className="mt-4">
-        <CardContent className="pt-4">
+        <CardContent className="pt-4" role="region" aria-live="polite" aria-labelledby="hour-heading">
           {isLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-5 w-1/2" />
@@ -145,7 +145,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           ) : (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold">Hour {selectedHour}</h3>
+                <h3 id="hour-heading" className="text-base font-semibold">Hour {selectedHour}</h3>
                 <div className="flex gap-2">
                   {hourMap.get(selectedHour)?.ketosis_milestone && (
                     <Badge variant="outline">Ketosis</Badge>
