@@ -85,7 +85,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
       showCloseButton={true}
     >
         
-        <div className="space-y-4">
+        <div className="space-y-4 py-2">
           {/* Goal Ideas List */}
           <div className="max-h-96 overflow-y-auto space-y-3">
             {goalIdeas.length === 0 ? (
@@ -141,7 +141,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                             </div>
                             
                             {/* Action Buttons */}
-                            <div className="flex flex-col gap-1 ml-2">
+                            <div className="flex flex-col gap-2 ml-2">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
@@ -167,12 +167,12 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                   <TooltipTrigger asChild>
                                     <Button
                                       size="sm"
-                                      variant="outline"
+                                      variant="ghost"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onEditGoal(goal);
                                       }}
-                                      className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base"
+                                      className="p-1 h-6 w-6 rounded-md hover:bg-ceramic-base text-muted-foreground hover:text-warm-text"
                                     >
                                       <Edit className="w-3 h-3" />
                                     </Button>
