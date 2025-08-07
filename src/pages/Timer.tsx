@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
-import { CrisisChatModal } from '@/components/CrisisChatModal';
+
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 import { FastingHistory } from '@/components/FastingHistory';
 
@@ -18,10 +18,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
-import { useCrisisSettings } from '@/hooks/useCrisisSettings';
-import { useCrisisConversation } from '@/hooks/useCrisisConversation';
 import { useProfile } from '@/hooks/useProfile';
-import { SOSButton } from '@/components/SOSButton';
+
 import { trackFastingEvent } from '@/utils/analytics';
 
 const Timer = () => {
@@ -30,39 +28,18 @@ const Timer = () => {
   const [fastType, setFastType] = useState<'longterm'>('longterm');
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
-  const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
   const [stopAction, setStopAction] = useState<'finish' | 'cancel'>('finish');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showFastingHistory, setShowFastingHistory] = useState(false);
   
-  // Crisis modal static context state
-  const [crisisContext, setCrisisContext] = useState<string>('');
-  const [crisisSystemPrompt, setCrisisSystemPrompt] = useState<string>('');
-  const [crisisProactiveMessage, setCrisisProactiveMessage] = useState<string>('');
-  const [crisisQuickReplies, setCrisisQuickReplies] = useState<string[]>([]);
-  
   const [walkingTime, setWalkingTime] = useState(0);
-  
+
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
   const { profile } = useProfile();
-  // PERFORMANCE FIX: Only load crisis hooks when crisis modal is actually open
-  // This prevents excessive API calls on every Timer page load
-  const { settings: crisisSettings } = showCrisisModal ? useCrisisSettings() : { settings: null };
-  const { 
-    generateCrisisContext, 
-    generateSystemPrompt, 
-    generateProactiveMessage, 
-    generateQuickReplies 
-  } = showCrisisModal ? useCrisisConversation() : {
-    generateCrisisContext: () => '',
-    generateSystemPrompt: () => '',
-    generateProactiveMessage: () => '',
-    generateQuickReplies: () => []
-  };
 
   const isRunning = !!fastingSession;
 
@@ -267,28 +244,6 @@ const Timer = () => {
     }
   };
 
-  // Function to open crisis modal with static context
-  const openCrisisModal = () => {
-    // Generate context once when opening modal
-    const context = generateCrisisContext({
-      fastType,
-      timeElapsed,
-      goalDuration: fastDuration,
-      progress: getProgress()
-    });
-    const systemPrompt = generateSystemPrompt();
-    const proactiveMessage = generateProactiveMessage();
-    const quickReplies = generateQuickReplies();
-    
-    // Store in state
-    setCrisisContext(context);
-    setCrisisSystemPrompt(systemPrompt);
-    setCrisisProactiveMessage(proactiveMessage);
-    setCrisisQuickReplies(quickReplies);
-    
-    // Open modal
-    setShowCrisisModal(true);
-  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
@@ -416,15 +371,6 @@ const Timer = () => {
         />
       )}
 
-      {/* Crisis Support Modal */}
-      <CrisisChatModal 
-        isOpen={showCrisisModal} 
-        onClose={() => setShowCrisisModal(false)}
-        context={crisisContext}
-        systemPrompt={crisisSystemPrompt}
-        proactiveMessage={crisisProactiveMessage}
-        quickReplies={crisisQuickReplies}
-      />
 
       {/* Stop Fast Confirmation Dialog */}
       <StopFastConfirmDialog

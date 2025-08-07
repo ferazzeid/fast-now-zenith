@@ -25,7 +25,7 @@ interface ModalAiChatProps {
   context?: string;
   title?: string;
   systemPrompt?: string;
-  conversationType?: 'general' | 'crisis';
+  conversationType?: 'general';
   proactiveMessage?: string;
   quickReplies?: string[];
 }
@@ -72,15 +72,6 @@ export const ModalAiChat = ({
         initialMessages.push(contextMessage);
       }
       
-      // For crisis conversations, add proactive message immediately
-      if (conversationType === 'crisis' && proactiveMessage) {
-        const proactiveMsg: Message = {
-          role: 'assistant',
-          content: proactiveMessage,
-          timestamp: new Date()
-        };
-        initialMessages.push(proactiveMsg);
-      }
       
       setMessages(initialMessages);
       setLastFoodSuggestion(null);
@@ -390,22 +381,8 @@ NO other text. Immediately call add_multiple_foods function.`;
                 <div className="flex-1">
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                   
-                  {/* Crisis Quick Reply Buttons */}
-                  {conversationType === 'crisis' && message.role === 'assistant' && quickReplies.length > 0 && index === messages.length - 1 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {quickReplies.map((reply, replyIndex) => (
-                        <Button 
-                          key={replyIndex}
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleSendMessage(reply)}
-                          className="text-xs"
-                        >
-                          {reply}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
+                   
+                  {/* AI Response with streaming indicator */}
 
                   {/* Voice correction button for follow-up messages */}
                   {message.role === 'assistant' && message.content.includes('Need to make adjustments?') && (

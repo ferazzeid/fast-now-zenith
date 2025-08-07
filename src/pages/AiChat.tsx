@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
 import { useSearchParams, useLocation } from 'react-router-dom';
-import { useCrisisConversation } from '@/hooks/useCrisisConversation';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -67,15 +67,10 @@ const AiChat = () => {
   const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
-  const { generateSystemPrompt, generateProactiveMessage, generateQuickReplies } = useCrisisConversation();
+  
   const { subscribed, subscription_tier } = useOptimizedSubscription();
   const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
 
-  // Check for crisis mode
-  const isCrisisMode = searchParams.get('crisis') === 'true';
-  const crisisData = searchParams.get('data') ? JSON.parse(decodeURIComponent(searchParams.get('data')!)) : null;
-
-  console.log('DEBUG: Crisis mode detection', { isCrisisMode, crisisData, searchParams: Object.fromEntries(searchParams.entries()) });
 
   // Combine regular messages with notification messages
   const profileSystemMessage = (!profile?.weight || !profile?.height || !profile?.age) ? [{
@@ -108,14 +103,6 @@ const AiChat = () => {
     }
   }, [getAutoShowNotifications, profile, user]);
 
-  // Handle crisis mode initialization
-  useEffect(() => {
-    if (isCrisisMode && crisisData && messages.length === 0) {
-      console.log('DEBUG: Initializing crisis conversation');
-      // Add crisis greeting message as a regular message that gets saved
-      handleSendMessage(generateProactiveMessage());
-    }
-  }, [isCrisisMode, crisisData, messages.length]);
 
   // Handle notification responses
   const handleNotificationResponse = async (message: string) => {
@@ -294,7 +281,7 @@ const AiChat = () => {
         content: msg.content
       }));
 
-      const systemPrompt = isCrisisMode ? generateSystemPrompt() : `You are a helpful AI assistant for a health and fasting app. You help users with:
+      const systemPrompt = `You are a helpful AI assistant for a health and fasting app. You help users with:
 1. Fasting guidance and motivation
 2. Walking/exercise tracking and encouragement  
 3. Food tracking and nutrition advice
@@ -782,29 +769,6 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
         {/* Input */}
         <div className="bg-ceramic-plate/95 backdrop-blur-sm border-t border-ceramic-rim px-4 py-4 flex-shrink-0">
           <div className="max-w-md mx-auto space-y-3">
-            {/* Crisis Quick Replies - Simplified */}
-            {isCrisisMode && (
-              <div className="space-y-2">
-                <div className="text-xs text-muted-foreground">Common responses:</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {generateQuickReplies().map((reply, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log('DEBUG: Quick reply clicked', reply);
-                        handleSendMessage(reply);
-                      }}
-                      className="text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 dark:bg-red-950 dark:border-red-800 dark:text-red-300 cursor-pointer justify-start h-auto py-2 px-3"
-                    >
-                      {reply}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
             {/* Text Input */}
             <div className="flex gap-2 items-end">
               <Input
