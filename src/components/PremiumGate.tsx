@@ -96,23 +96,33 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Zero-wrapper approach: clone element directly with disabled styles
+    // Minimal wrapper approach: preserve layout with lock icon
     if (isValidElement(children)) {
       const originalChild = children as ReactElement<any>;
       
-      return cloneElement(originalChild, {
-        className: cn(
-          originalChild.props.className,
-          "opacity-40 grayscale cursor-not-allowed",
-          className
-        ),
-        onClick: handleGrayedClick,
-        disabled: true,
-        style: {
-          ...originalChild.props.style,
-          pointerEvents: 'auto' // Override pointer-events to allow click for toast
-        }
-      });
+      return (
+        <span className="relative inline-block">
+          {cloneElement(originalChild, {
+            className: cn(
+              originalChild.props.className,
+              "opacity-40 grayscale cursor-not-allowed",
+              className
+            ),
+            onClick: handleGrayedClick,
+            disabled: true,
+            style: {
+              ...originalChild.props.style,
+              pointerEvents: 'auto' // Override pointer-events to allow click for toast
+            }
+          })}
+          {/* Lock icon overlay */}
+          <div className="absolute top-1 right-1 pointer-events-none z-10">
+            <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
+              <Lock className="w-3 h-3 text-foreground/70" />
+            </div>
+          </div>
+        </span>
+      );
     }
 
     // Fallback for non-React elements - simplified wrapper
