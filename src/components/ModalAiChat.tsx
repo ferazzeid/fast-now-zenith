@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAuth } from '@/hooks/useAuth';
-import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useFoodEditingActions } from '@/hooks/useFoodEditingActions';
+import { FoodEditPreview } from '@/components/FoodEditPreview';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -53,8 +54,15 @@ export const ModalAiChat = ({
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Already imported directly
   const { user } = useAuth();
+  const {
+    searchResults,
+    searchFoodsForEdit,
+    createEditPreview,
+    applyEditPreview
+  } = useFoodEditingActions();
+  const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -109,20 +117,37 @@ export const ModalAiChat = ({
       if (title === 'Food Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
-You are a concise food tracking assistant. Your goal is to:
+You are a comprehensive food tracking assistant. Your goals are to:
+
+**FOR ADDING FOODS:**
 1. IMMEDIATELY process food information and call add_multiple_foods function
 2. ONLY respond with clean, minimal format: "Food Name (Amount) - Calories cal, Carbs g carbs" for each item
-3. NO explanatory text, walking times, or verbose descriptions
-4. Use reasonable portion sizes (150g apple, 100g chicken breast, 60g bread slice, etc.)
-5. Always call add_multiple_foods function immediately when processing food input
+3. Use reasonable portion sizes (150g apple, 100g chicken breast, 60g bread slice, etc.)
+4. Always call add_multiple_foods function immediately when processing food input
 
-CRITICAL: Response format must ONLY be:
+**FOR EDITING FOODS:**
+1. When users want to edit/change/update/fix foods, FIRST call search_foods_for_edit to find the food
+2. Use context clues to determine search location:
+   - "today's food", "my lunch", "the chicken I ate" → context: "today"
+   - "in my library", "my saved foods" → context: "library" 
+   - "my template", "daily template" → context: "templates"
+3. After finding foods, if user specifies exact changes, call edit_food_entry or edit_library_food
+4. Be smart about matching: "the chicken" should find recent chicken entries, "my banana" finds banana entries
+
+**EDITING EXAMPLES:**
+- "Change my lunch chicken to 150g" → search_foods_for_edit("chicken", "today") then edit_food_entry
+- "Update the banana calories to 120" → search_foods_for_edit("banana", "today") then edit_food_entry  
+- "Fix my salmon library entry, should be 250 calories per 100g" → search_foods_for_edit("salmon", "library") then edit_library_food
+
+**RESPONSE FORMAT FOR ADDING:**
 - Ham (200g) - 240 cal, 2g carbs
 - Mozzarella (125g) - 315 cal, 1.5g carbs
-
 Total: 555 calories, 3.5g carbs
 
-NO other text. Immediately call add_multiple_foods function.`;
+**RESPONSE FORMAT FOR EDITING:**
+Always call the appropriate function first, then provide confirmation.
+
+CRITICAL: Always use function calls for food operations. NO manual text responses for food data.`;
       } else if (title === 'Motivator Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
@@ -169,6 +194,21 @@ ${args.content}`,
             timestamp: new Date()
           };
           setMessages(prev => [...prev, motivatorMessage]);
+          return;
+        } else if (data.functionCall.name === 'search_foods_for_edit') {
+          // Handle food search for editing
+          const { search_term, context } = data.functionCall.arguments;
+          await handleFoodSearch(search_term, context);
+          return;
+        } else if (data.functionCall.name === 'edit_food_entry') {
+          // Handle direct food entry editing
+          const { entry_id, updates } = data.functionCall.arguments;
+          await handleDirectFoodEdit(entry_id, updates, 'today');
+          return;
+        } else if (data.functionCall.name === 'edit_library_food') {
+          // Handle library food editing
+          const { food_id, updates } = data.functionCall.arguments;
+          await handleDirectFoodEdit(food_id, updates, 'library');
           return;
         }
       }
@@ -390,6 +430,125 @@ ${args.content}`,
     }
   };
 
+  // Handle food search for editing
+  const handleFoodSearch = async (searchTerm: string, context: 'today' | 'library' | 'templates') => {
+    try {
+      const results = await searchFoodsForEdit(searchTerm, context);
+      
+      if (results.length === 0) {
+        const aiMessage: Message = {
+          role: 'assistant',
+          content: `I couldn't find any ${context === 'today' ? "today's entries" : context} matching "${searchTerm}". Try a different search term or check the specific location.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        return;
+      }
+
+      // Show search results to user
+      const resultsList = results.map(r => 
+        `• ${r.name} (${r.type === 'today' ? 'Today' : r.type === 'library' ? 'Library' : 'Template'})`
+      ).join('\n');
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `Found ${results.length} food(s) matching "${searchTerm}":\n\n${resultsList}\n\nTell me what you'd like to change. For example: "Change the chicken to 150g" or "Update the banana calories to 120".`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      
+    } catch (error) {
+      console.error('Error searching foods:', error);
+      toast({
+        title: "Search Error",
+        description: "Failed to search for foods. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handle direct food editing with preview
+  const handleDirectFoodEdit = async (itemId: string, updates: any, type: 'today' | 'library' | 'template') => {
+    try {
+      // Find the item being edited from previous search results
+      const item = searchResults.find(r => r.id === itemId);
+      if (!item) {
+        throw new Error('Food item not found for editing');
+      }
+
+      // Create edit preview
+      const preview = createEditPreview(item, updates);
+      setActiveEditPreviews(prev => [...prev, preview]);
+
+      // Show preview to user
+      const changesList = Object.keys(updates).map(key => {
+        const before = item.current_values[key as keyof typeof item.current_values];
+        const after = updates[key];
+        return `${key.replace('_', ' ')}: ${before} → ${after}`;
+      }).join(', ');
+
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `Ready to update ${item.name}: ${changesList}. Please confirm the changes below.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      
+    } catch (error) {
+      console.error('Error creating edit preview:', error);
+      toast({
+        title: "Edit Error",
+        description: "Failed to prepare food edit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Apply edit preview
+  const handleApplyEditPreview = async (preview: any) => {
+    try {
+      await applyEditPreview(preview);
+      
+      // Remove from active previews
+      setActiveEditPreviews(prev => prev.filter(p => p.id !== preview.id));
+      
+      // Add success message
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `✅ Successfully updated ${preview.name}!`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      
+    } catch (error) {
+      console.error('Error applying edit:', error);
+    }
+  };
+
+  // Cancel edit preview
+  const handleCancelEditPreview = (preview: any) => {
+    setActiveEditPreviews(prev => prev.filter(p => p.id !== preview.id));
+    
+    const aiMessage: Message = {
+      role: 'assistant',
+      content: `Cancelled editing ${preview.name}.`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  // Edit preview manually
+  const handleEditPreviewManually = (preview: any) => {
+    // This would open a modal or inline editor for manual editing
+    // For now, just show a message
+    const aiMessage: Message = {
+      role: 'assistant',
+      content: `Opening manual editor for ${preview.name}. Tell me what specific changes you'd like to make.`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
   // Helper function to check if message contains food suggestion
   const containsFoodSuggestion = (content: string) => {
     const foodKeywords = ['calories', 'carbs', 'grams', 'add this', 'add it', 'food log'];
@@ -574,6 +733,21 @@ ${updatedContent}`
             </div>
           </div>
         )}
+        {/* Display active edit previews */}
+        {activeEditPreviews.length > 0 && (
+          <div className="space-y-2">
+            {activeEditPreviews.map((preview, index) => (
+              <FoodEditPreview
+                key={`${preview.id}-${index}`}
+                preview={preview}
+                onConfirm={() => handleApplyEditPreview(preview)}
+                onCancel={() => handleCancelEditPreview(preview)}
+                onEdit={() => handleEditPreviewManually(preview)}
+              />
+            ))}
+          </div>
+        )}
+
         {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
           <div className="space-y-2">
             {/* Total summary */}

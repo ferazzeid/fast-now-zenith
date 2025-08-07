@@ -1,10 +1,10 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
@@ -16,145 +16,106 @@ serve(async (req) => {
   try {
     const { messages, stream = false } = await req.json();
     
-    if (!messages || !Array.isArray(messages)) {
-      throw new Error('No messages provided');
-    }
-
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header provided');
+      throw new Error('No authorization header');
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !userData.user) {
-      throw new Error('User not authenticated');
+    const { data: user, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !user.user) {
+      throw new Error('Invalid user token');
     }
 
-    const userId = userData.user.id;
+    const userId = user.user.id;
 
-    // Get user profile and check subscription status
-    const { data: profile, error: profileError } = await supabase
+    // Get user profile and food library for enhanced context
+    const { data: profile } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, use_own_api_key, openai_api_key, subscription_status')
+      .select('*')
       .eq('user_id', userId)
       .single();
 
-    if (profileError) {
-      throw new Error('Failed to fetch user profile');
+    if (!profile) {
+      throw new Error('User profile not found');
     }
 
-    // Get user's food library for context
-    const { data: userFoods } = await supabase
-      .from('user_foods')
-      .select('name, calories_per_100g, carbs_per_100g')
-      .eq('user_id', userId)
-      .order('is_favorite', { ascending: false })
-      .order('name');
-
-    // Get global settings for limits and chat behavior
-    const { data: settings } = await supabase
-      .from('shared_settings')
-      .select('setting_key, setting_value')
-      .in('setting_key', ['free_request_limit', 'monthly_request_limit', 'food_chat_strict_mode', 'food_chat_redirect_message', 'food_chat_allowed_topics']);
-
-    const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '50');
-    const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
-    
-    // Chat behavior settings
-    const strictMode = settings?.find(s => s.setting_key === 'food_chat_strict_mode')?.setting_value === 'true';
-    const redirectMessage = settings?.find(s => s.setting_key === 'food_chat_redirect_message')?.setting_value || 'I\'m your food tracking assistant. Let\'s focus on food and nutrition topics!';
-    const allowedTopics = settings?.find(s => s.setting_key === 'food_chat_allowed_topics')?.setting_value?.split(',') || [];
-
-    // Check if user has reached their limit (unless using own API key)
+    // Check request limits for non-API key users
     if (!profile.use_own_api_key) {
-      const userLimit = profile.subscription_status === 'active' ? monthlyLimit : freeLimit;
-      if (profile.monthly_ai_requests >= userLimit) {
-        throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription or use your own API key.`);
+      const requestLimit = profile.user_tier === 'paid_user' ? 500 : 15;
+      if (profile.monthly_ai_requests >= requestLimit) {
+        return new Response(
+          JSON.stringify({ error: `Request limit reached (${requestLimit}/month)` }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
       }
     }
 
-    // Get API key - either from user's own key or from headers
-    const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    const OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
-
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+    // Get API key
+    const openaiApiKey = profile.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OpenAI API key not found');
     }
 
-    // Build enhanced system prompt with user's food library and chat guardrails
-    let systemPrompt = `You are a food tracking assistant. Help users log their meals, analyze nutrition, and manage their food library.`;
+    // Get user's food library for enhanced context
+    const { data: userFoods } = await supabase
+      .from('user_foods')
+      .select('name, calories_per_100g, carbs_per_100g')
+      .eq('user_id', userId);
+
+    // Get global settings for chat guardrails
+    const { data: globalSettings } = await supabase
+      .from('general_settings')
+      .select('setting_value')
+      .eq('setting_key', 'food_chat_guardrails')
+      .single();
+
+    const foodLibraryContext = userFoods && userFoods.length > 0 
+      ? `\n\nUser's Food Library (for reference): ${userFoods.map(f => `${f.name}: ${f.calories_per_100g} cal/100g, ${f.carbs_per_100g}g carbs/100g`).join('; ')}`
+      : '';
+
+    const guardrailsContext = globalSettings?.setting_value?.guardrails 
+      ? `\n\nChat Guardrails: ${globalSettings.setting_value.guardrails}`
+      : '';
+
+    // Enhanced system message
+    const enhancedSystemMessage = `${messages[0]?.content || ''}${foodLibraryContext}${guardrailsContext}`;
     
-    // Add user's food library context
-    if (userFoods && userFoods.length > 0) {
-      const foodLibraryContext = userFoods.map(food => 
-        `${food.name}: ${food.calories_per_100g} cal, ${food.carbs_per_100g}g carbs per 100g`
-      ).join(', ');
-      systemPrompt += `\n\nUser's saved food library: ${foodLibraryContext}. When the user mentions these foods, use the exact nutritional values from their library.`;
-    }
-    
-    // Add chat guardrails
-    if (strictMode) {
-      systemPrompt += `\n\nIMPORTANT: Keep all conversations focused on food, nutrition, meals, calories, carbs, diet, health, cooking, ingredients, and recipes. If the user asks about unrelated topics, politely redirect them with: "${redirectMessage}"`;
-    }
-    
-    // Enhance messages with system prompt
-    const enhancedMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages
+    const systemMessages = [
+      { role: 'system', content: enhancedSystemMessage },
+      ...messages.slice(1)
     ];
 
-    // Send to OpenAI Chat Completions API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages: enhancedMessages,
-        stream: stream,
-        temperature: 0.7,
-        max_tokens: 1000,
+        model: 'gpt-4o-mini',
+        messages: systemMessages,
         tools: [
           {
             type: "function",
             function: {
-              name: "create_motivator",
-              description: "Create a new motivational message for the user",
-              parameters: {
-                type: "object",
-                properties: {
-                  title: {
-                    type: "string",
-                    description: "A short, inspiring title for the motivator (max 50 characters)"
-                  },
-                  content: {
-                    type: "string", 
-                    description: "The main motivational content or message (max 200 characters)"
-                  },
-                  category: {
-                    type: "string",
-                    enum: ["personal", "health", "achievement", "mindset"],
-                    description: "The category that best fits this motivator"
-                  }
-                },
-                required: ["title", "content"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
               name: "add_multiple_foods",
-              description: "Add multiple food entries to the user's food log at once",
+              description: "Add multiple food entries to the user's food log",
               parameters: {
                 type: "object",
                 properties: {
@@ -178,15 +139,10 @@ serve(async (req) => {
                         carbs: {
                           type: "number",
                           description: "Number of carbs in grams in this serving"
-                        },
-                        consumed: {
-                          type: "boolean",
-                          description: "Whether this food was actually consumed"
                         }
                       },
                       required: ["name", "serving_size", "calories", "carbs"]
-                    },
-                    description: "Array of food items to add"
+                    }
                   }
                 },
                 required: ["foods"]
@@ -196,33 +152,119 @@ serve(async (req) => {
           {
             type: "function",
             function: {
-              name: "add_food_entry",
-              description: "Add a single food entry to the user's food log",
+              name: "create_motivator",
+              description: "Create a personalized motivator for the user",
               parameters: {
                 type: "object",
                 properties: {
-                  name: {
+                  title: {
                     type: "string",
-                    description: "Name of the food item"
+                    description: "Short, punchy title for the motivator (3-8 words)"
                   },
-                  serving_size: {
-                    type: "number",
-                    description: "Serving size in grams"
+                  content: {
+                    type: "string", 
+                    description: "Compelling motivational content that addresses the user's specific situation"
                   },
-                  calories: {
-                    type: "number",
-                    description: "Number of calories in this serving"
-                  },
-                  carbs: {
-                    type: "number",
-                    description: "Number of carbs in grams in this serving"
-                  },
-                  consumed: {
-                    type: "boolean",
-                    description: "Whether this food was actually consumed"
+                  category: {
+                    type: "string",
+                    description: "Category of motivation (health, appearance, confidence, performance, etc.)"
                   }
                 },
-                required: ["name", "serving_size", "calories", "carbs"]
+                required: ["title", "content"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "search_foods_for_edit",
+              description: "Search for foods in today's entries, library, or templates to propose edits",
+              parameters: {
+                type: "object",
+                properties: {
+                  search_term: {
+                    type: "string",
+                    description: "Name or description of food to search for"
+                  },
+                  context: {
+                    type: "string",
+                    enum: ["today", "library", "templates"],
+                    description: "Where to search for foods"
+                  }
+                },
+                required: ["search_term", "context"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "edit_food_entry",
+              description: "Edit an existing food entry from today's log with new values",
+              parameters: {
+                type: "object",
+                properties: {
+                  entry_id: {
+                    type: "string",
+                    description: "ID of the food entry to edit"
+                  },
+                  updates: {
+                    type: "object",
+                    properties: {
+                      name: {
+                        type: "string",
+                        description: "New name for the food item"
+                      },
+                      serving_size: {
+                        type: "number",
+                        description: "New serving size in grams"
+                      },
+                      calories: {
+                        type: "number",
+                        description: "New calories for this serving"
+                      },
+                      carbs: {
+                        type: "number",
+                        description: "New carbs in grams for this serving"
+                      }
+                    }
+                  }
+                },
+                required: ["entry_id", "updates"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "edit_library_food",
+              description: "Edit a food item in the user's personal food library",
+              parameters: {
+                type: "object",
+                properties: {
+                  food_id: {
+                    type: "string",
+                    description: "ID of the library food to edit"
+                  },
+                  updates: {
+                    type: "object",
+                    properties: {
+                      name: {
+                        type: "string",
+                        description: "New name for the food item"
+                      },
+                      calories_per_100g: {
+                        type: "number",
+                        description: "New calories per 100g"
+                      },
+                      carbs_per_100g: {
+                        type: "number",
+                        description: "New carbs per 100g"
+                      }
+                    }
+                  }
+                },
+                required: ["food_id", "updates"]
               }
             }
           }
