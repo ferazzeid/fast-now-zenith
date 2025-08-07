@@ -13,6 +13,7 @@ const LazyBrandAssetsManager = lazy(() => import('./BrandAssetsManager'));
 const LazyColorManagement = lazy(() => import('./ColorManagement').then(m => ({ default: m.ColorManagement })));
 const LazyPromptManagement = lazy(() => import('./PromptManagement').then(m => ({ default: m.PromptManagement })));
 const LazyPaymentProviderSettings = lazy(() => import('./PaymentProviderSettings').then(m => ({ default: m.PaymentProviderSettings })));
+const LazyAdminTimelineSettings = lazy(() => import('./AdminTimelineSettings').then(m => ({ default: m.AdminTimelineSettings })));
 
 const AdminComponentWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={
