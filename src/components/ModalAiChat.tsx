@@ -322,14 +322,21 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
   const handleSaveInlineEdit = (foodIndex: number) => {
     const editData = inlineEditData[foodIndex];
     if (editData && lastFoodSuggestion?.foods) {
-      // Update the food data
-      lastFoodSuggestion.foods[foodIndex] = {
-        ...lastFoodSuggestion.foods[foodIndex],
+      // Update the food data in the lastFoodSuggestion
+      const updatedFoods = [...lastFoodSuggestion.foods];
+      updatedFoods[foodIndex] = {
+        ...updatedFoods[foodIndex],
         name: editData.name,
         serving_size: parseInt(editData.portion) || 0,
         calories: parseInt(editData.calories) || 0,
         carbs: parseInt(editData.carbs) || 0
       };
+      
+      // Update the lastFoodSuggestion with new data
+      setLastFoodSuggestion(prev => ({
+        ...prev,
+        foods: updatedFoods
+      }));
       
       // Clear editing state
       setEditingFoodIndex(null);
@@ -352,7 +359,14 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
 
   const handleRemoveFood = (foodIndex: number) => {
     if (lastFoodSuggestion?.foods) {
-      lastFoodSuggestion.foods = lastFoodSuggestion.foods.filter((_, index) => index !== foodIndex);
+      const updatedFoods = lastFoodSuggestion.foods.filter((_, index) => index !== foodIndex);
+      
+      // Update the lastFoodSuggestion with filtered foods
+      setLastFoodSuggestion(prev => ({
+        ...prev,
+        foods: updatedFoods
+      }));
+      
       // Reset editing state if we were editing the removed item
       if (editingFoodIndex === foodIndex) {
         setEditingFoodIndex(null);
@@ -361,6 +375,38 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           delete updated[foodIndex];
           return updated;
         });
+      }
+    }
+  };
+
+  const handleAddAllFoods = async () => {
+    if (lastFoodSuggestion?.foods && onResult) {
+      // Show processing state
+      setIsProcessing(true);
+      
+      try {
+        // Call the result callback directly without showing user message
+        await onResult({
+          name: 'add_multiple_foods',
+          arguments: { foods: lastFoodSuggestion.foods }
+        });
+        
+        // Add a simple confirmation message
+        const confirmationMessage: Message = {
+          role: 'assistant',
+          content: '✅ Foods added successfully!',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, confirmationMessage]);
+        
+        // Clear the food suggestion to prevent duplicate buttons
+        setLastFoodSuggestion(null);
+        
+      } catch (error) {
+        console.error('Error adding foods:', error);
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
@@ -558,10 +604,11 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                        <div className="flex gap-2 mt-3">
                          <Button
                            size="sm"
-                           onClick={() => handleSendMessage('Yes, add all these foods')}
+                           onClick={handleAddAllFoods}
                            className="flex-1"
+                           disabled={isProcessing}
                          >
-                           Add All Foods
+                           {isProcessing ? 'Adding...' : 'Add All Foods'}
                          </Button>
                        </div>
                      )}
