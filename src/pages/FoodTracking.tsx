@@ -614,8 +614,8 @@ const FoodTracking = () => {
           </div>
         </div>
 
-        {/* Daily Food Plan System with Tabs */}
-        <div className="mb-6 p-4 rounded-xl bg-card border border-border space-y-3">
+        {/* Daily Food Plan System with Tabs - Remove white container */}
+        <div className="mb-6 space-y-3">
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 p-1">
@@ -662,23 +662,23 @@ const FoodTracking = () => {
           ) : (
             <div className="space-y-1.5">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className={`rounded-lg p-3 border mb-1.5 transition-all duration-200 ${
+                <div key={entry.id} className={`rounded-lg p-4 mb-1.5 transition-all duration-200 bg-muted/20 border-0 ${
                   entry.consumed 
-                    ? 'bg-ceramic-plate/50 border-ceramic-rim/50 opacity-60' 
-                    : 'bg-ceramic-plate border-ceramic-rim'
+                    ? 'opacity-60' 
+                    : ''
                 }`}>
                   <div className="flex items-center gap-3">
                     
-                    {/* Entry Image - Compact */}
-                    <div className="w-5 h-5 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                    {/* Entry Image - Larger for better visibility */}
+                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
                       {entry.image_url ? (
                         <img 
                           src={entry.image_url} 
                           alt={entry.name}
-                          className="w-5 h-5 object-cover rounded"
+                          className="w-12 h-12 object-cover rounded-lg"
                         />
                       ) : (
-                        <Utensils className="w-3 h-3 text-muted-foreground" />
+                        <Utensils className="w-6 h-6 text-muted-foreground" />
                       )}
                     </div>
                     
@@ -772,19 +772,19 @@ const FoodTracking = () => {
                       Apply Template
                     </Button>
                   </div>
-                  <div className="space-y-2">
-                    {templateFoods.map((food) => (
-                      <div key={food.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="space-y-2">
+                     {templateFoods.map((food) => (
+                       <div key={food.id} className="flex items-center justify-between p-4 bg-muted/20 border-0 rounded-lg">
                          <div className="flex items-center space-x-3">
                            {food.image_url ? (
                              <img
                                src={food.image_url}
                                alt={food.name}
-                               className="w-8 h-8 rounded object-cover"
+                               className="w-12 h-12 rounded-lg object-cover"
                              />
                            ) : (
-                             <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                               <Camera className="w-4 h-4 text-muted-foreground" />
+                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                               <Camera className="w-6 h-6 text-muted-foreground" />
                              </div>
                            )}
                           <div>
