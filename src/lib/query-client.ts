@@ -27,7 +27,7 @@ export const queryClient = new QueryClient({
       // PERFORMANCE: Centralized error logging - reduced noise in development
       if (process.env.NODE_ENV === 'development') {
         // Only log critical errors in development to reduce console noise
-        if (error?.status >= 500 || !error?.status) {
+        if ((error as any)?.status >= 500 || !(error as any)?.status) {
           console.error('Query error:', error, 'Query key:', query.queryKey);
         }
       } else {
@@ -68,7 +68,7 @@ export const queryClient = new QueryClient({
       // PERFORMANCE: Retry failed requests with exponential backoff
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors (client errors)
-        if (error?.status >= 400 && error?.status < 500) {
+        if ((error as any)?.status >= 400 && (error as any)?.status < 500) {
           return false;
         }
         

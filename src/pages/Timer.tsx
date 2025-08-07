@@ -125,14 +125,12 @@ const Timer = () => {
     try {
       if (stopAction === 'cancel') {
         // Cancel fast - doesn't save to history
-        const result = await cancelFastingSession(fastingSession.id);
-        if (result) {
-          trackFastingEvent('cancel', fastType, timeElapsed);
-          toast({
-            title: "Fast cancelled", 
-            description: "Your fast was cancelled and removed from history."
-          });
-        }
+        await cancelFastingSession(fastingSession.id);
+        trackFastingEvent('stop', fastType, timeElapsed);
+        toast({
+          title: "Fast cancelled", 
+          description: "Your fast was cancelled and removed from history."
+        });
       } else {
         // Finish fast - saves to history
         const result = await endFastingSession(fastingSession.id);

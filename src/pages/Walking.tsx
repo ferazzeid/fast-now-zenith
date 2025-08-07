@@ -208,8 +208,8 @@ const Walking = () => {
             onStart={handleStart}
             onPause={handlePause}
             onResume={handleResume}
-            onStop={async () => { setShowStopConfirm(true); return Promise.resolve(); }}
-            onCancel={handleCancel}
+            onStop={async () => { setShowStopConfirm(true); }}
+            onCancel={async () => { handleCancel(); }}
             showSlideshow={profile?.enable_walking_slideshow ?? false}
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}

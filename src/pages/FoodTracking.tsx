@@ -132,11 +132,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
         consumed: args.consumed || false
       });
 
-      if (foodResult.error) {
+      if (!foodResult || 'error' in foodResult) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: foodResult.error.message
+          description: "Failed to add food entry"
         });
       } else {
         trackFoodEvent('add', 'voice');
@@ -173,7 +173,7 @@ Please tell me what food you'd like to add and how much you had. For example: "I
           consumed: food.consumed || false
         });
 
-        if (!foodResult.error) {
+        if (foodResult && !('error' in foodResult)) {
           successCount++;
           totalCalories += parseFloat(food.calories);
           totalCarbs += parseFloat(food.carbs);
@@ -286,11 +286,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       consumed: false
     });
 
-    if (result.error) {
+    if (!result || 'error' in result) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: result.error.message
+        description: "Failed to save food entry"
       });
     } else {
         trackFoodEvent('add', 'manual');
@@ -322,11 +322,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       image_url: imageUrl || undefined
     });
 
-    if (result.error) {
+    if (!result || 'error' in result) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: result.error.message
+        description: "Failed to save food entry"
       });
     } else {
       toast({
@@ -398,11 +398,11 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       image_url: food.image_url || undefined
     });
 
-    if (result.error) {
+    if (!result || 'error' in result) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: result.error.message
+        description: "Failed to add food entry"
       });
     } else {
       trackFoodEvent('add', 'manual');
@@ -425,43 +425,43 @@ Please tell me what food you'd like to add and how much you had. For example: "I
   };
 
   const handleUpdateFoodEntry = async (id: string, updates: any) => {
-    const result = await updateFoodEntry(id, updates);
-    if (result.error) {
-      throw new Error(result.error.message);
+    const result = await updateFoodEntry({ id, updates });
+    if (!result || 'error' in result) {
+      throw new Error("Failed to update food entry");
     }
   };
 
   const handleDeleteFoodEntry = async (id: string) => {
-    const result = await deleteFoodEntry(id);
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
+    try {
+      await deleteFoodEntry(id);
       trackFoodEvent('delete', 'manual');
       toast({
         title: "Food deleted",
         description: "Food entry has been removed"
       });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete food entry"
+      });
     }
   };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
-    const result = await toggleConsumption(entryId, consumed);
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
+    try {
+      await toggleConsumption(entryId);
       // Show success notification
       toast({
         variant: "default",
         title: consumed ? "Marked as eaten" : "Marked as not eaten",
         description: consumed ? "Food item has been consumed" : "Food item marked as not consumed"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update consumption status"
       });
     }
   };
