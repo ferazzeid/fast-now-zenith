@@ -96,47 +96,33 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Icon replacement approach: replace icons with lock while preserving layout
+    // Overlay approach: Add lock icon with proper styling and positioning
     if (isValidElement(children)) {
       const originalChild = children as ReactElement<any>;
       
-      // Simple icon replacement - look for Lucide icons and replace with Lock
-      const replaceIconsWithLock = (element: ReactElement): ReactElement => {
-        if (typeof element.type === 'function' && element.type.name) {
-          // This is likely a Lucide icon component
-          return <Lock className={element.props.className || 'w-4 h-4'} size={element.props.size} />;
-        }
-        
-        if (element.props?.children) {
-          return cloneElement(element, {
-            ...element.props,
-            children: React.Children.map(element.props.children, (child: any) => {
-              if (React.isValidElement(child)) {
-                return replaceIconsWithLock(child);
-              }
-              return child;
-            })
-          });
-        }
-        
-        return element;
-      };
-
-      const modifiedChild = replaceIconsWithLock(originalChild);
-
-      return cloneElement(modifiedChild, {
-        className: cn(
-          modifiedChild.props.className,
-          "opacity-40 grayscale cursor-not-allowed",
-          className
-        ),
-        onClick: handleGrayedClick,
-        disabled: true,
-        style: {
-          ...modifiedChild.props.style,
-          pointerEvents: 'auto'
-        }
-      });
+      return (
+        <span className="relative inline-block">
+          {cloneElement(originalChild, {
+            className: cn(
+              originalChild.props.className,
+              "opacity-40 grayscale cursor-not-allowed",
+              className
+            ),
+            onClick: handleGrayedClick,
+            disabled: true,
+            style: {
+              ...originalChild.props.style,
+              pointerEvents: 'auto'
+            }
+          })}
+          {/* Lock icon overlay - white on gray background, properly sized and positioned */}
+          <div className="absolute top-0.5 right-0.5 pointer-events-none z-10">
+            <div className="bg-gray-800/90 rounded-full p-0.5 shadow-sm">
+              <Lock className="w-2.5 h-2.5 text-white" />
+            </div>
+          </div>
+        </span>
+      );
     }
 
     // Fallback for non-React elements - simplified wrapper
