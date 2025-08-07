@@ -11,7 +11,7 @@ import { CeramicTimer } from '@/components/CeramicTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { FastSelector } from '@/components/FastSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFastingHoursQuery } from '@/hooks/optimized/useFastingHoursQuery';
+
 
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 import { FastingHistory } from '@/components/FastingHistory';
@@ -47,9 +47,6 @@ const Timer = () => {
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
 
-  const { data: fastingHours, isLoading: hoursLoading } = useFastingHoursQuery();
-  const currentFastingHour = Math.max(0, Math.min(72, Math.floor(timeElapsed / 3600)));
-  const currentHourData = fastingHours?.find(h => h.hour === currentFastingHour);
 
   const isRunning = !!fastingSession;
 
@@ -335,40 +332,6 @@ const Timer = () => {
           )}
         </div>
 
-        {/* This Hour Panel */}
-        {currentMode === 'fasting' && (
-          <Card className="mt-2" aria-live="polite">
-            <CardHeader>
-              <CardTitle className="text-base">
-                This hour: {currentFastingHour}h
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hoursLoading ? (
-                <div className="space-y-2">
-                  <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
-                  <div className="h-3 w-3/4 bg-muted rounded animate-pulse" />
-                </div>
-              ) : currentHourData ? (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">
-                    Phase: {currentHourData.phase} • Difficulty: {currentHourData.difficulty}
-                  </p>
-                  {currentHourData.body_state && (
-                    <p className="text-sm">{currentHourData.body_state}</p>
-                  )}
-                  {currentHourData.encouragement && (
-                    <p className="text-sm">{currentHourData.encouragement}</p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Keep going—you’re doing great.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )}
 
         {/* Control Buttons - Only show for fasting mode */}
         {currentMode === 'fasting' && (

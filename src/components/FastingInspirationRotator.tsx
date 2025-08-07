@@ -16,7 +16,7 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
   currentFastingHour = 0,
   className = '' 
 }) => {
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('quote');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('timeline');
   const [isVisible, setIsVisible] = useState(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
