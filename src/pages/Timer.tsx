@@ -371,8 +371,7 @@ const Timer = () => {
                         variant="action-primary"
                         size="action-main"
                       >
-                        <X className="w-5 h-5 mr-2" />
-                        Cancel Fast
+                        <X className="w-5 h-5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>

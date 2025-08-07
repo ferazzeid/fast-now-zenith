@@ -168,59 +168,22 @@ const WalkingTimerComponent = ({
 
         </Card>
 
-        {/* Control Buttons - positioned right after main timer card when active */}
+        {/* Control Buttons - all on same line when active */}
         {isActive && (
-          <div className="flex gap-2 w-full">
-            {/* Pause Button - takes 1/3 width */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={async () => {
-                     try {
-                      const result = isPaused ? await onResume?.() : await onPause?.();
-                      if (result && 'error' in result && result.error) {
-                        toast({
-                          title: "Error",
-                          description: result.error.message || `Failed to ${isPaused ? 'resume' : 'pause'} session`,
-                          variant: "destructive"
-                        });
-                      }
-                    } catch (error) {
-                      toast({
-                        title: "Error",
-                        description: "Network error. Please try again.",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  variant="action-primary"
-                  size="action-secondary"
-                  className="flex-1"
-                >
-                  {isPaused ? (
-                    <Play className="w-6 h-6" />
-                  ) : (
-                    <Pause className="w-6 h-6" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isPaused ? 'Resume walking session' : 'Pause walking session'}</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            {/* Cancel Button - takes 1/3 width with blue styling */}
-            {onCancel && (
+          <div className="flex gap-3 w-full">
+            {/* Left half: Pause and Cancel buttons */}
+            <div className="flex gap-2 flex-1">
+              {/* Pause Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
                     onClick={async () => {
                        try {
-                        const result = await onCancel?.();
+                        const result = isPaused ? await onResume?.() : await onPause?.();
                         if (result && 'error' in result && result.error) {
                           toast({
                             title: "Error",
-                            description: result.error.message || "Failed to cancel session",
+                            description: result.error.message || `Failed to ${isPaused ? 'resume' : 'pause'} session`,
                             variant: "destructive"
                           });
                         }
@@ -234,55 +197,93 @@ const WalkingTimerComponent = ({
                     }}
                     variant="action-primary"
                     size="action-secondary"
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="flex-1"
                   >
-                    <X className="w-6 h-6" />
+                    {isPaused ? (
+                      <Play className="w-6 h-6" />
+                    ) : (
+                      <Pause className="w-6 h-6" />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Cancel walking session</p>
+                  <p>{isPaused ? 'Resume' : 'Pause'}</p>
                 </TooltipContent>
               </Tooltip>
-            )}
-          </div>
-        )}
+              
+              {/* Cancel Button */}
+              {onCancel && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={async () => {
+                         try {
+                          const result = await onCancel?.();
+                          if (result && 'error' in result && result.error) {
+                            toast({
+                              title: "Error",
+                              description: result.error.message || "Failed to cancel session",
+                              variant: "destructive"
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Network error. Please try again.",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                      variant="action-primary"
+                      size="action-secondary"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      <X className="w-6 h-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Cancel</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
 
-        {/* Finish Button - separate row, full width to match distance box */}
-        {isActive && (
-          <div className="w-full">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={async () => {
-                     try {
-                      const result = await onStop();
-                      if (result && 'error' in result && result.error) {
+            {/* Right half: Finish button */}
+            <div className="flex-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={async () => {
+                       try {
+                        const result = await onStop();
+                        if (result && 'error' in result && result.error) {
+                          toast({
+                            title: "Error",
+                            description: result.error.message || "Failed to stop session",
+                            variant: "destructive"
+                          });
+                        }
+                      } catch (error) {
                         toast({
                           title: "Error",
-                          description: result.error.message || "Failed to stop session",
+                          description: "Network error. Please try again.",
                           variant: "destructive"
                         });
                       }
-                    } catch (error) {
-                      toast({
-                        title: "Error",
-                        description: "Network error. Please try again.",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  variant="action-primary"
-                  size="action-main"
-                  className="w-full"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  Finish
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Complete walking session</p>
-              </TooltipContent>
-            </Tooltip>
+                    }}
+                    variant="action-primary"
+                    size="action-main"
+                    className="w-full"
+                  >
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    Finish
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Complete</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         )}
 
