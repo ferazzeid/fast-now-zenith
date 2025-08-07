@@ -146,17 +146,13 @@ NO other text. Immediately call add_multiple_foods function.`;
           return;
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
-          // Show the actual motivator suggestion with compelling formatting
+          // Show the actual motivator suggestion with simple formatting
           const args = data.functionCall.arguments;
           const motivatorMessage: Message = {
             role: 'assistant',
-            content: `Here's your personalized motivator:
+            content: `${args.title}
 
-**${args.title}**
-
-${args.content}
-
-This goal focuses on your desire to transform and surprise your family, using the powerful motivation of proving your transformation to those who matter most.`,
+${args.content}`,
             timestamp: new Date()
           };
           setMessages(prev => [...prev, motivatorMessage]);
@@ -331,11 +327,43 @@ This goal focuses on your desire to transform and surprise your family, using th
     }
   };
 
-  const handleCreateMotivator = () => {
+  const handleCreateMotivator = async () => {
     if (lastMotivatorSuggestion && onResult) {
-      onResult(lastMotivatorSuggestion);
-      // Close the modal after creating
-      onClose();
+      console.log('Creating motivator with data:', lastMotivatorSuggestion);
+      
+      try {
+        // Actually create the motivator by calling the result handler
+        await onResult(lastMotivatorSuggestion);
+        
+        // Show success message
+        const successMessage: Message = {
+          role: 'assistant',
+          content: 'Motivator created successfully! You can now view it in your motivators list.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, successMessage]);
+        
+        // Clear the suggestion after creating
+        setLastMotivatorSuggestion(null);
+        
+        toast({
+          title: "Motivator created!",
+          description: "Your new motivator has been added to your collection"
+        });
+        
+        // Close the modal after a short delay
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error creating motivator:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create motivator. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -429,10 +457,11 @@ This goal focuses on your desire to transform and surprise your family, using th
                       </div>
                      )}
 
-        {/* Inline motivator editing */}
+        {/* Inline motivator editing - positioned prominently */}
         {editingMotivator && lastMotivatorSuggestion && (
-          <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+          <div className="mt-4 p-4 border-2 border-primary/50 rounded-lg bg-primary/5">
             <div className="space-y-3">
+              <h4 className="font-medium text-sm">Edit Your Motivator</h4>
               <div>
                 <Label htmlFor="motivator-title" className="text-sm font-medium">Goal Title</Label>
                 <Input
@@ -458,17 +487,44 @@ This goal focuses on your desire to transform and surprise your family, using th
                   size="sm"
                   onClick={() => {
                     // Update the motivator suggestion with edited data
+                    const updatedTitle = motivatorEditData.title || lastMotivatorSuggestion.arguments.title;
+                    const updatedContent = motivatorEditData.content || lastMotivatorSuggestion.arguments.content;
+                    
                     const updatedArgs = {
                       ...lastMotivatorSuggestion.arguments,
-                      title: motivatorEditData.title || lastMotivatorSuggestion.arguments.title,
-                      content: motivatorEditData.content || lastMotivatorSuggestion.arguments.content
+                      title: updatedTitle,
+                      content: updatedContent
                     };
+                    
                     setLastMotivatorSuggestion(prev => ({
                       ...prev,
                       arguments: updatedArgs
                     }));
+                    
+                    // Update the chat message to show the edited version
+                    setMessages(prev => {
+                      const lastMessage = prev[prev.length - 1];
+                      if (lastMessage.role === 'assistant' && lastMotivatorSuggestion) {
+                        return [
+                          ...prev.slice(0, -1),
+                          {
+                            ...lastMessage,
+                            content: `${updatedTitle}
+
+${updatedContent}`
+                          }
+                        ];
+                      }
+                      return prev;
+                    });
+                    
                     setEditingMotivator(false);
                     setMotivatorEditData({title: '', content: ''});
+                    
+                    toast({
+                      title: "Changes saved",
+                      description: "Your motivator has been updated"
+                    });
                   }}
                   className="flex-1"
                 >
