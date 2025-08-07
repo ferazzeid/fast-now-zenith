@@ -660,31 +660,31 @@ const FoodTracking = () => {
               <p className="text-xs text-muted-foreground mt-1">Add foods using the buttons above</p>
             </div>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {todayEntries.map((entry) => (
-                <div key={entry.id} className={`rounded-lg p-4 mb-1.5 transition-all duration-200 bg-muted/20 border-0 ${
+                <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-muted/20 border-0 ${
                   entry.consumed 
                     ? 'opacity-60' 
                     : ''
                 }`}>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     
-                    {/* Entry Image - Larger for better visibility */}
-                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                    {/* Entry Image - Compact but visible */}
+                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
                       {entry.image_url ? (
                         <img 
                           src={entry.image_url} 
                           alt={entry.name}
-                          className="w-12 h-12 object-cover rounded-lg"
+                          className="w-10 h-10 object-cover rounded-lg"
                         />
                       ) : (
-                        <Utensils className="w-6 h-6 text-muted-foreground" />
+                        <Utensils className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
                     
                     {/* Entry Content - Compact */}
                     <div className="flex-1 min-w-0">
-                      <div className="mb-0.5">
+                      <div className="mb-0">
                         <h3 className={`text-sm font-semibold truncate ${
                           entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
                         }`}>
@@ -704,10 +704,10 @@ const FoodTracking = () => {
                       </div>
                     </div>
                     
-                    {/* Actions - 3-dots menu and consume button (consistent with library) */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Space where other button was */}
-                      <div className="w-2"></div>
+                    {/* Actions - Compact */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Reduced spacing */}
+                      <div className="w-1"></div>
                       
                       {/* More Options Menu */}
                       <DropdownMenu>
@@ -772,19 +772,19 @@ const FoodTracking = () => {
                       Apply Template
                     </Button>
                   </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                      {templateFoods.map((food) => (
-                       <div key={food.id} className="flex items-center justify-between p-4 bg-muted/20 border-0 rounded-lg">
-                         <div className="flex items-center space-x-3">
+                       <div key={food.id} className="flex items-center justify-between p-2 bg-muted/20 border-0 rounded-lg">
+                         <div className="flex items-center space-x-2">
                            {food.image_url ? (
                              <img
                                src={food.image_url}
                                alt={food.name}
-                               className="w-12 h-12 rounded-lg object-cover"
+                               className="w-10 h-10 rounded-lg object-cover"
                              />
                            ) : (
-                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                               <Camera className="w-6 h-6 text-muted-foreground" />
+                             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                               <Camera className="w-5 h-5 text-muted-foreground" />
                              </div>
                            )}
                           <div>
