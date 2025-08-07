@@ -1,21 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Lightbulb, Plus, ChevronDown } from 'lucide-react';
+import { Lightbulb, Plus, ChevronDown, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MotivatorIdeasModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectGoal: (goal: AdminGoalIdea) => void;
+  onEditGoal?: (goal: AdminGoalIdea) => void;
 }
 
-export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: MotivatorIdeasModalProps) => {
+export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal }: MotivatorIdeasModalProps) => {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { goalIdeas, loading } = useAdminGoalIdeas();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
+        
+        if (error) throw error;
+        setIsAdmin(data || false);
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
 
   if (loading) {
     return (
@@ -24,7 +50,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
         onClose={onClose}
         title="Motivator Ideas"
         variant="standard"
-        size="lg"
+        size="md"
         showCloseButton={true}
       >
           <div className="space-y-4">
@@ -55,7 +81,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
       onClose={onClose}
       title="Motivator Ideas"
       variant="standard"
-      size="lg"
+      size="md"
       showCloseButton={true}
     >
         
@@ -114,19 +140,18 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                               )}
                             </div>
                             
-                            {/* Add Button */}
+                            {/* Action Buttons */}
                             <div className="flex flex-col gap-1 ml-2">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
                                     size="sm"
-                                    variant="ghost"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onSelectGoal(goal);
                                       onClose();
                                     }}
-                                    className="p-1 h-6 w-6 hover:bg-primary/10 hover:text-primary"
+                                    className="p-1 h-6 w-6 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground"
                                   >
                                     <Plus className="w-3 h-3" />
                                   </Button>
@@ -135,6 +160,28 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                                   <p>Add this motivator to your goals</p>
                                 </TooltipContent>
                               </Tooltip>
+
+                              {/* Admin Edit Button */}
+                              {isAdmin && onEditGoal && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEditGoal(goal);
+                                      }}
+                                      className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Edit this idea (Admin)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                             </div>
                           </div>
                         </div>

@@ -175,6 +175,19 @@ const Motivators = () => {
       console.log('🎯 Result does not match expected format for motivator creation');
     }
   };
+
+  const handleEditGoalIdea = (goal: AdminGoalIdea) => {
+    // For now, we'll convert the goal idea to a motivator format for editing
+    const motivatorData = {
+      id: undefined, // This will create a new motivator based on the idea
+      title: goal.title,
+      content: goal.description || '',
+      imageUrl: goal.imageUrl
+    };
+    setEditingMotivator(motivatorData);
+    setShowFormModal(true);
+    setShowMotivatorIdeasModal(false);
+  };
   
   const handleSelectGoalIdea = async (goal: AdminGoalIdea) => {
     try {
@@ -353,6 +366,7 @@ const Motivators = () => {
             isOpen={showMotivatorIdeasModal}
             onClose={() => setShowMotivatorIdeasModal(false)}
             onSelectGoal={handleSelectGoalIdea}
+            onEditGoal={handleEditGoalIdea}
           />
 
           {/* Onboarding Modal */}
