@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
@@ -9,12 +11,20 @@ interface ProfileOnboardingFlowProps {
   onSkip: () => void;
 }
 
+interface FormData {
+  weight: string;
+  weightUnit: string;
+  height: string;
+  heightUnit: string;
+  age: string;
+  sex: string;
+}
+
 export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingFlowProps) => {
   const { updateProfile, loading: isUpdating } = useProfile();
   const { toast } = useToast();
   
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     weight: '',
     weightUnit: '',
     height: '',
@@ -23,19 +33,9 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     sex: '',
   });
 
-  const steps = ['Weight', 'Height', 'Age', 'Sex'];
-
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | null>(null);
+  const [tempValue, setTempValue] = useState('');
+  const [tempUnit, setTempUnit] = useState('');
 
   const handleComplete = async () => {
     try {
@@ -80,123 +80,214 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     }
   };
 
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 0: return formData.weight !== '' && formData.weightUnit !== '';
-      case 1: return formData.height !== '' && formData.heightUnit !== '';
-      case 2: return formData.age !== '';
-      case 3: return formData.sex !== '';
-      default: return false;
+  const isFormValid = () => {
+    return formData.weight && formData.weightUnit && 
+           formData.height && formData.heightUnit && 
+           formData.age && formData.sex;
+  };
+
+  const openModal = (field: 'weight' | 'height' | 'age' | 'sex') => {
+    setActiveModal(field);
+    if (field === 'weight') {
+      setTempValue(formData.weight);
+      setTempUnit(formData.weightUnit);
+    } else if (field === 'height') {
+      setTempValue(formData.height);
+      setTempUnit(formData.heightUnit);
+    } else if (field === 'age') {
+      setTempValue(formData.age);
+      setTempUnit('');
+    } else if (field === 'sex') {
+      setTempValue(formData.sex);
+      setTempUnit('');
     }
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="flex justify-center items-center gap-4">
-            <Select value={formData.weight} onValueChange={(value) => setFormData({ ...formData, weight: value })}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Weight" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 271 }, (_, i) => (
-                  <SelectItem key={30 + i} value={(30 + i).toString()}>
-                    {30 + i}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={formData.weightUnit} onValueChange={(value) => setFormData({ ...formData, weightUnit: value })}>
-              <SelectTrigger className="w-20">
-                <SelectValue placeholder="Unit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="kg">kg</SelectItem>
-                <SelectItem value="lbs">lbs</SelectItem>
-                <SelectItem value="st">st</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        );
+  const saveModal = () => {
+    if (activeModal === 'weight') {
+      setFormData(prev => ({ ...prev, weight: tempValue, weightUnit: tempUnit }));
+    } else if (activeModal === 'height') {
+      setFormData(prev => ({ ...prev, height: tempValue, heightUnit: tempUnit }));
+    } else if (activeModal === 'age') {
+      setFormData(prev => ({ ...prev, age: tempValue }));
+    } else if (activeModal === 'sex') {
+      setFormData(prev => ({ ...prev, sex: tempValue }));
+    }
+    setActiveModal(null);
+  };
 
-      case 1:
-        return (
-          <div className="flex justify-center items-center gap-4">
-            <Select value={formData.height} onValueChange={(value) => setFormData({ ...formData, height: value })}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Height" />
-              </SelectTrigger>
-              <SelectContent>
-                {formData.heightUnit === 'cm' ? (
-                  Array.from({ length: 151 }, (_, i) => (
-                    <SelectItem key={100 + i} value={(100 + i).toString()}>
-                      {100 + i}
-                    </SelectItem>
-                  ))
-                ) : formData.heightUnit === 'ft' ? (
-                  Array.from({ length: 7 }, (_, i) => (
-                    <SelectItem key={3 + i} value={(3 + i).toString()}>
-                      {3 + i}
-                    </SelectItem>
-                  ))
-                ) : (
-                  Array.from({ length: 151 }, (_, i) => (
-                    <SelectItem key={100 + i} value={(100 + i).toString()}>
-                      {100 + i}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            
-            <Select value={formData.heightUnit} onValueChange={(value) => setFormData({ ...formData, heightUnit: value })}>
-              <SelectTrigger className="w-20">
-                <SelectValue placeholder="Unit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cm">cm</SelectItem>
-                <SelectItem value="ft">ft</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        );
+  const formatDisplayValue = (field: keyof FormData) => {
+    const value = formData[field];
+    if (!value) return 'Not set';
+    
+    switch (field) {
+      case 'weight':
+        return `${value} ${formData.weightUnit}`;
+      case 'height':
+        return `${value} ${formData.heightUnit}`;
+      case 'age':
+        return `${value} years`;
+      case 'sex':
+        return value.charAt(0).toUpperCase() + value.slice(1);
+      default:
+        return value;
+    }
+  };
 
-      case 2:
+  const renderModalContent = () => {
+    if (!activeModal) return null;
+
+    switch (activeModal) {
+      case 'weight':
         return (
-          <div className="flex justify-center items-center gap-4">
-            <Select value={formData.age} onValueChange={(value) => setFormData({ ...formData, age: value })}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Age" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 108 }, (_, i) => (
-                  <SelectItem key={13 + i} value={(13 + i).toString()}>
-                    {13 + i}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <div className="w-20 text-center text-muted-foreground">
-              years
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Weight</label>
+              <Input
+                type="number"
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                placeholder="Enter weight"
+                min="30"
+                max="300"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Unit</label>
+              <Select value={tempUnit} onValueChange={setTempUnit}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="kg">kg</SelectItem>
+                  <SelectItem value="lbs">lbs</SelectItem>
+                  <SelectItem value="st">st</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Or select from list</label>
+              <Select value={tempValue} onValueChange={setTempValue}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select weight" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50 max-h-60">
+                  {Array.from({ length: 271 }, (_, i) => (
+                    <SelectItem key={30 + i} value={(30 + i).toString()}>
+                      {30 + i}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         );
 
-      case 3:
+      case 'height':
         return (
-          <div className="flex justify-center items-center gap-4">
-            <Select value={formData.sex} onValueChange={(value) => setFormData({ ...formData, sex: value })}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Sex" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Height</label>
+              <Input
+                type="number"
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                placeholder="Enter height"
+                min="100"
+                max="250"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Unit</label>
+              <Select value={tempUnit} onValueChange={setTempUnit}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="cm">cm</SelectItem>
+                  <SelectItem value="ft">ft</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Or select from list</label>
+              <Select value={tempValue} onValueChange={setTempValue}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select height" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50 max-h-60">
+                  {tempUnit === 'cm' ? (
+                    Array.from({ length: 151 }, (_, i) => (
+                      <SelectItem key={100 + i} value={(100 + i).toString()}>
+                        {100 + i}
+                      </SelectItem>
+                    ))
+                  ) : tempUnit === 'ft' ? (
+                    Array.from({ length: 7 }, (_, i) => (
+                      <SelectItem key={3 + i} value={(3 + i).toString()}>
+                        {3 + i}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    Array.from({ length: 151 }, (_, i) => (
+                      <SelectItem key={100 + i} value={(100 + i).toString()}>
+                        {100 + i}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'age':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Age</label>
+              <Input
+                type="number"
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                placeholder="Enter age"
+                min="13"
+                max="120"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Or select from list</label>
+              <Select value={tempValue} onValueChange={setTempValue}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select age" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50 max-h-60">
+                  {Array.from({ length: 108 }, (_, i) => (
+                    <SelectItem key={13 + i} value={(13 + i).toString()}>
+                      {13 + i}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'sex':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Biological Sex</label>
+              <Select value={tempValue} onValueChange={setTempValue}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sex" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         );
 
@@ -206,22 +297,44 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   };
 
   return (
-    <div className="space-y-8">
-      {/* Step content */}
-      <div className="min-h-[200px] flex items-center justify-center">
-        {renderStepContent()}
+    <div className="space-y-6">
+      {/* Profile Fields Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={() => openModal('weight')}
+          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
+        >
+          <div className="text-sm text-muted-foreground">Weight</div>
+          <div className="font-medium">{formatDisplayValue('weight')}</div>
+        </button>
+
+        <button
+          onClick={() => openModal('height')}
+          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
+        >
+          <div className="text-sm text-muted-foreground">Height</div>
+          <div className="font-medium">{formatDisplayValue('height')}</div>
+        </button>
+
+        <button
+          onClick={() => openModal('age')}
+          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
+        >
+          <div className="text-sm text-muted-foreground">Age</div>
+          <div className="font-medium">{formatDisplayValue('age')}</div>
+        </button>
+
+        <button
+          onClick={() => openModal('sex')}
+          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
+        >
+          <div className="text-sm text-muted-foreground">Sex</div>
+          <div className="font-medium">{formatDisplayValue('sex')}</div>
+        </button>
       </div>
 
       {/* Navigation */}
       <div className="flex justify-between items-center pt-6">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentStep === 0 || isUpdating}
-        >
-          Back
-        </Button>
-
         <Button
           variant="ghost"
           onClick={onSkip}
@@ -231,22 +344,36 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
           Skip for now
         </Button>
 
-        {currentStep === steps.length - 1 ? (
-          <Button
-            onClick={handleComplete}
-            disabled={!isStepValid() || isUpdating}
-          >
-            {isUpdating ? 'Completing...' : 'Complete'}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleNext}
-            disabled={!isStepValid() || isUpdating}
-          >
-            Next
-          </Button>
-        )}
+        <Button
+          onClick={handleComplete}
+          disabled={!isFormValid() || isUpdating}
+        >
+          {isUpdating ? 'Completing...' : 'Complete Profile'}
+        </Button>
       </div>
+
+      {/* Modal */}
+      <Dialog open={!!activeModal} onOpenChange={() => setActiveModal(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {activeModal && activeModal.charAt(0).toUpperCase() + activeModal.slice(1)}
+            </DialogTitle>
+          </DialogHeader>
+          {renderModalContent()}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setActiveModal(null)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveModal}
+              disabled={!tempValue || (activeModal !== 'sex' && activeModal !== 'age' && !tempUnit)}
+            >
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
