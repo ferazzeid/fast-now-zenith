@@ -300,36 +300,13 @@ export const DailyStatsPanel = memo(() => {
                   {/* Divider */}
                   <div className="border-t border-border my-3"></div>
 
-                  {/* Walking Section with Sessions Breakdown */}
+                  {/* Activity Section with Sessions Breakdown */}
                   <WalkingSessionsBreakdown 
-                    totalCalories={deficitData.walkingCalories}
+                    totalCalories={deficitData.walkingCalories + deficitData.manualCalories}
                     onRefresh={refreshDeficit}
                   />
                 </Card>
 
-                 {/* Manual Activities (if applicable) */}
-                 {deficitData.manualCalories > 0 && (
-                   <Card className="p-3 bg-card border-border relative">
-                     {/* Tooltip icon positioned in top-right corner */}
-                     <div className="absolute top-2 right-2">
-                       <ClickableTooltip 
-                         content="Calories burned from manually logged activities today"
-                       >
-                         <Info className="w-5 h-5 text-muted-foreground" />
-                       </ClickableTooltip>
-                     </div>
-                     
-                     <div className="flex items-center justify-between pr-6">
-                       <div className="flex items-center space-x-2">
-                         <Activity className="w-4 h-4 text-green-500" />
-                         <span className="text-sm font-medium text-warm-text">Manual Activities</span>
-                       </div>
-                        <div className="text-sm font-bold text-green-600 dark:text-green-400">
-                          {formatNumber(deficitData.manualCalories)} cal
-                        </div>
-                     </div>
-                   </Card>
-                  )}
 
                   {/* Goal Metrics */}
                   <GoalMetrics />

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info, Plus } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 
 
 interface WalkingSession {
@@ -36,6 +37,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
   const { profile } = useProfile();
+  const { manualBurns, todayTotal: manualCalorieTotal } = useManualCalorieBurns();
 
   const fetchTodaySessions = async () => {
     if (!user) return;
@@ -95,15 +97,15 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
     return `${distance.toFixed(2)} ${unit}`;
   };
 
-  const hasAnySessions = completedSessions.length > 0 || walkingStats.isActive;
-  const sessionCount = completedSessions.length + (walkingStats.isActive ? 1 : 0);
+  const hasAnySessions = completedSessions.length > 0 || walkingStats.isActive || manualBurns.length > 0;
+  const sessionCount = completedSessions.length + (walkingStats.isActive ? 1 : 0) + manualBurns.length;
 
   if (!hasAnySessions) {
     return (
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Activity className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-warm-text">Walking Burn</span>
+          <span className="text-sm font-medium text-warm-text">Activity Burn</span>
         </div>
         <div className="text-sm font-bold text-warm-text">
           0 cal
@@ -118,13 +120,13 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Activity className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-warm-text">Walking Burn</span>
-          <ClickableTooltip content="Total calories burned from walking today (includes active sessions)">
+          <span className="text-sm font-medium text-warm-text">Activity Burn</span>
+          <ClickableTooltip content="Total calories burned from walking and external activities today">
             <Info className="w-4 h-4 text-muted-foreground" />
           </ClickableTooltip>
           {sessionCount > 1 && (
             <span className="text-xs text-muted-foreground">
-              ({sessionCount} session{sessionCount > 1 ? 's' : ''})
+              ({sessionCount} activit{sessionCount > 1 ? 'ies' : 'y'})
             </span>
           )}
         </div>
@@ -204,13 +206,37 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
               )}
             </Card>
           ))}
+
+          {/* External Activities */}
+          {manualBurns.map((burn, index) => (
+            <Card key={burn.id} className="p-2 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Plus className="w-3 h-3 text-blue-600" />
+                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                    {burn.activity_name}
+                  </span>
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {new Date(burn.created_at).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </span>
+                </div>
+                <div className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                  {burn.calories_burned} cal
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
-      {/* Single session summary */}
+      {/* Single activity summary */}
       {!isExpanded && sessionCount === 1 && (
         <div className="text-xs text-muted-foreground text-right">
-          {walkingStats.isActive ? 'Active session' : 'Single session today'}
+          {walkingStats.isActive ? 'Active session' : manualBurns.length > 0 ? 'External activity' : 'Single session today'}
         </div>
       )}
     </div>

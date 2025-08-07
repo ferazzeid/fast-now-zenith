@@ -48,12 +48,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     
-    if (hours >= 24) {
-      const days = Math.floor(hours / 24);
-      const remainingHours = hours % 24;
-      return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
-    }
-    
+    // Always display in hours for fasting (no days)
     return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
   };
 
@@ -327,10 +322,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
             <>
               {sessions.map((session) => (
                 <Card key={session.id} className="relative">
-                  <CardHeader 
-                    className="pb-2 cursor-pointer hover:bg-muted/20 transition-colors"
-                    onClick={() => toggleSessionExpansion(session.id)}
-                  >
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
@@ -345,14 +337,9 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                           </h3>
                           <div className="flex gap-2 items-center">
                             {getStatusBadge(session)}
-                            <ChevronDown 
-                              className={`w-5 h-5 text-muted-foreground transition-transform ${
-                                expandedSessions.has(session.id) ? 'rotate-180' : ''
-                              }`}
-                            />
                           </div>
                         </div>
-                        <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                        <div className="flex gap-3 text-xs text-muted-foreground mt-2">
                           {session.duration_seconds && (
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
@@ -365,87 +352,55 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                               Target: {formatDuration(session.goal_duration_seconds)}
                             </span>
                           )}
+                          {session.status === 'completed' && session.duration_seconds && session.goal_duration_seconds && (
+                            <span className="flex items-center gap-1">
+                              {session.duration_seconds >= session.goal_duration_seconds ? (
+                                <span className="text-green-600 dark:text-green-400 font-medium">✓ Achieved</span>
+                              ) : (
+                                <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                  {Math.round((session.duration_seconds / session.goal_duration_seconds) * 100)}% of goal
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
                   </CardHeader>
                   
-                  {expandedSessions.has(session.id) && (
-                    <CardContent className="pt-0">
-                      <div className="space-y-3 text-sm">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-muted-foreground">Started</div>
-                            <div className="font-medium">
-                              {new Date(session.start_time).toLocaleString()}
-                            </div>
-                          </div>
-                          {session.end_time && (
-                            <div>
-                              <div className="text-muted-foreground">Ended</div>
-                              <div className="font-medium">
-                                {new Date(session.end_time).toLocaleString()}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {session.duration_seconds && session.goal_duration_seconds && (
-                          <div>
-                            <div className="text-muted-foreground">Progress</div>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-muted rounded-full h-2">
-                                <div 
-                                  className="bg-primary rounded-full h-2 transition-all duration-300"
-                                  style={{ 
-                                    width: `${Math.min((session.duration_seconds / session.goal_duration_seconds) * 100, 100)}%` 
-                                  }}
-                                />
-                              </div>
-                              <span className="text-xs font-medium">
-                                {Math.round((session.duration_seconds / session.goal_duration_seconds) * 100)}%
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Delete button - only shown in expanded view */}
-                        {session.status !== 'active' && (
-                          <div className="flex justify-end pt-2 border-t border-border/50">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Fasting Session</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this fasting session? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteSession(session.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Delete Session
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
+                  {/* Delete button - only shown for non-active sessions */}
+                  {session.status !== 'active' && (
+                    <div className="absolute top-3 right-3">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Fasting Session</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this fasting session? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteSession(session.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete Session
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   )}
-
                 </Card>
               ))}
               
