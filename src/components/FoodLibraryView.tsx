@@ -645,10 +645,24 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 
-                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+                className="flex items-center justify-between gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
               >
-                <Heart className="w-4 h-4" />
-                My Food ({filteredUserFoods.length})
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4" />
+                  My Food ({filteredUserFoods.length})
+                </div>
+                {filteredUserFoods.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteAllUserFoods();
+                    }}
+                    className="w-4 h-4 text-destructive hover:text-destructive/80 transition-colors"
+                    title="Delete all foods"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </TabsTrigger>
               <TabsTrigger 
                 value="suggested" 
@@ -662,20 +676,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* My Foods Tab */}
           <TabsContent value="my-foods" className="flex-1 overflow-y-auto px-6 py-4">
-            {/* Delete All Button */}
-            {filteredUserFoods.length > 0 && (
-              <div className="mb-4 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={deleteAllUserFoods}
-                  className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete All My Foods
-                </Button>
-              </div>
-            )}
           <div className="space-y-2 mt-1">
             {/* My Foods List */}
             {loading ? (
