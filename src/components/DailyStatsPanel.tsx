@@ -235,7 +235,7 @@ export const DailyStatsPanel = memo(() => {
                       {/* Limit value in gray */}
                       <div className="mt-2 pt-2 border-t border-border">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{profile?.calorie_goal || 2000} limit</span>
+                          <span className="text-xs text-muted-foreground">{profile?.daily_calorie_goal || 2000} limit</span>
                           <ClickableTooltip content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.">
                             <Info className="w-3 h-3 text-muted-foreground" />
                           </ClickableTooltip>
@@ -256,7 +256,7 @@ export const DailyStatsPanel = memo(() => {
                       {/* Limit value in gray */}
                       <div className="mt-2 pt-2 border-t border-border">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{profile?.carb_goal || 150}g limit</span>
+                          <span className="text-xs text-muted-foreground">{profile?.daily_carb_goal || 150}g limit</span>
                           <ClickableTooltip content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.">
                             <Info className="w-3 h-3 text-muted-foreground" />
                           </ClickableTooltip>
