@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ModernNumberPicker } from '@/components/ModernNumberPicker';
 import { cn } from '@/lib/utils';
 
@@ -61,37 +61,12 @@ export const HeightSelector = ({ value, onChange, className }: HeightSelectorPro
     onChange(cm, 'imperial');
   };
 
-  const units: { value: HeightUnit; label: string; examples: string }[] = [
-    { value: 'cm', label: 'cm', examples: '150-200 cm' },
-    { value: 'ft', label: 'ft & in', examples: '5\' 8"' }
-  ];
-
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Unit selector */}
-      <div className="flex gap-2">
-        {units.map((unit) => (
-          <Button
-            key={unit.value}
-            variant={selectedUnit === unit.value ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedUnit(unit.value)}
-            className="flex-1"
-          >
-            <div className="text-center">
-              <div className="font-medium">{unit.label}</div>
-              <div className="text-xs opacity-70">{unit.examples}</div>
-            </div>
-          </Button>
-        ))}
-      </div>
-
-      {/* Value input */}
-      <div className="space-y-2">
-        {selectedUnit === 'ft' ? (
+      {selectedUnit === 'ft' ? (
+        <div className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground block mb-1">Feet</label>
               <ModernNumberPicker
                 value={feetValue}
                 onChange={(feet) => handleFeetChange(feet, inchesValue)}
@@ -102,7 +77,6 @@ export const HeightSelector = ({ value, onChange, className }: HeightSelectorPro
               />
             </div>
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground block mb-1">Inches</label>
               <ModernNumberPicker
                 value={inchesValue}
                 onChange={(inches) => handleFeetChange(feetValue, inches)}
@@ -113,18 +87,31 @@ export const HeightSelector = ({ value, onChange, className }: HeightSelectorPro
               />
             </div>
           </div>
-        ) : (
-          <ModernNumberPicker
-            value={displayValue}
-            onChange={handleValueChange}
-            min={100}
-            max={250}
-            step={1}
-            suffix="cm"
-            className="w-full"
-          />
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <ModernNumberPicker
+              value={displayValue}
+              onChange={handleValueChange}
+              min={100}
+              max={250}
+              step={1}
+            />
+          </div>
+          <div className="w-24">
+            <Select value={selectedUnit} onValueChange={(value: HeightUnit) => setSelectedUnit(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cm">cm</SelectItem>
+                <SelectItem value="ft">ft/in</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

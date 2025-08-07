@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ModernNumberPicker } from '@/components/ModernNumberPicker';
 import { cn } from '@/lib/utils';
 
@@ -69,38 +69,12 @@ export const WeightSelector = ({ value, onChange, className }: WeightSelectorPro
     onChange(kg, 'imperial');
   };
 
-  const units: { value: WeightUnit; label: string; examples: string }[] = [
-    { value: 'kg', label: 'kg', examples: '60-90 kg' },
-    { value: 'lb', label: 'lbs', examples: '130-200 lbs' },
-    { value: 'st', label: 'st & lbs', examples: '9 st 7 lbs' }
-  ];
-
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Unit selector */}
-      <div className="flex gap-2">
-        {units.map((unit) => (
-          <Button
-            key={unit.value}
-            variant={selectedUnit === unit.value ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedUnit(unit.value)}
-            className="flex-1"
-          >
-            <div className="text-center">
-              <div className="font-medium">{unit.label}</div>
-              <div className="text-xs opacity-70">{unit.examples}</div>
-            </div>
-          </Button>
-        ))}
-      </div>
-
-      {/* Value input */}
-      <div className="space-y-2">
-        {selectedUnit === 'st' ? (
+      {selectedUnit === 'st' ? (
+        <div className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground block mb-1">Stone</label>
               <ModernNumberPicker
                 value={stoneValue}
                 onChange={(stones) => handleStoneChange(stones, poundsValue)}
@@ -111,7 +85,6 @@ export const WeightSelector = ({ value, onChange, className }: WeightSelectorPro
               />
             </div>
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground block mb-1">Pounds</label>
               <ModernNumberPicker
                 value={poundsValue}
                 onChange={(pounds) => handleStoneChange(stoneValue, pounds)}
@@ -122,18 +95,32 @@ export const WeightSelector = ({ value, onChange, className }: WeightSelectorPro
               />
             </div>
           </div>
-        ) : (
-          <ModernNumberPicker
-            value={displayValue}
-            onChange={handleValueChange}
-            min={selectedUnit === 'kg' ? 30 : 66}
-            max={selectedUnit === 'kg' ? 300 : 660}
-            step={selectedUnit === 'kg' ? 0.1 : 1}
-            suffix={selectedUnit}
-            className="w-full"
-          />
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <ModernNumberPicker
+              value={displayValue}
+              onChange={handleValueChange}
+              min={selectedUnit === 'kg' ? 30 : 66}
+              max={selectedUnit === 'kg' ? 300 : 660}
+              step={selectedUnit === 'kg' ? 0.1 : 1}
+            />
+          </div>
+          <div className="w-24">
+            <Select value={selectedUnit} onValueChange={(value: WeightUnit) => setSelectedUnit(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="kg">kg</SelectItem>
+                <SelectItem value="lb">lbs</SelectItem>
+                <SelectItem value="st">stone</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

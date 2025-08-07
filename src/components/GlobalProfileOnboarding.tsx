@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { WeightSelector } from '@/components/WeightSelector';
 import { HeightSelector } from '@/components/HeightSelector';
 import { ModernNumberPicker } from '@/components/ModernNumberPicker';
-import { User, Target, Activity } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface GlobalProfileOnboardingProps {
   isOpen: boolean;
@@ -19,6 +19,7 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
   const { updateProfile, isUpdating } = useProfileQuery();
   const { toast } = useToast();
   
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     detectedUnits: 'metric' as 'metric' | 'imperial',
     weightKg: 70,
@@ -26,6 +27,20 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
     age: 30,
     sex: '' as 'male' | 'female' | '',
   });
+
+  const totalSteps = 4;
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const handleComplete = async () => {
     if (!formData.sex) {
@@ -59,124 +74,135 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
     onClose();
   };
 
-  const isFormValid = formData.sex !== '';
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1: return formData.weightKg > 0;
+      case 2: return formData.heightCm > 0;
+      case 3: return formData.age > 0;
+      case 4: return !!formData.sex;
+      default: return false;
+    }
+  };
 
-  const content = (
-    <div className="space-y-8">
-      {/* Weight section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Target className="w-5 h-5 text-primary" />
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="text-center space-y-8">
+            <h2 className="text-2xl font-bold">Weight</h2>
+            <WeightSelector
+              value={formData.weightKg}
+              onChange={(kg, detectedUnits) => 
+                setFormData({ ...formData, weightKg: kg, detectedUnits })
+              }
+            />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">Your Weight</h3>
-            <p className="text-sm text-muted-foreground">Help us calculate your calorie needs</p>
-          </div>
-        </div>
-        <WeightSelector
-          value={formData.weightKg}
-          onChange={(kg, detectedUnits) => 
-            setFormData({ ...formData, weightKg: kg, detectedUnits })
-          }
-        />
-      </div>
+        );
 
-      {/* Height section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-primary" />
+      case 2:
+        return (
+          <div className="text-center space-y-8">
+            <h2 className="text-2xl font-bold">Height</h2>
+            <HeightSelector
+              value={formData.heightCm}
+              onChange={(cm, detectedUnits) => 
+                setFormData({ ...formData, heightCm: cm, detectedUnits })
+              }
+            />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">Your Height</h3>
-            <p className="text-sm text-muted-foreground">For accurate BMR calculations</p>
-          </div>
-        </div>
-        <HeightSelector
-          value={formData.heightCm}
-          onChange={(cm, detectedUnits) => 
-            setFormData({ ...formData, heightCm: cm, detectedUnits })
-          }
-        />
-      </div>
+        );
 
-      {/* Age section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-5 h-5 text-primary" />
+      case 3:
+        return (
+          <div className="text-center space-y-8">
+            <h2 className="text-2xl font-bold">Age</h2>
+            <div className="flex justify-center">
+              <ModernNumberPicker
+                value={formData.age}
+                onChange={(age) => setFormData({ ...formData, age })}
+                min={13}
+                max={120}
+                suffix="years"
+                className="max-w-xs"
+              />
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">Your Age</h3>
-            <p className="text-sm text-muted-foreground">Affects your metabolic rate</p>
-          </div>
-        </div>
-        <ModernNumberPicker
-          value={formData.age}
-          onChange={(age) => setFormData({ ...formData, age })}
-          min={13}
-          max={120}
-          suffix="years"
-          className="max-w-xs"
-        />
-      </div>
+        );
 
-      {/* Sex section */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Biological Sex</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            This helps us calculate accurate calorie requirements based on metabolic differences.
-          </p>
-        </div>
-        <RadioGroup
-          value={formData.sex}
-          onValueChange={(value: 'male' | 'female') => 
-            setFormData({ ...formData, sex: value })
-          }
-          className="grid grid-cols-2 gap-4"
-        >
-          <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
-            <RadioGroupItem value="male" id="male" />
-            <Label htmlFor="male" className="flex-1 cursor-pointer font-medium">
-              Male
-            </Label>
+      case 4:
+        return (
+          <div className="text-center space-y-8">
+            <h2 className="text-2xl font-bold">Biological Sex</h2>
+            <RadioGroup
+              value={formData.sex}
+              onValueChange={(value: 'male' | 'female') => 
+                setFormData({ ...formData, sex: value })
+              }
+              className="grid grid-cols-2 gap-4 max-w-md mx-auto"
+            >
+              <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
+                <RadioGroupItem value="male" id="male" />
+                <Label htmlFor="male" className="flex-1 cursor-pointer font-medium">
+                  Male
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
+                <RadioGroupItem value="female" id="female" />
+                <Label htmlFor="female" className="flex-1 cursor-pointer font-medium">
+                  Female
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
-          <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
-            <RadioGroupItem value="female" id="female" />
-            <Label htmlFor="female" className="flex-1 cursor-pointer font-medium">
-              Female
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
-    </div>
-  );
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <PageOnboardingModal
       isOpen={isOpen}
       onClose={() => {}} // Prevent closing until completed or skipped
-      title="Complete Your Profile"
-      subtitle="Help us personalize your experience with accurate calorie calculations"
-      heroQuote="Your journey to better health starts with understanding your body"
+      title={`Step ${currentStep} of ${totalSteps}`}
     >
-      {content}
+      {renderStep()}
       
       {/* Footer actions */}
       <div className="flex justify-between items-center pt-6 border-t border-border/30">
-        <Button variant="ghost" onClick={handleSkip} disabled={isUpdating}>
-          Skip for now
-        </Button>
+        <div className="flex items-center gap-2">
+          {currentStep > 1 ? (
+            <Button variant="outline" onClick={handleBack} disabled={isUpdating}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={handleSkip} disabled={isUpdating}>
+              Skip
+            </Button>
+          )}
+        </div>
         
-        <Button 
-          onClick={handleComplete} 
-          disabled={!isFormValid || isUpdating}
-          className="min-w-[120px]"
-        >
-          {isUpdating ? 'Saving...' : 'Complete Setup'}
-        </Button>
+        <div>
+          {currentStep < totalSteps ? (
+            <Button 
+              onClick={handleNext} 
+              disabled={!isStepValid() || isUpdating}
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleComplete} 
+              disabled={!isStepValid() || isUpdating}
+              className="min-w-[120px]"
+            >
+              {isUpdating ? 'Saving...' : 'Complete'}
+            </Button>
+          )}
+        </div>
       </div>
     </PageOnboardingModal>
   );
