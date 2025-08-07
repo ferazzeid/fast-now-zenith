@@ -96,7 +96,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
 
   const generatePromptForFood = async (foodName: string) => {
     // Fetch admin prompt settings and color themes
-    let promptTemplate = "High-quality product photography of {food_name} on a clean white background. Show only the {food_name}, no other foods, no decorations, no props, no additional ingredients. Professional food photography, well-lit, centered, isolated subject, clean and minimal composition perfect for a food tracking app.";
+    let promptTemplate = "Professional product photography of {food_name} on a pristine white seamless background surface. Studio lighting, clean minimal composition, isolated subject with no shadows, no other objects, no decorations, no garnishes, no props whatsoever. Only the {food_name} itself, perfectly centered, high resolution, commercial food photography style for product catalog.";
     let primaryColor = "220 35% 45%";
           let accentColor = "142 71% 45%";
     
