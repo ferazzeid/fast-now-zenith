@@ -75,7 +75,7 @@ const AppContent = () => {
       const profileComplete = isProfileComplete();
       console.log('Profile onboarding check:', {
         user: !!user,
-        profile: profile,
+        // profile omitted for security
         profileComplete,
         weight: profile?.weight,
         height: profile?.height,

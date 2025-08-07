@@ -39,7 +39,7 @@ export const useProfile = () => {
     // Check cache first - but force refresh if weight/height are missing
     const cached = getCachedProfile(user.id);
     if (cached && cached.weight && cached.height && cached.age) {
-      console.log('Using cached profile data', cached);
+      console.log('Using cached profile data');
       setProfile(cached);
       setLoading(false);
       return;
@@ -73,7 +73,7 @@ export const useProfile = () => {
         30 // 30 minute cache for request deduplication
       );
 
-      console.log('Profile loaded successfully:', data);
+      console.log('Profile loaded successfully');
       
       // Cache the profile data for 24 hours
       if (data) {
@@ -155,7 +155,7 @@ export const useProfile = () => {
   const isProfileComplete = useCallback(() => {
     const complete = !!(profile && profile.weight && profile.height && profile.age && 
       (profile.activity_level || profile['activity-level'])); // Handle both formats
-    console.log('Profile completion check:', { profile, complete, activity_level: profile?.activity_level });
+    console.log('Profile completion check:', { complete, activity_level: profile?.activity_level });
     return complete;
   }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
 
