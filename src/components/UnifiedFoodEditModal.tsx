@@ -68,7 +68,12 @@ export const UnifiedFoodEditModal = ({
   const [imageUrl, setImageUrl] = useState(currentItem?.image_url || '');
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
-  const [currentPrompt, setCurrentPrompt] = useState<string>('');
+  const [currentPrompt, setCurrentPrompt] = useState<string>(
+    // Initialize with a basic prompt if there's an existing image
+    currentItem?.image_url && currentItem?.name 
+      ? `High-quality photo of ${currentItem.name} on a white background, clean food photography, well-lit, appetizing`
+      : ''
+  );
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -139,6 +144,10 @@ export const UnifiedFoodEditModal = ({
     );
     setServingSize(entry?.serving_size?.toString() || '');
     setImageUrl(currentItem.image_url || '');
+    // Set a basic prompt if there's an existing image
+    if (currentItem.image_url && currentItem.name) {
+      setCurrentPrompt(`High-quality photo of ${currentItem.name} on a white background, clean food photography, well-lit, appetizing`);
+    }
   };
 
   const generatePromptForFood = async (foodName: string) => {
@@ -207,12 +216,16 @@ export const UnifiedFoodEditModal = ({
   };
 
   const createRegenerateButton = () => {
-    if (!imageUrl || !currentPrompt) return null;
+    // Always show regenerate button if there's an image, we'll generate a simple prompt
+    if (!imageUrl) return null;
+
+    // If no stored prompt, create a basic one
+    const promptToUse = currentPrompt || `High-quality photo of ${name || 'food'} on a white background, clean food photography, well-lit, appetizing`;
 
     return (
       <RegenerateImageButton
-        prompt={currentPrompt}
-        filename={`food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
+        prompt={promptToUse}
+        filename={`food-${(name || 'item').toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`}
         onImageGenerated={setImageUrl}
         disabled={loading || generatingImage}
       />
