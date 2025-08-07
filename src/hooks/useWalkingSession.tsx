@@ -170,7 +170,7 @@ export const useWalkingSession = () => {
     }
   }, [user, currentSession]);
 
-  const endWalkingSession = useCallback(async () => {
+  const endWalkingSession = useCallback(async (manualDurationMinutes?: number) => {
     console.log('Ending walking session...');
     if (!user || !currentSession) return { error: { message: 'No active session' } };
 
@@ -179,47 +179,81 @@ export const useWalkingSession = () => {
       const endTime = new Date();
       const startTime = new Date(currentSession.start_time);
       
-      // Calculate total active duration (excluding paused time)
-      let totalDurationMs = endTime.getTime() - startTime.getTime();
-      let totalPauseDuration = currentSession.total_pause_duration || 0;
+      let activeDurationMinutes: number;
+      let isManualEdit = false;
       
-      // If currently paused, add current pause duration
-      if (isPaused && currentSession.pause_start_time) {
-        const currentPauseDuration = Math.floor((endTime.getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000);
-        totalPauseDuration += currentPauseDuration;
+      if (manualDurationMinutes) {
+        // Manual duration - use provided value
+        activeDurationMinutes = manualDurationMinutes;
+        isManualEdit = true;
+      } else {
+        // Calculate total active duration (excluding paused time)
+        let totalDurationMs = endTime.getTime() - startTime.getTime();
+        let totalPauseDuration = currentSession.total_pause_duration || 0;
+        
+        // If currently paused, add current pause duration
+        if (isPaused && currentSession.pause_start_time) {
+          const currentPauseDuration = Math.floor((endTime.getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000);
+          totalPauseDuration += currentPauseDuration;
+        }
+        
+        // Convert to minutes and subtract paused time
+        activeDurationMinutes = (totalDurationMs / (1000 * 60)) - (totalPauseDuration / 60);
       }
       
-      // Convert to minutes and subtract paused time
-      const activeDurationMinutes = (totalDurationMs / (1000 * 60)) - (totalPauseDuration / 60);
       const speedMph = currentSession.speed_mph || selectedSpeed || 3;
       
-      // Calculate calories using profile data and speed
-      const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
+      // Calculate new end time based on start time + duration for manual edits
+      const newEndTime = isManualEdit 
+        ? new Date(startTime.getTime() + activeDurationMinutes * 60 * 1000)
+        : endTime;
       
-      // Calculate distance (active time × speed)
-      const distance = (activeDurationMinutes / 60) * speedMph; // Distance in miles
+      let updateData: any = {
+        end_time: newEndTime.toISOString(),
+        status: 'completed',
+        session_state: 'completed'
+      };
       
-      // Calculate estimated steps
-      const userHeight = profile?.height || 70;
-      const units = (profile?.units as 'metric' | 'imperial') || 'imperial';
-      const estimatedSteps = estimateSteps({
-        durationMinutes: activeDurationMinutes,
-        speedMph,
-        userHeight,
-        units
-      });
-
-      const { data, error } = await supabase
-        .from('walking_sessions')
-        .update({
-          end_time: endTime.toISOString(),
-          status: 'completed',
-          session_state: 'completed',
+      if (isManualEdit) {
+        // For manual edits, null out calculated data and mark as edited
+        updateData = {
+          ...updateData,
+          calories_burned: null,
+          distance: null,
+          estimated_steps: null,
+          is_edited: true,
+          edit_reason: 'Manual duration correction',
+          duration_minutes: activeDurationMinutes
+        };
+      } else {
+        // Calculate calories using profile data and speed
+        const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
+        
+        // Calculate distance (active time × speed)
+        const distance = (activeDurationMinutes / 60) * speedMph; // Distance in miles
+        
+        // Calculate estimated steps
+        const userHeight = profile?.height || 70;
+        const units = (profile?.units as 'metric' | 'imperial') || 'imperial';
+        const estimatedSteps = estimateSteps({
+          durationMinutes: activeDurationMinutes,
+          speedMph,
+          userHeight,
+          units
+        });
+        
+        updateData = {
+          ...updateData,
           calories_burned: calories,
           distance: Math.round(distance * 100) / 100, // Round to 2 decimal places
           estimated_steps: estimatedSteps,
-          total_pause_duration: totalPauseDuration
-        })
+          total_pause_duration: currentSession.total_pause_duration || 0
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update(updateData)
         .eq('id', currentSession.id)
         .select()
         .single();
@@ -251,7 +285,7 @@ export const useWalkingSession = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, currentSession, selectedSpeed, calculateWalkingCalories, isPaused]);
+  }, [user, currentSession, selectedSpeed, calculateWalkingCalories, isPaused, profile]);
 
   const cancelWalkingSession = useCallback(async () => {
     console.log('Cancelling walking session...');

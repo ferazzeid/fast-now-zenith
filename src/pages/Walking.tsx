@@ -149,6 +149,31 @@ const Walking = () => {
     }
   };
 
+  const handleManualDurationConfirm = async (durationMinutes: number) => {
+    console.log('Manual duration confirmed:', durationMinutes);
+    setShowStopConfirm(false);
+    
+    toast({
+      title: "Correcting session...",
+      description: "Saving with manual duration."
+    });
+    
+    const result = await endWalkingSession(durationMinutes);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error.message
+      });
+    } else {
+      trackWalkingEvent('stop', selectedSpeed, durationMinutes * 60);
+      toast({
+        title: "Walking completed!",
+        description: `Session corrected to ${durationMinutes} minutes. Calculated data removed for accuracy.`
+      });
+    }
+  };
+
   const handleCancel = () => {
     setShowCancelConfirm(true);
   };
@@ -284,7 +309,9 @@ const Walking = () => {
           open={showStopConfirm}
           onOpenChange={setShowStopConfirm}
           onConfirm={handleStopConfirm}
+          onManualDurationConfirm={handleManualDurationConfirm}
           currentDuration={formatTime(localTimeElapsed)}
+          durationMinutes={Math.floor(localTimeElapsed / 60)}
           calories={walkingStats.calories}
           distance={walkingStats.distance}
           units={profile?.units || 'imperial'}

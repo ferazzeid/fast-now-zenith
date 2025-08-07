@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info, Plus, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Activity, Clock, Zap, Info, Plus, X, Edit } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
+import { EditWalkingSessionTimeModal } from '@/components/EditWalkingSessionTimeModal';
 
 
 interface WalkingSession {
@@ -20,6 +21,9 @@ interface WalkingSession {
   speed_mph: number | null;
   estimated_steps: number | null;
   session_state: string | null;
+  is_edited?: boolean;
+  original_duration_minutes?: number;
+  edit_reason?: string;
 }
 
 interface WalkingSessionsBreakdownProps {
@@ -34,6 +38,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const [isExpanded, setIsExpanded] = useState(false);
   const [completedSessions, setCompletedSessions] = useState<WalkingSession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingSession, setEditingSession] = useState<WalkingSession | null>(null);
   const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
   const { profile } = useProfile();
@@ -114,6 +119,13 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
       }
     } catch (error) {
       console.error('Failed to delete manual calorie burn:', error);
+    }
+  };
+
+  const handleSessionEdited = () => {
+    fetchTodaySessions();
+    if (onRefresh) {
+      onRefresh();
     }
   };
 
@@ -205,6 +217,11 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                   <span className="text-xs font-medium text-warm-text">
                     Session {completedSessions.length - index}
                   </span>
+                  {session.is_edited && (
+                    <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                      Edited
+                    </span>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     {formatTime(session.start_time)} - {session.end_time ? formatTime(session.end_time) : 'Active'}
                   </span>
@@ -212,15 +229,29 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                     ({calculateSessionDuration(session.start_time, session.end_time)}m)
                   </span>
                 </div>
-                <div className="text-xs font-bold text-warm-text">
-                  {session.calories_burned || 0} cal
+                <div className="flex items-center space-x-2">
+                  <div className="text-xs font-bold text-warm-text">
+                    {session.calories_burned || 0} cal
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingSession(session)}
+                    className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
-              {session.distance && (
+              {session.is_edited ? (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Data removed due to edit
+                </div>
+              ) : session.distance ? (
                 <div className="text-xs text-muted-foreground mt-1">
                   {formatDistance(session.distance)} • {session.estimated_steps?.toLocaleString() || 0} steps
                 </div>
-              )}
+              ) : null}
             </Card>
           ))}
 
@@ -265,6 +296,16 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
         <div className="text-xs text-muted-foreground text-right">
           {walkingStats.isActive ? 'Active session' : manualBurns.length > 0 ? 'External activity' : 'Single session today'}
         </div>
+      )}
+
+      {/* Edit Session Modal */}
+      {editingSession && (
+        <EditWalkingSessionTimeModal
+          session={editingSession}
+          isOpen={true}
+          onClose={() => setEditingSession(null)}
+          onSessionEdited={handleSessionEdited}
+        />
       )}
     </div>
   );
