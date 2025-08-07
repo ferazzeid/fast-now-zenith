@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Lightbulb, Mic } from 'lucide-react';
+import { X, Save, Sparkles, Lightbulb, Mic, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -258,39 +258,44 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           </div>
 
           <div className="space-y-2">
-            <Label className="text-warm-text font-medium">
-              Motivator Image (Optional)
-            </Label>
-            
-            <div className="space-y-3">
-              {/* Use proper ImageUpload component with regenerate button */}
-              <ImageUpload
-                currentImageUrl={imageUrl}
-                onImageUpload={setImageUrl}
-                onImageRemove={() => setImageUrl('')}
-                showUploadOptionsWhenImageExists={true}
-                regenerateButton={imageUrl ? (
-                  <RegenerateImageButton
-                    prompt={`${title}. ${content}`}
-                    filename={`motivator-${Date.now()}.jpg`}
-                    onImageGenerated={setImageUrl}
-                    disabled={isGeneratingImage}
-                  />
-                ) : undefined}
-              />
+            {/* Use proper ImageUpload component with regenerate button */}
+            <ImageUpload
+              currentImageUrl={imageUrl}
+              onImageUpload={setImageUrl}
+              onImageRemove={() => setImageUrl('')}
+              showUploadOptionsWhenImageExists={true}
+              regenerateButton={imageUrl ? (
+                <RegenerateImageButton
+                  prompt={`${title}. ${content}`}
+                  filename={`motivator-${Date.now()}.jpg`}
+                  onImageGenerated={setImageUrl}
+                  disabled={isGeneratingImage}
+                />
+              ) : undefined}
+            />
 
-              {/* AI Generation button - full width */}
+            {/* Upload and Generate buttons on same line - 50% each */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {}} 
+                className="flex-1 bg-ceramic-base border-ceramic-rim"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload New Image
+              </Button>
+              
               <PremiumGate feature="AI Image Generation">
                 <Button
                   variant="ai"
                   onClick={handleGenerateImage}
                   disabled={isGeneratingImage}
-                  className="w-full"
+                  className="flex-1"
                 >
                   {isGeneratingImage ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating AI Image...
+                      Generating...
                     </>
                   ) : (
                     <>
