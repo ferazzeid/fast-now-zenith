@@ -261,7 +261,7 @@ export const EditMotivatorModal = ({ motivator, onSave, onClose }: EditMotivator
           </div>
           
           {/* Add spacing at the bottom */}
-          <div className="h-6" />
+          <div className="h-8" />
         </div>
     </UniversalModal>
   );
