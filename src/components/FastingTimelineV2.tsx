@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,20 @@ const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
-  const selectedHour = Math.min(Math.max(currentHour || 1, 1), MAX_HOUR);
+  const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
+  useEffect(() => {
+    if (!hasUserInteracted) {
+      setSelectedHour(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+    }
+  }, [currentHour, hasUserInteracted]);
+
+  const handleHourChange = (h: number) => {
+    const clamped = Math.min(Math.max(h, 1), MAX_HOUR);
+    setSelectedHour(clamped);
+    setHasUserInteracted(true);
+  };
 
 
 
@@ -33,7 +46,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
 
   return (
     <div className={cn("w-full", className)}>
-      <FastingSliderHeader currentHour={selectedHour} className="mb-3" />
+      <FastingSliderHeader currentHour={selectedHour} className="mb-3" onHourChange={handleHourChange} />
 
 
       {/* Details panel */}
