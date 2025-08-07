@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour } from "@/hooks/optimized/useFastingHoursQuery";
-import { useSearchParams } from "react-router-dom";
+
 
 interface FastingTimelineV2Props {
   currentHour?: number;
@@ -19,29 +19,9 @@ const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+  const selectedHour = Math.min(Math.max(currentHour || 1, 1), MAX_HOUR);
 
-  // Initialize from URL (?hour=) and respond to external nav changes
-  useEffect(() => {
-    const p = searchParams.get("hour");
-    const parsed = p ? parseInt(p, 10) : NaN;
-    if (!Number.isNaN(parsed)) {
-      const clamped = Math.min(Math.max(parsed, 1), MAX_HOUR);
-      if (clamped !== selectedHour) setSelectedHour(clamped);
-    }
-  }, [searchParams]);
 
-  // Keep URL in sync when user changes the slider/hour
-  useEffect(() => {
-    const current = searchParams.get("hour");
-    const next = String(selectedHour);
-    if (current !== next) {
-      const sp = new URLSearchParams(searchParams);
-      sp.set("hour", next);
-      setSearchParams(sp, { replace: true });
-    }
-  }, [selectedHour]);
 
   const hourMap = useMemo(() => {
     const map = new Map<number, FastingHour>();

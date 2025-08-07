@@ -398,7 +398,7 @@ const Timer = () => {
         {/* Inspirational Content Rotator */}
         <FastingInspirationRotator 
           quotes={quotes.fasting_timer_quotes}
-          currentFastingHour={Math.floor(timeElapsed / 3600)}
+          currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
           className="mt-8"
         />
       </div>
