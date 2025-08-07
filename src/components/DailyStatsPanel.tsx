@@ -9,6 +9,9 @@ import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
 import { useAppLogo } from '@/hooks/useAppLogo';
+import { PremiumGatedDeficitDisplay } from '@/components/PremiumGatedDeficitDisplay';
+import { PremiumGatedCaloriesIn } from '@/components/PremiumGatedCaloriesIn';
+import { PremiumGatedGoalMetrics } from '@/components/PremiumGatedGoalMetrics';
 
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
@@ -155,9 +158,13 @@ export const DailyStatsPanel = memo(() => {
               <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
                 <Info className="w-3 h-3 text-muted-foreground" />
               </ClickableTooltip>
-              <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
-              </span>
+              <PremiumGatedDeficitDisplay 
+                value={deficitData.todayDeficit}
+                formatNumber={formatNumber}
+                getDeficitColor={getDeficitColor}
+                loading={loading}
+                tdee={deficitData.tdee}
+              />
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
@@ -189,35 +196,10 @@ export const DailyStatsPanel = memo(() => {
                 {/* Breakdown */}
                 <div className="grid grid-cols-2 gap-3">
                   {/* Calories In with Carbs */}
-                  <Card className="p-3 bg-card border-border relative">
-                    <div className="absolute top-2 right-2">
-                      <ClickableTooltip content="Total calories consumed from food today">
-                        <Info className="w-5 h-5 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 mb-2 pr-6">
-                      <Utensils className="w-4 h-4 text-primary" />
-                      <span className="text-xs font-medium text-warm-text">Calories In</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="text-lg font-bold text-primary">
-                        {Math.round(deficitData.caloriesConsumed)} cal
-                      </div>
-                      
-                      {/* Dividing line and carbs */}
-                      <div className="flex items-center space-x-2">
-                        <div className="w-px h-6 bg-border"></div>
-                        <div className="flex items-center space-x-1">
-                          <span className="text-sm font-medium text-primary">{Math.round(todayTotals.carbs)}g</span>
-                          <ClickableTooltip content="Total carbs consumed from food today">
-                            <Info className="w-3 h-3 text-muted-foreground" />
-                          </ClickableTooltip>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
+                  <PremiumGatedCaloriesIn 
+                    calories={deficitData.caloriesConsumed}
+                    carbs={todayTotals.carbs}
+                  />
 
                   {/* Calories Out */}
                   <StatDisplay
@@ -262,7 +244,7 @@ export const DailyStatsPanel = memo(() => {
 
 
                   {/* Goal Metrics */}
-                  <GoalMetrics />
+                  <PremiumGatedGoalMetrics />
 
 
 

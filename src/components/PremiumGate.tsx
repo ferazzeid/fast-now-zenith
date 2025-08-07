@@ -97,7 +97,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
     return (
       <div 
-        className={`relative ${className} cursor-not-allowed`}
+        className={`relative inline-flex w-fit h-fit ${className} cursor-not-allowed`}
         onClick={handleGrayedClick}
       >
         {/* Apply visual effects directly to preserve original dimensions */}

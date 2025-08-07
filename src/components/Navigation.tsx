@@ -11,6 +11,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { PremiumGate } from '@/components/PremiumGate';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -179,32 +180,46 @@ export const Navigation = () => {
                 }
               };
               
+              const content = (
+                <Link
+                  to={path}
+                  className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground shadow-lg' 
+                      : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-medium">{label}</span>
+                  
+                  {/* Timer badge for fasting/walking */}
+                  {badge && (
+                    <TimerBadge time={badge} isEating={isEating} />
+                  )}
+                  
+                  {/* Calorie badge for food */}
+                  {caloriesBadge && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
+                      {caloriesBadge}
+                    </span>
+                  )}
+                </Link>
+              );
+
               return (
                 <Tooltip key={path}>
                   <TooltipTrigger asChild>
-                    <Link
-                      to={path}
-                      className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 ${
-                        isActive 
-                          ? 'bg-primary text-primary-foreground shadow-lg' 
-                          : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5 mb-1" />
-                      <span className="text-xs font-medium">{label}</span>
-                      
-                      {/* Timer badge for fasting/walking */}
-                      {badge && (
-                        <TimerBadge time={badge} isEating={isEating} />
-                      )}
-                      
-                      {/* Calorie badge for food */}
-                      {caloriesBadge && (
-                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
-                          {caloriesBadge}
-                        </span>
-                      )}
-                    </Link>
+                    {label === 'Food' ? (
+                      <PremiumGate 
+                        feature="Food Tracking" 
+                        grayOutForFree={true}
+                        className="flex-1 min-w-0"
+                      >
+                        {content}
+                      </PremiumGate>
+                    ) : (
+                      content
+                    )}
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{getTooltipText(label)}</p>
