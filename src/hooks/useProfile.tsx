@@ -136,9 +136,9 @@ export const useProfile = () => {
   }, [user, executeWithRetry, toast]);
 
   const isProfileComplete = useCallback(() => {
-    const complete = !!(profile && profile.weight && profile.height && profile.age);
+    const complete = !!(profile && profile.weight && profile.height && profile.age && profile.activity_level);
     return complete;
-  }, [profile?.weight, profile?.height, profile?.age]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
 
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;

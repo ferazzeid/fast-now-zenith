@@ -18,6 +18,7 @@ interface FormData {
   heightUnit: string;
   age: string;
   sex: string;
+  activityLevel: string;
 }
 
 export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingFlowProps) => {
@@ -31,9 +32,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     heightUnit: '',
     age: '',
     sex: '',
+    activityLevel: '',
   });
 
-  const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | null>(null);
+  const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | 'activityLevel' | null>(null);
   const [tempValue, setTempValue] = useState('');
   const [tempUnit, setTempUnit] = useState('');
 
@@ -62,6 +64,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         weight: weightValue,
         height: heightValue,
         age: parseInt(formData.age),
+        activity_level: formData.activityLevel as 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active',
       });
 
       toast({
@@ -83,10 +86,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   const isFormValid = () => {
     return formData.weight && formData.weightUnit && 
            formData.height && formData.heightUnit && 
-           formData.age && formData.sex;
+           formData.age && formData.sex && formData.activityLevel;
   };
 
-  const openModal = (field: 'weight' | 'height' | 'age' | 'sex') => {
+  const openModal = (field: 'weight' | 'height' | 'age' | 'sex' | 'activityLevel') => {
     setActiveModal(field);
     if (field === 'weight') {
       setTempValue(formData.weight);
@@ -100,6 +103,9 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     } else if (field === 'sex') {
       setTempValue(formData.sex);
       setTempUnit('');
+    } else if (field === 'activityLevel') {
+      setTempValue(formData.activityLevel);
+      setTempUnit('');
     }
   };
 
@@ -112,6 +118,8 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       setFormData(prev => ({ ...prev, age: tempValue }));
     } else if (activeModal === 'sex') {
       setFormData(prev => ({ ...prev, sex: tempValue }));
+    } else if (activeModal === 'activityLevel') {
+      setFormData(prev => ({ ...prev, activityLevel: tempValue }));
     }
     setActiveModal(null);
   };
@@ -129,6 +137,8 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         return `${value} years`;
       case 'sex':
         return value.charAt(0).toUpperCase() + value.slice(1);
+      case 'activityLevel':
+        return value ? value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not set';
       default:
         return value;
     }
@@ -291,6 +301,27 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
           </div>
         );
 
+      case 'activityLevel':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Activity Level</label>
+              <Select value={tempValue} onValueChange={setTempValue}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select activity level" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="sedentary">Sedentary (Little/no exercise)</SelectItem>
+                  <SelectItem value="lightly_active">Lightly Active (Light exercise 1-3 days/week)</SelectItem>
+                  <SelectItem value="moderately_active">Moderately Active (Moderate exercise 3-5 days/week)</SelectItem>
+                  <SelectItem value="very_active">Very Active (Hard exercise 6-7 days/week)</SelectItem>
+                  <SelectItem value="extra_active">Extra Active (Very hard exercise, physical job)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -331,6 +362,14 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
           <div className="text-sm text-muted-foreground">Sex</div>
           <div className="font-medium">{formatDisplayValue('sex')}</div>
         </button>
+
+        <button
+          onClick={() => openModal('activityLevel')}
+          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left col-span-2"
+        >
+          <div className="text-sm text-muted-foreground">Activity Level</div>
+          <div className="font-medium">{formatDisplayValue('activityLevel')}</div>
+        </button>
       </div>
 
       {/* Navigation */}
@@ -367,7 +406,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
             </Button>
             <Button 
               onClick={saveModal}
-              disabled={!tempValue || (activeModal !== 'sex' && activeModal !== 'age' && !tempUnit)}
+              disabled={!tempValue || (activeModal !== 'sex' && activeModal !== 'age' && activeModal !== 'activityLevel' && !tempUnit)}
             >
               Save
             </Button>

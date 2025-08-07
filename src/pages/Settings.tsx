@@ -112,6 +112,15 @@ const Settings = () => {
           if (profileData.openai_api_key) {
             setOpenAiKey(profileData.openai_api_key);
           }
+
+          // Check if profile is incomplete and show onboarding
+          const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || !profileData.activity_level;
+          if (isIncomplete) {
+            setShowOnboarding(true);
+          }
+        } else {
+          // No profile data exists, show onboarding
+          setShowOnboarding(true);
         }
         } catch (error) {
           console.error('Error fetching user settings:', error);
