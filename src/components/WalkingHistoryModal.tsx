@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import React from 'react';
-import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, X, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, Edit3 } from 'lucide-react';
+import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, X, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -336,10 +336,10 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
-                                    className="h-6 w-6 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                    className="h-6 w-6 p-0"
                                     onClick={() => setEditingSession(session)}
                                   >
-                                    <Edit3 className="w-3 h-3" />
+                                    <Edit className="w-3 h-3" />
                                   </Button>
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
