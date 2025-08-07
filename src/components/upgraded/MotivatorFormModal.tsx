@@ -145,7 +145,7 @@ export const UpgradedMotivatorFormModal = ({
     setIsGeneratingImage(true);
     try {
       const prompt = `${title} ${content}`.trim();
-      const generatedImageUrl = await generate_image(prompt, 512, 512);
+      const generatedImageUrl = await generate_image(prompt, "512", "512");
       if (generatedImageUrl) {
         setImageUrl(generatedImageUrl);
         toast({
@@ -274,12 +274,13 @@ export const UpgradedMotivatorFormModal = ({
           <ImageUpload
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
-            onImageRemoved={() => setImageUrl('')}
+            onImageRemove={() => setImageUrl('')}
           />
           
           {imageUrl && (
             <RegenerateImageButton
               prompt={`${title} ${content}`.trim()}
+              filename="motivator-image"
               onImageGenerated={setImageUrl}
             />
           )}

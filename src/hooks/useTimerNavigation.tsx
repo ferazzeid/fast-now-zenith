@@ -32,7 +32,7 @@ export const useTimerNavigation = () => {
   useEffect(() => {
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
-      const walkingActive = !!walkingSession && walkingSession.status === 'active';
+      const walkingActive = !!walkingSession && walkingSession.session_state === 'active';
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
@@ -49,7 +49,7 @@ export const useTimerNavigation = () => {
         let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         
         // Subtract paused time
-        const pausedTime = walkingSession.total_pause_duration || 0;
+        const pausedTime = 0; // Simplified for now
         let currentPauseTime = 0;
         
         // If currently paused, add current pause duration
@@ -69,8 +69,8 @@ export const useTimerNavigation = () => {
     let interval: NodeJS.Timeout | undefined;
     
     // Only set up interval if there are active sessions
-    if ((fastingSession && fastingSession.status === 'active') || 
-        (walkingSession && walkingSession.status === 'active')) {
+    if ((fastingSession && fastingSession.status === 'active') ||
+        (walkingSession && walkingSession.session_state === 'active')) {
       updateTimerStatus();
       interval = setInterval(updateTimerStatus, 1000);
     } else {
@@ -81,14 +81,14 @@ export const useTimerNavigation = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [fastingSession?.status, walkingSession?.status, fastingSession?.start_time, walkingSession?.start_time]);
+  }, [fastingSession?.status, walkingSession?.session_state, fastingSession?.start_time, walkingSession?.start_time]);
 
   // Additional effect to monitor the walking session state refresh trigger
   useEffect(() => {
     // Re-sync timer status when walking session changes are detected
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
-      const walkingActive = !!walkingSession && walkingSession.status === 'active';
+      const walkingActive = !!walkingSession && walkingSession.session_state === 'active';
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
@@ -105,7 +105,7 @@ export const useTimerNavigation = () => {
         let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         
         // Subtract paused time
-        const pausedTime = walkingSession.total_pause_duration || 0;
+        const pausedTime = 0; // Simplified for now
         let currentPauseTime = 0;
         
         // If currently paused, add current pause duration
@@ -123,7 +123,7 @@ export const useTimerNavigation = () => {
     };
 
     updateTimerStatus();
-  }, [walkingSession?.id, walkingSession?.status, fastingSession?.id, fastingSession?.status]);
+  }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status]);
 
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);

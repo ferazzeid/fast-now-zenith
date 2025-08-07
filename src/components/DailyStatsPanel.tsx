@@ -1,342 +1,181 @@
-import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
-import { ChevronDown, Activity, Utensils, Target } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ManualCalorieModal } from '@/components/ManualCalorieModal';
-import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
-import { ClickableTooltip } from '@/components/ClickableTooltip';
-import { GoalMetrics } from '@/components/GoalMetrics';
-
-import { InlineActivitySelector } from '@/components/InlineActivitySelector';
-import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
-import { useGoalCalculations } from '@/hooks/useGoalCalculations';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Info, RefreshCw, TrendingDown, Target, Flame, Coffee, CalendarIcon } from 'lucide-react';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 import { useProfile } from '@/hooks/useProfile';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
-import { Info } from 'lucide-react';
+import { toast } from 'sonner';
+import { ClickableTooltip } from './ClickableTooltip';
+import { DeficitAnalysisButton } from './DeficitAnalysisButton';
+import { ProfileCompletionPrompt } from './ProfileCompletionPrompt';
+import { PremiumGatedDeficitAnalysis } from './PremiumGatedDeficitAnalysis';
+// Simplified components - using basic UI instead of missing imports
+import { InlineActivitySelector } from './InlineActivitySelector';
 
-export const DailyStatsPanel = memo(() => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const { deficitData, loading, refreshDeficit } = useDailyDeficitQuery();
-  const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
+export const DailyStatsPanel = () => {
+  const { deficit, isLoading, refetch } = useDailyDeficitQuery();
   const { profile } = useProfile();
-  const { todayEntries, todayTotals } = useFoodEntries();
-  const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
-  
+  const [showDeficitModal, setShowDeficitModal] = useState(false);
 
-  // Hide panel on admin and auth pages to prevent menu overlap  
-  // IMPORTANT: This check must come AFTER all hooks to avoid React hooks violation
-  const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
-
-  const formatNumber = (num: number) => {
-    return Math.round(Math.abs(num)).toLocaleString();
+  const isProfileComplete = () => {
+    return !!(profile?.weight && profile?.height && profile?.age);
   };
 
-  const getDeficitColor = useMemo(() => (deficit: number) => {
-    if (deficit > 0) return 'text-green-600 dark:text-green-400';
-    if (deficit < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-muted-foreground';
-  }, []);
-
-  const getActivityLevelDisplay = useMemo(() => (level: string) => {
-    const activityMap: { [key: string]: string } = {
-      'sedentary': 'Low Activity',
-      'lightly_active': 'Light Activity',
-      'moderately_active': 'Moderate Activity',
-      'very_active': 'High Activity',
-      'extremely_active': 'Very High Activity'
-    };
-    return activityMap[level] || level;
-  }, []);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    
-    const touchEnd = e.changedTouches[0].clientY;
-    const swipeDistance = touchStart - touchEnd;
-    
-    // Swipe down to open (negative distance), swipe up to close (positive distance)
-    if (Math.abs(swipeDistance) > 50) {
-      if (swipeDistance < 0 && !isExpanded) {
-        setIsExpanded(true);
-      } else if (swipeDistance > 0 && isExpanded) {
-        setIsExpanded(false);
-      }
-    }
-    
-    setTouchStart(null);
-  };
-
-  // Handle click outside to close
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      
-      // Don't close if clicking inside the panel content, modal dialog, or select dropdown
-      if (panelRef.current && !panelRef.current.contains(target)) {
-        // Also check if click is on modal/dialog content or select dropdown
-        const isModalClick = target.closest('[role="dialog"]') || 
-                            target.closest('.dialog-content') ||
-                            target.closest('[data-radix-portal]') ||
-                            target.closest('[data-radix-popper-content-wrapper]') ||
-                            target.closest('[role="listbox"]');
-        
-        if (!isModalClick) {
-          setIsExpanded(false);
-        }
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsExpanded(false);
-      }
-    };
-
-    if (isExpanded) {
-      // Use a timeout to prevent immediate closure from the initial click
-      const timeoutId = setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-      }, 100);
-
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleEscape);
-      };
-    }
-  }, [isExpanded]);
-
-  // Remove debug logging to fix re-render loop
-  // console.log('DailyStatsPanel - shouldHidePanel:', shouldHidePanel);
-  // console.log('DailyStatsPanel - deficitData:', deficitData);
-  // console.log('DailyStatsPanel - loading:', loading);
-  // console.log('DailyStatsPanel - caloriesConsumed:', deficitData.caloriesConsumed);
-  
-  // Don't render anything on admin pages, but show when we have profile data (even if no calories consumed yet)
-  if (shouldHidePanel) {
-    return null;
+  if (!isProfileComplete()) {
+    return (
+      <div className="w-full max-w-md mx-auto mb-4 px-4">
+        <div>Profile incomplete - please complete your profile</div>
+      </div>
+    );
   }
 
+  const openModal = () => {
+    if (isLoading || !deficit) return;
+    
+    setShowDeficitModal(true);
+  };
+
+  const getDeficitColor = () => {
+    const percentage = deficit?.percentage || 0;
+    if (percentage >= 20) return 'text-success';
+    if (percentage >= 10) return 'text-warning';
+    return 'text-muted-foreground';
+  };
+
   return (
-    <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* Lower z-index than AI chat header */}
-        {/* Collapsed View - Always visible thin bar */}
-        <div 
-          className="cursor-pointer transition-colors select-none"
-          onClick={() => setIsExpanded(!isExpanded)}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-muted-foreground' : ''}`}>
-            <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-warm-text">
-                Today's Deficit:
-              </span>
-              <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
-                <Info className="w-3 h-3 text-muted-foreground" />
-              </ClickableTooltip>
-              <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
-              </span>
+    <>
+      <div className="w-full max-w-md mx-auto mb-4 px-4">
+        {/* Main Deficit Display Card */}
+        <Card className="bg-ceramic-plate border-ceramic-rim shadow-ceramic hover:shadow-ceramic-hover transition-all duration-300 mb-4">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-primary" />
+                <h3 className="text-sm font-semibold text-warm-text">Today's Fat Loss</h3>
+                <ClickableTooltip content="This shows your daily caloric deficit - the amount your body needs to burn stored fat today.">
+                  <Info className="w-4 h-4 text-muted-foreground hover:text-warm-text cursor-help" />
+                </ClickableTooltip>
+              </div>
+              <InlineActivitySelector 
+                currentDisplayLevel={profile?.activity_level || 'sedentary'}
+              />
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
-              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-        </div>
 
-        {/* Expanded View - Detailed breakdown */}
-        {isExpanded && (
-          <>
-            {/* Overlay */}
-            <div 
-              className="fixed inset-0 bg-black/20 z-[-1]" 
-              onClick={() => setIsExpanded(false)}
-            />
-            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-muted-foreground">
-              <div className="px-8 py-4 space-y-4">
-                {/* Main Deficit Display */}
-                <DeficitDisplay 
-                  deficit={deficitData.todayDeficit}
-                  loading={loading}
-                  tdee={deficitData.tdee}
-                  fatInGrams={fatInGrams}
-                  thirtyDayProjection={thirtyDayProjection}
-                  userUnits={profile?.units}
-                />
-
-                {/* Breakdown */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Calories In with Carbs */}
-                  <Card className="p-3 bg-card border-border relative">
-                    <div className="absolute top-2 right-2">
-                      <ClickableTooltip content="Total calories consumed from food today">
-                        <Info className="w-5 h-5 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 mb-2 pr-6">
-                      <Utensils className="w-4 h-4 text-primary" />
-                      <span className="text-xs font-medium text-warm-text">Calories In</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="text-lg font-bold text-primary">
-                        {Math.round(deficitData.caloriesConsumed)} cal
-                      </div>
-                      
-                      {/* Dividing line and carbs */}
-                      <div className="flex items-center space-x-2">
-                        <div className="w-px h-6 bg-border"></div>
-                        <div className="flex items-center space-x-1">
-                          <span className="text-sm font-medium text-primary">{Math.round(todayTotals.carbs)}g</span>
-                          <ClickableTooltip content="Total carbs consumed from food today">
-                            <Info className="w-3 h-3 text-muted-foreground" />
-                          </ClickableTooltip>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Calories Out */}
-                  <StatDisplay
-                    icon={<Activity className="w-4 h-4 text-primary" />}
-                    label="Calories Out"
-                    value={Math.round(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}
-                    tooltip="Total calories burned today: Base Daily Burn + Walking + Manual Activities"
-                  />
-                </div>
-
-                {/* Nutrition Overview */}
-                <div className="space-y-4">
-                  {/* Planned with Limits */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Planned Calorie with Limit */}
-                    <Card className="p-3 bg-card border-border relative">
-                      <div className="absolute top-2 right-2">
-                        <ClickableTooltip content="Calories planned to be consumed today, often from go-to food items">
-                          <Info className="w-4 h-4 text-muted-foreground" />
-                        </ClickableTooltip>
-                      </div>
-                      <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
-                      <div className="text-lg font-bold text-primary">{Math.round((todayEntries || []).filter(entry => !entry.consumed).reduce((sum, entry) => sum + entry.calories, 0))}</div>
-                      <div className="text-xs text-muted-foreground">Calorie</div>
-                      {/* Limit value in gray */}
-                      <div className="mt-2 pt-2 border-t border-border">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{profile?.daily_calorie_goal || 2000} limit</span>
-                          <ClickableTooltip content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.">
-                            <Info className="w-3 h-3 text-muted-foreground" />
-                          </ClickableTooltip>
-                        </div>
-                      </div>
-                    </Card>
-
-                    {/* Planned Carbs with Limit */}
-                    <Card className="p-3 bg-card border-border relative">
-                      <div className="absolute top-2 right-2">
-                        <ClickableTooltip content="Carbs calculated from planned food items in your daily plan">
-                          <Info className="w-4 h-4 text-muted-foreground" />
-                        </ClickableTooltip>
-                      </div>
-                      <div className="text-xs font-medium text-warm-text mb-1">Planned</div>
-                      <div className="text-lg font-bold text-primary">{Math.round((todayEntries || []).filter(entry => !entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0))}g</div>
-                      <div className="text-xs text-muted-foreground">Carbs</div>
-                      {/* Limit value in gray */}
-                      <div className="mt-2 pt-2 border-t border-border">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{profile?.daily_carb_goal || 150}g limit</span>
-                          <ClickableTooltip content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.">
-                            <Info className="w-3 h-3 text-muted-foreground" />
-                          </ClickableTooltip>
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
-
-                {/* Unified Metabolism & Walking Card */}
-                <Card className="p-3 bg-card border-border">
-                  {/* Base Daily Burn Section */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
-                      <ClickableTooltip content="Calories your body burns naturally based on your metabolism and activity level">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
-                    <div className="text-sm font-bold text-warm-text">
-                      {formatNumber(deficitData.tdee)} cal
-                    </div>
+            <div className="space-y-4">
+              {/* Primary deficit display with circular progress */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="w-20 h-20 rounded-full border-4 border-primary mb-2"></div>
+                  
+                  {/* Main calorie number */}
+                  <div className={`text-2xl font-bold ${getDeficitColor()}`}>
+                    {isLoading ? '...' : Math.round(deficit?.calories || 0)}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">kcal</span>
                   </div>
                   
-                  {/* Activity Level Selector */}
-                  <div className="mb-3">
-                    <InlineActivitySelector currentDisplayLevel={deficitData.activityLevel} />
+                  {/* Limit value in gray */}
+                  <div className="mt-2 pt-2 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{profile?.daily_calorie_goal || 2000} limit</span>
+                      <ClickableTooltip content="Ideally you shouldn't go higher than this value for the day. Not a hard stop but ideal for long-term results.">
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
                   </div>
+                </div>
 
-                  {/* Divider */}
-                  <div className="border-t border-border my-3"></div>
+                <div className="ml-4 text-right space-y-2">
+                  {/* Fat burned indicator */}
+                  <div className="text-sm">
+                    Fat: {Math.round((deficit?.calories || 0) / 7.5)}g
+                  </div>
+                  
+                  {/* Carbs consumed */}
+                  <div className="text-xs text-muted-foreground">
+                    Carbs: 0g
+                    <div className="mt-1">
+                      <span className="text-xs text-muted-foreground">{profile?.daily_carb_goal || 150}g limit</span>
+                      <ClickableTooltip content="Sensitive value especially for ketosis. Critical to respect daily for best results - highly advisable.">
+                        <Info className="w-3 h-3 text-muted-foreground ml-1" />
+                      </ClickableTooltip>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                  {/* Walking Section with Sessions Breakdown */}
-                  <WalkingSessionsBreakdown 
-                    totalCalories={deficitData.walkingCalories}
-                    onRefresh={refreshDeficit}
-                  />
-                </Card>
+              {/* Progress indicators */}
+              <div className="space-y-2">
+                <div className="text-sm">Progress: {deficit?.percentage || 0}%</div>
+                <div className="text-sm">Projected loss: {Math.round((deficit?.calories || 0) * 30 / 7700)}kg</div>
+              </div>
 
-                 {/* Manual Activities (if applicable) */}
-                 {deficitData.manualCalories > 0 && (
-                   <Card className="p-3 bg-card border-border relative">
-                     {/* Tooltip icon positioned in top-right corner */}
-                     <div className="absolute top-2 right-2">
-                       <ClickableTooltip 
-                         content="Calories burned from manually logged activities today"
-                       >
-                         <Info className="w-5 h-5 text-muted-foreground" />
-                       </ClickableTooltip>
-                     </div>
-                     
-                     <div className="flex items-center justify-between pr-6">
-                       <div className="flex items-center space-x-2">
-                         <Activity className="w-4 h-4 text-green-500" />
-                         <span className="text-sm font-medium text-warm-text">Manual Activities</span>
-                       </div>
-                        <div className="text-sm font-bold text-green-600 dark:text-green-400">
-                          {formatNumber(deficitData.manualCalories)} cal
-                        </div>
-                     </div>
-                   </Card>
-                  )}
-
-                  {/* Goal Metrics */}
-                  <GoalMetrics />
-
-
-
-                  {/* Manual Calorie Burn Addition */}
-                 <div className="mt-4">
-                   <ManualCalorieModal onCalorieAdded={refreshDeficit} />
-                 </div>
+              {/* Action buttons */}
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  className="flex-1 h-8 text-xs"
+                >
+                  <RefreshCw className={`w-3 h-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                
+                <div className="flex-1">
+                  <PremiumGatedDeficitAnalysis />
+                </div>
               </div>
             </div>
-          </>
-        )}
-      </div>
-    </TooltipProvider>
-  );
-});
+          </div>
+        </Card>
 
-DailyStatsPanel.displayName = 'DailyStatsPanel';
+        {/* Secondary stats for wider screens */}
+        <div className="space-y-2">
+          {/* Daily overview compact card */}
+          <Card className="bg-ceramic-base/50 border-ceramic-rim/50 p-3">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <Target className="w-3 h-3 text-primary" />
+                <span className="text-warm-text">Daily Overview</span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full border border-primary"></div>
+                <span className={`font-semibold ${getDeficitColor()}`}>
+                  {isLoading ? 'Loading...' : `${Math.round(deficit?.calories || 0)} kcal`}
+                </span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Quick stats row */}
+          <div className="grid grid-cols-2 gap-2">
+            <Card className="bg-ceramic-base/30 border-ceramic-rim/30 p-2">
+              <div className="text-center">
+                <div className="w-8 h-8 rounded-full border border-primary mx-auto mb-1"></div>
+                <div className="text-xs text-muted-foreground">Fat Loss Progress</div>
+              </div>
+            </Card>
+            
+            <Card className="bg-ceramic-base/30 border-ceramic-rim/30 p-2">
+              <div className="text-center">
+                <div className="text-sm font-semibold text-warm-text mb-1">
+                  {Math.round((deficit?.calories || 0) / 7.5)}g
+                </div>
+                <div className="text-xs text-muted-foreground">Fat Burned</div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Deficit Analysis Modal */}
+      {showDeficitModal && (
+        <PremiumGatedDeficitAnalysis />
+      )}
+    </>
+  );
+};

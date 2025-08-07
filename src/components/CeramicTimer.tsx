@@ -149,7 +149,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               </div>
               
               {/* Goal Display - Always show during intermittent fasting */}
-              {isActive && fastType === 'intermittent' && goalDuration && (
+              {isActive && fastType !== 'longterm' && goalDuration && (
                 <div className="text-xs text-muted-foreground font-medium">
                   {Math.round(goalDuration)}h fast / {Math.round(24 - goalDuration)}h eat
                 </div>
