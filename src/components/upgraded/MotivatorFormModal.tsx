@@ -275,6 +275,11 @@ export const UpgradedMotivatorFormModal = ({
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
             onImageRemove={() => setImageUrl('')}
+            showUploadOptionsWhenImageExists={true}
+            aiGenerationPrompt={title || content ? `${title}. ${content}` : undefined}
+            motivatorId={motivator?.id}
+            onAiGenerate={handleGenerateImage}
+            isGenerating={isGeneratingImage}
           />
           
           {imageUrl && (

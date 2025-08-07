@@ -262,7 +262,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
               onImageRemove={() => setImageUrl('')}
-              showUploadOptionsWhenImageExists={false}
+              showUploadOptionsWhenImageExists={true}
               aiGenerationPrompt={title || content ? `${title}. ${content}` : undefined}
               motivatorId={motivator?.id}
               onAiGenerate={handleGenerateImage}
