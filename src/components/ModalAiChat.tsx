@@ -48,6 +48,8 @@ export const ModalAiChat = ({
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
+  const [editingMotivator, setEditingMotivator] = useState(false);
+  const [motivatorEditData, setMotivatorEditData] = useState<{title: string, content: string}>({title: '', content: ''});
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -81,6 +83,8 @@ export const ModalAiChat = ({
       setTimeout(() => {
         setMessages([]);
         setEditingFoodIndex(null);
+        setEditingMotivator(false);
+        setMotivatorEditData({title: '', content: ''});
         setInlineEditData({});
         setLastFoodSuggestion(null);
         setLastMotivatorSuggestion(null);
@@ -142,10 +146,17 @@ NO other text. Immediately call add_multiple_foods function.`;
           return;
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
-          // Add a simple prompt for motivator
+          // Show the actual motivator suggestion with compelling formatting
+          const args = data.functionCall.arguments;
           const motivatorMessage: Message = {
             role: 'assistant',
-            content: 'I have a motivator suggestion for you.',
+            content: `Here's your personalized motivator:
+
+**${args.title}**
+
+${args.content}
+
+This goal focuses on your desire to transform and surprise your family, using the powerful motivation of proving your transformation to those who matter most.`,
             timestamp: new Date()
           };
           setMessages(prev => [...prev, motivatorMessage]);
@@ -397,26 +408,87 @@ NO other text. Immediately call add_multiple_foods function.`;
                     </div>
                   )}
                 
-                   {/* Motivator suggestion buttons */}
-                   {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && containsMotivatorSuggestion(message.content) && (
-                     <div className="flex gap-2 mt-3">
-                       <Button 
-                         size="sm" 
-                         onClick={handleCreateMotivator}
-                         className="text-xs bg-primary text-primary-foreground"
-                       >
-                         Create It
-                       </Button>
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={handleEditMotivator}
-                         className="text-xs"
-                       >
-                         Edit First
-                       </Button>
-                     </div>
-                   )}
+                    {/* Motivator suggestion buttons */}
+                    {conversationType === 'general' && title === 'Motivator Assistant' && message.role === 'assistant' && lastMotivatorSuggestion && (
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          size="sm" 
+                          onClick={handleCreateMotivator}
+                          className="text-xs bg-primary text-primary-foreground"
+                        >
+                          Create This Motivator
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setEditingMotivator(true)}
+                          className="text-xs"
+                        >
+                          Edit Language
+                        </Button>
+                      </div>
+                     )}
+
+        {/* Inline motivator editing */}
+        {editingMotivator && lastMotivatorSuggestion && (
+          <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="motivator-title" className="text-sm font-medium">Goal Title</Label>
+                <Input
+                  id="motivator-title"
+                  value={motivatorEditData.title || lastMotivatorSuggestion.arguments.title}
+                  onChange={(e) => setMotivatorEditData(prev => ({ ...prev, title: e.target.value }))}
+                  className="mt-1"
+                  placeholder="Enter motivating title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="motivator-content" className="text-sm font-medium">Goal Description</Label>
+                <textarea
+                  id="motivator-content"
+                  value={motivatorEditData.content || lastMotivatorSuggestion.arguments.content}
+                  onChange={(e) => setMotivatorEditData(prev => ({ ...prev, content: e.target.value }))}
+                  className="mt-1 w-full p-2 border border-input rounded-md resize-none h-20 text-sm"
+                  placeholder="Describe your motivating goal"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // Update the motivator suggestion with edited data
+                    const updatedArgs = {
+                      ...lastMotivatorSuggestion.arguments,
+                      title: motivatorEditData.title || lastMotivatorSuggestion.arguments.title,
+                      content: motivatorEditData.content || lastMotivatorSuggestion.arguments.content
+                    };
+                    setLastMotivatorSuggestion(prev => ({
+                      ...prev,
+                      arguments: updatedArgs
+                    }));
+                    setEditingMotivator(false);
+                    setMotivatorEditData({title: '', content: ''});
+                  }}
+                  className="flex-1"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingMotivator(false);
+                    setMotivatorEditData({title: '', content: ''});
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
                   
                   <p className="text-xs opacity-70 mt-2">
                     {message.timestamp.toLocaleTimeString()}
