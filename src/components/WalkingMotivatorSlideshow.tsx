@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
+import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface WalkingMotivatorSlideshowProps {
   isActive: boolean;
@@ -79,14 +80,12 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
         }`}
         style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1 }}
       >
-        <div 
-          className="absolute inset-0"
+        <MotivatorImageWithFallback
+          src={currentMotivator?.imageUrl}
+          alt={currentMotivator?.title || 'Motivator image'}
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            backgroundImage: currentMotivator?.imageUrl ? `url(${currentMotivator.imageUrl})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
-            backgroundColor: !currentMotivator?.imageUrl ? 'var(--muted)' : 'transparent'
+            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)'
           }}
         />
         

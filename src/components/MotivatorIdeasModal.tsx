@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
+import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface MotivatorIdeasModalProps {
   isOpen: boolean;
@@ -78,21 +79,12 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal }: Motivator
                     >
                       <div className="flex gap-3">
                         {/* Goal Image */}
-                        <div className="w-12 h-12 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                          {goal.imageUrl ? (
-                            <img 
-                              src={goal.imageUrl} 
-                              alt={goal.title}
-                              className="w-full h-full object-cover rounded"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.parentElement?.classList.add('bg-muted');
-                              }}
-                            />
-                          ) : (
-                            <Lightbulb className="w-6 h-6 text-muted-foreground" />
-                          )}
+                        <div className="w-12 h-12 flex-shrink-0">
+                          <MotivatorImageWithFallback
+                            src={goal.imageUrl}
+                            alt={goal.title}
+                            className="w-full h-full object-cover rounded"
+                          />
                         </div>
                         
                         {/* Goal Content */}

@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2 } from 'lucide-react';
+import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -41,20 +42,12 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
       <CardContent className="p-0">
         <div className="flex">
           {/* Image */}
-          <div className="w-32 h-32 bg-muted flex items-center justify-center flex-shrink-0">
-            {motivator.imageUrl ? (
-              <img 
-                src={motivator.imageUrl} 
-                alt={motivator.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'https://images.unsplash.com/photo-1581090464777-f3220bbe18b8?w=400&h=400&fit=crop';
-                }}
-              />
-            ) : (
-              <Image className="w-10 h-10 text-muted-foreground" />
-            )}
+          <div className="w-32 h-32 flex-shrink-0">
+            <MotivatorImageWithFallback
+              src={motivator.imageUrl}
+              alt={motivator.title}
+              className="w-full h-full object-cover"
+            />
           </div>
          
           {/* Content */}
