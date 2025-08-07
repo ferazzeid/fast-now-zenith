@@ -297,6 +297,30 @@ export const ImageUpload = ({
             </div>
           )}
 
+          {/* AI Generation Button for Empty State */}
+          {aiGenerationPrompt && (
+            <PremiumGate feature="AI Image Generation" showUpgrade={false}>
+              <Button
+                variant="ai"
+                onClick={onAiGenerate}
+                disabled={isGenerating}
+                className="w-full"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate with AI
+                  </>
+                )}
+              </Button>
+            </PremiumGate>
+          )}
+
           {/* Desktop: Additional button if no drag & drop used */}
           {!isMobile && (
             <Button
