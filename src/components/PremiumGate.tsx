@@ -96,12 +96,20 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Minimal wrapper approach: preserve layout with lock icon
+    // Smart wrapper approach: preserve layout with lock icon
     if (isValidElement(children)) {
       const originalChild = children as ReactElement<any>;
+      const childClassName = originalChild.props.className || '';
+      
+      // Check if child has absolute positioning
+      const hasAbsolutePositioning = /\b(absolute|fixed|sticky)\b/.test(childClassName);
+      
+      // Use appropriate wrapper based on positioning
+      const WrapperComponent = hasAbsolutePositioning ? 'div' : 'span';
+      const wrapperClassName = hasAbsolutePositioning ? 'relative' : 'relative inline-block';
       
       return (
-        <span className="relative inline-block">
+        <WrapperComponent className={wrapperClassName}>
           {cloneElement(originalChild, {
             className: cn(
               originalChild.props.className,
@@ -121,7 +129,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
               <Lock className="w-3 h-3 text-foreground/70" />
             </div>
           </div>
-        </span>
+        </WrapperComponent>
       );
     }
 
