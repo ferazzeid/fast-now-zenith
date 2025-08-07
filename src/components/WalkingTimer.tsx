@@ -131,7 +131,7 @@ const WalkingTimerComponent = ({
           {/* Main time display */}
           <div 
             className={cn(
-              "mb-4 transition-opacity duration-1000 relative",
+              "mb-4 transition-opacity duration-1000 relative flex flex-col justify-center items-center",
               motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
             )}
             style={{ zIndex: 13 }}
@@ -314,7 +314,7 @@ const WalkingTimerComponent = ({
                       onSpeedChange(newStorageSpeed);
                     }}
                   >
-                    <SelectTrigger className="h-6 w-14 text-xs bg-background border-muted">
+                    <SelectTrigger className="h-6 w-16 text-xs bg-background border-muted">
                       <SelectValue placeholder="Set" />
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-background border-border">
