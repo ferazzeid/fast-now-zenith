@@ -321,7 +321,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
           ) : (
             <>
               {sessions.map((session) => (
-                <Card key={session.id} className="relative">
+                <Card key={session.id} className="relative bg-muted/20 border-0">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -353,23 +353,27 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                       </div>
                     </div>
 
-                    {/* Status badge in bottom left corner */}
-                    <div className="absolute bottom-3 left-3">
-                      {getStatusBadge(session)}
+                    {/* Status badge in bottom right corner aligned with delete button */}
+                    <div className="absolute bottom-3 right-3">
+                      {session.status === 'completed' && session.duration_seconds && session.goal_duration_seconds ? (
+                        <div className="flex flex-col items-end gap-1">
+                          {session.duration_seconds >= session.goal_duration_seconds ? (
+                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Achieved</span>
+                          ) : (
+                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                              {Math.round((session.duration_seconds / session.goal_duration_seconds) * 100)}% of goal
+                            </span>
+                          )}
+                          <div className="mt-1">
+                            {getStatusBadge(session)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          {getStatusBadge(session)}
+                        </div>
+                      )}
                     </div>
-
-                    {/* Achievement status in bottom right corner */}
-                    {session.status === 'completed' && session.duration_seconds && session.goal_duration_seconds && (
-                      <div className="absolute bottom-3 right-3">
-                        {session.duration_seconds >= session.goal_duration_seconds ? (
-                          <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Achieved</span>
-                        ) : (
-                          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                            {Math.round((session.duration_seconds / session.goal_duration_seconds) * 100)}% of goal
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </CardHeader>
                   
                   {/* Delete button - only shown for non-active sessions */}
