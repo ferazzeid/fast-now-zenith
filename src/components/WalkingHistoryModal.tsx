@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import React from 'react';
 import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, X, ChevronDown, ChevronUp, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -156,7 +157,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
     return `${mins}m`;
   };
 
-  // Group sessions by date
+  // Group sessions by date and initialize all dates as collapsed
   const sessionsByDate = sessions.reduce((acc, session) => {
     const date = format(new Date(session.start_time), 'yyyy-MM-dd');
     if (!acc[date]) {
@@ -165,6 +166,12 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
     acc[date].push(session);
     return acc;
   }, {} as Record<string, WalkingSession[]>);
+
+  // Initialize collapsed dates with all dates collapsed by default
+  React.useEffect(() => {
+    const allDates = Object.keys(sessionsByDate);
+    setCollapsedDates(new Set(allDates));
+  }, [sessions.length]);
 
   const toggleDateCollapse = (date: string) => {
     setCollapsedDates(prev => {
@@ -285,20 +292,45 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                             const sessionTime = new Date(session.start_time);
                             
                             return (
-                              <Card key={session.id} className="p-4">
-                                <div className="flex items-start justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">
-                                      {format(sessionTime, 'h:mm a')}
-                                    </span>
+                              <Card key={session.id} className="relative">
+                                <CardHeader className="pb-4">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between">
+                                        <h3 className="font-medium text-sm">
+                                          {format(sessionTime, 'h:mm a')}
+                                        </h3>
+                                      </div>
+                                      <div className="flex gap-3 text-xs text-muted-foreground mt-2">
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          {formatDuration(duration)}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <MapPin className="w-3 h-3 text-green-500" />
+                                          {session.distance?.toFixed(2) || 0} mi
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <Zap className="w-3 h-3 text-orange-500" />
+                                          {session.calories_burned || 0} cal
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <TrendingUp className="w-3 h-3 text-purple-500" />
+                                          {session.estimated_steps?.toLocaleString() || 'N/A'} steps
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
+                                </CardHeader>
+                                
+                                {/* Delete button in top right corner */}
+                                <div className="absolute top-3 right-3">
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                         disabled={deletingId === session.id}
                                       >
                                         <Trash2 className="w-3 h-3" />
@@ -323,42 +355,6 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
                                   </AlertDialog>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <div>
-                                      <p className="text-sm font-medium">{formatDuration(duration)}</p>
-                                      <p className="text-xs text-muted-foreground">Duration</p>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-green-500" />
-                                    <div>
-                                      <p className="text-sm font-medium">{session.distance?.toFixed(2) || 0} mi</p>
-                                      <p className="text-xs text-muted-foreground">Distance</p>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                    <Zap className="w-4 h-4 text-orange-500" />
-                                    <div>
-                                      <p className="text-sm font-medium">{session.calories_burned || 0} cal</p>
-                                      <p className="text-xs text-muted-foreground">Burned</p>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                    <TrendingUp className="w-4 h-4 text-purple-500" />
-                                    <div>
-                                      <p className="text-sm font-medium">
-                                        {session.estimated_steps?.toLocaleString() || 'N/A'}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">Steps (est.)</p>
-                                    </div>
-                                  </div>
                                 </div>
                               </Card>
                             );
