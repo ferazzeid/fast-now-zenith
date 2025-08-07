@@ -1,17 +1,18 @@
-import { ReactNode } from 'react';
+import { ReactNode, ReactElement, cloneElement, isValidElement } from 'react';
 import { Lock, Crown, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { detectPlatform, getPlatformDisplayName } from '@/utils/platformDetection';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+import { cn } from '@/lib/utils';
 
 interface PremiumGateProps {
   children: ReactNode;
   feature: string;
   className?: string;
   showUpgrade?: boolean;
-  grayOutForFree?: boolean; // New prop to gray out instead of blocking
+  grayOutForFree?: boolean;
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
@@ -95,16 +96,40 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
+    // Use cloneElement to preserve original element structure and classes
+    if (isValidElement(children)) {
+      const originalChild = children as ReactElement<any>;
+      
+      return (
+        <div className="relative inline-block">
+          {cloneElement(originalChild, {
+            className: cn(
+              originalChild.props.className,
+              "opacity-40 grayscale pointer-events-none select-none cursor-not-allowed",
+              className
+            ),
+            onClick: handleGrayedClick,
+            disabled: true
+          })}
+          {/* Small lock indicator */}
+          <div className="absolute top-1 right-1 pointer-events-none z-10">
+            <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
+              <Lock className="w-3 h-3 text-foreground/70" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Fallback for non-React elements
     return (
       <div 
         className={`relative inline-flex w-fit h-fit ${className} cursor-not-allowed`}
         onClick={handleGrayedClick}
       >
-        {/* Apply visual effects directly to preserve original dimensions */}
         <div className="opacity-40 grayscale pointer-events-none select-none">
           {children}
         </div>
-        {/* Small lock indicator */}
         <div className="absolute top-1 right-1 pointer-events-none">
           <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
             <Lock className="w-3 h-3 text-foreground/70" />
