@@ -338,22 +338,31 @@ export const UnifiedFoodEditModal = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-warm-text font-medium">
-              Food Image (Optional)
-            </Label>
-            
-            <div className="space-y-3">
-              {/* Use ImageUpload with regenerate button positioned on the image */}
-              <ImageUpload
-                currentImageUrl={imageUrl}
-                onImageUpload={setImageUrl}
-                onImageRemove={() => setImageUrl('')}
-                showUploadOptionsWhenImageExists={true}
-                regenerateButton={createRegenerateButton()}
-              />
+          <div className="space-y-3">
+            {/* Image Upload - No label, just the component */}
+            <ImageUpload
+              currentImageUrl={imageUrl}
+              onImageUpload={setImageUrl}
+              onImageRemove={() => setImageUrl('')}
+              showUploadOptionsWhenImageExists={false}
+              regenerateButton={createRegenerateButton()}
+            />
 
-              {/* Full-width AI Generation button */}
+            {/* Upload and Generate buttons side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Trigger the hidden file input from ImageUpload
+                  const fileInput = document.querySelector('input[type="file"][accept="image/*"]:not([capture])') as HTMLInputElement;
+                  if (fileInput) fileInput.click();
+                }}
+                disabled={loading || generatingImage}
+                className="w-full"
+              >
+                Upload New Image
+              </Button>
+              
               <Button
                 variant="ai"
                 onClick={handleGenerateImage}
