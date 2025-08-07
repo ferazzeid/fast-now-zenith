@@ -58,18 +58,40 @@ export const useProfileQuery = () => {
     mutationFn: async (updates: Partial<UserProfile>) => {
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user.id,
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        result = await supabase
+          .from('profiles')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .select()
+          .single();
+      } else {
+        // Insert new profile
+        result = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+      }
+
+      if (result.error) throw result.error;
+      return result.data;
     },
     onMutate: async (updates) => {
       // Cancel outgoing refetches
