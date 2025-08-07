@@ -115,15 +115,11 @@ const Motivators = () => {
 
   const handleVoiceMotivator = () => {
     trackAIEvent('chat', 'motivator_assistant');
-    const contextMessage = `Hello! I'm here to help you create a motivational message for your fasting journey.
-
-I can help you create:
+    const contextMessage = `I can help you create:
 • Inspirational titles for your motivators
 • Detailed motivational content and descriptions
 • Personal reasons for your health goals
-• Reminders of why you started this journey
-
-Please tell me what motivates you or what kind of motivational message you'd like to create. For example: "I want to remind myself why I'm doing this for my health" or "Create something about feeling confident in my body".`;
+• Reminders of why you started this journey`;
     
     setAiChatContext(contextMessage);
     setShowAiChat(true);

@@ -469,7 +469,16 @@ ${args.content}`,
                       </div>
                      )}
 
-        {/* Inline motivator editing - positioned prominently */}
+                  <p className="text-xs opacity-70 mt-2">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        ))}
+
+        {/* Inline motivator editing - positioned OUTSIDE messages loop */}
         {editingMotivator && lastMotivatorSuggestion && (
           <div className="mt-4 p-4 border-2 border-primary/50 rounded-lg bg-primary/5">
             <div className="space-y-3">
@@ -557,17 +566,6 @@ ${updatedContent}`
             </div>
           </div>
         )}
-                  
-                  <p className="text-xs opacity-70 mt-2">
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        ))}
-
-        {/* Individual food items with inline editing - show outside of messages */}
         {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
           <div className="space-y-2">
             {/* Total summary */}
