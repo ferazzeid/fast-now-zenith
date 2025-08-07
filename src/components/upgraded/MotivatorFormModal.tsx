@@ -145,7 +145,7 @@ export const UpgradedMotivatorFormModal = ({
     setIsGeneratingImage(true);
     try {
       const prompt = `${title} ${content}`.trim();
-      const generatedImageUrl = await generate_image(prompt);
+      const generatedImageUrl = await generate_image(prompt, 512, 512);
       if (generatedImageUrl) {
         setImageUrl(generatedImageUrl);
         toast({
@@ -246,7 +246,6 @@ export const UpgradedMotivatorFormModal = ({
               <PremiumGate feature="voice-input" showUpgrade={false}>
                 <SimpleVoiceRecorder
                   onTranscription={handleVoiceTranscription}
-                  placeholder="Speak your motivator content..."
                 />
               </PremiumGate>
             </Card>
@@ -274,13 +273,12 @@ export const UpgradedMotivatorFormModal = ({
           
           <ImageUpload
             currentImageUrl={imageUrl}
-            onImageUploaded={setImageUrl}
+            onImageUpload={setImageUrl}
             onImageRemoved={() => setImageUrl('')}
           />
           
           {imageUrl && (
             <RegenerateImageButton
-              currentImageUrl={imageUrl}
               prompt={`${title} ${content}`.trim()}
               onImageGenerated={setImageUrl}
             />
