@@ -76,7 +76,9 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
   // For free users, show grayed out content with click handler
   if (!hasAccess && (effectiveRole === 'free_user' || grayOutForFree)) {
-    const handleGrayedClick = () => {
+    const handleGrayedClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
       toast({
         title: "Premium Feature",
         description: `${feature} requires a premium subscription or your own OpenAI API key.`,
@@ -87,7 +89,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
             className="mt-2"
           >
             <Crown className="w-4 h-4 mr-1" />
-            Upgrade
+            Upgrade to Premium
           </Button>
         ) : undefined
       });
@@ -95,13 +97,18 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
     return (
       <div 
-        className={`relative ${className} cursor-pointer opacity-60 hover:opacity-70 transition-opacity`}
+        className={`relative ${className} cursor-not-allowed`}
         onClick={handleGrayedClick}
       >
-        {children}
-        {/* Subtle overlay indicator */}
-        <div className="absolute top-1 right-1 opacity-50">
-          <Lock className="w-3 h-3 text-muted-foreground" />
+        {/* Completely disabled content with strong visual indication */}
+        <div className="opacity-40 grayscale pointer-events-none select-none filter brightness-75">
+          {children}
+        </div>
+        {/* More prominent overlay indicator */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute top-2 right-2 bg-background/80 rounded-full p-1">
+            <Lock className="w-4 h-4 text-muted-foreground" />
+          </div>
         </div>
       </div>
     );

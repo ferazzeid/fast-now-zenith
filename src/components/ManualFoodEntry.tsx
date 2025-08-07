@@ -139,12 +139,14 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                 <Label htmlFor="food-name" className="text-sm font-medium">
                   Food Name <span className="text-red-500">*</span>
                 </Label>
-                <button
-                  onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
-                >
-                  <Mic className="w-3 h-3 mx-auto" />
-                </button>
+                <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                  <button
+                    onClick={() => setShowVoiceRecorder(true)}
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                  >
+                    <Mic className="w-3 h-3 mx-auto" />
+                  </button>
+                </PremiumGate>
               </div>
               <Input
                 id="food-name"
@@ -208,17 +210,19 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                   <Label htmlFor="calories" className="text-sm font-medium">
                     Calories (100g) <span className="text-red-500">*</span>
                   </Label>
-                  <button
-                    onClick={() => handleAiEstimate('calories')}
-                    disabled={isAiFillingCalories || !data.name}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
-                  >
-                    {isAiFillingCalories ? (
-                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                    ) : (
-                      <Sparkles className="w-3 h-3 mx-auto" />
-                    )}
-                  </button>
+                  <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                    <button
+                      onClick={() => handleAiEstimate('calories')}
+                      disabled={isAiFillingCalories || !data.name}
+                      className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
+                    >
+                      {isAiFillingCalories ? (
+                        <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                      ) : (
+                        <Sparkles className="w-3 h-3 mx-auto" />
+                      )}
+                    </button>
+                  </PremiumGate>
                 </div>
                 <Input
                   id="calories"
@@ -236,17 +240,19 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                   <Label htmlFor="carbs" className="text-sm font-medium">
                     Carbs (100g) <span className="text-red-500">*</span>
                   </Label>
-                  <button
-                    onClick={() => handleAiEstimate('carbs')}
-                    disabled={isAiFillingCarbs || !data.name}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
-                  >
-                    {isAiFillingCarbs ? (
-                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                    ) : (
-                      <Sparkles className="w-3 h-3 mx-auto" />
-                    )}
-                  </button>
+                  <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                    <button
+                      onClick={() => handleAiEstimate('carbs')}
+                      disabled={isAiFillingCarbs || !data.name}
+                      className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
+                    >
+                      {isAiFillingCarbs ? (
+                        <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                      ) : (
+                        <Sparkles className="w-3 h-3 mx-auto" />
+                      )}
+                    </button>
+                  </PremiumGate>
                 </div>
                 <Input
                   id="carbs"
@@ -275,12 +281,10 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               </div>
               
               <div className="space-y-4">
-                <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                  <CircularVoiceButton 
-                    onTranscription={handleVoiceInput}
-                    size="lg"
-                  />
-                </PremiumGate>
+                <CircularVoiceButton 
+                  onTranscription={handleVoiceInput}
+                  size="lg"
+                />
                 
                 <Button
                   variant="outline"
