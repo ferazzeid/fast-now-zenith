@@ -97,17 +97,17 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
     return (
       <div 
-        className={`relative inline-block ${className} cursor-not-allowed`}
+        className={`relative ${className} cursor-not-allowed`}
         onClick={handleGrayedClick}
       >
-        {/* Completely disabled content with strong visual indication */}
-        <div className="opacity-30 grayscale pointer-events-none select-none filter brightness-50 w-full h-full">
+        {/* Apply visual effects directly to preserve original dimensions */}
+        <div className="opacity-40 grayscale pointer-events-none select-none">
           {children}
         </div>
-        {/* More prominent overlay indicator - better centered */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="bg-background/95 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-border/50">
-            <Lock className="w-4 h-4 text-foreground/80" />
+        {/* Small lock indicator */}
+        <div className="absolute top-1 right-1 pointer-events-none">
+          <div className="bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/30">
+            <Lock className="w-3 h-3 text-foreground/70" />
           </div>
         </div>
       </div>
