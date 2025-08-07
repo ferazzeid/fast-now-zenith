@@ -74,17 +74,11 @@ const FoodTracking = () => {
     const unitLabel = profile?.units === 'metric' ? 'grams' : 'ounces';
     const unitExample = profile?.units === 'metric' ? '150 grams' : '5 ounces';
     
-    let systemPrompt = `Hello! I'm here to help you add food to your nutrition log.
-
-User preferences: ${profile?.units || 'metric'} units
-
-To add a food item, I'll need:
-• Food name (what did you eat?)
-• Portion size in ${unitLabel} (how much?)
-• Calories (I can estimate if needed)
-• Carbs in grams (I can estimate if needed)
-
-Please tell me what food you'd like to add and how much you had. For example: "I had ${unitExample} of grilled chicken breast" or "I ate a medium apple".`;
+    let systemPrompt = `To add food items, I'll need:
+1. Food name
+2. Portion size in ${unitLabel}
+3. Calories (I can estimate)
+4. Carbs in grams (I can estimate)`;
 
     let philosophyContext = '';
 
@@ -114,8 +108,8 @@ Please tell me what food you'd like to add and how much you had. For example: "I
       console.log('Using default prompts');
     }
 
-    const contextMessage = systemPrompt + philosophyContext;
-    setAiChatContext(contextMessage);
+    // Set empty context for clean UX
+    setAiChatContext('');
     setShowAiChat(true);
   };
 

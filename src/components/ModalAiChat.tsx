@@ -137,20 +137,20 @@ export const ModalAiChat = ({
       if (title === 'Food Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
-You are a decisive food tracking assistant. Your goal is to:
-1. IMMEDIATELY process food information and create entries with reasonable estimations
-2. DO NOT ask for more details - make smart estimations based on common serving sizes
-3. For multiple foods mentioned, use add_multiple_foods function to handle them all at once
-4. Always format responses as: food list + total + "Would you like me to add these to your food log?"
+You are a concise food tracking assistant. Your goal is to:
+1. IMMEDIATELY process food information and call add_multiple_foods function
+2. ONLY respond with clean, minimal format: "Food Name (Amount) - Calories cal, Carbs g carbs" for each item
+3. NO explanatory text, walking times, or verbose descriptions
+4. Use reasonable portion sizes (150g apple, 100g chicken breast, 60g bread slice, etc.)
+5. Always call add_multiple_foods function immediately when processing food input
 
-CRITICAL RULES:
-- NEVER ask "do you have more information" - estimate and present
-- ALWAYS use reasonable portion sizes (150g apple, 100g chicken breast, 60g bread slice, etc.)
-- For multiple foods, present them in a clean list format
-- Include walking time equivalents when helpful
-- Be decisive and confident in your estimations
+CRITICAL: Response format must ONLY be:
+- Ham (200g) - 240 cal, 2g carbs
+- Mozzarella (125g) - 315 cal, 1.5g carbs
 
-When user mentions food(s), immediately call the appropriate function and present a summary.`;
+Total: 555 calories, 3.5g carbs
+
+NO other text. Immediately call add_multiple_foods function.`;
       } else if (title === 'Motivator Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
@@ -205,22 +205,22 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           const totalCalories = foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
           const totalCarbs = foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0);
           
-          let baseResponse = `I've prepared ${foods.length} food entries for you:\n\n`;
+          let baseResponse = '';
           
           foods.forEach((food: any, index: number) => {
             baseResponse += `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs\n`;
           });
           
-          baseResponse += `\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nWould you like me to add all these foods to your log?`;
+          baseResponse += `\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs`;
           responseContent = baseResponse;
         } else if (data.functionCall.name === 'add_food_entry' && title === 'Food Assistant') {
           const args = data.functionCall.arguments;
           const carbCount = args?.carbs || 0;
           const foodName = args?.name || 'Food item';
           
-          let baseResponse = `I've prepared a food entry for you:\n\n${foodName} (${args?.serving_size || 0}g) - ${args?.calories || 0} cal, ${carbCount}g carbs`;
+          let baseResponse = `${foodName} (${args?.serving_size || 0}g) - ${args?.calories || 0} cal, ${carbCount}g carbs`;
           
-          responseContent = baseResponse + `\n\nWould you like me to add this to your food log?`;
+          responseContent = baseResponse;
         } else {
           responseContent = "I've processed your request and prepared a suggestion for you.";
         }
@@ -251,15 +251,6 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
           setLastFoodSuggestion(data.functionCall.arguments);
         } else if (data.functionCall.name === 'add_multiple_foods') {
           setLastFoodSuggestion(data.functionCall.arguments);
-          // Send automatic follow-up message for multi-food entries
-          setTimeout(() => {
-            const followUpMessage: Message = {
-              role: 'assistant',
-              content: 'Need to make adjustments? Click Edit next to any food above, or use voice to make changes.',
-              timestamp: new Date()
-            };
-            setMessages(prev => [...prev, followUpMessage]);
-          }, 500);
         } else if (data.functionCall.name === 'create_motivator') {
           setLastMotivatorSuggestion(data.functionCall);
         }
@@ -439,7 +430,7 @@ When a user shares what motivates them, ALWAYS provide both a conversational res
                     
                     {/* Individual food edit buttons for multi-food suggestions */}
                     {message.role === 'assistant' && containsFoodSuggestion(message.content) && lastFoodSuggestion?.foods && (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-3 space-y-1">
                         {lastFoodSuggestion.foods.map((food: any, index: number) => (
                           <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded text-xs">
                             <span>{food.name} ({food.serving_size}g)</span>
