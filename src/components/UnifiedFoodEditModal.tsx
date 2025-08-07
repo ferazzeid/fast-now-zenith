@@ -264,10 +264,6 @@ export const UnifiedFoodEditModal = ({
         size="md"
         footer={
           <div className="flex space-x-2 w-full">
-            <Button onClick={handleSave} disabled={loading || generatingImage} className="flex-1">
-              <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
             <Button 
               variant="outline" 
               onClick={() => {
@@ -282,6 +278,10 @@ export const UnifiedFoodEditModal = ({
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={loading || generatingImage}>
+              <Save className="w-4 h-4 mr-2" />
+              {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         }
