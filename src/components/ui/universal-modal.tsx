@@ -142,7 +142,7 @@ export const UniversalModal = ({
             {/* Sticky footer */}
             {footer && (
               <div className={cn(
-                'sticky bottom-0 z-10 bg-muted/50 border-t border-border px-4 py-3 shadow-lg flex justify-end gap-3'
+                'sticky bottom-0 z-10 bg-muted/50 border-t border-border px-4 py-3 shadow-lg grid grid-cols-2 gap-3'
               )}>
                 {footer}
               </div>
@@ -219,7 +219,7 @@ export const UniversalModal = ({
           <div className={cn(
             'px-6 py-4 border-t border-border',
             'bg-muted/50',
-            'flex justify-end gap-3'
+            'grid grid-cols-2 gap-3'
           )}>
             {footer}
           </div>

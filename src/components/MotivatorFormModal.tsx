@@ -163,14 +163,14 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <Button
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-ceramic-base border-ceramic-rim"
+            className="w-full bg-ceramic-base border-ceramic-rim"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={!title.trim()}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Save className="w-4 h-4 mr-2" />
             {isEditing ? 'Save Changes' : 'Create Motivator'}

@@ -181,11 +181,11 @@ export const ImageUpload = ({
                     onClick={onAiGenerate}
                     disabled={isGenerating}
                     className="h-8 w-8 p-0"
-                    title={currentImageUrl ? "Regenerate with AI" : "Generate with AI"}
+                    title={previewUrl && currentImageUrl ? "Regenerate with AI" : "Generate with AI"}
                   >
                     {isGenerating ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : currentImageUrl ? (
+                    ) : (previewUrl && currentImageUrl) ? (
                       <RotateCcw className="w-4 h-4" />
                     ) : (
                       <Sparkles className="w-4 h-4" />

@@ -162,24 +162,32 @@ export const UnifiedFoodEditModal = ({
         .select('setting_key, setting_value')
         .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
       
-      settingsData?.forEach(setting => {
-        if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
-          promptTemplate = setting.setting_value;
-        } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-          primaryColor = setting.setting_value;
-        } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
-          accentColor = setting.setting_value;
-        }
-      });
+      if (settingsData && settingsData.length > 0) {
+        settingsData.forEach(setting => {
+          if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
+            promptTemplate = setting.setting_value;
+          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+            primaryColor = setting.setting_value;
+          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
+            accentColor = setting.setting_value;
+          }
+        });
+      }
     } catch (error) {
       console.log('Using default prompt template as fallback');
     }
     
+    // Ensure we have a food name to work with
+    const sanitizedFoodName = foodName.trim() || 'food item';
+    
     // Replace variables in the prompt template
-    return promptTemplate
-      .replace(/{food_name}/g, foodName.trim())
+    const finalPrompt = promptTemplate
+      .replace(/{food_name}/g, sanitizedFoodName)
       .replace(/{primary_color}/g, primaryColor)
       .replace(/{accent_color}/g, accentColor);
+    
+    console.log('Generated prompt for food:', sanitizedFoodName, ':', finalPrompt);
+    return finalPrompt;
   };
 
   const handleGenerateImage = async () => {
@@ -263,7 +271,7 @@ export const UnifiedFoodEditModal = ({
         variant="standard"
         size="md"
         footer={
-          <div className="flex space-x-2 w-full">
+          <>
             <Button 
               variant="outline" 
               onClick={() => {
@@ -275,15 +283,16 @@ export const UnifiedFoodEditModal = ({
                 resetForm();
               }}
               disabled={loading || generatingImage}
+              className="w-full"
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={loading || generatingImage}>
+            <Button onClick={handleSave} disabled={loading || generatingImage} className="w-full">
               <Save className="w-4 h-4 mr-2" />
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
-          </div>
+          </>
         }
       >
         
@@ -352,49 +361,16 @@ export const UnifiedFoodEditModal = ({
           </div>
 
           <div className="space-y-3">
-            {/* Image Upload - No label, just the component */}
+            {/* Image Upload with AI generation */}
             <ImageUpload
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
               onImageRemove={() => setImageUrl('')}
-              showUploadOptionsWhenImageExists={false}
-              regenerateButton={createRegenerateButton()}
+              showUploadOptionsWhenImageExists={true}
+              aiGenerationPrompt={name ? `High-quality photo of ${name} on a white background, clean food photography, well-lit, appetizing` : undefined}
+              onAiGenerate={handleGenerateImage}
+              isGenerating={generatingImage}
             />
-
-            {/* Upload and Generate buttons side by side */}
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  // Trigger the hidden file input from ImageUpload
-                  const fileInput = document.querySelector('input[type="file"][accept="image/*"]:not([capture])') as HTMLInputElement;
-                  if (fileInput) fileInput.click();
-                }}
-                disabled={loading || generatingImage}
-                className="w-full"
-              >
-                Upload New Image
-              </Button>
-              
-              <Button
-                variant="ai"
-                onClick={handleGenerateImage}
-                disabled={loading || generatingImage}
-                className="w-full"
-              >
-                {generatingImage ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate AI Image
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         </div>
       </UniversalModal>
