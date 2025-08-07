@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { FastingTimeline } from '@/components/FastingTimeline';
+import { FastingTimelineV2 } from '@/components/FastingTimelineV2';
 
 interface FastingHour {
   id?: string;
@@ -374,7 +374,7 @@ export const AdminTimelineSettings = () => {
         {/* Preview */}
         <div className="p-4 bg-muted/50 rounded-lg">
           <p className="text-sm text-muted-foreground mb-4">Preview:</p>
-          <FastingTimeline currentHour={0} />
+          <FastingTimelineV2 currentHour={1} />
         </div>
 
         {/* Add New Hour Button */}

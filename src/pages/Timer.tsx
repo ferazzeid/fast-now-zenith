@@ -49,7 +49,6 @@ const Timer = () => {
   const isRunning = !!fastingSession;
 
   useEffect(() => {
-    console.log('Timer: Loading active session...');
     refreshActiveSession();
   }, [refreshActiveSession]);
 
@@ -86,11 +85,8 @@ const Timer = () => {
   }, []);
 
   useEffect(() => {
-    console.log('Timer: Fasting session changed:', fastingSession);
-    // Set fastType based on current session if available
+    // Set fast type based on current session if available
     if (fastingSession?.goal_duration_seconds) {
-      const goalHours = Math.floor(fastingSession.goal_duration_seconds / 3600);
-      console.log('Timer: Setting fast type based on goal hours:', goalHours);
       setFastDuration(fastingSession.goal_duration_seconds);
     }
   }, [fastingSession]);

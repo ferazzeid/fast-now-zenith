@@ -77,7 +77,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
                   <button
                     type="button"
                     className={cn(
-                      "w-3 h-3 rounded-full border bg-background shadow-sm hover-scale",
+                      "w-4 h-4 rounded-full border bg-background shadow-sm hover-scale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       h <= selectedHour ? "border-primary bg-primary/20" : "border-muted bg-muted"
                     )}
                     aria-label={`Hour ${h}`}
