@@ -12,6 +12,16 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { EditLibraryFoodModal } from '@/components/EditLibraryFoodModal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
@@ -50,6 +60,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
   // Multi-selection state
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
@@ -330,6 +341,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       setFoods([]);
       clearSelection();
+      setShowDeleteAllConfirm(false);
       
       toast({
         title: "All foods removed",
@@ -655,7 +667,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteAllUserFoods();
+                      setShowDeleteAllConfirm(true);
                     }}
                     className="w-4 h-4 text-destructive hover:text-destructive/80 transition-colors"
                     title="Delete all foods"
@@ -793,6 +805,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </div>
       )}
+
+      {/* Delete All Confirmation Dialog */}
+      <AlertDialog open={showDeleteAllConfirm} onOpenChange={setShowDeleteAllConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete All Foods?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all {filteredUserFoods.length} foods from your personal library. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteAllUserFoods}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
