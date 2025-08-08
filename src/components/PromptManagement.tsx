@@ -33,13 +33,6 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     variables: ['{food_name}', '{primary_color}', '{accent_color}']
   },
   {
-    key: 'ai_food_assistant_system_prompt',
-    title: 'Food Assistant System Behavior',
-    description: 'Controls how the AI Food Assistant behaves when helping users add food entries.',
-    defaultPrompt: 'You are a helpful nutrition assistant helping users track their food intake. Your goal is to help users add complete food entries with all required information: name, portion size (in grams), calories, and carbs. Ask clarifying questions if information is missing. Provide reasonable estimates for calories and carbs based on food type and portion. Be conversational and helpful. When the user provides food information, always use the add_food_entry function to add it to their log.',
-    variables: []
-  },
-  {
     key: 'ai_food_response_template',
     title: 'Food Entry Response Format',
     description: 'Controls how the AI formats responses when presenting food entry details to users.',
@@ -51,13 +44,6 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     title: 'Nutrition Estimation Guidelines',
     description: 'Guidelines for the AI when estimating nutritional values for foods.',
     defaultPrompt: 'When estimating nutrition values, use these guidelines: Provide realistic estimates based on common food databases. For proteins like chicken/fish, estimate ~165-200 calories and 0-2g carbs per 100g. For fruits, estimate 40-80 calories and 10-20g carbs per 100g. For vegetables, estimate 20-50 calories and 3-10g carbs per 100g. Always ask for clarification if the food description is vague.',
-    variables: []
-  },
-  {
-    key: 'ai_program_philosophy_prompt',
-    title: 'Program Philosophy & Food Guidance',
-    description: 'Your program\'s core principles and guidance for food choices.',
-    defaultPrompt: 'This nutrition program focuses on balanced eating with mindful carbohydrate intake. When users log high-carb foods (bread, pasta, rice, sugary items), gently acknowledge their choice while offering educational insights about the carb content and suggesting lower-carb alternatives when appropriate. Always remain supportive and non-judgmental - the goal is education, not restriction.',
     variables: []
   },
   {

@@ -141,11 +141,11 @@ export const AdminQuoteSettings: React.FC = () => {
 
   return (
     <>
-      <Card>
-        <CardContent className="space-y-6">
+      <Card className="mt-8">
+        <CardContent className="space-y-6 p-6">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-medium">Fasting Timer Quotes</h3>
+              <h3 className="text-lg font-medium mt-2">Fasting Timer Quotes</h3>
               <Button size="sm" onClick={() => handleAddQuote('fasting_timer_quotes')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add
@@ -176,11 +176,11 @@ export const AdminQuoteSettings: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="space-y-6">
+      <Card className="mt-8">
+        <CardContent className="space-y-6 p-6">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-medium">Walking Timer Quotes</h3>
+              <h3 className="text-lg font-medium mt-2">Walking Timer Quotes</h3>
               <Button size="sm" onClick={() => handleAddQuote('walking_timer_quotes')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add
