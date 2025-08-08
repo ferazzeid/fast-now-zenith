@@ -281,6 +281,75 @@ button[class*="bg-primary"],
   opacity: 1 !important;
 }
 
+/* Pixel Dissolve Animation for Motivator Slideshows */
+@keyframes pixelDissolveOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  25% {
+    clip-path: 
+      polygon(0% 0%, 20% 0%, 20% 20%, 0% 20%),
+      polygon(20% 0%, 40% 0%, 40% 20%, 20% 20%),
+      polygon(40% 0%, 60% 0%, 60% 20%, 40% 20%),
+      polygon(60% 0%, 80% 0%, 80% 20%, 60% 20%),
+      polygon(80% 0%, 100% 0%, 100% 20%, 80% 20%);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  75% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+  }
+}
+
+@keyframes pixelDissolveIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+  }
+  25% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+    clip-path: 
+      polygon(0% 0%, 20% 0%, 20% 20%, 0% 20%),
+      polygon(20% 0%, 40% 0%, 40% 20%, 20% 20%),
+      polygon(40% 0%, 60% 0%, 60% 20%, 40% 20%),
+      polygon(60% 0%, 80% 0%, 80% 20%, 60% 20%),
+      polygon(80% 0%, 100% 0%, 100% 20%, 80% 20%);
+  }
+  75% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+/* Animation classes for pixel dissolve */
+.pixel-dissolve-out {
+  animation: pixelDissolveOut 1000ms ease-in-out;
+}
+
+.pixel-dissolve-in {
+  animation: pixelDissolveIn 1000ms ease-in-out;
+}
+
 /* Force hide duplicate close buttons in modals - aggressive fix */
 [data-radix-dialog-content] > button[data-radix-dialog-close] {
   display: none !important;

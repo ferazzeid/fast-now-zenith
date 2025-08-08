@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { useMotivatorAnimation } from '@/hooks/useMotivatorAnimation';
 
 interface MotivatorSlideshowProps {
   isActive: boolean;
@@ -12,6 +13,7 @@ type DisplayMode = 'timer-focused' | 'motivator-focused';
 
 export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange }: MotivatorSlideshowProps) => {
   const { motivators } = useMotivators();
+  const { animationStyle } = useMotivatorAnimation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('timer-focused');
@@ -104,8 +106,10 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
     <>
       {/* Image Layer - Only visible during motivator-focused mode */}
       <div 
-        className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
-          displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
+        className={`absolute inset-0 rounded-full overflow-hidden ${
+          animationStyle === 'pixel_dissolve' 
+            ? (displayMode === 'motivator-focused' ? 'pixel-dissolve-in' : 'pixel-dissolve-out')
+            : `transition-all duration-1000 ${displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'}`
         }`}
         style={{ 
           zIndex: displayMode === 'motivator-focused' ? 8 : 1,
