@@ -281,7 +281,7 @@ const Timer = () => {
 
 
   return (
-    <div className="relative h-[calc(100vh-80px)] overflow-x-hidden bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="relative h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding Button */}
         <div className="mb-4 mt-4 relative">
@@ -395,14 +395,12 @@ const Timer = () => {
           </div>
         )}
 
-        {/* Inspirational Content Rotator */}
-        <div className="mt-8 rounded-xl border border-ceramic-rim bg-ceramic-base/60 p-3">
-          <FastingInspirationRotator 
-            quotes={quotes.fasting_timer_quotes}
-            currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
-            className=""
-          />
-        </div>
+        {/* Inspirational Content */}
+        <FastingInspirationRotator 
+          quotes={quotes.fasting_timer_quotes}
+          currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
+          className="mt-8"
+        />
       </div>
 
       {/* Fast Selector Modal */}

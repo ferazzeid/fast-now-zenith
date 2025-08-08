@@ -222,7 +222,7 @@ const AdminOverview = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <main className="container mx-auto p-6 space-y-8" role="main">
       <div className="flex items-center justify-center pt-6 pb-4">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent text-center">
           Admin Dashboard
@@ -387,7 +387,7 @@ const AdminOverview = () => {
         {/* Extra spacer to ensure nav doesn't cover content */}
         <div className="h-8"></div>
       </div>
-    </div>
+    </main>
   );
 };
 
