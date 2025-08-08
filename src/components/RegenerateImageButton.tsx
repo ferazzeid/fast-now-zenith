@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
 import { supabase } from '@/integrations/supabase/client';
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface RegenerateImageButtonProps {
   prompt: string;
@@ -28,8 +31,10 @@ export const RegenerateImageButton = ({
   mode = 'generic'
 }: RegenerateImageButtonProps) => {
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [conceptOverride, setConceptOverride] = useState('');
+  const [detectedConcept, setDetectedConcept] = useState('');
+  const [finalPrompt, setFinalPrompt] = useState('');
   const { toast } = useToast();
-
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
@@ -69,12 +74,19 @@ export const RegenerateImageButton = ({
         } catch (e) {
           console.log('Concept extraction failed, falling back to title');
         }
+        // Apply manual override if provided
+        const override = conceptOverride.trim();
+        if (override) concept = override.toLowerCase();
+
         const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
           ? adminTemplate
           : defaultConceptTemplate;
         enhancedPrompt = templateToUse
           .replace(/{concept}/g, concept)
           .replace(/{primary_color}/g, 'black and white');
+
+        setDetectedConcept(concept);
+        setFinalPrompt(enhancedPrompt);
       } else {
         // Backward-compatible template using title/content if not in motivator mode
         let genericTemplate = adminTemplate ||
@@ -85,6 +97,7 @@ export const RegenerateImageButton = ({
           .replace(/{content}/g, rawContent)
           .replace(/{primary_color}/g, primaryColor)
           .replace(/{accent_color}/g, accentColor);
+        setFinalPrompt(enhancedPrompt);
       }
 
       // If we have a motivatorId, use background generation
@@ -145,15 +158,50 @@ export const RegenerateImageButton = ({
   };
 
   return (
-    <Button
-      variant="ai"
-      size="sm"
-      onClick={handleRegenerate}
-      disabled={disabled || isRegenerating}
-      className={`h-8 w-8 p-0 ${className}`}
-      title="Regenerate image"
-    >
-      <RotateCcw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-    </Button>
+    <div className={`flex items-center gap-1`}>
+      <Button
+        variant="ai"
+        size="sm"
+        onClick={handleRegenerate}
+        disabled={disabled || isRegenerating}
+        className={`h-8 w-8 p-0 ${className}`}
+        title="Regenerate image"
+      >
+        <RotateCcw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+      </Button>
+
+      {mode === 'motivator' && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Concept & prompt"
+            >
+              <Info className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="concept-override">Manual concept override</Label>
+                <Input
+                  id="concept-override"
+                  placeholder="e.g., hourglass, target, footprint"
+                  value={conceptOverride}
+                  onChange={(e) => setConceptOverride(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Detected: {detectedConcept || '—'}</p>
+              </div>
+              <div>
+                <Label>Final prompt</Label>
+                <Textarea value={finalPrompt} readOnly rows={5} />
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
   );
 };
