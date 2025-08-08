@@ -88,9 +88,9 @@ const AppContent = () => {
   return (
     <>
       {/* Desktop frame background */}
-      <div className="min-h-screen bg-frame-background">
+      <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
-        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl px-4">
+        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl px-4 overflow-x-hidden">
           <SEOManager />
           <EnhancedConnectionStatus />
           <DailyStatsPanel />
