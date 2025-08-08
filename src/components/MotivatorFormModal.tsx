@@ -111,24 +111,35 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       if (conceptData?.concept) concept = conceptData.concept;
     } catch {}
 
-    // Brand color and admin template
+    // Brand color, admin template, and style preset
     let primaryColor = "220 35% 45%";
     let adminTemplate: string | undefined;
+    let selectedPreset = 'minimalist_bw';
     try {
       const { data: settingsData } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'ai_image_motivator_prompt']);
+        .in('setting_key', ['brand_primary_color', 'ai_image_motivator_prompt', 'ai_image_motivator_prompt_preset']);
       settingsData?.forEach((s) => {
         if (s.setting_key === 'brand_primary_color' && s.setting_value) primaryColor = s.setting_value;
         if (s.setting_key === 'ai_image_motivator_prompt' && s.setting_value) adminTemplate = s.setting_value;
+        if (s.setting_key === 'ai_image_motivator_prompt_preset' && s.setting_value) selectedPreset = s.setting_value;
       });
     } catch {}
 
+    // Define style presets
+    const STYLE_PRESETS: Record<string, string> = {
+      'minimalist_bw': 'Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.',
+      'vibrant_color': 'Bold, vibrant poster design featuring {concept}. Rich saturated colors with deep reds, electric blues, or golden yellows as primary palette. Strong visual impact with dramatic lighting and contrast. Modern graphic design style, clean composition, powerful and inspiring mood. Centered subject, no people or faces, no text/letters/logos. Professional poster quality, 1:1 square format.',
+      'photorealistic': 'Professional photography of {concept}. Realistic, natural lighting with soft shadows and depth. High-quality DSLR camera shot, crisp focus, natural colors and textures. Clean composition with subtle background blur. Documentary or editorial photography style, authentic and inspiring mood. No people or faces, no artificial effects, no text/logos. Square format, professional quality.',
+      'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
+    };
+
     const defaultConceptTemplate = "Simple black and white icon of {concept}";
-    const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
+    // Use preset template or custom admin template
+    const templateToUse = (adminTemplate && adminTemplate.includes('{concept}'))
       ? adminTemplate
-      : defaultConceptTemplate;
+      : STYLE_PRESETS[selectedPreset] || defaultConceptTemplate;
     const conceptValue = (conceptOverride.trim() || concept);
     const finalPrompt = templateToUse
       .replace(/{concept}/g, conceptValue)
