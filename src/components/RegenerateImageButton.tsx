@@ -62,13 +62,13 @@ export const RegenerateImageButton = ({
       console.log('Using default settings for preview');
     }
 
-    // Style presets
-    const STYLE_PRESETS: Record<string, string> = {
-      'minimalist_bw': 'Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.',
-      'vibrant_color': 'Minimalist poster design of {concept}. Use exactly 2-3 colors maximum: deep red, black, and white only. Clean geometric shapes, bold silhouette, strong contrast. Centered composition, no text, no fonts, no letters, no words, no numbers, no UI elements, no people, no faces. Simple, modern, classic aesthetic. Professional poster quality, 1:1 square format.',
-      'photorealistic': 'Professional photography of {concept}. Realistic, natural lighting with soft shadows and depth. High-quality DSLR camera shot, crisp focus, natural colors and textures. Clean composition with subtle background blur. Documentary or editorial photography style, authentic and inspiring mood. No people or faces, no artificial effects, no text/logos. Square format, professional quality.',
-      'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
-    };
+      // Style presets
+      const STYLE_PRESETS: Record<string, string> = {
+        'minimalist_bw': 'Pure black and white minimalist icon of {concept}. Single bold geometric symbol or abstract shape representing the concept. Clean vector-style silhouette with strong contrast and negative space. No text, no letters, no words, no realistic details, no gradients, no textures. Simple symbolic representation only. Centered composition, crisp edges, 1:1 square format.',
+        'vibrant_color': 'Bold abstract geometric representation of {concept} using vibrant colors. Modern minimalist design with flowing shapes, gradients, and dynamic composition. Contemporary digital art style with bright, energetic colors. No text, no realistic objects, no people, no literal interpretation. Pure abstract visual metaphor. Square format, artistic and inspiring.',
+        'photorealistic': 'Modern cinematic photography of {concept}. Dramatic lighting with interesting angles and perspective. Contemporary style with depth of field, atmospheric mood, and professional composition. Futuristic or minimalist aesthetic, not product photography. Dynamic perspective, not straight-on view. High-end commercial photography quality. No people or faces, no text. Square format.',
+        'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
+      };
 
     const defaultConceptTemplate = "Simple black and white icon of {concept}";
 
@@ -138,9 +138,9 @@ export const RegenerateImageButton = ({
 
       // Define style presets
       const STYLE_PRESETS: Record<string, string> = {
-        'minimalist_bw': 'Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.',
-        'vibrant_color': 'Minimalist poster design of {concept}. Use exactly 2-3 colors maximum: deep red, black, and white only. Clean geometric shapes, bold silhouette, strong contrast. Centered composition, no text, no fonts, no letters, no words, no numbers, no UI elements, no people, no faces. Simple, modern, classic aesthetic. Professional poster quality, 1:1 square format.',
-        'photorealistic': 'Professional photography of {concept}. Realistic, natural lighting with soft shadows and depth. High-quality DSLR camera shot, crisp focus, natural colors and textures. Clean composition with subtle background blur. Documentary or editorial photography style, authentic and inspiring mood. No people or faces, no artificial effects, no text/logos. Square format, professional quality.',
+        'minimalist_bw': 'Pure black and white minimalist icon of {concept}. Single bold geometric symbol or abstract shape representing the concept. Clean vector-style silhouette with strong contrast and negative space. No text, no letters, no words, no realistic details, no gradients, no textures. Simple symbolic representation only. Centered composition, crisp edges, 1:1 square format.',
+        'vibrant_color': 'Bold abstract geometric representation of {concept} using vibrant colors. Modern minimalist design with flowing shapes, gradients, and dynamic composition. Contemporary digital art style with bright, energetic colors. No text, no realistic objects, no people, no literal interpretation. Pure abstract visual metaphor. Square format, artistic and inspiring.',
+        'photorealistic': 'Modern cinematic photography of {concept}. Dramatic lighting with interesting angles and perspective. Contemporary style with depth of field, atmospheric mood, and professional composition. Futuristic or minimalist aesthetic, not product photography. Dynamic perspective, not straight-on view. High-end commercial photography quality. No people or faces, no text. Square format.',
         'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
       };
 
