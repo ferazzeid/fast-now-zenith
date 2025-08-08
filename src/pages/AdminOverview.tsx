@@ -222,7 +222,7 @@ const AdminOverview = () => {
   }
 
   return (
-    <main className="container mx-auto p-6 space-y-8" role="main">
+    <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
       <div className="flex items-center justify-center pt-6 pb-4">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent text-center">
           Admin Dashboard
@@ -230,26 +230,38 @@ const AdminOverview = () => {
       </div>
       
       {/* Role Testing Section */}
-      <AdminRoleTester />
+      <section aria-label="Role testing">
+        <AdminRoleTester />
+      </section>
       
       {/* Real-Time Analytics Dashboard */}
-      <SimpleAnalyticsWidget />
+      <section aria-label="Real-time analytics">
+        <SimpleAnalyticsWidget />
+      </section>
       
       {/* SEO Settings */}
-      <AdminSEOSettings />
+      <section aria-label="SEO settings">
+        <AdminSEOSettings />
+      </section>
       
       {/* Cancellation Tracking */}
-      <CancellationTracker />
+      <section aria-label="Cancellation tracking">
+        <CancellationTracker />
+      </section>
       
       {/* Most Important Metric - User Tiers Overview */}
-      <AdminTierStats />
+      <section aria-label="User tiers overview">
+        <AdminTierStats />
+      </section>
       
       {/* User Request Limits */}
-      <UserRequestLimits />
+      <section aria-label="User request limits">
+        <UserRequestLimits />
+      </section>
       
       {/* API Configuration - Full Width Cards */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-foreground">API Configuration</h2>
+      <section className="space-y-6" aria-labelledby="api-config">
+        <h2 id="api-config" className="text-2xl font-semibold text-foreground">API Configuration</h2>
         
         <Card>
           <CardHeader>
@@ -281,11 +293,11 @@ const AdminOverview = () => {
 
         {/* OpenAI API Statistics */}
         <OpenAIApiStats />
-      </div>
+      </section>
 
       {/* Payment & Analytics Configuration */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-foreground">Payment & Analytics</h2>
+      <section className="space-y-6" aria-labelledby="payment-analytics">
+        <h2 id="payment-analytics" className="text-2xl font-semibold text-foreground">Payment & Analytics</h2>
         
         {/* Payment Provider Configuration */}
         <PaymentProviderSettings />
@@ -317,10 +329,10 @@ const AdminOverview = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
       {/* Advanced Settings */}
-      <div className="space-y-6">
+      <section className="space-y-6" aria-label="Advanced settings">
         <Collapsible open={showAdvancedSettings} onOpenChange={setShowAdvancedSettings}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full justify-between text-foreground hover:bg-muted">
@@ -366,17 +378,21 @@ const AdminOverview = () => {
             </Card>
           </CollapsibleContent>
         </Collapsible>
-      </div>
+      </section>
 
       {/* Quote Management */}
-      <AdminQuoteSettings />
+      <section aria-label="Quote management">
+        <AdminQuoteSettings />
+      </section>
 
       {/* Timeline Management */}
-      <AdminTimelineSettings />
+      <section aria-label="Timeline management">
+        <AdminTimelineSettings />
+      </section>
 
       {/* Brand Customization */}
-      <div className="space-y-6 pb-24">
-        <h2 className="text-2xl font-semibold text-foreground">Brand Customization</h2>
+      <section className="space-y-6 pb-24" aria-labelledby="brand-customization">
+        <h2 id="brand-customization" className="text-2xl font-semibold text-foreground">Brand Customization</h2>
         
         {/* Brand Assets - Favicon and Logo */}
         <BrandAssetsManager />
@@ -386,7 +402,7 @@ const AdminOverview = () => {
         
         {/* Extra spacer to ensure nav doesn't cover content */}
         <div className="h-8"></div>
-      </div>
+      </section>
     </main>
   );
 };
