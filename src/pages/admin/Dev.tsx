@@ -1,6 +1,8 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
+import { BarcodeScannerExperiment } from "@/components/dev/BarcodeScannerExperiment";
+import { FoodPhotoAnalyzerExperiment } from "@/components/dev/FoodPhotoAnalyzerExperiment";
 
 export default function AdminDev() {
   usePageSEO({
