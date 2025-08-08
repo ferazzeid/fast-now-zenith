@@ -146,6 +146,33 @@ export type Database = {
         }
         Relationships: []
       }
+      background_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string
@@ -418,9 +445,12 @@ export type Database = {
       fasting_hours: {
         Row: {
           autophagy_milestone: boolean | null
+          benefits_challenges: string | null
           body_state: string
           challenging_symptoms: string[] | null
           common_feelings: string[] | null
+          content_rotation_data: Json | null
+          content_snippet: string | null
           created_at: string
           day: number
           difficulty: string
@@ -430,19 +460,26 @@ export type Database = {
           id: string
           image_url: string | null
           ketosis_milestone: boolean | null
+          mental_emotional_state: string[] | null
+          metabolic_changes: string | null
           motivator_tags: string[] | null
           phase: string
+          physiological_effects: string | null
           positive_symptoms: string[] | null
           scientific_info: string | null
+          stage: string | null
           tips: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
           autophagy_milestone?: boolean | null
+          benefits_challenges?: string | null
           body_state: string
           challenging_symptoms?: string[] | null
           common_feelings?: string[] | null
+          content_rotation_data?: Json | null
+          content_snippet?: string | null
           created_at?: string
           day: number
           difficulty?: string
@@ -452,19 +489,26 @@ export type Database = {
           id?: string
           image_url?: string | null
           ketosis_milestone?: boolean | null
+          mental_emotional_state?: string[] | null
+          metabolic_changes?: string | null
           motivator_tags?: string[] | null
           phase?: string
+          physiological_effects?: string | null
           positive_symptoms?: string[] | null
           scientific_info?: string | null
+          stage?: string | null
           tips?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
           autophagy_milestone?: boolean | null
+          benefits_challenges?: string | null
           body_state?: string
           challenging_symptoms?: string[] | null
           common_feelings?: string[] | null
+          content_rotation_data?: Json | null
+          content_snippet?: string | null
           created_at?: string
           day?: number
           difficulty?: string
@@ -474,10 +518,14 @@ export type Database = {
           id?: string
           image_url?: string | null
           ketosis_milestone?: boolean | null
+          mental_emotional_state?: string[] | null
+          metabolic_changes?: string | null
           motivator_tags?: string[] | null
           phase?: string
+          physiological_effects?: string | null
           positive_symptoms?: string[] | null
           scientific_info?: string | null
+          stage?: string | null
           tips?: string[] | null
           title?: string
           updated_at?: string

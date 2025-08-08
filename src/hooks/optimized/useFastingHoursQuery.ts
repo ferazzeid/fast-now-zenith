@@ -16,6 +16,23 @@ export interface FastingHour {
   autophagy_milestone?: boolean;
   ketosis_milestone?: boolean;
   fat_burning_milestone?: boolean;
+  // Enhanced fields
+  benefits_challenges?: string;
+  content_snippet?: string;
+  content_rotation_data?: {
+    current_index: number;
+    variants: ContentVariant[];
+  };
+  metabolic_changes?: string;
+  physiological_effects?: string;
+  mental_emotional_state?: string[];
+  stage?: string;
+}
+
+export interface ContentVariant {
+  type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet';
+  content: string;
+  duration?: number; // milliseconds to show this variant
 }
 
 export const fastingHoursKey = ["fasting", "hours"] as const;
@@ -30,7 +47,15 @@ export function useFastingHoursQuery() {
         .lte("hour", 72)
         .order("hour", { ascending: true });
       if (error) throw error;
-      return (data || []) as FastingHour[];
+      return (data || []).map(item => ({
+        ...item,
+        content_rotation_data: item.content_rotation_data 
+          ? (item.content_rotation_data as unknown as {
+              current_index: number;
+              variants: ContentVariant[];
+            })
+          : undefined
+      })) as FastingHour[];
     },
     staleTime: 24 * 60 * 60 * 1000, // 24h cache as content rarely changes
   });

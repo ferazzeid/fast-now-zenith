@@ -27,6 +27,20 @@ interface FastingHour {
   autophagy_milestone?: boolean;
   ketosis_milestone?: boolean;
   fat_burning_milestone?: boolean;
+  // Enhanced fields
+  benefits_challenges?: string;
+  content_snippet?: string;
+  content_rotation_data?: {
+    current_index: number;
+    variants: Array<{
+      type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet';
+      content: string;
+    }>;
+  };
+  metabolic_changes?: string;
+  physiological_effects?: string;
+  mental_emotional_state?: string[];
+  stage?: string;
 }
 
 interface FastingHourEditModalProps {
