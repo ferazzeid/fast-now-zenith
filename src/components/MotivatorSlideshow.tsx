@@ -11,6 +11,57 @@ interface MotivatorSlideshowProps {
 
 type DisplayMode = 'timer-focused' | 'motivator-focused';
 
+// Matrix Pixel Component for the swarm effect
+const MatrixPixel = ({ delay, image, index }: { delay: number; image: string; index: number }) => {
+  const row = Math.floor(index / 10);
+  const col = index % 10;
+  
+  return (
+    <div 
+      className="absolute w-[10%] h-[10%] overflow-hidden"
+      style={{
+        left: `${col * 10}%`,
+        top: `${row * 10}%`,
+        animationDelay: `${delay}ms`,
+      }}
+    >
+      <div
+        className="w-full h-full bg-cover bg-center animate-[pixelSwarmOut_1000ms_ease-in-out_forwards]"
+        style={{
+          backgroundImage: `url(${image})`,
+          backgroundPosition: `${-col * 100}% ${-row * 100}%`,
+          backgroundSize: '1000% 1000%'
+        }}
+      />
+    </div>
+  );
+};
+
+const MatrixPixelIn = ({ delay, image, index }: { delay: number; image: string; index: number }) => {
+  const row = Math.floor(index / 10);
+  const col = index % 10;
+  
+  return (
+    <div 
+      className="absolute w-[10%] h-[10%] overflow-hidden"
+      style={{
+        left: `${col * 10}%`,
+        top: `${row * 10}%`,
+        animationDelay: `${delay}ms`,
+      }}
+    >
+      <div
+        className="w-full h-full bg-cover bg-center animate-[pixelSwarmIn_1000ms_ease-in-out_forwards]"
+        style={{
+          backgroundImage: `url(${image})`,
+          backgroundPosition: `${-col * 100}% ${-row * 100}%`,
+          backgroundSize: '1000% 1000%'
+        }}
+      />
+    </div>
+  );
+};
+
 export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange }: MotivatorSlideshowProps) => {
   const { motivators } = useMotivators();
   const { animationStyle } = useMotivatorAnimation();
@@ -102,17 +153,62 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
     });
   };
 
+  if (animationStyle === 'pixel_dissolve') {
+    return (
+      <>
+        {/* Matrix dissolve effect */}
+        {displayMode === 'motivator-focused' && isVisible && currentMotivator?.imageUrl && (
+          <div 
+            className="absolute inset-0 rounded-full overflow-hidden"
+            style={{ zIndex: 5 }}
+          >
+            {/* Create 100 pixel cubes (10x10 grid) */}
+            {Array.from({ length: 100 }, (_, index) => {
+              const delay = Math.random() * 800; // Stagger the animation randomly
+              return (
+                <MatrixPixelIn
+                  key={`in-${index}`}
+                  delay={delay}
+                  image={currentMotivator.imageUrl!}
+                  index={index}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Centered Zoom-In Text for Ceramic Timer */}
+        {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ zIndex: 15 }}
+          >
+            <div 
+              className="text-white font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm border border-white/20"
+              style={{
+                animation: 'zoomIn 8s ease-in-out',
+                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                maxWidth: '80%'
+              }}
+            >
+              {currentMotivator.title.toUpperCase()}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // Original smooth fade animation
   return (
     <>
       {/* Image Layer - Only visible during motivator-focused mode */}
       <div 
-        className={`absolute inset-0 rounded-full overflow-hidden ${
-          animationStyle === 'pixel_dissolve' 
-            ? (displayMode === 'motivator-focused' ? 'pixel-dissolve-in' : 'pixel-dissolve-out')
-            : `transition-all duration-1000 ${displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'}`
+        className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
+          displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ 
-          zIndex: displayMode === 'motivator-focused' ? 8 : 1,
+          zIndex: displayMode === 'motivator-focused' ? 5 : 1,
           willChange: 'transform, opacity',
           transform: 'translate3d(0, 0, 0)' // GPU acceleration
         }}

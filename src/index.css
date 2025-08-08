@@ -281,73 +281,73 @@ button[class*="bg-primary"],
   opacity: 1 !important;
 }
 
-/* Pixel Dissolve Animation for Motivator Slideshows */
-@keyframes pixelDissolveOut {
+/* Matrix Pixel Dissolve Animation for Motivator Slideshows */
+@keyframes matrixDissolveOut {
   0% {
     opacity: 1;
     transform: scale(1);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
-  25% {
-    clip-path: 
-      polygon(0% 0%, 20% 0%, 20% 20%, 0% 20%),
-      polygon(20% 0%, 40% 0%, 40% 20%, 20% 20%),
-      polygon(40% 0%, 60% 0%, 60% 20%, 40% 20%),
-      polygon(60% 0%, 80% 0%, 80% 20%, 60% 20%),
-      polygon(80% 0%, 100% 0%, 100% 20%, 80% 20%);
-  }
-  50% {
+  20% {
     opacity: 0.8;
-    transform: scale(0.98);
-  }
-  75% {
-    opacity: 0.3;
-    transform: scale(0.95);
   }
   100% {
     opacity: 0;
-    transform: scale(0.9);
-    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+    transform: scale(0.8);
   }
 }
 
-@keyframes pixelDissolveIn {
+@keyframes matrixDissolveIn {
   0% {
     opacity: 0;
-    transform: scale(0.9);
-    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+    transform: scale(0.8);
   }
-  25% {
-    opacity: 0.3;
-    transform: scale(0.95);
-  }
-  50% {
+  20% {
     opacity: 0.8;
-    transform: scale(0.98);
-    clip-path: 
-      polygon(0% 0%, 20% 0%, 20% 20%, 0% 20%),
-      polygon(20% 0%, 40% 0%, 40% 20%, 20% 20%),
-      polygon(40% 0%, 60% 0%, 60% 20%, 40% 20%),
-      polygon(60% 0%, 80% 0%, 80% 20%, 60% 20%),
-      polygon(80% 0%, 100% 0%, 100% 20%, 80% 20%);
-  }
-  75% {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
   100% {
     opacity: 1;
     transform: scale(1);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
 }
 
-/* Animation classes for pixel dissolve */
-.pixel-dissolve-out {
-  animation: pixelDissolveOut 1000ms ease-in-out;
+/* Matrix grid animation */
+@keyframes pixelSwarmOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateX(100px) translateY(50px) scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(200px) translateY(100px) scale(0);
+  }
 }
 
-.pixel-dissolve-in {
-  animation: pixelDissolveIn 1000ms ease-in-out;
+@keyframes pixelSwarmIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-200px) translateY(-100px) scale(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateX(-100px) translateY(-50px) scale(0.3);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+/* Animation classes for matrix dissolve */
+.matrix-dissolve-out {
+  animation: matrixDissolveOut 1000ms ease-in-out;
+}
+
+.matrix-dissolve-in {
+  animation: matrixDissolveIn 1000ms ease-in-out;
 }
 
 /* Force hide duplicate close buttons in modals - aggressive fix */
