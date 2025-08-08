@@ -15,6 +15,8 @@ function buildCorsHeaders(origin: string | null) {
   } as const;
 }
 
+const ENV = Deno.env.get('ENV') || Deno.env.get('NODE_ENV') || 'development';
+const isProd = ENV === 'production';
 // Simple in-memory burst limiter per user/function
 const burstTracker = new Map<string, number[]>();
 function checkBurstLimit(key: string, limit: number, windowMs: number): boolean {
@@ -120,8 +122,12 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI TTS API error:', errorData);
+      try {
+        const errorData = await response.json();
+        if (!isProd) console.error('OpenAI TTS API error:', errorData);
+      } catch (_) {
+        if (!isProd) console.error('OpenAI TTS API error: non-JSON body');
+      }
       throw new Error(`OpenAI TTS API error: ${response.status}`);
     }
 
@@ -166,9 +172,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in text-to-speech function:', error);
+    if (!isProd) console.error('Error in text-to-speech function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isProd ? 'Internal server error' : (error as Error).message }),
       {
         status: 500,
         headers: { 

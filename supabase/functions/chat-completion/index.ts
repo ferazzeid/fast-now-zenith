@@ -11,7 +11,7 @@ function buildCorsHeaders(origin: string | null) {
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Vary': 'Origin',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
   } as const;
 }
 
@@ -26,6 +26,9 @@ function checkBurstLimit(key: string, limit: number, windowMs: number): boolean 
   burstTracker.set(key, timestamps);
   return true;
 }
+
+const ENV = Deno.env.get('ENV') || Deno.env.get('NODE_ENV') || 'development';
+const isProd = ENV === 'production';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -337,8 +340,12 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
+      try {
+        const errorData = await response.json();
+        if (!isProd) console.error('OpenAI API error:', errorData);
+      } catch (_) {
+        if (!isProd) console.error('OpenAI API error: non-JSON body');
+      }
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
@@ -411,9 +418,10 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('Error in chat-completion function:', error);
+    if (!isProd) console.error('Error in chat-completion function:', error);
+    const message = isProd ? 'Internal server error' : (error as Error).message;
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       {
         status: 500,
         headers: { 
