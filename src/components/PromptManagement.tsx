@@ -21,9 +21,9 @@ const PROMPT_CONFIGS: PromptConfig[] = [
   {
     key: 'ai_image_motivator_prompt',
     title: 'Motivator Image Generation',
-    description: 'Black & White (monochrome) brand poster style for Goals/Motivators.',
-    defaultPrompt: 'Minimalist vector poster in black and white only. Strict monochrome: white (#ffffff) and near-black (#0a0a0a); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.',
-    variables: ['{title}', '{content}']
+    description: 'Concept-driven, monochrome brand prompt using {concept} and {primary_color}.',
+    defaultPrompt: 'Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.',
+    variables: ['{concept}', '{primary_color}']
   },
   {
     key: 'ai_image_food_prompt',
@@ -139,6 +139,7 @@ export const PromptManagement: React.FC = () => {
       const replacements: Record<string, string> = {
         '{title}': 'Sample Motivator Title',
         '{content}': 'This is sample motivational content for testing.',
+        '{concept}': 'mountain',
         '{food_name}': 'grilled chicken breast',
         '{goal_title}': 'Lose 10 pounds',
         '{goal_description}': 'Achieve a healthier weight through consistent exercise and nutrition',
