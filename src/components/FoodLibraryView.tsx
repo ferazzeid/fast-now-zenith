@@ -635,8 +635,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Clean Header */}
-      <div className="bg-muted/50 border-b border-border px-6 py-4 flex items-center justify-between">
+      {/* Sticky Header for small screens */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border px-6 py-4 flex items-center justify-between shadow-sm">
         <h2 className="text-xl font-semibold text-foreground">Food Library</h2>
         <Button
           variant="ghost"
@@ -653,7 +653,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       {/* Clean Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
-          <div className="px-6 py-3 bg-background">
+          <div className="px-6 py-3 bg-background sticky top-[64px] z-20 border-b border-border">
             <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 
