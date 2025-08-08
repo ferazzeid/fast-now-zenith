@@ -21,9 +21,9 @@ const PROMPT_CONFIGS: PromptConfig[] = [
   {
     key: 'ai_image_motivator_prompt',
     title: 'Motivator Image Generation',
-    description: 'Concept-driven, monochrome brand prompt using {concept} and {primary_color}.',
-    defaultPrompt: 'Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.',
-    variables: ['{concept}', '{primary_color}']
+    description: 'Strict black & white, concept-driven poster. Uses {concept} only.',
+    defaultPrompt: 'Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.',
+    variables: ['{concept}']
   },
   {
     key: 'ai_image_food_prompt',

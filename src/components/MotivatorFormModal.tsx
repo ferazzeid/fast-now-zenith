@@ -39,7 +39,9 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [bgPending, setBgPending] = useState(false);
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();
-
+  const [conceptOverride, setConceptOverride] = useState('');
+  const [detectedConcept, setDetectedConcept] = useState<string | null>(null);
+  const [promptPreview, setPromptPreview] = useState<string>('');
   const isEditing = !!motivator?.id;
 
   useEffect(() => {
@@ -112,13 +114,18 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     } catch {}
 
     const defaultConceptTemplate =
-      "Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.";
+      "Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.";
     const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
       ? adminTemplate
       : defaultConceptTemplate;
+    const conceptValue = (conceptOverride.trim() || concept);
     const finalPrompt = templateToUse
-      .replace(/{concept}/g, concept)
-      .replace(/{primary_color}/g, primaryColor);
+      .replace(/{concept}/g, conceptValue)
+      .replace(/{primary_color}/g, 'black and white');
+
+    // Update transparency state
+    setDetectedConcept(conceptValue);
+    setPromptPreview(finalPrompt);
 
     // If editing existing motivator, use background generation
     if (motivator?.id) {

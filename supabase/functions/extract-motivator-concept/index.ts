@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -10,7 +11,7 @@ const STOPWORDS = new Set([
   "the","a","an","and","or","but","if","then","else","when","at","by","from","for","in","into","of","on","to","with","about","as","is","are","was","were","be","being","been","it","this","that","these","those","my","our","your","their","i","you","he","she","we","they","me","him","her","us","them","will","can","could","should","would","do","does","did","have","has","had"
 ]);
 
-// Keyword to concept mapping
+// Keyword to concept mapping (used as fallback and to normalize vague concepts)
 const MAPPINGS: Array<{ keywords: RegExp; concept: string }> = [
   { keywords: /(clothes?|outfit|jeans|pants|dress|suit|shirt|skirt|jacket|fit|fitting)/i, concept: "hanger" },
   { keywords: /(wedding|reunion|event|party|birthday|anniversary|deadline|date)/i, concept: "calendar" },
@@ -50,9 +51,49 @@ function pickHeuristicConcept(title: string, content: string): string {
   const tokens = tokenize(full);
   if (tokens.length === 0) return "star";
 
-  // Reduce to 1-2 words if token has hyphen or space concepts later
   const first = tokens[0];
   return first.length <= 18 ? first : "star";
+}
+
+async function extractConceptWithAI(title: string, content: string, apiKey: string): Promise<string | null> {
+  try {
+    const prompt = `From the following title and content, output a single short visual concept noun or noun-phrase (max 2 words) suitable for a simple icon or silhouette. Avoid vague verbs like "+lose" or "get". Prefer concrete metaphors (e.g., mountain, hourglass, target, footprint, mirror, hanger, laurel wreath). Only return the concept text.\n\nTitle: ${title}\nContent: ${content}`;
+
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'Return only a short concrete visual concept (1-2 words), no punctuation.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.2,
+      }),
+    });
+
+    const data = await resp.json();
+    const text: string | undefined = data?.choices?.[0]?.message?.content;
+    if (!text) return null;
+
+    // Normalize result
+    const concept = text.trim().toLowerCase().replace(/[^a-z\s-]/g, '').slice(0, 40);
+    if (!concept) return null;
+
+    // If concept matches a mapping keyword, normalize to our canonical term
+    for (const map of MAPPINGS) {
+      if (map.keywords.test(concept)) return map.concept;
+    }
+
+    // Otherwise return as-is (limited length)
+    return concept;
+  } catch (e) {
+    console.error('AI concept extraction failed:', e);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -64,7 +105,17 @@ serve(async (req) => {
   try {
     const { title = "", content = "" } = await req.json().catch(() => ({ title: "", content: "" }));
 
-    const concept = pickHeuristicConcept(String(title), String(content));
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+
+    let concept = "";
+    if (openaiKey) {
+      const aiConcept = await extractConceptWithAI(String(title), String(content), openaiKey);
+      if (aiConcept) concept = aiConcept;
+    }
+
+    if (!concept) {
+      concept = pickHeuristicConcept(String(title), String(content));
+    }
 
     return new Response(
       JSON.stringify({ concept }),
