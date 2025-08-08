@@ -6,17 +6,22 @@ const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:51
   .split(',')
   .map(o => o.trim());
 
+const ENV = Deno.env.get('ENV') || Deno.env.get('NODE_ENV') || 'development';
+const isProd = ENV === 'production';
+
 function buildCorsHeaders(origin: string | null) {
-  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowOrigin = isProd
+    ? (origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0])
+    : (origin || '*');
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Vary': 'Origin',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
+    'Access-Control-Allow-Credentials': 'true',
   } as const;
 }
 
-const ENV = Deno.env.get('ENV') || Deno.env.get('NODE_ENV') || 'development';
-const isProd = ENV === 'production';
+// isProd already defined above
 // Simple in-memory burst limiter per user/function
 const burstTracker = new Map<string, number[]>();
 function checkBurstLimit(key: string, limit: number, windowMs: number): boolean {
@@ -156,7 +161,7 @@ serve(async (req) => {
     }
 
     const result = await response.json();
-    console.log('Transcription result:', result);
+    if (!isProd) console.log('Transcription result:', result);
 
     // Increment usage counter (only if not using own API key)
     if (!profile.use_own_api_key) {
