@@ -17,9 +17,16 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
       {/* Mobile-optimized modal container */}
-      <div className="w-full max-w-md max-h-[90vh] bg-card backdrop-blur-sm rounded-2xl border border-border overflow-hidden flex flex-col">
+      <div className="w-full max-w-md max-h-[90vh] bg-card/90 backdrop-blur-sm rounded-2xl border border-border overflow-hidden flex flex-col relative">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 rounded-2xl"
+          style={{
+            backgroundImage: "url('/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png')"
+          }}
+        />
         {/* Header with close button */}
-        <div className="flex justify-between items-start p-4 border-b border-border/30">
+        <div className="flex justify-between items-start p-4 border-b border-border/30 relative z-10">
           <div className="flex-1 mr-3">
             <h1 className="text-xl font-bold text-warm-text mb-1">{title}</h1>
             {subtitle && (
@@ -38,7 +45,7 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
           {/* Hero Quote */}
           {heroQuote && (
             <div className="bg-muted/30 rounded-xl border border-border/50 p-4 relative">
