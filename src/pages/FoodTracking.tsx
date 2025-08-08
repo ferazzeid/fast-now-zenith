@@ -761,7 +761,7 @@ const FoodTracking = () => {
               <div className="space-y-4">
                 {templateFoods.length > 0 ? (
                   <>
-                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center space-x-2">
                         <Switch 
                           id="activate-daily"
@@ -787,31 +787,35 @@ const FoodTracking = () => {
                         <Label htmlFor="activate-daily" className="text-sm font-medium">
                           Activate Daily
                         </Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>When enabled, your template will automatically replace today's plan each day at midnight</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="h-4 w-4 text-muted-foreground" />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleApplyTemplate}
+                              disabled={templateLoading}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Apply Template
+                            </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>When enabled, your template will automatically replace today's plan each day at midnight in your local timezone</p>
+                            <p>Apply your template foods to today's plan right now</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm text-muted-foreground">
-                        {templateFoods.length} food{templateFoods.length !== 1 ? 's' : ''} in daily template
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleApplyTemplate}
-                        disabled={templateLoading}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Apply Template
-                      </Button>
                     </div>
                     <div className="space-y-1">
                      {templateFoods.map((food) => (
