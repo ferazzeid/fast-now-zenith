@@ -15,6 +15,18 @@ function buildCorsHeaders(origin: string | null) {
   } as const;
 }
 
+// Simple in-memory burst limiter per user/function
+const burstTracker = new Map<string, number[]>();
+function checkBurstLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const windowStart = now - windowMs;
+  const timestamps = (burstTracker.get(key) || []).filter(ts => ts > windowStart);
+  if (timestamps.length >= limit) return false;
+  timestamps.push(now);
+  burstTracker.set(key, timestamps);
+  return true;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
@@ -48,6 +60,14 @@ serve(async (req) => {
     }
 
     const userId = userData.user.id;
+
+    // Enforce soft burst limit: 5 requests / 10 seconds per user
+    if (!checkBurstLimit(`${userId}:transcribe`, 5, 10_000)) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Get user profile and check subscription status
     const { data: profile, error: profileError } = await supabase
