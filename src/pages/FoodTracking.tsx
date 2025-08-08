@@ -647,20 +647,8 @@ const FoodTracking = () => {
                   </Button>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="template" className="text-sm relative">
-                Daily Template
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-2 h-5 w-5 p-0 hover:bg-primary/10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowSaveTemplateDialog(true);
-                  }}
-                  aria-label="Save as daily template"
-                >
-                  <Save className="h-3 w-3" />
-                </Button>
+              <TabsTrigger value="template" className="font-medium">
+                {templateFoods.length} Foods
               </TabsTrigger>
             </TabsList>
             
@@ -769,24 +757,62 @@ const FoodTracking = () => {
           
           </TabsContent>
           
-          <TabsContent value="template" className="space-y-4">
-            <div className="space-y-4">
-              {templateFoods.length > 0 ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm text-muted-foreground">
-                      {templateFoods.length} food{templateFoods.length !== 1 ? 's' : ''} in daily template
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleApplyTemplate}
-                      disabled={templateLoading}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Apply Template
-                    </Button>
-                  </div>
+            <TabsContent value="template" className="mt-4">
+              <div className="space-y-4">
+                {templateFoods.length > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="activate-daily"
+                          checked={profile?.enable_daily_reset || false}
+                          onCheckedChange={async (checked) => {
+                            const result = await updateProfile({ enable_daily_reset: checked });
+                            if (result.error) {
+                              toast({
+                                variant: "destructive",
+                                title: "Error",
+                                description: "Failed to update daily reset setting"
+                              });
+                            } else {
+                              toast({
+                                title: checked ? "Daily Reset Activated" : "Daily Reset Deactivated",
+                                description: checked 
+                                  ? "Your template will automatically apply each day at midnight"
+                                  : "Automatic daily reset has been disabled"
+                              });
+                            }
+                          }}
+                        />
+                        <Label htmlFor="activate-daily" className="text-sm font-medium">
+                          Activate Daily
+                        </Label>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>When enabled, your template will automatically replace today's plan each day at midnight in your local timezone</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-muted-foreground">
+                        {templateFoods.length} food{templateFoods.length !== 1 ? 's' : ''} in daily template
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleApplyTemplate}
+                        disabled={templateLoading}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Apply Template
+                      </Button>
+                    </div>
                     <div className="space-y-1">
                      {templateFoods.map((food) => (
                        <div key={food.id} className="flex items-center justify-between p-2 bg-muted/20 border-0 rounded-lg">
