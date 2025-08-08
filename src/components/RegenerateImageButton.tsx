@@ -47,7 +47,7 @@ export const RegenerateImageButton = ({
     // Get settings
     let primaryColor = "220 35% 45%";
     let adminTemplate: string | undefined;
-    let selectedPreset = 'minimalist_bw';
+     let selectedPreset = 'photorealistic';
     try {
       const { data: settingsData } = await supabase
         .from('shared_settings')
@@ -64,10 +64,11 @@ export const RegenerateImageButton = ({
 
       // Style presets
       const STYLE_PRESETS: Record<string, string> = {
-        'minimalist_bw': 'Artistic interpretation of {concept} as a flowing black and white minimalist symbol. Organic shapes and curves that capture the essence and emotion of the concept. Hand-drawn quality with natural, flowing lines rather than rigid geometry. Strong contrast with expressive negative space. No text, no letters, no words. Artistic representation that conveys feeling and meaning through abstract organic forms. Centered composition, 1:1 square format.',
-        'vibrant_color': 'Abstract artistic interpretation of {concept} using flowing vibrant colors and organic shapes. Expressive brushstrokes and natural forms that capture the emotional essence of the concept. Warm, inspiring color palette with smooth gradients and artistic texture. No geometric constraints, no rigid shapes, no literal objects. Pure emotional and artistic expression through color and form. Square format, fine art quality.',
         'photorealistic': 'Conceptual atmospheric photography representing the essence of {concept}. Moody cinematic lighting with dramatic perspective and depth. Contemporary artistic interpretation through environmental elements, textures, and atmospheric conditions. Focus on mood and feeling rather than literal objects. Dynamic composition with interesting angles, modern aesthetic. Professional fine art photography quality. No people, no text. Square format.',
-        'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
+        'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.',
+        'abstract_geometric': 'Modern abstract geometric interpretation of {concept} using clean lines, bold shapes, and sophisticated color harmony. Contemporary design aesthetic with purposeful negative space and balanced composition. Emphasis on form, rhythm, and visual metaphor rather than literal representation. Professional graphic design quality with artistic sophistication. Square format.',
+        'ink_illustration': 'Expressive ink drawing interpretation of {concept} with flowing linework and dynamic brush strokes. Traditional media aesthetic with organic texture and artistic spontaneity. Emphasis on movement, energy, and emotional expression through gestural marks. Black ink on white with subtle gray washes. Hand-drawn artistic quality, square format.',
+        'sculptural_3d': 'Three-dimensional sculptural representation of {concept} with dramatic lighting and artistic form. Contemporary art installation aesthetic with interesting materials and textures. Focus on volume, shadow, and spatial relationships. Museum-quality fine art photography of conceptual sculpture. Clean background, professional lighting, square format.'
       };
 
     const defaultConceptTemplate = "Simple black and white icon of {concept}";
@@ -121,7 +122,7 @@ export const RegenerateImageButton = ({
       // Brand colors and style preset
       let primaryColor = "220 35% 45%";
       let adminTemplate: string | undefined;
-      let selectedPreset = 'minimalist_bw';
+      let selectedPreset = 'photorealistic';
       try {
         const { data: settingsData } = await supabase
           .from('shared_settings')
@@ -138,10 +139,11 @@ export const RegenerateImageButton = ({
 
       // Define style presets
       const STYLE_PRESETS: Record<string, string> = {
-        'minimalist_bw': 'Artistic interpretation of {concept} as a flowing black and white minimalist symbol. Organic shapes and curves that capture the essence and emotion of the concept. Hand-drawn quality with natural, flowing lines rather than rigid geometry. Strong contrast with expressive negative space. No text, no letters, no words. Artistic representation that conveys feeling and meaning through abstract organic forms. Centered composition, 1:1 square format.',
-        'vibrant_color': 'Abstract artistic interpretation of {concept} using flowing vibrant colors and organic shapes. Expressive brushstrokes and natural forms that capture the emotional essence of the concept. Warm, inspiring color palette with smooth gradients and artistic texture. No geometric constraints, no rigid shapes, no literal objects. Pure emotional and artistic expression through color and form. Square format, fine art quality.',
         'photorealistic': 'Conceptual atmospheric photography representing the essence of {concept}. Moody cinematic lighting with dramatic perspective and depth. Contemporary artistic interpretation through environmental elements, textures, and atmospheric conditions. Focus on mood and feeling rather than literal objects. Dynamic composition with interesting angles, modern aesthetic. Professional fine art photography quality. No people, no text. Square format.',
-        'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
+        'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.',
+        'abstract_geometric': 'Modern abstract geometric interpretation of {concept} using clean lines, bold shapes, and sophisticated color harmony. Contemporary design aesthetic with purposeful negative space and balanced composition. Emphasis on form, rhythm, and visual metaphor rather than literal representation. Professional graphic design quality with artistic sophistication. Square format.',
+        'ink_illustration': 'Expressive ink drawing interpretation of {concept} with flowing linework and dynamic brush strokes. Traditional media aesthetic with organic texture and artistic spontaneity. Emphasis on movement, energy, and emotional expression through gestural marks. Black ink on white with subtle gray washes. Hand-drawn artistic quality, square format.',
+        'sculptural_3d': 'Three-dimensional sculptural representation of {concept} with dramatic lighting and artistic form. Contemporary art installation aesthetic with interesting materials and textures. Focus on volume, shadow, and spatial relationships. Museum-quality fine art photography of conceptual sculpture. Clean background, professional lighting, square format.'
       };
 
       // Default concept-based template (simple black & white)
