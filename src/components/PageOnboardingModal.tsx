@@ -48,10 +48,10 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 relative z-10">
           {/* Hero Quote */}
           {heroQuote && (
-            <div className="bg-muted/30 rounded-xl border border-border/50 p-4 relative">
+            <div className="bg-muted/30 rounded-xl border border-border/50 p-4 relative mt-4">
               <Quote className="w-5 h-5 text-warm-text/40 absolute top-3 left-3" />
               <blockquote className="text-sm italic text-warm-text/90 leading-relaxed pl-8">
                 "{heroQuote}"
@@ -60,7 +60,7 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
           )}
 
           {/* Content sections */}
-          <div className="space-y-4">
+          <div className="space-y-4 mt-4">
             {children}
           </div>
         </div>
