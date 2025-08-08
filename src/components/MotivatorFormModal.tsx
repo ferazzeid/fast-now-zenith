@@ -348,6 +348,18 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               onImageUpload={setImageUrl}
               onImageRemove={() => setImageUrl('')}
               showUploadOptionsWhenImageExists={true}
+              regenerateButton={
+                imageUrl && (title || content) ? (
+                  <RegenerateImageButton
+                    prompt={`${title}. ${content}`}
+                    filename={`motivator-${motivator?.id || Date.now()}.jpg`}
+                    onImageGenerated={setImageUrl}
+                    motivatorId={motivator?.id}
+                    mode="motivator"
+                    disabled={isGeneratingImage}
+                  />
+                ) : undefined
+              }
               aiGenerationPrompt={title || content ? `${title}. ${content}` : undefined}
               motivatorId={motivator?.id}
               onAiGenerate={handleGenerateImage}

@@ -204,8 +204,12 @@ export const ImageUpload = ({
               <X className="w-4 h-4" />
             </Button>
             
-            {/* AI Generate/Regenerate button positioned on image */}
-            {aiGenerationPrompt && (
+            {/* Custom regenerate button or default AI button */}
+            {regenerateButton ? (
+              <div className="absolute top-2 right-12">
+                {regenerateButton}
+              </div>
+            ) : aiGenerationPrompt && (
               <div className="absolute top-2 right-12">
                 <PremiumGate feature="AI Image Generation" showUpgrade={false}>
                   <Button
