@@ -655,7 +655,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       {/* Clean Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
-          <div className="px-6 py-3 bg-background sticky top-[64px] z-20 border-b border-border">
+          <div className="px-6 py-3 bg-background sticky top-0 z-20 border-b border-border">
             <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 

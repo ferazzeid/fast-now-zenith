@@ -15,7 +15,7 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
   className = '' 
 }) => {
   return (
-    <div className={className}>
+    <div className={`relative overflow-hidden rounded-xl ${className}`}>
       <FastingTimelineV2 currentHour={currentFastingHour} />
       {quotes && quotes.length > 0 && (
         <InspirationQuote quotes={quotes} className="mt-4" />

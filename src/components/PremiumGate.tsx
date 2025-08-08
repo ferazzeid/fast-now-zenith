@@ -95,7 +95,6 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     }
   };
 
-  // For free users, show grayed out content with click handler
   if (!hasAccess && (effectiveRole === 'free_user' || grayOutForFree)) {
     const handleGrayedClick = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -116,33 +115,24 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       });
     };
 
-    // Simple approach: just gray out without any wrappers or overlays
-    if (isValidElement(children)) {
-      const originalChild = children as ReactElement<any>;
-      
-      return cloneElement(originalChild, {
-        className: cn(
-          originalChild.props.className,
-          "opacity-40 grayscale cursor-not-allowed",
-          className
-        ),
-        onClick: handleGrayedClick,
-        disabled: true,
-        style: {
-          ...originalChild.props.style,
-          pointerEvents: 'auto'
-        }
-      });
-    }
-
-    // Fallback for non-React elements - simplified wrapper
     return (
-      <div 
-        className={cn("opacity-40 grayscale cursor-not-allowed", className)}
-        onClick={handleGrayedClick}
-        style={{ pointerEvents: 'auto' }}
-      >
-        {children}
+      <div className={cn("relative", className)}>
+        {/* Content dimmed but layout preserved */}
+        <div className="grayscale opacity-50 pointer-events-none select-none">
+          {children}
+        </div>
+
+        {/* Click-catcher overlay to trigger upgrade toast */}
+        <div
+          className="absolute inset-0 z-10"
+          onClick={handleGrayedClick}
+          aria-hidden="true"
+        />
+
+        {/* Corner lock that doesn't affect layout */}
+        <div className="absolute top-1.5 right-1.5 z-20 rounded-full bg-background/80 border border-border p-1 shadow-sm pointer-events-none">
+          <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+        </div>
       </div>
     );
   }

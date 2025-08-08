@@ -107,7 +107,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
             className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
           >
             <Camera className="w-6 h-6" />
-            <span className="text-sm">Take Photo</span>
+            <span className="text-sm">Use camera</span>
           </Button>
           
           <Button
@@ -117,7 +117,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
             className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
           >
             <Image className="w-6 h-6" />
-            <span className="text-sm">Choose Photo</span>
+            <span className="text-sm">Upload photo</span>
           </Button>
         </div>
       ) : (
@@ -136,7 +136,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
           ) : (
             <>
               <Upload className="w-6 h-6" />
-              <span className="text-sm">Choose or Drop Image</span>
+              <span className="text-sm">Upload photo</span>
             </>
           )}
         </Button>

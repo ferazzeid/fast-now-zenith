@@ -281,10 +281,12 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               </div>
               
               <div className="space-y-4">
+              <div className="flex justify-center">
                 <CircularVoiceButton 
                   onTranscription={handleVoiceInput}
                   size="lg"
                 />
+              </div>
                 
                 <Button
                   variant="outline"
