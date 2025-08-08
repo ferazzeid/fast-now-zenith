@@ -18,6 +18,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const { data: hours, isLoading } = useFastingHoursQuery();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (!hasUserInteracted) {
@@ -42,7 +43,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const rotation = useContentRotation({
     fastingHour: selected || null,
     autoRotate: true,
-    rotationInterval: 6000 // Use the slower rotation interval
+    rotationInterval: 10000 // Much slower - 10 seconds
   });
 
   const getContentTypeLabel = (type: string) => {
@@ -110,17 +111,23 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
               </div>
             )}
 
-            <div className="min-h-[80px]">
+            <div className="min-h-[80px] relative">
               {rotation.totalVariants > 1 ? (
-                <div className="transition-all duration-500 ease-in-out">
+                <div className="relative">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-medium text-muted-foreground">
                       {getContentTypeLabel(rotation.currentType)}
                     </h4>
                   </div>
-                  <p className="text-sm text-foreground transition-all duration-500 ease-in-out animate-fade-in">
+                  <div 
+                    key={`${rotation.currentIndex}-${rotation.currentType}`}
+                    className="text-sm text-foreground animate-fade-in"
+                    style={{
+                      animation: 'fade-in 0.8s ease-in-out'
+                    }}
+                  >
                     {rotation.currentContent}
-                  </p>
+                  </div>
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">

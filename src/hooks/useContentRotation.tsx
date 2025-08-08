@@ -18,7 +18,7 @@ interface ContentRotationState {
 export function useContentRotation({
   fastingHour,
   autoRotate = true,
-  rotationInterval = 6000 // Slower rotation - 6 seconds
+  rotationInterval = 10000 // Much slower - 10 seconds between changes
 }: UseContentRotationProps) {
   const [rotationState, setRotationState] = useState<ContentRotationState>({
     currentContent: '',
@@ -114,7 +114,7 @@ export function useContentRotation({
     }
   }, [fastingHour, buildContentVariants]);
 
-  // Auto-rotation logic
+  // Auto-rotation logic with fade transition
   useEffect(() => {
     if (!rotationState.isRotating || rotationState.totalVariants <= 1) return;
     
@@ -123,7 +123,7 @@ export function useContentRotation({
         if (!fastingHour) return prev;
         
         const variants = fastingHour.content_rotation_data?.variants?.length 
-          ? fastingHour.content_rotation_data.variants
+          ? fastingHour.content_rotation_data.variants.filter(v => v.content && !v.content.includes('coming soon'))
           : buildContentVariants(fastingHour);
           
         const nextIndex = (prev.currentIndex + 1) % variants.length;
@@ -131,8 +131,8 @@ export function useContentRotation({
         
         return {
           ...prev,
-          currentContent: nextVariant.content,
-          currentType: nextVariant.type,
+          currentContent: nextVariant?.content || '',
+          currentType: nextVariant?.type || 'metabolic',
           currentIndex: nextIndex
         };
       });
