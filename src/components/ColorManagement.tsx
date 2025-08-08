@@ -209,12 +209,6 @@ export const ColorManagement: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Brand Colors</CardTitle>
-        <CardDescription>
-          Customize your app's brand colors. Changes apply instantly as a preview.
-        </CardDescription>
-      </CardHeader>
       <CardContent className="space-y-6">
         {/* Color Pickers Grid */}
         <div className="grid grid-cols-4 gap-4">

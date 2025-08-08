@@ -167,12 +167,7 @@ export const SimpleAnalyticsWidget = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center justify-between">
-          Real-Time Analytics
-          <Button variant="outline" size="sm" onClick={refreshData}>
-            Refresh
-          </Button>
-        </CardTitle>
+        <CardTitle className="text-lg">Real-Time Analytics</CardTitle>
       </CardHeader>
       <CardContent>
         {!gaConfigured && (

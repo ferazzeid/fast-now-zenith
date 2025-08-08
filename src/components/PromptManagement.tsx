@@ -197,23 +197,13 @@ export const PromptManagement: React.FC = () => {
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wand2 className="w-5 h-5" />
-            AI Prompt Configuration
-          </CardTitle>
-          <CardDescription>Loading AI prompts...</CardDescription>
-        </CardHeader>
+        <CardContent>Loading...</CardContent>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Wand2 className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-semibold text-foreground">AI Prompt Configuration</h2>
-      </div>
       
 
       {PROMPT_CONFIGS.map((config) => (

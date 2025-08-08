@@ -388,15 +388,7 @@ export const AdminTimelineSettings = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Fasting Timeline Settings
-        </CardTitle>
-        <CardDescription>
-          Manage tooltip content for each hour of the fasting timeline (1-72 hours)
-        </CardDescription>
-      </CardHeader>
+      
       <CardContent className="space-y-6">
         
 

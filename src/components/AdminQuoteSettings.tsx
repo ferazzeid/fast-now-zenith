@@ -140,112 +140,86 @@ export const AdminQuoteSettings: React.FC = () => {
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-6">
-        {/* Fasting Timer Quotes */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium">Fasting Timer Quotes</h3>
-            <Button
-              size="sm"
-              onClick={() => handleAddQuote('fasting_timer_quotes')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add
-            </Button>
-          </div>
-          
-
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {quotes.fasting_timer_quotes.map((quote, index) => (
-              <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm italic">"{quote.text}"</p>
-                  {quote.author && (
-                    <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
-                  )}
+    <>
+      <Card>
+        <CardContent className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium">Fasting Timer Quotes</h3>
+              <Button size="sm" onClick={() => handleAddQuote('fasting_timer_quotes')}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {quotes.fasting_timer_quotes.map((quote, index) => (
+                <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm italic">"{quote.text}"</p>
+                    {quote.author && (
+                      <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'fasting_timer_quotes')}>
+                      <Edit2 className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'fasting_timer_quotes')}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEditQuote(quote, index, 'fasting_timer_quotes')}
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteQuote(index, 'fasting_timer_quotes')}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+              ))}
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">{quotes.fasting_timer_quotes.length} quotes</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium">Walking Timer Quotes</h3>
+              <Button size="sm" onClick={() => handleAddQuote('walking_timer_quotes')}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {quotes.walking_timer_quotes.map((quote, index) => (
+                <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm italic">"{quote.text}"</p>
+                    {quote.author && (
+                      <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'walking_timer_quotes')}>
+                      <Edit2 className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'walking_timer_quotes')}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            {quotes.fasting_timer_quotes.length} quotes
-          </div>
-        </div>
-
-        {/* Walking Timer Quotes */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-medium">Walking Timer Quotes</h3>
-            <Button
-              size="sm"
-              onClick={() => handleAddQuote('walking_timer_quotes')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add
-            </Button>
+              ))}
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">{quotes.walking_timer_quotes.length} quotes</div>
           </div>
 
-
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {quotes.walking_timer_quotes.map((quote, index) => (
-              <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm italic">"{quote.text}"</p>
-                  {quote.author && (
-                    <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
-                  )}
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEditQuote(quote, index, 'walking_timer_quotes')}
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteQuote(index, 'walking_timer_quotes')}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            {quotes.walking_timer_quotes.length} quotes
-          </div>
-        </div>
-
-        <QuoteEditModal
-          quote={editingQuote?.quote}
-          isOpen={showModal}
-          onSave={handleSaveQuote}
-          onClose={() => {
-            setShowModal(false);
-            setEditingQuote(null);
-          }}
-        />
-      </CardContent>
-    </Card>
+          <QuoteEditModal
+            quote={editingQuote?.quote}
+            isOpen={showModal}
+            onSave={handleSaveQuote}
+            onClose={() => {
+              setShowModal(false);
+              setEditingQuote(null);
+            }}
+          />
+        </CardContent>
+      </Card>
+    </>
   );
 };
