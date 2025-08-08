@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CriticalErrorBoundary, PageErrorBoundary } from "@/components/enhanced/ComprehensiveErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
@@ -40,6 +40,10 @@ import { useAuthStore } from '@/stores/authStore';
 
 // Using optimized query client from @/lib/query-client
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
+const AdminOperations = lazy(() => import("./pages/admin/Operations"));
+const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminBranding = lazy(() => import("./pages/admin/Branding"));
+const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 const AppContent = () => {
   // Load color theme on app startup
   useColorTheme();
