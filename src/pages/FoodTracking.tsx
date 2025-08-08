@@ -589,6 +589,7 @@ const FoodTracking = () => {
                 variant="ai"
                 size="action-tall"
                 className="flex items-center justify-center"
+                aria-label="Add food with voice"
               >
                 <Mic className="w-5 h-5" />
               </Button>
@@ -639,6 +640,7 @@ const FoodTracking = () => {
                       e.stopPropagation();
                       setShowClearAllDialog(true);
                     }}
+                    aria-label="Clear all foods"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -654,6 +656,7 @@ const FoodTracking = () => {
                     e.stopPropagation();
                     setShowSaveTemplateDialog(true);
                   }}
+                  aria-label="Save as daily template"
                 >
                   <Save className="h-3 w-3" />
                 </Button>
@@ -725,6 +728,7 @@ const FoodTracking = () => {
                             size="sm" 
                             variant="ghost" 
                             className="h-5 w-5 p-1 hover:bg-secondary/80 rounded"
+                            aria-label="More options"
                           >
                             <MoreVertical className="w-3 h-3 text-primary" />
                           </Button>
@@ -751,6 +755,7 @@ const FoodTracking = () => {
                         onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
                         className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
                         title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                        aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
                       >
                         <Check className="w-3 h-3 text-primary-foreground" />
                       </Button>

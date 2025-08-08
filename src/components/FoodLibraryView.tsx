@@ -552,6 +552,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     size="sm"
                     className="p-1 h-5 w-5 hover:bg-secondary/80 rounded"
                     title="More options"
+                    aria-label="More options"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <MoreVertical className="w-3 h-3 text-primary" />
@@ -608,6 +609,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 }}
                 className="h-5 w-5 p-1 flex-shrink-0 rounded"
                 title={isUserFood ? "Add to today's plan" : "Import to your library"}
+                aria-label={isUserFood ? "Add to today's plan" : "Import to your library"}
               >
                 {isUserFood ? (
                   <Plus className="w-3 h-3" />
