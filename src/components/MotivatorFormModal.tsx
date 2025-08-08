@@ -36,6 +36,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [bgPending, setBgPending] = useState(false);
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();
 
@@ -48,6 +49,31 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       setImageUrl(motivator.imageUrl || '');
     }
   }, [motivator]);
+
+  // Real-time: attach image when background generation completes
+  useEffect(() => {
+    if (!motivator?.id || !bgPending) return;
+    const channel = supabase
+      .channel(`motivator-image-${motivator.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'motivators',
+        filter: `id=eq.${motivator.id}`
+      }, (payload: any) => {
+        const url = payload?.new?.image_url;
+        if (url) {
+          setImageUrl(url);
+          setBgPending(false);
+          toast({ title: 'Image ready', description: 'AI image generated and saved.' });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      try { supabase.removeChannel(channel); } catch {}
+    };
+  }, [motivator?.id, bgPending]);
 
   const handleGenerateImage = async () => {
     if (!title.trim() && !content.trim()) {
@@ -75,12 +101,14 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         } catch {}
 
         // Trigger background generation via edge function
+        const { data: authData } = await supabase.auth.getUser();
+        const uid = authData?.user?.id;
         const { error } = await supabase.functions.invoke('generate-image', {
           body: {
             prompt: `${title}. ${content}`,
             filename: `motivator-${motivator.id}-${Date.now()}.jpg`,
             motivatorId: motivator.id,
-            userId: motivator.id, // We'll use the user from edge function auth
+            userId: uid,
             apiKey
           }
         });
@@ -89,9 +117,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           throw error;
         }
 
+        setBgPending(true);
         toast({
           title: "✨ Generating image...",
-          description: "Your image is being generated in the background. You can safely navigate away.",
+          description: "You can close this modal; the image will attach automatically when ready.",
         });
       } catch (error) {
         toast({
@@ -303,6 +332,11 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           </div>
 
           <div className="space-y-2">
+            {bgPending && (
+              <div className="text-xs text-muted-foreground bg-muted/40 border border-muted rounded-md p-2">
+                Generating image in background… You can close this modal; it will attach automatically.
+              </div>
+            )}
             <ImageUpload
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
