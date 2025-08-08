@@ -102,6 +102,13 @@ serve(async (req) => {
     // Resolve API key priority: user key > header > shared_settings > env
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
     let OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
+    // If the user is set to use own key but it's missing, do NOT fallback
+    if (profile.use_own_api_key && !OPENAI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'User OpenAI API key not configured' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     if (!OPENAI_API_KEY) {
       const { data: sharedKey } = await supabase
         .from('shared_settings')
