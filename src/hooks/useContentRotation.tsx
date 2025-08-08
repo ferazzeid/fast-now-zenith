@@ -76,10 +76,15 @@ export function useContentRotation({
 
     let variants: ContentVariant[] = [];
     
-    // Try to use provided rotation data first and filter out empty content
+    // Try to use provided rotation data first and filter out empty content and \n characters
     if (fastingHour.content_rotation_data?.variants?.length) {
       console.log('Using provided rotation data:', fastingHour.content_rotation_data.variants);
-      variants = fastingHour.content_rotation_data.variants.filter(v => v.content && v.content.trim() !== '' && !v.content.includes('coming soon'));
+      variants = fastingHour.content_rotation_data.variants
+        .filter(v => v.content && v.content.trim() !== '' && !v.content.includes('coming soon'))
+        .map(v => ({
+          ...v,
+          content: v.content.replace(/\\n/g, ' ').replace(/\n/g, ' ').trim()
+        }));
     }
     
     // If no valid variants from rotation data, build them
@@ -91,14 +96,12 @@ export function useContentRotation({
     console.log('Final variants for display:', variants);
     
     if (variants.length > 0) {
-      const startIndex = fastingHour.content_rotation_data?.current_index || 0;
-      const validIndex = Math.min(startIndex, variants.length - 1);
-      
+      // Reset to first variant when hour changes
       setRotationState(prev => ({
         ...prev,
-        currentContent: variants[validIndex]?.content || '',
-        currentType: variants[validIndex]?.type || 'metabolic',
-        currentIndex: validIndex,
+        currentContent: variants[0]?.content || '',
+        currentType: variants[0]?.type || 'metabolic',
+        currentIndex: 0,
         totalVariants: variants.length
       }));
     } else {
