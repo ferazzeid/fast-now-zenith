@@ -47,12 +47,8 @@ function pickHeuristicConcept(title: string, content: string): string {
     if (map.keywords.test(full)) return map.concept;
   }
 
-  // Fallback: pick the first meaningful token or a default
-  const tokens = tokenize(full);
-  if (tokens.length === 0) return "star";
-
-  const first = tokens[0];
-  return first.length <= 18 ? first : "star";
+  // Always return a concrete object, never abstract words
+  return "star";
 }
 
 async function extractConceptWithAI(title: string, content: string, apiKey: string): Promise<string | null> {
