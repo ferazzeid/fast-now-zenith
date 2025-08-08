@@ -30,47 +30,86 @@ export function useContentRotation({
 
   // Build content variants from fastingHour data
   const buildContentVariants = useCallback((hour: FastingHour): ContentVariant[] => {
+    console.log('Building content variants for hour:', hour.hour, hour);
+    
     const variants: ContentVariant[] = [];
     
     if (hour.metabolic_changes) {
       variants.push({ type: 'metabolic', content: hour.metabolic_changes });
     }
+    
     if (hour.physiological_effects) {
       variants.push({ type: 'physiological', content: hour.physiological_effects });
     }
-    if (hour.mental_emotional_state?.length) {
-      variants.push({ type: 'mental', content: hour.mental_emotional_state.join(', ') });
+    
+    if (hour.mental_emotional_state && hour.mental_emotional_state.length > 0) {
+      variants.push({ type: 'mental', content: hour.mental_emotional_state.join('. ') });
     }
+    
     if (hour.benefits_challenges) {
       variants.push({ type: 'benefits', content: hour.benefits_challenges });
     }
+    
     if (hour.content_snippet) {
       variants.push({ type: 'snippet', content: hour.content_snippet });
     }
     
-    return variants.length > 0 ? variants : [
-      { type: 'metabolic', content: hour.body_state || hour.title }
-    ];
+    // Fallback to body_state if no other content
+    if (variants.length === 0 && hour.body_state) {
+      variants.push({ type: 'physiological', content: hour.body_state });
+    }
+    
+    console.log('Built variants:', variants);
+    return variants;
   }, []);
 
   // Update rotation state when fastingHour changes
   useEffect(() => {
-    if (!fastingHour) return;
+    console.log('Content rotation effect triggered with fastingHour:', fastingHour);
     
-    const variants = fastingHour.content_rotation_data?.variants?.length 
-      ? fastingHour.content_rotation_data.variants
-      : buildContentVariants(fastingHour);
+    if (!fastingHour) {
+      console.log('No fasting hour provided');
+      return;
+    }
+
+    let variants: ContentVariant[] = [];
     
-    const startIndex = fastingHour.content_rotation_data?.current_index || 0;
-    const validIndex = Math.min(startIndex, variants.length - 1);
+    // Try to use provided rotation data first and filter out empty content
+    if (fastingHour.content_rotation_data?.variants?.length) {
+      console.log('Using provided rotation data:', fastingHour.content_rotation_data.variants);
+      variants = fastingHour.content_rotation_data.variants.filter(v => v.content && v.content.trim() !== '' && !v.content.includes('coming soon'));
+    }
     
-    setRotationState(prev => ({
-      ...prev,
-      currentContent: variants[validIndex]?.content || '',
-      currentType: variants[validIndex]?.type || 'metabolic',
-      currentIndex: validIndex,
-      totalVariants: variants.length
-    }));
+    // If no valid variants from rotation data, build them
+    if (variants.length === 0) {
+      console.log('Building variants from hour data');
+      variants = buildContentVariants(fastingHour);
+    }
+    
+    console.log('Final variants for display:', variants);
+    
+    if (variants.length > 0) {
+      const startIndex = fastingHour.content_rotation_data?.current_index || 0;
+      const validIndex = Math.min(startIndex, variants.length - 1);
+      
+      setRotationState(prev => ({
+        ...prev,
+        currentContent: variants[validIndex]?.content || '',
+        currentType: variants[validIndex]?.type || 'metabolic',
+        currentIndex: validIndex,
+        totalVariants: variants.length
+      }));
+    } else {
+      // Fallback if no variants
+      console.log('No variants found, using fallback');
+      setRotationState(prev => ({
+        ...prev,
+        currentContent: fastingHour.body_state || "Information will be available soon.",
+        currentType: 'physiological',
+        currentIndex: 0,
+        totalVariants: 1
+      }));
+    }
   }, [fastingHour, buildContentVariants]);
 
   // Auto-rotation logic
