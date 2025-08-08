@@ -28,8 +28,8 @@ const PROMPT_CONFIGS: PromptConfig[] = [
   {
     key: 'ai_image_food_prompt',
     title: 'Food Image Generation',
-    description: 'Controls how AI generates images for food items in the food tracking system.',
-    defaultPrompt: 'A lightly cartoony and semi-realistic illustration of {food_name}, food illustration style, clean background, appetizing, vibrant colors. Style should match this color theme: {primary_color} primary, {accent_color} accent. Clean, professional food photography style with soft lighting.',
+    description: 'Product packshot on white — single item, close-up, no props or background.',
+    defaultPrompt: 'Studio product photo of {food_name} on a pristine white seamless background. Tight close-up, subject fills 80–90% of the frame, centered. Commercial e-commerce packshot, soft diffused studio lighting, crisp focus, neutral soft shadow beneath. Single item only — no plates, no cutting boards, no bowls, no utensils, no hands, no garnishes, no crumbs, no text, no logos, no extra props, no background elements. Color: natural and true-to-life; avoid color casts. If any accent is unavoidable, keep it minimal and aligned with hsl({primary_color}).',
     variables: ['{food_name}', '{primary_color}', '{accent_color}']
   },
   {
