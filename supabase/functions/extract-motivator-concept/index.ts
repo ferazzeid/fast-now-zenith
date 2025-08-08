@@ -114,14 +114,24 @@ serve(async (req) => {
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
 
     let concept = "";
+    console.log(`Processing title: "${title}", content: "${content}"`);
+    
     if (openaiKey) {
+      console.log('OpenAI key found, trying AI extraction...');
       const aiConcept = await extractConceptWithAI(String(title), String(content), openaiKey);
+      console.log(`AI extraction result: "${aiConcept}"`);
       if (aiConcept) concept = aiConcept;
+    } else {
+      console.log('No OpenAI key found, skipping AI extraction');
     }
 
     if (!concept) {
+      console.log('Using heuristic fallback...');
       concept = pickHeuristicConcept(String(title), String(content));
+      console.log(`Heuristic result: "${concept}"`);
     }
+
+    console.log(`Final concept: "${concept}"`);
 
     return new Response(
       JSON.stringify({ concept }),
