@@ -29,7 +29,7 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     key: 'ai_image_food_prompt',
     title: 'Food Image Generation',
     description: 'Product packshot on white — single item, close-up, no props or background.',
-    defaultPrompt: 'Studio product photo of {food_name} on a pristine white seamless background. Tight close-up, subject fills 80–90% of the frame, centered. Commercial e-commerce packshot, soft diffused studio lighting, crisp focus, neutral soft shadow beneath. Single item only — no plates, no cutting boards, no bowls, no utensils, no hands, no garnishes, no crumbs, no text, no logos, no extra props, no background elements. Color: natural and true-to-life; avoid color casts. If any accent is unavoidable, keep it minimal and aligned with hsl({primary_color}).',
+    defaultPrompt: 'Professional product photograph of {food_name} only, isolated on pure white seamless background. Shot from 45-degree angle, tight close-up composition, subject fills 85% of frame. Studio lighting setup with soft diffused key light, minimal shadow directly beneath. Commercial packshot quality, sharp focus, natural colors. Zero props: no plates, no bowls, no cutting boards, no utensils, no hands, no garnishes, no herbs, no spices, no crumbs, no napkins, no decorative elements whatsoever. Single food item only, nothing else visible. E-commerce product photography style.',
     variables: ['{food_name}', '{primary_color}', '{accent_color}']
   },
   {
