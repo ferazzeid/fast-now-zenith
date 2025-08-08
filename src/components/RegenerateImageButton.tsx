@@ -31,8 +31,8 @@ export const RegenerateImageButton = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Use a clean, focused prompt template (non-cartoony)
-      let promptTemplate = "Minimal, modern illustration representing: {title}. {content}. Single clear subject, geometric shapes, soft gradients, flat design, non-cartoony, professional. Focus on the key object of desire. Use brand colors: {primary_color} and {accent_color}. Clean background, no text, no logos.";
+      // Use a clean, brand-locked tri‑tone prompt template
+      let promptTemplate = "Minimalist vector poster, Swiss/International Typographic style. Tri-tone palette only: white (#ffffff), near-black (#0a0a0a), and brand primary hsl({primary_color}). Use at most two subtle tints of the brand primary (20% and 40%). White background, centered composition with ~10% margin, bold outlines, smooth geometric shapes. No gradients, no textures, no photorealism, no tiny text or logos. 1:1 square. Visual metaphor for: {title}. {content}.";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       

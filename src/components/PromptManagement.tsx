@@ -21,9 +21,9 @@ const PROMPT_CONFIGS: PromptConfig[] = [
   {
     key: 'ai_image_motivator_prompt',
     title: 'Motivator Image Generation',
-    description: 'Controls how AI generates images for motivational content, personal motivators, and goal templates.',
-    defaultPrompt: 'Modern cartoon illustration, minimalist style with soft rounded shapes and clean lines. Use warm, encouraging aesthetic with {primary_color} as main color theme and {accent_color} for highlights and accents. Subject: {title}. {content}. Style: symbolic representation rather than literal, simple and uplifting, suitable for wellness/motivation app, soft pastel gradient background, clean composition. Avoid photorealistic elements, focus on iconic/symbolic imagery that represents the concept.',
-    variables: ['{title}', '{content}', '{primary_color}', '{accent_color}']
+    description: 'Tri-tone, brand-locked style for Goals/Motivators (white, near-black, and your primary color).',
+    defaultPrompt: 'Minimalist vector poster, Swiss/International Typographic style. Tri-tone palette only: white (#ffffff), near-black (#0a0a0a), and brand primary hsl({primary_color}). Use at most two subtle tints of the brand primary (20% and 40%). White background, centered composition with ~10% margin, bold outlines, smooth geometric shapes. No gradients, no textures, no photorealism, no tiny text or logos. 1:1 square. Visual metaphor for: {title}. {content}.',
+    variables: ['{title}', '{content}', '{primary_color}']
   },
   {
     key: 'ai_image_food_prompt',

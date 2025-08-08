@@ -100,12 +100,34 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           }
         } catch {}
 
+        // Build brand-locked tri‑tone prompt (or use admin override if set)
+        let promptTemplate = "Minimalist vector poster, Swiss/International Typographic style. Tri-tone palette only: white (#ffffff), near-black (#0a0a0a), and brand primary hsl({primary_color}). Use at most two subtle tints of the brand primary (20% and 40%). White background, centered composition with ~10% margin, bold outlines, smooth geometric shapes. No gradients, no textures, no photorealism, no tiny text or logos. 1:1 square. Visual metaphor for: {title}. {content}.";
+        let primaryColor = "220 35% 45%";
+        try {
+          const { data: settingsData } = await supabase
+            .from('shared_settings')
+            .select('setting_key, setting_value')
+            .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color']);
+          settingsData?.forEach(setting => {
+            if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
+              promptTemplate = setting.setting_value;
+            } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
+              primaryColor = setting.setting_value;
+            }
+          });
+        } catch {}
+
+        const enhancedPrompt = promptTemplate
+          .replace(/{title}/g, title)
+          .replace(/{content}/g, content)
+          .replace(/{primary_color}/g, primaryColor);
+
         // Trigger background generation via edge function
         const { data: authData } = await supabase.auth.getUser();
         const uid = authData?.user?.id;
         const { error } = await supabase.functions.invoke('generate-image', {
           body: {
-            prompt: `${title}. ${content}`,
+            prompt: enhancedPrompt,
             filename: `motivator-${motivator.id}-${Date.now()}.jpg`,
             motivatorId: motivator.id,
             userId: uid,
@@ -136,7 +158,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     setIsGeneratingImage(true);
     try {
       // Use improved minimalist, non-cartoony prompt template
-      let promptTemplate = "Minimal, modern illustration representing: {title}. {content}. Single clear subject, geometric shapes, soft gradients, flat design, non-cartoony, professional. Focus on the key object of desire. Use brand colors: {primary_color} and {accent_color}. Clean background, no text, no logos.";
+      let promptTemplate = "Minimalist vector poster, Swiss/International Typographic style. Tri-tone palette only: white (#ffffff), near-black (#0a0a0a), and brand primary hsl({primary_color}). Use at most two subtle tints of the brand primary (20% and 40%). White background, centered composition with ~10% margin, bold outlines, smooth geometric shapes. No gradients, no textures, no photorealism, no tiny text or logos. 1:1 square. Visual metaphor for: {title}. {content}.";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       
