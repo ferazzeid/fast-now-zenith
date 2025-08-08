@@ -648,7 +648,7 @@ const FoodTracking = () => {
                 )}
               </TabsTrigger>
               <TabsTrigger value="template" className="font-medium">
-                {templateFoods.length} Foods
+                Daily Template
               </TabsTrigger>
             </TabsList>
             
