@@ -144,8 +144,41 @@ export const UpgradedMotivatorFormModal = ({
 
     setIsGeneratingImage(true);
     try {
-      const prompt = `${title} ${content}`.trim();
-      const generatedImageUrl = await generate_image(prompt, "512", "512");
+      // Extract concept
+      let concept = title || content;
+      try {
+        const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
+          body: { title, content }
+        });
+        if (conceptData?.concept) concept = conceptData.concept;
+      } catch {}
+
+      // Load primary color and optional admin template
+      let primaryColor = "220 35% 45%";
+      let adminTemplate: string | undefined;
+      try {
+        const { data: settingsData } = await supabase
+          .from('shared_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['brand_primary_color', 'ai_image_motivator_prompt']);
+        settingsData?.forEach((s) => {
+          if (s.setting_key === 'brand_primary_color' && s.setting_value) primaryColor = s.setting_value;
+          if (s.setting_key === 'ai_image_motivator_prompt' && s.setting_value) adminTemplate = s.setting_value;
+        });
+      } catch {}
+
+      const defaultConceptTemplate =
+        "Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.";
+      const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
+        ? adminTemplate
+        : defaultConceptTemplate;
+
+      const prompt = templateToUse
+        .replace(/{concept}/g, concept)
+        .replace(/{primary_color}/g, primaryColor);
+
+      const filename = `motivator-${Date.now()}.jpg`;
+      const generatedImageUrl = await generate_image(prompt, filename);
       if (generatedImageUrl) {
         setImageUrl(generatedImageUrl);
         toast({
@@ -287,6 +320,7 @@ export const UpgradedMotivatorFormModal = ({
               prompt={`${title} ${content}`.trim()}
               filename="motivator-image"
               onImageGenerated={setImageUrl}
+              mode="motivator"
             />
           )}
         </div>

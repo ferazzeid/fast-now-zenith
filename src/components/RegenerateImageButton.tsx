@@ -14,6 +14,7 @@ interface RegenerateImageButtonProps {
   disabled?: boolean;
   className?: string;
   motivatorId?: string;
+  mode?: 'generic' | 'motivator';
 }
 
 export const RegenerateImageButton = ({ 
@@ -23,7 +24,8 @@ export const RegenerateImageButton = ({
   onImageGenerated, 
   disabled = false,
   className = "",
-  motivatorId
+  motivatorId,
+  mode = 'generic'
 }: RegenerateImageButtonProps) => {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { toast } = useToast();
@@ -31,37 +33,60 @@ export const RegenerateImageButton = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Use a clean, brand-locked monochrome prompt template
-      let promptTemplate = "Minimalist vector poster in black and white only. Strict monochrome: white (#ffffff) and near-black (#0a0a0a); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.";
+      // Derive title/content from provided prompt
+      const rawTitle = prompt.split('.')[0] || prompt;
+      const rawContent = prompt.split('.').slice(1).join('.').trim();
+
+      // Brand colors
       let primaryColor = "220 35% 45%";
-      let accentColor = "142 71% 45%";
-      
+      let adminTemplate: string | undefined;
       try {
         const { data: settingsData } = await supabase
           .from('shared_settings')
           .select('setting_key, setting_value')
-          .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color', 'brand_accent_color']);
-        
-        settingsData?.forEach(setting => {
-          if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
-            promptTemplate = setting.setting_value;
-          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-            primaryColor = setting.setting_value;
-          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
-            accentColor = setting.setting_value;
-          }
+          .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color']);
+        settingsData?.forEach((s) => {
+          if (s.setting_key === 'brand_primary_color' && s.setting_value) primaryColor = s.setting_value;
+          if (s.setting_key === 'ai_image_motivator_prompt' && s.setting_value) adminTemplate = s.setting_value;
         });
-      } catch (error) {
-        console.log('Using default prompt template as fallback');
+      } catch (e) {
+        console.log('Using default settings for image prompt');
       }
-      
-      // Replace variables in the prompt template
-      const enhancedPrompt = promptTemplate
-        .replace(/{title}/g, prompt.split('.')[0] || prompt)
-        .replace(/{content}/g, prompt.split('.').slice(1).join('.') || '')
-        .replace(/{primary_color}/g, primaryColor)
-        .replace(/{accent_color}/g, accentColor);
-      
+
+      // Default concept-based template
+      const defaultConceptTemplate =
+        "Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.";
+
+      // Resolve concept and final prompt
+      let enhancedPrompt = '';
+      if (mode === 'motivator') {
+        let concept = rawTitle;
+        try {
+          const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
+            body: { title: rawTitle, content: rawContent }
+          });
+          if (conceptData?.concept) concept = conceptData.concept;
+        } catch (e) {
+          console.log('Concept extraction failed, falling back to title');
+        }
+        const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
+          ? adminTemplate
+          : defaultConceptTemplate;
+        enhancedPrompt = templateToUse
+          .replace(/{concept}/g, concept)
+          .replace(/{primary_color}/g, primaryColor);
+      } else {
+        // Backward-compatible template using title/content if not in motivator mode
+        let genericTemplate = adminTemplate ||
+          "Create a simple, clean illustration that represents: {title}. {content}. Style: minimalist, modern, inspiring. Colors: {primary_color} and {accent_color}";
+        let accentColor = '142 71% 45%';
+        enhancedPrompt = genericTemplate
+          .replace(/{title}/g, rawTitle)
+          .replace(/{content}/g, rawContent)
+          .replace(/{primary_color}/g, primaryColor)
+          .replace(/{accent_color}/g, accentColor);
+      }
+
       // If we have a motivatorId, use background generation
       if (motivatorId) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -98,13 +123,11 @@ export const RegenerateImageButton = ({
           title: "🎨 Image Generation Started",
           description: "Your image is being generated in the background. It will appear automatically when ready.",
         });
-        
-        // Don't update the UI immediately - let the real-time subscription handle it
+        // Let realtime subscription update the UI
       } else {
-        // Fallback to synchronous generation for backward compatibility
+        // Synchronous generation
         const newImageUrl = await generate_image(enhancedPrompt, filename, bucket);
         onImageGenerated(newImageUrl);
-        
         toast({
           title: "✨ Image Regenerated!",
           description: "Your new AI-generated image is ready.",

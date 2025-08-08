@@ -244,34 +244,42 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
   const generateImageForMotivator = async (motivatorId: string, title: string, content: string) => {
     try {
       setIsGeneratingImage(true);
-      
-      // Fetch admin image generation settings
-      let stylePrompt = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.";
-      
+
+      // Extract concept from title/content
+      let concept = title;
+      try {
+        const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
+          body: { title, content }
+        });
+        if (conceptData?.concept) concept = conceptData.concept;
+      } catch {}
+
+      // Load brand primary color and optional admin template
+      let primaryColor = "220 35% 45%";
+      let adminTemplate: string | undefined;
       try {
         const { data: settingsData } = await supabase
           .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'image_gen_style_prompt')
-          .single();
-        
-        if (settingsData?.setting_value) {
-          stylePrompt = settingsData.setting_value;
-        }
-      } catch (error) {
-        console.log('Using default style prompt as fallback');
-      }
+          .select('setting_key, setting_value')
+          .in('setting_key', ['brand_primary_color', 'ai_image_motivator_prompt']);
+        settingsData?.forEach((s) => {
+          if (s.setting_key === 'brand_primary_color' && s.setting_value) primaryColor = s.setting_value;
+          if (s.setting_key === 'ai_image_motivator_prompt' && s.setting_value) adminTemplate = s.setting_value;
+        });
+      } catch {}
+
+      const defaultConceptTemplate =
+        "Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.";
+      const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
+        ? adminTemplate
+        : defaultConceptTemplate;
+
+      const imagePrompt = templateToUse
+        .replace(/{concept}/g, concept)
+        .replace(/{primary_color}/g, primaryColor);
       
-      // Create a prompt for image generation based on the motivator and admin style
-      const imagePrompt = `${stylePrompt}\n\nSpecific subject: ${title}. ${content}`;
-      
-      // Generate a filename based on the motivator ID
       const filename = `motivator-${motivatorId}.jpg`;
-      
-      // Generate the image
       const imageUrl = await generate_image(imagePrompt, filename);
-      
-      // Update the motivator with the generated image
       await updateMotivator(motivatorId, { imageUrl });
       
       toast({
@@ -281,7 +289,6 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
       
     } catch (error) {
       console.error('Error generating image for motivator:', error);
-      // Don't show error toast as this is a background operation
       console.log('Image generation failed, but motivator was created successfully');
     } finally {
       setIsGeneratingImage(false);

@@ -85,10 +85,44 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       return;
     }
 
+    const t = title.trim();
+    const c = content.trim();
+
+    // Extract concept
+    let concept = t;
+    try {
+      const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
+        body: { title: t, content: c }
+      });
+      if (conceptData?.concept) concept = conceptData.concept;
+    } catch {}
+
+    // Brand color and admin template
+    let primaryColor = "220 35% 45%";
+    let adminTemplate: string | undefined;
+    try {
+      const { data: settingsData } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['brand_primary_color', 'ai_image_motivator_prompt']);
+      settingsData?.forEach((s) => {
+        if (s.setting_key === 'brand_primary_color' && s.setting_value) primaryColor = s.setting_value;
+        if (s.setting_key === 'ai_image_motivator_prompt' && s.setting_value) adminTemplate = s.setting_value;
+      });
+    } catch {}
+
+    const defaultConceptTemplate =
+      "Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.";
+    const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
+      ? adminTemplate
+      : defaultConceptTemplate;
+    const finalPrompt = templateToUse
+      .replace(/{concept}/g, concept)
+      .replace(/{primary_color}/g, primaryColor);
+
     // If editing existing motivator, use background generation
     if (motivator?.id) {
       try {
-        // Resolve API key from profile or localStorage (API-user mode)
         let apiKey: string | undefined = undefined;
         try {
           const { data: profile } = await supabase
@@ -100,34 +134,11 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           }
         } catch {}
 
-        // Build brand-locked monochrome prompt (or use admin override if set)
-        let promptTemplate = "Minimalist vector poster in black and white only. Strict monochrome: white (#ffffff) and near-black (#0a0a0a); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.";
-        let primaryColor = "220 35% 45%";
-        try {
-          const { data: settingsData } = await supabase
-            .from('shared_settings')
-            .select('setting_key, setting_value')
-            .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color']);
-          settingsData?.forEach(setting => {
-            if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
-              promptTemplate = setting.setting_value;
-            } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-              primaryColor = setting.setting_value;
-            }
-          });
-        } catch {}
-
-        const enhancedPrompt = promptTemplate
-          .replace(/{title}/g, title)
-          .replace(/{content}/g, content)
-          .replace(/{primary_color}/g, primaryColor);
-
-        // Trigger background generation via edge function
         const { data: authData } = await supabase.auth.getUser();
         const uid = authData?.user?.id;
         const { error } = await supabase.functions.invoke('generate-image', {
           body: {
-            prompt: enhancedPrompt,
+            prompt: finalPrompt,
             filename: `motivator-${motivator.id}-${Date.now()}.jpg`,
             motivatorId: motivator.id,
             userId: uid,
@@ -135,9 +146,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           }
         });
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         setBgPending(true);
         toast({
@@ -157,40 +166,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     // For new motivators, use direct generation
     setIsGeneratingImage(true);
     try {
-       // Use improved minimalist, non-cartoony prompt template
-       let promptTemplate = "Minimalist vector poster in black and white only. Strict monochrome: white (#ffffff) and near-black (#0a0a0a); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.";
-      let primaryColor = "220 35% 45%";
-      let accentColor = "142 71% 45%";
-      
-      try {
-        const { data: settingsData } = await supabase
-          .from('shared_settings')
-          .select('setting_key, setting_value')
-          .in('setting_key', ['ai_image_motivator_prompt', 'brand_primary_color', 'brand_accent_color']);
-        
-        settingsData?.forEach(setting => {
-          if (setting.setting_key === 'ai_image_motivator_prompt' && setting.setting_value) {
-            promptTemplate = setting.setting_value;
-          } else if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-            primaryColor = setting.setting_value;
-          } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
-            accentColor = setting.setting_value;
-          }
-        });
-      } catch (error) {
-        console.log('Using default prompt template as fallback');
-      }
-      
-      // Replace variables in the prompt template
-      const prompt = promptTemplate
-        .replace(/{title}/g, title)
-        .replace(/{content}/g, content)
-        .replace(/{primary_color}/g, primaryColor)
-        .replace(/{accent_color}/g, accentColor);
-      
-      const newImageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
+      const newImageUrl = await generate_image(finalPrompt, `motivator-${Date.now()}.jpg`);
       setImageUrl(newImageUrl);
-      
       toast({
         title: "✨ Image Generated!",
         description: "Your AI-generated motivator image is ready.",
