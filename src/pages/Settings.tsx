@@ -296,18 +296,18 @@ const Settings = () => {
           <div className="space-y-6">
           <div className="space-y-2">
             {/* Header */}
-            <div className="mb-2 mt-4 flex items-center justify-between">
-              <div>
+            <div className="mb-2 mt-4">
+              <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
                   Settings
                 </h1>
-                <p className="text-sm text-muted-foreground text-left">Customize your fasting experience</p>
+                {isAdmin && (
+                  <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
+                    Admin Dashboard
+                  </Button>
+                )}
               </div>
-              {isAdmin && (
-                <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
-                  Admin Dashboard
-                </Button>
-              )}
+              <p className="text-sm text-muted-foreground text-left">Customize your fasting experience</p>
             </div>
           </div>
 
@@ -389,6 +389,120 @@ const Settings = () => {
                   <p className="text-xs text-muted-foreground">
                     Disabling slideshows may improve performance on slower devices
                   </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* User Profile */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOnboarding(true)}
+                    className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                    title="Setup Profile Walkthrough"
+                  >
+                    <Brain className="w-4 h-4 text-warm-text" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <UnitsSelector
+                    selectedUnits={units}
+                    onUnitsChange={setUnits}
+                  />
+                  
+                  {/* Physical Attributes Section */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
+                        <Input
+                          id="weight"
+                          type="number"
+                          placeholder={units === 'metric' ? '70' : '154'}
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
+                        <Input
+                          id="height"
+                          type="number"
+                          placeholder={units === 'metric' ? '175' : '69'}
+                          value={height}
+                          onChange={(e) => setHeight(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="age" className="text-warm-text">Age</Label>
+                        <Input
+                          id="age"
+                          type="number"
+                          placeholder="30"
+                          value={age}
+                          onChange={(e) => setAge(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Daily Goals Section */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="daily-calorie-goal" className="text-warm-text">Calorie Goal</Label>
+                        <Input
+                          id="daily-calorie-goal"
+                          type="number"
+                          placeholder="2000"
+                          value={dailyCalorieGoal}
+                          onChange={(e) => setDailyCalorieGoal(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="daily-carb-goal" className="text-warm-text">Carb Goal (g)</Label>
+                        <Input
+                          id="daily-carb-goal"
+                          type="number"
+                          placeholder="200"
+                          value={dailyCarbGoal}
+                          onChange={(e) => setDailyCarbGoal(e.target.value)}
+                          className="bg-ceramic-base border-ceramic-rim"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Activity Level Section */}
+                  <div className="space-y-2">
+                    <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
+                    <Select value={activityLevel} onValueChange={setActivityLevel}>
+                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sedentary">Sedentary</SelectItem>
+                        <SelectItem value="lightly-active">Lightly Active</SelectItem>
+                        <SelectItem value="moderately-active">Moderately Active</SelectItem>
+                        <SelectItem value="very-active">Very Active</SelectItem>
+                        <SelectItem value="extra-active">Extra Active</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -525,120 +639,6 @@ const Settings = () => {
                     <Button type="button" onClick={handleSaveSettings} className="ml-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
                       Save key
                     </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* User Profile */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-primary" />
-                    <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOnboarding(true)}
-                    className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
-                    title="Setup Profile Walkthrough"
-                  >
-                    <Brain className="w-4 h-4 text-warm-text" />
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  <UnitsSelector
-                    selectedUnits={units}
-                    onUnitsChange={setUnits}
-                  />
-                  
-                  {/* Physical Attributes Section */}
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
-                        <Input
-                          id="weight"
-                          type="number"
-                          placeholder={units === 'metric' ? '70' : '154'}
-                          value={weight}
-                          onChange={(e) => setWeight(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
-                        <Input
-                          id="height"
-                          type="number"
-                          placeholder={units === 'metric' ? '175' : '69'}
-                          value={height}
-                          onChange={(e) => setHeight(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="age" className="text-warm-text">Age</Label>
-                        <Input
-                          id="age"
-                          type="number"
-                          placeholder="30"
-                          value={age}
-                          onChange={(e) => setAge(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Daily Goals Section */}
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="daily-calorie-goal" className="text-warm-text">Calorie Goal</Label>
-                        <Input
-                          id="daily-calorie-goal"
-                          type="number"
-                          placeholder="2000"
-                          value={dailyCalorieGoal}
-                          onChange={(e) => setDailyCalorieGoal(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="daily-carb-goal" className="text-warm-text">Carb Goal (g)</Label>
-                        <Input
-                          id="daily-carb-goal"
-                          type="number"
-                          placeholder="200"
-                          value={dailyCarbGoal}
-                          onChange={(e) => setDailyCarbGoal(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Activity Level Section */}
-                  <div className="space-y-2">
-                    <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
-                    <Select value={activityLevel} onValueChange={setActivityLevel}>
-                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sedentary">Sedentary</SelectItem>
-                        <SelectItem value="lightly-active">Lightly Active</SelectItem>
-                        <SelectItem value="moderately-active">Moderately Active</SelectItem>
-                        <SelectItem value="very-active">Very Active</SelectItem>
-                        <SelectItem value="extra-active">Extra Active</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
               </div>
