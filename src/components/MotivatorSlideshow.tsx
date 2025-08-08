@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
+import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface MotivatorSlideshowProps {
   isActive: boolean;
@@ -112,14 +113,12 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
           transform: 'translate3d(0, 0, 0)' // GPU acceleration
         }}
       >
-        <div 
-          className="absolute inset-0"
+        <MotivatorImageWithFallback
+          src={currentMotivator?.imageUrl}
+          alt={currentMotivator?.title || 'Motivator image'}
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            backgroundImage: currentMotivator?.imageUrl ? `url(${currentMotivator.imageUrl})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
-            backgroundColor: !currentMotivator?.imageUrl ? 'var(--muted)' : 'transparent'
+            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)'
           }}
         />
         
@@ -133,7 +132,24 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         />
       </div>
 
-      {/* Remove the circular text - it's now handled externally */}
+      {/* Centered Zoom-In Text for Ceramic Timer */}
+      {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ zIndex: 15 }}
+        >
+          <div 
+            className="text-white font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm border border-white/20"
+            style={{
+              animation: 'zoomIn 8s ease-in-out',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+              maxWidth: '80%'
+            }}
+          >
+            {currentMotivator.title.toUpperCase()}
+          </div>
+        </div>
+      )}
     </>
   );
 };
