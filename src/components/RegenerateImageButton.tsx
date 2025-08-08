@@ -151,29 +151,34 @@ export const RegenerateImageButton = ({
       let enhancedPrompt = '';
       if (mode === 'motivator') {
         let concept = rawTitle;
-        try {
-          // Get user's OpenAI API key
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('openai_api_key, use_own_api_key')
-            .maybeSingle();
-
-          let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
-          if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
-            const localKey = localStorage.getItem('openai_api_key');
-            if (localKey) apiKey = localKey;
-          }
-
-          const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
-            body: { title: rawTitle, content: rawContent, apiKey }
-          });
-          if (conceptData?.concept) concept = conceptData.concept;
-        } catch (e) {
-          console.log('Concept extraction failed, falling back to title');
-        }
-        // Apply manual override if provided
+        
+        // Use manual override if provided, otherwise try AI extraction
         const override = conceptOverride.trim();
-        if (override) concept = override.toLowerCase();
+        if (override) {
+          concept = override.toLowerCase();
+          console.log('Using manual concept override:', concept);
+        } else {
+          try {
+            // Get user's OpenAI API key
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('openai_api_key, use_own_api_key')
+              .maybeSingle();
+
+            let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
+            if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
+              const localKey = localStorage.getItem('openai_api_key');
+              if (localKey) apiKey = localKey;
+            }
+
+            const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
+              body: { title: rawTitle, content: rawContent, apiKey }
+            });
+            if (conceptData?.concept) concept = conceptData.concept;
+          } catch (e) {
+            console.log('Concept extraction failed, falling back to title');
+          }
+        }
 
         // Use preset template or custom admin template
         const templateToUse = (adminTemplate && adminTemplate.includes('{concept}'))
