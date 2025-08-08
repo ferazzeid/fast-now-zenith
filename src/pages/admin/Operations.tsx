@@ -29,12 +29,16 @@ export default function AdminOperations() {
         <CancellationTracker />
       </section>
 
+      <section aria-label="User request limits">
+        <UserRequestLimits />
+      </section>
+
       <section aria-label="User tiers overview">
         <AdminTierStats />
       </section>
 
-      <section aria-label="User request limits">
-        <UserRequestLimits />
+      <section aria-label="OpenAI API statistics">
+        <OpenAIApiStats />
       </section>
 
       <section aria-label="Google Analytics settings" className="pb-24">

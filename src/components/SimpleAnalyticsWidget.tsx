@@ -118,8 +118,8 @@ export const SimpleAnalyticsWidget = () => {
   if (loading) {
     return (
       <Card className="p-6">
-        <div className="flex items-center justify-center">
-          <LoadingSpinner />
+        <div className="flex items-center justify-center h-16">
+          <span className="text-muted-foreground">Loading...</span>
         </div>
       </Card>
     );

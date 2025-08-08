@@ -165,7 +165,7 @@ export const UserRequestLimits: React.FC = () => {
 
             {/* Save Button */}
             <div className="ml-auto">
-              <Button onClick={saveRequestLimits} size="sm" className="h-8">
+              <Button onClick={saveRequestLimits} size="sm" className="h-9 px-4">
                 Save
               </Button>
             </div>

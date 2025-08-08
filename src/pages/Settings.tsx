@@ -393,6 +393,7 @@ const Settings = () => {
               </div>
             </Card>
 
+
             {/* User Profile */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
@@ -503,82 +504,6 @@ const Settings = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Account Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
-                </div>
-                
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Email</span>
-                    <span className="text-warm-text font-medium">{user?.email}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Login Method</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Account Type</span>
-                    <span className="text-warm-text font-medium">
-                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 
-                       subscription.subscription_tier === 'api_user' ? 'API User' : 
-                       subscription.subscription_tier === 'granted_user' ? 'Free User' : 'Free User'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Member since</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="pt-3 border-t border-ceramic-rim space-y-3">
-                  {/* Show upgrade button for non-premium users */}
-                  {subscription.subscription_tier !== 'paid_user' && subscription.subscription_tier !== 'api_user' && (
-                    <Button
-                      onClick={async () => {
-                        try {
-                          await subscription.createSubscription();
-                          toast({
-                            title: "Redirecting to checkout",
-                            description: "Opening payment page..."
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to create subscription. Please try again.",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium
-                    </Button>
-                  )}
-                  
-                  <Button
-                    onClick={() => {
-                      signOut();
-                      navigate('/auth');
-                    }}
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
                 </div>
               </div>
             </Card>
