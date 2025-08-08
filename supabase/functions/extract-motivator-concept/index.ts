@@ -13,7 +13,7 @@ const STOPWORDS = new Set([
 
 // Keyword to concept mapping (used as fallback and to normalize vague concepts)
 const MAPPINGS: Array<{ keywords: RegExp; concept: string }> = [
-  { keywords: /(clothes?|outfit|jeans|pants|dress|suit|shirt|skirt|jacket|fit|fitting)/i, concept: "hanger" },
+  { keywords: /(clothes?|outfit|jeans|pants|dress|suit|shirt|skirt|jacket|fit|fitting|versace|designer)/i, concept: "hanger" },
   { keywords: /(wedding|reunion|event|party|birthday|anniversary|deadline|date)/i, concept: "calendar" },
   { keywords: /(impress|attention|attract|admire|noticed|recognition|respect)/i, concept: "star" },
   { keywords: /(respect|dignity|pride|honor)/i, concept: "laurel wreath" },
@@ -22,6 +22,7 @@ const MAPPINGS: Array<{ keywords: RegExp; concept: string }> = [
   { keywords: /(symptom|pain|ache|inflammation|health issue|issue)/i, concept: "medical cross" },
   { keywords: /(countdown|timer|time|hour|hours|clock)/i, concept: "hourglass" },
   { keywords: /(walk|walking|steps|run|running|jog|jogging)/i, concept: "footprint" },
+  { keywords: /(football|soccer|trainer|coach|sport|athlete|gym|fitness)/i, concept: "football" },
   { keywords: /(focus|goal|target|aim|objective)/i, concept: "target" },
   { keywords: /(progress|growth|improve|improvement|advance|better)/i, concept: "up arrow" },
   { keywords: /(strength|power|energy|energetic|charge)/i, concept: "lightning bolt" },
