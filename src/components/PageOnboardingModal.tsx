@@ -22,7 +22,7 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 rounded-2xl"
           style={{
-            backgroundImage: "url('/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png')"
+            backgroundImage: "url('/lovable-uploads/3b7ad479-e7aa-4ee5-a451-692444a5e96a.png')"
           }}
         />
         {/* Header with close button */}
