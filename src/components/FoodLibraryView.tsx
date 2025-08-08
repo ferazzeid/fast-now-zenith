@@ -559,18 +559,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <MoreVertical className="w-3 h-3 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 z-50">
+                <DropdownMenuContent align="end" className="w-44 z-50 bg-popover border border-border">
                   {isUserFood ? (
                     <>
                       <DropdownMenuItem
                         onClick={() => setShowEditModal(true)}
+                        className="cursor-pointer"
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         Edit Food
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => deleteFood(food.id)}
-                        className="text-destructive focus:text-destructive"
+                        className="text-destructive focus:text-destructive cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Food
@@ -580,16 +581,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <>
                       {isAdmin && (
                         <>
-                          <EditDefaultFoodModal 
-                            food={food as DefaultFood} 
-                            onUpdate={updateDefaultFood}
-                          />
+                          <DropdownMenuItem
+                            onClick={() => setShowEditModal(true)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Food
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => deleteDefaultFood(food.id)}
-                            className="text-destructive focus:text-destructive"
+                            className="text-destructive focus:text-destructive cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
+                            Delete Food
                           </DropdownMenuItem>
                         </>
                       )}
@@ -623,14 +627,23 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </div>
         
         {/* Edit Modal */}
-        {isUserFood && (
-          <UnifiedFoodEditModal 
-            food={food as UserFood} 
-            onUpdate={updateFood}
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            mode="library"
-          />
+        {showEditModal && (
+          <>
+            {isUserFood ? (
+              <UnifiedFoodEditModal 
+                food={food as UserFood} 
+                onUpdate={updateFood}
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                mode="library"
+              />
+            ) : isAdmin ? (
+              <EditDefaultFoodModal 
+                food={food as DefaultFood} 
+                onUpdate={updateDefaultFood}
+              />
+            ) : null}
+          </>
         )}
       </div>
     );
