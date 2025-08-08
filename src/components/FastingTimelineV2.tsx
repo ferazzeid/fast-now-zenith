@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -81,16 +81,6 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
               {selected?.body_state || "We'll add details for this hour soon."}
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-1">
-              {selected?.phase && (
-                <Badge variant="secondary">{selected.phase.replace("_", " ")}</Badge>
-              )}
-              {selected?.difficulty && (
-                <Badge variant={selected.difficulty === "hard" ? "destructive" : "outline"}>
-                  {selected.difficulty}
-                </Badge>
-              )}
-            </div>
 
             {selected?.encouragement && (
               <div className="text-sm italic text-primary/80">

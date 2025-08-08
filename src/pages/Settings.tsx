@@ -294,13 +294,22 @@ const Settings = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-24">
           <div className="space-y-6">
+          <div className="space-y-2">
             {/* Header */}
-            <div className="mb-4 mt-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
-                Settings
-              </h1>
-              <p className="text-sm text-muted-foreground text-left">Customize your fasting experience</p>
+            <div className="mb-2 mt-4 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
+                  Settings
+                </h1>
+                <p className="text-sm text-muted-foreground text-left">Customize your fasting experience</p>
+              </div>
+              {isAdmin && (
+                <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
+                  Admin Dashboard
+                </Button>
+              )}
             </div>
+          </div>
 
             {/* Theme Toggle Section */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
@@ -668,15 +677,6 @@ const Settings = () => {
                   </p>
                 </div>
                 
-                 {isAdmin && (
-                   <Button
-                     onClick={() => navigate('/admin')}
-                     className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-                   >
-                     <Shield className="w-4 h-4 mr-2" />
-                     Admin Dashboard
-                   </Button>
-                 )}
                 </div>
               </Card>
             </div>

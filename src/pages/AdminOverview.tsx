@@ -24,7 +24,7 @@ import {
 } from "@/components/LazyAdminComponents";
 import { AdminRoleTester } from '@/components/AdminRoleTester';
 import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
-import { AdminDailyAnalysisSettings } from '@/components/AdminDailyAnalysisSettings';
+
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
 
 
@@ -349,9 +349,6 @@ const AdminOverview = () => {
 
             {/* Food Chat Settings */}
             <AdminFoodChatSettings />
-
-            {/* Daily Analysis Settings */}
-            <AdminDailyAnalysisSettings />
 
             {/* Image Analysis Testing (Admin-only) */}
             <Card>

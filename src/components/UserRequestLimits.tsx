@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SmartInlineLoading } from './enhanced/SmartLoadingStates';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 export const UserRequestLimits: React.FC = () => {
   const [paidUserLimit, setPaidUserLimit] = useState('');
@@ -108,53 +110,67 @@ export const UserRequestLimits: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">User Request Limits</CardTitle>
+        <CardTitle className="text-base">User Request Limits</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Paid User Limit */}
-          <div className="space-y-2">
-            <Label htmlFor="paidUserLimit" className="text-sm font-medium">
-              Paid User Monthly Requests
-            </Label>
-            <Input
-              id="paidUserLimit"
-              type="number"
-              value={paidUserLimit}
-              onChange={(e) => setPaidUserLimit(e.target.value)}
-              placeholder="e.g. 1000"
-              className="text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Number of API requests per month for paid users
-            </p>
-          </div>
+        <TooltipProvider>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Paid User Limit */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="paidUserLimit" className="text-xs">Paid</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-3 h-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Monthly requests for paid users
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Input
+                id="paidUserLimit"
+                type="number"
+                value={paidUserLimit}
+                onChange={(e) => setPaidUserLimit(e.target.value)}
+                placeholder="1000"
+                className="h-8 w-24 text-sm"
+                aria-label="Paid user monthly requests"
+              />
+            </div>
 
-          {/* Granted User Limit */}
-          <div className="space-y-2">
-            <Label htmlFor="grantedUserLimit" className="text-sm font-medium">
-              Granted User Monthly Requests
-            </Label>
-            <Input
-              id="grantedUserLimit"
-              type="number"
-              value={grantedUserLimit}
-              onChange={(e) => setGrantedUserLimit(e.target.value)}
-              placeholder="e.g. 100"
-              className="text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Number of gifted API requests per month for granted users
-            </p>
-          </div>
-        </div>
+            {/* Granted User Limit */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="grantedUserLimit" className="text-xs">Granted</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-3 h-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Monthly requests for granted users
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Input
+                id="grantedUserLimit"
+                type="number"
+                value={grantedUserLimit}
+                onChange={(e) => setGrantedUserLimit(e.target.value)}
+                placeholder="15"
+                className="h-8 w-24 text-sm"
+                aria-label="Granted user monthly requests"
+              />
+            </div>
 
-        {/* Save Button */}
-        <div className="mt-6">
-          <Button onClick={saveRequestLimits} className="w-full sm:w-auto">
-            Save Request Limits
-          </Button>
-        </div>
+            {/* Save Button */}
+            <div className="ml-auto">
+              <Button onClick={saveRequestLimits} size="sm" className="h-8">
+                Save
+              </Button>
+            </div>
+          </div>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );
