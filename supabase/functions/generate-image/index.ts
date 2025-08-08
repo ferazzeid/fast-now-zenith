@@ -11,7 +11,7 @@ function buildCorsHeaders(origin: string | null) {
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Vary': 'Origin',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
   } as const;
 }
 
@@ -81,7 +81,16 @@ serve(async (req) => {
     const generateImage = async () => {
       try {
         // Use provided API key or fall back to environment variable
-        const openAIApiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
+        // Resolve API key: explicit apiKey > shared_settings > env
+        let openAIApiKey = apiKey;
+        if (!openAIApiKey) {
+          const { data: sharedKey } = await supabase
+            .from('shared_settings')
+            .select('setting_value')
+            .eq('setting_key', 'shared_api_key')
+            .maybeSingle();
+          openAIApiKey = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
+        }
         if (!openAIApiKey) {
           throw new Error('OpenAI API key not provided');
         }

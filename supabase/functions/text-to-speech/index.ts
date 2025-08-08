@@ -98,9 +98,17 @@ serve(async (req) => {
       }
     }
 
-    // Get API key - either from user's own key or from headers
+    // Resolve API key priority: user key > header > shared_settings > env
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    const OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
+    let OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
+    if (!OPENAI_API_KEY) {
+      const { data: sharedKey } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
+      OPENAI_API_KEY = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
+    }
 
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured');
