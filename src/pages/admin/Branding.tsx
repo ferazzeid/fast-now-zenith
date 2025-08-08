@@ -3,7 +3,7 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { ColorManagement } from "@/components/ColorManagement";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
-import { PWASettings } from "@/components/PWASettings";
+import { AppIdentitySettings } from "@/components/AppIdentitySettings";
 
 export default function AdminBranding() {
   usePageSEO({
@@ -17,8 +17,8 @@ export default function AdminBranding() {
       <h1 className="sr-only">Admin Branding</h1>
       <AdminSubnav />
 
-      <section aria-label="PWA and slogan settings">
-        <PWASettings />
+      <section aria-label="App identity and branding settings">
+        <AppIdentitySettings />
       </section>
 
       <section aria-label="Brand assets">
