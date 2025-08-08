@@ -67,8 +67,20 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
       // Extract concept via edge function
       let concept = title;
       try {
+        // Get user's OpenAI API key
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('openai_api_key, use_own_api_key')
+          .maybeSingle();
+
+        let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
+        if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
+          const localKey = localStorage.getItem('openai_api_key');
+          if (localKey) apiKey = localKey;
+        }
+
         const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
-          body: { title, content }
+          body: { title, content, apiKey }
         });
         if (conceptData?.concept) concept = conceptData.concept;
       } catch {}

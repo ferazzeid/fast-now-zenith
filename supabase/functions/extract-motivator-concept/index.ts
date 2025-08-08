@@ -11,24 +11,17 @@ const STOPWORDS = new Set([
   "the","a","an","and","or","but","if","then","else","when","at","by","from","for","in","into","of","on","to","with","about","as","is","are","was","were","be","being","been","it","this","that","these","those","my","our","your","their","i","you","he","she","we","they","me","him","her","us","them","will","can","could","should","would","do","does","did","have","has","had"
 ]);
 
-// Keyword to concept mapping (used as fallback and to normalize vague concepts)
+// Keyword to concept mapping (used as fallback only when AI extraction fails)
 const MAPPINGS: Array<{ keywords: RegExp; concept: string }> = [
-  { keywords: /(clothes?|outfit|jeans|pants|dress|suit|shirt|skirt|jacket|fit|fitting|versace|designer)/i, concept: "hanger" },
+  { keywords: /(clothes?|outfit|jeans|pants|dress|suit|shirt|skirt|jacket|fit|fitting)/i, concept: "hanger" },
   { keywords: /(wedding|reunion|event|party|birthday|anniversary|deadline|date)/i, concept: "calendar" },
-  { keywords: /(impress|attention|attract|admire|noticed|recognition|respect)/i, concept: "star" },
-  { keywords: /(respect|dignity|pride|honor)/i, concept: "laurel wreath" },
   { keywords: /(mirror|reflection|reflect)/i, concept: "mirror" },
-  { keywords: /(insulin|glucose|sugar)/i, concept: "water drop" },
-  { keywords: /(symptom|pain|ache|inflammation|health issue|issue)/i, concept: "medical cross" },
   { keywords: /(countdown|timer|time|hour|hours|clock)/i, concept: "hourglass" },
   { keywords: /(walk|walking|steps|run|running|jog|jogging)/i, concept: "footprint" },
-  { keywords: /(football|soccer|trainer|coach|sport|athlete|gym|fitness)/i, concept: "football" },
   { keywords: /(focus|goal|target|aim|objective)/i, concept: "target" },
   { keywords: /(progress|growth|improve|improvement|advance|better)/i, concept: "up arrow" },
   { keywords: /(strength|power|energy|energetic|charge)/i, concept: "lightning bolt" },
   { keywords: /(mountain|peak|summit|climb|climbing)/i, concept: "mountain" },
-  { keywords: /(star)/i, concept: "star" },
-  { keywords: /(arrow)/i, concept: "arrow" },
 ];
 
 function tokenize(text: string): string[] {
@@ -110,9 +103,10 @@ serve(async (req) => {
   }
 
   try {
-    const { title = "", content = "" } = await req.json().catch(() => ({ title: "", content: "" }));
+    const { title = "", content = "", apiKey } = await req.json().catch(() => ({ title: "", content: "", apiKey: null }));
 
-    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    // Use provided API key or fallback to environment variable
+    const openaiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
 
     let concept = "";
     console.log(`Processing title: "${title}", content: "${content}"`);
