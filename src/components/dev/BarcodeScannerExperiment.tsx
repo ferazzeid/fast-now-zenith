@@ -44,9 +44,11 @@ export const BarcodeScannerExperiment: React.FC = () => {
       try {
         const all = await navigator.mediaDevices.enumerateDevices();
         const videoInputs = all.filter((d) => d.kind === 'videoinput');
-        setDevices(videoInputs);
-        if (videoInputs.length > 0) {
-          setSelectedDeviceId(videoInputs[0].deviceId);
+        // Filter out devices with empty or undefined deviceIds to prevent Select crashes
+        const validDevices = videoInputs.filter((d) => d.deviceId && d.deviceId.trim() !== '');
+        setDevices(validDevices);
+        if (validDevices.length > 0) {
+          setSelectedDeviceId(validDevices[0].deviceId);
         }
       } catch (e) {
         console.error('Failed to enumerate devices', e);
@@ -146,7 +148,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 {devices.map((d, idx) => (
-                  <SelectItem key={d.deviceId || idx} value={d.deviceId}>
+                  <SelectItem key={d.deviceId || `device-${idx}`} value={d.deviceId || `device-${idx}`}>
                     {d.label || `Camera ${idx + 1}`}
                   </SelectItem>
                 ))}
