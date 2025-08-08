@@ -21,9 +21,9 @@ const PROMPT_CONFIGS: PromptConfig[] = [
   {
     key: 'ai_image_motivator_prompt',
     title: 'Motivator Image Generation',
-    description: 'Tri-tone, brand-locked style for Goals/Motivators (white, near-black, and your primary color).',
-    defaultPrompt: 'Minimalist vector poster, Swiss/International Typographic style. Strict tri-tone palette: white (#ffffff), near-black (#0a0a0a), and brand primary hsl({primary_color}); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.',
-    variables: ['{title}', '{content}', '{primary_color}']
+    description: 'Black & White (monochrome) brand poster style for Goals/Motivators.',
+    defaultPrompt: 'Minimalist vector poster in black and white only. Strict monochrome: white (#ffffff) and near-black (#0a0a0a); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.',
+    variables: ['{title}', '{content}']
   },
   {
     key: 'ai_image_food_prompt',

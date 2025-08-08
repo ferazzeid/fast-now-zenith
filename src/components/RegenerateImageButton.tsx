@@ -31,8 +31,8 @@ export const RegenerateImageButton = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Use a clean, brand-locked tri‑tone prompt template
-      let promptTemplate = "Minimalist vector poster, Swiss/International Typographic style. Strict tri-tone palette: white (#ffffff), near-black (#0a0a0a), and brand primary hsl({primary_color}); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.";
+      // Use a clean, brand-locked monochrome prompt template
+      let promptTemplate = "Minimalist vector poster in black and white only. Strict monochrome: white (#ffffff) and near-black (#0a0a0a); absolutely no other colors. Flat vector shapes, bold silhouette, clean geometry, generous negative space. Centered composition with ~10–12% white margin, single focal motif as a visual metaphor for: {title}. Context cue: {content} kept abstract via shapes/icons only. No people, faces, hands. No text/letters/words/logos/watermarks/UI. No gradients, no textures, no gloss, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, high-contrast, editorial poster quality.";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       
