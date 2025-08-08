@@ -229,6 +229,16 @@ const Settings = () => {
           return;
         }
 
+        // Ensure tier reflects latest settings (own API key overrides others)
+        try {
+          await supabase.rpc('update_user_tier', { _user_id: user.id });
+          // Invalidate cached subscription to reflect changes immediately
+          // @ts-ignore - optional chaining for safety if hook shape changes
+          subscription?.invalidate?.();
+        } catch (tierErr) {
+          console.warn('Tier update RPC failed:', tierErr);
+        }
+
         console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",
@@ -450,6 +460,66 @@ const Settings = () => {
               </div>
             </Card>
 
+            {/* AI & API */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Key className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">AI & API</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="use-own-key" className="text-warm-text">Use my own OpenAI API key</Label>
+                    <Switch id="use-own-key" checked={useOwnKey} onCheckedChange={setUseOwnKey} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="openai-key" className="text-warm-text">OpenAI API Key</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="openai-key"
+                        type={isKeyVisible ? 'text' : 'password'}
+                        placeholder="sk-..."
+                        value={openAiKey}
+                        onChange={(e) => setOpenAiKey(e.target.value)}
+                        disabled={!useOwnKey}
+                        className="bg-ceramic-base border-ceramic-rim"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsKeyVisible((v) => !v)}
+                        className="shrink-0"
+                      >
+                        {isKeyVisible ? 'Hide' : 'Show'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Your key is stored securely on your device and in your profile to enable API User mode. It overrides all other account types.
+                    </p>
+                    <a
+                      href="https://platform.openai.com/api-keys"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm underline text-primary"
+                    >
+                      Get an OpenAI API key →
+                    </a>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={handleClearApiKey}>
+                      Clear key
+                    </Button>
+                    <Button type="button" onClick={handleSaveSettings} className="ml-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+                      Save key
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
 
             {/* User Profile */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
