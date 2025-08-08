@@ -437,6 +437,7 @@ const Timer = () => {
         title={onboardingContent.timer.title}
         subtitle={onboardingContent.timer.subtitle}
         heroQuote={onboardingContent.timer.heroQuote}
+        backgroundImage={onboardingContent.timer.backgroundImage}
       >
         <div className="space-y-6">
           <div className="text-center">

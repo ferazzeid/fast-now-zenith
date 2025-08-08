@@ -41,6 +41,7 @@ export const onboardingContent: Record<string, PageOnboardingContent> = {
     title: "Start With the Fast",
     subtitle: "60 hours of silence. No food. Just water. This is where change begins.",
     heroQuote: "Without this fast, I couldn't begin to lose weight. It trains your body and your mind.",
+    backgroundImage: "/lovable-uploads/08d0d0e5-750c-42c4-ac24-cf0bc1157dea.png",
     sections: [
       {
         icon: Zap,
@@ -63,6 +64,7 @@ export const onboardingContent: Record<string, PageOnboardingContent> = {
     title: "Walk. Don't Run.",
     subtitle: "Cardio you don't hate. A tool that actually works.",
     heroQuote: "This isn't about performance. It's about output. Walking lets you go far without quitting.",
+    backgroundImage: "/lovable-uploads/3b7ad479-e7aa-4ee5-a451-692444a5e96a.png",
     sections: [
       {
         icon: Footprints,
@@ -85,6 +87,7 @@ export const onboardingContent: Record<string, PageOnboardingContent> = {
     title: "What You Eat, You Become",
     subtitle: "Calories go in. Fat stays in. Let's reverse that.",
     heroQuote: "I don't count obsessively. I just don't lie to myself. I know what I eat.",
+    backgroundImage: "/lovable-uploads/12356bb7-5258-4eb6-a64c-d30333b69779.png",
     sections: [
       {
         icon: Scale,
@@ -107,6 +110,7 @@ export const onboardingContent: Record<string, PageOnboardingContent> = {
     title: "What You Want Is Waiting",
     subtitle: "This isn't motivation. This is fuel.",
     heroQuote: "It's not about the weight. It's about getting back to the person you know is in there.",
+    backgroundImage: "/lovable-uploads/21db3143-c864-43f3-ae91-d6bbbf67b687.png",
     sections: [
       {
         icon: Target,

@@ -8,10 +8,11 @@ interface PageOnboardingModalProps {
   title: string;
   subtitle?: string;
   heroQuote?: string;
+  backgroundImage?: string;
   children: ReactNode;
 }
 
-export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuote, children }: PageOnboardingModalProps) => {
+export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuote, backgroundImage, children }: PageOnboardingModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -19,12 +20,14 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
       {/* Mobile-optimized modal container */}
       <div className="w-full max-w-md max-h-[90vh] bg-card/90 backdrop-blur-sm rounded-2xl border border-border overflow-hidden flex flex-col relative">
         {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 rounded-2xl"
-          style={{
-            backgroundImage: "url('/lovable-uploads/3b7ad479-e7aa-4ee5-a451-692444a5e96a.png')"
-          }}
-        />
+        {backgroundImage && (
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 rounded-2xl"
+            style={{
+              backgroundImage: `url('${backgroundImage}')`
+            }}
+          />
+        )}
         {/* Header with close button */}
         <div className="flex justify-between items-start p-4 border-b border-border/30 relative z-10">
           <div className="flex-1 mr-3">

@@ -407,6 +407,7 @@ const Motivators = () => {
             title={onboardingContent.motivators.title}
             subtitle={onboardingContent.motivators.subtitle}
             heroQuote={onboardingContent.motivators.heroQuote}
+            backgroundImage={onboardingContent.motivators.backgroundImage}
           >
             <div className="space-y-6">
               <div className="text-center">

@@ -341,6 +341,7 @@ const Walking = () => {
           title={onboardingContent.walking.title}
           subtitle={onboardingContent.walking.subtitle}
           heroQuote={onboardingContent.walking.heroQuote}
+          backgroundImage={onboardingContent.walking.backgroundImage}
         >
           <div className="space-y-6">
             <div className="text-center">

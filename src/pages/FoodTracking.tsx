@@ -1072,6 +1072,7 @@ const FoodTracking = () => {
           title={onboardingContent.food.title}
           subtitle={onboardingContent.food.subtitle}
           heroQuote={onboardingContent.food.heroQuote}
+          backgroundImage={onboardingContent.food.backgroundImage}
         >
           <div className="space-y-6">
             <div className="text-center">
