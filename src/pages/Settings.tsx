@@ -86,7 +86,7 @@ const Settings = () => {
             .from('profiles')
             .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
             .eq('user_id', user.id)
-            .maybeSingle();
+            .maybeSingle() as { data: any; error: any };
 
         if (error) {
           console.error('Error loading profile settings:', error);
@@ -647,11 +647,11 @@ const Settings = () => {
                     <Switch
                       checked={profile?.enable_food_image_generation ?? false}
                       onCheckedChange={async (checked) => {
-                        try {
-                          await supabase
-                            .from('profiles')
-                            .update({ enable_food_image_generation: checked })
-                            .eq('user_id', user?.id);
+                         try {
+                           await supabase
+                             .from('profiles')
+                             .update({ enable_food_image_generation: checked } as any)
+                             .eq('user_id', user?.id);
                           toast({
                             title: checked ? "Food image generation enabled" : "Food image generation disabled",
                             description: checked ? "AI will generate images for new food items" : "Food items will use default placeholders"

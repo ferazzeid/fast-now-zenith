@@ -976,6 +976,7 @@ export type Database = {
           display_name: string | null
           enable_daily_reset: boolean | null
           enable_fasting_slideshow: boolean | null
+          enable_food_image_generation: boolean | null
           enable_walking_slideshow: boolean | null
           goal_weight: number | null
           google_play_purchase_token: string | null
@@ -1020,6 +1021,7 @@ export type Database = {
           display_name?: string | null
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
+          enable_food_image_generation?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
@@ -1064,6 +1066,7 @@ export type Database = {
           display_name?: string | null
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
+          enable_food_image_generation?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
