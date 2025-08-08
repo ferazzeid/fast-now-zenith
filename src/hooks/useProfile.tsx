@@ -20,6 +20,7 @@ interface UserProfile {
   default_walking_speed?: number;
   enable_fasting_slideshow?: boolean;
   enable_walking_slideshow?: boolean;
+  enable_daily_reset?: boolean;
 }
 
 export const useProfile = () => {
