@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useQuoteSettings, Quote } from '@/hooks/useQuoteSettings';
-import { InspirationQuote } from '@/components/InspirationQuote';
+
 
 interface QuoteEditModalProps {
   quote?: Quote;
@@ -141,9 +141,6 @@ export const AdminQuoteSettings: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Inspirational Quotes</CardTitle>
-      </CardHeader>
       <CardContent className="space-y-6">
         {/* Fasting Timer Quotes */}
         <div>
