@@ -311,89 +311,6 @@ const Settings = () => {
             </div>
           </div>
 
-            {/* Theme Toggle Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Palette className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
-                </div>
-                <div className="flex justify-center">
-                  <ThemeToggle />
-                </div>
-              </div>
-            </Card>
-
-            {/* Animation Settings */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Animations</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-warm-text">Fasting Motivator Slideshow</span>
-                    </div>
-                    <Switch
-                      checked={profile?.enable_fasting_slideshow ?? true}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          await supabase
-                            .from('profiles')
-                            .update({ enable_fasting_slideshow: checked })
-                            .eq('user_id', user?.id);
-                          toast({
-                            title: checked ? "Fasting slideshow enabled" : "Fasting slideshow disabled",
-                            description: "Changes will take effect immediately"
-                          });
-                          setProfile(prev => ({ ...prev, enable_fasting_slideshow: checked }));
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update setting",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-warm-text">Walking Motivator Slideshow</span>
-                    </div>
-                    <Switch
-                      checked={profile?.enable_walking_slideshow ?? true}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          await supabase
-                            .from('profiles')
-                            .update({ enable_walking_slideshow: checked })
-                            .eq('user_id', user?.id);
-                          toast({
-                            title: checked ? "Walking slideshow enabled" : "Walking slideshow disabled",
-                            description: "Changes will take effect immediately"
-                          });
-                          setProfile(prev => ({ ...prev, enable_walking_slideshow: checked }));
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update setting",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Disabling slideshows may improve performance on slower devices
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-
             {/* User Profile */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
@@ -504,6 +421,19 @@ const Settings = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Theme Toggle Section */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                </div>
+                <div className="flex justify-center">
+                  <ThemeToggle />
                 </div>
               </div>
             </Card>
@@ -645,6 +575,75 @@ const Settings = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </Card>
+
+            {/* Animation Settings */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Animations</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Fasting Motivator Slideshow</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_fasting_slideshow ?? true}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_fasting_slideshow: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Fasting slideshow enabled" : "Fasting slideshow disabled",
+                            description: "Changes will take effect immediately"
+                          });
+                          setProfile(prev => ({ ...prev, enable_fasting_slideshow: checked }));
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Walking Motivator Slideshow</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_walking_slideshow ?? true}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_walking_slideshow: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Walking slideshow enabled" : "Walking slideshow disabled",
+                            description: "Changes will take effect immediately"
+                          });
+                          setProfile(prev => ({ ...prev, enable_walking_slideshow: checked }));
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Disabling slideshows may improve performance on slower devices
+                  </p>
+                </div>
               </div>
             </Card>
 
