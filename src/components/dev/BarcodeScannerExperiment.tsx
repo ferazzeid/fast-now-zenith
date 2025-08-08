@@ -29,6 +29,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
   const [scanning, setScanning] = useState(false);
@@ -69,7 +70,9 @@ export const BarcodeScannerExperiment: React.FC = () => {
       if (!readerRef.current) {
         readerRef.current = new BrowserMultiFormatReader();
       }
-      await readerRef.current.decodeFromVideoDevice(
+      // Stop any previous scanning session before starting a new one
+      controlsRef.current?.stop();
+      controlsRef.current = await readerRef.current.decodeFromVideoDevice(
         selectedDeviceId,
         videoRef.current,
         (result, err) => {
@@ -90,7 +93,8 @@ export const BarcodeScannerExperiment: React.FC = () => {
 
   const stopScanning = () => {
     try {
-      readerRef.current?.reset();
+      controlsRef.current?.stop();
+      controlsRef.current = null;
       setScanning(false);
     } catch {}
   };
