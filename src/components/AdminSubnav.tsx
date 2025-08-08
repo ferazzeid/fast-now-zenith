@@ -3,10 +3,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { label: "Operations", to: "/admin/operations" },
+  { label: "OPS", to: "/admin/operations" },
   { label: "Content", to: "/admin/content" },
-  { label: "Branding & SEO", to: "/admin/branding" },
-  { label: "Payments", to: "/admin/payments" },
+  { label: "Brand", to: "/admin/branding" },
+  { label: "Pay", to: "/admin/payments" },
+  { label: "Dev", to: "/admin/dev" },
 ];
 
 export function AdminSubnav() {

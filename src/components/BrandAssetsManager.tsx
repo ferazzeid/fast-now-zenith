@@ -266,12 +266,8 @@ const BrandAssetsManager = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-medium">
-            App Favicon
+            Favicon · 32/64px
           </CardTitle>
-          <CardDescription>
-            Upload a favicon image for your app. This will appear in browser tabs and bookmarks.
-            Recommended size: 32x32px or 64x64px PNG file. This is separate from your PWA app icon.
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentFavicon && (
@@ -329,12 +325,8 @@ const BrandAssetsManager = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-medium">
-            App Logo/Icon
+            App Icon · 512x512
           </CardTitle>
-          <CardDescription>
-            Upload an app logo/icon for when users install your app on their devices (PWA icon).
-            This is used for home screen icons and app stores. Recommended size: 512x512px PNG file.
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentLogo && (

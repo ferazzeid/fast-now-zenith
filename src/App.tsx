@@ -44,6 +44,7 @@ const AdminOperations = lazy(() => import("./pages/admin/Operations"));
 const AdminContent = lazy(() => import("./pages/admin/Content"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
+const AdminDev = lazy(() => import("./pages/admin/Dev"));
 const AppContent = () => {
   // Load color theme on app startup
   useColorTheme();
@@ -189,6 +190,17 @@ const AppContent = () => {
                   <PageErrorBoundary>
                     <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
                       <AdminPayments />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dev" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminDev />
                     </Suspense>
                   </PageErrorBoundary>
                 </AdminProtectedRoute>

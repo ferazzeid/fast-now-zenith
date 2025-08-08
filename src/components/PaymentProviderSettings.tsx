@@ -124,12 +124,6 @@ export const PaymentProviderSettings = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Payment Provider Settings</h2>
-        <p className="text-muted-foreground">
-          Configure payment providers for web and mobile platforms. Each provider handles subscriptions for its respective platform.
-        </p>
-      </div>
 
       {providers.map((provider) => (
         <Card key={provider.provider}>

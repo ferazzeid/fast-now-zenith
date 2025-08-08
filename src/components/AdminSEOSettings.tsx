@@ -115,53 +115,21 @@ export const AdminSEOSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Search className="h-5 w-5" />
-          SEO Indexing Settings
+          SEO Indexing
         </CardTitle>
-        <CardDescription>
-          Control which pages are indexed by search engines. By default, all pages are set to "noindex" for privacy.
-        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label htmlFor="homepage-indexing" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Homepage Indexing
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Allow search engines to index the main landing page (go.fastnow.app)
-            </p>
-          </div>
-          <Switch
-            id="homepage-indexing"
-            checked={settings.indexHomepage}
-            onCheckedChange={handleHomepageToggle}
-          />
+          <Label htmlFor="homepage-indexing" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" /> Homepage Indexing
+          </Label>
+          <Switch id="homepage-indexing" checked={settings.indexHomepage} onCheckedChange={handleHomepageToggle} />
         </div>
-
-        <Separator />
-
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label htmlFor="other-pages-indexing" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Other Pages Indexing
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Allow search engines to index all other app pages (timer, settings, etc.)
-            </p>
-          </div>
-          <Switch
-            id="other-pages-indexing"
-            checked={settings.indexOtherPages}
-            onCheckedChange={handleOtherPagesToggle}
-          />
-        </div>
-
-        <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-          <p className="text-xs text-muted-foreground">
-            <strong>Note:</strong> Changes take effect immediately. Search engines may take time to reflect these changes in their indexes.
-          </p>
+          <Label htmlFor="other-pages-indexing" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" /> Other Pages Indexing
+          </Label>
+          <Switch id="other-pages-indexing" checked={settings.indexOtherPages} onCheckedChange={handleOtherPagesToggle} />
         </div>
       </CardContent>
     </Card>

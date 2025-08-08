@@ -1,7 +1,6 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
-import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 
 export default function AdminPayments() {
   usePageSEO({
@@ -15,12 +14,8 @@ export default function AdminPayments() {
       <h1 className="sr-only">Admin Payments</h1>
       <AdminSubnav />
 
-      <section aria-label="Payment provider settings">
+      <section aria-label="Payment provider settings" className="pb-24">
         <PaymentProviderSettings />
-      </section>
-
-      <section aria-label="Google Analytics settings" className="pb-24">
-        <GoogleAnalyticsSettings />
         <div className="h-8" />
       </section>
     </main>

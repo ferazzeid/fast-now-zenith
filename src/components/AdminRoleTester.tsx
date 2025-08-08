@@ -41,71 +41,12 @@ export const AdminRoleTester = () => {
   const IconComponent = roleIcons[currentRole];
 
   return (
-    <Card className="border-2 border-dashed border-primary/50">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TestTube className="w-5 h-5 text-primary" />
-          Role Testing Mode
-          {isTestingMode && (
-            <Badge variant="destructive" className="ml-2">
-              Testing as {testRole}
-            </Badge>
-          )}
-        </CardTitle>
-        <CardDescription>
-          Switch between user roles to test different user experiences. Admin settings remain accessible.
-        </CardDescription>
+        <CardTitle className="text-base">Role Testing</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <IconComponent className="w-5 h-5 text-primary flex-shrink-0" />
-            <div className="min-w-0">
-              <div className="font-medium truncate">
-                Currently testing as: {currentRole}
-              </div>
-              <div className="text-sm text-muted-foreground truncate">
-                {roleDescriptions[currentRole]}
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-2 flex-shrink-0">
-            <Select value={testRole || 'none'} onValueChange={handleRoleChange}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Admin (Default)</SelectItem>
-                <SelectItem value="api_user">API User</SelectItem>
-                <SelectItem value="paid_user">Premium User</SelectItem>
-                <SelectItem value="granted_user">Basic User</SelectItem>
-                <SelectItem value="free_user">Free User</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {isTestingMode && (
-              <Button 
-                onClick={resetToAdmin} 
-                variant="outline" 
-                size="sm"
-                className="flex-shrink-0"
-              >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                Reset
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {isTestingMode && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-            <div className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>Testing Mode Active:</strong> You're experiencing the app as a {testRole} user. 
-              Admin functions remain accessible through this dashboard.
-            </div>
-          </div>
-        )}
+      <CardContent>
+        <p className="text-sm text-muted-foreground">Tools for internal role verification.</p>
       </CardContent>
     </Card>
   );

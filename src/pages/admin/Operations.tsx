@@ -6,6 +6,7 @@ import { CancellationTracker } from "@/components/CancellationTracker";
 import { AdminTierStats } from "@/components/AdminTierStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
+import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -19,9 +20,6 @@ export default function AdminOperations() {
       <h1 className="sr-only">Admin Operations</h1>
       <AdminSubnav />
 
-      <section aria-label="Role testing">
-        <AdminRoleTester />
-      </section>
 
       <section aria-label="Real-time analytics">
         <SimpleAnalyticsWidget />
@@ -39,8 +37,8 @@ export default function AdminOperations() {
         <UserRequestLimits />
       </section>
 
-      <section aria-label="OpenAI API statistics" className="pb-24">
-        <OpenAIApiStats />
+      <section aria-label="Google Analytics settings" className="pb-24">
+        <GoogleAnalyticsSettings />
         <div className="h-8" />
       </section>
     </main>
