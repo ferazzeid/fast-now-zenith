@@ -158,7 +158,8 @@ export const RegenerateImageButton = ({
           title: "🎨 Image Generation Started",
           description: "Your image is being generated in the background. It will appear automatically when ready.",
         });
-        // Let realtime subscription update the UI
+        // Don't call onImageGenerated here - let the realtime subscription handle it
+        return;
       } else {
         // Synchronous generation
         const newImageUrl = await generate_image(enhancedPrompt, filename, bucket);

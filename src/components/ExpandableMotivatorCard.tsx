@@ -49,7 +49,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     setCurrentImageUrl(newImageUrl);
   };
 
-  // Update image URL when motivator changes or generation completes
+  // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
     setCurrentImageUrl(motivator.imageUrl || '');
   }, [motivator.imageUrl]);
@@ -72,13 +72,14 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             )}
             {currentImageUrl && (
               <div className="absolute -top-1 -right-1">
-                <PremiumGatedRegenerateButton
+                <RegenerateImageButton
                   prompt={`${motivator.title}. ${motivator.content || ''}`}
-                  filename={`motivator-${Date.now()}.jpg`}
+                  filename={`motivator-${motivator.id}-${Date.now()}.jpg`}
                   onImageGenerated={handleImageGenerated}
                   motivatorId={motivator.id}
                   disabled={isGenerating}
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  mode="motivator"
                 />
               </div>
             )}
