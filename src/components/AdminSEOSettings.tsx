@@ -58,12 +58,35 @@ export const AdminSEOSettings = () => {
 
   const updateSetting = async (key: string, value: boolean) => {
     try {
-      const { error } = await supabase
+      // First try to get existing record
+      const { data: existing, error: fetchError } = await supabase
         .from('shared_settings')
-        .upsert({ 
-          setting_key: key, 
-          setting_value: value.toString() 
-        });
+        .select('id')
+        .eq('setting_key', key)
+        .maybeSingle();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      let error;
+      if (existing) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('shared_settings')
+          .update({ setting_value: value.toString() })
+          .eq('setting_key', key);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('shared_settings')
+          .insert({ 
+            setting_key: key, 
+            setting_value: value.toString() 
+          });
+        error = insertError;
+      }
 
       if (error) throw error;
 
@@ -112,8 +135,16 @@ export const AdminSEOSettings = () => {
 
   return (
     <Card>
-      
-      <CardContent className="space-y-4">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Search className="h-5 w-5" />
+          SEO Indexing Settings
+        </CardTitle>
+        <CardDescription>
+          Control search engine indexing for different pages
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <Label htmlFor="homepage-indexing" className="flex items-center gap-2">
             <Globe className="h-4 w-4" /> Homepage Indexing

@@ -209,6 +209,15 @@ export const ColorManagement: React.FC = () => {
 
   return (
     <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <span className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
+          Brand Colors
+        </CardTitle>
+        <CardDescription>
+          Customize your app's color scheme and branding
+        </CardDescription>
+      </CardHeader>
       <CardContent className="space-y-6">
         {/* Color Pickers Grid */}
         <div className="grid grid-cols-4 gap-4">
