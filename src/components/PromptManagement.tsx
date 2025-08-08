@@ -36,8 +36,8 @@ const STYLE_PRESETS: StylePreset[] = [
   {
     key: 'vibrant_color',
     name: 'Vibrant Color',
-    description: 'Rich colors with powerful visual impact',
-    prompt: 'Bold, vibrant poster design featuring {concept}. Rich saturated colors with deep reds, electric blues, or golden yellows as primary palette. Strong visual impact with dramatic lighting and contrast. Modern graphic design style, clean composition, powerful and inspiring mood. Centered subject, no people or faces, no text/letters/logos. Professional poster quality, 1:1 square format.'
+    description: 'Clean 2-3 color design with powerful visual impact',
+    prompt: 'Minimalist poster design of {concept}. Use exactly 2-3 colors maximum: deep red, black, and white only. Clean geometric shapes, bold silhouette, strong contrast. Centered composition, no text, no fonts, no letters, no words, no numbers, no UI elements, no people, no faces. Simple, modern, classic aesthetic. Professional poster quality, 1:1 square format.'
   },
   {
     key: 'photorealistic',
