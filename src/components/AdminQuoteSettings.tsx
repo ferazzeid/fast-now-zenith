@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit2, Quote as QuoteIcon } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -142,34 +142,26 @@ export const AdminQuoteSettings: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <QuoteIcon className="w-5 h-5" />
-          Inspirational Quotes Management
-        </CardTitle>
+        <CardTitle className="text-lg">Inspirational Quotes</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Fasting Timer Quotes */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium">Fasting Timer Quotes</h3>
+            <h3 className="text-base font-medium">Fasting Timer Quotes</h3>
             <Button
               size="sm"
               onClick={() => handleAddQuote('fasting_timer_quotes')}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Quote
+              Add
             </Button>
           </div>
           
-          {/* Preview */}
-          <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-            <InspirationQuote quotes={quotes.fasting_timer_quotes} />
-          </div>
 
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {quotes.fasting_timer_quotes.map((quote, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+              <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm italic">"{quote.text}"</p>
                   {quote.author && (
@@ -195,33 +187,28 @@ export const AdminQuoteSettings: React.FC = () => {
               </div>
             ))}
           </div>
-          <Badge variant="secondary" className="mt-2">
+          <div className="mt-2 text-xs text-muted-foreground">
             {quotes.fasting_timer_quotes.length} quotes
-          </Badge>
+          </div>
         </div>
 
         {/* Walking Timer Quotes */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium">Walking Timer Quotes</h3>
+            <h3 className="text-base font-medium">Walking Timer Quotes</h3>
             <Button
               size="sm"
               onClick={() => handleAddQuote('walking_timer_quotes')}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Quote
+              Add
             </Button>
           </div>
 
-          {/* Preview */}
-          <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-            <InspirationQuote quotes={quotes.walking_timer_quotes} />
-          </div>
 
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {quotes.walking_timer_quotes.map((quote, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+              <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm italic">"{quote.text}"</p>
                   {quote.author && (
@@ -247,9 +234,9 @@ export const AdminQuoteSettings: React.FC = () => {
               </div>
             ))}
           </div>
-          <Badge variant="secondary" className="mt-2">
+          <div className="mt-2 text-xs text-muted-foreground">
             {quotes.walking_timer_quotes.length} quotes
-          </Badge>
+          </div>
         </div>
 
         <QuoteEditModal

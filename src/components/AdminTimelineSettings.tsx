@@ -398,11 +398,7 @@ export const AdminTimelineSettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Preview */}
-        <div className="p-4 bg-muted/50 rounded-lg">
-          <p className="text-sm text-muted-foreground mb-4">Preview:</p>
-          <FastingTimelineV2 currentHour={1} />
-        </div>
+        
 
         {/* Add New Hour Button */}
         <div className="flex justify-between items-center">
@@ -416,45 +412,22 @@ export const AdminTimelineSettings = () => {
             )}
             <Button onClick={() => openEditModal()}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Hour
+              Add
             </Button>
           </div>
         </div>
 
         {/* Hours List */}
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div className="divide-y rounded-md border max-h-96 overflow-y-auto">
           {fastingHours.map((hour) => (
-            <div key={hour.id || hour.hour} className="flex items-start gap-3 p-3 border rounded-lg">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="outline">Hour {hour.hour}</Badge>
-                  <Badge variant={
-                    hour.phase === 'preparation' ? 'default' :
-                    hour.phase === 'adaptation' ? 'secondary' :
-                    hour.phase === 'fat_burning' ? 'secondary' :
-                    'default'
-                  }>
-                    {hour.phase.replace('_', ' ')}
-                  </Badge>
-                  <Badge variant={
-                    hour.difficulty === 'easy' ? 'default' :
-                    hour.difficulty === 'moderate' ? 'secondary' :
-                    'destructive'
-                  }>
-                    {hour.difficulty}
-                  </Badge>
-                </div>
-                <h4 className="font-medium truncate">{hour.title}</h4>
-                <p className="text-sm text-muted-foreground line-clamp-2">{hour.body_state}</p>
-                {hour.encouragement && (
-                  <p className="text-sm italic text-primary/80 mt-1">"{hour.encouragement}"</p>
-                )}
-              </div>
+            <div key={hour.id || hour.hour} className="flex items-center justify-between py-2 px-3">
+              <span className="text-sm">Hour {hour.hour}</span>
               <div className="flex gap-1">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => openEditModal(hour)}
+                  aria-label={`Edit Hour ${hour.hour}`}
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -462,6 +435,7 @@ export const AdminTimelineSettings = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => hour.id && deleteFastingHour(hour.id)}
+                  aria-label={`Delete Hour ${hour.hour}`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

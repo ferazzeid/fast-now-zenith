@@ -62,17 +62,6 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-end gap-2">
-              {hourMap.get(selectedHour)?.ketosis_milestone && (
-                <span className="px-1.5 py-0.5 rounded-sm border text-xs">Ketosis</span>
-              )}
-              {hourMap.get(selectedHour)?.autophagy_milestone && (
-                <span className="px-1.5 py-0.5 rounded-sm border text-xs">Autophagy</span>
-              )}
-              {hourMap.get(selectedHour)?.fat_burning_milestone && (
-                <span className="px-1.5 py-0.5 rounded-sm border text-xs">Fat Burning</span>
-              )}
-            </div>
 
             <div className="text-sm font-medium">
               {selected?.title || "Stay focused and hydrated"}

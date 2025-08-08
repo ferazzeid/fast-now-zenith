@@ -215,24 +215,12 @@ export const PromptManagement: React.FC = () => {
         <h2 className="text-2xl font-semibold text-foreground">AI Prompt Configuration</h2>
       </div>
       
-      <div className="p-3 rounded-md border bg-muted/30">
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-muted-foreground">
-            <p className="font-medium mb-1">How AI Prompt Variables Work:</p>
-            <p>Variables like <code className="px-1 rounded-sm border bg-background">{'{title}'}</code> get automatically replaced with actual content when generating images. Your brand colors are injected automatically to maintain consistent theming.</p>
-          </div>
-        </div>
-      </div>
 
       {PROMPT_CONFIGS.map((config) => (
         <Card key={config.key}>
           <CardHeader>
             <div className="space-y-2">
-              <div>
                 <CardTitle className="text-lg">{config.title}</CardTitle>
-                <CardDescription className="mt-1">{config.description}</CardDescription>
-              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
