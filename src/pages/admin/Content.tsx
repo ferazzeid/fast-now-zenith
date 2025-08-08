@@ -3,7 +3,6 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
 import { AdminQuoteSettings } from "@/components/AdminQuoteSettings";
 import { PromptManagement } from "@/components/PromptManagement";
-import { AdminMotivatorAnimationSettings } from "@/components/AdminMotivatorAnimationSettings";
 
 export default function AdminContent() {
   usePageSEO({
@@ -27,12 +26,8 @@ export default function AdminContent() {
         <PromptManagement />
       </section>
 
-      <section aria-label="Quote management">
+      <section aria-label="Quote management" className="pb-24">
         <AdminQuoteSettings />
-      </section>
-
-      <section aria-label="Animation settings" className="pb-24">
-        <AdminMotivatorAnimationSettings />
         <div className="h-8" />
       </section>
     </main>
