@@ -69,6 +69,15 @@ export const RegenerateImageButton = ({
           throw new Error('User not authenticated');
         }
 
+        // Resolve API key from profile or localStorage (for API-user mode)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('use_own_api_key, openai_api_key')
+          .maybeSingle();
+        const apiKey = profile?.use_own_api_key
+          ? (profile.openai_api_key || localStorage.getItem('openai_api_key') || undefined)
+          : undefined;
+
         // Call the edge function with tracking info for background processing
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: { 
@@ -76,7 +85,8 @@ export const RegenerateImageButton = ({
             filename,
             bucket,
             motivatorId,
-            userId: user.id
+            userId: user.id,
+            apiKey
           }
         });
 

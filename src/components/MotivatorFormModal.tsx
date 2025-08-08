@@ -62,13 +62,26 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     // If editing existing motivator, use background generation
     if (motivator?.id) {
       try {
+        // Resolve API key from profile or localStorage (API-user mode)
+        let apiKey: string | undefined = undefined;
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('use_own_api_key, openai_api_key')
+            .maybeSingle();
+          if (profile?.use_own_api_key) {
+            apiKey = profile.openai_api_key || localStorage.getItem('openai_api_key') || undefined;
+          }
+        } catch {}
+
         // Trigger background generation via edge function
         const { error } = await supabase.functions.invoke('generate-image', {
           body: {
             prompt: `${title}. ${content}`,
             filename: `motivator-${motivator.id}-${Date.now()}.jpg`,
             motivatorId: motivator.id,
-            userId: motivator.id // We'll use the user from edge function auth
+            userId: motivator.id, // We'll use the user from edge function auth
+            apiKey
           }
         });
 

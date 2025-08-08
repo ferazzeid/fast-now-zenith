@@ -6,9 +6,14 @@ export const generateImage = async (prompt: string, filename: string, bucket?: s
     const { data: profile } = await supabase
       .from('profiles')
       .select('openai_api_key, use_own_api_key')
-      .single();
+      .maybeSingle();
 
-    const apiKey = profile?.use_own_api_key ? profile.openai_api_key : undefined;
+    let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
+    // Fallback to localStorage if available (client-side) when in API-user mode
+    if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
+      const localKey = localStorage.getItem('openai_api_key');
+      if (localKey) apiKey = localKey;
+    }
 
     // Call the image generation edge function
     const { data, error } = await supabase.functions.invoke('generate-image', {
