@@ -58,9 +58,8 @@ export const RegenerateImageButton = ({
         console.log('Using default settings for image prompt');
       }
 
-      // Default concept-based template (strict black & white)
-      const defaultConceptTemplate =
-        "Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.";
+      // Default concept-based template (simple black & white)
+      const defaultConceptTemplate = "Simple black and white icon of {concept}";
 
       // Resolve concept and final prompt
       let enhancedPrompt = '';

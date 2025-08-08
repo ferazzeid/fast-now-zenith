@@ -113,8 +113,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       });
     } catch {}
 
-    const defaultConceptTemplate =
-      "Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.";
+    const defaultConceptTemplate = "Simple black and white icon of {concept}";
     const templateToUse = adminTemplate && adminTemplate.includes('{concept}')
       ? adminTemplate
       : defaultConceptTemplate;

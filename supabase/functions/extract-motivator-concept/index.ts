@@ -57,7 +57,17 @@ function pickHeuristicConcept(title: string, content: string): string {
 
 async function extractConceptWithAI(title: string, content: string, apiKey: string): Promise<string | null> {
   try {
-    const prompt = `From the following title and content, output a single short visual concept noun or noun-phrase (max 2 words) suitable for a simple icon or silhouette. Avoid vague verbs like "+lose" or "get". Prefer concrete metaphors (e.g., mountain, hourglass, target, footprint, mirror, hanger, laurel wreath). Only return the concept text.\n\nTitle: ${title}\nContent: ${content}`;
+    const prompt = `This is a weight loss motivation goal. What concrete visual object would best represent this goal as a motivational image? The goal is: "${title}. ${content}".
+
+Examples:
+- If someone wants to fit in old clothes → "clothes hanger"
+- If someone wants to impress people → "shining star" 
+- If someone wants to be healthy → "heart"
+- If someone wants to be president → "crown"
+- If someone has a deadline → "calendar"
+- If someone wants to be strong → "mountain"
+
+Return only 1-2 words for a concrete object that can be drawn as a simple icon. Avoid abstract concepts.`;
 
     const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -68,10 +78,10 @@ async function extractConceptWithAI(title: string, content: string, apiKey: stri
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'Return only a short concrete visual concept (1-2 words), no punctuation.' },
+          { role: 'system', content: 'Return only a concrete visual object (1-2 words) that can be drawn as a simple icon. No explanations.' },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.2,
+        temperature: 0.3,
       }),
     });
 
