@@ -59,7 +59,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <div 
-      className={`text-center px-6 py-4 cursor-pointer transition-opacity duration-500 hover:opacity-80 ${className}`}
+      className={`max-w-md mx-auto text-center px-6 py-4 cursor-pointer transition-opacity duration-500 hover:opacity-80 ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative">
