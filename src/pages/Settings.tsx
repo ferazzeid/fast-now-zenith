@@ -84,7 +84,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow')
+            .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
             .eq('user_id', user.id)
             .maybeSingle();
 
@@ -640,8 +640,35 @@ const Settings = () => {
                       }}
                     />
                   </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Auto-Generate Food Images</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_food_image_generation ?? false}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_food_image_generation: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Food image generation enabled" : "Food image generation disabled",
+                            description: checked ? "AI will generate images for new food items" : "Food items will use default placeholders"
+                          });
+                          setProfile(prev => ({ ...prev, enable_food_image_generation: checked }));
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Disabling slideshows may improve performance on slower devices
+                    Automatically generate AI images for food items. Disabling may improve performance on slower devices
                   </p>
                 </div>
               </div>
