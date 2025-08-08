@@ -58,11 +58,7 @@ export const FoodPhotoAnalyzerExperiment: React.FC = () => {
 
   return (
     <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle>Food Photo Nutrition (Experiment)</CardTitle>
-        <CardDescription>Upload a food photo to recognize items and estimate nutrition using AI.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         {!imageUrl && !result && (
           <div className="space-y-3">
             <SimpleImageUpload onImageUpload={handleUpload} />

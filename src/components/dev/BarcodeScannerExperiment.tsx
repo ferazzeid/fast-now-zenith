@@ -134,43 +134,24 @@ export const BarcodeScannerExperiment: React.FC = () => {
 
   return (
     <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle>Barcode Scanner (Experiment)</CardTitle>
-        <CardDescription>Scan product barcodes and fetch data from Open Food Facts.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Camera</Label>
-            <Select value={selectedDeviceId} onValueChange={(v) => setSelectedDeviceId(v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select camera" />
-              </SelectTrigger>
-              <SelectContent>
-                {devices.map((d, idx) => (
-                  <SelectItem key={d.deviceId || `device-${idx}`} value={d.deviceId || `device-${idx}`}>
-                    {d.label || `Camera ${idx + 1}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-end gap-2">
-            <Button onClick={startScanning} disabled={scanning || !selectedDeviceId} className="flex-1" variant="secondary">
-              {scanning ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scanning
-                </>
-              ) : (
-                <>
-                  <Camera className="w-4 h-4 mr-2" /> Start scan
-                </>
-              )}
-            </Button>
-            <Button onClick={stopScanning} disabled={!scanning} variant="outline">
+      <CardContent className="space-y-4 pt-6">
+        <div className="flex gap-2">
+          <Button onClick={startScanning} disabled={scanning || devices.length === 0} className="flex-1" variant="secondary">
+            {scanning ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scanning...
+              </>
+            ) : (
+              <>
+                <Camera className="w-4 h-4 mr-2" /> Start scan
+              </>
+            )}
+          </Button>
+          {scanning && (
+            <Button onClick={stopScanning} variant="outline">
               <Square className="w-4 h-4 mr-2" /> Stop
             </Button>
-          </div>
+          )}
         </div>
 
         <div className="rounded-lg overflow-hidden border">
@@ -184,19 +165,11 @@ export const BarcodeScannerExperiment: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label>Last scanned code</Label>
-            <Input value={barcode} readOnly placeholder="—" />
+        {barcode && (
+          <div className="space-y-2">
+            <h4 className="text-base font-medium">Scanned: {barcode}</h4>
           </div>
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <Label htmlFor="manual">Manual lookup</Label>
-              <Input id="manual" value={manualCode} onChange={(e) => setManualCode(e.target.value)} placeholder="Enter barcode" />
-            </div>
-            <Button onClick={handleManualLookup} variant="outline">Fetch</Button>
-          </div>
-        </div>
+        )}
 
         {loadingProduct && (
           <div className="flex items-center text-sm text-muted-foreground">
