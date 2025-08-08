@@ -116,7 +116,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
               )}
             </div>
 
-            {selected?.stage && (
+            {selected?.stage && selected.stage !== 'preparation' && (
               <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-md inline-block">
                 {selected.stage}
               </div>
@@ -148,7 +148,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">
-                {selected?.body_state || "We'll add details for this hour soon."}
+                {selected?.physiological_effects || selected?.body_state || "We'll add details for this hour soon."}
               </div>
             )}
 
