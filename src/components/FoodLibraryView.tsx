@@ -519,6 +519,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               src={food.image_url} 
               alt={food.name}
               className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+              loading="lazy"
             />
           ) : (
             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">

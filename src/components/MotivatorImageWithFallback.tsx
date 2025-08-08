@@ -50,6 +50,7 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
         className={className}
         style={style}
         onError={handleFallbackError}
+        loading="lazy"
       />
     );
   }
@@ -62,6 +63,7 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
       className={className}
       style={style}
       onError={handleImageError}
+      loading="lazy"
     />
   );
 };
