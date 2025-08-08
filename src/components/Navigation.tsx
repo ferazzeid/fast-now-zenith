@@ -151,8 +151,8 @@ export const Navigation = () => {
 
   return (
     <TooltipProvider>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="max-w-md mx-auto bg-ceramic-plate px-4 py-2">
+      <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="bg-ceramic-plate px-4 py-2">
           <div className="flex justify-around gap-1 relative">
             {/* Connection Status Indicator */}
             <Tooltip>
