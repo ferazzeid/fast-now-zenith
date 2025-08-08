@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -211,15 +211,17 @@ export const GoogleAnalyticsSettings = () => {
           </ol>
         </div>
 
+      </CardContent>
+      <CardFooter className="justify-end">
         <Button
           onClick={saveSettings}
           disabled={saving || loading || !propertyId.trim()}
-          className="w-full"
+          className="w-full sm:w-auto"
         >
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save Settings'}
         </Button>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 };

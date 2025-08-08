@@ -149,7 +149,7 @@ export const PaymentProviderSettings = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={provider.is_active ? 'default' : 'secondary'}>
+                <Badge variant={provider.is_active ? 'outline' : 'secondary'}>
                   {provider.is_active ? 'Active' : 'Inactive'}
                 </Badge>
                 <Switch

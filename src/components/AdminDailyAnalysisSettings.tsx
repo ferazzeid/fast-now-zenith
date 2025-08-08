@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -86,6 +86,8 @@ export const AdminDailyAnalysisSettings = () => {
             This prompt will be used to generate personalized daily progress insights
           </p>
         </div>
+      </CardContent>
+      <CardFooter className="justify-end">
         <Button 
           onClick={saveAnalysisSettings}
           disabled={loading}
@@ -93,7 +95,7 @@ export const AdminDailyAnalysisSettings = () => {
         >
           {loading ? 'Saving...' : 'Save Settings'}
         </Button>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 };

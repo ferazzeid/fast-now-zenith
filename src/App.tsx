@@ -149,12 +149,46 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/admin" element={
+            <Route path="/admin" element={<Navigate to="/admin/operations" replace />} />
+            <Route path="/admin/operations" element={
               <ProtectedRoute>
                 <AdminProtectedRoute>
                   <PageErrorBoundary>
                     <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
-                      <AdminOverview />
+                      <AdminOperations />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/content" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminContent />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/branding" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminBranding />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/payments" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminPayments />
                     </Suspense>
                   </PageErrorBoundary>
                 </AdminProtectedRoute>
