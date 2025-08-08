@@ -18,7 +18,7 @@ interface ContentRotationState {
 export function useContentRotation({
   fastingHour,
   autoRotate = true,
-  rotationInterval = 3000
+  rotationInterval = 6000 // Slower rotation - 6 seconds
 }: UseContentRotationProps) {
   const [rotationState, setRotationState] = useState<ContentRotationState>({
     currentContent: '',
@@ -34,6 +34,11 @@ export function useContentRotation({
     
     const variants: ContentVariant[] = [];
     
+    // Include stage in rotation
+    if (hour.stage) {
+      variants.push({ type: 'stage', content: hour.stage });
+    }
+    
     if (hour.metabolic_changes) {
       variants.push({ type: 'metabolic', content: hour.metabolic_changes });
     }
@@ -46,12 +51,9 @@ export function useContentRotation({
       variants.push({ type: 'mental', content: hour.mental_emotional_state.join('. ') });
     }
     
-    if (hour.benefits_challenges) {
-      variants.push({ type: 'benefits', content: hour.benefits_challenges });
-    }
-    
-    if (hour.content_snippet) {
-      variants.push({ type: 'snippet', content: hour.content_snippet });
+    // Include encouragement in rotation
+    if (hour.encouragement) {
+      variants.push({ type: 'encouragement', content: hour.encouragement });
     }
     
     // Fallback to body_state if no other content

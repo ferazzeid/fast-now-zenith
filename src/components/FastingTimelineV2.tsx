@@ -42,7 +42,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const rotation = useContentRotation({
     fastingHour: selected || null,
     autoRotate: true,
-    rotationInterval: 3000
+    rotationInterval: 6000 // Use the slower rotation interval
   });
 
   const getContentTypeLabel = (type: string) => {
@@ -50,9 +50,9 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
       case 'metabolic': return 'Metabolic Changes';
       case 'physiological': return 'Physical Effects';
       case 'mental': return 'Mental State';
-      case 'benefits': return 'Benefits & Challenges';
-      case 'snippet': return 'Quick Summary';
-      default: return 'Information';
+      case 'stage': return 'Stage';
+      case 'encouragement': return 'Encouragement';
+      default: return '';
     }
   };
 
@@ -75,96 +75,59 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">
-                {selected?.title || "Stay focused and hydrated"}
+            {rotation.totalVariants > 1 && (
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={rotation.goToPrevious}
+                  className="h-6 w-6 p-0"
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={rotation.toggleRotation}
+                  className="h-6 w-6 p-0"
+                >
+                  {rotation.isRotating ? (
+                    <Pause className="h-3 w-3" />
+                  ) : (
+                    <Play className="h-3 w-3" />
+                  )}
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={rotation.goToNext}
+                  className="h-6 w-6 p-0"
+                >
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
               </div>
-              
-              {rotation.totalVariants > 1 && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={rotation.goToPrevious}
-                    className="h-6 w-6 p-0"
-                  >
-                    <ChevronLeft className="h-3 w-3" />
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={rotation.toggleRotation}
-                    className="h-6 w-6 p-0"
-                  >
-                    {rotation.isRotating ? (
-                      <Pause className="h-3 w-3" />
-                    ) : (
-                      <Play className="h-3 w-3" />
-                    )}
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={rotation.goToNext}
-                    className="h-6 w-6 p-0"
-                  >
-                    <ChevronRight className="h-3 w-3" />
-                  </Button>
+            )}
+
+            <div className="min-h-[80px]">
+              {rotation.totalVariants > 1 ? (
+                <div className="transition-all duration-500 ease-in-out">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-medium text-muted-foreground">
+                      {getContentTypeLabel(rotation.currentType)}
+                    </h4>
+                  </div>
+                  <p className="text-sm text-foreground transition-all duration-500 ease-in-out animate-fade-in">
+                    {rotation.currentContent}
+                  </p>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  {selected?.physiological_effects || selected?.body_state || "We'll add details for this hour soon."}
                 </div>
               )}
             </div>
-
-            {selected?.stage && selected.stage !== 'preparation' && (
-              <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-md inline-block">
-                {selected.stage}
-              </div>
-            )}
-
-            {rotation.totalVariants > 1 ? (
-              <div className="min-h-[80px]">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-medium text-muted-foreground">
-                    {getContentTypeLabel(rotation.currentType)}
-                  </h4>
-                  <div className="flex gap-1">
-                    {Array.from({ length: rotation.totalVariants }).map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => rotation.goToIndex(index)}
-                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                          index === rotation.currentIndex 
-                            ? 'bg-primary' 
-                            : 'bg-muted-foreground/30'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground transition-all duration-300">
-                  {rotation.currentContent}
-                </p>
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">
-                {selected?.physiological_effects || selected?.body_state || "We'll add details for this hour soon."}
-              </div>
-            )}
-
-            {selected?.encouragement && (
-              <div className="text-sm italic text-primary/80">
-                "{selected.encouragement}"
-              </div>
-            )}
-
-            {selected?.tips && selected.tips.length > 0 && (
-              <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                {selected.tips.slice(0, 2).map((tip, idx) => (
-                  <li key={idx}>{tip}</li>
-                ))}
-              </ul>
-            )}
           </div>
         )}
       </div>

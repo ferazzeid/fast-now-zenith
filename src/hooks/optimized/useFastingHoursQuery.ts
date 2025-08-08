@@ -30,7 +30,7 @@ export interface FastingHour {
 }
 
 export interface ContentVariant {
-  type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet';
+  type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet' | 'stage' | 'encouragement';
   content: string;
   duration?: number; // milliseconds to show this variant
 }

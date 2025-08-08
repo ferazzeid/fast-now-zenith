@@ -33,7 +33,7 @@ interface FastingHour {
   content_rotation_data?: {
     current_index: number;
     variants: Array<{
-      type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet';
+      type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet' | 'stage' | 'encouragement';
       content: string;
     }>;
   };
