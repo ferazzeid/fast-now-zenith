@@ -54,6 +54,9 @@ const AppContent = () => {
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Hide navigation on auth routes
+  const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
   
   // Initialize analytics on app startup (non-blocking)
   useEffect(() => {
@@ -95,10 +98,10 @@ const AppContent = () => {
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
-        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl px-4 overflow-x-hidden">
+        <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
           <EnhancedConnectionStatus />
-          <DailyStatsPanel />
+          {!isAuthRoute && <DailyStatsPanel />}
           <Routes>
             <Route path="/auth" element={
               <PageErrorBoundary>
@@ -217,7 +220,7 @@ const AppContent = () => {
               </PageErrorBoundary>
             } />
           </Routes>
-          <Navigation />
+          {!isAuthRoute && <Navigation />}
         </div>
       </div>
       
