@@ -93,8 +93,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     // For new motivators, use direct generation
     setIsGeneratingImage(true);
     try {
-      // Use improved cartoon style prompt template
-      let promptTemplate = "Modern cartoon illustration, minimalist style with soft rounded shapes and clean lines. Use warm, encouraging aesthetic with {primary_color} as main color and {accent_color} for highlights. Subject: {title}. {content}. Style: symbolic representation, simple, uplifting, suitable for wellness app, soft pastel colors, clean background with subtle gradient.";
+      // Use improved minimalist, non-cartoony prompt template
+      let promptTemplate = "Minimal, modern illustration representing: {title}. {content}. Single clear subject, geometric shapes, soft gradients, flat design, non-cartoony, professional. Focus on the key object of desire. Use brand colors: {primary_color} and {accent_color}. Clean background, no text, no logos.";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       
@@ -188,7 +188,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       onClose={onClose}
       title={isEditing ? 'Edit Motivator' : 'Create New Motivator'}
       variant="standard"
-      size="md"
+      size="sm"
       showCloseButton={true}
       footer={
         <>

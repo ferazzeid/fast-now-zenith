@@ -223,7 +223,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
         }}
         title={`Edit ${food.name}`}
         variant="standard"
-        size="md"
+        size="sm"
         footer={
           <div className="flex gap-2 w-full">
             <Button

@@ -10,8 +10,9 @@ const ENV = Deno.env.get('ENV') || Deno.env.get('NODE_ENV') || 'development';
 const isProd = ENV === 'production';
 
 function buildCorsHeaders(origin: string | null) {
+  const isLovable = origin ? (origin.includes('lovableproject.com') || origin.includes('lovable.app')) : false;
   const allowOrigin = isProd
-    ? (origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0])
+    ? ((origin && (ALLOWED_ORIGINS.includes(origin) || isLovable)) ? origin : ALLOWED_ORIGINS[0])
     : (origin || '*');
   return {
     'Access-Control-Allow-Origin': allowOrigin,

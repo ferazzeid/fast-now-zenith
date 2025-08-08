@@ -7,11 +7,13 @@ const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:51
   .map(o => o.trim());
 
 function buildCorsHeaders(origin: string | null) {
-  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const isLovable = origin ? (origin.includes('lovableproject.com') || origin.includes('lovable.app')) : false;
+  const allowOrigin = (origin && (ALLOWED_ORIGINS.includes(origin) || isLovable)) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Vary': 'Origin',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
+    'Access-Control-Allow-Credentials': 'true',
   } as const;
 }
 

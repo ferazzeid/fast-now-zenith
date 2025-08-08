@@ -31,8 +31,8 @@ export const RegenerateImageButton = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Use a clean, focused prompt template
-      let promptTemplate = "Create a simple, clean illustration that represents: {title}. {content}. Style: minimalist, modern, inspiring. Colors: {primary_color} and {accent_color}";
+      // Use a clean, focused prompt template (non-cartoony)
+      let promptTemplate = "Minimal, modern illustration representing: {title}. {content}. Single clear subject, geometric shapes, soft gradients, flat design, non-cartoony, professional. Focus on the key object of desire. Use brand colors: {primary_color} and {accent_color}. Clean background, no text, no logos.";
       let primaryColor = "220 35% 45%";
       let accentColor = "142 71% 45%";
       

@@ -250,7 +250,7 @@ ${args.content}`,
       console.error('Error sending message to AI:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: (error as any)?.message || 'Failed to send message. Please try again.',
         variant: "destructive"
       });
     } finally {
@@ -718,7 +718,7 @@ ${args.content}`,
       onClose={onClose}
       title={title}
       variant="standard"
-      size="md"
+      size="sm"
       showCloseButton={true}
     >
       {/* Messages with better spacing and scrolling */}
@@ -1176,7 +1176,7 @@ ${updatedContent}`
           </div>
           
         {/* Voice Recording */}
-        <div className="flex justify-center">
+        <div className="w-full flex justify-center">
           <PremiumGate feature="Voice Input" grayOutForFree={true}>
             <CircularVoiceButton
               onTranscription={handleVoiceTranscription}

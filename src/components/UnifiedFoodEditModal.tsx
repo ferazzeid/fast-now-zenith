@@ -152,7 +152,7 @@ export const UnifiedFoodEditModal = ({
 
   const generatePromptForFood = async (foodName: string) => {
     // Fetch admin prompt settings and color themes
-    let promptTemplate = "Professional product photography of {food_name} on a pristine white seamless background surface. Studio lighting, clean minimal composition, isolated subject with no shadows, no other objects, no decorations, no garnishes, no props whatsoever. Only the {food_name} itself, perfectly centered, high resolution, commercial food photography style for product catalog.";
+    let promptTemplate = "Studio product photo of {food_name}, centered on a pristine white seamless background. Soft natural shadow under the object, high-resolution e‑commerce packshot. Single item only — no props, no garnishes, no hands, no plates, no decorations, no text.";
     let primaryColor = "220 35% 45%";
     let accentColor = "142 71% 45%";
     
@@ -209,9 +209,12 @@ export const UnifiedFoodEditModal = ({
       const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
       
+      // Auto-save generated image immediately to prevent loss on modal close
+      await onUpdate(currentItem!.id, { image_url: generatedImageUrl });
+      
       toast({
-        title: "Image generated!",
-        description: "AI image generated successfully!"
+        title: "✨ Image Generated & Saved!",
+        description: "Your AI image is saved automatically.",
       });
     } catch (error) {
       toast({
@@ -270,7 +273,7 @@ export const UnifiedFoodEditModal = ({
         }}
         title={isLibraryMode ? "Edit Food in Library" : "Edit Food Entry"}
         variant="standard"
-        size="md"
+        size="sm"
         footer={
           <>
             <Button 

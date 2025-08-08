@@ -241,7 +241,7 @@ export const ImageUpload = ({
                     className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
                   >
                     <Image className="w-4 h-4" />
-                    <span className="text-xs">Gallery</span>
+                    <span className="text-xs">Upload photo</span>
                   </Button>
                   
                   <Button
@@ -251,7 +251,7 @@ export const ImageUpload = ({
                     className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
                   >
                     <Camera className="w-4 h-4" />
-                    <span className="text-xs">Camera</span>
+                    <span className="text-xs">Use camera</span>
                   </Button>
                 </div>
               )}
@@ -295,7 +295,7 @@ export const ImageUpload = ({
                 <div className="flex flex-col items-center space-y-2">
                   <Upload className="w-8 h-8 text-muted-foreground" />
                   <p className="text-sm font-medium text-warm-text">
-                    Upload Photo
+                    Upload photo
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Drag & drop or click to browse
@@ -313,20 +313,20 @@ export const ImageUpload = ({
                 onClick={handleFileSelect}
                 disabled={isUploading}
                 className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-              >
-                <Image className="w-6 h-6" />
-                <span className="text-sm">Choose</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleCameraCapture}
-                disabled={isUploading}
-                className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-              >
-                <Camera className="w-6 h-6" />
-                <span className="text-sm">Take Photo</span>
-              </Button>
+                >
+                  <Image className="w-6 h-6" />
+                  <span className="text-sm">Upload photo</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleCameraCapture}
+                  disabled={isUploading}
+                  className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+                >
+                  <Camera className="w-6 h-6" />
+                  <span className="text-sm">Use camera</span>
+                </Button>
             </div>
           )}
 
@@ -363,7 +363,7 @@ export const ImageUpload = ({
               className="w-full bg-ceramic-base border-ceramic-rim"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Choose File
+              Upload photo
             </Button>
           )}
         </div>
