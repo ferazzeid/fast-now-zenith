@@ -63,13 +63,7 @@ const Auth = () => {
         </div>
 
         <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
-          <CardHeader className="space-y-3">
-            <CardTitle className="text-2xl text-center">Welcome</CardTitle>
-            <CardDescription className="text-center text-base">
-              Continue with your Google account for quick access
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Primary Google Sign In */}
             <Button
               size="lg"
