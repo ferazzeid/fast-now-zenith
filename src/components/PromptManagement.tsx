@@ -215,12 +215,12 @@ export const PromptManagement: React.FC = () => {
         <h2 className="text-2xl font-semibold text-foreground">AI Prompt Configuration</h2>
       </div>
       
-      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div className="p-3 rounded-md border bg-muted/30">
         <div className="flex items-start gap-2">
-          <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-blue-800 dark:text-blue-200">
+          <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-muted-foreground">
             <p className="font-medium mb-1">How AI Prompt Variables Work:</p>
-            <p>Variables like <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{'{title}'}</code> get automatically replaced with actual content when generating images. Your brand colors are injected automatically to maintain consistent theming.</p>
+            <p>Variables like <code className="px-1 rounded-sm border bg-background">{'{title}'}</code> get automatically replaced with actual content when generating images. Your brand colors are injected automatically to maintain consistent theming.</p>
           </div>
         </div>
       </div>
@@ -256,7 +256,7 @@ export const PromptManagement: React.FC = () => {
               <Label className="text-sm font-medium">Available Variables</Label>
               <div className="flex flex-wrap gap-1">
                 {config.variables.map(variable => (
-                  <Badge key={variable} variant="secondary" className="font-mono text-xs">
+                  <Badge key={variable} variant="outline" className="font-mono text-xs rounded-sm">
                     {variable}
                   </Badge>
                 ))}
@@ -265,11 +265,12 @@ export const PromptManagement: React.FC = () => {
             
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button 
+                size="sm"
                 onClick={() => savePrompt(config.key)}
                 disabled={saving === config.key}
                 className="w-full sm:w-auto"
               >
-                {saving === config.key ? 'Saving...' : 'Save Settings'}
+                {saving === config.key ? 'Saving...' : 'Save'}
               </Button>
               <Button
                 variant="outline"

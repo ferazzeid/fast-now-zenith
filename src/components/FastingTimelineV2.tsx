@@ -47,9 +47,8 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
     <div className={cn("w-full", className)}>
       <FastingSliderHeader currentHour={selectedHour} className="mb-3" onHourChange={handleHourChange} />
 
-
-      {/* Details panel - unboxed */}
-      <div className="mt-4" role="region" aria-live="polite" aria-labelledby="hour-heading">
+      {/* Details panel - boxed */}
+      <div className="mt-4 rounded-md border bg-card p-4" role="region" aria-live="polite">
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-5 w-1/2" />
@@ -63,19 +62,16 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 id="hour-heading" className="text-base font-semibold">Hour {selectedHour}</h3>
-              <div className="flex gap-2">
-                {hourMap.get(selectedHour)?.ketosis_milestone && (
-                  <Badge variant="outline">Ketosis</Badge>
-                )}
-                {hourMap.get(selectedHour)?.autophagy_milestone && (
-                  <Badge variant="outline">Autophagy</Badge>
-                )}
-                {hourMap.get(selectedHour)?.fat_burning_milestone && (
-                  <Badge variant="outline">Fat Burning</Badge>
-                )}
-              </div>
+            <div className="flex items-center justify-end gap-2">
+              {hourMap.get(selectedHour)?.ketosis_milestone && (
+                <span className="px-1.5 py-0.5 rounded-sm border text-xs">Ketosis</span>
+              )}
+              {hourMap.get(selectedHour)?.autophagy_milestone && (
+                <span className="px-1.5 py-0.5 rounded-sm border text-xs">Autophagy</span>
+              )}
+              {hourMap.get(selectedHour)?.fat_burning_milestone && (
+                <span className="px-1.5 py-0.5 rounded-sm border text-xs">Fat Burning</span>
+              )}
             </div>
 
             <div className="text-sm font-medium">
