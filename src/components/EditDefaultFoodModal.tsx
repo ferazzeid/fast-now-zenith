@@ -234,7 +234,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
               Cancel
             </Button>
             <Button onClick={handleSave} className="flex-1">
-              Save Changes
+              Save
             </Button>
           </div>
         }

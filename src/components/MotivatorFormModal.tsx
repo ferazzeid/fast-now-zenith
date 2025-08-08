@@ -205,7 +205,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Save className="w-4 h-4 mr-2" />
-            {isEditing ? 'Save Changes' : 'Create Motivator'}
+            {isEditing ? 'Save' : 'Create Motivator'}
           </Button>
         </>
       }

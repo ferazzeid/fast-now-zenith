@@ -219,7 +219,7 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={isSaving || !startTime || !endTime}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -859,7 +859,7 @@ ${updatedContent}`
                   }}
                   className="flex-1"
                 >
-                  Save Changes
+                  Save
                 </Button>
                 <Button
                   size="sm"

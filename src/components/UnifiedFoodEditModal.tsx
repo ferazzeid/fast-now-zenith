@@ -294,7 +294,7 @@ export const UnifiedFoodEditModal = ({
             </Button>
             <Button onClick={handleSave} disabled={loading || generatingImage} className="w-full">
               <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving...' : 'Save'}
             </Button>
           </>
         }
