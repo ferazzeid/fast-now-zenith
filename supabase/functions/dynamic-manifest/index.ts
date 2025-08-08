@@ -33,28 +33,27 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get app logo from shared_settings
-    const { data: logoData } = await supabaseClient
+    // Get app logo and PWA settings from shared_settings
+    const { data: settingsData } = await supabaseClient
       .from('shared_settings')
-      .select('setting_value')
-      .eq('setting_key', 'app_logo')
-      .maybeSingle();
+      .select('setting_key, setting_value')
+      .in('setting_key', ['app_logo', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
 
-    // Get app name and other settings if needed
-    const { data: nameData } = await supabaseClient
-      .from('shared_settings')
-      .select('setting_value')
-      .eq('setting_key', 'app_name')
-      .maybeSingle();
+    const settings: Record<string, string> = {};
+    settingsData?.forEach(item => {
+      settings[item.setting_key] = item.setting_value;
+    });
 
-    const appLogo = logoData?.setting_value;
-    const appName = nameData?.setting_value || 'FastNow - Mindful App';
+    const appLogo = settings.app_logo;
+    const appName = settings.pwa_app_name || 'FastNow - Mindful App';
+    const shortName = settings.pwa_short_name || 'FastNow';
+    const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';
 
     // Create dynamic manifest
     const manifest = {
       name: appName,
-      short_name: appName.split(' - ')[0] || 'FastNow',
-      description: "Your mindful app with AI-powered motivation",
+      short_name: shortName,
+      description: description,
       start_url: "/",
       display: "standalone",
       background_color: "#F5F2EA",

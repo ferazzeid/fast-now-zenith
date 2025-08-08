@@ -42,21 +42,7 @@ export const AdminRoleTester = () => {
 
   return (
     <Card className="border-2 border-dashed border-primary/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TestTube className="w-5 h-5 text-primary" />
-          Role Testing Mode
-          {isTestingMode && (
-            <Badge variant="destructive" className="ml-2">
-              Testing as {testRole}
-            </Badge>
-          )}
-        </CardTitle>
-        <CardDescription>
-          Switch between user roles to test different user experiences. Admin settings remain accessible.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pt-6">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <IconComponent className="w-5 h-5 text-primary flex-shrink-0" />
@@ -64,9 +50,11 @@ export const AdminRoleTester = () => {
               <div className="font-medium truncate">
                 Currently testing as: {currentRole}
               </div>
-              <div className="text-sm text-muted-foreground truncate">
-                {roleDescriptions[currentRole]}
-              </div>
+              {isTestingMode && (
+                <Badge variant="destructive" className="mt-1">
+                  Testing Mode Active
+                </Badge>
+              )}
             </div>
           </div>
           
@@ -97,15 +85,6 @@ export const AdminRoleTester = () => {
             )}
           </div>
         </div>
-
-        {isTestingMode && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-            <div className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>Testing Mode Active:</strong> You're experiencing the app as a {testRole} user. 
-              Admin functions remain accessible through this dashboard.
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

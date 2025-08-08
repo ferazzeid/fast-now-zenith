@@ -3,6 +3,7 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { ColorManagement } from "@/components/ColorManagement";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
+import { PWASettings } from "@/components/PWASettings";
 
 export default function AdminBranding() {
   usePageSEO({
@@ -15,6 +16,10 @@ export default function AdminBranding() {
     <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
       <h1 className="sr-only">Admin Branding</h1>
       <AdminSubnav />
+
+      <section aria-label="PWA and slogan settings">
+        <PWASettings />
+      </section>
 
       <section aria-label="Brand assets">
         <BrandAssetsManager />
