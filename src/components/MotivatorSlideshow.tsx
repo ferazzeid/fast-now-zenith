@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
-import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useMotivatorAnimation } from '@/hooks/useMotivatorAnimation';
 
 interface MotivatorSlideshowProps {
@@ -11,65 +10,26 @@ interface MotivatorSlideshowProps {
 
 type DisplayMode = 'timer-focused' | 'motivator-focused';
 
-// Matrix Pixel Component for the swarm effect
-const MatrixPixel = ({ delay, image, index }: { delay: number; image: string; index: number }) => {
-  const row = Math.floor(index / 10);
-  const col = index % 10;
-  
-  return (
-    <div 
-      className="absolute w-[10%] h-[10%] overflow-hidden"
-      style={{
-        left: `${col * 10}%`,
-        top: `${row * 10}%`,
-        animationDelay: `${delay}ms`,
-      }}
-    >
-      <div
-        className="w-full h-full bg-cover bg-center animate-[pixelSwarmOut_1000ms_ease-in-out_forwards]"
-        style={{
-          backgroundImage: `url(${image})`,
-          backgroundPosition: `${-col * 100}% ${-row * 100}%`,
-          backgroundSize: '1000% 1000%'
-        }}
-      />
-    </div>
-  );
-};
-
-const MatrixPixelIn = ({ delay, image, index }: { delay: number; image: string; index: number }) => {
-  const row = Math.floor(index / 10);
-  const col = index % 10;
-  
-  return (
-    <div 
-      className="absolute w-[10%] h-[10%] overflow-hidden"
-      style={{
-        left: `${col * 10}%`,
-        top: `${row * 10}%`,
-        animationDelay: `${delay}ms`,
-      }}
-    >
-      <div
-        className="w-full h-full bg-cover bg-center animate-[pixelSwarmIn_1000ms_ease-in-out_forwards]"
-        style={{
-          backgroundImage: `url(${image})`,
-          backgroundPosition: `${-col * 100}% ${-row * 100}%`,
-          backgroundSize: '1000% 1000%'
-        }}
-      />
-    </div>
-  );
-};
+// Config for the matrix effect
+const ROWS = 25; // 25 x 40 = 1000 tiles
+const COLS = 40;
+const STEP_MS = 18; // diagonal sweep step for stagger
+const ANIM_MS = 2600; // slower duration to savor the effect
 
 export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange }: MotivatorSlideshowProps) => {
   const { motivators } = useMotivators();
   const { animationStyle } = useMotivatorAnimation();
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('timer-focused');
 
-  const motivatorsWithImages = motivators.filter(m => m.imageUrl);
+  // Track previous mode to trigger OUT animation
+  const prevModeRef = useRef<DisplayMode>('timer-focused');
+  const [outgoingImage, setOutgoingImage] = useState<string | null>(null);
+  const clearOutgoingTimer = useRef<number | null>(null);
+
+  const motivatorsWithImages = motivators.filter((m) => m.imageUrl);
 
   useEffect(() => {
     if (!isActive || motivatorsWithImages.length === 0) {
@@ -97,12 +57,12 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         setDisplayMode('timer-focused');
         onModeChange?.('timer-focused');
         setTimeout(() => {
-          setCurrentIndex(prev => (prev + 1) % motivatorsWithImages.length);
+          setCurrentIndex((prev) => (prev + 1) % motivatorsWithImages.length);
         }, 1000);
       }, 12000);
     };
 
-    // Initial delay to let plate render
+    // Initial delay to let timer/plate render
     const initialDelay = setTimeout(() => {
       startCycle();
     }, 500);
@@ -116,7 +76,32 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
       clearTimeout(slideTimer);
       clearInterval(interval);
     };
-  }, [isActive, motivatorsWithImages.length, transitionTime]);
+  }, [isActive, motivatorsWithImages.length, transitionTime, onModeChange]);
+
+  // Handle triggering OUT animation when leaving motivator-focused
+  useEffect(() => {
+    if (animationStyle !== 'pixel_dissolve') return;
+
+    if (
+      prevModeRef.current === 'motivator-focused' &&
+      displayMode === 'timer-focused' &&
+      motivatorsWithImages[currentIndex]?.imageUrl
+    ) {
+      setOutgoingImage(motivatorsWithImages[currentIndex]!.imageUrl!);
+
+      // Clear outgoing after the longest delay + animation duration
+      const maxDelay = (ROWS + COLS) * STEP_MS + ANIM_MS + 100;
+      const id = window.setTimeout(() => setOutgoingImage(null), maxDelay);
+      if (clearOutgoingTimer.current) window.clearTimeout(clearOutgoingTimer.current);
+      clearOutgoingTimer.current = id;
+    }
+    prevModeRef.current = displayMode;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayMode, animationStyle, currentIndex, motivatorsWithImages.length]);
+
+  useEffect(() => () => {
+    if (clearOutgoingTimer.current) window.clearTimeout(clearOutgoingTimer.current);
+  }, []);
 
   if (!isActive || motivatorsWithImages.length === 0) {
     return null;
@@ -124,132 +109,94 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
 
   const currentMotivator = motivatorsWithImages[currentIndex];
 
-  // Create circular text path for the title - positioned away from inner edge
-  const createCircularText = (text: string, radius: number = 130) => {
-    const chars = text.split('');
-    const angleStep = (2 * Math.PI) / Math.max(chars.length, 20); // Prevent too tight spacing
-    
-    return chars.map((char, index) => {
-      const angle = index * angleStep - Math.PI / 2; // Start at top
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      
-      return (
-        <span
-          key={index}
-          className="absolute font-semibold text-primary text-sm tracking-wide drop-shadow-lg"
-          style={{
-            transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
-            transformOrigin: '50% 50%',
-            left: '50%',
-            top: '50%',
-            marginLeft: '-0.5ch',
-            marginTop: '-0.5em',
-          }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      );
-    });
+  // Utility to render a 25x40 grid with corner-to-corner diagonal sweep
+  const renderMatrix = (imageUrl: string, type: 'in' | 'out') => {
+    const tiles: JSX.Element[] = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const delay = (r + c) * STEP_MS + Math.random() * 40; // diagonal sweep + jitter
+        const style: React.CSSProperties = {
+          left: `${(c * 100) / COLS}%`,
+          top: `${(r * 100) / ROWS}%`,
+          width: `${100 / COLS}%`,
+          height: `${100 / ROWS}%`,
+          animationDelay: `${delay}ms`,
+          pointerEvents: 'none',
+        };
+        const innerStyle: React.CSSProperties = {
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url(${imageUrl})`,
+          backgroundSize: `${COLS * 100}% ${ROWS * 100}%`,
+          backgroundPosition: `${-c * 100}% ${-r * 100}%`,
+          animationDuration: `${ANIM_MS}ms`,
+          animationTimingFunction: 'ease-in-out',
+          animationFillMode: 'forwards',
+          animationName: type === 'in' ? 'pixelSwarmIn' : 'pixelSwarmOut',
+        };
+        tiles.push(
+          <div key={`${type}-${r}-${c}`} className="absolute overflow-hidden" style={style}>
+            <div style={innerStyle} />
+          </div>
+        );
+      }
+    }
+    return tiles;
   };
 
   if (animationStyle === 'pixel_dissolve') {
     return (
       <>
-        {/* Matrix dissolve effect */}
+        {/* Incoming matrix when motivator-focused */}
         {displayMode === 'motivator-focused' && isVisible && currentMotivator?.imageUrl && (
-          <div 
+          <div
             className="absolute inset-0 rounded-full overflow-hidden"
-            style={{ zIndex: 5 }}
+            style={{ zIndex: 30, pointerEvents: 'none' }}
           >
-            {/* Create 100 pixel cubes (10x10 grid) */}
-            {Array.from({ length: 100 }, (_, index) => {
-              const delay = Math.random() * 800; // Stagger the animation randomly
-              return (
-                <MatrixPixelIn
-                  key={`in-${index}`}
-                  delay={delay}
-                  image={currentMotivator.imageUrl!}
-                  index={index}
-                />
-              );
-            })}
+            {renderMatrix(currentMotivator.imageUrl!, 'in')}
           </div>
         )}
 
-        {/* Centered Zoom-In Text for Ceramic Timer */}
-        {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
-          <div 
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ zIndex: 15 }}
+        {/* Outgoing matrix right after leaving motivator-focused */}
+        {outgoingImage && (
+          <div
+            className="absolute inset-0 rounded-full overflow-hidden"
+            style={{ zIndex: 30, pointerEvents: 'none' }}
           >
-            <div 
-              className="text-white font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm border border-white/20"
-              style={{
-                animation: 'zoomIn 8s ease-in-out',
-                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-                maxWidth: '80%'
-              }}
-            >
-              {currentMotivator.title.toUpperCase()}
-            </div>
+            {renderMatrix(outgoingImage, 'out')}
           </div>
         )}
+        {/* No title overlay in matrix mode to keep image unobstructed */}
       </>
     );
   }
 
-  // Original smooth fade animation
+  // Smooth fade fallback (original)
   return (
     <>
-      {/* Image Layer - Only visible during motivator-focused mode */}
-      <div 
+      <div
         className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
           displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ 
-          zIndex: displayMode === 'motivator-focused' ? 5 : 1,
-          willChange: 'transform, opacity',
-          transform: 'translate3d(0, 0, 0)' // GPU acceleration
-        }}
+        style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1, willChange: 'transform, opacity' }}
       >
-        <MotivatorImageWithFallback
-          src={currentMotivator?.imageUrl}
-          alt={currentMotivator?.title || 'Motivator image'}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)'
-          }}
-        />
-        
-        {/* Subtle ceramic overlay */}
-        <div 
+        {/* Image sits below timer text in smooth mode */}
+        {currentMotivator?.imageUrl && (
+          <img
+            src={currentMotivator.imageUrl}
+            alt={currentMotivator.title || 'Motivator image'}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: 'brightness(0.9) saturate(1.1) contrast(1.05)' }}
+          />
+        )}
+        <div
           className="absolute inset-0"
           style={{
             background: `radial-gradient(circle at 50% 50%, transparent 40%, hsla(var(--ceramic-base), 0.15) 100%)`,
-            mixBlendMode: 'multiply'
+            mixBlendMode: 'multiply',
           }}
         />
       </div>
-
-      {/* Centered Zoom-In Text for Ceramic Timer */}
-      {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center"
-          style={{ zIndex: 15 }}
-        >
-          <div 
-            className="text-white font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm border border-white/20"
-            style={{
-              animation: 'zoomIn 8s ease-in-out',
-              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-              maxWidth: '80%'
-            }}
-          >
-            {currentMotivator.title.toUpperCase()}
-          </div>
-        </div>
-      )}
     </>
   );
 };
