@@ -58,7 +58,7 @@ const Auth = () => {
             FastNow
           </h1>
           <p className="text-muted-foreground">
-            Your personal fasting companion
+            Your no-BS weight loss program
           </p>
         </div>
 
