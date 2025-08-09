@@ -8,6 +8,7 @@ import { uploadImageHybrid } from '@/utils/imageUtils';
 import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -42,6 +43,7 @@ export const ImageUpload = ({
   const { user } = useAuth();
   const { hasPremiumFeatures } = useOptimizedSubscription();
   const isMobile = useIsMobile();
+  const { aiImageEnabled } = useAIImageGeneration();
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -209,7 +211,7 @@ export const ImageUpload = ({
               <div className="absolute top-2 right-12">
                 {regenerateButton}
               </div>
-            ) : aiGenerationPrompt && (
+            ) : aiGenerationPrompt && aiImageEnabled && (
               <div className="absolute top-2 right-12">
                 <PremiumGate feature="AI Image Generation" showUpgrade={false}>
                   <Button
@@ -335,7 +337,7 @@ export const ImageUpload = ({
           )}
 
           {/* AI Generation Button for Empty State */}
-          {aiGenerationPrompt && (
+          {aiGenerationPrompt && aiImageEnabled && (
             <PremiumGate feature="AI Image Generation" showUpgrade={false}>
               <Button
                 variant="ai"
