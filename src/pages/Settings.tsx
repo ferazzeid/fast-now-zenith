@@ -632,36 +632,6 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                       }}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-warm-text">Auto-Generate Food Images</span>
-                    </div>
-                    <Switch
-                      checked={profile?.enable_food_image_generation ?? false}
-                      onCheckedChange={async (checked) => {
-                         try {
-                           await supabase
-                             .from('profiles')
-                             .update({ enable_food_image_generation: checked } as any)
-                             .eq('user_id', user?.id);
-                          toast({
-                            title: checked ? "Food image generation enabled" : "Food image generation disabled",
-                            description: checked ? "AI will generate images for new food items" : "Food items will use default placeholders"
-                          });
-                          setProfile(prev => ({ ...prev, enable_food_image_generation: checked }));
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update setting",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Automatically generate AI images for food items. Disabling may improve performance on slower devices
-                  </p>
                 </div>
               </div>
             </Card>
@@ -675,66 +645,69 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                   <h3 className="text-lg font-semibold text-warm-text">Account Management</h3>
                 </div>
                 
-                <div className="space-y-3">
-                  {/* Reset Account */}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
-                      >
-                        <Database className="w-4 h-4 mr-2" />
-                        Reset Account Data
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete all your data (food entries, fasting sessions, walking history, motivators, etc.) but keep your account active. You can start fresh with a clean slate.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleResetAccount}
-                          className="bg-orange-500 hover:bg-orange-600"
-                        >
-                          Reset All Data
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                 <div className="space-y-3">
+                   {/* Clear Cache */}
+                   <ClearCacheButton />
+                   
+                   {/* Reset Account */}
+                   <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                       <Button 
+                         variant="outline" 
+                         className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+                       >
+                         <Database className="w-4 h-4 mr-2" />
+                         Reset Account Data
+                       </Button>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           This will permanently delete all your data (food entries, fasting sessions, walking history, motivators, etc.) but keep your account active. You can start fresh with a clean slate.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                         <AlertDialogAction
+                           onClick={handleResetAccount}
+                           className="bg-orange-500 hover:bg-orange-600"
+                         >
+                           Reset All Data
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
 
-                  {/* Delete Account */}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete your account and all associated data. This action cannot be undone. If you have an active subscription, it will be canceled.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDeleteAccount}
-                          className="bg-destructive hover:bg-destructive/80"
-                        >
-                          Delete Forever
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                   {/* Delete Account */}
+                   <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                       <Button 
+                         variant="outline" 
+                         className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+                       >
+                         <Trash2 className="w-4 h-4 mr-2" />
+                         Delete Account
+                       </Button>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           This will permanently delete your account and all associated data. This action cannot be undone. If you have an active subscription, it will be canceled.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                         <AlertDialogAction
+                           onClick={handleDeleteAccount}
+                           className="bg-destructive hover:bg-destructive/80"
+                         >
+                           Delete Forever
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
                 </div>
               </div>
             </Card>
@@ -764,13 +737,6 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                 </div>
                 
                 
-                <ClearCacheButton />
-                
-                <div className="bg-muted/20 p-2 rounded text-center">
-                  <p className="text-xs text-muted-foreground">
-                    Will log you out and require you to sign in again
-                  </p>
-                </div>
                  
                 </div>
               </Card>
