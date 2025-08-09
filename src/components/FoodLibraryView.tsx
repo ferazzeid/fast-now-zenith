@@ -525,19 +525,32 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           )}
 
-          {/* Food Image - Compact but visible */}
+          {/* Food Image - Compact but visible with placeholder for deleted images */}
           {food.image_url ? (
             <img 
               src={food.image_url} 
               alt={food.name}
               className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
               loading="lazy"
+              onError={(e) => {
+                // Show placeholder if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const placeholder = target.nextElementSibling as HTMLElement;
+                if (placeholder) {
+                  placeholder.style.display = 'flex';
+                }
+              }}
             />
-           ) : (
-             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-               <Utensils className="w-5 h-5 text-muted-foreground" />
-             </div>
-           )}
+           ) : null}
+           {/* Default placeholder - always present, hidden when image loads */}
+           <div 
+             className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ${
+               food.image_url ? 'hidden' : 'flex'
+             }`}
+           >
+             <Utensils className="w-5 h-5 text-muted-foreground" />
+           </div>
           
           {/* Food Info - Compact typography */}
           <div className="flex-1 min-w-0">
@@ -557,72 +570,92 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               {/* Space where favorite button was */}
               <div className="w-2"></div>
 
-              {/* Options Dropdown - Compact with primary dots */}
+              {/* Options Dropdown - Increased hit area for accessibility */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="p-1 h-5 w-5 hover:bg-secondary/80 rounded"
+                    className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
                     title="More options"
                     aria-label="More options"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="w-3 h-3 text-primary" />
+                    <MoreVertical className="w-4 h-4 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 z-50 bg-popover border border-border">
+                <DropdownMenuContent align="end" className="w-48 z-50 bg-popover border border-border shadow-lg">
                   {isUserFood ? (
                     <>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickSelect(food as UserFood, false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add to Today's Plan
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEditModal(true);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit Food
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFood(food.id);
+                          }}
+                          className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Food
+                        </DropdownMenuItem>
+                     </>
+                   ) : (
+                     <>
                        <DropdownMenuItem
                          onClick={(e) => {
                            e.stopPropagation();
-                           setShowEditModal(true);
+                           importToMyLibrary(food as DefaultFood);
                          }}
                          className="cursor-pointer"
                        >
-                         <Edit className="w-4 h-4 mr-2" />
-                         Edit Food
+                         <Download className="w-4 h-4 mr-2" />
+                         Add to Library
                        </DropdownMenuItem>
-                       <DropdownMenuItem
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           deleteFood(food.id);
-                         }}
-                         className="text-destructive focus:text-destructive cursor-pointer"
-                       >
-                         <Trash2 className="w-4 h-4 mr-2" />
-                         Delete Food
-                       </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      {isAdmin && (
-                        <>
-                           <DropdownMenuItem
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               setShowEditModal(true);
-                             }}
-                             className="cursor-pointer"
-                           >
-                             <Edit className="w-4 h-4 mr-2" />
-                             Edit Food
-                           </DropdownMenuItem>
-                           <DropdownMenuItem
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               deleteDefaultFood(food.id);
-                             }}
-                             className="text-destructive focus:text-destructive cursor-pointer"
-                           >
-                             <Trash2 className="w-4 h-4 mr-2" />
-                             Delete Food
-                           </DropdownMenuItem>
-                        </>
-                      )}
-                    </>
-                  )}
+                       {isAdmin && (
+                         <>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEditModal(true);
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Food
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteDefaultFood(food.id);
+                              }}
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Food
+                            </DropdownMenuItem>
+                         </>
+                       )}
+                     </>
+                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
 

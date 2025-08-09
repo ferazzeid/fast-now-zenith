@@ -298,7 +298,13 @@ export const UnifiedFoodEditModal = ({
             <ImageUpload
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
-              onImageRemove={() => setImageUrl('')}
+              onImageRemove={() => {
+                setImageUrl('');
+                // Update the database immediately to remove the image
+                if (currentItem?.id) {
+                  onUpdate(currentItem.id, { image_url: null });
+                }
+              }}
               showUploadOptionsWhenImageExists={true}
               aiGenerationPrompt={name ? `High-quality photo of ${name} on a white background, clean food photography, well-lit, appetizing` : undefined}
               onAiGenerate={handleGenerateImage}
