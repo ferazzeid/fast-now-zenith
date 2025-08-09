@@ -176,8 +176,24 @@ const Auth = () => {
 
             {/* Privacy Notice */}
             <p className="text-xs text-muted-foreground text-center leading-relaxed">
-              By continuing, you agree to our Terms of Service and Privacy Policy. 
-              Your data is secured and never shared with third parties.
+              By continuing, you agree to our{' '}
+              <a
+                href="https://fastnow.app/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-foreground hover:text-primary"
+              >
+                Terms of Service
+              </a>{' '}and{' '}
+              <a
+                href="https://fastnow.app/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-foreground hover:text-primary"
+              >
+                Privacy Policy
+              </a>.
+              {' '}Your data is secured and never shared with third parties.
             </p>
           </CardContent>
         </Card>
