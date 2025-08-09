@@ -31,49 +31,70 @@ export const useProfile = () => {
   const { toast } = useToast();
   const { executeWithRetry } = useRetryableSupabase();
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (forceRefresh: boolean = false) => {
     if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
     
-    // Check cache first - but force refresh if weight/height are missing
-    const cached = getCachedProfile(user.id);
-    if (cached && cached.weight && cached.height && cached.age) {
-      console.log('Using cached profile data');
-      setProfile(cached);
-      setLoading(false);
-      return;
-    } else {
-      console.log('Cache invalid or incomplete, fetching fresh profile data');
+    if (!forceRefresh) {
+      // Check cache first - but force refresh if weight/height are missing
+      const cached = getCachedProfile(user.id);
+      if (cached && cached.weight && cached.height && cached.age) {
+        console.log('Using cached profile data');
+        setProfile(cached);
+        setLoading(false);
+        return;
+      } else {
+        console.log('Cache invalid or incomplete, fetching fresh profile data');
+      }
     }
     
     setLoading(true);
     try {
-      // Use request deduplication
-      const data = await deduplicateRequest(
-        `profile_${user.id}`,
-        async () => {
-          const result = await executeWithRetry(async () => {
-            return await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', user.id)
-              .maybeSingle();
-          });
-          
-          const { data, error } = result;
+      let data: any = null;
 
-          if (error) {
-            console.error('Profile load error:', error);
-            throw error;
-          }
+      if (forceRefresh) {
+        // Bypass request dedup + cache for guaranteed fresh read
+        const result = await executeWithRetry(async () => {
+          return await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+        });
+        const { data: directData, error } = result;
+        if (error) {
+          console.error('Profile load error (force):', error);
+          throw error;
+        }
+        data = directData;
+      } else {
+        // Use request deduplication
+        data = await deduplicateRequest(
+          `profile_${user.id}`,
+          async () => {
+            const result = await executeWithRetry(async () => {
+              return await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            });
+            
+            const { data, error } = result;
 
-          return data;
-        },
-        30 // 30 minute cache for request deduplication
-      );
+            if (error) {
+              console.error('Profile load error:', error);
+              throw error;
+            }
+
+            return data;
+          },
+          30 // 30 minute cache for request deduplication
+        );
+      }
 
       console.log('Profile loaded successfully');
       
@@ -133,11 +154,13 @@ export const useProfile = () => {
       // Clear cache and set new profile data
       console.log('Updating profile state with:', data);
       setProfile(data);
+      // Update local cache immediately
+      cacheProfile(user.id, data, 24);
       
-      // Force a reload of the profile to verify it was saved
+      // Force a reload of the profile to verify it was saved (bypass cache)
       setTimeout(async () => {
-        console.log('Reloading profile to verify save...');
-        await loadProfile();
+        console.log('Reloading profile to verify save (force)...');
+        await loadProfile(true);
       }, 100);
 
       return { data, error: null };

@@ -136,7 +136,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
     <Card className="shadow-sm">
       <CardContent className="space-y-4 pt-6">
         <div className="flex gap-2">
-          <Button onClick={startScanning} disabled={scanning || devices.length === 0} className="flex-1" variant="secondary">
+          <Button onClick={startScanning} disabled={scanning} className="flex-1" variant="secondary">
             {scanning ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scanning...

@@ -125,17 +125,17 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a nutrition expert analyzing food images. Extract nutritional information and return it as a JSON object with the following structure:
+            content: `You are a nutrition expert analyzing food images. Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues. Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.
+            Return ONLY JSON with this shape:
             {
-              "name": "Food name",
+              "name": "Food name (include brand/type if visible)",
               "calories_per_100g": number,
               "carbs_per_100g": number,
-              "estimated_serving_size": number (in grams),
-              "confidence": number (0-1),
-              "description": "Brief description of what you see"
+              "estimated_serving_size": number, // grams
+              "confidence": number, // 0-1
+              "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
             }
-            
-            If you can see a nutrition label, extract the exact values. If not, provide your best estimates based on typical nutritional values for the food you identify. Always return valid JSON only, no other text.`
+            If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.`
           },
           {
             role: 'user',

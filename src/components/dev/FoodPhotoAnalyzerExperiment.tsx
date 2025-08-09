@@ -68,9 +68,9 @@ export const FoodPhotoAnalyzerExperiment: React.FC = () => {
 
         {imageUrl && (
           <div className="space-y-3">
-            <div className="aspect-video w-full overflow-hidden rounded-md border bg-muted">
+            <div className="aspect-video w-full max-h-[70vh] overflow-hidden rounded-md border bg-muted flex items-center justify-center">
               {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-              <img src={imageUrl} alt="Uploaded food photo for analysis" className="w-full h-full object-cover" loading="lazy" />
+              <img src={imageUrl} alt="Uploaded food photo for analysis" className="w-full h-full object-contain" loading="lazy" />
             </div>
 
             {analyzing && (
