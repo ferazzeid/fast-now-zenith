@@ -892,6 +892,36 @@ export type Database = {
         }
         Relationships: []
       }
+      navigation_settings: {
+        Row: {
+          created_at: string
+          custom_url: string | null
+          display_order: number
+          id: string
+          is_visible: boolean
+          page_key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_url?: string | null
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          page_key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_url?: string | null
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          page_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_content: {
         Row: {
           button_text: string | null
