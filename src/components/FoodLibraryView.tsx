@@ -587,7 +587,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <MoreVertical className="w-4 h-4 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 z-50 bg-popover border border-border shadow-lg">
+                <DropdownMenuContent align="end" className="w-48 z-50 bg-background border border-border shadow-lg">
                   {isUserFood ? (
                     <>
                         <DropdownMenuItem
@@ -777,7 +777,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               >
                 <div className="flex items-center gap-2">
                   <Heart className="w-4 h-4" />
-                  My Food ({filteredUserFoods.length})
+                  My Food
                 </div>
                 {filteredUserFoods.length > 0 && (
                   <button
@@ -794,18 +794,18 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 )}
               </TabsTrigger>
               <TabsTrigger 
-                value="suggested" 
-                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
-              >
-                <Star className="w-4 h-4" />
-                Suggested ({filteredDefaultFoods.length})
-              </TabsTrigger>
-              <TabsTrigger 
                 value="recent" 
                 className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
               >
                 <Clock className="w-4 h-4" />
-                Recent ({recentFoods.length})
+                Recent
+              </TabsTrigger>
+              <TabsTrigger 
+                value="suggested" 
+                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <Star className="w-4 h-4" />
+                Suggested
               </TabsTrigger>
             </TabsList>
           </div>
