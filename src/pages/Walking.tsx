@@ -18,6 +18,7 @@ import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
+import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
 
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
@@ -224,6 +225,9 @@ const Walking = () => {
               Walking Timer
             </h1>
             <p className="text-sm text-muted-foreground text-left">Track your walking session</p>
+          </div>
+          <div className="mt-2 flex justify-end">
+            <OutboxSyncIndicator />
           </div>
         </div>
 

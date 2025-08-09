@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { estimateSteps } from '@/utils/stepEstimation';
+import { enqueueOperation } from '@/utils/outbox';
 
 interface WalkingSession {
   id: string;
@@ -27,6 +28,10 @@ export const useWalkingSession = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
   const { profile, calculateWalkingCalories } = useProfileQuery();
+
+  const triggerRefresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   const loadActiveSession = useCallback(async () => {
     if (!user) return;
@@ -61,8 +66,49 @@ export const useWalkingSession = () => {
   const startWalkingSession = useCallback(async (speedMph: number = selectedSpeed) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
+    const offlineStart = async () => {
+      const localId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const startIso = new Date().toISOString();
+      const localSession: WalkingSession = {
+        id: localId,
+        user_id: user.id,
+        start_time: startIso,
+        status: 'active',
+        session_state: 'active',
+        total_pause_duration: 0,
+        speed_mph: speedMph,
+      } as any;
+
+      // Optimistic local state
+      setCurrentSession(localSession);
+      setSelectedSpeed(speedMph);
+      setIsPaused(false);
+
+      // Enqueue start op
+      await enqueueOperation({
+        entity: 'walking_session',
+        action: 'start',
+        user_id: user.id,
+        payload: {
+          local_id: localId,
+          start_time: startIso,
+          speed_mph: speedMph,
+          status: 'active',
+          session_state: 'active',
+          total_pause_duration: 0,
+        },
+      });
+      return { data: localSession, error: null };
+    };
+
     setLoading(true);
     try {
+      // If offline, immediately create a local session and queue
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const res = await offlineStart();
+        return res;
+      }
+
       const { data, error } = await supabase
         .from('walking_sessions')
         .insert({
@@ -71,7 +117,7 @@ export const useWalkingSession = () => {
           status: 'active',
           speed_mph: speedMph,
           session_state: 'active',
-          total_pause_duration: 0
+          total_pause_duration: 0,
         })
         .select()
         .single();
@@ -80,24 +126,29 @@ export const useWalkingSession = () => {
       setCurrentSession(data);
       setSelectedSpeed(speedMph);
       setIsPaused(false);
-      
+
       // Force immediate refresh of the context
       console.log('Triggering refresh after session start');
       triggerRefresh();
-      
+
       // Additional immediate load to ensure state is fresh
       setTimeout(() => {
         loadActiveSession();
       }, 100);
-      
+
       return { data, error: null };
     } catch (error: any) {
       console.error('Error starting walking session:', error);
+      // Fallback to offline if network error
+      if (error?.message?.includes('fetch')) {
+        const res = await offlineStart();
+        return res;
+      }
       return { error, data: null };
     } finally {
       setLoading(false);
     }
-  }, [user, selectedSpeed]);
+  }, [user, selectedSpeed, loadActiveSession, triggerRefresh]);
 
   const pauseWalkingSession = useCallback(async () => {
     if (!user || !currentSession) return { error: { message: 'No active session' } };
@@ -394,10 +445,7 @@ export const useWalkingSession = () => {
     saveSpeedToProfile(newSpeed);
   }, [saveSpeedToProfile]);
 
-  // Manual trigger for refresh
-  const triggerRefresh = useCallback(() => {
-    setRefreshTrigger(prev => prev + 1);
-  }, []);
+  // triggerRefresh defined earlier
 
   return {
     currentSession,
