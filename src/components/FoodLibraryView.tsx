@@ -70,7 +70,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   
   const { user } = useAuth();
   const { toast } = useToast();
-  const { recentFoods, loading: recentLoading } = useRecentFoods();
+  const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
 
   useEffect(() => {
     const loadData = async () => {
@@ -380,6 +380,34 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
+  const deleteRecentFood = async (foodName: string) => {
+    try {
+      // For recent foods, remove all food entries with this name from the user's history
+      const { error } = await supabase
+        .from('food_entries')
+        .delete()
+        .eq('user_id', user?.id)
+        .eq('name', foodName);
+
+      if (error) throw error;
+
+      // Refresh recent foods to update the list
+      refreshRecentFoods();
+      
+      toast({
+        title: "Food removed",
+        description: `All entries of "${foodName}" have been removed from your history`
+      });
+    } catch (error) {
+      console.error('Error deleting recent food:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove food from history",
+        variant: "destructive"
+      });
+    }
+  };
+
   const deleteDefaultFood = async (foodId: string) => {
     try {
       const { error } = await supabase
@@ -664,40 +692,51 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           <Save className="w-4 h-4 mr-2" />
                           Add to Template
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            importToMyLibrary(food as DefaultFood);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Add to Library
-                        </DropdownMenuItem>
-                        {isAdmin && !food.id.startsWith('recent-') && (
-                          <>
-                             <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setShowEditModal(true);
-                               }}
-                               className="cursor-pointer"
-                             >
-                               <Edit className="w-4 h-4 mr-2" />
-                               Edit Food
-                             </DropdownMenuItem>
-                             <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 deleteDefaultFood(food.id);
-                               }}
-                               className="text-destructive focus:text-destructive cursor-pointer"
-                             >
-                               <Trash2 className="w-4 h-4 mr-2" />
-                               Delete Food
-                             </DropdownMenuItem>
-                          </>
-                        )}
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             importToMyLibrary(food as DefaultFood);
+                           }}
+                           className="cursor-pointer"
+                         >
+                           <Download className="w-4 h-4 mr-2" />
+                           Add to Library
+                         </DropdownMenuItem>
+                         {food.id.startsWith('recent-') ? (
+                           <DropdownMenuItem
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               deleteRecentFood(food.name);
+                             }}
+                             className="text-destructive focus:text-destructive cursor-pointer"
+                           >
+                             <Trash2 className="w-4 h-4 mr-2" />
+                             Remove from History
+                           </DropdownMenuItem>
+                         ) : isAdmin && (
+                           <>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowEditModal(true);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Food
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteDefaultFood(food.id);
+                                }}
+                                className="text-destructive focus:text-destructive cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Food
+                              </DropdownMenuItem>
+                           </>
+                         )}
                      </>
                    )}
                 </DropdownMenuContent>

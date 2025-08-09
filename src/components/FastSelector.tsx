@@ -61,14 +61,18 @@ export const FastSelector = ({
       showCloseButton={true}
       contentClassName="px-4 sm:px-6 py-3 sm:py-4 max-h-[85vh] sm:max-h-[90vh]"
       footer={
-        <div className="flex gap-2 w-full px-4 sm:px-6 py-3 sm:py-4">
-          <Button variant="outline" onClick={onClose} className="flex-1 h-10 sm:h-auto text-sm sm:text-base">
+        <div className="flex gap-3 w-full px-4 sm:px-6 py-3 sm:py-4">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="flex-1"
+          >
             Cancel
           </Button>
           <Button 
             onClick={handleConfirm} 
             disabled={!isValidDateTime()}
-            className="flex-1 h-10 sm:h-auto text-sm sm:text-base"
+            className="flex-1"
           >
             {startInPast ? 'Start Past Fasting' : 'Start Fasting'}
           </Button>
@@ -118,6 +122,7 @@ export const FastSelector = ({
               max={168}
               min={24}
               step={1}
+              defaultValue={[60]}
               className="w-full"
             />
           </div>
