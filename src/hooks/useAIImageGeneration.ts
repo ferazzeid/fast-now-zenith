@@ -14,10 +14,10 @@ export const useAIImageGeneration = () => {
           .eq('setting_key', 'enable_ai_image_generation')
           .maybeSingle();
 
-        if (!error && data?.setting_value) {
-          setAiImageEnabled(data.setting_value === 'true');
+        if (!error && data) {
+          const val = (data.setting_value ?? '').toString().toLowerCase();
+          setAiImageEnabled(val === 'true' || val === '1' || val === 'yes');
         } else {
-          // Default to false if setting doesn't exist
           setAiImageEnabled(false);
         }
       } catch (error) {
