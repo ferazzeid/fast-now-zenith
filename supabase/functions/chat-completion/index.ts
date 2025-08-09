@@ -84,17 +84,15 @@ serve(async (req) => {
     }
 
     // 🔒 PROTECTED: Check request limits using protected config
-    if (!profile.use_own_api_key) {
-      const requestLimit = profile.user_tier === 'paid_user' ? PROTECTED_OPENAI_CONFIG.PAID_REQUEST_LIMIT : PROTECTED_OPENAI_CONFIG.FREE_REQUEST_LIMIT;
-      if (profile.monthly_ai_requests >= requestLimit) {
-        return new Response(
-          JSON.stringify({ error: `Request limit reached (${requestLimit}/month)` }),
-          { 
-            status: 429, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
+    const requestLimit = profile.user_tier === 'paid_user' ? PROTECTED_OPENAI_CONFIG.PAID_REQUEST_LIMIT : PROTECTED_OPENAI_CONFIG.FREE_REQUEST_LIMIT;
+    if (profile.monthly_ai_requests >= requestLimit) {
+      return new Response(
+        JSON.stringify({ error: `Request limit reached (${requestLimit}/month)` }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // 🔒 PROTECTED: Use standardized API key resolution
@@ -350,29 +348,27 @@ serve(async (req) => {
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
-    // Increment usage counter (only if not using own API key)
-    if (!profile.use_own_api_key) {
-      try {
-        await supabase
-          .from('profiles')
-          .update({ 
-            monthly_ai_requests: profile.monthly_ai_requests + 1 
-          })
-          .eq('user_id', userId);
-      } catch (e) {
-        console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
-      }
+    // Increment usage counter (all users count against limits now)
+    try {
+      await supabase
+        .from('profiles')
+        .update({ 
+          monthly_ai_requests: profile.monthly_ai_requests + 1 
+        })
+        .eq('user_id', userId);
+    } catch (e) {
+      console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
+    }
 
-      try {
-        await supabase.rpc('track_usage_event', {
-          _user_id: userId,
-          _event_type: 'chat_completion',
-          _requests_count: 1,
-          _subscription_status: profile.subscription_status
-        });
-      } catch (e) {
-        console.warn('Non-blocking: failed to log usage analytics', e);
-      }
+    try {
+      await supabase.rpc('track_usage_event', {
+        _user_id: userId,
+        _event_type: 'chat_completion',
+        _requests_count: 1,
+        _subscription_status: profile.subscription_status
+      });
+    } catch (e) {
+      console.warn('Non-blocking: failed to log usage analytics', e);
     }
 
     if (stream) {

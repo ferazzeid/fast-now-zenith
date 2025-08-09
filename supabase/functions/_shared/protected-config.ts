@@ -41,19 +41,16 @@ export function validateOpenAIConfig(config: Record<string, unknown>): boolean {
   );
 }
 
-// 🔧 API KEY RESOLUTION - PROTECTED LOGIC
+// 🔧 API KEY RESOLUTION - PROTECTED LOGIC (SHARED KEY ONLY)
 export async function resolveOpenAIApiKey(
   supabase: any,
-  userProfile: any,
+  userProfile?: any,
   providedApiKey?: string,
   headerApiKey?: string
 ): Promise<string> {
-  // 1. User's personal API key (if enabled)
-  if (userProfile?.use_own_api_key) {
-    if (!userProfile.openai_api_key) {
-      throw new Error('User OpenAI API key not configured. Please add your OpenAI API key in Settings.');
-    }
-    return userProfile.openai_api_key;
+  // 1. Header API key (for backwards compatibility)
+  if (headerApiKey) {
+    return headerApiKey;
   }
   
   // 2. Provided API key (legacy support)
@@ -61,12 +58,7 @@ export async function resolveOpenAIApiKey(
     return providedApiKey;
   }
   
-  // 3. Header API key (alternative method)
-  if (headerApiKey) {
-    return headerApiKey;
-  }
-  
-  // 4. Shared settings
+  // 3. Shared settings (primary method)
   try {
     const { data: sharedKey } = await supabase
       .from('shared_settings')
@@ -81,13 +73,13 @@ export async function resolveOpenAIApiKey(
     console.warn('Failed to fetch shared API key:', error);
   }
   
-  // 5. Environment variable (fallback)
+  // 4. Environment variable (fallback)
   const envKey = Deno.env.get('OPENAI_API_KEY');
   if (envKey) {
     return envKey;
   }
   
-  throw new Error('OpenAI API key not available. Please configure an API key or upgrade your subscription.');
+  throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
 }
 
 // 📊 RUNTIME VALIDATION

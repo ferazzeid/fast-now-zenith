@@ -50,16 +50,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user authentication info if available
+    // No need to get user profile for API key anymore - using shared key only
     let userProfile = null;
-    if (userId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('use_own_api_key, openai_api_key')
-        .eq('user_id', userId)
-        .maybeSingle();
-      userProfile = profile;
-    }
 
     let generationId = null;
 

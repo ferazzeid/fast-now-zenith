@@ -74,7 +74,7 @@ serve(async (req) => {
     // Get user profile and check subscription status
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, use_own_api_key, openai_api_key, subscription_status')
+      .select('monthly_ai_requests, subscription_status, user_tier')
       .eq('user_id', userId)
       .single();
 
@@ -91,24 +91,16 @@ serve(async (req) => {
     const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '50');
     const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
 
-    // Check if user has reached their limit (unless using own API key)
-    if (!profile.use_own_api_key) {
-      const userLimit = profile.subscription_status === 'active' ? monthlyLimit : freeLimit;
-      if (profile.monthly_ai_requests >= userLimit) {
-        throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription or use your own API key.`);
-      }
+    // Check if user has reached their limit (all users count against limits now)
+    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : freeLimit;
+    if (profile.monthly_ai_requests >= userLimit) {
+      throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription.`);
     }
 
-    // Resolve API key priority: user key > header > shared_settings > env
+    // Resolve API key (shared key only)
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    let OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
-    // If the user is set to use own key but it's missing, do NOT fallback
-    if (profile.use_own_api_key && !OPENAI_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'User OpenAI API key not configured' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    let OPENAI_API_KEY = clientApiKey;
+    
     if (!OPENAI_API_KEY) {
       const { data: sharedKey } = await supabase
         .from('shared_settings')
@@ -119,7 +111,7 @@ serve(async (req) => {
     }
 
     if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error('OpenAI API key not configured. Please contact support.');
     }
 
     // Convert base64 to binary
@@ -158,29 +150,27 @@ serve(async (req) => {
     const result = await response.json();
     if (!isProd) console.log('Transcription result:', result);
 
-    // Increment usage counter (only if not using own API key)
-    if (!profile.use_own_api_key) {
-      try {
-        await supabase
-          .from('profiles')
-          .update({ 
-            monthly_ai_requests: profile.monthly_ai_requests + 1 
-          })
-          .eq('user_id', userId);
-      } catch (e) {
-        console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
-      }
+    // Increment usage counter (all users count against limits now)
+    try {
+      await supabase
+        .from('profiles')
+        .update({ 
+          monthly_ai_requests: profile.monthly_ai_requests + 1 
+        })
+        .eq('user_id', userId);
+    } catch (e) {
+      console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
+    }
 
-      try {
-        await supabase.rpc('track_usage_event', {
-          _user_id: userId,
-          _event_type: 'transcription',
-          _requests_count: 1,
-          _subscription_status: profile.subscription_status
-        });
-      } catch (e) {
-        console.warn('Non-blocking: failed to log usage analytics', e);
-      }
+    try {
+      await supabase.rpc('track_usage_event', {
+        _user_id: userId,
+        _event_type: 'transcription',
+        _requests_count: 1,
+        _subscription_status: profile.subscription_status
+      });
+    } catch (e) {
+      console.warn('Non-blocking: failed to log usage analytics', e);
     }
 
     return new Response(

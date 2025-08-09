@@ -44,11 +44,8 @@ const AiChat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showApiDialog, setShowApiDialog] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
-  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [imageAnalysisEnabled, setImageAnalysisEnabled] = useState<boolean>(false);
   const [notificationMessages, setNotificationMessages] = useState<EnhancedMessage[]>([]);
   const [searchParams] = useSearchParams();
@@ -268,25 +265,7 @@ const AiChat = () => {
     return false; // Indicate this should be processed as a regular chat message
   };
 
-  useEffect(() => {
-    // Load API key from localStorage
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
   const sendToAI = async (message: string, fromVoice = false) => {
-    // Only show API dialog if:
-    // 1. No API key is configured AND
-    // 2. User doesn't have premium subscription AND 
-    // 3. User can't use their own API key (exceeded free limit)
-    if (!apiKey.trim() && !subscribed && subscription_tier !== 'api_user') {
-      setShowApiDialog(true);
-      // Don't show error toast for missing API key - the dialog explains everything
-      return;
-    }
-
     setIsProcessing(true);
 
     try {
@@ -336,9 +315,7 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
             ...conversationHistory
           ]
         },
-        headers: {
-          'X-OpenAI-API-Key': apiKey
-        }
+        headers: {}
       });
 
       if (error) throw error;
@@ -605,10 +582,6 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-background border border-border z-50">
-                  <DropdownMenuItem onClick={() => setShowApiDialog(true)}>
-                    <Settings className="w-4 h-4 mr-2" />
-                    API Settings
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleArchiveChat}>
                     <Archive className="w-4 h-4 mr-2" />
                     Archive Chat
@@ -856,116 +829,6 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
         </div>
       </div>
 
-      {/* Choose How to Continue Dialog */}
-      <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Choose How to Continue</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="border rounded-lg p-4 bg-primary/5">
-                <h3 className="font-semibold text-sm mb-2">🌟 Recommended: Premium Subscription</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Get unlimited AI conversations and advanced features.
-                </p>
-                <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground" onClick={async () => {
-                  try {
-                    const { data, error } = await supabase.functions.invoke('create-subscription');
-                    if (error) throw error;
-                    if (data.url) {
-                      window.open(data.url, '_blank');
-                    }
-                  } catch (error) {
-                    console.error('Error creating subscription:', error);
-                    toast({
-                      title: "Error",
-                      description: "Failed to open subscription page. Please try again.",
-                      variant: "destructive"
-                    });
-                  }
-                  setShowApiDialog(false);
-                }}>
-                  <span className="mr-2">👑</span>
-                  Upgrade to Premium - $9/month
-                </Button>
-              </div>
-              
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-sm mb-2">🔑 Bring Your Own OpenAI Key</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Use your personal OpenAI API key. 
-                  <a 
-                    href="https://platform.openai.com/api-keys" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline ml-1"
-                  >
-                    Get one from OpenAI's platform →
-                  </a>
-                </p>
-                <div className="space-y-3">
-                  {apiKey ? (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                      <p className="text-sm text-green-700 font-medium">✓ API Key Already Configured</p>
-                      <p className="text-xs text-green-600 mt-1">You can start chatting right away!</p>
-                      <Button 
-                        size="sm" 
-                        className="mt-2 w-full"
-                        onClick={() => setShowApiDialog(false)}
-                      >
-                        Start Chatting
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <Input
-                        type="password"
-                        placeholder="sk-..."
-                        value={apiKey}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setApiKey(val);
-                          if (!val) {
-                            setApiKeyError(null);
-                          } else if (!val.startsWith('sk-') || val.length < 20) {
-                            setApiKeyError('This does not look like a valid OpenAI API key. It should start with sk-');
-                          } else {
-                            setApiKeyError(null);
-                          }
-                        }}
-                        className="font-mono text-sm"
-                      />
-                      {apiKeyError && (
-                        <p className="text-xs text-destructive">{apiKeyError}</p>
-                      )}
-                      <Button
-                        onClick={() => {
-                          if (apiKey.trim() && !apiKeyError) {
-                            localStorage.setItem('openai_api_key', apiKey);
-                            setShowApiDialog(false);
-                            toast({
-                              title: "API Key Saved",
-                              description: "You can now use the AI assistant."
-                            });
-                          }
-                        }}
-                        disabled={!apiKey.trim() || !!apiKeyError}
-                        className="w-full"
-                      >
-                        Save Key & Start Chatting
-                      </Button>
-                      <p className="text-xs text-muted-foreground">
-                        Your API key is stored locally and never sent to our servers.
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Image Upload Dialog */}
       {isAdmin && imageAnalysisEnabled && (

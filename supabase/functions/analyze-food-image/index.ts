@@ -50,24 +50,22 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Get OpenAI API key from environment or user profile
+    // Get OpenAI API key from shared settings or environment
     let openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     
     if (!openaiApiKey) {
-      // Try to get from user profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('openai_api_key, use_own_api_key')
-        .eq('user_id', userData.user.id)
-        .single();
+      // Get from shared settings
+      const { data: sharedKey } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
       
-      if (profile?.use_own_api_key && profile?.openai_api_key) {
-        openaiApiKey = profile.openai_api_key;
-      }
+      openaiApiKey = sharedKey?.setting_value;
     }
 
     if (!openaiApiKey) {
-      throw new Error('OpenAI API key not available');
+      throw new Error('OpenAI API key not configured. Please contact support.');
     }
 
     console.log('Analyzing food image with OpenAI Vision API');
