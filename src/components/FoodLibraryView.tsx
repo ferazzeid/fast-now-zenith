@@ -481,7 +481,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     const canMultiSelect = isUserFood && activeTab === 'my-foods';
     const [showEditModal, setShowEditModal] = useState(false);
     
-    const handleCardClick = () => {
+    const handleCardClick = (e: React.MouseEvent) => {
+      // Don't trigger card actions if clicking on interactive elements
+      const target = e.target as HTMLElement;
+      if (target.closest('button') || 
+          target.closest('[role="menuitem"]') || 
+          target.closest('[data-radix-dropdown-menu-content]') ||
+          target.closest('[data-radix-popper-content-wrapper]') ||
+          target.closest('.dropdown-menu') ||
+          showEditModal) {
+        e.stopPropagation();
+        return;
+      }
+
       if (canMultiSelect && isMultiSelectMode) {
         toggleFoodSelection(food.id);
       } else if (isUserFood) {
@@ -562,39 +574,51 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <DropdownMenuContent align="end" className="w-44 z-50 bg-popover border border-border">
                   {isUserFood ? (
                     <>
-                      <DropdownMenuItem
-                        onClick={() => setShowEditModal(true)}
-                        className="cursor-pointer"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Food
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => deleteFood(food.id)}
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Food
-                      </DropdownMenuItem>
+                       <DropdownMenuItem
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setShowEditModal(true);
+                         }}
+                         className="cursor-pointer"
+                       >
+                         <Edit className="w-4 h-4 mr-2" />
+                         Edit Food
+                       </DropdownMenuItem>
+                       <DropdownMenuItem
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           deleteFood(food.id);
+                         }}
+                         className="text-destructive focus:text-destructive cursor-pointer"
+                       >
+                         <Trash2 className="w-4 h-4 mr-2" />
+                         Delete Food
+                       </DropdownMenuItem>
                     </>
                   ) : (
                     <>
                       {isAdmin && (
                         <>
-                          <DropdownMenuItem
-                            onClick={() => setShowEditModal(true)}
-                            className="cursor-pointer"
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit Food
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => deleteDefaultFood(food.id)}
-                            className="text-destructive focus:text-destructive cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Food
-                          </DropdownMenuItem>
+                           <DropdownMenuItem
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setShowEditModal(true);
+                             }}
+                             className="cursor-pointer"
+                           >
+                             <Edit className="w-4 h-4 mr-2" />
+                             Edit Food
+                           </DropdownMenuItem>
+                           <DropdownMenuItem
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               deleteDefaultFood(food.id);
+                             }}
+                             className="text-destructive focus:text-destructive cursor-pointer"
+                           >
+                             <Trash2 className="w-4 h-4 mr-2" />
+                             Delete Food
+                           </DropdownMenuItem>
                         </>
                       )}
                     </>
