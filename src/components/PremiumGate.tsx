@@ -1,9 +1,9 @@
+
 import React, { ReactNode, ReactElement, cloneElement, isValidElement, useEffect, useRef } from 'react';
-import { Lock, Crown, Smartphone } from 'lucide-react';
+import { Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
-import { detectPlatform, getPlatformDisplayName } from '@/utils/platformDetection';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { cn } from '@/lib/utils';
 
@@ -16,21 +16,17 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, requests_used, request_limit, createSubscription, platform, loading } = useMultiPlatformSubscription();
+  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, inTrial, createSubscription, loading } = useSubscription();
   const { toast } = useToast();
   const { testRole, isTestingMode } = useRoleTestingContext();
 
   // Use test role if in testing mode, otherwise use actual subscription data
   const effectiveRole = isTestingMode ? testRole : subscription_tier;
-  const effectiveRequestsUsed = isTestingMode && testRole === 'free_user' ? 15 : requests_used;
-  const effectiveRequestLimit = isTestingMode && testRole === 'free_user' ? 15 : request_limit;
-  const effectiveSubscribed = isTestingMode ? (testRole === 'paid_user' || testRole === 'api_user') : subscribed;
+  const effectivePaidUser = isTestingMode ? (testRole === 'paid_user') : isPaidUser;
+  const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
 
   // Check if user has access to the feature
-  const hasAccess = effectiveRole === 'api_user' || 
-                   effectiveSubscribed || 
-                   (effectiveRequestsUsed < effectiveRequestLimit) ||
-                   effectiveRole === 'admin';
+  const hasAccess = effectiveRole === 'admin' || effectiveHasPremiumFeatures;
 
   // Throttled debug logging to understand access decisions (logs on change or every 10s)
   const lastSnapshotRef = useRef<string>("");
@@ -39,31 +35,31 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     const snapshot = JSON.stringify({
       feature,
       effectiveRole,
-      effectiveSubscribed,
-      effectiveRequestsUsed,
-      effectiveRequestLimit,
+      effectivePaidUser,
+      effectiveHasPremiumFeatures,
       hasAccess,
       loading,
       isTestingMode,
-      testRole
+      testRole,
+      inTrial
     });
     const now = Date.now();
     if (snapshot !== lastSnapshotRef.current || now - lastLogTsRef.current > 10000) {
       console.info('[PremiumGate] Access check:', {
         feature,
         effectiveRole,
-        effectiveSubscribed,
-        effectiveRequestsUsed,
-        effectiveRequestLimit,
+        effectivePaidUser,
+        effectiveHasPremiumFeatures,
         hasAccess,
         loading,
         isTestingMode,
-        testRole
+        testRole,
+        inTrial
       });
       lastSnapshotRef.current = snapshot;
       lastLogTsRef.current = now;
     }
-  }, [feature, effectiveRole, effectiveSubscribed, effectiveRequestsUsed, effectiveRequestLimit, hasAccess, loading, isTestingMode, testRole]);
+  }, [feature, effectiveRole, effectivePaidUser, effectiveHasPremiumFeatures, hasAccess, loading, isTestingMode, testRole, inTrial]);
 
   // Show content while loading to prevent flashing
   if (loading) {
@@ -72,20 +68,11 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
 
   const handleUpgrade = async () => {
     try {
-      const result = await createSubscription();
-      const platformName = getPlatformDisplayName(platform as any);
-      
-      if (platform === 'web') {
-        toast({
-          title: "Redirecting to checkout",
-          description: "Opening Stripe payment page..."
-        });
-      } else {
-        toast({
-          title: `${platformName} Purchase Required`,
-          description: `Use ${platformName} billing to purchase premium subscription.`
-        });
-      }
+      await createSubscription();
+      toast({
+        title: "Redirecting to checkout",
+        description: "Opening payment page..."
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -99,9 +86,14 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     const handleGrayedClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      
+      const trialMessage = inTrial 
+        ? "This feature requires a premium subscription. Your trial is still active but this feature needs an upgrade."
+        : "Your trial has expired. Upgrade to premium to access this feature.";
+      
       toast({
         title: "Premium Feature",
-        description: `${feature} requires a premium subscription or your own OpenAI API key.`,
+        description: trialMessage,
         action: showUpgrade ? (
           <Button 
             size="sm" 
@@ -156,22 +148,20 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
           </div>
           <h3 className="font-semibold text-sm mb-1">Premium Feature</h3>
           <p className="text-xs text-muted-foreground mb-3">
-            {feature} requires a premium subscription or your own API key.
+            {inTrial 
+              ? "Your trial doesn't include this feature. Upgrade to premium to unlock it."
+              : "Your trial has expired. Upgrade to premium to access this feature."
+            }
           </p>
           {showUpgrade && (
-            <div className="space-y-2">
-              <Button 
-                size="sm" 
-                onClick={handleUpgrade}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0"
-              >
-                <Crown className="w-4 h-4 mr-1" />
-                Upgrade to Premium
-              </Button>
-              <div className="text-xs text-muted-foreground">
-                Or add your OpenAI API key in Settings
-              </div>
-            </div>
+            <Button 
+              size="sm" 
+              onClick={handleUpgrade}
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0"
+            >
+              <Crown className="w-4 h-4 mr-1" />
+              Upgrade to Premium
+            </Button>
           )}
         </div>
       </div>

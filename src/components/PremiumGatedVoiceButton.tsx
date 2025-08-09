@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 
 interface PremiumGatedVoiceButtonProps {
@@ -11,20 +12,15 @@ interface PremiumGatedVoiceButtonProps {
 }
 
 export const PremiumGatedVoiceButton = (props: PremiumGatedVoiceButtonProps) => {
-  const { subscribed, subscription_tier, requests_used, request_limit } = useMultiPlatformSubscription();
+  const { subscription_tier, isPaidUser, hasPremiumFeatures } = useSubscription();
   const { testRole, isTestingMode } = useRoleTestingContext();
   
   // Use test role if in testing mode, otherwise use actual subscription data
   const effectiveRole = isTestingMode ? testRole : subscription_tier;
-  const effectiveRequestsUsed = isTestingMode && testRole === 'free_user' ? 15 : requests_used;
-  const effectiveRequestLimit = isTestingMode && testRole === 'free_user' ? 15 : request_limit;
-  const effectiveSubscribed = isTestingMode ? (testRole === 'paid_user' || testRole === 'api_user') : subscribed;
+  const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
 
   // Check if user has access to the feature
-  const hasAccess = effectiveRole === 'api_user' || 
-                   effectiveSubscribed || 
-                   (effectiveRequestsUsed < effectiveRequestLimit) ||
-                   effectiveRole === 'admin';
+  const hasAccess = effectiveRole === 'admin' || effectiveHasPremiumFeatures;
 
   // If no access and free user, disable the onTranscription callback
   const disabledProps = !hasAccess && effectiveRole === 'free_user' 

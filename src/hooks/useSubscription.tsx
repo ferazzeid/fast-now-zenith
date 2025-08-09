@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -13,17 +14,20 @@ interface SubscriptionData {
   request_limit: number;
   isPaidUser: boolean;
   hasPremiumFeatures: boolean;
+  inTrial: boolean;
+  trialEndsAt?: string;
 }
 
 export const useSubscription = () => {
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({
     subscribed: false,
-    subscription_status: 'granted_user',
-    subscription_tier: 'granted_user',
+    subscription_status: 'free',
+    subscription_tier: 'free_user',
     requests_used: 0,
-    request_limit: 15,
+    request_limit: 0,
     isPaidUser: false,
     hasPremiumFeatures: false,
+    inTrial: false,
   });
   const [loading, setLoading] = useState(true);
   const { user, session } = useAuth();
@@ -34,12 +38,13 @@ export const useSubscription = () => {
       console.log('UseSubscription: No user or session, setting defaults');
       setSubscriptionData({
         subscribed: false,
-        subscription_status: 'granted_user',
-        subscription_tier: 'granted_user',
+        subscription_status: 'free',
+        subscription_tier: 'free_user',
         requests_used: 0,
-        request_limit: 15,
+        request_limit: 0,
         isPaidUser: false,
         hasPremiumFeatures: false,
+        inTrial: false,
       });
       setLoading(false);
       return;
@@ -61,7 +66,7 @@ export const useSubscription = () => {
       const subscriptionData = await deduplicateRequest(
         `subscription_${user.id}`,
         async () => {
-          // Update user tier based on current conditions
+          // Update user tier based on current conditions (trial + subscription status)
           const { error: tierError } = await supabase.rpc('update_user_tier', {
             _user_id: user.id
           });
@@ -70,7 +75,7 @@ export const useSubscription = () => {
             console.error('Error updating user tier:', tierError);
           }
 
-          // Get updated profile with tier
+          // Get updated profile with tier and trial info
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -79,65 +84,37 @@ export const useSubscription = () => {
 
           if (profileError) throw profileError;
 
-          const tier = profile?.user_tier || 'granted_user';
+          const tier = profile?.user_tier || 'free_user';
           const requestsUsed = profile?.monthly_ai_requests || 0;
 
-          // Check Stripe subscription for paid users only - but only if needed
-          let stripeSubscriptionData = null;
-          if (tier === 'paid_user' && profile?.subscription_status !== 'active') {
-            try {
-              const { data: stripeData, error: stripeError } = await supabase.functions.invoke('check-subscription', {
-                headers: {
-                  Authorization: `Bearer ${session?.access_token}`,
-                }
-              });
-              if (stripeError) {
-                console.warn('Subscription check failed, using profile data:', stripeError);
-                // Continue with profile data instead of failing
-              } else {
-                stripeSubscriptionData = stripeData;
-              }
-            } catch (error) {
-              console.warn('Subscription function unavailable, using profile data:', error);
-              // Continue with profile data
-            }
-          }
+          // Check if user is in trial
+          const trialEndsAt = profile?.trial_ends_at;
+          const inTrial = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
 
-          // Determine subscription status and limits based on tier
-          const subscribed = tier !== 'free_user';
-          const isPaidUser = tier === 'paid_user' || tier === 'api_user';
-          const hasPremiumFeatures = tier !== 'free_user';
-          
-          // Fetch admin-configured request limits
-          const { data: limitsData } = await supabase
-            .from('shared_settings')
-            .select('setting_key, setting_value')
-            .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+          // Check subscription status from any payment provider
+          const hasActiveSubscription = profile?.subscription_status === 'active';
 
-          const limitsMap = limitsData?.reduce((acc, setting) => {
-            acc[setting.setting_key] = setting.setting_value;
-            return acc;
-          }, {} as Record<string, string>) || {};
+          // User is "paid" if they're in trial OR have active subscription
+          const isPaidUser = inTrial || hasActiveSubscription;
+          const hasPremiumFeatures = isPaidUser;
 
-          const paidUserLimit = parseInt(limitsMap.monthly_request_limit || '1000');
-          const freeUserLimit = parseInt(limitsMap.free_request_limit || '15');
+          // For paid users, requests are unlimited during trial/subscription
+          const requestLimit = isPaidUser ? Infinity : 0;
 
-          // Request limits by tier
-          const requestLimit = tier === 'api_user' ? Infinity : 
-                              tier === 'paid_user' ? paidUserLimit : 
-                              tier === 'granted_user' ? freeUserLimit : 0;
+          const subscriptionStatus = hasActiveSubscription ? 'active' : 
+                                   inTrial ? 'trial' : 'free';
 
           return {
-            subscribed,
-            subscription_status: tier === 'api_user' ? 'api_key' : 
-                               tier === 'paid_user' ? (stripeSubscriptionData?.subscription_status || 'active') :
-                               tier === 'granted_user' ? 'granted' : 'free',
+            subscribed: hasActiveSubscription,
+            subscription_status: subscriptionStatus,
             subscription_tier: tier,
-            subscription_end_date: stripeSubscriptionData?.subscription_end_date,
+            subscription_end_date: profile?.subscription_end_date,
             requests_used: requestsUsed,
             request_limit: requestLimit,
             isPaidUser,
-            hasPremiumFeatures
+            hasPremiumFeatures,
+            inTrial,
+            trialEndsAt: trialEndsAt
           };
         },
         30 // 30 minute cache for request deduplication
@@ -151,6 +128,7 @@ export const useSubscription = () => {
         tier: subscriptionData.subscription_tier,
         isPaidUser: subscriptionData.isPaidUser, 
         hasPremiumFeatures: subscriptionData.hasPremiumFeatures,
+        inTrial: subscriptionData.inTrial,
         requestLimit: subscriptionData.request_limit
       });
     } catch (error) {
@@ -220,26 +198,26 @@ export const useSubscription = () => {
   };
 
   const getUsageWarning = () => {
-    const { requests_used, request_limit, subscribed } = subscriptionData;
-    const percentage = (requests_used / request_limit) * 100;
+    const { inTrial, trialEndsAt, subscription_status } = subscriptionData;
 
-    if (percentage >= 100) {
+    if (subscription_status === 'free' && !inTrial) {
       return {
         level: 'critical',
-        message: subscribed 
-          ? 'Monthly limit reached. Upgrade limits in admin panel or use your own API key.'
-          : 'Free requests used up. Upgrade to premium for 1,000 monthly requests.',
+        message: 'Trial expired. Upgrade to premium to access Food tracking and AI features.',
       };
-    } else if (percentage >= 90) {
-      return {
-        level: 'warning',
-        message: `You've used ${requests_used} of ${request_limit} requests this month.`,
-      };
-    } else if (percentage >= 80) {
-      return {
-        level: 'info',
-        message: `You've used ${requests_used} of ${request_limit} requests this month.`,
-      };
+    } else if (inTrial && trialEndsAt) {
+      const daysLeft = Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      if (daysLeft <= 1) {
+        return {
+          level: 'warning',
+          message: `Trial expires in ${daysLeft} day${daysLeft === 1 ? '' : 's'}. Upgrade to keep access to premium features.`,
+        };
+      } else if (daysLeft <= 3) {
+        return {
+          level: 'info',
+          message: `${daysLeft} days left in your trial. Upgrade anytime to continue access.`,
+        };
+      }
     }
     return null;
   };

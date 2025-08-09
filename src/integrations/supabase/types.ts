@@ -1046,6 +1046,8 @@ export type Database = {
           subscription_status: string | null
           subscription_tier: string | null
           transcription_model: string | null
+          trial_ends_at: string | null
+          trial_started_at: string | null
           tts_model: string | null
           tts_voice: string | null
           units: string | null
@@ -1091,6 +1093,8 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           transcription_model?: string | null
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           tts_model?: string | null
           tts_voice?: string | null
           units?: string | null
@@ -1136,6 +1140,8 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           transcription_model?: string | null
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           tts_model?: string | null
           tts_voice?: string | null
           units?: string | null
