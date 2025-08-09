@@ -2,27 +2,17 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
-  .split(',')
-  .map(o => o.trim());
-
-function buildCorsHeaders(origin: string | null) {
-  const isLovable = origin ? (origin.includes('lovableproject.com') || origin.includes('lovable.app')) : false;
-  const allowOrigin = (origin && (ALLOWED_ORIGINS.includes(origin) || isLovable)) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Vary': 'Origin',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
-    'Access-Control-Allow-Credentials': 'true',
-  } as const;
-}
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 
 serve(async (req) => {
   console.log('Image generation function called:', req.method);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -40,7 +30,6 @@ serve(async (req) => {
     const { prompt, filename, apiKey, bucket = 'motivator-images', motivatorId, userId } = body;
 
     if (!prompt || !filename) {
-      const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
       console.error('Missing required fields:', { prompt: !!prompt, filename: !!filename });
       return new Response(
         JSON.stringify({ error: 'Missing prompt or filename' }),
@@ -226,7 +215,6 @@ serve(async (req) => {
         generateImage().catch(console.error);
       }
 
-      const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
       return new Response(
         JSON.stringify({ 
           message: 'Image generation started in background',
@@ -240,7 +228,6 @@ serve(async (req) => {
     } else {
       // For backward compatibility, run synchronously
       const imageUrl = await generateImage();
-      const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
       return new Response(
         JSON.stringify({ imageUrl }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -249,7 +236,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in generate-image function:', error);
-    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
