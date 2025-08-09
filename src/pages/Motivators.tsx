@@ -5,7 +5,7 @@ import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Sparkles, Mic, Lightbulb } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
