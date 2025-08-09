@@ -17,34 +17,29 @@ export const useDynamicFavicon = () => {
         }
 
         if (data?.setting_value) {
-          // Remove existing favicon links
-          const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
-          existingFavicons.forEach(link => link.remove());
-
-          // Add new favicon with proper attributes for transparency
-          const link = document.createElement('link');
-          link.rel = 'icon';
-          link.type = 'image/png';
-          link.href = data.setting_value;
-          link.setAttribute('sizes', '32x32');
-          // Ensure transparency is preserved
-          link.style.backgroundColor = 'transparent';
-          document.head.appendChild(link);
-
-          // Also update shortcut icon
-          const shortcutLink = document.createElement('link');
-          shortcutLink.rel = 'shortcut icon';
-          shortcutLink.type = 'image/png';
-          shortcutLink.href = data.setting_value;
-          shortcutLink.style.backgroundColor = 'transparent';
-          document.head.appendChild(shortcutLink);
-
-          // Add apple-touch-icon for mobile
-          const appleLink = document.createElement('link');
-          appleLink.rel = 'apple-touch-icon';
-          appleLink.href = data.setting_value;
-          appleLink.setAttribute('sizes', '180x180');
-          document.head.appendChild(appleLink);
+          // Update existing favicon links instead of removing them
+          const existingIcon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+          const existingShortcut = document.querySelector('link[rel="shortcut icon"]') as HTMLLinkElement;
+          
+          if (existingIcon) {
+            existingIcon.href = data.setting_value;
+          } else {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.type = 'image/png';
+            link.href = data.setting_value;
+            document.head.appendChild(link);
+          }
+          
+          if (existingShortcut) {
+            existingShortcut.href = data.setting_value;
+          } else {
+            const shortcutLink = document.createElement('link');
+            shortcutLink.rel = 'shortcut icon';
+            shortcutLink.type = 'image/png';
+            shortcutLink.href = data.setting_value;
+            document.head.appendChild(shortcutLink);
+          }
 
           console.log('Favicon updated to:', data.setting_value);
         }
