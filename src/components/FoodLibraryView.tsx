@@ -614,16 +614,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           <Save className="w-4 h-4 mr-2" />
                           Add to Template
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowEditModal(true);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit Food
-                        </DropdownMenuItem>
+                        {/* Only show Edit option for user foods and admin for default foods */}
+                        {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowEditModal(true);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Food
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
@@ -671,30 +674,30 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           <Download className="w-4 h-4 mr-2" />
                           Add to Library
                         </DropdownMenuItem>
-                       {isAdmin && (
-                         <>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEditModal(true);
-                              }}
-                              className="cursor-pointer"
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit Food
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteDefaultFood(food.id);
-                              }}
-                              className="text-destructive focus:text-destructive cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete Food
-                            </DropdownMenuItem>
-                         </>
-                       )}
+                        {isAdmin && !food.id.startsWith('recent-') && (
+                          <>
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setShowEditModal(true);
+                               }}
+                               className="cursor-pointer"
+                             >
+                               <Edit className="w-4 h-4 mr-2" />
+                               Edit Food
+                             </DropdownMenuItem>
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 deleteDefaultFood(food.id);
+                               }}
+                               className="text-destructive focus:text-destructive cursor-pointer"
+                             >
+                               <Trash2 className="w-4 h-4 mr-2" />
+                               Delete Food
+                             </DropdownMenuItem>
+                          </>
+                        )}
                      </>
                    )}
                 </DropdownMenuContent>
