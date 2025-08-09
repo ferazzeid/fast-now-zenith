@@ -25,7 +25,7 @@ interface FastingSession {
   end_time: string | null;
   duration_seconds: number | null;
   goal_duration_seconds: number | null;
-  status: 'active' | 'completed' | 'cancelled';
+  status: 'active' | 'completed' | 'cancelled' | 'incomplete';
   created_at: string;
 }
 
@@ -56,6 +56,8 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
     switch (session.status) {
       case 'completed':
         return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Completed</Badge>;
+      case 'incomplete':
+        return <Badge variant="default" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">Incomplete</Badge>;
       case 'cancelled':
         return (
           <div className="w-6 h-6 bg-destructive rounded-full flex items-center justify-center">
@@ -121,7 +123,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       // Type the sessions properly
       const typedSessions = (fastingSessions || []).map(session => ({
         ...session,
-        status: session.status as 'active' | 'completed' | 'cancelled'
+        status: session.status as 'active' | 'completed' | 'cancelled' | 'incomplete'
       }));
 
       if (append) {

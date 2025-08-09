@@ -200,12 +200,16 @@ export const useFastingSessionQuery = () => {
       const startTime = new Date(currentSession.start_time);
       const actualDurationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
 
+      // Determine status based on whether goal was reached
+      const goalDurationSeconds = currentSession.goal_duration_seconds || 0;
+      const status = actualDurationSeconds >= goalDurationSeconds ? 'completed' : 'incomplete';
+
       const { data, error } = await supabase
         .from('fasting_sessions')
         .update({
           end_time: now.toISOString(),
           duration_seconds: actualDurationSeconds,
-          status: 'completed',
+          status,
         })
         .eq('id', sessionId)
         .eq('user_id', user.id)
