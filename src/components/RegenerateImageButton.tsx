@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
 
 interface RegenerateImageButtonProps {
   prompt: string;
@@ -36,6 +37,7 @@ export const RegenerateImageButton = ({
   const [finalPrompt, setFinalPrompt] = useState('');
   const [previewPrompt, setPreviewPrompt] = useState('');
   const { toast } = useToast();
+  const { aiImageEnabled, loading: aiImageLoading } = useAIImageGeneration();
 
   // Preview prompt generation function
   const generatePreviewPrompt = async (manualConcept?: string) => {
@@ -307,6 +309,11 @@ export const RegenerateImageButton = ({
       setIsRegenerating(false);
     }
   };
+
+  // Don't render if AI image generation is disabled
+  if (!aiImageEnabled && !aiImageLoading) {
+    return null;
+  }
 
   return (
     <div className={`flex items-center gap-1`}>

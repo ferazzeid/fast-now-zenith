@@ -687,7 +687,7 @@ const FoodTracking = () => {
                     </div>
                     
                     {/* Entry Content - Compact */}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 relative">
                       <div className="mb-0 flex items-center gap-2 min-w-0">
                         <h3 className={`text-sm font-semibold truncate ${
                           entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
@@ -695,7 +695,7 @@ const FoodTracking = () => {
                           {entry.name}
                         </h3>
                         {isInLibrary(entry.name) && (
-                          <Badge variant="secondary" className="shrink-0">Saved</Badge>
+                          <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -733,12 +733,7 @@ const FoodTracking = () => {
                               <Edit className="w-4 h-4 mr-2" />
                               Edit Entry
                             </DropdownMenuItem>
-                            {isInLibrary(entry.name) ? (
-                              <DropdownMenuItem disabled>
-                                <Check className="w-4 h-4 mr-2" />
-                                Saved to Library
-                              </DropdownMenuItem>
-                            ) : (
+                            {!isInLibrary(entry.name) && (
                               <DropdownMenuItem
                                 onClick={async () => {
                                   await saveToLibrary({
@@ -860,13 +855,13 @@ const FoodTracking = () => {
                                <Camera className="w-5 h-5 text-muted-foreground" />
                              </div>
                            )}
-                           <div className="flex-1 min-w-0">
-                             <div className="flex items-center gap-2 min-w-0">
-                               <p className="font-medium truncate">{food.name}</p>
-                               {isInLibrary(food.name) && (
-                                 <Badge variant="secondary" className="shrink-0">Saved</Badge>
-                               )}
-                             </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <p className="font-medium truncate">{food.name}</p>
+                                {isInLibrary(food.name) && (
+                                  <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
+                                )}
+                              </div>
                              <p className="text-sm text-muted-foreground">
                                {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
                              </p>
@@ -892,12 +887,7 @@ const FoodTracking = () => {
                                   <Edit className="w-4 h-4 mr-2" />
                                   Edit Template Item
                                 </DropdownMenuItem>
-                                {isInLibrary(food.name) ? (
-                                  <DropdownMenuItem disabled>
-                                    <Check className="w-4 h-4 mr-2" />
-                                    Saved to Library
-                                  </DropdownMenuItem>
-                                ) : (
+                                {!isInLibrary(food.name) && (
                                   <DropdownMenuItem
                                     onClick={async () => {
                                       await saveToLibrary({
