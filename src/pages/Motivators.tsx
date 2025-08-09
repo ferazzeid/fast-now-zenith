@@ -113,17 +113,6 @@ const Motivators = () => {
     }
   };
 
-  const handleVoiceMotivator = () => {
-    trackAIEvent('chat', 'motivator_assistant');
-    const contextMessage = `I can help you create:
-• Inspirational titles for your motivators
-• Detailed motivational content and descriptions
-• Personal reasons for your health goals
-• Reminders of why you started this journey`;
-    
-    setAiChatContext(contextMessage);
-    setShowAiChat(true);
-  };
 
   const handleAiChatResult = async (result: any) => {
     console.log('🎯 AI Chat Result received:', result); // Debug log
@@ -250,26 +239,7 @@ const Motivators = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PremiumGate feature="AI Motivator Assistant" grayOutForFree={true}>
-                  <Button
-                    onClick={handleVoiceMotivator}
-                    variant="ai"
-                    size="action-tall"
-                    className="flex items-center justify-center"
-                    aria-label="Create motivator with voice"
-                  >
-                    <Mic className="w-5 h-5" />
-                  </Button>
-                </PremiumGate>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Create a motivator using voice input and AI assistance</p>
-              </TooltipContent>
-            </Tooltip>
-            
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 

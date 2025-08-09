@@ -6,7 +6,7 @@ interface HistoryButtonProps {
   title?: string;
 }
 
-export const HistoryButton = ({ onClick, title = "View history" }: HistoryButtonProps) => {
+export const HistoryButton = ({ onClick, title = "View past entries" }: HistoryButtonProps) => {
   return (
     <Button
       variant="ghost"

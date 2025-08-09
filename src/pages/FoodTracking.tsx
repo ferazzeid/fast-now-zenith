@@ -587,41 +587,56 @@ const FoodTracking = () => {
         <div className="my-6">
           <div className="grid grid-cols-3 gap-4">
             {/* Voice Add */}
-            <PremiumGate feature="AI Food Assistant" grayOutForFree={true}>
-              <Button
-                onClick={handleVoiceFood}
-                variant="ai"
-                size="action-tall"
-                className="flex items-center justify-center"
-                aria-label="Add food with voice"
-              >
-                <Mic className="w-5 h-5" />
-              </Button>
-            </PremiumGate>
+            <div className="flex flex-col items-center">
+              <PremiumGate feature="AI Food Assistant" grayOutForFree={true}>
+                <Button
+                  onClick={handleVoiceFood}
+                  variant="ai"
+                  size="action-tall"
+                  className="flex items-center justify-center w-full"
+                  aria-label="Add food with voice"
+                >
+                  <Mic className="w-5 h-5" />
+                </Button>
+              </PremiumGate>
+              <ClickableTooltip content="Use voice to describe your food and AI will add it with estimated nutrition">
+                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Voice Add</p>
+              </ClickableTooltip>
+            </div>
             
             {/* Manual Add */}
-            <Button
-              onClick={handleManualEntry}
-              variant="action-primary"
-              size="action-tall"
-                className="flex items-center justify-center"
+            <div className="flex flex-col items-center">
+              <Button
+                onClick={handleManualEntry}
+                variant="action-primary"
+                size="action-tall"
+                className="flex items-center justify-center w-full"
                 aria-label="Add food manually"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+              <ClickableTooltip content="Type food details manually with serving size and nutrition per 100g">
+                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Manual Add</p>
+              </ClickableTooltip>
+            </div>
 
             {/* Add from Library */}
-            <Button
-              onClick={() => setShowLibraryView(true)}
-              variant="action-primary"
-              size="action-tall"
-                className="flex items-center justify-center"
+            <div className="flex flex-col items-center">
+              <Button
+                onClick={() => setShowLibraryView(true)}
+                variant="action-primary"
+                size="action-tall"
+                className="flex items-center justify-center w-full"
                 aria-label="Open food library"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-            </Button>
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+              </Button>
+              <ClickableTooltip content="Quick-add foods from your saved library with pre-calculated 100g nutrition values">
+                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">From Library</p>
+              </ClickableTooltip>
+            </div>
           </div>
         </div>
 

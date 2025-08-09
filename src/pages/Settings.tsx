@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain } from 'lucide-react';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -291,10 +292,15 @@ const Settings = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  <UnitsSelector
-                    selectedUnits={units}
-                    onUnitsChange={setUnits}
-                  />
+                  <div className="flex items-center gap-2 mb-2">
+                    <UnitsSelector
+                      selectedUnits={units}
+                      onUnitsChange={setUnits}
+                    />
+                    <ClickableTooltip content="Choose your preferred measurement system. This affects how weight, height, distance, and speed are displayed throughout the app.">
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </ClickableTooltip>
+                  </div>
                   
                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
@@ -338,7 +344,12 @@ const Settings = () => {
                   
                   {/* Daily Goals Section */}
                   <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                      <ClickableTooltip content="Set your daily calorie and carb targets. These help track your progress and calculate deficits. Leave blank if you don't want to track these goals.">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label htmlFor="daily-calorie-goal" className="text-warm-text">Calorie Goal</Label>
@@ -367,17 +378,22 @@ const Settings = () => {
                   
                   {/* Activity Level Section */}
                   <div className="space-y-2">
-                    <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
+                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Sedentary' (office work) or 'Lightly Active' (some walking). This is your default setting.">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
                     <Select value={activityLevel} onValueChange={setActivityLevel}>
                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sedentary">Sedentary</SelectItem>
-                        <SelectItem value="lightly-active">Lightly Active</SelectItem>
-                        <SelectItem value="moderately-active">Moderately Active</SelectItem>
-                        <SelectItem value="very-active">Very Active</SelectItem>
-                        <SelectItem value="extra-active">Extra Active</SelectItem>
+                        <SelectItem value="sedentary">Sedentary (Default: desk job, minimal exercise)</SelectItem>
+                        <SelectItem value="lightly-active">Lightly Active (Some walking, light exercise)</SelectItem>
+                        <SelectItem value="moderately-active">Moderately Active (Regular exercise 3-5x/week)</SelectItem>
+                        <SelectItem value="very-active">Very Active (Heavy exercise 6-7x/week)</SelectItem>
+                        <SelectItem value="extra-active">Extra Active (Very heavy exercise, physical job)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
