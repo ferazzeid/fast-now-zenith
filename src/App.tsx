@@ -94,7 +94,8 @@ const AppContent = () => {
 
   // Show onboarding if user is authenticated and profile is incomplete
   useEffect(() => {
-    if (user && profile !== undefined) {
+    // Only check onboarding for authenticated users with loaded profile data
+    if (user && profile !== null) {
       const profileComplete = isProfileComplete();
       console.log('Profile onboarding check:', {
         user: !!user,
@@ -105,6 +106,9 @@ const AppContent = () => {
         age: profile?.age
       });
       setShowOnboarding(!profileComplete);
+    } else {
+      // User not authenticated or profile not loaded yet - don't show onboarding
+      setShowOnboarding(false);
     }
   }, [user, profile, isProfileComplete]);
   
