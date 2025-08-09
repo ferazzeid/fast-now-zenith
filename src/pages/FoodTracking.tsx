@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
+import { Badge } from '@/components/ui/badge';
+import { useUserLibraryIndex } from '@/hooks/useUserLibraryIndex';
 
 
 import { UniversalModal } from '@/components/ui/universal-modal';
@@ -72,6 +74,7 @@ const FoodTracking = () => {
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { templateFoods, saveAsTemplate: saveTemplate, clearTemplate, applyTemplate, loadTemplate, loading: templateLoading } = useDailyFoodTemplate();
+  const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
 
   const handleVoiceFood = async () => {
     trackAIEvent('chat', 'food_assistant');
@@ -685,12 +688,15 @@ const FoodTracking = () => {
                     
                     {/* Entry Content - Compact */}
                     <div className="flex-1 min-w-0">
-                      <div className="mb-0">
+                      <div className="mb-0 flex items-center gap-2 min-w-0">
                         <h3 className={`text-sm font-semibold truncate ${
                           entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
                         }`}>
                           {entry.name}
                         </h3>
+                        {isInLibrary(entry.name) && (
+                          <Badge variant="secondary" className="shrink-0">Saved</Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="font-medium">{Math.round(entry.serving_size)}g</span>
@@ -722,19 +728,41 @@ const FoodTracking = () => {
                             <MoreVertical className="w-3 h-3 text-primary" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
-                          <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit Entry
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteFoodEntry(entry.id)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Entry
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Entry
+                            </DropdownMenuItem>
+                            {isInLibrary(entry.name) ? (
+                              <DropdownMenuItem disabled>
+                                <Check className="w-4 h-4 mr-2" />
+                                Saved to Library
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  await saveToLibrary({
+                                    name: entry.name,
+                                    calories: entry.calories,
+                                    carbs: entry.carbs,
+                                    serving_size: entry.serving_size,
+                                  });
+                                  addLibraryLocal(entry.name);
+                                  toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
+                                }}
+                              >
+                                <Save className="w-4 h-4 mr-2" />
+                                Add to Library
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteFoodEntry(entry.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Entry
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
                       </DropdownMenu>
                       
                       {/* Primary Consume Button - After 3-dots (consistent with library) */}
@@ -833,7 +861,12 @@ const FoodTracking = () => {
                              </div>
                            )}
                            <div className="flex-1 min-w-0">
-                             <p className="font-medium truncate">{food.name}</p>
+                             <div className="flex items-center gap-2 min-w-0">
+                               <p className="font-medium truncate">{food.name}</p>
+                               {isInLibrary(food.name) && (
+                                 <Badge variant="secondary" className="shrink-0">Saved</Badge>
+                               )}
+                             </div>
                              <p className="text-sm text-muted-foreground">
                                {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
                              </p>
@@ -854,38 +887,60 @@ const FoodTracking = () => {
                                  <MoreVertical className="w-3 h-3 text-primary" />
                                </Button>
                              </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end" className="w-44">
-                               <DropdownMenuItem onClick={() => setEditingEntry(food)}>
-                                 <Edit className="w-4 h-4 mr-2" />
-                                 Edit Template Item
-                               </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={async () => {
-                                    try {
-                                      await supabase
-                                        .from('daily_food_templates')
-                                        .delete()
-                                        .eq('id', food.id);
-                                      // Refresh template
-                                      await loadTemplate();
-                                      toast({
-                                        title: "Template item deleted",
-                                        description: "Item removed from daily template"
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem onClick={() => setEditingEntry(food)}>
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit Template Item
+                                </DropdownMenuItem>
+                                {isInLibrary(food.name) ? (
+                                  <DropdownMenuItem disabled>
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Saved to Library
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      await saveToLibrary({
+                                        name: food.name,
+                                        calories: food.calories,
+                                        carbs: food.carbs,
+                                        serving_size: food.serving_size,
                                       });
-                                    } catch (error) {
-                                      toast({
-                                        variant: "destructive",
-                                        title: "Error",
-                                        description: "Failed to delete template item"
-                                      });
-                                    }
-                                  }}
-                                 className="text-destructive focus:text-destructive"
-                               >
-                                 <Trash2 className="w-4 h-4 mr-2" />
-                                 Delete from Template
-                               </DropdownMenuItem>
-                             </DropdownMenuContent>
+                                      addLibraryLocal(food.name);
+                                      toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
+                                    }}
+                                  >
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Add to Library
+                                  </DropdownMenuItem>
+                                )}
+                                 <DropdownMenuItem 
+                                   onClick={async () => {
+                                     try {
+                                       await supabase
+                                         .from('daily_food_templates')
+                                         .delete()
+                                         .eq('id', food.id);
+                                       // Refresh template
+                                       await loadTemplate();
+                                       toast({
+                                         title: "Template item deleted",
+                                         description: "Item removed from daily template"
+                                       });
+                                     } catch (error) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: "Failed to delete template item"
+                                       });
+                                     }
+                                   }}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete from Template
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
                            </DropdownMenu>
                          </div>
                        </div>
