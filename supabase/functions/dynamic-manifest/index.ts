@@ -37,14 +37,14 @@ serve(async (req) => {
     const { data: settingsData } = await supabaseClient
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['app_logo', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
+      .in('setting_key', ['app_logo', 'app_icon_url', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
 
     const settings: Record<string, string> = {};
     settingsData?.forEach(item => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    const appLogo = settings.app_logo;
+    const appLogo = settings.app_logo || settings.app_icon_url;
     const appName = settings.pwa_app_name || 'FastNow - Mindful App';
     const shortName = settings.pwa_short_name || 'FastNow';
     const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';

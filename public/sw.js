@@ -1,11 +1,10 @@
-const VERSION = 'v2';
+const VERSION = 'v3';
 const APP_SHELL_CACHE = `fastnow-shell-${VERSION}`;
 const RUNTIME_CACHE = `fastnow-runtime-${VERSION}`;
 
 const APP_SHELL_URLS = [
   '/',
   '/index.html',
-  '/api/dynamic-manifest.json',
   '/manifest.json',
   '/favicon.ico',
   '/icon-192.png',
@@ -65,6 +64,21 @@ self.addEventListener('fetch', (event) => {
           return cached || new Response('<h1>Offline</h1>', { headers: { 'Content-Type': 'text/html' } });
         }
       })()
+    );
+    return;
+  }
+
+  // Always fetch dynamic manifest fresh (never cache)
+  if (url.pathname === '/api/dynamic-manifest.json') {
+    event.respondWith(
+      fetch(request, { 
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      }).catch(() => new Response('{}', { 
+        headers: { 'Content-Type': 'application/json' } 
+      }))
     );
     return;
   }

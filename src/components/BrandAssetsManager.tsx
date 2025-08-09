@@ -103,19 +103,28 @@ const BrandAssetsManager = () => {
   };
 
   const updateManifestAndFavicon = async (faviconUrl?: string, logoUrl?: string) => {
-    // Update favicon in HTML if provided
-    if (faviconUrl) {
-      // Note: This would require server-side implementation to actually update the HTML
-      // For now, we'll store the setting and the user will need to update their deployment
-      console.log('Favicon URL to be used:', faviconUrl);
+    // Force manifest cache refresh by triggering service worker update
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration) {
+          // Force the service worker to re-fetch the manifest
+          registration.update();
+        }
+      } catch (error) {
+        console.log('Service worker update failed (non-critical):', error);
+      }
     }
 
-    // Update manifest.json icons if logo provided
-    if (logoUrl) {
-      // Note: This would require server-side implementation to actually update the manifest
-      // For now, we'll store the setting and provide instructions
-      console.log('Logo URL to be used in manifest:', logoUrl);
+    // Force browser to refresh manifest by adding cache-busting parameter
+    const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+    if (manifestLink) {
+      const url = new URL(manifestLink.href);
+      url.searchParams.set('v', Date.now().toString());
+      manifestLink.href = url.toString();
     }
+
+    console.log('Manifest and PWA cache updated');
   };
 
   const saveFavicon = async () => {
@@ -172,7 +181,7 @@ const BrandAssetsManager = () => {
 
       toast({
         title: "Success",
-        description: "Favicon uploaded successfully! Browser tabs will show the new favicon.",
+        description: "Favicon uploaded successfully! The new favicon will appear on browser tabs and when users add your app to their home screen.",
       });
       
       // Refresh current assets to show updated favicon
@@ -243,7 +252,7 @@ const BrandAssetsManager = () => {
 
       toast({
         title: "Success", 
-        description: "App logo uploaded successfully! This will be used for PWA installation and home screen icons.",
+        description: "App logo updated successfully! This will be used for PWA installation, home screen icons, and app branding. Users may need to refresh to see changes.",
       });
       
       // Refresh current assets to show updated logo
