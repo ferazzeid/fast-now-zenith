@@ -38,15 +38,19 @@ export const useAIImageGeneration = () => {
         .upsert({ 
           setting_key: 'enable_ai_image_generation', 
           setting_value: enabled.toString() 
+        }, {
+          onConflict: 'setting_key'
         });
 
       if (!error) {
         setAiImageEnabled(enabled);
         return { success: true };
       } else {
+        console.error('Update error:', error);
         return { success: false, error };
       }
     } catch (error) {
+      console.error('Catch error:', error);
       return { success: false, error };
     }
   };
