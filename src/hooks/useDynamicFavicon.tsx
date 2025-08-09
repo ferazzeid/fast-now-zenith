@@ -21,11 +21,12 @@ export const useDynamicFavicon = () => {
           const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
           existingFavicons.forEach(link => link.remove());
 
-          // Add new favicon
+          // Add new favicon with proper attributes for transparency
           const link = document.createElement('link');
           link.rel = 'icon';
           link.type = 'image/png';
           link.href = data.setting_value;
+          link.setAttribute('sizes', '32x32');
           document.head.appendChild(link);
 
           // Also update shortcut icon
@@ -34,6 +35,13 @@ export const useDynamicFavicon = () => {
           shortcutLink.type = 'image/png';
           shortcutLink.href = data.setting_value;
           document.head.appendChild(shortcutLink);
+
+          // Add apple-touch-icon for mobile
+          const appleLink = document.createElement('link');
+          appleLink.rel = 'apple-touch-icon';
+          appleLink.href = data.setting_value;
+          appleLink.setAttribute('sizes', '180x180');
+          document.head.appendChild(appleLink);
 
           console.log('Favicon updated to:', data.setting_value);
         }
