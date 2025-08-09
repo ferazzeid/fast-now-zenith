@@ -666,36 +666,6 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
-            {/* Legal */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Legal</h3>
-                </div>
-                <div className="space-y-3">
-                  <a
-                    href="https://fastnow.app/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm text-primary hover:underline"
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Privacy Policy
-                  </a>
-                  <a
-                    href="https://fastnow.app/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm text-primary hover:underline"
-                  >
-                    <Info className="w-4 h-4 mr-2" />
-                    Terms of Service
-                  </a>
-                  <p className="text-xs text-muted-foreground">These links open in your browser.</p>
-                </div>
-              </div>
-            </Card>
 
             {/* Account Management - Danger Zone */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">
@@ -801,9 +771,43 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                     Will log you out and require you to sign in again
                   </p>
                 </div>
-                
+                 
                 </div>
               </Card>
+
+            {/* Legal */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Shield className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Legal</h3>
+                </div>
+                <div className="space-y-4">
+                  <a
+                    href="https://fastnow.app/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-left text-sm text-primary hover:underline"
+                  >
+                    <div className="flex items-center">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Privacy Policy
+                    </div>
+                  </a>
+                  <a
+                    href="https://fastnow.app/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-left text-sm text-primary hover:underline"
+                  >
+                    <div className="flex items-center">
+                      <Info className="w-4 h-4 mr-2" />
+                      Terms of Service
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </Card>
             </div>
           </div>
 
