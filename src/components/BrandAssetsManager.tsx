@@ -137,7 +137,7 @@ const BrandAssetsManager = () => {
       // Save to database with conflict resolution
       const { data: existing } = await supabase
         .from('shared_settings')
-        .select('id')
+        .select('setting_key')
         .eq('setting_key', 'app_favicon')
         .maybeSingle();
 
@@ -208,7 +208,7 @@ const BrandAssetsManager = () => {
       // Save to database with conflict resolution
       const { data: existing } = await supabase
         .from('shared_settings')
-        .select('id')
+        .select('setting_key')
         .eq('setting_key', 'app_logo')
         .maybeSingle();
 
