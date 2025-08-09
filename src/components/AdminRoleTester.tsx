@@ -8,7 +8,6 @@ import { TestTube, RotateCcw, Crown, User, Users, Key, UserX } from 'lucide-reac
 
 const roleIcons = {
   admin: Crown,
-  api_user: Key,
   paid_user: Crown,
   granted_user: Users,
   free_user: UserX
@@ -16,10 +15,9 @@ const roleIcons = {
 
 const roleDescriptions = {
   admin: 'Full admin access with all features',
-  api_user: 'User with own OpenAI API key (1000 requests)',
-  paid_user: 'Premium subscriber (1000 requests)',
-  granted_user: 'Basic user with limited requests (15 requests)',
-  free_user: 'Free tier user (15 requests, no AI features)'
+  paid_user: 'Premium subscriber with unlimited requests',
+  granted_user: 'Basic user with limited requests',
+  free_user: 'Free tier user with no premium features'
 };
 
 export const AdminRoleTester = () => {
@@ -65,7 +63,6 @@ export const AdminRoleTester = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Admin (Default)</SelectItem>
-                <SelectItem value="api_user">API User</SelectItem>
                 <SelectItem value="paid_user">Premium User</SelectItem>
                 <SelectItem value="granted_user">Basic User</SelectItem>
                 <SelectItem value="free_user">Free User</SelectItem>

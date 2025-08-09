@@ -80,19 +80,10 @@ export const RegenerateImageButton = ({
     if (!manualConcept) {
       try {
         // Get user's OpenAI API key
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('openai_api_key, use_own_api_key')
-          .maybeSingle();
-
-        let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
-        if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
-          const localKey = localStorage.getItem('openai_api_key');
-          if (localKey) apiKey = localKey;
-        }
+        // No longer supporting API keys - use shared service
 
         const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
-          body: { title: rawTitle, content: rawContent, apiKey }
+          body: { title: rawTitle, content: rawContent }
         });
         if (conceptData?.concept) concept = conceptData.concept;
       } catch (e) {
@@ -164,19 +155,10 @@ export const RegenerateImageButton = ({
         } else {
           try {
             // Get user's OpenAI API key
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('openai_api_key, use_own_api_key')
-              .maybeSingle();
-
-            let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
-            if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
-              const localKey = localStorage.getItem('openai_api_key');
-              if (localKey) apiKey = localKey;
-            }
+            // No longer supporting API keys - use shared service
 
             const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
-              body: { title: rawTitle, content: rawContent, apiKey }
+              body: { title: rawTitle, content: rawContent }
             });
             if (conceptData?.concept) concept = conceptData.concept;
           } catch (e) {
@@ -215,13 +197,7 @@ export const RegenerateImageButton = ({
         }
 
         // Resolve API key from profile or localStorage (for API-user mode)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, openai_api_key')
-          .maybeSingle();
-        const apiKey = profile?.use_own_api_key
-          ? (profile.openai_api_key || localStorage.getItem('openai_api_key') || undefined)
-          : undefined;
+        // No longer supporting API keys - use shared service
 
         // Call the edge function with tracking info for background processing
         const { data, error } = await supabase.functions.invoke('generate-image', {
@@ -230,8 +206,7 @@ export const RegenerateImageButton = ({
             filename,
             bucket,
             motivatorId,
-            userId: user.id,
-            apiKey
+            userId: user.id
           }
         });
 

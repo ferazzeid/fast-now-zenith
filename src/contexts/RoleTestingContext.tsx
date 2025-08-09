@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type UserRole = 'admin' | 'api_user' | 'paid_user' | 'granted_user' | 'free_user';
+export type UserRole = 'admin' | 'paid_user' | 'granted_user' | 'free_user';
 
 interface RoleTestingContextType {
   testRole: UserRole | null;

@@ -37,39 +37,34 @@ export const AdminTierStats = () => {
 
       // Process data to calculate stats
       const tierCounts: Record<string, { total: number; active: number; inactive: number }> = {
-        api_user: { total: 0, active: 0, inactive: 0 },
         paid_user: { total: 0, active: 0, inactive: 0 },
         granted_user: { total: 0, active: 0, inactive: 0 },
         free_user: { total: 0, active: 0, inactive: 0 }
       };
 
       data?.forEach(profile => {
-        const tier = profile.user_tier || 'granted_user';
-        tierCounts[tier].total++;
-        
-        // Check if user was active in last 7 days
-        if (profile.last_activity_at && new Date(profile.last_activity_at) > sevenDaysAgo) {
-          tierCounts[tier].active++;
-        } else {
-          tierCounts[tier].inactive++;
+        const tier = profile.user_tier || 'free_user';
+        if (tierCounts[tier]) {
+          tierCounts[tier].total++;
+          
+          // Check if user was active in last 7 days
+          if (profile.last_activity_at && new Date(profile.last_activity_at) > sevenDaysAgo) {
+            tierCounts[tier].active++;
+          } else {
+            tierCounts[tier].inactive++;
+          }
         }
       });
 
       const statsArray: TierStats[] = [
         { 
-          tier: 'API Users', 
-          total: tierCounts.api_user.total, 
-          active: tierCounts.api_user.active,
-          inactive: tierCounts.api_user.inactive
-        },
-        { 
-          tier: 'Paid Users', 
+          tier: 'Premium Users', 
           total: tierCounts.paid_user.total, 
           active: tierCounts.paid_user.active,
           inactive: tierCounts.paid_user.inactive
         },
         { 
-          tier: 'Granted Users', 
+          tier: 'Basic Users', 
           total: tierCounts.granted_user.total, 
           active: tierCounts.granted_user.active,
           inactive: tierCounts.granted_user.inactive

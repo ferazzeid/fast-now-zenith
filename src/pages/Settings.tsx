@@ -23,11 +23,8 @@ import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
-  const [openAiKey, setOpenAiKey] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [useOwnKey, setUseOwnKey] = useState(false);
   const [speechModel, setSpeechModel] = useState('gpt-4o-mini-realtime');
   const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
   const [ttsModel, setTtsModel] = useState('tts-1');
@@ -50,11 +47,6 @@ const Settings = () => {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    // Load saved API key from localStorage
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setOpenAiKey(savedApiKey);
-    }
 
     const checkAdminRole = async () => {
       if (user) {
@@ -84,7 +76,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -95,7 +87,6 @@ const Settings = () => {
 
         if (profileData) {
           setProfile(profileData);
-          setUseOwnKey(profileData.use_own_api_key ?? true);
           setSpeechModel(profileData.speech_model || 'gpt-4o-mini-realtime');
           setTranscriptionModel(profileData.transcription_model || 'whisper-1');
           setTtsModel(profileData.tts_model || 'tts-1');
@@ -107,11 +98,6 @@ const Settings = () => {
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
           setActivityLevel(profileData.activity_level || 'sedentary');
           setUnits((profileData.units as 'metric' | 'imperial') || 'imperial');
-          
-          // Load API key from database if available
-          if (profileData.openai_api_key) {
-            setOpenAiKey(profileData.openai_api_key);
-          }
 
           // Check if profile is incomplete and show onboarding
           const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
@@ -179,32 +165,14 @@ const Settings = () => {
         }
       }
 
-      // Simple validation for API key
-      if (useOwnKey && openAiKey.trim()) {
-        if (!openAiKey.startsWith('sk-')) {
-          toast({
-            title: "Invalid API Key",
-            description: "Please enter a valid OpenAI API key starting with 'sk-'",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        // Store API key in localStorage
-        localStorage.setItem('openai_api_key', openAiKey);
-      } else if (!useOwnKey) {
-        localStorage.removeItem('openai_api_key');
-      }
 
       // Save user preferences to database
       if (user) {
         const updateData = {
-          use_own_api_key: useOwnKey,
           speech_model: speechModel,
           transcription_model: transcriptionModel,
           tts_model: ttsModel,
           tts_voice: ttsVoice,
-          openai_api_key: useOwnKey ? openAiKey : null,
           weight: weight ? parseFloat(weight) : null,
           height: height ? parseInt(height) : null,
           age: age ? parseInt(age) : null,
@@ -242,7 +210,7 @@ const Settings = () => {
         console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",
-          description: useOwnKey ? "Using your own API key with selected models" : "Using shared service with selected models",
+          description: "Your settings have been updated successfully.",
         });
       }
     } catch (error: any) {
@@ -255,14 +223,6 @@ const Settings = () => {
     }
   };
 
-  const handleClearApiKey = () => {
-    setOpenAiKey('');
-    localStorage.removeItem('openai_api_key');
-    toast({
-      title: "🗑️ API Key Removed",
-      description: "AI features have been disabled.",
-    });
-  };
 
   const handleClearWalkingHistory = async () => {
     if (!user) return;
@@ -459,9 +419,7 @@ const Settings = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Account Type</span>
                     <span className="text-warm-text font-medium">
-                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 
-                       subscription.subscription_tier === 'api_user' ? 'API User' : 
-                       subscription.subscription_tier === 'granted_user' ? 'Free User' : 'Free User'}
+                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 'Free User'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -472,7 +430,7 @@ const Settings = () => {
                   </div>
                 </div>
                 <div className="pt-3 border-t border-ceramic-rim space-y-3">
-                  {subscription.subscription_tier !== 'paid_user' && subscription.subscription_tier !== 'api_user' && (
+                  {subscription.subscription_tier !== 'paid_user' && (
                     <Button
                       onClick={async () => {
                         try {
@@ -500,83 +458,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* AI & API */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Key className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">AI & API</h3>
-                </div>
-
-                {profile?.use_own_api_key && openAiKey ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-warm-text">API User mode is active</span>
-                      <span className="text-xs text-muted-foreground font-mono">•••• {openAiKey.slice(-6)}</span>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button type="button" variant="outline" onClick={handleClearApiKey}>
-                        Clear key
-                      </Button>
-                      <Button type="button" onClick={handleSaveSettings} className="ml-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="use-own-key" className="text-warm-text">Use my own OpenAI API key</Label>
-                      <Switch id="use-own-key" checked={useOwnKey} onCheckedChange={setUseOwnKey} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="openai-key" className="text-warm-text">OpenAI API Key</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="openai-key"
-                          type={isKeyVisible ? 'text' : 'password'}
-                          placeholder="sk-..."
-                          value={openAiKey}
-                          onChange={(e) => setOpenAiKey(e.target.value)}
-                          disabled={!useOwnKey}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsKeyVisible((v) => !v)}
-                          className="shrink-0"
-                        >
-                          {isKeyVisible ? 'Hide' : 'Show'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Your key is stored securely on your device and in your profile to enable API User mode.
-                      </p>
-                      <a
-                        href="https://platform.openai.com/api-keys"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm underline text-primary"
-                      >
-                        Get an OpenAI API key →
-                      </a>
-                    </div>
-
-                    <div className="flex gap-2 pt-2">
-                      <Button type="button" variant="outline" onClick={handleClearApiKey}>
-                        Clear key
-                      </Button>
-                      <Button type="button" onClick={handleSaveSettings} className="ml-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
-                        Save key
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
 
             {/* Animation Settings */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">

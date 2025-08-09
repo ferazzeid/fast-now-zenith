@@ -34,13 +34,13 @@ interface SubscriptionData {
   subscription_end_date?: string;
 }
 
-// LOVABLE_PRESERVE: Default subscription data for non-authenticated users
+// Default subscription data for non-authenticated users
 const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   subscribed: false,
-  subscription_status: 'granted_user',
-  subscription_tier: 'granted_user',
+  subscription_status: 'free',
+  subscription_tier: 'free_user',
   requests_used: 0,
-  request_limit: 15,
+  request_limit: 0,
   isPaidUser: false,
   hasPremiumFeatures: false,
 };
@@ -60,7 +60,7 @@ const fetchSubscriptionData = async (userId: string, sessionToken?: string): Pro
     // PERFORMANCE: Selective data fetching - only what we need
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('user_tier, monthly_ai_requests, subscription_status')
+      .select('user_tier, monthly_ai_requests, subscription_status, trial_ends_at, subscription_end_date')
       .eq('user_id', userId)
       .single();
 
@@ -69,42 +69,36 @@ const fetchSubscriptionData = async (userId: string, sessionToken?: string): Pro
       return DEFAULT_SUBSCRIPTION;
     }
 
-    const tier = profile?.user_tier || 'granted_user';
+    const tier = profile?.user_tier || 'free_user';
     const requestsUsed = profile?.monthly_ai_requests || 0;
 
-    // PERFORMANCE: Cached request limits lookup
-    const { data: limitsData } = await supabase
-      .from('shared_settings')
-      .select('setting_key, setting_value')
-      .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
-
-    const limitsMap = limitsData?.reduce((acc, setting) => {
-      acc[setting.setting_key] = setting.setting_value;
-      return acc;
-    }, {} as Record<string, string>) || {};
-
-    const paidUserLimit = parseInt(limitsMap.monthly_request_limit || '1000');
-    const freeUserLimit = parseInt(limitsMap.free_request_limit || '15');
-
-    // LOVABLE_PRESERVE: Tier-based logic
-    const subscribed = tier !== 'free_user';
-    const isPaidUser = tier === 'paid_user' || tier === 'api_user';
-    const hasPremiumFeatures = tier !== 'free_user';
+    // Check if user is in trial period
+    const trialEndsAt = profile?.trial_ends_at;
+    const inTrial = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
     
-    const requestLimit = tier === 'api_user' ? Infinity : 
-                        tier === 'paid_user' ? paidUserLimit : 
-                        tier === 'granted_user' ? freeUserLimit : 0;
+    // Check subscription status
+    const hasActiveSubscription = profile?.subscription_status === 'active';
+    
+    // User is "paid" if they're in trial OR have active subscription
+    const isPaidUser = inTrial || hasActiveSubscription;
+    const hasPremiumFeatures = isPaidUser;
+    
+    // Simplified tier logic - only free_user and paid_user
+    const subscribed = isPaidUser;
+    const requestLimit = isPaidUser ? Infinity : 0;
+    
+    const subscriptionStatus = hasActiveSubscription ? 'active' : 
+                              inTrial ? 'trial' : 'free';
 
     return {
       subscribed,
-      subscription_status: tier === 'api_user' ? 'api_key' : 
-                          tier === 'paid_user' ? (profile?.subscription_status || 'active') :
-                          tier === 'granted_user' ? 'granted' : 'free',
+      subscription_status: subscriptionStatus,
       subscription_tier: tier,
       requests_used: requestsUsed,
       request_limit: requestLimit,
       isPaidUser,
-      hasPremiumFeatures
+      hasPremiumFeatures,
+      subscription_end_date: profile?.subscription_end_date
     };
 
   } catch (error) {

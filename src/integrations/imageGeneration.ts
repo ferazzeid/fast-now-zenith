@@ -2,25 +2,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const generateImage = async (prompt: string, filename: string, bucket?: string): Promise<string> => {
   try {
-    // Get user's OpenAI API key if they use their own
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('openai_api_key, use_own_api_key')
-      .maybeSingle();
-
-    let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
-    // Fallback to localStorage if available (client-side) when in API-user mode
-    if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
-      const localKey = localStorage.getItem('openai_api_key');
-      if (localKey) apiKey = localKey;
-    }
+    // No longer supporting API keys - use shared service
 
     // Call the image generation edge function
     const { data, error } = await supabase.functions.invoke('generate-image', {
       body: { 
         prompt,
         filename,
-        apiKey,
         bucket
       }
     });

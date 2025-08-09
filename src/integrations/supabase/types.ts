@@ -1034,7 +1034,6 @@ export type Database = {
           last_activity_at: string | null
           monthly_ai_requests: number | null
           onboarding_completed: boolean | null
-          openai_api_key: string | null
           payment_method: string | null
           payment_provider: string | null
           platform_subscription_id: string | null
@@ -1052,7 +1051,6 @@ export type Database = {
           tts_voice: string | null
           units: string | null
           updated_at: string
-          use_own_api_key: boolean | null
           user_id: string
           user_tier: Database["public"]["Enums"]["user_tier"] | null
           weight: number | null
@@ -1081,7 +1079,6 @@ export type Database = {
           last_activity_at?: string | null
           monthly_ai_requests?: number | null
           onboarding_completed?: boolean | null
-          openai_api_key?: string | null
           payment_method?: string | null
           payment_provider?: string | null
           platform_subscription_id?: string | null
@@ -1099,7 +1096,6 @@ export type Database = {
           tts_voice?: string | null
           units?: string | null
           updated_at?: string
-          use_own_api_key?: boolean | null
           user_id: string
           user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
@@ -1128,7 +1124,6 @@ export type Database = {
           last_activity_at?: string | null
           monthly_ai_requests?: number | null
           onboarding_completed?: boolean | null
-          openai_api_key?: string | null
           payment_method?: string | null
           payment_provider?: string | null
           platform_subscription_id?: string | null
@@ -1146,7 +1141,6 @@ export type Database = {
           tts_voice?: string | null
           units?: string | null
           updated_at?: string
-          use_own_api_key?: boolean | null
           user_id?: string
           user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null

@@ -165,19 +165,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     // Extract concept
     let concept = t;
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('openai_api_key, use_own_api_key')
-        .maybeSingle();
-
-      let apiKey = profile?.use_own_api_key ? (profile.openai_api_key || undefined) : undefined;
-      if (!apiKey && typeof window !== 'undefined' && profile?.use_own_api_key) {
-        const localKey = localStorage.getItem('openai_api_key');
-        if (localKey) apiKey = localKey;
-      }
+      // No longer supporting API keys - use shared service
 
       const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
-        body: { title: t, content: c, apiKey }
+        body: { title: t, content: c }
       });
       if (conceptData?.concept) concept = conceptData.concept;
     } catch {}
@@ -222,13 +213,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     try {
       let apiKey: string | undefined = undefined;
       try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, openai_api_key')
-          .maybeSingle();
-        if (profile?.use_own_api_key) {
-          apiKey = profile.openai_api_key || localStorage.getItem('openai_api_key') || undefined;
-        }
+        // No longer supporting API keys - use shared service
       } catch {}
 
       const { data: authData } = await supabase.auth.getUser();
@@ -239,8 +224,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           prompt: finalPrompt,
           filename: `motivator-${targetMotivatorId}-${Date.now()}.jpg`,
           motivatorId: targetMotivatorId,
-          userId: uid,
-          apiKey
+          userId: uid
         }
       });
 
