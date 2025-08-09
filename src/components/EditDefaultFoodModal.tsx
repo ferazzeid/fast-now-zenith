@@ -20,10 +20,12 @@ interface DefaultFood {
 interface EditDefaultFoodModalProps {
   food: DefaultFood;
   onUpdate: (foodId: string, updates: Partial<DefaultFood>) => Promise<void>;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDefaultFoodModalProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState(food.name);
   const [caloriesPer100g, setCaloriesPer100g] = useState(food.calories_per_100g.toString());
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
@@ -72,7 +74,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
         image_url: imageUrl || null
       });
       
-      setIsOpen(false);
+      if (onClose) onClose(); else setInternalOpen(false);
       toast({
         title: "Success",
         description: "Default food updated successfully"
@@ -203,25 +205,27 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
 
   return (
     <>
-      {/* Trigger Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="p-1 h-6 w-6 hover:bg-primary/10"
-        title="Edit default food"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(true);
-        }}
-      >
-        <Edit className="w-3 h-3 text-muted-foreground" />
-      </Button>
+      {/* Trigger Button - only show if no external control */}
+      {isOpen === undefined && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-1 h-6 w-6 hover:bg-primary/10"
+          title="Edit default food"
+          onClick={(e) => {
+            e.stopPropagation();
+            setInternalOpen(true);
+          }}
+        >
+          <Edit className="w-3 h-3 text-muted-foreground" />
+        </Button>
+      )}
 
       {/* Modal */}
       <UniversalModal
-        isOpen={isOpen}
+        isOpen={isOpen !== undefined ? isOpen : internalOpen}
         onClose={() => {
-          setIsOpen(false);
+          if (onClose) onClose(); else setInternalOpen(false);
           resetForm();
         }}
         title={`Edit ${food.name}`}
@@ -231,7 +235,9 @@ export const EditDefaultFoodModal = ({ food, onUpdate }: EditDefaultFoodModalPro
           <div className="flex gap-2 w-full">
             <Button
               variant="outline"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                if (onClose) onClose(); else setInternalOpen(false);
+              }}
               className="flex-1"
             >
               Cancel

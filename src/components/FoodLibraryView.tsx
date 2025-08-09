@@ -665,6 +665,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <EditDefaultFoodModal 
                 food={food as DefaultFood} 
                 onUpdate={updateDefaultFood}
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
               />
             ) : null}
           </>
