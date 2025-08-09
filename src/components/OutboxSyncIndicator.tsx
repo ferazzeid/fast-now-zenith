@@ -9,11 +9,12 @@ export const OutboxSyncIndicator = ({ className }: { className?: string }) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Show indicator only when there is something pending or syncing
+    // Only show when actively syncing or when there are pending operations
     setVisible(isSyncing || pending > 0);
   }, [isSyncing, pending]);
 
-  if (!visible) return null;
+  // Don't show sync indicator when there's no active session or pending operations
+  if (!visible || pending === 0) return null;
 
   return (
     <div className={cn('flex items-center gap-2', className)}>

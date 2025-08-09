@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -27,6 +27,8 @@ import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRecentFoods } from '@/hooks/useRecentFoods';
+import { useFoodContext } from '@/hooks/useFoodContext';
 
 interface UserFood {
   id: string;
@@ -59,7 +61,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
+  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested' | 'recent'>('my-foods');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
   // Multi-selection state
@@ -68,6 +70,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   
   const { user } = useAuth();
   const { toast } = useToast();
+  const { recentFoods, loading: recentLoading } = useRecentFoods();
 
   useEffect(() => {
     const loadData = async () => {
@@ -600,6 +603,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
+                            // Add to template functionality would go here
+                            toast({
+                              title: "Feature Coming Soon",
+                              description: "Add to template functionality will be available soon"
+                            });
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Add to Template
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setShowEditModal(true);
                           }}
                           className="cursor-pointer"
@@ -620,16 +637,40 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                      </>
                    ) : (
                      <>
-                       <DropdownMenuItem
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           importToMyLibrary(food as DefaultFood);
-                         }}
-                         className="cursor-pointer"
-                       >
-                         <Download className="w-4 h-4 mr-2" />
-                         Add to Library
-                       </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickSelect(food as UserFood, false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add to Today
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add to template functionality would go here
+                            toast({
+                              title: "Feature Coming Soon",
+                              description: "Add to template functionality will be available soon"
+                            });
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Add to Template
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            importToMyLibrary(food as DefaultFood);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Add to Library
+                        </DropdownMenuItem>
                        {isAdmin && (
                          <>
                             <DropdownMenuItem
@@ -727,9 +768,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Clean Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested' | 'recent')} className="h-full flex flex-col">
           <div className="px-6 py-3 bg-background sticky top-0 z-20 border-b border-border">
-            <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-3 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 
                 className="flex items-center justify-between gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
@@ -758,6 +799,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               >
                 <Star className="w-4 h-4" />
                 Suggested ({filteredDefaultFoods.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="recent" 
+                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <Clock className="w-4 h-4" />
+                Recent ({recentFoods.length})
               </TabsTrigger>
             </TabsList>
           </div>
@@ -845,7 +893,47 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </div>
             )}
           </div>
-        </TabsContent>
+         </TabsContent>
+
+          {/* Recent Foods Tab */}
+          <TabsContent value="recent" className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-1 mt-1">
+              {recentLoading ? (
+                <div className="space-y-1">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-muted" />
+                        <div className="flex-1 space-y-1">
+                          <div className="h-3 bg-muted rounded w-3/4" />
+                          <div className="h-2 bg-muted rounded w-1/2" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-muted rounded" />
+                          <div className="w-5 h-5 bg-muted rounded" />
+                          <div className="w-5 h-5 bg-muted rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentFoods.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">⏰</div>
+                  <h3 className="text-lg font-medium mb-2">No recent foods</h3>
+                  <p className="text-muted-foreground">
+                    Foods you've logged recently will appear here for quick access
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1 overflow-x-hidden">
+                  {recentFoods.map((food) => (
+                    <FoodCard key={`recent-${food.id}`} food={food} isUserFood={false} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 

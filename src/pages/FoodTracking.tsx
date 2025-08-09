@@ -748,23 +748,69 @@ const FoodTracking = () => {
                               <Edit className="w-4 h-4 mr-2" />
                               Edit Entry
                             </DropdownMenuItem>
-                            {!isInLibrary(entry.name) && (
-                              <DropdownMenuItem
-                                onClick={async () => {
-                                  await saveToLibrary({
-                                    name: entry.name,
-                                    calories: entry.calories,
-                                    carbs: entry.carbs,
-                                    serving_size: entry.serving_size,
-                                  });
-                                  addLibraryLocal(entry.name);
-                                  toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
-                                }}
-                              >
-                                <Save className="w-4 h-4 mr-2" />
-                                Add to Library
-                              </DropdownMenuItem>
-                            )}
+                             {!isInLibrary(entry.name) && (
+                               <DropdownMenuItem
+                                 onClick={async () => {
+                                   await saveToLibrary({
+                                     name: entry.name,
+                                     calories: entry.calories,
+                                     carbs: entry.carbs,
+                                     serving_size: entry.serving_size,
+                                   });
+                                   addLibraryLocal(entry.name);
+                                   toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
+                                 }}
+                               >
+                                 <Save className="w-4 h-4 mr-2" />
+                                 Add to Library
+                               </DropdownMenuItem>
+                             )}
+                             <DropdownMenuItem
+                               onClick={async () => {
+                                 try {
+                                   // Use the same format as other template entries
+                                   const foodsToSave = [{
+                                     name: entry.name,
+                                     calories: entry.calories,
+                                     carbs: entry.carbs,
+                                     serving_size: entry.serving_size,
+                                   }];
+                                   
+                                   // Get existing template foods and append new one
+                                   const existingFoods = templateFoods.map(f => ({
+                                     name: f.name,
+                                     calories: f.calories,
+                                     carbs: f.carbs,
+                                     serving_size: f.serving_size,
+                                   }));
+                                   
+                                   const allFoods = [...existingFoods, ...foodsToSave];
+                                   const { error } = await saveTemplate(allFoods);
+                                   
+                                   if (error) {
+                                     toast({ 
+                                       title: 'Error', 
+                                       description: 'Failed to add to template',
+                                       variant: 'destructive'
+                                     });
+                                   } else {
+                                     toast({ 
+                                       title: 'Added to Template', 
+                                       description: `${entry.name} added to your daily template` 
+                                     });
+                                   }
+                                 } catch (error) {
+                                   toast({ 
+                                     title: 'Error', 
+                                     description: 'Failed to add to template',
+                                     variant: 'destructive'
+                                   });
+                                 }
+                               }}
+                             >
+                               <Plus className="w-4 h-4 mr-2" />
+                               Add to Template
+                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleDeleteFoodEntry(entry.id)}
                               className="text-destructive focus:text-destructive"
