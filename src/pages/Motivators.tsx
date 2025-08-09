@@ -4,8 +4,8 @@ import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Plus, Sparkles } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus, Sparkles, Target } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
@@ -324,6 +324,39 @@ const Motivators = () => {
                     onDelete={() => handleDeleteMotivator(motivator.id)}
                   />
                 </div>
+              ))}
+              
+              {/* Placeholder cards to encourage creating up to 3 goals */}
+              {motivators.length < 3 && [...Array(3 - motivators.length)].map((_, index) => (
+                <Card 
+                  key={`placeholder-${index}`} 
+                  className="overflow-hidden border-dashed border-2 border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-all duration-200 hover:bg-muted/20"
+                  onClick={() => setShowFormModal(true)}
+                >
+                  <CardContent className="p-0">
+                    <div className="flex">
+                      {/* Placeholder Image */}
+                      <div className="w-32 h-32 flex-shrink-0 bg-muted/40 flex items-center justify-center">
+                        <Target className="w-12 h-12 text-muted-foreground/50" />
+                      </div>
+                      
+                      {/* Placeholder Content */}
+                      <div className="flex-1 p-4 flex items-center justify-center">
+                        <div className="text-center">
+                          <h3 className="font-semibold text-muted-foreground mb-1">
+                            Add Goal #{motivators.length + index + 1}
+                          </h3>
+                          <p className="text-sm text-muted-foreground/70">
+                            Click to create your {motivators.length + index + 1 === 2 ? 'second' : 'third'} motivator
+                          </p>
+                          <div className="mt-2">
+                            <Plus className="w-5 h-5 text-primary/70 mx-auto" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
