@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
 import { useArchivedConversations } from '@/hooks/useArchivedConversations';
@@ -40,7 +41,10 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const subscription = useOptimizedSubscription();
+const subscription = useOptimizedSubscription();
+const multiSub = useMultiPlatformSubscription();
+const isWebPlatform = multiSub.platform === 'web';
+const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platform === 'android' ? 'Google Play' : 'Stripe';
   const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
@@ -447,19 +451,22 @@ const Settings = () => {
                 </div>
                 <div className="pt-3 border-t border-ceramic-rim space-y-3">
                   {subscription.subscription_tier !== 'paid_user' && (
-                    <Button
+<Button
                       onClick={async () => {
                         try {
-                          await subscription.createSubscription();
-                          toast({ title: "Redirecting to checkout", description: "Opening payment page..." });
+                          await multiSub.createSubscription();
+                          toast({ 
+                            title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
+                            description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
+                          });
                         } catch {
-                          toast({ title: "Error", description: "Failed to create subscription. Please try again.", variant: "destructive" });
+                          toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
                         }
                       }}
                       className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                     >
                       <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium
+                      {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
                     </Button>
                   )}
                   <Button

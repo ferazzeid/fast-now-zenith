@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +17,15 @@ export const SettingsSubscription = () => {
     trialEndsAt,
     createSubscription, 
     openCustomerPortal, 
-    loading 
-  } = useSubscription();
+    loading,
+    platform,
+  } = useMultiPlatformSubscription();
+
+  const isWeb = platform === 'web';
+  const platformName = platform === 'ios' ? 'App Store' : platform === 'android' ? 'Google Play' : 'Stripe';
+  const manageUrl = platform === 'ios'
+    ? 'https://apps.apple.com/account/subscriptions'
+    : 'https://play.google.com/store/account/subscriptions';
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -121,22 +128,43 @@ export const SettingsSubscription = () => {
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t">
             {!subscribed ? (
-              <Button 
-                onClick={createSubscription}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade to Premium
-              </Button>
+              isWeb ? (
+                <Button 
+                  onClick={createSubscription}
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Premium
+                </Button>
+              ) : (
+                <Button 
+                  onClick={createSubscription}
+                  className="flex-1"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade via {platformName}
+                </Button>
+              )
             ) : (
-              <Button 
-                onClick={openCustomerPortal}
-                variant="outline"
-                className="flex-1"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Manage Subscription
-              </Button>
+              isWeb ? (
+                <Button 
+                  onClick={openCustomerPortal}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Manage Subscription
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => window.open(manageUrl, '_blank')}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Manage on {platformName}
+                </Button>
+              )
             )}
           </div>
 
