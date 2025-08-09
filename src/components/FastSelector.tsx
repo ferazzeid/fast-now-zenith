@@ -19,7 +19,7 @@ export const FastSelector = ({
   onClose
 }: FastSelectorProps) => {
   const [duration, setDuration] = useState(() => {
-    return Math.floor(currentDuration / 3600) || 72;
+    return Math.floor(currentDuration / 3600) || 60;
   });
   const [startInPast, setStartInPast] = useState(false);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -47,7 +47,7 @@ export const FastSelector = ({
   const presets = [
     { name: '24 Hour Fast', hours: 24 },
     { name: '48 Hour Fast', hours: 48 },
-    { name: '60 Hour Fast', hours: 60 },
+    { name: '60 Hour Fast', hours: 60, recommended: true },
     { name: '72 Hour Fast', hours: 72 },
   ];
 
@@ -85,11 +85,19 @@ export const FastSelector = ({
             {presets.map((preset) => (
               <Button
                 key={preset.name}
-                variant="outline"
+                variant={preset.recommended ? "default" : "outline"}
                 onClick={() => setDuration(preset.hours)}
-                className="justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-rim"
+                className={preset.recommended 
+                  ? "justify-start bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/20" 
+                  : "justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-rim"
+                }
               >
                 <span className="font-medium">{preset.name}</span>
+                {preset.recommended && (
+                  <span className="ml-2 text-xs bg-primary-foreground/20 text-primary-foreground px-2 py-0.5 rounded-full">
+                    Recommended
+                  </span>
+                )}
                 <span className="ml-auto text-muted-foreground text-sm">
                   {preset.hours} hours
                 </span>
