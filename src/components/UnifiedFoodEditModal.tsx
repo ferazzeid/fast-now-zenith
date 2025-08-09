@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit, Save, X, Sparkles } from 'lucide-react';
+import { Edit, Save, X, Sparkles, Mic } from 'lucide-react';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { ImageUpload } from '@/components/ImageUpload';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
+import { extractNumber } from '@/utils/voiceParsing';
 
 // Unified interfaces for both types
 interface FoodEntry {
@@ -48,6 +50,7 @@ export const UnifiedFoodEditModal = ({
 }: UnifiedFoodEditModalProps) => {
   const [open, setOpen] = useState(false);
   const modalOpen = isOpen !== undefined ? isOpen : open;
+  const [showServingVoiceRecorder, setShowServingVoiceRecorder] = useState(false);
   
   // Get current values based on mode
   const currentItem = food || entry;
@@ -69,7 +72,6 @@ export const UnifiedFoodEditModal = ({
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState<string>(
-    // Initialize with a basic prompt if there's an existing image
     currentItem?.image_url && currentItem?.name 
       ? `High-quality photo of ${currentItem.name} on a white background, clean food photography, well-lit, appetizing`
       : ''
@@ -78,20 +80,11 @@ export const UnifiedFoodEditModal = ({
 
   const handleSave = async () => {
     if (!name || !calories || !carbs) {
-      toast({
-        variant: "destructive",
-        title: "Missing information",
-        description: "Please fill in all required fields"
-      });
+      toast({ variant: 'destructive', title: 'Missing information', description: 'Please fill in all required fields' });
       return;
     }
-
     if (!isLibraryMode && !servingSize) {
-      toast({
-        variant: "destructive",
-        title: "Missing serving size",
-        description: "Please enter a serving size"
-      });
+      toast({ variant: 'destructive', title: 'Missing serving size', description: 'Please enter a serving size' });
       return;
     }
 
@@ -111,19 +104,10 @@ export const UnifiedFoodEditModal = ({
       };
 
       await onUpdate(currentItem!.id, updates);
-      
-      toast({
-        title: isLibraryMode ? "Food updated" : "Entry updated",
-        description: isLibraryMode ? "Food has been updated in your library" : "Food entry has been updated successfully"
-      });
-      
+      toast({ title: isLibraryMode ? 'Food updated' : 'Entry updated', description: isLibraryMode ? 'Food has been updated in your library' : 'Food entry has been updated successfully' });
       setOpen(false);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: isLibraryMode ? "Failed to update food in library" : "Failed to update food entry"
-      });
+      toast({ variant: 'destructive', title: 'Error', description: isLibraryMode ? 'Failed to update food in library' : 'Failed to update food entry' });
     } finally {
       setLoading(false);
     }
@@ -144,24 +128,20 @@ export const UnifiedFoodEditModal = ({
     );
     setServingSize(entry?.serving_size?.toString() || '');
     setImageUrl(currentItem.image_url || '');
-    // Set a basic prompt if there's an existing image
     if (currentItem.image_url && currentItem.name) {
       setCurrentPrompt(`High-quality photo of ${currentItem.name} on a white background, clean food photography, well-lit, appetizing`);
     }
   };
 
   const generatePromptForFood = async (foodName: string) => {
-    // Fetch admin prompt settings and color themes
     let promptTemplate = "Studio product photo of {food_name}, centered on a pristine white seamless background. Soft natural shadow under the object, high-resolution e‑commerce packshot. Single item only — no props, no garnishes, no hands, no plates, no decorations, no text.";
-    let primaryColor = "220 35% 45%";
-    let accentColor = "142 71% 45%";
-    
+    let primaryColor = '220 35% 45%';
+    let accentColor = '142 71% 45%';
     try {
       const { data: settingsData } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
         .in('setting_key', ['ai_image_food_prompt', 'brand_primary_color', 'brand_accent_color']);
-      
       if (settingsData && settingsData.length > 0) {
         settingsData.forEach(setting => {
           if (setting.setting_key === 'ai_image_food_prompt' && setting.setting_value) {
@@ -173,67 +153,40 @@ export const UnifiedFoodEditModal = ({
           }
         });
       }
-    } catch (error) {
-      console.log('Using default prompt template as fallback');
-    }
-    
-    // Ensure we have a food name to work with
+    } catch (_) {}
     const sanitizedFoodName = foodName.trim() || 'food item';
-    
-    // Replace variables in the prompt template - support both {food_name} and {food_item}
     const finalPrompt = promptTemplate
       .replace(/{food_name}/g, sanitizedFoodName)
       .replace(/{food_item}/g, sanitizedFoodName)
       .replace(/{primary_color}/g, primaryColor)
       .replace(/{accent_color}/g, accentColor);
-    
-    console.log('Generated prompt for food:', sanitizedFoodName, ':', finalPrompt);
     return finalPrompt;
   };
 
   const handleGenerateImage = async () => {
     if (!name) {
-      toast({
-        variant: "destructive",
-        title: "Missing food name",
-        description: "Please enter a food name before generating an image"
-      });
+      toast({ variant: 'destructive', title: 'Missing food name', description: 'Please enter a food name before generating an image' });
       return;
     }
-
     setGeneratingImage(true);
     try {
       const prompt = await generatePromptForFood(name);
-      setCurrentPrompt(prompt); // Store for regeneration
+      setCurrentPrompt(prompt);
       const filename = `food-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.jpg`;
       const generatedImageUrl = await generate_image(prompt, filename);
       setImageUrl(generatedImageUrl);
-      
-      // Auto-save generated image immediately to prevent loss on modal close
       await onUpdate(currentItem!.id, { image_url: generatedImageUrl });
-      
-      toast({
-        title: "✨ Image Generated & Saved!",
-        description: "Your AI image is saved automatically.",
-      });
+      toast({ title: '✨ Image Generated & Saved!', description: 'Your AI image is saved automatically.' });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Generation failed",
-        description: "Failed to generate image. Please try again."
-      });
+      toast({ variant: 'destructive', title: 'Generation failed', description: 'Failed to generate image. Please try again.' });
     } finally {
       setGeneratingImage(false);
     }
   };
 
   const createRegenerateButton = () => {
-    // Always show regenerate button if there's an image, we'll generate a simple prompt
     if (!imageUrl) return null;
-
-    // If no stored prompt, create a basic one
     const promptToUse = currentPrompt || `High-quality photo of ${name || 'food'} on a white background, clean food photography, well-lit, appetizing`;
-
     return (
       <RegenerateImageButton
         prompt={promptToUse}
@@ -242,6 +195,17 @@ export const UnifiedFoodEditModal = ({
         disabled={loading || generatingImage}
       />
     );
+  };
+
+  const handleServingVoiceInput = (text: string) => {
+    const num = extractNumber(text);
+    if (num == null || Number.isNaN(num)) {
+      toast({ variant: 'destructive', title: 'Voice input', description: 'Could not detect a number. Please try again.' });
+    } else {
+      setServingSize(String(num));
+      toast({ title: 'Serving size set', description: 'Updated from voice input.' });
+    }
+    setShowServingVoiceRecorder(false);
   };
 
   if (!currentItem) return null;
@@ -264,28 +228,17 @@ export const UnifiedFoodEditModal = ({
       <UniversalModal
         isOpen={modalOpen}
         onClose={() => {
-          if (onClose) {
-            onClose();
-          } else {
-            setOpen(false);
-          }
+          if (onClose) onClose(); else setOpen(false);
           resetForm();
         }}
-        title={isLibraryMode ? "Edit Food in Library" : "Edit Food Entry"}
+        title={isLibraryMode ? 'Edit Food in Library' : 'Edit Food Entry'}
         variant="standard"
         size="sm"
         footer={
           <>
             <Button 
               variant="outline" 
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  setOpen(false);
-                }
-                resetForm();
-              }}
+              onClick={() => { if (onClose) onClose(); else setOpen(false); resetForm(); }}
               disabled={loading || generatingImage}
               className="w-full"
             >
@@ -299,68 +252,44 @@ export const UnifiedFoodEditModal = ({
           </>
         }
       >
-        
         <div className="space-y-4">
           {/* Food Name and Serving Size - Two columns when serving size is needed */}
           {!isLibraryMode ? (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Food Name</Label>
-                <Input
-                  id="edit-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Apple, Chicken Breast"
-                />
+                <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Apple, Chicken Breast" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-serving">Serving Size (g)</Label>
-                <Input
-                  id="edit-serving"
-                  type="number"
-                  value={servingSize}
-                  onChange={(e) => setServingSize(e.target.value)}
-                  placeholder="100"
-                />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="edit-serving">Serving Size (g)</Label>
+                  <button
+                    onClick={() => setShowServingVoiceRecorder(true)}
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                    aria-label="Voice input for serving size"
+                  >
+                    <Mic className="w-3 h-3 mx-auto" />
+                  </button>
+                </div>
+                <Input id="edit-serving" type="number" value={servingSize} onChange={(e) => setServingSize(e.target.value)} placeholder="100" />
               </div>
             </div>
           ) : (
             <div className="space-y-2">
               <Label htmlFor="edit-name">Food Name</Label>
-              <Input
-                id="edit-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Apple, Chicken Breast"
-              />
+              <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Apple, Chicken Breast" />
             </div>
           )}
 
           {/* Calories and Carbs */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-calories">
-                {isLibraryMode ? 'Calories per 100g' : 'Calories'}
-              </Label>
-              <Input
-                id="edit-calories"
-                type="number"
-                value={calories}
-                onChange={(e) => setCalories(e.target.value)}
-                placeholder={isLibraryMode ? "per 100g" : "per serving"}
-              />
+              <Label htmlFor="edit-calories">{isLibraryMode ? 'Calories per 100g' : 'Calories'}</Label>
+              <Input id="edit-calories" type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder={isLibraryMode ? 'per 100g' : 'per serving'} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-carbs">
-                {isLibraryMode ? 'Carbs per 100g (g)' : 'Carbs (g)'}
-              </Label>
-              <Input
-                id="edit-carbs"
-                type="number"
-                value={carbs}
-                onChange={(e) => setCarbs(e.target.value)}
-                placeholder={isLibraryMode ? "grams per 100g" : "grams"}
-              />
+              <Label htmlFor="edit-carbs">{isLibraryMode ? 'Carbs per 100g (g)' : 'Carbs (g)'}</Label>
+              <Input id="edit-carbs" type="number" value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder={isLibraryMode ? 'grams per 100g' : 'grams'} />
             </div>
           </div>
 
@@ -378,6 +307,27 @@ export const UnifiedFoodEditModal = ({
           </div>
         </div>
       </UniversalModal>
+
+      {/* Voice Recorder Modal - Serving Size */}
+      {showServingVoiceRecorder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
+            <div className="text-center mb-4">
+              <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
+              <p className="text-sm text-muted-foreground">Speak the serving size (e.g., 150)</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <CircularVoiceButton onTranscription={handleServingVoiceInput} size="lg" />
+              </div>
+              <Button variant="outline" onClick={() => setShowServingVoiceRecorder(false)} className="w-full">
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

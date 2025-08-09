@@ -13,7 +13,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
 import { ImageUpload } from '@/components/ImageUpload';
-
+import { extractNumber } from '@/utils/voiceParsing';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -37,7 +37,8 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   const [isAiFillingCalories, setIsAiFillingCalories] = useState(false);
   const [isAiFillingCarbs, setIsAiFillingCarbs] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  
+  const [showServingVoiceRecorder, setShowServingVoiceRecorder] = useState(false);
+
   // Set default unit if not already set
   if (!data.servingUnit) {
     const defaultUnit = getDefaultServingSizeUnit(profile?.units);
@@ -56,45 +57,25 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
     const setLoading = field === 'calories' ? setIsAiFillingCalories : setIsAiFillingCarbs;
     setLoading(true);
-    
     try {
-      console.log('Making AI request for:', data.name, field);
-      
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           message: `Please provide only the ${field} per 100g for ${data.name}. Return only the number value.`,
           conversationHistory: []
         },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
       });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Unknown error from AI service');
-      }
-
-      if (!result) {
-        throw new Error('No response from AI service');
-      }
-
-      // Parse AI response to extract the numeric value
+      if (error) throw new Error(error.message || 'Unknown error from AI service');
+      if (!result) throw new Error('No response from AI service');
       const response = result.completion || result.response || '';
       const numericMatch = response.match(/(\d+(?:\.\d+)?)/);
-
       if (numericMatch) {
-        onDataChange({
-          ...data,
-          [field]: numericMatch[1]
-        });
+        onDataChange({ ...data, [field]: numericMatch[1] });
         toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} estimated by AI`);
       } else {
-        console.log('Could not parse response:', response);
         toast.error('Could not parse AI response. Please enter manually.');
       }
     } catch (error) {
-      console.error('AI estimation error:', error);
       toast.error(`Failed to get AI estimate: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -104,6 +85,17 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   const handleVoiceInput = (text: string) => {
     updateField('name', text);
     setShowVoiceRecorder(false);
+  };
+
+  const handleServingVoiceInput = (text: string) => {
+    const num = extractNumber(text);
+    if (num == null || Number.isNaN(num)) {
+      toast.error('Could not detect a number. Please try again.');
+    } else {
+      updateField('servingSize', String(num));
+      toast.success('Serving size set from voice');
+    }
+    setShowServingVoiceRecorder(false);
   };
 
   return (
@@ -126,180 +118,192 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       }
     >
       <div className="mb-4">
-        <p className="text-xs text-muted-foreground">
-          {getUnitSystemDisplay(profile?.units)} Mode
-        </p>
+        <p className="text-xs text-muted-foreground">{getUnitSystemDisplay(profile?.units)} Mode</p>
       </div>
 
-        <div className="space-y-4 p-4">
-          {/* Required Fields */}
-          <div className="space-y-4">
+      <div className="space-y-4 p-4">
+        {/* Required Fields */}
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="food-name" className="text-sm font-medium">
+                Food Name <span className="text-red-500">*</span>
+              </Label>
+              <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                <button
+                  onClick={() => setShowVoiceRecorder(true)}
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                >
+                  <Mic className="w-3 h-3 mx-auto" />
+                </button>
+              </PremiumGate>
+            </div>
+            <Input
+              id="food-name"
+              value={data.name}
+              onChange={(e) => updateField('name', e.target.value)}
+              placeholder="e.g., Grilled Chicken Breast"
+              className="mt-1"
+              required
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="serving-size" className="text-sm font-medium">
+                Serving Size <span className="text-red-500">*</span>
+              </Label>
+              <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                <button
+                  onClick={() => setShowServingVoiceRecorder(true)}
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                >
+                  <Mic className="w-3 h-3 mx-auto" />
+                </button>
+              </PremiumGate>
+            </div>
+            <div className="flex gap-2 mt-1">
+              <Input
+                id="serving-size"
+                type="number"
+                value={data.servingSize}
+                onChange={(e) => updateField('servingSize', e.target.value)}
+                placeholder="e.g., 2"
+                className="flex-1"
+                required
+              />
+              <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getServingUnitsForUser(profile?.units).map((unit) => (
+                    <SelectItem key={unit.value} value={unit.value}>
+                      {getUnitDisplayName(unit.value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Image Upload Section */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Food Image (Optional)</Label>
+          <ImageUpload
+            currentImageUrl={data.imageUrl}
+            onImageUpload={(url) => updateField('imageUrl', url)}
+            onImageRemove={() => updateField('imageUrl', '')}
+            showUploadOptionsWhenImageExists={false}
+          />
+        </div>
+
+        {/* Nutritional Information */}
+        <div className="pt-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="food-name" className="text-sm font-medium">
-                  Food Name <span className="text-red-500">*</span>
+                <Label htmlFor="calories" className="text-sm font-medium">
+                  Calories (100g) <span className="text-red-500">*</span>
                 </Label>
-                <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                   <button
-                    onClick={() => setShowVoiceRecorder(true)}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                    onClick={() => handleAiEstimate('calories')}
+                    disabled={isAiFillingCalories || !data.name}
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
                   >
-                    <Mic className="w-3 h-3 mx-auto" />
+                    {isAiFillingCalories ? (
+                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mx-auto" />
+                    )}
                   </button>
                 </PremiumGate>
               </div>
               <Input
-                id="food-name"
-                value={data.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="e.g., Grilled Chicken Breast"
+                id="calories"
+                type="number"
+                value={data.calories}
+                onChange={(e) => updateField('calories', e.target.value)}
+                placeholder="0"
                 className="mt-1"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="serving-size" className="text-sm font-medium">
-                Serving Size <span className="text-red-500">*</span>
-              </Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  id="serving-size"
-                  type="number"
-                  value={data.servingSize}
-                  onChange={(e) => updateField('servingSize', e.target.value)}
-                  placeholder="e.g., 2"
-                  className="flex-1"
-                  required
-                />
-                <Select
-                  value={data.servingUnit}
-                  onValueChange={(value) => updateField('servingUnit', value)}
-                >
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getServingUnitsForUser(profile?.units).map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {getUnitDisplayName(unit.value)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="carbs" className="text-sm font-medium">
+                  Carbs (100g) <span className="text-red-500">*</span>
+                </Label>
+                <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                  <button
+                    onClick={() => handleAiEstimate('carbs')}
+                    disabled={isAiFillingCarbs || !data.name}
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
+                  >
+                    {isAiFillingCarbs ? (
+                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mx-auto" />
+                    )}
+                  </button>
+                </PremiumGate>
               </div>
+              <Input
+                id="carbs"
+                type="number"
+                value={data.carbs}
+                onChange={(e) => updateField('carbs', e.target.value)}
+                placeholder="0"
+                className="mt-1"
+                required
+              />
             </div>
           </div>
-
-          {/* Image Upload Section */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Food Image (Optional)</Label>
-            <ImageUpload
-              currentImageUrl={data.imageUrl}
-              onImageUpload={(url) => updateField('imageUrl', url)}
-              onImageRemove={() => updateField('imageUrl', '')}
-              showUploadOptionsWhenImageExists={false}
-            />
-          </div>
-
-          {/* Nutritional Information */}
-          <div className="pt-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="calories" className="text-sm font-medium">
-                    Calories (100g) <span className="text-red-500">*</span>
-                  </Label>
-                  <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                    <button
-                      onClick={() => handleAiEstimate('calories')}
-                      disabled={isAiFillingCalories || !data.name}
-                      className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
-                    >
-                      {isAiFillingCalories ? (
-                        <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                      ) : (
-                        <Sparkles className="w-3 h-3 mx-auto" />
-                      )}
-                    </button>
-                  </PremiumGate>
-                </div>
-                <Input
-                  id="calories"
-                  type="number"
-                  value={data.calories}
-                  onChange={(e) => updateField('calories', e.target.value)}
-                  placeholder="0"
-                  className="mt-1"
-                  required
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="carbs" className="text-sm font-medium">
-                    Carbs (100g) <span className="text-red-500">*</span>
-                  </Label>
-                  <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                    <button
-                      onClick={() => handleAiEstimate('carbs')}
-                      disabled={isAiFillingCarbs || !data.name}
-                      className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
-                    >
-                      {isAiFillingCarbs ? (
-                        <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                      ) : (
-                        <Sparkles className="w-3 h-3 mx-auto" />
-                      )}
-                    </button>
-                  </PremiumGate>
-                </div>
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={data.carbs}
-                  onChange={(e) => updateField('carbs', e.target.value)}
-                  placeholder="0"
-                  className="mt-1"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
         </div>
+      </div>
 
-        {/* Voice Recorder Modal */}
-        {showVoiceRecorder && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
-            <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
-              <div className="text-center mb-4">
-                <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
-                <p className="text-sm text-muted-foreground">
-                  Speak the food name
-                </p>
-              </div>
-              
-              <div className="space-y-4">
+      {/* Voice Recorder Modal - Food Name */}
+      {showVoiceRecorder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
+            <div className="text-center mb-4">
+              <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
+              <p className="text-sm text-muted-foreground">Speak the food name</p>
+            </div>
+            <div className="space-y-4">
               <div className="flex justify-center">
-                <CircularVoiceButton 
-                  onTranscription={handleVoiceInput}
-                  size="lg"
-                />
+                <CircularVoiceButton onTranscription={handleVoiceInput} size="lg" />
               </div>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => setShowVoiceRecorder(false)}
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-              </div>
+              <Button variant="outline" onClick={() => setShowVoiceRecorder(false)} className="w-full">
+                Cancel
+              </Button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
+      {/* Voice Recorder Modal - Serving Size */}
+      {showServingVoiceRecorder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
+            <div className="text-center mb-4">
+              <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
+              <p className="text-sm text-muted-foreground">Speak the serving size (e.g., 150)</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <CircularVoiceButton onTranscription={handleServingVoiceInput} size="lg" />
+              </div>
+              <Button variant="outline" onClick={() => setShowServingVoiceRecorder(false)} className="w-full">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </UniversalModal>
   );
 };

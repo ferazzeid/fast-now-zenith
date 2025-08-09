@@ -33,6 +33,28 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
     lg: 'h-6 w-6'
   };
 
+  // Pick a supported mimeType to avoid first-click failures on some browsers (iOS Safari)
+  const getSupportedMimeType = () => {
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4;codecs=mp4a.40.2',
+      'audio/mp4',
+    ];
+    try {
+      for (const t of candidates) {
+        // Some browsers may not implement isTypeSupported
+        // @ts-ignore
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported?.(t)) {
+          return t;
+        }
+      }
+    } catch (e) {
+      console.warn('🎤 mimeType detection failed, using default');
+    }
+    return undefined;
+  };
+
   const startRecording = async () => {
     try {
       console.log('🎤 Starting recording...');
@@ -47,9 +69,11 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
       });
       
       console.log('🎤 MediaStream obtained, creating MediaRecorder...');
-      mediaRecorderRef.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
-      });
+      const mimeType = getSupportedMimeType();
+      console.log('🎤 Selected mimeType:', mimeType || 'default');
+      mediaRecorderRef.current = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
