@@ -232,20 +232,20 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
         variant="standard"
         size="sm"
         footer={
-          <div className="flex gap-2 w-full">
+          <>
             <Button
               variant="outline"
               onClick={() => {
                 if (onClose) onClose(); else setInternalOpen(false);
               }}
-              className="flex-1"
+              className="w-full"
             >
               Cancel
             </Button>
-            <Button onClick={handleSave} className="flex-1">
+            <Button onClick={handleSave} className="w-full">
               Save
             </Button>
-          </div>
+          </>
         }
       >
         <div className="space-y-4">
