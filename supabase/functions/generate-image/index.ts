@@ -54,6 +54,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Get user authentication info if available
+    let userProfile = null;
+    if (userId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('use_own_api_key, openai_api_key')
+        .eq('user_id', userId)
+        .maybeSingle();
+      userProfile = profile;
+    }
+
     let generationId = null;
 
     // If motivatorId and userId are provided, track this generation
@@ -82,9 +93,15 @@ serve(async (req) => {
     // Background generation function
     const generateImage = async () => {
       try {
-        // Use provided API key or fall back to environment variable
-        // Resolve API key: explicit apiKey > shared_settings > env
-        let openAIApiKey = apiKey;
+        // Resolve API key priority: user key > provided apiKey > shared_settings > env
+        const clientApiKey = req.headers.get('X-OpenAI-API-Key');
+        let openAIApiKey = userProfile?.use_own_api_key ? userProfile.openai_api_key : (apiKey || clientApiKey);
+        
+        // If user is configured to use own key but it's missing, do NOT fallback
+        if (userProfile?.use_own_api_key && !openAIApiKey) {
+          throw new Error('User OpenAI API key not configured. Please add your OpenAI API key in Settings.');
+        }
+        
         if (!openAIApiKey) {
           const { data: sharedKey } = await supabase
             .from('shared_settings')
@@ -93,8 +110,9 @@ serve(async (req) => {
             .maybeSingle();
           openAIApiKey = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
         }
+        
         if (!openAIApiKey) {
-          throw new Error('OpenAI API key not provided');
+          throw new Error('OpenAI API key not available. Please configure an API key or upgrade your subscription.');
         }
 
         console.log('Generating image with prompt length:', prompt.length);

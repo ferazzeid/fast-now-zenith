@@ -234,11 +234,33 @@ export const RegenerateImageButton = ({
         });
 
         if (error) {
-          throw error;
+          console.error('Image generation error:', error);
+          const errorMessage = error.message || 'Unknown error occurred';
+          
+          if (errorMessage.includes('API key not configured')) {
+            toast({
+              title: "🔑 API Key Required",
+              description: "Please add your OpenAI API key in Settings to generate images.",
+              variant: "destructive",
+            });
+          } else if (errorMessage.includes('API key not available')) {
+            toast({
+              title: "🔑 No API Key Available",
+              description: "Please configure an API key or upgrade your subscription.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "❌ Generation Failed",
+              description: errorMessage,
+              variant: "destructive",
+            });
+          }
+          return;
         }
 
         toast({
-          title: "🎨 Image Generation Started",
+          title: "🎨 Image Generation Queued",
           description: "Your image is being generated in the background. It will appear automatically when ready.",
         });
         // Don't call onImageGenerated here - let the realtime subscription handle it
@@ -253,11 +275,34 @@ export const RegenerateImageButton = ({
         });
       }
     } catch (error) {
-      toast({
-        title: "Regeneration failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
+      console.error('Image generation error:', error);
+      const errorMessage = error?.message || 'Unknown error occurred';
+      
+      if (errorMessage.includes('API key not configured')) {
+        toast({
+          title: "🔑 API Key Required",
+          description: "Please add your OpenAI API key in Settings to generate images.",
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('API key not available')) {
+        toast({
+          title: "🔑 No API Key Available", 
+          description: "Please configure an API key or upgrade your subscription.",
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('Failed to generate image')) {
+        toast({
+          title: "🚫 OpenAI Error",
+          description: "Image generation failed. Please check your prompt and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "❌ Generation Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsRegenerating(false);
     }
