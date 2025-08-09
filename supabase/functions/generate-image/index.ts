@@ -1,12 +1,19 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { 
+  PROTECTED_CORS_HEADERS, 
+  PROTECTED_OPENAI_CONFIG, 
+  resolveOpenAIApiKey,
+  logConfigurationState,
+  SECURITY_NOTICE
+} from '../_shared/protected-config.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// 🔒 PROTECTED: Use standardized CORS headers
+const corsHeaders = PROTECTED_CORS_HEADERS;
+
+// 📊 Log configuration state for debugging
+logConfigurationState();
 
 serve(async (req) => {
   console.log('Image generation function called:', req.method);
@@ -82,27 +89,14 @@ serve(async (req) => {
     // Background generation function
     const generateImage = async () => {
       try {
-        // Resolve API key priority: user key > provided apiKey > shared_settings > env
+        // 🔒 PROTECTED: Use standardized API key resolution
         const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-        let openAIApiKey = userProfile?.use_own_api_key ? userProfile.openai_api_key : (apiKey || clientApiKey);
-        
-        // If user is configured to use own key but it's missing, do NOT fallback
-        if (userProfile?.use_own_api_key && !openAIApiKey) {
-          throw new Error('User OpenAI API key not configured. Please add your OpenAI API key in Settings.');
-        }
-        
-        if (!openAIApiKey) {
-          const { data: sharedKey } = await supabase
-            .from('shared_settings')
-            .select('setting_value')
-            .eq('setting_key', 'shared_api_key')
-            .maybeSingle();
-          openAIApiKey = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
-        }
-        
-        if (!openAIApiKey) {
-          throw new Error('OpenAI API key not available. Please configure an API key or upgrade your subscription.');
-        }
+        const openAIApiKey = await resolveOpenAIApiKey(
+          supabase,
+          userProfile,
+          apiKey,
+          clientApiKey
+        );
 
         console.log('Generating image with prompt length:', prompt.length);
 
@@ -113,11 +107,11 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'dall-e-2',
+            model: PROTECTED_OPENAI_CONFIG.IMAGE_MODEL,
             prompt: prompt,
             n: 1,
-            size: '512x512',
-            response_format: 'b64_json'
+            size: PROTECTED_OPENAI_CONFIG.IMAGE_SIZE,
+            response_format: PROTECTED_OPENAI_CONFIG.IMAGE_FORMAT
           }),
         });
 

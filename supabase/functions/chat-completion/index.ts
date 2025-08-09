@@ -1,17 +1,19 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { 
+  PROTECTED_CORS_HEADERS, 
+  PROTECTED_OPENAI_CONFIG, 
+  resolveOpenAIApiKey,
+  logConfigurationState,
+  SECURITY_NOTICE
+} from '../_shared/protected-config.ts';
 
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
-  .split(',')
-  .map(o => o.trim());
+// 🔒 PROTECTED: Use standardized CORS headers  
+const corsHeaders = PROTECTED_CORS_HEADERS;
 
-function buildCorsHeaders(origin: string | null) {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
-  } as const;
-}
+// 📊 Log configuration state for debugging
+logConfigurationState();
 
 // Simple in-memory burst limiter per user/function
 const burstTracker = new Map<string, number[]>();
@@ -30,7 +32,6 @@ const isProd = ENV === 'production';
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -63,8 +64,8 @@ serve(async (req) => {
 
     const userId = user.user.id;
 
-    // Enforce soft burst limit: 5 requests / 10 seconds per user
-    if (!checkBurstLimit(`${userId}:chat-completion`, 5, 10_000)) {
+    // 🔒 PROTECTED: Enforce burst limit using protected config
+    if (!checkBurstLimit(`${userId}:chat-completion`, PROTECTED_OPENAI_CONFIG.BURST_LIMIT, PROTECTED_OPENAI_CONFIG.BURST_WINDOW_MS)) {
       return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -82,9 +83,9 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
-    // Check request limits for non-API key users
+    // 🔒 PROTECTED: Check request limits using protected config
     if (!profile.use_own_api_key) {
-      const requestLimit = profile.user_tier === 'paid_user' ? 500 : 15;
+      const requestLimit = profile.user_tier === 'paid_user' ? PROTECTED_OPENAI_CONFIG.PAID_REQUEST_LIMIT : PROTECTED_OPENAI_CONFIG.FREE_REQUEST_LIMIT;
       if (profile.monthly_ai_requests >= requestLimit) {
         return new Response(
           JSON.stringify({ error: `Request limit reached (${requestLimit}/month)` }),
@@ -96,11 +97,13 @@ serve(async (req) => {
       }
     }
 
-    // Get API key
-    const openaiApiKey = profile.openai_api_key || Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not found');
-    }
+    // 🔒 PROTECTED: Use standardized API key resolution
+    const openaiApiKey = await resolveOpenAIApiKey(
+      supabase,
+      profile,
+      undefined,
+      req.headers.get('X-OpenAI-API-Key')
+    );
 
     // Get user's food library for enhanced context
     const { data: userFoods } = await supabase
@@ -138,7 +141,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
         messages: systemMessages,
         tools: [
           {
