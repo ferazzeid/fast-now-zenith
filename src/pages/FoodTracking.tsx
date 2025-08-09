@@ -943,28 +943,56 @@ const FoodTracking = () => {
                                   <MoreVertical className="w-4 h-4 text-primary" />
                                </Button>
                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-44">
-                                <DropdownMenuItem onClick={() => setEditingEntry(food)}>
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit Template Item
-                                </DropdownMenuItem>
-                                {!isInLibrary(food.name) && (
-                                  <DropdownMenuItem
-                                    onClick={async () => {
-                                      await saveToLibrary({
-                                        name: food.name,
-                                        calories: food.calories,
-                                        carbs: food.carbs,
-                                        serving_size: food.serving_size,
-                                      });
-                                      addLibraryLocal(food.name);
-                                      toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
-                                    }}
-                                  >
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Add to Library
-                                  </DropdownMenuItem>
-                                )}
+                               <DropdownMenuContent align="end" className="w-48">
+                                 <DropdownMenuItem 
+                                   onClick={async () => {
+                                     // Add template item to today's plan
+                                     const result = await addFoodEntry({
+                                       name: food.name,
+                                       calories: food.calories,
+                                       carbs: food.carbs,
+                                       serving_size: food.serving_size,
+                                       consumed: false
+                                     });
+
+                                     if (!result || 'error' in result) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: "Failed to add to today's plan"
+                                       });
+                                     } else {
+                                       toast({
+                                         title: "Added to Today's Plan",
+                                         description: `${food.name} added to today's food plan`
+                                       });
+                                     }
+                                   }}
+                                 >
+                                   <Plus className="w-4 h-4 mr-2" />
+                                   Add to Today's Plan
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={() => setEditingEntry(food)}>
+                                   <Edit className="w-4 h-4 mr-2" />
+                                   Edit Template Item
+                                 </DropdownMenuItem>
+                                 {!isInLibrary(food.name) && (
+                                   <DropdownMenuItem
+                                     onClick={async () => {
+                                       await saveToLibrary({
+                                         name: food.name,
+                                         calories: food.calories,
+                                         carbs: food.carbs,
+                                         serving_size: food.serving_size,
+                                       });
+                                       addLibraryLocal(food.name);
+                                       toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
+                                     }}
+                                   >
+                                     <Save className="w-4 h-4 mr-2" />
+                                     Add to Library
+                                   </DropdownMenuItem>
+                                 )}
                                  <DropdownMenuItem 
                                    onClick={async () => {
                                      try {
