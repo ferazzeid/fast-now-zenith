@@ -35,6 +35,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { generate_image } from '@/utils/imageGeneration';
 import { supabase } from '@/integrations/supabase/client';
+import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
 
 interface Motivator {
   id?: string;
@@ -65,6 +66,7 @@ export const UpgradedMotivatorFormModal = ({
   
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();
+  const { aiImageEnabled } = useAIImageGeneration();
   const isEditing = !!motivator?.id;
 
   // LOVABLE_PRESERVE: Initialize form data when motivator changes
@@ -312,19 +314,21 @@ export const UpgradedMotivatorFormModal = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Motivational Image</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="ai"
-                size="sm"
-                onClick={handleGenerateImage}
-                disabled={isGeneratingImage || (!title && !content)}
-                className="flex items-center gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                {isGeneratingImage ? 'Generating...' : 'AI Generate'}
-              </Button>
-            </div>
+            {aiImageEnabled && (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="ai"
+                  size="sm"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage || (!title && !content)}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {isGeneratingImage ? 'Generating...' : 'AI Generate'}
+                </Button>
+              </div>
+            )}
           </div>
           
           <ImageUpload

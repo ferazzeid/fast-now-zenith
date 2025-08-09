@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
+import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
 
 interface MotivatorTemplate {
   id: string;
@@ -45,6 +46,7 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
   });
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const { toast } = useToast();
+  const { aiImageEnabled } = useAIImageGeneration();
 
   const currentTemplate = templates[currentTemplateIndex];
   const isLastTemplate = currentTemplateIndex === templates.length - 1;
@@ -268,42 +270,46 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
                   onImageRemove={() => setCurrentMotivator(prev => ({ ...prev, imageUrl: '' }))}
                 />
                 
-                <div className="flex items-center gap-2">
-                  <div className="h-px bg-ceramic-rim flex-1" />
-                  <span className="text-xs text-muted-foreground">or</span>
-                  <div className="h-px bg-ceramic-rim flex-1" />
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    variant="ai"
-                    onClick={handleGenerateImage}
-                    disabled={isGeneratingImage}
-                    className="flex-1"
-                  >
-                    {isGeneratingImage ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                        Generating AI Image...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate AI Image
-                      </>
-                    )}
-                  </Button>
-                  
-                  {currentMotivator.imageUrl && (
-                    <RegenerateImageButton
-                      prompt={`${currentMotivator.title}. ${currentMotivator.content}`}
-                      filename={`motivator-${Date.now()}.jpg`}
-                      onImageGenerated={(url) => setCurrentMotivator(prev => ({ ...prev, imageUrl: url }))}
-                      disabled={isGeneratingImage}
-                      mode="motivator"
-                    />
-                  )}
-                </div>
+                {aiImageEnabled && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className="h-px bg-ceramic-rim flex-1" />
+                      <span className="text-xs text-muted-foreground">or</span>
+                      <div className="h-px bg-ceramic-rim flex-1" />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ai"
+                        onClick={handleGenerateImage}
+                        disabled={isGeneratingImage}
+                        className="flex-1"
+                      >
+                        {isGeneratingImage ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                            Generating AI Image...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Generate AI Image
+                          </>
+                        )}
+                      </Button>
+                      
+                      {currentMotivator.imageUrl && (
+                        <RegenerateImageButton
+                          prompt={`${currentMotivator.title}. ${currentMotivator.content}`}
+                          filename={`motivator-${Date.now()}.jpg`}
+                          onImageGenerated={(url) => setCurrentMotivator(prev => ({ ...prev, imageUrl: url }))}
+                          disabled={isGeneratingImage}
+                          mode="motivator"
+                        />
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
               
               <p className="text-xs text-muted-foreground">
