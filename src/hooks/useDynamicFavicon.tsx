@@ -16,33 +16,38 @@ export const useDynamicFavicon = () => {
           return;
         }
 
-        if (data?.setting_value) {
-          // Update existing favicon links instead of removing them
-          const existingIcon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-          const existingShortcut = document.querySelector('link[rel="shortcut icon"]') as HTMLLinkElement;
-          
-          if (existingIcon) {
-            existingIcon.href = data.setting_value;
-          } else {
-            const link = document.createElement('link');
-            link.rel = 'icon';
-            link.type = 'image/png';
-            link.href = data.setting_value;
-            document.head.appendChild(link);
-          }
-          
-          if (existingShortcut) {
-            existingShortcut.href = data.setting_value;
-          } else {
-            const shortcutLink = document.createElement('link');
-            shortcutLink.rel = 'shortcut icon';
-            shortcutLink.type = 'image/png';
-            shortcutLink.href = data.setting_value;
-            document.head.appendChild(shortcutLink);
-          }
+        const transparentDefault = '/favicon-transparent.png';
+        const configured = data?.setting_value as string | undefined;
+        const chosen = configured && configured.toLowerCase().includes('transparent') ? configured : transparentDefault;
+        const versioned = `${chosen}?v=${Date.now()}`;
 
-          console.log('Favicon updated to:', data.setting_value);
+        // Update existing favicon links instead of removing them
+        const existingIcon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+        const existingShortcut = document.querySelector('link[rel="shortcut icon"]') as HTMLLinkElement;
+        
+        if (existingIcon) {
+          existingIcon.href = versioned;
+          existingIcon.type = 'image/png';
+        } else {
+          const link = document.createElement('link');
+          link.rel = 'icon';
+          link.type = 'image/png';
+          link.href = versioned;
+          document.head.appendChild(link);
         }
+        
+        if (existingShortcut) {
+          existingShortcut.href = versioned;
+          existingShortcut.type = 'image/png';
+        } else {
+          const shortcutLink = document.createElement('link');
+          shortcutLink.rel = 'shortcut icon';
+          shortcutLink.type = 'image/png';
+          shortcutLink.href = versioned;
+          document.head.appendChild(shortcutLink);
+        }
+
+        console.log('Favicon updated to:', versioned);
       } catch (error) {
         console.error('Error updating favicon:', error);
       }
@@ -50,36 +55,10 @@ export const useDynamicFavicon = () => {
 
     const updateAppIcons = async () => {
       try {
-        const { data, error } = await supabase
-          .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'app_logo')
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching app logo:', error);
-          return;
-        }
-
-        if (data?.setting_value) {
-          // Update apple-touch-icon links
-          const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
-          appleTouchIcons.forEach(link => {
-            (link as HTMLLinkElement).href = data.setting_value;
-          });
-
-          // Create new apple-touch-icon if none exist
-          if (appleTouchIcons.length === 0) {
-            const appleIcon = document.createElement('link');
-            appleIcon.rel = 'apple-touch-icon';
-            appleIcon.href = data.setting_value;
-            document.head.appendChild(appleIcon);
-          }
-
-          console.log('App logo updated to:', data.setting_value);
-        }
+        // Respect static transparent app icons; skip dynamic apple-touch-icon overrides
+        console.log('Skipping apple-touch-icon overrides to keep transparent icons intact');
       } catch (error) {
-        console.error('Error updating app icons:', error);
+        console.error('Error in app icons update:', error);
       }
     };
 
