@@ -27,6 +27,8 @@ export const useDynamicFavicon = () => {
           link.type = 'image/png';
           link.href = data.setting_value;
           link.setAttribute('sizes', '32x32');
+          // Ensure transparency is preserved
+          link.style.backgroundColor = 'transparent';
           document.head.appendChild(link);
 
           // Also update shortcut icon
@@ -34,6 +36,7 @@ export const useDynamicFavicon = () => {
           shortcutLink.rel = 'shortcut icon';
           shortcutLink.type = 'image/png';
           shortcutLink.href = data.setting_value;
+          shortcutLink.style.backgroundColor = 'transparent';
           document.head.appendChild(shortcutLink);
 
           // Add apple-touch-icon for mobile
