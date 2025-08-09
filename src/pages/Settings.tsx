@@ -255,6 +255,94 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
     }
   };
 
+  const handleResetAccount = async () => {
+    if (!user) return;
+
+    try {
+      // Delete all user data but keep the account
+      const deleteOperations = [
+        supabase.from('chat_conversations').delete().eq('user_id', user.id),
+        supabase.from('motivators').delete().eq('user_id', user.id),
+        supabase.from('food_entries').delete().eq('user_id', user.id),
+        supabase.from('user_foods').delete().eq('user_id', user.id),
+        supabase.from('fasting_sessions').delete().eq('user_id', user.id),
+        supabase.from('walking_sessions').delete().eq('user_id', user.id),
+        supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
+        supabase.from('daily_activity_overrides').delete().eq('user_id', user.id),
+        supabase.from('daily_food_templates').delete().eq('user_id', user.id),
+        supabase.from('default_food_favorites').delete().eq('user_id', user.id)
+      ];
+
+      await Promise.all(deleteOperations);
+
+      // Reset profile data but keep account settings
+      await supabase
+        .from('profiles')
+        .update({
+          weight: null,
+          height: null,
+          age: null,
+          daily_calorie_goal: null,
+          daily_carb_goal: null,
+          goal_weight: null,
+          onboarding_completed: false
+        })
+        .eq('user_id', user.id);
+
+      toast({
+        title: "Account Reset Complete",
+        description: "All your data has been cleared. You can start fresh!",
+      });
+
+      // Navigate to home to start fresh
+      navigate('/');
+    } catch (error) {
+      console.error('Error resetting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    try {
+      // Call the delete account edge function
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.scheduled) {
+        toast({
+          title: "Account Deletion Scheduled",
+          description: data.message,
+        });
+      } else {
+        toast({
+          title: "Account Deleted",
+          description: data.message,
+        });
+        // Sign out and redirect
+        await signOut();
+        navigate('/auth');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-24">
@@ -574,6 +662,78 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                   <p className="text-xs text-muted-foreground">
                     Automatically generate AI images for food items. Disabling may improve performance on slower devices
                   </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Account Management - Danger Zone */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <h3 className="text-lg font-semibold text-warm-text">Account Management</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Reset Account */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+                      >
+                        <Database className="w-4 h-4 mr-2" />
+                        Reset Account Data
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all your data (food entries, fasting sessions, walking history, motivators, etc.) but keep your account active. You can start fresh with a clean slate.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleResetAccount}
+                          className="bg-orange-500 hover:bg-orange-600"
+                        >
+                          Reset All Data
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  {/* Delete Account */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Account
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete your account and all associated data. This action cannot be undone. If you have an active subscription, it will be canceled.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive hover:bg-destructive/80"
+                        >
+                          Delete Forever
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </Card>
