@@ -80,7 +80,7 @@ export const queryClient = new QueryClient({
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       
       // PERFORMANCE: Network mode - handle offline scenarios
-      networkMode: 'online',
+      networkMode: 'offlineFirst',
     },
     
     mutations: {
