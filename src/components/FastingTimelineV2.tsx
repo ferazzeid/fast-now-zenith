@@ -16,18 +16,18 @@ const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
-  const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+  const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 0, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (!hasUserInteracted) {
-      setSelectedHour(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+      setSelectedHour(Math.min(Math.max(currentHour || 0, 0), MAX_HOUR));
     }
   }, [currentHour, hasUserInteracted]);
 
   const handleHourChange = (h: number) => {
-    const clamped = Math.min(Math.max(h, 1), MAX_HOUR);
+    const clamped = Math.min(Math.max(h, 0), MAX_HOUR);
     setSelectedHour(clamped);
     setHasUserInteracted(true);
   };

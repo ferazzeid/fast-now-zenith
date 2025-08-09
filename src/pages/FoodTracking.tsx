@@ -734,13 +734,13 @@ const FoodTracking = () => {
                       {/* More Options Menu */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-5 w-5 p-1 hover:bg-secondary/80 rounded"
-                            aria-label="More options"
-                          >
-                            <MoreVertical className="w-3 h-3 text-primary" />
+                           <Button 
+                             size="sm" 
+                             variant="ghost" 
+                             className="min-h-[44px] min-w-[44px] p-2 hover:bg-secondary/80 rounded"
+                             aria-label="More options"
+                           >
+                             <MoreVertical className="w-4 h-4 text-primary" />
                           </Button>
                         </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
@@ -889,12 +889,12 @@ const FoodTracking = () => {
                            
                            <DropdownMenu>
                              <DropdownMenuTrigger asChild>
-                               <Button 
-                                 size="sm" 
-                                 variant="ghost" 
-                                 className="h-5 w-5 p-1 hover:bg-secondary/80 rounded"
-                               >
-                                 <MoreVertical className="w-3 h-3 text-primary" />
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="min-h-[44px] min-w-[44px] p-2 hover:bg-secondary/80 rounded"
+                                >
+                                  <MoreVertical className="w-4 h-4 text-primary" />
                                </Button>
                              </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-44">
@@ -927,7 +927,9 @@ const FoodTracking = () => {
                                          .delete()
                                          .eq('id', food.id);
                                        // Refresh template
-                                       await loadTemplate();
+                                        await loadTemplate();
+                                        // Also refresh today's food entries since they might be affected
+                                        await refreshFoodEntries();
                                        toast({
                                          title: "Template item deleted",
                                          description: "Item removed from daily template"

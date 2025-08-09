@@ -231,13 +231,14 @@ export const useFastingSessionQuery = () => {
       return { previousSession };
     },
     onError: (err, sessionId, context) => {
+      console.error('Error ending fasting session:', err);
       // Rollback on error
       if (context?.previousSession) {
         queryClient.setQueryData(activeSessionQueryKey(user?.id || null), context.previousSession);
       }
       toast({
         title: "Error ending fasting session",
-        description: "Please try again.",
+        description: err instanceof Error ? err.message : "Please try again.",
         variant: "destructive",
       });
     },

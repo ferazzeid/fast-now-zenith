@@ -24,10 +24,10 @@ export const FastingSliderHeader: React.FC<FastingSliderHeaderProps> = ({
         <button
           type="button"
           className="text-muted-foreground hover:text-primary transition-colors"
-          onClick={() => onHourChange?.(prev)}
-          aria-label={`Go to hour ${prev}`}
+          onClick={() => onHourChange?.(0)}
+          aria-label="Go to hour 0"
         >
-          Hour {prev}
+          Hour 0
         </button>
         <span className="font-medium text-primary">Hour {clamp(currentHour)}</span>
         <button
