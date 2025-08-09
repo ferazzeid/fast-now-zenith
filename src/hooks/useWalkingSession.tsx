@@ -222,8 +222,7 @@ export const useWalkingSession = () => {
           distance: null,
           estimated_steps: null,
           is_edited: true,
-          edit_reason: 'Manual duration correction',
-          duration_minutes: activeDurationMinutes
+          edit_reason: 'Manual duration correction'
         };
       } else {
         // Calculate calories using profile data and speed

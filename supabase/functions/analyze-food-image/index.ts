@@ -7,10 +7,8 @@ const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:51
   .map(o => o.trim());
 
 function buildCorsHeaders(origin: string | null) {
-  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Vary': 'Origin',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   } as const;
 }
@@ -123,7 +121,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -194,16 +192,13 @@ serve(async (req) => {
     console.log('Successfully analyzed food image:', nutritionData);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        nutritionData: {
-          name: nutritionData.name,
-          calories_per_100g: Math.round(nutritionData.calories_per_100g * 100) / 100,
-          carbs_per_100g: Math.round(nutritionData.carbs_per_100g * 100) / 100,
-          estimated_serving_size: nutritionData.estimated_serving_size || 100,
-          confidence: nutritionData.confidence || 0.8,
-          description: nutritionData.description || ''
-        }
+      JSON.stringify({
+        name: nutritionData.name,
+        calories_per_100g: Math.round(nutritionData.calories_per_100g * 100) / 100,
+        carbs_per_100g: Math.round(nutritionData.carbs_per_100g * 100) / 100,
+        estimated_serving_size: nutritionData.estimated_serving_size || 100,
+        confidence: nutritionData.confidence || 0.8,
+        description: nutritionData.description || ''
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

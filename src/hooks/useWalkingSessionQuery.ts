@@ -134,7 +134,6 @@ export const useWalkingSessionQuery = () => {
         .update({
           end_time: new Date().toISOString(),
           session_state: 'completed',
-          duration_minutes: sessionData.duration_minutes,
           distance: sessionData.distance_km,
           calories_burned: sessionData.calories_burned,
           speed_mph: sessionData.average_speed_kmh,

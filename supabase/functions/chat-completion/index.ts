@@ -7,13 +7,9 @@ const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:51
   .map(o => o.trim());
 
 function buildCorsHeaders(origin: string | null) {
-  const isLovable = origin ? (origin.includes('lovableproject.com') || origin.includes('lovable.app')) : false;
-  const allowOrigin = (origin && (ALLOWED_ORIGINS.includes(origin) || isLovable)) ? origin : ALLOWED_ORIGINS[0];
   return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Vary': 'Origin',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
-    'Access-Control-Allow-Credentials': 'true',
   } as const;
 }
 
@@ -353,20 +349,27 @@ serve(async (req) => {
 
     // Increment usage counter (only if not using own API key)
     if (!profile.use_own_api_key) {
-      await supabase
-        .from('profiles')
-        .update({ 
-          monthly_ai_requests: profile.monthly_ai_requests + 1 
-        })
-        .eq('user_id', userId);
+      try {
+        await supabase
+          .from('profiles')
+          .update({ 
+            monthly_ai_requests: profile.monthly_ai_requests + 1 
+          })
+          .eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
+      }
 
-      // Log usage analytics
-      await supabase.rpc('track_usage_event', {
-        _user_id: userId,
-        _event_type: 'chat_completion',
-        _requests_count: 1,
-        _subscription_status: profile.subscription_status
-      });
+      try {
+        await supabase.rpc('track_usage_event', {
+          _user_id: userId,
+          _event_type: 'chat_completion',
+          _requests_count: 1,
+          _subscription_status: profile.subscription_status
+        });
+      } catch (e) {
+        console.warn('Non-blocking: failed to log usage analytics', e);
+      }
     }
 
     if (stream) {
