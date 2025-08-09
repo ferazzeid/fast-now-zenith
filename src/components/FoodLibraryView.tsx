@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -533,11 +533,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
               loading="lazy"
             />
-          ) : (
-            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-              <span className="text-lg">🍽️</span>
-            </div>
-          )}
+           ) : (
+             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+               <Utensils className="w-5 h-5 text-muted-foreground" />
+             </div>
+           )}
           
           {/* Food Info - Compact typography */}
           <div className="flex-1 min-w-0">
