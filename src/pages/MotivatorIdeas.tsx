@@ -73,15 +73,19 @@ export default function MotivatorIdeas() {
     try {
       const success = await updateDefaultGoal(updated.id, {
         title: updated.title,
-        content: updated.content,
+        content: updated.content, // This should match what updateDefaultGoal expects
         imageUrl: updated.imageUrl,
       });
       if (success) {
         setEditingMotivator(null);
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        refreshGoalIdeas();
+        // Force immediate refresh of the ideas
+        await refreshGoalIdeas();
+      } else {
+        throw new Error('Update failed');
       }
     } catch (e) {
+      console.error('Update error:', e);
       toast({ title: 'Error', description: 'Failed to update idea.', variant: 'destructive' });
     }
   };
@@ -95,7 +99,7 @@ export default function MotivatorIdeas() {
   };
 
   return (
-    <div className="pt-10 pb-20">
+    <div className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
       <header className="flex items-center gap-3 mb-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
           <ArrowLeft className="w-4 h-4" />

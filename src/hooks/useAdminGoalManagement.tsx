@@ -173,7 +173,7 @@ export const useAdminGoalManagement = () => {
       goalIdeas[goalIndex] = {
         ...goalIdeas[goalIndex],
         title: updates.title || goalIdeas[goalIndex].title,
-        description: updates.content || goalIdeas[goalIndex].description,
+        description: updates.content || goalIdeas[goalIndex].description, // Map content -> description
         imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : goalIdeas[goalIndex].imageUrl
       };
 
