@@ -25,14 +25,17 @@ export const Navigation = () => {
   const { isOnline, isConnected } = useConnectionStore();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Optimize timer updates - only update when needed
+  // Optimize timer updates - only update when needed for both fasting and walking
   useEffect(() => {
     if (isAnimationsSuspended) return;
     
     let interval: NodeJS.Timeout;
     
-    // Only update time if there's an active fasting session
-    if (fastingSession && fastingSession.status === 'active') {
+    // Update time if there's an active fasting OR walking session
+    const hasFastingSession = fastingSession && fastingSession.status === 'active';
+    const hasWalkingSession = walkingSession && walkingSession.status === 'active';
+    
+    if (hasFastingSession || hasWalkingSession) {
       interval = setInterval(() => {
         setCurrentTime(Date.now());
       }, 1000);
@@ -41,7 +44,7 @@ export const Navigation = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isAnimationsSuspended, fastingSession?.status]);
+  }, [isAnimationsSuspended, fastingSession?.status, walkingSession?.status]);
 
   // Load active session on mount only - remove frequent polling
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Wifi } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
+import { useConnectionStore } from '@/stores/connectionStore';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -50,6 +51,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const { isOnline, isConnected, forceRetry, checkConnection } = useConnectionStore();
 
   useEffect(() => {
 
@@ -489,6 +491,66 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Connection Management Section */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Wifi className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Connection</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-warm-text">Network Status</span>
+                    <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+                      {isOnline ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-warm-text">Server Connection</span>
+                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                      {isConnected ? 'Connected' : 'Disconnected'}
+                    </span>
+                  </div>
+                  {(!isOnline || !isConnected) && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={async () => {
+                          toast({ title: "Reconnecting...", description: "Checking connection status" });
+                          await forceRetry();
+                          const connected = await checkConnection();
+                          toast({
+                            title: connected ? "Connected" : "Still offline",
+                            description: connected 
+                              ? "Connection restored successfully" 
+                              : "Unable to connect. Please check your internet connection.",
+                            variant: connected ? "default" : "destructive"
+                          });
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Wifi className="w-4 h-4 mr-2" />
+                        Reconnect
+                      </Button>
+                    </div>
+                  )}
+                  {(!isOnline || !isConnected) && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => window.location.reload()}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+                      >
+                        Reload App
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>

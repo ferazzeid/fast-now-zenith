@@ -29,9 +29,9 @@ interface ConnectionState {
 let monitoringInterval: NodeJS.Timeout | null = null;
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
-  isOnline: navigator.onLine,
-  isConnected: true,
-  lastConnectedAt: new Date(),
+  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  isConnected: false, // Start pessimistic - validate on startup
+  lastConnectedAt: null,
   retryCount: 0,
   queue: [],
   currentInterval: 120000, // Start with 2 minutes
@@ -78,11 +78,18 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       set({ isOnline: false, isConnected: false });
     };
     
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    // Store event listeners for cleanup
-    (window as any).__connectionListeners = { handleOnline, handleOffline };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+      
+      // Store event listeners for cleanup
+      (window as any).__connectionListeners = { handleOnline, handleOffline };
+      
+      // Validate connection on startup
+      setTimeout(() => {
+        get().checkConnection();
+      }, 500);
+    }
   },
 
   stopMonitoring: () => {

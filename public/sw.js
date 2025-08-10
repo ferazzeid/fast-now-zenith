@@ -60,8 +60,34 @@ self.addEventListener('fetch', (event) => {
           cache.put('/index.html', network.clone());
           return network;
         } catch {
+          // Serve the cached app shell instead of just "Offline" text
           const cached = await caches.match('/index.html');
-          return cached || new Response('<h1>Offline</h1>', { headers: { 'Content-Type': 'text/html' } });
+          if (cached) {
+            return cached;
+          }
+          // Fallback offline page that still provides app functionality
+          return new Response(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>FastNow - Offline</title>
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+                       padding: 20px; text-align: center; }
+                .offline-msg { margin-top: 50px; color: #666; }
+              </style>
+            </head>
+            <body>
+              <div class="offline-msg">
+                <h1>You're Offline</h1>
+                <p>The app will work with cached data when you're back online.</p>
+                <button onclick="location.reload()">Try Again</button>
+              </div>
+            </body>
+            </html>
+          `, { headers: { 'Content-Type': 'text/html' } });
         }
       })()
     );
