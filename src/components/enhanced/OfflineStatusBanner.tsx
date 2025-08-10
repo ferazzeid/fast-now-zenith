@@ -8,15 +8,15 @@ export const OfflineStatusBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Show banner immediately when going offline or losing connection
-    if (!isOnline || !isConnected) {
+    // Only show banner for confirmed offline state, not during initialization
+    if (!isOnline && !(window as any).__initializingApp) {
       setShowBanner(true);
     } else {
       // Hide banner with a slight delay when connection is restored
       const timer = setTimeout(() => setShowBanner(false), 1000);
       return () => clearTimeout(timer);
     }
-  }, [isOnline, isConnected]);
+  }, [isOnline]);
 
   if (!showBanner) return null;
 

@@ -30,8 +30,8 @@ let monitoringInterval: NodeJS.Timeout | null = null;
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
   isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
-  isConnected: false, // Start pessimistic - validate on startup
-  lastConnectedAt: null,
+  isConnected: true, // Start optimistic - only flag issues when confirmed
+  lastConnectedAt: new Date(),
   retryCount: 0,
   queue: [],
   currentInterval: 120000, // Start with 2 minutes
