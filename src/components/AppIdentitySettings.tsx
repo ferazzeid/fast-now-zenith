@@ -182,8 +182,13 @@ export const AppIdentitySettings: React.FC = () => {
         }
       }
 
-      // Update the dynamic manifest and capacitor config
-      await supabase.functions.invoke('dynamic-manifest');
+      // Update the dynamic manifest and capacitor config  
+      try {
+        await supabase.functions.invoke('dynamic-manifest');
+        console.log('Dynamic manifest refreshed');
+      } catch (error) {
+        console.error('Failed to refresh dynamic manifest:', error);
+      }
 
       toast({
         title: "✅ Settings Saved!",
