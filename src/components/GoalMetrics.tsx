@@ -25,7 +25,7 @@ export const GoalMetrics = () => {
   return (
     <div className="grid grid-cols-2 gap-3">
       {/* Weight Progress */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Scale className="w-4 h-4 text-primary" />
@@ -40,10 +40,12 @@ export const GoalMetrics = () => {
             {currentWeight} → {goalWeight} {units}
           </div>
         </div>
+        {/* Ring pulse animation */}
+        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" />
       </Card>
 
       {/* Time to Goal */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-primary" />
@@ -58,10 +60,12 @@ export const GoalMetrics = () => {
             at current deficit
           </div>
         </div>
+        {/* Ring pulse animation */}
+        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '0.5s' }} />
       </Card>
 
       {/* Today's Fat Loss */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Target className="w-4 h-4 text-primary" />
@@ -76,10 +80,12 @@ export const GoalMetrics = () => {
             today's deficit
           </div>
         </div>
+        {/* Ring pulse animation */}
+        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
       </Card>
 
       {/* 30-Day Projection */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <TrendingUp className="w-4 h-4 text-primary" />
@@ -94,6 +100,8 @@ export const GoalMetrics = () => {
             projected fat loss
           </div>
         </div>
+        {/* Ring pulse animation */}
+        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '1.5s' }} />
       </Card>
     </div>
   );
