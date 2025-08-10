@@ -228,9 +228,6 @@ export const useFastingSessionQuery = () => {
       return data;
     },
 
-      if (error) throw error;
-      return data;
-    },
     onMutate: async (sessionId) => {
       // PERFORMANCE: Optimistic update
       await queryClient.cancelQueries({ queryKey: activeSessionQueryKey(user?.id || null) });
