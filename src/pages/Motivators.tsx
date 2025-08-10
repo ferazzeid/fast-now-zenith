@@ -330,30 +330,21 @@ const Motivators = () => {
               {motivators.length < 3 && [...Array(3 - motivators.length)].map((_, index) => (
                 <Card 
                   key={`placeholder-${index}`} 
-                  className="overflow-hidden border-dashed border-2 border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-all duration-200 hover:bg-muted/20"
+                  className="overflow-hidden border-dashed border-2 border-muted-foreground/20 hover:border-primary/30 cursor-pointer transition-all duration-200 hover:bg-muted/10 bg-muted/5"
                   onClick={() => setShowFormModal(true)}
                 >
-                  <CardContent className="p-0">
-                    <div className="flex">
-                      {/* Placeholder Image with Add Image Encouragement */}
-                      <div className="w-32 h-32 flex-shrink-0 bg-muted/40 flex flex-col items-center justify-center gap-2">
-                        <Plus className="w-8 h-8 text-primary" />
-                        <span className="text-xs text-muted-foreground font-medium">add image</span>
+                  <CardContent className="p-6">
+                    <div className="text-center space-y-3">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                        <Plus className="w-6 h-6 text-primary/60" />
                       </div>
-                      
-                      {/* Placeholder Content */}
-                      <div className="flex-1 p-4 flex items-center justify-center">
-                        <div className="text-center">
-                          <h3 className="font-semibold text-muted-foreground mb-1">
-                            Add Goal #{motivators.length + index + 1}
-                          </h3>
-                          <p className="text-sm text-muted-foreground/70">
-                            Click to create your {motivators.length + index + 1 === 2 ? 'second' : 'third'} motivator
-                          </p>
-                          <div className="mt-2">
-                            <Plus className="w-5 h-5 text-primary/70 mx-auto" />
-                          </div>
-                        </div>
+                      <div>
+                        <h3 className="font-medium text-muted-foreground mb-1">
+                          Add Goal #{motivators.length + index + 1}
+                        </h3>
+                        <p className="text-sm text-muted-foreground/60">
+                          Click to create your {motivators.length + index + 1 === 2 ? 'second' : 'third'} motivator
+                        </p>
                       </div>
                     </div>
                   </CardContent>
