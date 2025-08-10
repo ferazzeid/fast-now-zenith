@@ -91,15 +91,15 @@ export const FastSelector = ({
             {presets.map((preset) => (
               <Button
                 key={preset.name}
-                variant={preset.recommended ? "default" : "outline"}
+                variant={duration === preset.hours ? "default" : "outline"}
                 onClick={() => setDuration(preset.hours)}
-                className={preset.recommended 
+                className={duration === preset.hours 
                   ? "justify-start bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/20" 
                   : "justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-rim"
                 }
               >
                 <span className="font-medium">{preset.name}</span>
-                {preset.recommended && (
+                {duration === preset.hours && (
                   <Check className="ml-2 w-4 h-4 text-primary-foreground" />
                 )}
                 <span className="ml-auto text-muted-foreground text-sm">
