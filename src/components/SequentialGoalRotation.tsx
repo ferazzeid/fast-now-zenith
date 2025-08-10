@@ -32,42 +32,32 @@ export const SequentialGoalRotation = ({
     let timer: NodeJS.Timeout;
 
     const runCycle = () => {
-      // Phase 1: Show timer (4 seconds)
+      // Reset to timer state
       setDisplayState('timer');
+      setIsAnimating(false);
       onModeChange?.('timer-focused');
       
+      // Show timer for 5 seconds
       timer = setTimeout(() => {
-        // Phase 2: Zoom out timer, zoom in goal
-        setIsAnimating(true);
-        setDisplayState('transition');
+        // Switch to goal
+        setDisplayState('goal');
+        onModeChange?.('motivator-focused');
         
-        setTimeout(() => {
-          setDisplayState('goal');
-          onModeChange?.('motivator-focused');
-          setIsAnimating(false);
-        }, 500); // Half second transition
-        
-        // Phase 3: Show goal (4 seconds)
+        // Show goal for 4 seconds, then advance to next
         timer = setTimeout(() => {
-          // Phase 4: Zoom out goal, zoom in timer, advance to next
-          setIsAnimating(true);
-          setDisplayState('transition');
-          
-          setTimeout(() => {
-            setCurrentIndex(prev => (prev + 1) % motivatorsWithoutImages.length);
-            setDisplayState('timer');
-            onModeChange?.('timer-focused');
-            setIsAnimating(false);
-          }, 500); // Half second transition
+          // Move to next goal and back to timer
+          setCurrentIndex(prev => (prev + 1) % motivatorsWithoutImages.length);
+          setDisplayState('timer');
+          onModeChange?.('timer-focused');
         }, 4000);
-      }, 4000);
+      }, 5000);
     };
 
     // Start immediately
     runCycle();
     
-    // Repeat every 9 seconds (4s timer + 0.5s transition + 4s goal + 0.5s transition)
-    const interval = setInterval(runCycle, 9000);
+    // Repeat every 10 seconds (5s timer + 4s goal + 1s buffer)
+    const interval = setInterval(runCycle, 10000);
 
     return () => {
       clearTimeout(timer);
@@ -86,13 +76,8 @@ export const SequentialGoalRotation = ({
       {/* Goal Display - Only visible during goal phase */}
       {displayState === 'goal' && currentMotivator && (
         <div 
-          className="absolute inset-0 flex items-center justify-center animate-scale-in"
-          style={{ 
-            zIndex: 15,
-            transform: 'scale(1)',
-            opacity: 1,
-            transition: 'all 0.5s ease-out'
-          }}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ zIndex: 15 }}
         >
           {/* Pulsating rings around the plate */}
           <div className="absolute inset-[-40px] border-4 border-primary/20 rounded-full animate-pulse pointer-events-none" />
@@ -101,17 +86,13 @@ export const SequentialGoalRotation = ({
           
           {/* Goal Text */}
           <div 
-            className="text-primary font-bold text-xl tracking-wide text-center px-6 py-3 rounded-full bg-background/90 backdrop-blur-sm border-2 border-primary/30 max-w-[85%] shadow-lg"
-            style={{
-              textShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            }}
+            className="text-primary font-bold text-xl tracking-wide text-center px-6 py-3 rounded-full bg-background/90 backdrop-blur-sm border-2 border-primary/30 max-w-[85%] shadow-lg animate-scale-in"
+            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
           >
             {currentMotivator.title.toUpperCase()}
           </div>
         </div>
       )}
-
-      {/* CSS animations are handled via Tailwind classes and inline styles */}
     </div>
   );
 };
