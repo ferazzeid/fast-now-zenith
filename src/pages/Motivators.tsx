@@ -117,6 +117,46 @@ const Motivators = () => {
     console.log('🎯 Result name:', result.name);
     console.log('🎯 Result arguments:', result.arguments);
     
+    // Handle voice edit commands
+    if (result.name === 'edit_motivator') {
+      const { motivator_id, updates } = result.arguments;
+      try {
+        await updateMotivator(motivator_id, updates);
+        toast({
+          title: "✅ Motivator Updated!",
+          description: "Your motivator has been updated via voice command.",
+        });
+      } catch (error) {
+        console.error('🎯 Error updating motivator via voice:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update motivator. Please try again.",
+          variant: "destructive"
+        });
+      }
+      return;
+    }
+    
+    // Handle voice delete commands
+    if (result.name === 'delete_motivator') {
+      const { motivator_id } = result.arguments;
+      try {
+        await handleDeleteMotivator(motivator_id);
+        toast({
+          title: "✅ Motivator Deleted!",
+          description: "Your motivator has been deleted via voice command.",
+        });
+      } catch (error) {
+        console.error('🎯 Error deleting motivator via voice:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete motivator. Please try again.",
+          variant: "destructive"
+        });
+      }
+      return;
+    }
+    
     // Check if it's bulk motivator creation
     if (result.name === 'create_multiple_motivators') {
       console.log('🎯 Found create_multiple_motivators result');

@@ -457,11 +457,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const handleBulkAddToMeal = async () => {
     if (selectedFoods.size === 0) return;
     
-    const selectedFoodItems = foods.filter(food => selectedFoods.has(food.id));
+    let selectedFoodItems: (UserFood | DefaultFood)[] = [];
+    
+    // Get selected foods based on active tab
+    if (activeTab === 'my-foods') {
+      selectedFoodItems = foods.filter(food => selectedFoods.has(food.id));
+    } else if (activeTab === 'recent') {
+      selectedFoodItems = recentFoods.filter(food => selectedFoods.has(food.id));
+    } else if (activeTab === 'suggested') {
+      selectedFoodItems = defaultFoods.filter(food => selectedFoods.has(food.id));
+    }
     
     // Add each selected food to the meal plan
     for (const food of selectedFoodItems) {
-      onSelectFood(food, false);
+      onSelectFood(food as UserFood, false);
     }
     
     toast({
@@ -508,8 +517,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
-    const isSelected = isUserFood && selectedFoods.has(food.id);
-    const canMultiSelect = isUserFood && activeTab === 'my-foods';
+    const isSelected = selectedFoods.has(food.id);
+    const canMultiSelect = activeTab === 'my-foods' || activeTab === 'recent' || activeTab === 'suggested';
     const [showEditModal, setShowEditModal] = useState(false);
     
     const handleCardClick = (e: React.MouseEvent) => {
@@ -530,7 +539,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       } else if (isUserFood) {
         handleQuickSelect(food as UserFood, false);
       } else {
-        importToMyLibrary(food as DefaultFood);
+        // For Recent and Suggested foods, add them directly to today's plan
+        if (activeTab === 'recent' || activeTab === 'suggested') {
+          onSelectFood(food as UserFood, false);
+        } else {
+          importToMyLibrary(food as DefaultFood);
+        }
       }
     };
 
@@ -544,7 +558,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
-          {/* Multi-select checkbox (always visible for user foods in my-foods tab) */}
+          {/* Multi-select checkbox (visible for all tabs when enabled) */}
           {canMultiSelect && (
             <div className="flex-shrink-0">
               <Checkbox
@@ -748,15 +762,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  isUserFood ? 
-                    handleQuickSelect(food as UserFood, false) : 
-                    importToMyLibrary(food as DefaultFood)
+                  if (isUserFood) {
+                    handleQuickSelect(food as UserFood, false);
+                  } else if (activeTab === 'recent' || activeTab === 'suggested') {
+                    onSelectFood(food as UserFood, false);
+                  } else {
+                    importToMyLibrary(food as DefaultFood);
+                  }
                 }}
                 className="h-5 w-5 p-1 flex-shrink-0 rounded"
-                title={isUserFood ? "Add to today's plan" : "Import to your library"}
-                aria-label={isUserFood ? "Add to today's plan" : "Import to your library"}
+                title={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+                aria-label={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
               >
-                {isUserFood ? (
+                {isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? (
                   <Plus className="w-3 h-3" />
                 ) : (
                   <Download className="w-3 h-3" />

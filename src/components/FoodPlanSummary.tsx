@@ -35,27 +35,27 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
   };
 
   return (
-    <div className="bg-muted/20 rounded-lg p-4 mb-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="bg-muted/20 rounded-lg p-2 mb-4">
+      <div className="grid grid-cols-2 gap-2">
         {/* Calories Card */}
-        <Card className="p-4">
-          <div className="space-y-2">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <Card className="p-3">
+          <div className="space-y-1.5">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Calories
             </div>
             
             {/* Planned Calories */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Planned:</span>
-              <span className="text-sm font-medium">
+              <span className="text-xs text-muted-foreground">Planned:</span>
+              <span className="text-xs font-semibold">
                 {Math.round(plannedCalories)} / {dailyCalorieGoal}
               </span>
             </div>
             
             {/* Consumed Calories */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Eaten:</span>
-              <span className={`text-sm font-bold ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
+              <span className="text-xs text-muted-foreground">Eaten:</span>
+              <span className={`text-xs font-bold ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
                 {Math.round(consumedCalories)} / {dailyCalorieGoal}
               </span>
             </div>
@@ -63,24 +63,24 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
         </Card>
 
         {/* Carbs Card */}
-        <Card className="p-4">
-          <div className="space-y-2">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <Card className="p-3">
+          <div className="space-y-1.5">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Carbs (g)
             </div>
             
             {/* Planned Carbs */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Planned:</span>
-              <span className="text-sm font-medium">
+              <span className="text-xs text-muted-foreground">Planned:</span>
+              <span className="text-xs font-semibold">
                 {Math.round(plannedCarbs)} / {dailyCarbGoal}
               </span>
             </div>
             
             {/* Consumed Carbs */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Eaten:</span>
-              <span className={`text-sm font-bold ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
+              <span className="text-xs text-muted-foreground">Eaten:</span>
+              <span className={`text-xs font-bold ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
                 {Math.round(consumedCarbs)} / {dailyCarbGoal}
               </span>
             </div>
