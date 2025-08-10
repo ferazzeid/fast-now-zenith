@@ -100,11 +100,18 @@ serve(async (req) => {
     }
 
     const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+    
+    // Add version parameter for cache busting
+    const version = Date.now();
+    manifest.version = version.toString();
+    
     return new Response(JSON.stringify(manifest, null, 2), {
       headers: { 
         ...corsHeaders, 
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300' // Cache for 5 minutes
+        'Cache-Control': 'public, max-age=30, must-revalidate', // Reduced cache time to 30 seconds
+        'ETag': `"${version}"`,
+        'Vary': 'Origin'
       },
     })
 

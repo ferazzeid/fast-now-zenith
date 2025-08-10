@@ -37,11 +37,12 @@ export const useDynamicPWAAssets = () => {
           });
         }
 
-        // Force manifest refresh
+        // Force manifest refresh with enhanced cache busting
         const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
         if (manifestLink) {
           const url = new URL(manifestLink.href, window.location.origin);
           url.searchParams.set('v', Date.now().toString());
+          url.searchParams.set('bust', Math.random().toString(36));
           manifestLink.href = url.toString();
         }
 

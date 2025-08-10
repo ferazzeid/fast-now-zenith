@@ -182,17 +182,19 @@ export const AppIdentitySettings: React.FC = () => {
         }
       }
 
-      // Update the dynamic manifest and capacitor config  
-      try {
-        await supabase.functions.invoke('dynamic-manifest');
-        console.log('Dynamic manifest refreshed');
-      } catch (error) {
-        console.error('Failed to refresh dynamic manifest:', error);
+      // Force PWA cache refresh and manifest update
+      const { forcePWARefresh } = await import('@/utils/pwaCache');
+      const refreshSuccess = await forcePWARefresh();
+      
+      if (refreshSuccess) {
+        console.log('PWA cache refreshed successfully');
+      } else {
+        console.warn('PWA cache refresh had issues, but settings were saved');
       }
 
       toast({
         title: "✅ Settings Saved!",
-        description: "App identity settings updated successfully. Changes will take effect on next app restart.",
+        description: "App identity settings updated successfully. PWA manifest refreshed - try 'Add to Home Screen' again!",
       });
     } catch (error) {
       console.error('Error saving app settings:', error);

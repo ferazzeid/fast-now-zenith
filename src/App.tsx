@@ -32,6 +32,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
 import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
+import { useDynamicHTMLMeta } from "./hooks/useDynamicHTMLMeta";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -69,6 +70,8 @@ const AppContent = () => {
   useDynamicFavicon();
   // Load dynamic PWA assets (logo, icons)
   useDynamicPWAAssets();
+  // Load dynamic HTML meta tags
+  useDynamicHTMLMeta();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
