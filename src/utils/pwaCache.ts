@@ -4,7 +4,23 @@ export const forcePWARefresh = async () => {
   try {
     console.log('Starting PWA cache refresh...');
     
-    // 1. Force manifest refresh with cache busting
+    // 1. Update favicon links with new assets
+    const faviconLink = document.getElementById('dynamic-favicon') as HTMLLinkElement;
+    const shortcutIconLink = document.getElementById('dynamic-shortcut-icon') as HTMLLinkElement;
+    if (faviconLink) {
+      faviconLink.href = '/src/assets/favicon-512.png';
+    }
+    if (shortcutIconLink) {
+      shortcutIconLink.href = '/src/assets/favicon-512.png';
+    }
+
+    // 2. Update apple touch icons
+    const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
+    appleTouchIcons.forEach((icon: any) => {
+      icon.href = '/src/assets/apple-touch-icon-512.png';
+    });
+    
+    // 3. Force manifest refresh with cache busting
     const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
     if (manifestLink) {
       const url = new URL(manifestLink.href, window.location.origin);
@@ -14,11 +30,11 @@ export const forcePWARefresh = async () => {
       console.log('Manifest URL updated with cache busting');
     }
 
-    // 2. Invoke dynamic manifest function to refresh server-side
+    // 4. Invoke dynamic manifest function to refresh server-side
     await supabase.functions.invoke('dynamic-manifest');
     console.log('Dynamic manifest function invoked');
 
-    // 3. Update service worker to clear PWA cache
+    // 5. Update service worker to clear PWA cache
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.ready;
       if (registration.active) {
@@ -30,18 +46,18 @@ export const forcePWARefresh = async () => {
       }
     }
 
-    // 4. Clear any cached manifest data in browser
+    // 6. Clear any cached manifest data in browser
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       for (const cacheName of cacheNames) {
-        if (cacheName.includes('manifest') || cacheName.includes('pwa')) {
+        if (cacheName.includes('manifest') || cacheName.includes('pwa') || cacheName.includes('icon')) {
           await caches.delete(cacheName);
           console.log(`Cleared cache: ${cacheName}`);
         }
       }
     }
 
-    // 5. Force a small delay to allow updates to propagate
+    // 7. Force a small delay to allow updates to propagate
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     console.log('PWA cache refresh completed');
