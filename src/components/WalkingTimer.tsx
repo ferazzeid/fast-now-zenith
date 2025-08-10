@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
-import { RotatingGoalText } from './RotatingGoalText';
+import { SequentialGoalRotation } from './SequentialGoalRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
@@ -134,13 +134,11 @@ const WalkingTimerComponent = ({
             </div>
           )}
           
-          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
+          {/* Sequential Goal Rotation - Show when text motivators exist */}
           {showSlideshow && isActive && !isPaused && motivatorsWithoutImages.length > 0 && (
-            <RotatingGoalText 
+            <SequentialGoalRotation 
               isActive={showSlideshow && isActive && !isPaused} 
               onModeChange={setMotivatorMode}
-              radius={140}
-              textSize="text-sm"
               className="rounded-lg"
             />
           )}

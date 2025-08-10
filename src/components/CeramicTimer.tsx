@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
 import { MotivatorSlideshow } from './MotivatorSlideshow';
-import { RotatingGoalText } from './RotatingGoalText';
+import { SequentialGoalRotation } from './SequentialGoalRotation';
 import { useMotivators } from '@/hooks/useMotivators';
 
 interface CeramicTimerProps {
@@ -82,13 +82,11 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             </div>
           )}
           
-          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
+          {/* Sequential Goal Rotation - Show when text motivators exist */}
           {showSlideshow && motivatorsWithoutImages.length > 0 && (
-            <RotatingGoalText 
-              isActive={true} // Always active to allow goal rotation per user request
+            <SequentialGoalRotation 
+              isActive={isActive} // Only active when timer is running
               onModeChange={setMotivatorMode}
-              radius={110}
-              textSize="text-xs"
             />
           )}
           
