@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { RotatingGoalText } from './RotatingGoalText';
+import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
@@ -124,20 +125,10 @@ const WalkingTimerComponent = ({
         
         {/* Main Timer Card */}
         <Card className="p-6 text-center relative overflow-hidden">
-          {/* Walking Motivator Slideshow Background */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && (
-            <div className="absolute inset-0 rounded-lg overflow-hidden">
-              <WalkingMotivatorSlideshow 
-                isActive={showSlideshow && isActive && !isPaused} 
-                onModeChange={setMotivatorMode}
-              />
-            </div>
-          )}
-          
-          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithoutImages.length > 0 && (
-            <RotatingGoalText 
-              isActive={showSlideshow && isActive && !isPaused} 
+          {/* Unified Motivator Rotation - Shows ALL motivators in sequence */}
+          {showSlideshow && isActive && !isPaused && (motivatorsWithImages.length > 0 || motivatorsWithoutImages.length > 0) && (
+            <UnifiedMotivatorRotation 
+              isActive={showSlideshow && isActive && !isPaused}
               onModeChange={setMotivatorMode}
               radius={140}
               textSize="text-sm"

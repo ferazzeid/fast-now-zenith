@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
 import { MotivatorSlideshow } from './MotivatorSlideshow';
 import { RotatingGoalText } from './RotatingGoalText';
+import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { useMotivators } from '@/hooks/useMotivators';
 
 interface CeramicTimerProps {
@@ -75,20 +76,14 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
-          {/* Image Background - MOVED INSIDE center well where it belongs */}
-          {showSlideshow && isActive && motivatorsWithImages.length > 0 && (
-            <div className="absolute inset-0 rounded-full overflow-hidden">
-              <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
-            </div>
-          )}
-          
-          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
-          {showSlideshow && motivatorsWithoutImages.length > 0 && (
-            <RotatingGoalText 
-              isActive={true} // Always active to allow goal rotation per user request
+          {/* Unified Motivator Rotation - Shows ALL motivators in sequence */}
+          {showSlideshow && (motivatorsWithImages.length > 0 || motivatorsWithoutImages.length > 0) && (
+            <UnifiedMotivatorRotation 
+              isActive={showSlideshow && isActive}
               onModeChange={setMotivatorMode}
               radius={110}
               textSize="text-xs"
+              className="rounded-full"
             />
           )}
           
