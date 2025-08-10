@@ -35,7 +35,8 @@ export const useAdminGoalIdeas = () => {
           const parsedGoalIdeas = JSON.parse(data.setting_value);
           const validIdeas = Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : [];
           console.log('Admin Goal Ideas loaded:', validIdeas);
-          setGoalIdeas(validIdeas);
+          // Force UI update by creating new array reference
+          setGoalIdeas([...validIdeas]);
         } catch (parseError) {
           console.error('Error parsing admin goal ideas:', parseError);
           setGoalIdeas([]);

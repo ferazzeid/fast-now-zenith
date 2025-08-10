@@ -178,6 +178,7 @@ export const useAdminGoalManagement = () => {
       };
 
       // Save back to database
+      console.log('Saving updated goal ideas:', goalIdeas);
       const { error: updateError } = await supabase
         .from('shared_settings')
         .upsert({
@@ -185,8 +186,12 @@ export const useAdminGoalManagement = () => {
           setting_value: JSON.stringify(goalIdeas)
         });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw updateError;
+      }
 
+      console.log('Successfully updated admin goal ideas in database');
       toast({
         title: "✅ Goal Updated!",
         description: "Admin goal idea has been updated successfully",

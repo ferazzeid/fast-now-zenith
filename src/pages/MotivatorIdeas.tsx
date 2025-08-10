@@ -71,16 +71,21 @@ export default function MotivatorIdeas() {
 
   const handleSaveEdit = async (updated: any) => {
     try {
+      console.log('Saving edit with data:', updated);
       const success = await updateDefaultGoal(updated.id, {
         title: updated.title,
-        content: updated.content, // This should match what updateDefaultGoal expects
+        content: updated.content,
         imageUrl: updated.imageUrl,
       });
       if (success) {
+        console.log('Update successful, refreshing ideas...');
         setEditingMotivator(null);
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        // Force immediate refresh of the ideas
-        await refreshGoalIdeas();
+        // Force immediate refresh of the ideas with a slight delay to ensure DB update is complete
+        setTimeout(async () => {
+          await refreshGoalIdeas();
+          console.log('Ideas refreshed after update');
+        }, 500);
       } else {
         throw new Error('Update failed');
       }
