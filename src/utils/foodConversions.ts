@@ -8,6 +8,7 @@ export interface UnitConversion {
 // Available serving size units by unit system
 export const METRIC_SERVING_UNITS: UnitConversion[] = [
   { value: 'grams', label: 'grams' },
+  { value: 'milliliters', label: 'milliliters' },
   { value: 'pieces', label: 'pieces' },
   { value: 'cups', label: 'cups' },
   { value: 'slices', label: 'slices' }
@@ -15,6 +16,7 @@ export const METRIC_SERVING_UNITS: UnitConversion[] = [
 
 export const IMPERIAL_SERVING_UNITS: UnitConversion[] = [
   { value: 'ounces', label: 'ounces' },
+  { value: 'fl_oz', label: 'fluid ounces' },
   { value: 'pieces', label: 'pieces' },
   { value: 'cups', label: 'cups' },
   { value: 'slices', label: 'slices' }
@@ -23,7 +25,9 @@ export const IMPERIAL_SERVING_UNITS: UnitConversion[] = [
 // Legacy export for backward compatibility
 export const SERVING_SIZE_UNITS: UnitConversion[] = [
   { value: 'grams', label: 'grams' },
+  { value: 'milliliters', label: 'milliliters' },
   { value: 'ounces', label: 'ounces' },
+  { value: 'fl_oz', label: 'fluid ounces' },
   { value: 'pieces', label: 'pieces' },
   { value: 'cups', label: 'cups' },
   { value: 'slices', label: 'slices' }
@@ -50,6 +54,18 @@ export const convertToGrams = (amount: number, unit: string, foodName?: string):
     case 'grams':
       return amount;
     
+    case 'milliliters':
+    case 'milliliter':
+    case 'ml':
+      // Approximate: 1 ml ≈ 1 g for most liquids
+      return amount * 1;
+
+    case 'fl_oz':
+    case 'fluid_ounces':
+    case 'fluid_ounce':
+      // 1 US fluid ounce = 29.57 ml ≈ 29.57 g
+      return amount * 29.57;
+    
     case 'ounces':
     case 'oz':
       return amount * 28.35; // 1 oz = 28.35g
@@ -64,7 +80,7 @@ export const convertToGrams = (amount: number, unit: string, foodName?: string):
         return amount * 125; // 1 cup flour ≈ 125g
       } else if (foodType.includes('sugar')) {
         return amount * 200; // 1 cup sugar ≈ 200g
-      } else if (foodType.includes('milk') || foodType.includes('water') || foodType.includes('juice')) {
+      } else if (foodType.includes('milk') || foodType.includes('water') || foodType.includes('juice') || foodType.includes('pepsi') || foodType.includes('coke') || foodType.includes('soda')) {
         return amount * 240; // 1 cup liquid ≈ 240g
       } else {
         return amount * 150; // Default for solid foods

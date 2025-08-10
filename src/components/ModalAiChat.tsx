@@ -224,14 +224,16 @@ ${args.content}`,
           await handleFoodSearch(search_term, context);
           return;
         } else if (data.functionCall.name === 'edit_food_entry') {
-          // Handle direct food entry editing
           const { entry_id, updates } = data.functionCall.arguments;
           await handleDirectFoodEdit(entry_id, updates, 'today');
           return;
         } else if (data.functionCall.name === 'edit_library_food') {
-          // Handle library food editing
           const { food_id, updates } = data.functionCall.arguments;
           await handleDirectFoodEdit(food_id, updates, 'library');
+          return;
+        } else if (data.functionCall.name === 'delete_food_entry' || data.functionCall.name === 'delete_library_food') {
+          // Forward deletion requests to parent handler
+          await onResult?.(data.functionCall);
           return;
         }
       }
@@ -370,31 +372,16 @@ ${args.content}`,
 
   const handleAddAllFoods = async () => {
     if (lastFoodSuggestion?.foods && onResult) {
-      // Show processing state
       setIsProcessing(true);
-      
       try {
-        // Call the result callback directly without showing user message
         await onResult({
           name: 'add_multiple_foods',
-          arguments: { foods: lastFoodSuggestion.foods }
+          arguments: { foods: lastFoodSuggestion.foods, destination: lastFoodSuggestion.destination || 'today' }
         });
-        
-        // Add only the simple confirmation message
-        const confirmationMessage: Message = {
-          role: 'assistant',
-          content: '✅ Foods added successfully!',
-          timestamp: new Date()
-        };
-        
+        const confirmationMessage: Message = { role: 'assistant', content: '✅ Foods added successfully!', timestamp: new Date() };
         setMessages(prev => [...prev, confirmationMessage]);
-        
-        // Mark foods as added but keep them visible
-        setLastFoodSuggestion(prev => ({
-          ...prev,
-          added: true
-        }));
-        
+        // Collapse the list after adding
+        setLastFoodSuggestion(null);
       } catch (error) {
         console.error('Error adding foods:', error);
       } finally {

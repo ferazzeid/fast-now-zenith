@@ -60,10 +60,11 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     try {
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
-          message: `Please provide only the ${field} per 100g for ${data.name}. Return only the number value.`,
-          conversationHistory: []
-        },
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+          messages: [
+            { role: 'system', content: 'You are a nutrition expert. Return ONLY a number with no units.' },
+            { role: 'user', content: `Provide ${field} per 100g for ${data.name}. Number only.` }
+          ]
+        }
       });
       if (error) throw new Error(error.message || 'Unknown error from AI service');
       if (!result) throw new Error('No response from AI service');

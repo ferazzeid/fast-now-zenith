@@ -206,7 +206,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
                   <Sparkles className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">AI Analysis</span>
                   {result.confidence && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="default" className="text-xs bg-primary/20 text-primary-foreground">
                       {Math.round(result.confidence * 100)}% confidence
                     </Badge>
                   )}

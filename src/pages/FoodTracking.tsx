@@ -128,8 +128,6 @@ const FoodTracking = () => {
   const handleAiChatResult = async (result: any) => {
     if (result.name === 'add_food_entry') {
       const { arguments: args } = result;
-      
-      // Add the food entry from AI suggestion
       const foodResult = await addFoodEntry({
         name: args.name,
         calories: parseFloat(args.calories),
@@ -137,76 +135,62 @@ const FoodTracking = () => {
         serving_size: parseFloat(args.serving_size),
         consumed: args.consumed || false
       });
-
       if (!foodResult || 'error' in foodResult) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to add food entry"
-        });
+        toast({ variant: "destructive", title: "Error", description: "Failed to add food entry" });
       } else {
         trackFoodEvent('add', 'voice');
-        
-        // Show detailed confirmation message with better visibility
-        toast({
-          title: "✅ Food Added Successfully!",
-          description: `${args.name} (${args.serving_size}g) added to your food plan with ${args.calories} cal and ${args.carbs}g carbs. Check your food list below or continue adding more items.`
-        });
-        
-        // Save to personal library
-        await saveToLibrary({
-          name: args.name,
-          calories: parseFloat(args.calories),
-          carbs: parseFloat(args.carbs),
-          serving_size: parseFloat(args.serving_size)
-        });
+        toast({ title: "✅ Food Added Successfully!", description: `${args.name} (${args.serving_size}g) added with ${args.calories} cal and ${args.carbs}g carbs.` });
+        await saveToLibrary({ name: args.name, calories: parseFloat(args.calories), carbs: parseFloat(args.carbs), serving_size: parseFloat(args.serving_size) });
       }
     } else if (result.name === 'add_multiple_foods') {
       const { arguments: args } = result;
       const foods = args.foods || [];
-      
+      const destination = args.destination || 'today';
       let successCount = 0;
       let totalCalories = 0;
       let totalCarbs = 0;
-      
-      // Add all foods sequentially
-      for (const food of foods) {
-        const foodResult = await addFoodEntry({
-          name: food.name,
-          calories: parseFloat(food.calories),
-          carbs: parseFloat(food.carbs),
-          serving_size: parseFloat(food.serving_size),
-          consumed: food.consumed || false
-        });
 
-        if (foodResult && !('error' in foodResult)) {
-          successCount++;
-          totalCalories += parseFloat(food.calories);
-          totalCarbs += parseFloat(food.carbs);
-          
-          // Save each to personal library
-          await saveToLibrary({
+      if (destination === 'today') {
+        for (const food of foods) {
+          const foodResult = await addFoodEntry({
             name: food.name,
             calories: parseFloat(food.calories),
             carbs: parseFloat(food.carbs),
-            serving_size: parseFloat(food.serving_size)
+            serving_size: parseFloat(food.serving_size),
+            consumed: food.consumed || false
           });
+          if (foodResult && !('error' in foodResult)) {
+            successCount++;
+            totalCalories += parseFloat(food.calories);
+            totalCarbs += parseFloat(food.carbs);
+            await saveToLibrary({ name: food.name, calories: parseFloat(food.calories), carbs: parseFloat(food.carbs), serving_size: parseFloat(food.serving_size) });
+          }
+        }
+      } else if (destination === 'template') {
+        const foodsToSave = foods.map((f: any) => ({ name: f.name, calories: parseFloat(f.calories), carbs: parseFloat(f.carbs), serving_size: parseFloat(f.serving_size) }));
+        const { error } = await saveTemplate(foodsToSave);
+        if (!error) successCount = foods.length;
+      } else if (destination === 'library') {
+        for (const f of foods) {
+          await saveToLibrary({ name: f.name, calories: parseFloat(f.calories), carbs: parseFloat(f.carbs), serving_size: parseFloat(f.serving_size) });
+          successCount++;
         }
       }
-      
+
       if (successCount > 0) {
         trackFoodEvent('add', 'voice');
-        toast({
-          title: "✅ Foods Added Successfully!",
-          description: `${successCount} food items added with ${Math.round(totalCalories)} total calories and ${Math.round(totalCarbs)}g carbs. Check your food list below!`
-        });
+        toast({ title: destination === 'today' ? "✅ Foods Added!" : destination === 'template' ? "✅ Template Saved!" : "✅ Library Updated!", description: destination === 'today' ? `${successCount} items added (${Math.round(totalCalories)} cal, ${Math.round(totalCarbs)}g carbs).` : `${successCount} item(s) processed.` });
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to add food items. Please try again."
-        });
+        toast({ variant: "destructive", title: "Error", description: "Failed to process AI request." });
       }
+    } else if (result.name === 'delete_food_entry') {
+      const { entry_id } = result.arguments;
+      await deleteFoodEntry(entry_id);
+      toast({ title: 'Removed', description: 'Food entry deleted.' });
+    } else if (result.name === 'delete_library_food') {
+      const { food_id } = result.arguments;
+      await supabase.from('user_foods').delete().eq('id', food_id).eq('user_id', user?.id);
+      toast({ title: 'Removed', description: 'Library food deleted.' });
     }
   };
 
@@ -775,17 +759,17 @@ const FoodTracking = () => {
                       <div className="w-1"></div>
                       
                       {/* More Options Menu */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                           <Button 
-                             size="sm" 
-                             variant="ghost" 
-                             className="min-h-[44px] min-w-[44px] p-2 hover:bg-secondary/80 rounded"
-                             aria-label="More options"
-                           >
-                             <MoreVertical className="w-4 h-4 text-primary" />
-                          </Button>
-                        </DropdownMenuTrigger>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                             <Button 
+                               size="sm" 
+                               variant="ghost" 
+                               className="h-8 w-8 p-0 hover:bg-secondary/80 rounded"
+                               aria-label="More options"
+                             >
+                               <MoreVertical className="w-4 h-4 text-primary" />
+                            </Button>
+                          </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
                               <Edit className="w-4 h-4 mr-2" />
@@ -970,16 +954,16 @@ const FoodTracking = () => {
                          <div className="flex items-center gap-1 flex-shrink-0">
                            <div className="w-1"></div>
                            
-                           <DropdownMenu>
-                             <DropdownMenuTrigger asChild>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="min-h-[44px] min-w-[44px] p-2 hover:bg-secondary/80 rounded"
-                                >
-                                  <MoreVertical className="w-4 h-4 text-primary" />
-                               </Button>
-                             </DropdownMenuTrigger>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                 <Button 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded"
+                                 >
+                                   <MoreVertical className="w-4 h-4 text-primary" />
+                                </Button>
+                              </DropdownMenuTrigger>
                                <DropdownMenuContent align="end" className="w-48">
                                  <DropdownMenuItem 
                                    onClick={async () => {
