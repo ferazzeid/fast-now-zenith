@@ -166,6 +166,7 @@ export const UniversalModal = ({
           // PROPER_CENTERING: Margins on left/right, not touching edges
           'mx-4 my-8',
           'max-h-[90vh]',
+          'w-[calc(100vw-2rem)]', // Ensure proper width constraint
           // SIZE: Responsive sizing
           sizeClasses[size],
           'focus:outline-none focus:ring-2 focus:ring-primary',

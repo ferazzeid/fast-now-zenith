@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Sparkles, Target } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
+import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
@@ -26,6 +27,7 @@ const Motivators = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
+  const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
@@ -69,21 +71,41 @@ const Motivators = () => {
 
   const handleSaveMotivator = async (updatedMotivator) => {
     try {
-      await updateMotivator(updatedMotivator.id, {
-        title: updatedMotivator.title,
-        content: updatedMotivator.content,
-        imageUrl: updatedMotivator.imageUrl
-      });
+      // Check if this is an admin goal edit (has no numeric id, just string id)
+      const isAdminGoalEdit = editingMotivator && typeof editingMotivator.id === 'string' && !editingMotivator.id.match(/^\d+$/);
       
-      trackMotivatorEvent('edit', 'personal');
-      setEditingMotivator(null);
-      
-      toast({
-        title: "✨ Motivator Updated!",
-        description: "Your changes have been saved.",
-      });
-      
-      refreshMotivators();
+      if (isAdminGoalEdit) {
+        // Update admin goal idea
+        const success = await updateDefaultGoal(editingMotivator.id, {
+          title: updatedMotivator.title,
+          content: updatedMotivator.content,
+          imageUrl: updatedMotivator.imageUrl
+        });
+        
+        if (success) {
+          trackMotivatorEvent('edit', 'admin_goal');
+          setEditingMotivator(null);
+          setShowFormModal(false);
+          // No need to refresh motivators for admin goals
+        }
+      } else {
+        // Update regular motivator
+        await updateMotivator(updatedMotivator.id, {
+          title: updatedMotivator.title,
+          content: updatedMotivator.content,
+          imageUrl: updatedMotivator.imageUrl
+        });
+        
+        trackMotivatorEvent('edit', 'personal');
+        setEditingMotivator(null);
+        
+        toast({
+          title: "✨ Motivator Updated!",
+          description: "Your changes have been saved.",
+        });
+        
+        refreshMotivators();
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -232,14 +254,16 @@ const Motivators = () => {
   };
 
   const handleEditGoalIdea = (goal: AdminGoalIdea) => {
-    // Create a new motivator based on the goal idea
+    // Edit the actual goal idea (admin functionality)
     const motivatorData = {
+      id: goal.id, // Include the ID for editing
       title: goal.title,
       content: goal.description || '',
       imageUrl: goal.imageUrl
     };
     setEditingMotivator(motivatorData);
     setShowMotivatorIdeasModal(false);
+    setShowFormModal(true); // Open the form modal for editing
   };
   
   const handleSelectGoalIdea = async (goal: AdminGoalIdea) => {

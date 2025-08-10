@@ -141,6 +141,71 @@ export const useAdminGoalManagement = () => {
     }
   };
 
+  const updateDefaultGoal = async (goalId: string, updates: Partial<Motivator>): Promise<boolean> => {
+    setLoading(true);
+    try {
+      // Get current goal ideas
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'admin_goal_ideas')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      let goalIdeas = [];
+      if (data?.setting_value) {
+        goalIdeas = JSON.parse(data.setting_value);
+      }
+
+      // Find and update the goal
+      const goalIndex = goalIdeas.findIndex((goal: any) => goal.id === goalId);
+      if (goalIndex === -1) {
+        toast({
+          title: "Error",
+          description: "Goal idea not found",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Update the goal with new values
+      goalIdeas[goalIndex] = {
+        ...goalIdeas[goalIndex],
+        title: updates.title || goalIdeas[goalIndex].title,
+        description: updates.content || goalIdeas[goalIndex].description,
+        imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : goalIdeas[goalIndex].imageUrl
+      };
+
+      // Save back to database
+      const { error: updateError } = await supabase
+        .from('shared_settings')
+        .upsert({
+          setting_key: 'admin_goal_ideas',
+          setting_value: JSON.stringify(goalIdeas)
+        });
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "✅ Goal Updated!",
+        description: "Admin goal idea has been updated successfully",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error updating default goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update goal idea",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const checkIfInDefaultGoals = async (motivatorId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
@@ -164,6 +229,7 @@ export const useAdminGoalManagement = () => {
   return {
     addToDefaultGoals,
     removeFromDefaultGoals,
+    updateDefaultGoal,
     checkIfInDefaultGoals,
     loading
   };
