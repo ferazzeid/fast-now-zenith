@@ -402,13 +402,18 @@ export const AdminTimelineSettings = () => {
 
   return (
     <Card>
-      
+      <CardHeader>
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          Timeline Hours ({fastingHours.length}/72)
+        </CardTitle>
+        <CardDescription>
+          Configure motivational content for each hour of fasting
+        </CardDescription>
+      </CardHeader>
       <CardContent className="space-y-6">
-        
-
         {/* Add New Hour Button */}
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">Timeline Hours ({fastingHours.length}/72)</h3>
           <div className="flex gap-2">
             {missingHours.length > 0 && (
               <Button variant="secondary" onClick={generateMissingHours}>

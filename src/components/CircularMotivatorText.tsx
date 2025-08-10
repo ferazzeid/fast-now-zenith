@@ -99,25 +99,5 @@ export const CircularMotivatorText = ({ isActive, transitionTime = 15, onModeCha
 
   const currentMotivator = motivatorsWithImages[currentIndex];
 
-  return (
-    <>
-      {/* Circular Title Text - Completely independent positioning */}
-      {isVisible && currentMotivator && (
-        <div 
-          className={`absolute inset-0 transition-all duration-1000 ${
-            displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-60'
-          }`}
-          style={{ 
-            animation: displayMode === 'motivator-focused' ? 'spin 60s linear infinite' : 'none',
-            willChange: 'transform',
-            transform: 'translate3d(0, 0, 0)' // GPU acceleration
-          }}
-        >
-          <div className="relative w-full h-full">
-            {createCircularText(currentMotivator.title.toUpperCase())}
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return null; // Circular text removed per user request - too fast to read
 };

@@ -38,7 +38,6 @@ export const AdminTierStats = () => {
       // Process data to calculate stats
       const tierCounts: Record<string, { total: number; active: number; inactive: number }> = {
         paid_user: { total: 0, active: 0, inactive: 0 },
-        granted_user: { total: 0, active: 0, inactive: 0 },
         free_user: { total: 0, active: 0, inactive: 0 }
       };
 
@@ -58,19 +57,13 @@ export const AdminTierStats = () => {
 
       const statsArray: TierStats[] = [
         { 
-          tier: 'Premium Users', 
+          tier: 'Paid Users (Trial + Subscribed)', 
           total: tierCounts.paid_user.total, 
           active: tierCounts.paid_user.active,
           inactive: tierCounts.paid_user.inactive
         },
         { 
-          tier: 'Basic Users', 
-          total: tierCounts.granted_user.total, 
-          active: tierCounts.granted_user.active,
-          inactive: tierCounts.granted_user.inactive
-        },
-        { 
-          tier: 'Free Users', 
+          tier: 'Free Users (Trial Ended)', 
           total: tierCounts.free_user.total, 
           active: tierCounts.free_user.active,
           inactive: tierCounts.free_user.inactive
@@ -103,7 +96,7 @@ export const AdminTierStats = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {stats.map((stat) => (
             <div key={stat.tier} className="space-y-3">
               <h4 className="text-sm font-medium text-foreground mb-3 text-center">

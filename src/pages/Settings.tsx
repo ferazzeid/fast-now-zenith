@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Mic } from 'lucide-react';
+=======
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Wifi } from 'lucide-react';
+>>>>>>> 2647eb893123550f1f2e345a9bcc8873a475e2da
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -17,12 +21,16 @@ import { useNavigate } from 'react-router-dom';
 import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
-import { useArchivedConversations } from '@/hooks/useArchivedConversations';
+
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
+<<<<<<< HEAD
 import { VoiceDiagnostic } from '@/components/VoiceDiagnostic';
+=======
+import { useConnectionStore } from '@/stores/connectionStore';
+>>>>>>> 2647eb893123550f1f2e345a9bcc8873a475e2da
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -46,11 +54,12 @@ const subscription = useOptimizedSubscription();
 const multiSub = useMultiPlatformSubscription();
 const isWebPlatform = multiSub.platform === 'web';
 const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platform === 'android' ? 'Google Play' : 'Stripe';
-  const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
+  
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const { isOnline, isConnected, forceRetry, checkConnection } = useConnectionStore();
 
   useEffect(() => {
 
@@ -494,20 +503,12 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
-            {/* Theme Toggle Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Palette className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
-                </div>
-                <div className="flex justify-center">
-                  <ThemeToggle />
-                </div>
-              </div>
-            </Card>
+            {/* Save Settings Button - under Profile */}
+            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+              Save Settings
+            </Button>
 
-            {/* Account Section */}
+            {/* Account Section - moved up (2nd priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -540,7 +541,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                 </div>
                 <div className="pt-3 border-t border-ceramic-rim space-y-3">
                   {subscription.subscription_tier !== 'paid_user' && (
-<Button
+                    <Button
                       onClick={async () => {
                         try {
                           await multiSub.createSubscription();
@@ -570,8 +571,20 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
+            {/* Appearance Section - moved up (3rd priority) */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                </div>
+                <div className="flex justify-center">
+                  <ThemeToggle />
+                </div>
+              </div>
+            </Card>
 
-            {/* Animation Settings */}
+            {/* Animation Settings - (4th priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -651,7 +664,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
-            {/* Account Management - Danger Zone */}
+            {/* Account Management - moved down (5th priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -726,10 +739,66 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
-            {/* Save Button */}
-            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
-              Save Settings
-            </Button>
+            {/* Connection Status - moved down (6th priority) */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Wifi className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Connection</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-warm-text">Network Status</span>
+                    <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+                      {isOnline ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-warm-text">Server Connection</span>
+                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                      {isConnected ? 'Connected' : 'Disconnected'}
+                    </span>
+                  </div>
+                  {(!isOnline || !isConnected) && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={async () => {
+                          toast({ title: "Reconnecting...", description: "Checking connection status" });
+                          await forceRetry();
+                          const connected = await checkConnection();
+                          toast({
+                            title: connected ? "Connected" : "Still offline",
+                            description: connected 
+                              ? "Connection restored successfully" 
+                              : "Unable to connect. Please check your internet connection.",
+                            variant: connected ? "default" : "destructive"
+                          });
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Wifi className="w-4 h-4 mr-2" />
+                        Reconnect
+                      </Button>
+                    </div>
+                  )}
+                  {(!isOnline || !isConnected) && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => window.location.reload()}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+                      >
+                        Reload App
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+
 
             {/* About */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">

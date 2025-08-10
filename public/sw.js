@@ -1,11 +1,10 @@
-const VERSION = 'v2';
+const VERSION = 'v3';
 const APP_SHELL_CACHE = `fastnow-shell-${VERSION}`;
 const RUNTIME_CACHE = `fastnow-runtime-${VERSION}`;
 
 const APP_SHELL_URLS = [
   '/',
   '/index.html',
-  '/api/dynamic-manifest.json',
   '/manifest.json',
   '/favicon.ico',
   '/icon-192.png',
@@ -61,10 +60,74 @@ self.addEventListener('fetch', (event) => {
           cache.put('/index.html', network.clone());
           return network;
         } catch {
+          // For SPA routes, always serve the cached index.html which contains the React app
           const cached = await caches.match('/index.html');
-          return cached || new Response('<h1>Offline</h1>', { headers: { 'Content-Type': 'text/html' } });
+          if (cached) {
+            // Clone the response to modify headers
+            const modifiedResponse = new Response(cached.body, {
+              status: cached.status,
+              statusText: cached.statusText,
+              headers: {
+                ...Object.fromEntries(cached.headers.entries()),
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+              }
+            });
+            return modifiedResponse;
+          }
+          
+          // Last resort fallback - but this should rarely be reached
+          // since we cache index.html during install
+          return new Response(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>FastNow - Offline</title>
+              <style>
+                body { 
+                  font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+                  padding: 20px; text-align: center; 
+                  background: #f5f5f5;
+                }
+                .offline-msg { 
+                  margin-top: 50px; color: #666; 
+                  max-width: 400px; margin: 50px auto;
+                }
+                .retry-btn {
+                  background: #007AFF; color: white; border: none;
+                  padding: 12px 24px; border-radius: 6px; margin-top: 20px;
+                  cursor: pointer; font-size: 16px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="offline-msg">
+                <h1>You're Offline</h1>
+                <p>Please check your internet connection and try again.</p>
+                <button class="retry-btn" onclick="location.reload()">Retry</button>
+              </div>
+            </body>
+            </html>
+          `, { headers: { 'Content-Type': 'text/html' } });
         }
       })()
+    );
+    return;
+  }
+
+  // Always fetch dynamic manifest fresh (never cache)
+  if (url.pathname === '/api/dynamic-manifest.json' || url.pathname.includes('/supabase/functions/v1/dynamic-manifest')) {
+    event.respondWith(
+      fetch(request, { 
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      }).catch(() => new Response('{}', { 
+        headers: { 'Content-Type': 'application/json' } 
+      }))
     );
     return;
   }

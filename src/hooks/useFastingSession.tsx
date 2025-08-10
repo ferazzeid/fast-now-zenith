@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { persistFastingSession, getPersistedFastingSession } from '@/utils/timerPersistence';
 
 export interface FastingSession {
   id: string;
@@ -31,6 +32,7 @@ export const useFastingSession = () => {
 
     setLoading(true);
     try {
+      // Try to get from server first
       const { data, error } = await supabase
         .from('fasting_sessions')
         .select('*')
@@ -42,13 +44,32 @@ export const useFastingSession = () => {
 
       if (error) {
         console.error('Error loading fasting session:', error);
-        throw error;
+        // Don't throw - fall back to persisted session
       }
 
-      setCurrentSession(data as FastingSession || null);
+      const serverSession = data as FastingSession || null;
+      setCurrentSession(serverSession);
+      
+      // Persist to local storage for offline fallback
+      if (serverSession) {
+        persistFastingSession({
+          id: serverSession.id,
+          start_time: serverSession.start_time,
+          goal_duration_seconds: serverSession.goal_duration_seconds,
+          status: serverSession.status,
+          user_id: serverSession.user_id,
+        });
+      }
     } catch (error) {
       console.error('Error loading active session:', error);
-      setCurrentSession(null);
+      
+      // Fall back to persisted session if network fails
+      const persistedSession = getPersistedFastingSession();
+      if (persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
+        setCurrentSession(persistedSession as FastingSession);
+      } else {
+        setCurrentSession(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -104,8 +125,19 @@ export const useFastingSession = () => {
 
       if (error) throw error;
 
-      setCurrentSession(data as FastingSession);
-      return data as FastingSession;
+      const session = data as FastingSession;
+      setCurrentSession(session);
+      
+      // Persist to local storage
+      persistFastingSession({
+        id: session.id,
+        start_time: session.start_time,
+        goal_duration_seconds: session.goal_duration_seconds,
+        status: session.status,
+        user_id: session.user_id,
+      });
+      
+      return session;
     } catch (error) {
       console.error('Error starting fasting session:', error);
       toast({
@@ -150,6 +182,7 @@ export const useFastingSession = () => {
       if (error) throw error;
 
       setCurrentSession(null);
+      persistFastingSession(null); // Clear persisted session
       return data;
     } catch (error) {
       console.error('Error ending fasting session:', error);
@@ -186,6 +219,7 @@ export const useFastingSession = () => {
       if (error) throw error;
 
       setCurrentSession(null);
+      persistFastingSession(null); // Clear persisted session
       return data;
     } catch (error) {
       console.error('Error cancelling fasting session:', error);

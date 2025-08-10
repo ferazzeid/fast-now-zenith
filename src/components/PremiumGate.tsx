@@ -2,7 +2,7 @@
 import React, { ReactNode, ReactElement, cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,10 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, inTrial, createSubscription, loading } = useSubscription();
+  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, loading, createSubscription } = useOptimizedSubscription();
+  
+  // For trial detection, we need to check the status
+  const inTrial = subscription_tier === 'paid_user' && !subscribed; // In trial if paid but not subscribed
   const { toast } = useToast();
   const { testRole, isTestingMode } = useRoleTestingContext();
 
@@ -25,7 +28,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
   const effectivePaidUser = isTestingMode ? (testRole === 'paid_user') : isPaidUser;
   const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
 
-  // Check if user has access to the feature
+  // Check if user has access to the feature - admin bypasses all restrictions
   const hasAccess = effectiveRole === 'admin' || effectiveHasPremiumFeatures;
 
   // Throttled debug logging to understand access decisions (logs on change or every 10s)
@@ -121,9 +124,9 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
           aria-hidden="true"
         />
 
-        {/* Corner lock that doesn't affect layout */}
-        <div className="absolute top-1.5 right-1.5 z-20 rounded-full bg-background/80 border border-border p-1 shadow-sm pointer-events-none">
-          <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+        {/* Corner lock that doesn't affect layout - smaller and less intrusive */}
+        <div className="absolute top-1 right-1 z-20 rounded-full bg-background/90 border border-border p-0.5 shadow-sm pointer-events-none">
+          <Lock className="w-2.5 h-2.5 text-muted-foreground" />
         </div>
       </div>
     );

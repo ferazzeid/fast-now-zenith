@@ -1,6 +1,6 @@
 {
-  "name": "FastNow - Mindful App",
-  "short_name": "FastNow",
+  "name": "fast now - The No-BS Fat Loss Protocol",
+  "short_name": "fast now",
   "description": "Your mindful app with AI-powered motivation",
   "start_url": "/",
   "display": "standalone",
@@ -11,13 +11,13 @@
   "lang": "en",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1754550280169.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-512.png", 
+      "src": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1754550280169.png", 
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"

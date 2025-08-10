@@ -16,20 +16,24 @@ const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
-  const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+  const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 0, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (!hasUserInteracted) {
-      setSelectedHour(Math.min(Math.max(currentHour || 1, 1), MAX_HOUR));
+      setSelectedHour(Math.min(Math.max(currentHour || 0, 0), MAX_HOUR));
     }
   }, [currentHour, hasUserInteracted]);
 
   const handleHourChange = (h: number) => {
-    const clamped = Math.min(Math.max(h, 1), MAX_HOUR);
+    const clamped = Math.min(Math.max(h, 0), MAX_HOUR);
     setSelectedHour(clamped);
     setHasUserInteracted(true);
+    setIsTransitioning(true);
+    
+    // Force immediate content refresh by resetting rotation
+    setTimeout(() => setIsTransitioning(false), 100);
   };
 
   const hourMap = useMemo(() => {
@@ -112,25 +116,33 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
             )}
 
             <div className="min-h-[80px] relative">
+              {/* Hour Number Indicator */}
+              <div className="absolute bottom-2 right-2 bg-primary/10 text-primary border border-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
+                {selectedHour}
+              </div>
+
               {rotation.totalVariants > 1 ? (
                 <div className="relative">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-medium text-muted-foreground">
                       {getContentTypeLabel(rotation.currentType)}
                     </h4>
+                    <div className="text-xs text-muted-foreground">
+                      {rotation.currentIndex + 1} of {rotation.totalVariants}
+                    </div>
                   </div>
                   <div 
-                    key={`${rotation.currentIndex}-${rotation.currentType}`}
-                    className="text-sm text-foreground animate-fade-in"
+                    key={`${selectedHour}-${rotation.currentIndex}-${rotation.currentType}`}
+                    className="text-sm text-foreground animate-fade-in pr-10"
                     style={{
-                      animation: 'fade-in 0.8s ease-in-out'
+                      animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
                     }}
                   >
                     {rotation.currentContent}
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground pr-10">
                   {selected?.physiological_effects || selected?.body_state || "We'll add details for this hour soon."}
                 </div>
               )}

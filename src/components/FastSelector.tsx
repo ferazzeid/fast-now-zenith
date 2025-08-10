@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Clock, Utensils, Calendar } from 'lucide-react';
+import { X, Clock, Utensils, Calendar, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -19,7 +19,7 @@ export const FastSelector = ({
   onClose
 }: FastSelectorProps) => {
   const [duration, setDuration] = useState(() => {
-    return Math.floor(currentDuration / 3600) || 72;
+    return Math.floor(currentDuration / 3600) || 60;
   });
   const [startInPast, setStartInPast] = useState(false);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -47,7 +47,7 @@ export const FastSelector = ({
   const presets = [
     { name: '24 Hour Fast', hours: 24 },
     { name: '48 Hour Fast', hours: 48 },
-    { name: '60 Hour Fast', hours: 60 },
+    { name: '60 Hour Fast', hours: 60, recommended: true },
     { name: '72 Hour Fast', hours: 72 },
   ];
 
@@ -57,22 +57,28 @@ export const FastSelector = ({
       onClose={onClose}
       title="Configure Fast"
       variant="standard"
-      size="md"
+      size="sm"
       showCloseButton={true}
       contentClassName="px-4 sm:px-6 py-3 sm:py-4 max-h-[85vh] sm:max-h-[90vh]"
       footer={
-        <div className="flex gap-2 w-full px-4 sm:px-6 py-3 sm:py-4">
-          <Button variant="outline" onClick={onClose} className="flex-1 h-10 sm:h-auto text-sm sm:text-base">
+        <>
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="w-full h-10"
+            size="default"
+          >
             Cancel
           </Button>
           <Button 
             onClick={handleConfirm} 
             disabled={!isValidDateTime()}
-            className="flex-1 h-10 sm:h-auto text-sm sm:text-base"
+            className="w-full h-10"
+            size="default"
           >
             {startInPast ? 'Start Past Fasting' : 'Start Fasting'}
           </Button>
-        </div>
+        </>
       }
     >
 
@@ -85,11 +91,17 @@ export const FastSelector = ({
             {presets.map((preset) => (
               <Button
                 key={preset.name}
-                variant="outline"
+                variant={duration === preset.hours ? "default" : "outline"}
                 onClick={() => setDuration(preset.hours)}
-                className="justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-rim"
+                className={duration === preset.hours 
+                  ? "justify-start bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/20" 
+                  : "justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-rim"
+                }
               >
                 <span className="font-medium">{preset.name}</span>
+                {duration === preset.hours && (
+                  <Check className="ml-2 w-4 h-4 text-primary-foreground" />
+                )}
                 <span className="ml-auto text-muted-foreground text-sm">
                   {preset.hours} hours
                 </span>
@@ -110,13 +122,14 @@ export const FastSelector = ({
               max={168}
               min={24}
               step={1}
+              defaultValue={[60]}
               className="w-full"
             />
           </div>
         </div>
 
         {/* Start in Past Section */}
-        <div className="space-y-4 mb-2 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border border-ceramic-rim/50">
+        <div className="space-y-4 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border border-ceramic-rim/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-primary" />

@@ -13,7 +13,7 @@ export const useAdminErrorFilter = (): AdminUser => {
 
   // Check if user is admin based on email or profile settings
   const isAdmin = Boolean(
-    user?.email === 'admin@example.com' || // Replace with your admin email
+    user?.email === 'test@test.com' || // Admin email
     user?.email?.includes('admin') ||
     profile?.display_name?.toLowerCase().includes('admin')
   );
@@ -39,7 +39,7 @@ export const useAdminAwareToast = () => {
           props.description?.includes('server') ||
           props.description?.includes('connection') ||
           props.description?.includes('network') ||
-          props.description?.includes('archived conversations') ||
+          
           props.title?.includes('Error checking') ||
           props.title?.includes('Failed to') ||
           props.title?.includes('Subscription error') ||

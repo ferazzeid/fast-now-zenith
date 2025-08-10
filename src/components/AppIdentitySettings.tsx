@@ -182,12 +182,19 @@ export const AppIdentitySettings: React.FC = () => {
         }
       }
 
-      // Update the dynamic manifest and capacitor config
-      await supabase.functions.invoke('dynamic-manifest');
+      // Force PWA cache refresh and manifest update
+      const { forcePWARefresh } = await import('@/utils/pwaCache');
+      const refreshSuccess = await forcePWARefresh();
+      
+      if (refreshSuccess) {
+        console.log('PWA cache refreshed successfully');
+      } else {
+        console.warn('PWA cache refresh had issues, but settings were saved');
+      }
 
       toast({
         title: "✅ Settings Saved!",
-        description: "App identity settings updated successfully. Changes will take effect on next app restart.",
+        description: "App identity settings updated successfully. PWA manifest refreshed - try 'Add to Home Screen' again!",
       });
     } catch (error) {
       console.error('Error saving app settings:', error);
@@ -339,42 +346,11 @@ export default config;`;
           </TabsContent>
 
           <TabsContent value="assets" className="space-y-6 mt-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">App Icon (192x192 & 512x512)</Label>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Main app icon for home screen and app stores
-                </p>
-                <ImageUpload
-                  currentImageUrl={settings.appIcon}
-                  onImageUpload={(url) => updateSetting('appIcon', url)}
-                  onImageRemove={() => updateSetting('appIcon', '')}
-                />
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium">Favicon</Label>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Small icon shown in browser tabs (32x32 recommended)
-                </p>
-                <ImageUpload
-                  currentImageUrl={settings.favicon}
-                  onImageUpload={(url) => updateSetting('favicon', url)}
-                  onImageRemove={() => updateSetting('favicon', '')}
-                />
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium">Logo</Label>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Main brand logo for headers and splash screens
-                </p>
-                <ImageUpload
-                  currentImageUrl={settings.logo}
-                  onImageUpload={(url) => updateSetting('logo', url)}
-                  onImageRemove={() => updateSetting('logo', '')}
-                />
-              </div>
+            <div className="p-4 border border-border rounded-lg bg-muted/20">
+              <p className="text-sm text-muted-foreground">
+                🔄 <strong>Note:</strong> Asset uploads have been moved to the dedicated "Brand Assets" section below to avoid conflicts. 
+                Use the Brand Assets Manager below for uploading your app icon, favicon, and logo.
+              </p>
             </div>
           </TabsContent>
 

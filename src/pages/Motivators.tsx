@@ -95,15 +95,13 @@ const Motivators = () => {
 
   const handleDeleteMotivator = async (motivatorId) => {
     try {
-      await deleteMotivator(motivatorId);
+      const success = await deleteMotivator(motivatorId);
       
-      trackMotivatorEvent('delete', 'personal');
-      toast({
-        title: "🗑️ Motivator Removed",
-        description: "Motivator has been deleted.",
-      });
-      
-      refreshMotivators();
+      if (success) {
+        trackMotivatorEvent('delete', 'personal');
+        // Note: No need to call refreshMotivators() here as deleteMotivator already updates local state
+        // and shows a toast notification
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -194,15 +192,13 @@ const Motivators = () => {
   };
 
   const handleEditGoalIdea = (goal: AdminGoalIdea) => {
-    // For now, we'll convert the goal idea to a motivator format for editing
+    // Create a new motivator based on the goal idea
     const motivatorData = {
-      id: undefined, // This will create a new motivator based on the idea
       title: goal.title,
       content: goal.description || '',
       imageUrl: goal.imageUrl
     };
     setEditingMotivator(motivatorData);
-    setShowFormModal(true);
     setShowMotivatorIdeasModal(false);
   };
   
@@ -239,7 +235,32 @@ const Motivators = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                  <Button
+                    onClick={() => {
+                      setAiChatContext("Help me create a powerful motivator for my fasting journey. I want to record what drives me and why it's important.");
+                      setShowAiChat(true);
+                      trackAIEvent('chat', 'motivator_voice');
+                    }}
+                    variant="ai"
+                    size="action-tall"
+                    className="flex items-center justify-center"
+                    aria-label="Create motivator with voice"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </Button>
+                </PremiumGate>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create a motivator by talking about what drives you</p>
+              </TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
@@ -330,29 +351,21 @@ const Motivators = () => {
               {motivators.length < 3 && [...Array(3 - motivators.length)].map((_, index) => (
                 <Card 
                   key={`placeholder-${index}`} 
-                  className="overflow-hidden border-dashed border-2 border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-all duration-200 hover:bg-muted/20"
+                  className="overflow-hidden border-dashed border-2 border-muted-foreground/20 hover:border-primary/30 cursor-pointer transition-all duration-200 hover:bg-muted/10 bg-muted/5"
                   onClick={() => setShowFormModal(true)}
                 >
-                  <CardContent className="p-0">
-                    <div className="flex">
-                      {/* Placeholder Image */}
-                      <div className="w-32 h-32 flex-shrink-0 bg-muted/40 flex items-center justify-center">
-                        <Target className="w-12 h-12 text-muted-foreground/50" />
+                  <CardContent className="p-6">
+                    <div className="text-center space-y-3">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                        <Plus className="w-6 h-6 text-primary/60" />
                       </div>
-                      
-                      {/* Placeholder Content */}
-                      <div className="flex-1 p-4 flex items-center justify-center">
-                        <div className="text-center">
-                          <h3 className="font-semibold text-muted-foreground mb-1">
-                            Add Goal #{motivators.length + index + 1}
-                          </h3>
-                          <p className="text-sm text-muted-foreground/70">
-                            Click to create your {motivators.length + index + 1 === 2 ? 'second' : 'third'} motivator
-                          </p>
-                          <div className="mt-2">
-                            <Plus className="w-5 h-5 text-primary/70 mx-auto" />
-                          </div>
-                        </div>
+                      <div>
+                        <h3 className="font-medium text-muted-foreground mb-1">
+                          Add Goal #{motivators.length + index + 1}
+                        </h3>
+                        <p className="text-sm text-muted-foreground/60">
+                          Click to create your {motivators.length + index + 1 === 2 ? 'second' : 'third'} motivator
+                        </p>
                       </div>
                     </div>
                   </CardContent>

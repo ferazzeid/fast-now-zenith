@@ -11,7 +11,6 @@ import { Info } from "lucide-react";
 
 export const UserRequestLimits: React.FC = () => {
   const [paidUserLimit, setPaidUserLimit] = useState('');
-  const [grantedUserLimit, setGrantedUserLimit] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -23,34 +22,20 @@ export const UserRequestLimits: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('shared_settings')
-        .select('setting_key, setting_value')
-        .in('setting_key', ['monthly_request_limit', 'free_request_limit']);
+        .select('setting_value')
+        .eq('setting_key', 'monthly_request_limit')
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading request limits:', error);
-        // Set defaults if no data exists
         setPaidUserLimit('1000');
-        setGrantedUserLimit('15');
         return;
       }
 
-      // Set defaults first
-      setPaidUserLimit('1000');
-      setGrantedUserLimit('15');
-
-      // Then override with database values if they exist
-      data?.forEach(setting => {
-        if (setting.setting_key === 'monthly_request_limit') {
-          setPaidUserLimit(setting.setting_value || '1000');
-        } else if (setting.setting_key === 'free_request_limit') {
-          setGrantedUserLimit(setting.setting_value || '15');
-        }
-      });
+      setPaidUserLimit(data?.setting_value || '1000');
     } catch (error) {
       console.error('Error loading request limits:', error);
-      // Set defaults on error
       setPaidUserLimit('1000');
-      setGrantedUserLimit('15');
     } finally {
       setLoading(false);
     }
@@ -58,31 +43,21 @@ export const UserRequestLimits: React.FC = () => {
 
   const saveRequestLimits = async () => {
     try {
-      const updates = [
-        {
+      const { error } = await supabase
+        .from('shared_settings')
+        .upsert({
           setting_key: 'monthly_request_limit',
           setting_value: paidUserLimit
-        },
-        {
-          setting_key: 'free_request_limit',
-          setting_value: grantedUserLimit
-        }
-      ];
+        }, { onConflict: 'setting_key' });
 
-      for (const update of updates) {
-        const { error } = await supabase
-          .from('shared_settings')
-          .upsert(update, { onConflict: 'setting_key' });
-
-        if (error) {
-          console.error('Error saving request limit:', error);
-          throw error;
-        }
+      if (error) {
+        console.error('Error saving request limit:', error);
+        throw error;
       }
 
       toast({
         title: "Success",
-        description: "User request limits saved successfully",
+        description: "Monthly request limit saved successfully",
       });
     } catch (error) {
       console.error('Error saving request limits:', error);
@@ -110,21 +85,20 @@ export const UserRequestLimits: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">User Request Limits</CardTitle>
+        <CardTitle className="text-base">AI Request Limits</CardTitle>
       </CardHeader>
       <CardContent>
         <TooltipProvider>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Paid User Limit */}
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <Label htmlFor="paidUserLimit" className="text-xs">Paid</Label>
+                <Label htmlFor="paidUserLimit" className="text-xs">Monthly Limit</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="w-3 h-3 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    Monthly requests for paid users
+                    Monthly AI requests for paid users (free users get 0 requests)
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -135,35 +109,10 @@ export const UserRequestLimits: React.FC = () => {
                 onChange={(e) => setPaidUserLimit(e.target.value)}
                 placeholder="1000"
                 className="h-8 w-24 text-sm"
-                aria-label="Paid user monthly requests"
+                aria-label="Monthly AI requests for paid users"
               />
             </div>
 
-            {/* Granted User Limit */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Label htmlFor="grantedUserLimit" className="text-xs">Granted</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-3 h-3 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Monthly requests for granted users
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Input
-                id="grantedUserLimit"
-                type="number"
-                value={grantedUserLimit}
-                onChange={(e) => setGrantedUserLimit(e.target.value)}
-                placeholder="15"
-                className="h-8 w-24 text-sm"
-                aria-label="Granted user monthly requests"
-              />
-            </div>
-
-            {/* Save Button */}
             <div className="ml-auto">
               <Button onClick={saveRequestLimits} size="sm" className="h-9 px-4">
                 Save

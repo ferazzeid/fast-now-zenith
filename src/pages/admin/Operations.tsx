@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ClearSubscriptionCacheButton } from "@/components/ClearSubscriptionCacheButton";
 
 function SharedKeySettings() {
   const [sharedKey, setSharedKey] = useState("");
@@ -57,7 +58,7 @@ function SharedKeySettings() {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-1">
-          <Label htmlFor="sharedKey" className="text-sm">Shared Key (used for Paid/Granted users)</Label>
+          <Label htmlFor="sharedKey" className="text-sm">Shared Key (used for Paid users in trial or subscribed)</Label>
           <Input
             id="sharedKey"
             type="password"
@@ -111,8 +112,24 @@ export default function AdminOperations() {
         <GoogleAnalyticsSettings />
       </section>
 
-      <section aria-label="Shared OpenAI key" className="pb-24">
+      <section aria-label="Shared OpenAI key">
         <SharedKeySettings />
+      </section>
+      
+      <section aria-label="Cache management" className="pb-24">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Cache Management</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Clear subscription cache if users are experiencing incorrect premium access on mobile devices.
+              </p>
+              <ClearSubscriptionCacheButton />
+            </div>
+          </CardContent>
+        </Card>
         <div className="h-8" />
       </section>
     </main>

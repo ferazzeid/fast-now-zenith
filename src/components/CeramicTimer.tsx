@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
 import { MotivatorSlideshow } from './MotivatorSlideshow';
+import { RotatingGoalText } from './RotatingGoalText';
+import { useMotivators } from '@/hooks/useMotivators';
 
 interface CeramicTimerProps {
   /** Progress value from 0 to 100 */
@@ -35,10 +37,14 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   goalDuration,
   className
 }) => {
+  const { motivators } = useMotivators();
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
-  // Calculate stroke-dashoffset for progress ring
   const circumference = 2 * Math.PI * 45; // radius of 45px
   const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  // Check if we have motivators with and without images
+  const motivatorsWithImages = motivators.filter(m => m.imageUrl);
+  const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
 
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
@@ -70,10 +76,20 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           }}
         >
           {/* Image Background - MOVED INSIDE center well where it belongs */}
-          {showSlideshow && isActive && (
+          {showSlideshow && isActive && motivatorsWithImages.length > 0 && (
             <div className="absolute inset-0 rounded-full overflow-hidden">
               <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
             </div>
+          )}
+          
+          {/* Rotating Goal Text - Show even when inactive per user request */}
+          {showSlideshow && motivatorsWithImages.length === 0 && motivatorsWithoutImages.length > 0 && (
+            <RotatingGoalText 
+              isActive={true} // Always active to allow goal rotation per user request
+              onModeChange={setMotivatorMode}
+              radius={110}
+              textSize="text-xs"
+            />
           )}
           
           {/* Progress ring - Always visible for structure */}
@@ -148,12 +164,12 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                  {displayTime}
               </div>
               
-              {/* Goal Display - Only show during longterm fasting */}
-              {isActive && fastType === 'longterm' && goalDuration && (
-                <div className="text-xs text-muted-foreground font-medium">
-                  {Math.round(goalDuration)}h goal
-                </div>
-              )}
+               {/* Goal Display - Only show during longterm fasting */}
+               {isActive && fastType === 'longterm' && goalDuration && (
+                 <div className="text-xs text-muted-foreground font-medium">
+                   {Math.round(goalDuration)}h goal
+                 </div>
+               )}
               
               {/* Progress Percentage - Show fasting progress during fast, eating progress during eating */}
               {isActive && progress > 0 && (

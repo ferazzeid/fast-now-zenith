@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -27,6 +27,8 @@ import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRecentFoods } from '@/hooks/useRecentFoods';
+import { useFoodContext } from '@/hooks/useFoodContext';
 
 interface UserFood {
   id: string;
@@ -59,7 +61,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
+  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested' | 'recent'>('my-foods');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
   // Multi-selection state
@@ -68,6 +70,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   
   const { user } = useAuth();
   const { toast } = useToast();
+  const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
 
   useEffect(() => {
     const loadData = async () => {
@@ -377,6 +380,34 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
+  const deleteRecentFood = async (foodName: string) => {
+    try {
+      // For recent foods, remove all food entries with this name from the user's history
+      const { error } = await supabase
+        .from('food_entries')
+        .delete()
+        .eq('user_id', user?.id)
+        .eq('name', foodName);
+
+      if (error) throw error;
+
+      // Refresh recent foods to update the list
+      refreshRecentFoods();
+      
+      toast({
+        title: "Food removed",
+        description: `All entries of "${foodName}" have been removed from your history`
+      });
+    } catch (error) {
+      console.error('Error deleting recent food:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove food from history",
+        variant: "destructive"
+      });
+    }
+  };
+
   const deleteDefaultFood = async (foodId: string) => {
     try {
       const { error } = await supabase
@@ -525,19 +556,32 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           )}
 
-          {/* Food Image - Compact but visible */}
+          {/* Food Image - Compact but visible with placeholder for deleted images */}
           {food.image_url ? (
             <img 
               src={food.image_url} 
               alt={food.name}
               className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
               loading="lazy"
+              onError={(e) => {
+                // Show placeholder if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const placeholder = target.nextElementSibling as HTMLElement;
+                if (placeholder) {
+                  placeholder.style.display = 'flex';
+                }
+              }}
             />
-           ) : (
-             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-               <Utensils className="w-5 h-5 text-muted-foreground" />
-             </div>
-           )}
+           ) : null}
+           {/* Default placeholder - always present, hidden when image loads */}
+           <div 
+             className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ${
+               food.image_url ? 'hidden' : 'flex'
+             }`}
+           >
+             <Utensils className="w-5 h-5 text-muted-foreground" />
+           </div>
           
           {/* Food Info - Compact typography */}
           <div className="flex-1 min-w-0">
@@ -557,72 +601,144 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               {/* Space where favorite button was */}
               <div className="w-2"></div>
 
-              {/* Options Dropdown - Compact with primary dots */}
+              {/* Options Dropdown - Increased hit area for accessibility */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="p-1 h-5 w-5 hover:bg-secondary/80 rounded"
+                    className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
                     title="More options"
                     aria-label="More options"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="w-3 h-3 text-primary" />
+                    <MoreVertical className="w-4 h-4 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 z-50 bg-popover border border-border">
+                <DropdownMenuContent align="end" className="w-48 z-50 bg-background border border-border shadow-lg">
                   {isUserFood ? (
                     <>
-                       <DropdownMenuItem
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setShowEditModal(true);
-                         }}
-                         className="cursor-pointer"
-                       >
-                         <Edit className="w-4 h-4 mr-2" />
-                         Edit Food
-                       </DropdownMenuItem>
-                       <DropdownMenuItem
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           deleteFood(food.id);
-                         }}
-                         className="text-destructive focus:text-destructive cursor-pointer"
-                       >
-                         <Trash2 className="w-4 h-4 mr-2" />
-                         Delete Food
-                       </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      {isAdmin && (
-                        <>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickSelect(food as UserFood, false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add to Today's Plan
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add to template functionality would go here
+                            toast({
+                              title: "Feature Coming Soon",
+                              description: "Add to template functionality will be available soon"
+                            });
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Add to Template
+                        </DropdownMenuItem>
+                        {/* Only show Edit option for user foods and admin for default foods */}
+                        {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowEditModal(true);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Food
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFood(food.id);
+                          }}
+                          className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Food
+                        </DropdownMenuItem>
+                     </>
+                   ) : (
+                     <>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickSelect(food as UserFood, false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add to Today
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add to template functionality would go here
+                            toast({
+                              title: "Feature Coming Soon",
+                              description: "Add to template functionality will be available soon"
+                            });
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Add to Template
+                        </DropdownMenuItem>
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             importToMyLibrary(food as DefaultFood);
+                           }}
+                           className="cursor-pointer"
+                         >
+                           <Download className="w-4 h-4 mr-2" />
+                           Add to Library
+                         </DropdownMenuItem>
+                         {food.id.startsWith('recent-') ? (
                            <DropdownMenuItem
                              onClick={(e) => {
                                e.stopPropagation();
-                               setShowEditModal(true);
-                             }}
-                             className="cursor-pointer"
-                           >
-                             <Edit className="w-4 h-4 mr-2" />
-                             Edit Food
-                           </DropdownMenuItem>
-                           <DropdownMenuItem
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               deleteDefaultFood(food.id);
+                               deleteRecentFood(food.name);
                              }}
                              className="text-destructive focus:text-destructive cursor-pointer"
                            >
                              <Trash2 className="w-4 h-4 mr-2" />
-                             Delete Food
+                             Remove from History
                            </DropdownMenuItem>
-                        </>
-                      )}
-                    </>
-                  )}
+                         ) : isAdmin && (
+                           <>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowEditModal(true);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Food
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteDefaultFood(food.id);
+                                }}
+                                className="text-destructive focus:text-destructive cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Food
+                              </DropdownMenuItem>
+                           </>
+                         )}
+                     </>
+                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -694,16 +810,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Clean Tabs */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested' | 'recent')} className="h-full flex flex-col">
           <div className="px-6 py-3 bg-background sticky top-0 z-20 border-b border-border">
-            <TabsList className="grid w-full grid-cols-2 h-10 bg-muted rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-3 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 
                 className="flex items-center justify-between gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
               >
                 <div className="flex items-center gap-2">
                   <Heart className="w-4 h-4" />
-                  My Food ({filteredUserFoods.length})
+                  My Food
                 </div>
                 {filteredUserFoods.length > 0 && (
                   <button
@@ -720,11 +836,18 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 )}
               </TabsTrigger>
               <TabsTrigger 
+                value="recent" 
+                className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <Clock className="w-4 h-4" />
+                Recent
+              </TabsTrigger>
+              <TabsTrigger 
                 value="suggested" 
                 className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
               >
                 <Star className="w-4 h-4" />
-                Suggested ({filteredDefaultFoods.length})
+                Suggested
               </TabsTrigger>
             </TabsList>
           </div>
@@ -812,7 +935,47 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </div>
             )}
           </div>
-        </TabsContent>
+         </TabsContent>
+
+          {/* Recent Foods Tab */}
+          <TabsContent value="recent" className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-1 mt-1">
+              {recentLoading ? (
+                <div className="space-y-1">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-muted" />
+                        <div className="flex-1 space-y-1">
+                          <div className="h-3 bg-muted rounded w-3/4" />
+                          <div className="h-2 bg-muted rounded w-1/2" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-muted rounded" />
+                          <div className="w-5 h-5 bg-muted rounded" />
+                          <div className="w-5 h-5 bg-muted rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentFoods.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">⏰</div>
+                  <h3 className="text-lg font-medium mb-2">No recent foods</h3>
+                  <p className="text-muted-foreground">
+                    Foods you've logged recently will appear here for quick access
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1 overflow-x-hidden">
+                  {recentFoods.map((food) => (
+                    <FoodCard key={`recent-${food.id}`} food={food} isUserFood={false} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 

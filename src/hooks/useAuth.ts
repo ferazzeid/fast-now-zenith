@@ -74,30 +74,18 @@ export const useAuth = () => {
   };
 
   const signInWithGoogle = async () => {
-    const operation = async () => {
-      const result = await authState.signInWithGoogle();
-      
-      if (result.error) {
-        toast({
-          title: "Google Sign In Failed",
-          description: result.error.message,
-          variant: "destructive",
-        });
-      }
-      
-      return result;
-    };
-
-    if (isConnected) {
-      return await operation();
-    } else {
+    // OAuth redirects work independently of our connection monitoring
+    const result = await authState.signInWithGoogle();
+    
+    if (result.error) {
       toast({
-        title: "No connection",
-        description: "Please check your internet connection and try again.",
+        title: "Google Sign In Failed",
+        description: result.error.message,
         variant: "destructive",
       });
-      return { error: new Error("No connection") };
     }
+    
+    return result;
   };
 
   const resetPassword = async (email: string) => {

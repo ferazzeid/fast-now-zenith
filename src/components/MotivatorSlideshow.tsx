@@ -71,34 +71,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
 
   const currentMotivator = motivatorsWithImages[currentIndex];
 
-  // Create circular text path for the title - positioned away from inner edge
-  const createCircularText = (text: string, radius: number = 130) => {
-    const chars = text.split('');
-    const angleStep = (2 * Math.PI) / Math.max(chars.length, 20); // Prevent too tight spacing
-    
-    return chars.map((char, index) => {
-      const angle = index * angleStep - Math.PI / 2; // Start at top
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      
-      return (
-        <span
-          key={index}
-          className="absolute font-semibold text-primary text-sm tracking-wide drop-shadow-lg"
-          style={{
-            transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
-            transformOrigin: '50% 50%',
-            left: '50%',
-            top: '50%',
-            marginLeft: '-0.5ch',
-            marginTop: '-0.5em',
-          }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      );
-    });
-  };
+  // Circular text functionality removed per user request - too fast to read
 
   return (
     <>

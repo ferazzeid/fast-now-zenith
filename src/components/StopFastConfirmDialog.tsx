@@ -26,12 +26,12 @@ export const StopFastConfirmDialog = ({
       size="sm"
       showCloseButton={false}
       footer={
-        <div className="flex justify-start gap-3">
+        <>
           <Button 
             variant="outline" 
             size="action-main"
             onClick={handleClose}
-            className="text-sm"
+            className="text-sm w-full"
           >
             Close
           </Button>
@@ -39,11 +39,11 @@ export const StopFastConfirmDialog = ({
             variant="action-primary"
             size="action-main"
             onClick={onConfirm}
-            className="text-sm"
+            className="text-sm w-full"
           >
             {actionType === 'cancel' ? 'Cancel Fast' : 'Finish Fast'}
           </Button>
-        </div>
+        </>
       }
     >
       <div className="space-y-4">

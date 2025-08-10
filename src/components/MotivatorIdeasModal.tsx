@@ -1,13 +1,25 @@
 import { useState, useEffect } from 'react';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Lightbulb, Plus, ChevronDown, Edit } from 'lucide-react';
+import { Lightbulb, Plus, ChevronDown, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
+import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface MotivatorIdeasModalProps {
   isOpen: boolean;
@@ -19,7 +31,8 @@ interface MotivatorIdeasModalProps {
 export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal }: MotivatorIdeasModalProps) => {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { goalIdeas, loading } = useAdminGoalIdeas();
+  const { goalIdeas, loading, refreshGoalIdeas } = useAdminGoalIdeas();
+  const { removeFromDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -42,6 +55,13 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
 
     checkAdminRole();
   }, [user]);
+
+  const handleDeleteGoal = async (goalId: string) => {
+    const success = await removeFromDefaultGoals(goalId);
+    if (success) {
+      refreshGoalIdeas();
+    }
+  };
 
   if (loading) {
     return (
@@ -181,6 +201,49 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                     <p>Edit this idea (Admin)</p>
                                   </TooltipContent>
                                 </Tooltip>
+                              )}
+
+                              {/* Admin Delete Button */}
+                              {isAdmin && (
+                                <AlertDialog>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                          }}
+                                          disabled={adminLoading}
+                                          className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Remove from default goals (Admin)</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Remove Default Goal</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to remove "{goal.title}" from the default goal ideas? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteGoal(goal.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Remove
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               )}
                             </div>
                           </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Utensils } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { useProfile } from '@/hooks/useProfile';
 
 interface FoodEntry {
@@ -41,51 +42,55 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
       </div>
       
       <div className="grid grid-cols-2 gap-4">
-        {/* Calories Section */}
-        <div className="space-y-2">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Calories
+        {/* Calories Card */}
+        <Card className="p-4">
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Calories
+            </div>
+            
+            {/* Planned Calories */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Planned:</span>
+              <span className="text-sm font-medium">
+                {Math.round(plannedCalories)} / {dailyCalorieGoal}
+              </span>
+            </div>
+            
+            {/* Consumed Calories */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Eaten:</span>
+              <span className={`text-sm font-bold ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
+                {Math.round(consumedCalories)} / {dailyCalorieGoal}
+              </span>
+            </div>
           </div>
-          
-          {/* Planned Calories */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Planned:</span>
-            <span className="text-sm font-medium">
-              {Math.round(plannedCalories)} / {dailyCalorieGoal}
-            </span>
-          </div>
-          
-          {/* Consumed Calories */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Eaten:</span>
-            <span className={`text-sm font-bold ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
-              {Math.round(consumedCalories)} / {dailyCalorieGoal}
-            </span>
-          </div>
-        </div>
+        </Card>
 
-        {/* Carbs Section */}
-        <div className="space-y-2">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Carbs (g)
+        {/* Carbs Card */}
+        <Card className="p-4">
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Carbs (g)
+            </div>
+            
+            {/* Planned Carbs */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Planned:</span>
+              <span className="text-sm font-medium">
+                {Math.round(plannedCarbs)} / {dailyCarbGoal}
+              </span>
+            </div>
+            
+            {/* Consumed Carbs */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Eaten:</span>
+              <span className={`text-sm font-bold ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
+                {Math.round(consumedCarbs)} / {dailyCarbGoal}
+              </span>
+            </div>
           </div>
-          
-          {/* Planned Carbs */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Planned:</span>
-            <span className="text-sm font-medium">
-              {Math.round(plannedCarbs)} / {dailyCarbGoal}
-            </span>
-          </div>
-          
-          {/* Consumed Carbs */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Eaten:</span>
-            <span className={`text-sm font-bold ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
-              {Math.round(consumedCarbs)} / {dailyCarbGoal}
-            </span>
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

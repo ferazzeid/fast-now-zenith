@@ -1152,40 +1152,20 @@ ${updatedContent}`
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
+      {/* Voice Input Only - Text input removed per user request */}
       {editingFoodIndex === null && (
         <div className="border-t border-border pt-4 mt-4 space-y-3">
-          {/* Text Input */}
-          <div className="flex gap-2 items-end">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder={title === "Motivator Assistant" ? "What motivates you? For example..." : "Ask about food details..."}
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              disabled={isProcessing}
-              className="flex-1"
-            />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isProcessing}
-              size="default"
-              className="flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+          {/* Voice Recording */}
+          <div className="w-full flex justify-center">
+            <PremiumGate feature="Voice Input" grayOutForFree={true}>
+              <CircularVoiceButton
+                onTranscription={handleVoiceTranscription}
+                isDisabled={isProcessing}
+                size="lg"
+              />
+            </PremiumGate>
           </div>
-          
-        {/* Voice Recording */}
-        <div className="w-full flex justify-center">
-          <PremiumGate feature="Voice Input" grayOutForFree={true}>
-            <CircularVoiceButton
-              onTranscription={handleVoiceTranscription}
-              isDisabled={isProcessing}
-              size="lg"
-            />
-          </PremiumGate>
         </div>
-      </div>
       )}
     </UniversalModal>
   );

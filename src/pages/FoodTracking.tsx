@@ -35,6 +35,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
+import { PhotoFoodEntry } from '@/components/PhotoFoodEntry';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -50,6 +51,7 @@ const FoodTracking = () => {
   // Remove tab state - using unified view now
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [showPhotoEntry, setShowPhotoEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [manualEntryData, setManualEntryData] = useState({
@@ -219,6 +221,31 @@ const FoodTracking = () => {
       imageUrl: ''
     });
     setShowManualEntry(true);
+  };
+
+  const handlePhotoEntry = async (data: any) => {
+    const result = await addFoodEntry(data);
+    
+    if (!result || 'error' in result) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save food entry"
+      });
+    } else {
+      toast({
+        title: "Food added successfully!",
+        description: `${data.name} has been added to your food plan`
+      });
+      
+      // Save to personal library
+      await saveToLibrary({
+        name: data.name,
+        calories: data.calories,
+        carbs: data.carbs,
+        serving_size: data.serving_size
+      });
+    }
   };
 
 
@@ -585,7 +612,7 @@ const FoodTracking = () => {
 
         {/* Action Buttons - Moved above Today's Food Plan */}
         <div className="my-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-3">
             {/* Voice Add */}
             <div className="flex flex-col items-center">
               <PremiumGate feature="AI Food Assistant" grayOutForFree={true}>
@@ -601,6 +628,22 @@ const FoodTracking = () => {
               </PremiumGate>
               <ClickableTooltip content="Use voice to describe your food and AI will add it with estimated nutrition">
                 <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Voice Add</p>
+              </ClickableTooltip>
+            </div>
+
+            {/* Photo Add */}
+            <div className="flex flex-col items-center">
+              <Button
+                onClick={() => setShowPhotoEntry(true)}
+                variant="action-primary"
+                size="action-tall"
+                className="flex items-center justify-center w-full"
+                aria-label="Add food with photo"
+              >
+                <Camera className="w-5 h-5" />
+              </Button>
+              <ClickableTooltip content="Take a photo and AI will analyze the nutritional information automatically">
+                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Photo Add</p>
               </ClickableTooltip>
             </div>
             
@@ -734,13 +777,13 @@ const FoodTracking = () => {
                       {/* More Options Menu */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-5 w-5 p-1 hover:bg-secondary/80 rounded"
-                            aria-label="More options"
-                          >
-                            <MoreVertical className="w-3 h-3 text-primary" />
+                           <Button 
+                             size="sm" 
+                             variant="ghost" 
+                             className="min-h-[44px] min-w-[44px] p-2 hover:bg-secondary/80 rounded"
+                             aria-label="More options"
+                           >
+                             <MoreVertical className="w-4 h-4 text-primary" />
                           </Button>
                         </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
@@ -748,23 +791,69 @@ const FoodTracking = () => {
                               <Edit className="w-4 h-4 mr-2" />
                               Edit Entry
                             </DropdownMenuItem>
-                            {!isInLibrary(entry.name) && (
-                              <DropdownMenuItem
-                                onClick={async () => {
-                                  await saveToLibrary({
-                                    name: entry.name,
-                                    calories: entry.calories,
-                                    carbs: entry.carbs,
-                                    serving_size: entry.serving_size,
-                                  });
-                                  addLibraryLocal(entry.name);
-                                  toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
-                                }}
-                              >
-                                <Save className="w-4 h-4 mr-2" />
-                                Add to Library
-                              </DropdownMenuItem>
-                            )}
+                             {!isInLibrary(entry.name) && (
+                               <DropdownMenuItem
+                                 onClick={async () => {
+                                   await saveToLibrary({
+                                     name: entry.name,
+                                     calories: entry.calories,
+                                     carbs: entry.carbs,
+                                     serving_size: entry.serving_size,
+                                   });
+                                   addLibraryLocal(entry.name);
+                                   toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
+                                 }}
+                               >
+                                 <Save className="w-4 h-4 mr-2" />
+                                 Add to Library
+                               </DropdownMenuItem>
+                             )}
+                             <DropdownMenuItem
+                               onClick={async () => {
+                                 try {
+                                   // Use the same format as other template entries
+                                   const foodsToSave = [{
+                                     name: entry.name,
+                                     calories: entry.calories,
+                                     carbs: entry.carbs,
+                                     serving_size: entry.serving_size,
+                                   }];
+                                   
+                                   // Get existing template foods and append new one
+                                   const existingFoods = templateFoods.map(f => ({
+                                     name: f.name,
+                                     calories: f.calories,
+                                     carbs: f.carbs,
+                                     serving_size: f.serving_size,
+                                   }));
+                                   
+                                   const allFoods = [...existingFoods, ...foodsToSave];
+                                   const { error } = await saveTemplate(allFoods);
+                                   
+                                   if (error) {
+                                     toast({ 
+                                       title: 'Error', 
+                                       description: 'Failed to add to template',
+                                       variant: 'destructive'
+                                     });
+                                   } else {
+                                     toast({ 
+                                       title: 'Added to Template', 
+                                       description: `${entry.name} added to your daily template` 
+                                     });
+                                   }
+                                 } catch (error) {
+                                   toast({ 
+                                     title: 'Error', 
+                                     description: 'Failed to add to template',
+                                     variant: 'destructive'
+                                   });
+                                 }
+                               }}
+                             >
+                               <Plus className="w-4 h-4 mr-2" />
+                               Add to Template
+                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleDeleteFoodEntry(entry.id)}
                               className="text-destructive focus:text-destructive"
@@ -799,61 +888,55 @@ const FoodTracking = () => {
               <div className="space-y-4">
                 {templateFoods.length > 0 ? (
                   <>
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          id="activate-daily"
-                          checked={profile?.enable_daily_reset || false}
-                          onCheckedChange={async (checked) => {
-                            const result = await updateProfile({ enable_daily_reset: checked });
-                            if (result.error) {
-                              toast({
-                                variant: "destructive",
-                                title: "Error",
-                                description: "Failed to update daily reset setting"
+                    {/* Subtle controls section */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/50 pb-2">
+                      <div className="flex items-center space-x-3">
+                         <div className="flex items-center space-x-1.5">
+                          <Switch 
+                            id="activate-daily"
+                            checked={profile?.enable_daily_reset || false}
+                            onCheckedChange={(checked) => {
+                              updateProfile({ enable_daily_reset: checked }).then((result) => {
+                                if (result.error) {
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Error",
+                                    description: "Failed to update daily reset setting"
+                                  });
+                                } else {
+                                  toast({
+                                    title: checked ? "Daily Reset Activated" : "Daily Reset Deactivated",
+                                    description: checked 
+                                      ? "Your template will automatically apply each day at midnight"
+                                      : "Automatic daily reset has been disabled"
+                                  });
+                                }
                               });
-                            } else {
-                              toast({
-                                title: checked ? "Daily Reset Activated" : "Daily Reset Deactivated",
-                                description: checked 
-                                  ? "Your template will automatically apply each day at midnight"
-                                  : "Automatic daily reset has been disabled"
-                              });
-                            }
-                          }}
-                        />
-                        <Label htmlFor="activate-daily" className="text-sm font-medium">
-                          Activate Daily
-                        </Label>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>When enabled, your template will automatically replace today's plan each day at midnight</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                            }}
+                            className="scale-75"
+                          />
+                          <Label htmlFor="activate-daily" className="text-xs font-normal">
+                            Auto-apply daily
+                          </Label>
+                          <ClickableTooltip content="When enabled, your template will automatically replace today's plan each day at midnight">
+                            <Info className="h-3 w-3 text-muted-foreground/60" />
+                          </ClickableTooltip>
+                        </div>
                       </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleApplyTemplate}
-                              disabled={templateLoading}
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Apply Template
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Apply your template foods to today's plan right now</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <div className="flex items-center space-x-1">
+                        <ClickableTooltip content="Apply your template foods to today's plan right now">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleApplyTemplate}
+                            disabled={templateLoading}
+                            className="h-6 px-2 text-xs font-normal hover:bg-muted/30"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                          </Button>
+                        </ClickableTooltip>
+                        <span className="text-xs font-normal text-muted-foreground">Apply today</span>
+                      </div>
                     </div>
                     <div className="space-y-1">
                      {templateFoods.map((food) => (
@@ -889,36 +972,64 @@ const FoodTracking = () => {
                            
                            <DropdownMenu>
                              <DropdownMenuTrigger asChild>
-                               <Button 
-                                 size="sm" 
-                                 variant="ghost" 
-                                 className="h-5 w-5 p-1 hover:bg-secondary/80 rounded"
-                               >
-                                 <MoreVertical className="w-3 h-3 text-primary" />
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="min-h-[44px] min-w-[44px] p-2 hover:bg-secondary/80 rounded"
+                                >
+                                  <MoreVertical className="w-4 h-4 text-primary" />
                                </Button>
                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-44">
-                                <DropdownMenuItem onClick={() => setEditingEntry(food)}>
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit Template Item
-                                </DropdownMenuItem>
-                                {!isInLibrary(food.name) && (
-                                  <DropdownMenuItem
-                                    onClick={async () => {
-                                      await saveToLibrary({
-                                        name: food.name,
-                                        calories: food.calories,
-                                        carbs: food.carbs,
-                                        serving_size: food.serving_size,
-                                      });
-                                      addLibraryLocal(food.name);
-                                      toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
-                                    }}
-                                  >
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Add to Library
-                                  </DropdownMenuItem>
-                                )}
+                               <DropdownMenuContent align="end" className="w-48">
+                                 <DropdownMenuItem 
+                                   onClick={async () => {
+                                     // Add template item to today's plan
+                                     const result = await addFoodEntry({
+                                       name: food.name,
+                                       calories: food.calories,
+                                       carbs: food.carbs,
+                                       serving_size: food.serving_size,
+                                       consumed: false
+                                     });
+
+                                     if (!result || 'error' in result) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: "Failed to add to today's plan"
+                                       });
+                                     } else {
+                                       toast({
+                                         title: "Added to Today's Plan",
+                                         description: `${food.name} added to today's food plan`
+                                       });
+                                     }
+                                   }}
+                                 >
+                                   <Plus className="w-4 h-4 mr-2" />
+                                   Add to Today's Plan
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={() => setEditingEntry(food)}>
+                                   <Edit className="w-4 h-4 mr-2" />
+                                   Edit Template Item
+                                 </DropdownMenuItem>
+                                 {!isInLibrary(food.name) && (
+                                   <DropdownMenuItem
+                                     onClick={async () => {
+                                       await saveToLibrary({
+                                         name: food.name,
+                                         calories: food.calories,
+                                         carbs: food.carbs,
+                                         serving_size: food.serving_size,
+                                       });
+                                       addLibraryLocal(food.name);
+                                       toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
+                                     }}
+                                   >
+                                     <Save className="w-4 h-4 mr-2" />
+                                     Add to Library
+                                   </DropdownMenuItem>
+                                 )}
                                  <DropdownMenuItem 
                                    onClick={async () => {
                                      try {
@@ -927,7 +1038,9 @@ const FoodTracking = () => {
                                          .delete()
                                          .eq('id', food.id);
                                        // Refresh template
-                                       await loadTemplate();
+                                        await loadTemplate();
+                                        // Also refresh today's food entries since they might be affected
+                                        await refreshFoodEntries();
                                        toast({
                                          title: "Template item deleted",
                                          description: "Item removed from daily template"
@@ -1198,6 +1311,13 @@ const FoodTracking = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Photo Food Entry Modal */}
+        <PhotoFoodEntry
+          isOpen={showPhotoEntry}
+          onClose={() => setShowPhotoEntry(false)}
+          onSave={handlePhotoEntry}
+        />
         
       </div>
     </div>

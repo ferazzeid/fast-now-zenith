@@ -111,6 +111,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
 
     setLoading(true);
     try {
+      console.log('Loading fasting history for user:', user.id);
       const { data: fastingSessions, error } = await supabase
         .from('fasting_sessions')
         .select('*')
@@ -118,8 +119,13 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
         .order('start_time', { ascending: false })
         .range(offsetValue * ITEMS_PER_PAGE, (offsetValue + 1) * ITEMS_PER_PAGE - 1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading fasting history:', error);
+        throw error;
+      }
 
+      console.log('Loaded fasting sessions:', fastingSessions?.length || 0);
+      
       // Type the sessions properly
       const typedSessions = (fastingSessions || []).map(session => ({
         ...session,
@@ -133,16 +139,16 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       }
 
       setHasMore((fastingSessions?.length || 0) === ITEMS_PER_PAGE);
+      
+      console.log('Updated sessions state, total sessions:', append ? sessions.length + typedSessions.length : typedSessions.length);
     } catch (error) {
       console.error('Error loading fasting history:', error);
-      // Only show error toast for actual database errors, not empty results
-      if (error && error.code !== 'PGRST116') {
-        toast({
-          title: "Error",
-          description: "Failed to load fasting history",
-          variant: "destructive"
-        });
-      }
+      // Show toast for any actual errors
+      toast({
+        title: "Error",
+        description: "Failed to load fasting history. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -245,11 +251,10 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                         <div className="flex gap-3">
                           <div className="h-3 bg-muted animate-pulse rounded w-20" />
                           <div className="h-3 bg-muted animate-pulse rounded w-16" />
-                          <div className="h-3 bg-muted animate-pulse rounded w-24" />
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <div className="w-6 h-6 bg-muted animate-pulse rounded" />
+                      <div className="flex gap-2 justify-end">
+                        <div className="w-16 h-6 bg-muted animate-pulse rounded" />
                       </div>
                     </div>
                   </CardHeader>

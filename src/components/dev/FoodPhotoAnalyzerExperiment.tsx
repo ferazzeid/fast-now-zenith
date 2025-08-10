@@ -121,7 +121,7 @@ export const FoodPhotoAnalyzerExperiment: React.FC = () => {
               <Button variant="outline" onClick={() => (imageUrl ? analyze(imageUrl) : null)} disabled={analyzing}>
                 <ImageIcon className="w-4 h-4 mr-2" /> Re-analyze
               </Button>
-              <Button variant="secondary" onClick={reset}>
+              <Button variant="action-secondary" onClick={reset}>
                 <RefreshCcw className="w-4 h-4 mr-2" /> Try another image
               </Button>
             </div>

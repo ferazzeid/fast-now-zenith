@@ -26,10 +26,14 @@ import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
+import { HistoryDebugHelper } from "@/components/enhanced/HistoryDebugHelper";
 import { EnhancedConnectionStatus } from "./components/enhanced/ConnectionRecovery";
+import { OfflineStatusBanner } from "./components/enhanced/OfflineStatusBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
+import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
+import { useDynamicHTMLMeta } from "./hooks/useDynamicHTMLMeta";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -39,6 +43,7 @@ import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 // Using optimized query client from @/lib/query-client
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
@@ -65,10 +70,15 @@ const AppContent = () => {
   useColorTheme();
   // Load dynamic favicon from admin settings
   useDynamicFavicon();
+  // Load dynamic PWA assets (logo, icons)
+  useDynamicPWAAssets();
+  // Load dynamic HTML meta tags
+  useDynamicHTMLMeta();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { isOnline, isConnected } = useConnectionStore();
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -111,9 +121,26 @@ const AppContent = () => {
       setShowOnboarding(false);
     }
   }, [user, profile, isProfileComplete]);
+
+  // Handle browser back/forward navigation when offline
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // When offline, ensure we stay within the SPA
+      if (!isOnline || !isConnected) {
+        // Let React Router handle the navigation naturally
+        // The service worker will serve the cached index.html
+        console.log('Offline navigation detected, using cached app shell');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isOnline, isConnected]);
   
   return (
     <>
+      <HistoryDebugHelper />
+      <OfflineStatusBanner />
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}

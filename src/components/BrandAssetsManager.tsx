@@ -4,12 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image as ImageIcon, Smartphone } from "lucide-react";
+import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette } from "lucide-react";
 import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
 
 const BrandAssetsManager = () => {
+  const [appIcon, setAppIcon] = useState<File | null>(null);
   const [favicon, setFavicon] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
+  const [currentAppIcon, setCurrentAppIcon] = useState<string>('');
   const [currentFavicon, setCurrentFavicon] = useState<string>('');
   const [currentLogo, setCurrentLogo] = useState<string>('');
   const [uploading, setUploading] = useState(false);
@@ -24,7 +26,7 @@ const BrandAssetsManager = () => {
       const { data: settingsData, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['app_favicon', 'app_logo']);
+        .in('setting_key', ['app_logo', 'app_favicon', 'app_icon_url']);
 
       if (error) {
         console.error('Error fetching brand assets:', error);
@@ -37,6 +39,8 @@ const BrandAssetsManager = () => {
             setCurrentFavicon(setting.setting_value || '');
           } else if (setting.setting_key === 'app_logo') {
             setCurrentLogo(setting.setting_value || '');
+          } else if (setting.setting_key === 'app_icon_url') {
+            setCurrentAppIcon(setting.setting_value || '');
           }
         });
       }
@@ -45,7 +49,7 @@ const BrandAssetsManager = () => {
     }
   };
 
-  const handleFileSelect = (file: File, type: 'favicon' | 'logo') => {
+  const handleFileSelect = (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -66,14 +70,16 @@ const BrandAssetsManager = () => {
       return;
     }
 
-    if (type === 'favicon') {
+    if (type === 'appIcon') {
+      setAppIcon(file);
+    } else if (type === 'favicon') {
       setFavicon(file);
     } else {
       setLogo(file);
     }
   };
 
-  const uploadAsset = async (file: File, type: 'favicon' | 'logo') => {
+  const uploadAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${type}-${Date.now()}.${fileExt}`;
     const filePath = `brand-assets/${fileName}`;
@@ -102,27 +108,35 @@ const BrandAssetsManager = () => {
     return data.publicUrl;
   };
 
-  const updateManifestAndFavicon = async (faviconUrl?: string, logoUrl?: string) => {
-    // Update favicon in HTML if provided
-    if (faviconUrl) {
-      // Note: This would require server-side implementation to actually update the HTML
-      // For now, we'll store the setting and the user will need to update their deployment
-      console.log('Favicon URL to be used:', faviconUrl);
+  const updateManifestAndFavicon = async () => {
+    // Force manifest cache refresh by triggering service worker update
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration) {
+          registration.update();
+        }
+      } catch (error) {
+        console.log('Service worker update failed (non-critical):', error);
+      }
     }
 
-    // Update manifest.json icons if logo provided
-    if (logoUrl) {
-      // Note: This would require server-side implementation to actually update the manifest
-      // For now, we'll store the setting and provide instructions
-      console.log('Logo URL to be used in manifest:', logoUrl);
+    // Force browser to refresh manifest by adding cache-busting parameter
+    const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+    if (manifestLink) {
+      const url = new URL(manifestLink.href);
+      url.searchParams.set('v', Date.now().toString());
+      manifestLink.href = url.toString();
     }
+
+    console.log('Manifest and PWA cache updated');
   };
 
-  const saveFavicon = async () => {
-    if (!favicon) {
+  const saveAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+    if (!file) {
       toast({
         title: "No file selected",
-        description: "Please select a favicon image first",
+        description: `Please select a ${type} image first`,
         variant: "destructive",
       });
       return;
@@ -130,15 +144,21 @@ const BrandAssetsManager = () => {
 
     setUploading(true);
     try {
-      console.log('Starting favicon upload:', favicon.name);
-      const faviconUrl = await uploadAsset(favicon, 'favicon');
-      console.log('Favicon uploaded successfully:', faviconUrl);
+      console.log(`Starting ${type} upload:`, file.name);
+      const assetUrl = await uploadAsset(file, type);
+      console.log(`${type} uploaded successfully:`, assetUrl);
+      
+      // Determine the database key
+      let dbKey = '';
+      if (type === 'appIcon') dbKey = 'app_icon_url';
+      else if (type === 'favicon') dbKey = 'app_favicon';
+      else dbKey = 'app_logo';
       
       // Save to database with conflict resolution
       const { data: existing } = await supabase
         .from('shared_settings')
-        .select('id')
-        .eq('setting_key', 'app_favicon')
+        .select('setting_key')
+        .eq('setting_key', dbKey)
         .maybeSingle();
 
       let error;
@@ -146,113 +166,57 @@ const BrandAssetsManager = () => {
         // Update existing record
         const { error: updateError } = await supabase
           .from('shared_settings')
-          .update({ setting_value: faviconUrl, updated_at: new Date().toISOString() })
-          .eq('setting_key', 'app_favicon');
+          .update({ setting_value: assetUrl, updated_at: new Date().toISOString() })
+          .eq('setting_key', dbKey);
         error = updateError;
       } else {
         // Insert new record
         const { error: insertError } = await supabase
           .from('shared_settings')
           .insert({
-            setting_key: 'app_favicon',
-            setting_value: faviconUrl,
+            setting_key: dbKey,
+            setting_value: assetUrl,
           });
         error = insertError;
       }
 
       if (error) {
         console.error('Database update error:', error);
-        throw new Error(`Failed to save favicon URL: ${error.message}`);
+        throw new Error(`Failed to save ${type} URL: ${error.message}`);
       }
 
-      setCurrentFavicon(faviconUrl);
-      setFavicon(null);
+      // Update local state
+      if (type === 'appIcon') {
+        setCurrentAppIcon(assetUrl);
+        setAppIcon(null);
+      } else if (type === 'favicon') {
+        setCurrentFavicon(assetUrl);
+        setFavicon(null);
+      } else {
+        setCurrentLogo(assetUrl);
+        setLogo(null);
+      }
       
-      await updateManifestAndFavicon(faviconUrl);
+      await updateManifestAndFavicon();
+
+      const messages = {
+        appIcon: "App icon updated successfully! This will be used for PWA installation and home screen icons.",
+        favicon: "Favicon uploaded successfully! The new favicon will appear on browser tabs.",
+        logo: "Logo updated successfully! This will be used for app branding and headers."
+      };
 
       toast({
         title: "Success",
-        description: "Favicon uploaded successfully! Browser tabs will show the new favicon.",
+        description: messages[type],
       });
       
-      // Refresh current assets to show updated favicon
+      // Refresh current assets to show updated asset
       await fetchCurrentAssets();
     } catch (error: any) {
-      console.error('Error uploading favicon:', error);
+      console.error(`Error uploading ${type}:`, error);
       toast({
         title: "Upload Failed",
-        description: error?.message || "Failed to upload favicon. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const saveLogo = async () => {
-    if (!logo) {
-      toast({
-        title: "No file selected", 
-        description: "Please select a logo image first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploading(true);
-    try {
-      console.log('Starting logo upload:', logo.name);
-      const logoUrl = await uploadAsset(logo, 'logo');
-      console.log('Logo uploaded successfully:', logoUrl);
-      
-      // Save to database with conflict resolution
-      const { data: existing } = await supabase
-        .from('shared_settings')
-        .select('id')
-        .eq('setting_key', 'app_logo')
-        .maybeSingle();
-
-      let error;
-      if (existing) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from('shared_settings')
-          .update({ setting_value: logoUrl, updated_at: new Date().toISOString() })
-          .eq('setting_key', 'app_logo');
-        error = updateError;
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from('shared_settings')
-          .insert({
-            setting_key: 'app_logo',
-            setting_value: logoUrl,
-          });
-        error = insertError;
-      }
-
-      if (error) {
-        console.error('Database update error:', error);
-        throw new Error(`Failed to save logo URL: ${error.message}`);
-      }
-
-      setCurrentLogo(logoUrl);
-      setLogo(null);
-      
-      await updateManifestAndFavicon(undefined, logoUrl);
-
-      toast({
-        title: "Success", 
-        description: "App logo uploaded successfully! This will be used for PWA installation and home screen icons.",
-      });
-      
-      // Refresh current assets to show updated logo
-      await fetchCurrentAssets();
-    } catch (error: any) {
-      console.error('Error uploading logo:', error);
-      toast({
-        title: "Upload Failed",
-        description: error?.message || "Failed to upload logo. Please try again.",
+        description: error?.message || `Failed to upload ${type}. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -262,20 +226,85 @@ const BrandAssetsManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* App Icon Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Smartphone className="w-4 h-4" />
+            App Icon · 192x192/512x512
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Main app icon for home screen and app stores (used for PWA)</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {currentAppIcon && (
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+              <img 
+                src={currentAppIcon} 
+                alt="Current app icon" 
+                className="w-12 h-12 object-contain rounded"
+                style={{ backgroundColor: 'transparent' }}
+              />
+              <span className="text-sm text-muted-foreground">Current app icon</span>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="app-icon-upload" className="text-sm font-medium">
+              Select App Icon (PNG with transparent background recommended)
+            </Label>
+            <div className="flex items-center gap-3">
+              <input
+                id="app-icon-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0], 'appIcon')}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('app-icon-upload')?.click()}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Choose File
+              </Button>
+              {appIcon && (
+                <span className="text-sm text-muted-foreground">
+                  {appIcon.name}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => saveAsset(appIcon!, 'appIcon')} 
+              disabled={!appIcon || uploading}
+              className="flex-1 sm:flex-none"
+            >
+              {uploading ? "Uploading..." : "Save"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Favicon Upload */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-medium">
-            Favicon · 32/64px
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Monitor className="w-4 h-4" />
+            Favicon · 32x32
           </CardTitle>
+          <p className="text-sm text-muted-foreground">Small icon shown in browser tabs and bookmarks</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentFavicon && (
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/50">
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
               <img 
                 src={currentFavicon} 
                 alt="Current favicon" 
                 className="w-8 h-8 object-contain"
+                style={{ backgroundColor: 'transparent' }}
               />
               <span className="text-sm text-muted-foreground">Current favicon</span>
             </div>
@@ -283,7 +312,7 @@ const BrandAssetsManager = () => {
           
           <div className="space-y-2">
             <Label htmlFor="favicon-upload" className="text-sm font-medium">
-              Select Favicon Image
+              Select Favicon (PNG with transparent background recommended)
             </Label>
             <div className="flex items-center gap-3">
               <input
@@ -311,7 +340,7 @@ const BrandAssetsManager = () => {
           
           <div className="flex gap-2">
             <Button 
-              onClick={saveFavicon} 
+              onClick={() => saveAsset(favicon!, 'favicon')} 
               disabled={!favicon || uploading}
               className="flex-1 sm:flex-none"
             >
@@ -321,28 +350,31 @@ const BrandAssetsManager = () => {
         </CardContent>
       </Card>
 
-      {/* App Logo Upload */}
+      {/* Logo Upload */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-medium">
-            App Icon · 512x512
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Palette className="w-4 h-4" />
+            Logo · Variable Size
           </CardTitle>
+          <p className="text-sm text-muted-foreground">Main brand logo for headers, splash screens, and general branding</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentLogo && (
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/50">
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
               <img 
                 src={currentLogo} 
-                alt="Current app logo" 
+                alt="Current logo" 
                 className="w-12 h-12 object-contain rounded"
+                style={{ backgroundColor: 'transparent' }}
               />
-              <span className="text-sm text-muted-foreground">Current app logo</span>
+              <span className="text-sm text-muted-foreground">Current logo</span>
             </div>
           )}
           
           <div className="space-y-2">
             <Label htmlFor="logo-upload" className="text-sm font-medium">
-              Select App Logo
+              Select Logo (PNG with transparent background recommended)
             </Label>
             <div className="flex items-center gap-3">
               <input
@@ -370,7 +402,7 @@ const BrandAssetsManager = () => {
           
           <div className="flex gap-2">
             <Button 
-              onClick={saveLogo} 
+              onClick={() => saveAsset(logo!, 'logo')} 
               disabled={!logo || uploading}
               className="flex-1 sm:flex-none"
             >

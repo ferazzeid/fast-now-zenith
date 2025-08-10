@@ -26,6 +26,8 @@ import { FastingInspirationRotator } from '@/components/FastingInspirationRotato
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
+import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
+import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -46,6 +48,7 @@ const Timer = () => {
   const { toast } = useToast();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
+  const { celebration, checkForMilestones, resetMilestones } = useCelebrationMilestones(fastingSession?.id);
 
 
   const isRunning = !!fastingSession;
@@ -103,7 +106,8 @@ const Timer = () => {
         const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         setTimeElapsed(elapsed);
 
-
+        // Check for celebration milestones
+        checkForMilestones(elapsed, fastingSession.goal_duration_seconds);
       };
 
       // Update immediately
@@ -118,9 +122,10 @@ const Timer = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, fastingSession?.start_time, fastDuration]);
+  }, [isRunning, fastingSession?.start_time, fastDuration, checkForMilestones]);
 
   const handleFastingStart = async () => {
+    resetMilestones(); // Reset celebration state for new fast
     const result = await startFastingSession({ goal_duration_seconds: fastDuration });
     if (result) {
       trackFastingEvent('start', fastType, fastDuration);
@@ -461,8 +466,16 @@ const Timer = () => {
         </div>
       </PageOnboardingModal>
 
+      {/* Celebration Overlay */}
+      {celebration.isVisible && celebration.currentEvent && (
+        <CelebrationOverlay
+          isVisible={celebration.isVisible}
+          type={celebration.currentEvent.type}
+          hours={celebration.currentEvent.hours}
+          message={celebration.currentEvent.message}
+        />
+      )}
     </div>
   );
 };
-
 export default Timer;

@@ -19,6 +19,7 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
+import { EnhancedConnectionStatus } from '@/components/enhanced/ConnectionRecovery';
 
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
@@ -226,9 +227,12 @@ const Walking = () => {
             </h1>
             <p className="text-sm text-muted-foreground text-left">Track your walking session</p>
           </div>
-          <div className="mt-2 flex justify-end">
-            <OutboxSyncIndicator />
-          </div>
+          {/* Only show sync indicator when there's an active session */}
+          {currentSession && (
+            <div className="mt-2 flex justify-end">
+              <OutboxSyncIndicator />
+            </div>
+          )}
         </div>
 
         {/* Timer Display - No Loading State Blocking */}
@@ -368,9 +372,12 @@ const Walking = () => {
             })}
           </div>
         </PageOnboardingModal>
+        </div>
+        
+        {/* Enhanced connection status for offline handling */}
+        <EnhancedConnectionStatus />
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default Walking;

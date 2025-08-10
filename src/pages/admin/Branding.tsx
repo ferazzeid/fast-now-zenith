@@ -4,6 +4,8 @@ import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { ColorManagement } from "@/components/ColorManagement";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
 import { AppIdentitySettings } from "@/components/AppIdentitySettings";
+import { PWAManagementCard } from "@/components/PWAManagementCard";
+import { PWATestPanel } from "@/components/PWATestPanel";
 
 export default function AdminBranding() {
   usePageSEO({
@@ -23,6 +25,16 @@ export default function AdminBranding() {
 
       <section aria-label="Brand assets">
         <BrandAssetsManager />
+      </section>
+
+      {/* PWA Icon Uploader removed - using individual uploads in BrandAssetsManager instead */}
+
+      <section aria-label="PWA management">
+        <PWAManagementCard />
+      </section>
+
+      <section aria-label="PWA testing">
+      <PWATestPanel />
       </section>
 
       <section aria-label="Color management">

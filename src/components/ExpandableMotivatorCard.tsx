@@ -2,11 +2,14 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2 } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, Star } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { RegenerateImageButton } from './RegenerateImageButton';
 import { PremiumGatedRegenerateButton } from './PremiumGatedRegenerateButton';
 import { useImageGenerationStatus } from '@/hooks/useImageGenerationStatus';
+import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -39,7 +42,11 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
   const { getGenerationStatus } = useImageGenerationStatus();
+  const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
+  const { user } = useAuth();
   
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
   const generationStatus = getGenerationStatus(motivator.id);
@@ -49,10 +56,50 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     setCurrentImageUrl(newImageUrl);
   };
 
+  // Check admin role
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
+        
+        if (error) throw error;
+        setIsAdmin(data || false);
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
+
+  // Check if motivator is in default goals
+  useEffect(() => {
+    const checkDefaultGoals = async () => {
+      if (!isAdmin) return;
+      const inDefaults = await checkIfInDefaultGoals(motivator.id);
+      setIsInDefaultGoals(inDefaults);
+    };
+
+    checkDefaultGoals();
+  }, [isAdmin, motivator.id, checkIfInDefaultGoals]);
+
   // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
     setCurrentImageUrl(motivator.imageUrl || '');
   }, [motivator.imageUrl]);
+
+  const handleAddToDefaultGoals = async () => {
+    const success = await addToDefaultGoals(motivator);
+    if (success) {
+      setIsInDefaultGoals(true);
+    }
+  };
 
   return (
     <Card className="overflow-hidden relative">
@@ -64,6 +111,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               src={currentImageUrl}
               alt={motivator.title}
               className={`w-full h-full object-cover ${isGenerating ? 'opacity-50' : ''}`}
+              onAddImageClick={onEdit}
+              showAddImagePrompt={!currentImageUrl}
             />
             {isGenerating && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded">
@@ -134,6 +183,43 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     <p>Edit this motivator</p>
                   </TooltipContent>
                 </Tooltip>
+
+                {/* Admin: Add to Default Goals Button */}
+                {isAdmin && !isInDefaultGoals && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToDefaultGoals();
+                        }}
+                        disabled={adminLoading}
+                        className="p-1 h-6 w-6 hover:bg-yellow-500/10 hover:text-yellow-600"
+                      >
+                        <Star className="w-3 h-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add to default goals (Admin)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
+                {/* Show badge if in default goals */}
+                {isAdmin && isInDefaultGoals && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-1 h-6 w-6 flex items-center justify-center">
+                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>In default goals</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
                 
                 <AlertDialog>
                   <Tooltip>

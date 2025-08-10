@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { estimateSteps } from '@/utils/stepEstimation';
 import { enqueueOperation } from '@/utils/outbox';
+import { persistWalkingSession, getPersistedWalkingSession } from '@/utils/timerPersistence';
 
 interface WalkingSession {
   id: string;
@@ -49,15 +50,40 @@ export const useWalkingSession = () => {
 
       if (error) {
         console.error('Error loading active walking session:', error);
-        setCurrentSession(null);
-        setIsPaused(false);
+        // Don't clear state on error - fall back to persisted data
+        const persistedSession = getPersistedWalkingSession();
+        if (persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
+          setCurrentSession(persistedSession);
+          setIsPaused(persistedSession.session_state === 'paused');
+        }
         return;
       }
 
-      setCurrentSession(data || null);
-      setIsPaused(data?.session_state === 'paused');
+      const session = data || null;
+      setCurrentSession(session);
+      setIsPaused(session?.session_state === 'paused');
+      
+      // Persist to local storage for offline fallback
+      if (session) {
+        persistWalkingSession({
+          id: session.id,
+          user_id: session.user_id,
+          start_time: session.start_time,
+          status: session.status,
+          speed_mph: session.speed_mph,
+          session_state: session.session_state,
+          pause_start_time: session.pause_start_time,
+          total_pause_duration: session.total_pause_duration,
+        });
+      }
     } catch (error) {
       console.error('Error loading active walking session:', error);
+      // Fall back to persisted session if network fails
+      const persistedSession = getPersistedWalkingSession();
+      if (persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
+        setCurrentSession(persistedSession);
+        setIsPaused(persistedSession.session_state === 'paused');
+      }
     } finally {
       setLoading(false);
     }
@@ -126,6 +152,18 @@ export const useWalkingSession = () => {
       setCurrentSession(data);
       setSelectedSpeed(speedMph);
       setIsPaused(false);
+      
+      // Persist to local storage
+      persistWalkingSession({
+        id: data.id,
+        user_id: data.user_id,
+        start_time: data.start_time,
+        status: data.status,
+        speed_mph: data.speed_mph,
+        session_state: data.session_state,
+        pause_start_time: data.pause_start_time,
+        total_pause_duration: data.total_pause_duration,
+      });
 
       // Force immediate refresh of the context
       console.log('Triggering refresh after session start');
@@ -371,6 +409,7 @@ export const useWalkingSession = () => {
 
       setCurrentSession(null);
       setIsPaused(false);
+      persistWalkingSession(null); // Clear persisted session
       triggerRefresh();
       
       setTimeout(() => {
@@ -423,6 +462,7 @@ export const useWalkingSession = () => {
 
       setCurrentSession(null);
       setIsPaused(false);
+      persistWalkingSession(null); // Clear persisted session
       triggerRefresh();
       
       return { data: true, error: null };

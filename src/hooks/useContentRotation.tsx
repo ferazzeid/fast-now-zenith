@@ -96,13 +96,14 @@ export function useContentRotation({
     console.log('Final variants for display:', variants);
     
     if (variants.length > 0) {
-      // Reset to first variant when hour changes
+      // Reset to first variant when hour changes and force immediate update
       setRotationState(prev => ({
         ...prev,
         currentContent: variants[0]?.content || '',
         currentType: variants[0]?.type || 'metabolic',
         currentIndex: 0,
-        totalVariants: variants.length
+        totalVariants: variants.length,
+        isRotating: autoRotate // Keep rotation state consistent
       }));
     } else {
       // Fallback if no variants

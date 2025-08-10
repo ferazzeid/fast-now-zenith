@@ -210,8 +210,8 @@ export const ColorManagement: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <span className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
           Brand Colors
         </CardTitle>
         <CardDescription>

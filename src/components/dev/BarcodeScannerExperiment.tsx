@@ -65,24 +65,44 @@ export const BarcodeScannerExperiment: React.FC = () => {
   const startScanning = async () => {
     if (!videoRef.current) return;
     try {
-      setError(null);
+      setError(null); // Clear any previous errors
       setProduct(null);
       setBarcode('');
       setScanning(true);
       if (!readerRef.current) {
         readerRef.current = new BrowserMultiFormatReader();
+        // Configure for better barcode detection - remove the hints as they're causing issues
       }
       // Stop any previous scanning session before starting a new one
       controlsRef.current?.stop();
+      // Use improved video device scanning with better resolution
       controlsRef.current = await readerRef.current.decodeFromVideoDevice(
         selectedDeviceId,
         videoRef.current,
         (result, err) => {
           if (result) {
+            console.log('Barcode detected:', result.getText());
             const text = result.getText();
             setBarcode(text);
             fetchProduct(text);
             stopScanning();
+            toast({
+              title: 'Barcode scanned!',
+              description: `Found barcode: ${text}`,
+            });
+          }
+          // Only show error toasts for serious errors, not NotFoundException
+          if (err && err.name !== 'NotFoundException' && err.name !== 'ChecksumException') {
+            console.error('Barcode scanning error:', err);
+            // Only show toast for the first serious error to avoid spam
+            if (!error) {
+              setError(err.message || 'Scanner error occurred');
+              toast({
+                title: 'Scanner error',
+                description: 'Having trouble scanning. Try adjusting camera angle or lighting.',
+                variant: 'destructive'
+              });
+            }
           }
         }
       );
@@ -135,8 +155,26 @@ export const BarcodeScannerExperiment: React.FC = () => {
   return (
     <Card className="shadow-sm">
       <CardContent className="space-y-4 pt-6">
+        {devices.length > 1 && (
+          <div className="space-y-2">
+            <Label htmlFor="camera-select">Camera</Label>
+            <Select value={selectedDeviceId} onValueChange={setSelectedDeviceId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select camera" />
+              </SelectTrigger>
+              <SelectContent>
+                {devices.map((device, index) => (
+                  <SelectItem key={device.deviceId} value={device.deviceId}>
+                    {device.label || `Camera ${index + 1}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="flex gap-2">
-          <Button onClick={startScanning} disabled={scanning} className="flex-1" variant="secondary">
+          <Button onClick={startScanning} disabled={scanning} className="flex-1" variant="action-primary">
             {scanning ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scanning...
@@ -148,7 +186,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
             )}
           </Button>
           {scanning && (
-            <Button onClick={stopScanning} variant="outline">
+            <Button onClick={stopScanning} variant="action-secondary">
               <Square className="w-4 h-4 mr-2" /> Stop
             </Button>
           )}
@@ -159,7 +197,12 @@ export const BarcodeScannerExperiment: React.FC = () => {
             <video ref={videoRef} className="w-full max-h-[320px] object-cover bg-muted" autoPlay muted playsInline />
             {scanning && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <ScanLine className="w-10 h-10 text-primary animate-pulse" />
+                <div className="w-48 h-32 border-2 border-primary bg-primary/10 rounded-lg flex items-center justify-center">
+                  <ScanLine className="w-8 h-8 text-primary animate-pulse" />
+                </div>
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+                  Position barcode in the frame
+                </div>
               </div>
             )}
           </div>
@@ -201,6 +244,26 @@ export const BarcodeScannerExperiment: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Manual barcode input for testing */}
+        <div className="space-y-2 pt-4 border-t">
+          <Label htmlFor="manual-code">Test with manual barcode (optional)</Label>
+          <div className="flex gap-2">
+            <Input
+              id="manual-code"
+              placeholder="Enter barcode manually to test"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              className="flex-1"
+            />
+            <Button onClick={handleManualLookup} variant="outline" disabled={!manualCode.trim()}>
+              Lookup
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            For Pepsi products, try: 5449000000996 (Pepsi Cola) or check the number under the barcode on your can
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

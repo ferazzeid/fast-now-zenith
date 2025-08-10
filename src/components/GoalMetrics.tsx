@@ -25,7 +25,7 @@ export const GoalMetrics = () => {
   return (
     <div className="grid grid-cols-2 gap-3">
       {/* Weight Progress */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Scale className="w-4 h-4 text-primary" />
@@ -43,7 +43,7 @@ export const GoalMetrics = () => {
       </Card>
 
       {/* Time to Goal */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-primary" />
@@ -61,7 +61,7 @@ export const GoalMetrics = () => {
       </Card>
 
       {/* Today's Fat Loss */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Target className="w-4 h-4 text-primary" />
@@ -79,7 +79,7 @@ export const GoalMetrics = () => {
       </Card>
 
       {/* 30-Day Projection */}
-      <Card className="p-3">
+      <Card className="p-3 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <TrendingUp className="w-4 h-4 text-primary" />
