@@ -27,8 +27,6 @@ import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
 import { HistoryDebugHelper } from "@/components/enhanced/HistoryDebugHelper";
-import { EnhancedConnectionStatus } from "./components/enhanced/ConnectionRecovery";
-import { OfflineStatusBanner } from "./components/enhanced/OfflineStatusBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
@@ -78,7 +76,7 @@ const AppContent = () => {
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { isOnline, isConnected } = useConnectionStore();
+  const { isOnline } = useConnectionStore();
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -126,7 +124,7 @@ const AppContent = () => {
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       // When offline, ensure we stay within the SPA
-      if (!isOnline || !isConnected) {
+      if (!isOnline) {
         // Let React Router handle the navigation naturally
         // The service worker will serve the cached index.html
         console.log('Offline navigation detected, using cached app shell');
@@ -135,18 +133,17 @@ const AppContent = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [isOnline, isConnected]);
+  }, [isOnline]);
   
   return (
     <>
       <HistoryDebugHelper />
-      <OfflineStatusBanner />
+      
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
         <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
-          <EnhancedConnectionStatus />
           {!isAuthRoute && <DailyStatsPanel />}
           <Routes>
             <Route path="/auth" element={

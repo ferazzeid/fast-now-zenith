@@ -51,7 +51,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [profile, setProfile] = useState<any>(null);
-  const { isOnline, isConnected, forceRetry, checkConnection } = useConnectionStore();
+  const { isOnline } = useConnectionStore();
 
   useEffect(() => {
 
@@ -731,37 +731,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                       {isOnline ? 'Online' : 'Offline'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-warm-text">Server Connection</span>
-                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                      {isConnected ? 'Connected' : 'Disconnected'}
-                    </span>
-                  </div>
-                  {(!isOnline || !isConnected) && (
-                    <div className="pt-2">
-                      <Button
-                        onClick={async () => {
-                          toast({ title: "Reconnecting...", description: "Checking connection status" });
-                          await forceRetry();
-                          const connected = await checkConnection();
-                          toast({
-                            title: connected ? "Connected" : "Still offline",
-                            description: connected 
-                              ? "Connection restored successfully" 
-                              : "Unable to connect. Please check your internet connection.",
-                            variant: connected ? "default" : "destructive"
-                          });
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Wifi className="w-4 h-4 mr-2" />
-                        Reconnect
-                      </Button>
-                    </div>
-                  )}
-                  {(!isOnline || !isConnected) && (
+                  {!isOnline && (
                     <div className="pt-2">
                       <Button
                         onClick={() => window.location.reload()}

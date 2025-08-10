@@ -22,7 +22,7 @@ export const Navigation = () => {
   const { todayTotals } = useFoodEntriesQuery();
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
-  const { isOnline, isConnected } = useConnectionStore();
+  const { isOnline } = useConnectionStore();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Optimize timer updates - only update when needed for both fasting and walking
@@ -145,9 +145,8 @@ export const Navigation = () => {
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
   const getConnectionStatus = () => {
-    if (!isOnline) return { color: 'bg-red-500', tooltip: 'Offline - Changes will sync when connected' };
-    if (!isConnected) return { color: 'bg-yellow-500', tooltip: 'Connection issues - Retrying automatically' };
-    return { color: 'bg-green-500', tooltip: 'Connected' };
+    if (!isOnline) return { color: 'bg-red-500', tooltip: 'Offline - Changes will sync when connected', shouldPulse: false };
+    return { color: 'bg-green-500', tooltip: 'Connected', shouldPulse: false };
   };
 
   const connectionStatus = getConnectionStatus();
@@ -161,7 +160,7 @@ export const Navigation = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="absolute -top-1 right-1 z-10">
-                  <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${isConnected ? 'animate-pulse' : ''}`} />
+                  <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${connectionStatus.shouldPulse ? 'animate-pulse' : ''}`} />
                 </div>
               </TooltipTrigger>
               <TooltipContent>

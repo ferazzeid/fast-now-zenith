@@ -5,8 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useAuth = () => {
   const { toast } = useToast();
   const authState = useAuthStore();
-  const queueOperation = useConnectionStore(state => state.queueOperation);
-  const isConnected = useConnectionStore(state => state.isConnected);
+  const { isOnline } = useConnectionStore();
 
   // Create wrapped auth methods that handle toasts and offline queueing
   const signIn = async (email: string, password: string) => {
@@ -29,15 +28,15 @@ export const useAuth = () => {
       return result;
     };
 
-    if (isConnected) {
+    if (isOnline) {
       return await operation();
     } else {
-      queueOperation(operation);
       toast({
-        title: "Queued for retry",
-        description: "Sign in will be attempted when connection is restored.",
+        title: "No connection",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
       });
-      return { error: new Error("No connection - queued for retry") };
+      return { error: new Error("No connection") };
     }
   };
 
@@ -61,15 +60,15 @@ export const useAuth = () => {
       return result;
     };
 
-    if (isConnected) {
+    if (isOnline) {
       return await operation();
     } else {
-      queueOperation(operation);
       toast({
-        title: "Queued for retry",
-        description: "Sign up will be attempted when connection is restored.",
+        title: "No connection",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
       });
-      return { error: new Error("No connection - queued for retry") };
+      return { error: new Error("No connection") };
     }
   };
 
@@ -108,15 +107,15 @@ export const useAuth = () => {
       return result;
     };
 
-    if (isConnected) {
+    if (isOnline) {
       return await operation();
     } else {
-      queueOperation(operation);
       toast({
-        title: "Queued for retry",
-        description: "Password reset will be attempted when connection is restored.",
+        title: "No connection",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
       });
-      return { error: new Error("No connection - queued for retry") };
+      return { error: new Error("No connection") };
     }
   };
 
@@ -140,15 +139,15 @@ export const useAuth = () => {
       return result;
     };
 
-    if (isConnected) {
+    if (isOnline) {
       return await operation();
     } else {
-      queueOperation(operation);
       toast({
-        title: "Queued for retry",
-        description: "Password update will be attempted when connection is restored.",
+        title: "No connection",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
       });
-      return { error: new Error("No connection - queued for retry") };
+      return { error: new Error("No connection") };
     }
   };
 

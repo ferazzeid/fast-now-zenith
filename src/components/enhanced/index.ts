@@ -16,7 +16,6 @@ export {
 } from './SmartLoadingStates';
 
 export {
-  EnhancedConnectionStatus,
   OfflineIndicator,
   RetryableAction
 } from './ConnectionRecovery';

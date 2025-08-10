@@ -19,7 +19,7 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
-import { EnhancedConnectionStatus } from '@/components/enhanced/ConnectionRecovery';
+
 
 const Walking = () => {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
@@ -373,9 +373,6 @@ const Walking = () => {
           </div>
         </PageOnboardingModal>
         </div>
-        
-        {/* Enhanced connection status for offline handling */}
-        <EnhancedConnectionStatus />
       </div>
     );
   };
