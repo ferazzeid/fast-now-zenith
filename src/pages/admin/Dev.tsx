@@ -2,6 +2,7 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { BarcodeScannerExperiment } from "@/components/dev/BarcodeScannerExperiment";
+import { CelebrationAnimationTester } from "@/components/dev/CelebrationAnimationTester";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,11 @@ export default function AdminDev() {
 
         <section aria-label="Experimental features">
           <AIImageToggleSettings />
+        </section>
+
+        <section aria-label="Celebration Animation Testing" className="space-y-4">
+          <h2 className="text-xl font-semibold">Celebration Animations</h2>
+          <CelebrationAnimationTester />
         </section>
 
         <section aria-label="Barcode Scanner Experiment" className="space-y-4 pb-24">
