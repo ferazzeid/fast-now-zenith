@@ -66,54 +66,54 @@ export const StopWalkingConfirmDialog = ({
       showCloseButton={true}
       footer={
         showManualInput ? (
-          <div className="flex justify-start gap-3">
+          <>
             <Button 
               variant="outline" 
-              size="action-main"
               onClick={() => setShowManualInput(false)}
-              className="text-sm"
+              className="w-full h-10"
+              size="default"
             >
               Back
             </Button>
             <Button 
               variant="action-primary"
-              size="action-main"
               onClick={handleManualConfirm}
               disabled={!manualDuration || parseInt(manualDuration) <= 0}
-              className="text-sm"
+              className="w-full h-10"
+              size="default"
             >
               Save Corrected Duration
             </Button>
-          </div>
+          </>
         ) : (
-          <div className="flex justify-start gap-3">
+          <>
             <Button 
               variant="outline" 
-              size="action-main"
               onClick={handleClose}
-              className="text-sm"
+              className="w-full h-10"
+              size="default"
             >
               Close
             </Button>
             {showLongSessionWarning && (
               <Button 
                 variant="outline"
-                size="action-main"
                 onClick={() => setShowManualInput(true)}
-                className="text-sm"
+                className="w-full h-10"
+                size="default"
               >
-                Edit Duration
+                Edit
               </Button>
             )}
             <Button 
               variant="action-primary"
-              size="action-main"
               onClick={onConfirm}
-              className="text-sm"
+              className="w-full h-10"
+              size="default"
             >
               {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
             </Button>
-          </div>
+          </>
         )
       }
     >
