@@ -295,11 +295,11 @@ const App = () => (
   >
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
           <AsyncErrorBoundary>
             <ThemeProvider>
+              <Toaster />
+              <Sonner />
               <AuthProvider>
                 <SimpleWalkingStatsProvider>
                   <AppContent />

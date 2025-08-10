@@ -1,4 +1,4 @@
-const VERSION = 'v3';
+const VERSION = 'v4';
 const APP_SHELL_CACHE = `fastnow-shell-${VERSION}`;
 const RUNTIME_CACHE = `fastnow-runtime-${VERSION}`;
 
