@@ -57,30 +57,44 @@ export const AdminImageUpload = ({
     try {
       // Generate unique filename for admin goal ideas
       const fileExt = file.name.split('.').pop();
-      const fileName = `default-goal-ideas/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}-admin-goal.${fileExt}`;
       
       console.log('🔄 Uploading admin goal image to:', fileName);
+      console.log('📊 File size:', file.size, 'bytes');
+      console.log('📄 File type:', file.type);
 
       // Upload to Supabase Storage (motivator-images bucket)
       const { data, error } = await supabase.storage
         .from('motivator-images')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
 
       if (error) {
-        console.error('❌ Upload error:', error);
-        throw error;
+        console.error('❌ Storage upload error:', error);
+        throw new Error(`Upload failed: ${error.message}`);
       }
+
+      if (!data) {
+        console.error('❌ No data returned from upload');
+        throw new Error('Upload failed: No data returned');
+      }
+
+      console.log('✅ File uploaded successfully:', data);
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('motivator-images')
         .getPublicUrl(fileName);
 
+      if (!urlData?.publicUrl) {
+        console.error('❌ Failed to get public URL');
+        throw new Error('Failed to get public URL');
+      }
+
       const publicUrl = urlData.publicUrl;
-      console.log('✅ Image uploaded successfully:', publicUrl);
+      console.log('✅ Public URL generated:', publicUrl);
 
       onImageUpload(publicUrl);
       
@@ -89,11 +103,16 @@ export const AdminImageUpload = ({
         description: "Image uploaded successfully",
       });
 
-    } catch (error) {
-      console.error('❌ Upload error:', error);
+    } catch (error: any) {
+      console.error('❌ Upload error details:', {
+        message: error.message,
+        stack: error.stack,
+        error
+      });
+      
       toast({
-        title: "Error",
-        description: "Failed to upload image",
+        title: "Upload Failed",
+        description: error.message || "Failed to upload image. Please try again.",
         variant: "destructive",
       });
     } finally {
