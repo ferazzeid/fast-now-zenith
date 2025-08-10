@@ -82,10 +82,10 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             </div>
           )}
           
-          {/* Rotating Goal Text - Only show when no images are available */}
-          {showSlideshow && isActive && motivatorsWithImages.length === 0 && motivatorsWithoutImages.length > 0 && (
+          {/* Rotating Goal Text - Show even when inactive per user request */}
+          {showSlideshow && motivatorsWithImages.length === 0 && motivatorsWithoutImages.length > 0 && (
             <RotatingGoalText 
-              isActive={showSlideshow && isActive} 
+              isActive={true} // Always active to allow goal rotation per user request
               onModeChange={setMotivatorMode}
               radius={110}
               textSize="text-xs"

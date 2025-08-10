@@ -29,7 +29,8 @@ export const RotatingGoalText = ({
   const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
 
   useEffect(() => {
-    if (!isActive || motivatorsWithoutImages.length === 0) {
+    // Allow goals to rotate even when fasting is inactive per user request
+    if (motivatorsWithoutImages.length === 0) {
       setIsVisible(false);
       return;
     }
@@ -75,62 +76,19 @@ export const RotatingGoalText = ({
     };
   }, [isActive, motivatorsWithoutImages.length, transitionTime, onModeChange]);
 
-  if (!isActive || motivatorsWithoutImages.length === 0) {
+  if (motivatorsWithoutImages.length === 0) {
     return null;
   }
 
   const currentMotivator = motivatorsWithoutImages[currentIndex];
 
-  // Create circular rotating text path
-  const createCircularText = (text: string) => {
-    const chars = text.toUpperCase().split('');
-    const angleStep = (2 * Math.PI) / Math.max(chars.length, 20); // Prevent too tight spacing
-    
-    return chars.map((char, index) => {
-      const angle = index * angleStep - Math.PI / 2; // Start at top
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      
-      return (
-        <span
-          key={index}
-          className={`absolute font-bold text-primary ${textSize} tracking-wide drop-shadow-lg`}
-          style={{
-            transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
-            transformOrigin: '50% 50%',
-            left: '50%',
-            top: '50%',
-            marginLeft: '-0.5ch',
-            marginTop: '-0.5em',
-            animation: displayMode === 'motivator-focused' ? 'spin 12s linear infinite' : 'none'
-          }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      );
-    });
-  };
+  // Circular text functionality removed per user request - too fast to read
 
   return (
     <div className={`absolute inset-0 ${className}`}>
-      {/* Circular Rotating Text - Only visible during motivator-focused mode */}
-      {isVisible && currentMotivator && (
-        <div 
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{ 
-            zIndex: displayMode === 'motivator-focused' ? 10 : 1,
-            pointerEvents: 'none' 
-          }}
-        >
-          <div className="relative w-full h-full flex items-center justify-center">
-            {createCircularText(currentMotivator.title)}
-          </div>
-        </div>
-      )}
-
-      {/* Central Goal Text Display */}
+      {/* Circular text removed per user request - too fast to read */}
+      
+      {/* Central Goal Text Display - Keep this as it's readable */}
       {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
         <div 
           className="absolute inset-0 flex items-center justify-center"
