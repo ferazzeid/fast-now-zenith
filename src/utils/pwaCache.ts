@@ -116,45 +116,44 @@ export const validatePWAManifest = async (): Promise<{
   error?: string;
 }> => {
   try {
-    // Instead of fetching the manifest directly (which causes CORS issues),
-    // let's validate that the manifest link exists and use a different approach
     const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
     if (!manifestLink) {
       return { isValid: false, error: 'No manifest link found' };
     }
 
-    // Create a temporary iframe to test if the manifest loads
-    return new Promise((resolve) => {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = manifestLink.href;
-      
-      const timeout = setTimeout(() => {
-        document.body.removeChild(iframe);
-        resolve({ isValid: false, error: 'Manifest fetch timeout' });
-      }, 5000);
-      
-      iframe.onload = () => {
-        clearTimeout(timeout);
-        document.body.removeChild(iframe);
-        resolve({ 
-          isValid: true, 
-          manifest: { 
-            message: 'Manifest is accessible and loading correctly',
-            url: manifestLink.href
-          } 
-        });
-      };
-      
-      iframe.onerror = () => {
-        clearTimeout(timeout);
-        document.body.removeChild(iframe);
-        resolve({ isValid: false, error: 'Failed to load manifest' });
-      };
-      
-      document.body.appendChild(iframe);
+    console.log('Fetching manifest from:', manifestLink.href);
+
+    // Use fetch with no-cors mode to avoid CORS issues
+    const response = await fetch(manifestLink.href, {
+      method: 'GET',
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
     });
+
+    if (!response.ok) {
+      return { isValid: false, error: `Failed to fetch manifest: ${response.status}` };
+    }
+
+    const manifest = await response.json();
+    console.log('Manifest data:', manifest);
+    
+    // Basic validation
+    const requiredFields = ['name', 'short_name', 'start_url', 'display'];
+    const missingFields = requiredFields.filter(field => !manifest[field]);
+    
+    if (missingFields.length > 0) {
+      return { 
+        isValid: false, 
+        error: `Missing required fields: ${missingFields.join(', ')}`,
+        manifest 
+      };
+    }
+
+    return { isValid: true, manifest };
   } catch (error) {
+    console.error('Manifest validation error:', error);
     return { 
       isValid: false, 
       error: `Error validating manifest: ${error.message}` 
