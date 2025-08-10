@@ -2,7 +2,7 @@
 import React, { ReactNode, ReactElement, cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,10 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, inTrial, createSubscription, loading } = useSubscription();
+  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, loading, createSubscription } = useOptimizedSubscription();
+  
+  // For trial detection, we need to check the status
+  const inTrial = subscription_tier === 'paid_user' && !subscribed; // In trial if paid but not subscribed
   const { toast } = useToast();
   const { testRole, isTestingMode } = useRoleTestingContext();
 
