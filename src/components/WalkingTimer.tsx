@@ -5,12 +5,11 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
-import { SequentialGoalRotation } from './SequentialGoalRotation';
+import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
-import { useMotivators } from '@/hooks/useMotivators';
+
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -51,7 +50,7 @@ const WalkingTimerComponent = ({
   selectedSpeed,
   onSpeedChange
 }: WalkingTimerProps) => {
-  const { motivators } = useMotivators();
+  
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const { isAnimationsSuspended } = useAnimationControl();
   const { toast } = useToast();
@@ -112,9 +111,6 @@ const WalkingTimerComponent = ({
   // Convert stored speed (MPH) to display speed for the select component
   const displaySpeed = storageSpeedToDisplaySpeed(selectedSpeed, units);
 
-  // Check if we have motivators with images and titles
-  const motivatorsWithImages = motivators.filter(m => m.imageUrl);
-  const motivatorsWithTitles = motivators.filter(m => m.title);
 
   return (
     <TooltipProvider>
@@ -124,23 +120,15 @@ const WalkingTimerComponent = ({
         
         {/* Main Timer Card */}
         <Card className="p-6 text-center relative overflow-hidden">
-          {/* Walking Motivator Slideshow Background */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && motivatorsWithTitles.length === 0 && (
+          {/* Unified motivator rotation (images + titles) */}
+          {showSlideshow && isActive && !isPaused && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
-              <WalkingMotivatorSlideshow 
+              <UnifiedMotivatorRotation 
                 isActive={showSlideshow && isActive && !isPaused} 
                 onModeChange={setMotivatorMode}
+                className="rounded-lg"
               />
             </div>
-          )}
-          
-          {/* Sequential Goal Rotation - Show when text motivators exist */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithTitles.length > 0 && (
-            <SequentialGoalRotation 
-              isActive={showSlideshow && isActive && !isPaused} 
-              onModeChange={setMotivatorMode}
-              className="rounded-lg"
-            />
           )}
           
           

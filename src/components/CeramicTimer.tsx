@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
-import { MotivatorSlideshow } from './MotivatorSlideshow';
-import { SequentialGoalRotation } from './SequentialGoalRotation';
-import { useMotivators } from '@/hooks/useMotivators';
+import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 
 interface CeramicTimerProps {
   /** Progress value from 0 to 100 */
@@ -37,14 +35,11 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   goalDuration,
   className
 }) => {
-  const { motivators } = useMotivators();
+  
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const circumference = 2 * Math.PI * 45; // radius of 45px
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  // Check if we have motivators with images and titles
-  const motivatorsWithImages = motivators.filter(m => m.imageUrl);
-  const motivatorsWithTitles = motivators.filter(m => m.title);
 
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
@@ -75,19 +70,15 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
-          {/* Image Background - MOVED INSIDE center well where it belongs */}
-          {showSlideshow && isActive && motivatorsWithImages.length > 0 && motivatorsWithTitles.length === 0 && (
+          {/* Unified motivator rotation (images + titles) */}
+          {showSlideshow && (
             <div className="absolute inset-0 rounded-full overflow-hidden">
-              <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
+              <UnifiedMotivatorRotation 
+                isActive={isActive}
+                onModeChange={setMotivatorMode}
+                className="rounded-full"
+              />
             </div>
-          )}
-          
-          {/* Sequential Goal Rotation - Show when text motivators exist */}
-          {showSlideshow && motivatorsWithTitles.length > 0 && (
-            <SequentialGoalRotation 
-              isActive={isActive} // Only active when timer is running
-              onModeChange={setMotivatorMode}
-            />
           )}
           
           {/* Progress ring - Always visible for structure */}
