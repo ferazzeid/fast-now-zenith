@@ -98,8 +98,17 @@ export const useSubscription = () => {
           const isPaidUser = inTrial || hasActiveSubscription;
           const hasPremiumFeatures = isPaidUser;
 
-          // For paid users, requests are unlimited during trial/subscription
-          const requestLimit = isPaidUser ? Infinity : 0;
+          // Get monthly request limit from shared settings
+          const { data: settings } = await supabase
+            .from('shared_settings')
+            .select('setting_value')
+            .eq('setting_key', 'monthly_request_limit')
+            .maybeSingle();
+
+          const monthlyLimit = parseInt(settings?.setting_value || '1000');
+          
+          // Free users get 0 requests, paid users get the configured limit
+          const requestLimit = isPaidUser ? monthlyLimit : 0;
 
           const subscriptionStatus = hasActiveSubscription ? 'active' : 
                                    inTrial ? 'trial' : 'free';

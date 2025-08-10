@@ -83,11 +83,25 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
-    // 🔒 PROTECTED: Check request limits using protected config
-    const requestLimit = profile.user_tier === 'paid_user' ? PROTECTED_OPENAI_CONFIG.PAID_REQUEST_LIMIT : PROTECTED_OPENAI_CONFIG.FREE_REQUEST_LIMIT;
-    if (profile.monthly_ai_requests >= requestLimit) {
+    // 🔒 Get monthly request limit from settings
+    const { data: settings } = await supabase
+      .from('shared_settings')
+      .select('setting_value')
+      .eq('setting_key', 'monthly_request_limit')
+      .maybeSingle();
+
+    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    
+    // Free users get 0 requests (only trial users get requests)
+    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
+    
+    if (profile.monthly_ai_requests >= userLimit) {
       return new Response(
-        JSON.stringify({ error: `Request limit reached (${requestLimit}/month)` }),
+        JSON.stringify({ 
+          error: `Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : ''}`,
+          limit_reached: true,
+          current_tier: profile.user_tier
+        }),
         { 
           status: 429, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

@@ -86,19 +86,20 @@ serve(async (req) => {
       throw new Error('Failed to fetch user profile');
     }
 
-    // Get global settings for limits
+    // Get monthly request limit from settings
     const { data: settings } = await supabase
       .from('shared_settings')
-      .select('setting_key, setting_value')
-      .in('setting_key', ['free_request_limit', 'monthly_request_limit']);
+      .select('setting_value')
+      .eq('setting_key', 'monthly_request_limit')
+      .maybeSingle();
 
-    const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '50');
-    const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
-
-    // Check if user has reached their limit (all users count against limits now)
-    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : freeLimit;
+    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    
+    // Free users get 0 requests (only trial users get requests)
+    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
+    
     if (profile.monthly_ai_requests >= userLimit) {
-      throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription.`);
+      throw new Error(`Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : 'Your monthly limit has been reached.'}`);
     }
 
     // Resolve API key (shared key only)
