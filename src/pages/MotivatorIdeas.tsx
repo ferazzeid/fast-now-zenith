@@ -23,7 +23,7 @@ export default function MotivatorIdeas() {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { goalIdeas, loading, refreshGoalIdeas } = useAdminGoalIdeas();
+  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas();
   const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
   const { createMotivator } = useMotivators();
 
@@ -48,8 +48,9 @@ export default function MotivatorIdeas() {
   }, []);
 
   useEffect(() => {
-    refreshGoalIdeas();
-  }, [refreshGoalIdeas]);
+    console.log('🔄 Force refreshing goal ideas on page load...');
+    forceRefresh();
+  }, [forceRefresh]);
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
@@ -78,14 +79,11 @@ export default function MotivatorIdeas() {
         imageUrl: updatedGoal.imageUrl,
       });
       if (success) {
-        console.log('Update successful, refreshing ideas...');
+        console.log('✅ Update successful, force refreshing ideas...');
         setEditingGoal(null);
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        // Force immediate refresh of the ideas with a slight delay to ensure DB update is complete
-        setTimeout(async () => {
-          await refreshGoalIdeas();
-          console.log('Ideas refreshed after update');
-        }, 500);
+        // Force complete refresh using the new trigger mechanism
+        forceRefresh();
       } else {
         throw new Error('Update failed');
       }
@@ -99,7 +97,7 @@ export default function MotivatorIdeas() {
     const ok = await removeFromDefaultGoals(goalId);
     if (ok) {
       toast({ title: 'Removed', description: 'Idea removed from defaults.' });
-      refreshGoalIdeas();
+      forceRefresh();
     }
   };
 

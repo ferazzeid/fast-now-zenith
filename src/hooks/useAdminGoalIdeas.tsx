@@ -12,10 +12,12 @@ export interface AdminGoalIdea {
 
 export const useAdminGoalIdeas = () => {
   const [goalIdeas, setGoalIdeas] = useState<AdminGoalIdea[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const loadGoalIdeas = async () => {
+    console.log('🔄 Loading admin goal ideas...');
     try {
       const { data, error } = await supabase
         .from('shared_settings')
@@ -34,9 +36,9 @@ export const useAdminGoalIdeas = () => {
         try {
           const parsedGoalIdeas = JSON.parse(data.setting_value);
           const validIdeas = Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : [];
-          console.log('Admin Goal Ideas loaded:', validIdeas);
-          // Force UI update by creating new array reference
-          setGoalIdeas([...validIdeas]);
+          console.log('✅ Admin Goal Ideas loaded successfully:', validIdeas);
+          // Create completely new array to force React re-render
+          setGoalIdeas(validIdeas.map(idea => ({ ...idea })));
         } catch (parseError) {
           console.error('Error parsing admin goal ideas:', parseError);
           setGoalIdeas([]);
@@ -55,11 +57,17 @@ export const useAdminGoalIdeas = () => {
 
   useEffect(() => {
     loadGoalIdeas();
-  }, []);
+  }, [refreshTrigger]);
+
+  const forceRefresh = () => {
+    console.log('🔄 Force refreshing admin goal ideas...');
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return {
     goalIdeas,
     loading,
-    refreshGoalIdeas: loadGoalIdeas
+    refreshGoalIdeas: loadGoalIdeas,
+    forceRefresh
   };
 };
