@@ -888,61 +888,68 @@ const FoodTracking = () => {
               <div className="space-y-4">
                 {templateFoods.length > 0 ? (
                   <>
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          id="activate-daily"
-                          checked={profile?.enable_daily_reset || false}
-                          onCheckedChange={async (checked) => {
-                            const result = await updateProfile({ enable_daily_reset: checked });
-                            if (result.error) {
-                              toast({
-                                variant: "destructive",
-                                title: "Error",
-                                description: "Failed to update daily reset setting"
-                              });
-                            } else {
-                              toast({
-                                title: checked ? "Daily Reset Activated" : "Daily Reset Deactivated",
-                                description: checked 
-                                  ? "Your template will automatically apply each day at midnight"
-                                  : "Automatic daily reset has been disabled"
-                              });
-                            }
-                          }}
-                        />
-                        <Label htmlFor="activate-daily" className="text-sm font-medium">
-                          Activate Daily
-                        </Label>
+                    {/* Subtle controls section */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/50 pb-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-1.5">
+                          <Switch 
+                            id="activate-daily"
+                            checked={profile?.enable_daily_reset || false}
+                            onCheckedChange={async (checked) => {
+                              const result = await updateProfile({ enable_daily_reset: checked });
+                              if (result.error) {
+                                toast({
+                                  variant: "destructive",
+                                  title: "Error",
+                                  description: "Failed to update daily reset setting"
+                                });
+                              } else {
+                                toast({
+                                  title: checked ? "Daily Reset Activated" : "Daily Reset Deactivated",
+                                  description: checked 
+                                    ? "Your template will automatically apply each day at midnight"
+                                    : "Automatic daily reset has been disabled"
+                                });
+                              }
+                            }}
+                            className="scale-75"
+                          />
+                          <Label htmlFor="activate-daily" className="text-xs font-normal">
+                            Auto-apply daily
+                          </Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3 w-3 text-muted-foreground/60" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>When enabled, your template will automatically replace today's plan each day at midnight</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Info className="h-4 w-4 text-muted-foreground" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleApplyTemplate}
+                                disabled={templateLoading}
+                                className="h-6 px-2 text-xs font-normal hover:bg-muted/30"
+                              >
+                                <Plus className="w-3 h-3 mr-1" />
+                              </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>When enabled, your template will automatically replace today's plan each day at midnight</p>
+                              <p>Apply your template foods to today's plan right now</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
+                        <span className="text-xs font-normal text-muted-foreground">Apply today</span>
                       </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleApplyTemplate}
-                              disabled={templateLoading}
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Apply Template
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Apply your template foods to today's plan right now</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
                     </div>
                     <div className="space-y-1">
                      {templateFoods.map((food) => (
