@@ -44,7 +44,6 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { LoadingScreen } from '@/components/LoadingScreen';
 
 // Using optimized query client from @/lib/query-client
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
@@ -76,15 +75,10 @@ const AppContent = () => {
   // Load dynamic HTML meta tags
   useDynamicHTMLMeta();
   const location = useLocation();
-  const { user, loading, initialized } = useAuthStore();
+  const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { isOnline, isConnected } = useConnectionStore();
-
-  // Show loading screen while auth is initializing
-  if (loading || !initialized) {
-    return <LoadingScreen message="Loading..." />;
-  }
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -295,11 +289,11 @@ const App = () => (
   >
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <Toaster />
+        <Sonner />
         <BrowserRouter>
           <AsyncErrorBoundary>
             <ThemeProvider>
-              <Toaster />
-              <Sonner />
               <AuthProvider>
                 <SimpleWalkingStatsProvider>
                   <AppContent />

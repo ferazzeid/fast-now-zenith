@@ -5,14 +5,46 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Simple loading screen without aggressive timeouts
+// Enhanced loading screen with timeout and mobile optimization
 export const EnhancedLoadingScreen = ({ 
-  message = "Loading...",
+  message = "Preparing your experience",
   showSkeleton = true 
 }: {
   message?: string;
   showSkeleton?: boolean;
 }) => {
+  const [timeoutReached, setTimeoutReached] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Set timeout for mobile loading issues
+    const timer = setTimeout(() => {
+      setTimeoutReached(true);
+    }, 8000); // 8 seconds timeout
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (timeoutReached) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6 text-center">
+          <div className="space-y-4">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto animate-spin"></div>
+            <p className="text-muted-foreground text-sm">Taking longer than expected...</p>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+              className="mt-4"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Page
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">

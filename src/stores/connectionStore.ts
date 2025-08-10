@@ -30,7 +30,7 @@ let monitoringInterval: NodeJS.Timeout | null = null;
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
   isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
-  isConnected: true, // Start optimistic - will validate on first check
+  isConnected: false, // Start pessimistic - validate on startup
   lastConnectedAt: null,
   retryCount: 0,
   queue: [],
@@ -38,24 +38,14 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
 
   checkConnection: async () => {
     try {
-      // Simple connectivity test with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const { error } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(1)
-        .abortSignal(controller.signal);
-      
-      clearTimeout(timeoutId);
+      const { error } = await supabase.from('profiles').select('id').limit(1);
       const connected = !error;
       
       set(state => ({
         isConnected: connected,
         lastConnectedAt: connected ? new Date() : state.lastConnectedAt,
         retryCount: connected ? 0 : state.retryCount + 1,
-        currentInterval: connected ? 120000 : Math.min(state.currentInterval * 1.2, 300000), // Slower exponential backoff, max 5 minutes
+        currentInterval: connected ? 120000 : Math.min(state.currentInterval * 1.5, 600000), // Exponential backoff, max 10 minutes
       }));
       
       if (connected) {
@@ -65,7 +55,6 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       
       return connected;
     } catch (error) {
-      console.log('Connection check failed:', error);
       set(state => ({
         isConnected: false,
         retryCount: state.retryCount + 1,
@@ -75,45 +64,35 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   },
 
   startMonitoring: () => {
-    console.log('🌐 Starting connection monitoring...');
+    // Minimal monitoring - only on user action or network events
+    // No background polling to preserve performance
     
     // Listen to online/offline events only
     const handleOnline = () => {
-      console.log('🌐 Network online detected');
       set({ isOnline: true });
-      // Check connection when coming back online
-      setTimeout(() => get().checkConnection(), 500);
+      // Check connection only when coming back online
+      get().checkConnection();
     };
     
     const handleOffline = () => {
-      console.log('🌐 Network offline detected');
       set({ isOnline: false, isConnected: false });
-    };
-    
-    // Handle page focus - check connection when user returns
-    const handleFocus = () => {
-      console.log('🌐 Page focus detected - checking connection');
-      get().checkConnection();
     };
     
     if (typeof window !== 'undefined') {
       window.addEventListener('online', handleOnline);
       window.addEventListener('offline', handleOffline);
-      window.addEventListener('focus', handleFocus);
       
       // Store event listeners for cleanup
-      (window as any).__connectionListeners = { handleOnline, handleOffline, handleFocus };
+      (window as any).__connectionListeners = { handleOnline, handleOffline };
       
-      // Initial connection check
+      // Validate connection on startup
       setTimeout(() => {
         get().checkConnection();
-      }, 1000);
+      }, 500);
     }
   },
 
   stopMonitoring: () => {
-    console.log('🌐 Stopping connection monitoring...');
-    
     if (monitoringInterval) {
       clearInterval(monitoringInterval);
       monitoringInterval = null;
@@ -123,7 +102,6 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     if (listeners) {
       window.removeEventListener('online', listeners.handleOnline);
       window.removeEventListener('offline', listeners.handleOffline);
-      window.removeEventListener('focus', listeners.handleFocus);
       delete (window as any).__connectionListeners;
     }
   },
