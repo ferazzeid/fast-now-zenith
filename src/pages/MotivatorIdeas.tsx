@@ -50,7 +50,7 @@ export default function MotivatorIdeas() {
   useEffect(() => {
     console.log('🔄 Force refreshing goal ideas on page load...');
     forceRefresh();
-  }, [forceRefresh]);
+  }, []); // Empty dependency array to run only once on mount
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
