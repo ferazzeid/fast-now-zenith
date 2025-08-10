@@ -30,7 +30,7 @@ export const StatDisplay = ({
         </ClickableTooltip>
       </div>
       
-      <div className="flex items-center space-x-2 mb-2 pr-6">
+      <div className="flex items-center space-x-2 mb-1 pr-6">
         {icon}
         <span className="text-xs font-medium text-warm-text">{label}</span>
       </div>

@@ -19,7 +19,7 @@ export const PremiumGatedCaloriesIn = ({ calories, carbs }: PremiumGatedCalories
           </ClickableTooltip>
         </div>
         
-        <div className="flex items-center space-x-2 mb-2 pr-6">
+        <div className="flex items-center space-x-2 mb-1 pr-6">
           <Utensils className="w-4 h-4 text-primary" />
           <span className="text-xs font-medium text-warm-text">Calories In</span>
         </div>

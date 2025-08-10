@@ -36,11 +36,6 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
 
   return (
     <div className="bg-muted/20 rounded-lg p-4 mb-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Utensils className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium text-foreground">Daily Overview</span>
-      </div>
-      
       <div className="grid grid-cols-2 gap-4">
         {/* Calories Card */}
         <Card className="p-4">
