@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
 import { MotivatorSlideshow } from './MotivatorSlideshow';
 import { RotatingGoalText } from './RotatingGoalText';
-import { MotivatorRotationSystem } from './MotivatorRotationSystem';
 import { useMotivators } from '@/hooks/useMotivators';
 
 interface CeramicTimerProps {
@@ -76,12 +75,20 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
-          {/* Motivator Rotation System - Clean celebration-style animations */}
-          {showSlideshow && (motivatorsWithImages.length > 0 || motivatorsWithoutImages.length > 0) && (
-            <MotivatorRotationSystem 
-              isActive={showSlideshow && isActive}
+          {/* Image Background - MOVED INSIDE center well where it belongs */}
+          {showSlideshow && isActive && motivatorsWithImages.length > 0 && (
+            <div className="absolute inset-0 rounded-full overflow-hidden">
+              <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
+            </div>
+          )}
+          
+          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
+          {showSlideshow && motivatorsWithoutImages.length > 0 && (
+            <RotatingGoalText 
+              isActive={true} // Always active to allow goal rotation per user request
               onModeChange={setMotivatorMode}
-              className="rounded-full"
+              radius={110}
+              textSize="text-xs"
             />
           )}
           
@@ -124,8 +131,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           {/* Timer display */}
           <div 
             className={cn(
-              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500",
-              motivatorMode === 'motivator-focused' ? 'opacity-0' : 'opacity-100'
+              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-1000",
+              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
             )}
             style={{ zIndex: 13 }} // Above progress ring but can fade
           >

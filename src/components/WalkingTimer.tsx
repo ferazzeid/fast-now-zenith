@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
 import { RotatingGoalText } from './RotatingGoalText';
-import { MotivatorRotationSystem } from './MotivatorRotationSystem';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
@@ -125,11 +124,23 @@ const WalkingTimerComponent = ({
         
         {/* Main Timer Card */}
         <Card className="p-6 text-center relative overflow-hidden">
-          {/* Motivator Rotation System - Clean celebration-style animations */}
-          {showSlideshow && isActive && !isPaused && (motivatorsWithImages.length > 0 || motivatorsWithoutImages.length > 0) && (
-            <MotivatorRotationSystem 
-              isActive={showSlideshow && isActive && !isPaused}
+          {/* Walking Motivator Slideshow Background */}
+          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && (
+            <div className="absolute inset-0 rounded-lg overflow-hidden">
+              <WalkingMotivatorSlideshow 
+                isActive={showSlideshow && isActive && !isPaused} 
+                onModeChange={setMotivatorMode}
+              />
+            </div>
+          )}
+          
+          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
+          {showSlideshow && isActive && !isPaused && motivatorsWithoutImages.length > 0 && (
+            <RotatingGoalText 
+              isActive={showSlideshow && isActive && !isPaused} 
               onModeChange={setMotivatorMode}
+              radius={140}
+              textSize="text-sm"
               className="rounded-lg"
             />
           )}
@@ -138,8 +149,8 @@ const WalkingTimerComponent = ({
           {/* Main time display */}
           <div 
             className={cn(
-              "mb-4 transition-opacity duration-500 relative flex flex-col justify-center items-center",
-              motivatorMode === 'motivator-focused' ? 'opacity-0' : 'opacity-100'
+              "mb-4 transition-opacity duration-1000 relative flex flex-col justify-center items-center",
+              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
             )}
             style={{ zIndex: 13 }}
           >
