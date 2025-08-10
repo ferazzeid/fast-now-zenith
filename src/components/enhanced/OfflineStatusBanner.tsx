@@ -1,7 +1,7 @@
 import { useConnectionStore } from '@/stores/connectionStore';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { WifiOff, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export const OfflineStatusBanner = () => {
   const { isOnline, isConnected } = useConnectionStore();
@@ -21,26 +21,24 @@ export const OfflineStatusBanner = () => {
   if (!showBanner) return null;
 
   return (
-    <Alert className="fixed top-20 left-4 right-4 max-w-sm mx-auto z-50 border-yellow-200 bg-yellow-100/90 dark:border-yellow-800 dark:bg-yellow-900/90 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
+    <div className="fixed top-2 left-2 z-50 pointer-events-none">
+      <div className={cn(
+        "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium",
+        "bg-yellow-100/95 dark:bg-yellow-900/95 backdrop-blur-sm",
+        "border border-yellow-200 dark:border-yellow-800",
+        "text-yellow-800 dark:text-yellow-200",
+        "shadow-sm transition-all duration-300"
+      )}>
         {!isOnline ? (
-          <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+          <WifiOff className="h-3 w-3" />
         ) : (
-          <Loader2 className="h-4 w-4 text-yellow-600 dark:text-yellow-400 animate-spin" />
+          <Loader2 className="h-3 w-3 animate-spin" />
         )}
-        <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-          <div className="font-medium">
-            {!isOnline ? 'You\'re offline' : 'Connecting...'}
-          </div>
-          <div className="text-sm opacity-90 mt-1">
-            {!isOnline 
-              ? 'Changes will be saved locally and sync when you\'re back online.'
-              : 'Trying to reconnect to the server...'
-            }
-          </div>
-        </AlertDescription>
+        <span className="whitespace-nowrap">
+          {!isOnline ? 'Offline' : 'Connecting...'}
+        </span>
       </div>
-    </Alert>
+    </div>
   );
 };
 
