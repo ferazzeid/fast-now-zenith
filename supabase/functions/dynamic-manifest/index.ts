@@ -44,7 +44,8 @@ serve(async (req) => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    const appLogo = settings.app_logo || settings.app_icon_url;
+    // Use app_icon_url for PWA icons, fallback to app_logo if not available
+    const appIcon = settings.app_icon_url || settings.app_logo;
     const appName = settings.pwa_app_name || 'fast now - The No-BS Fat Loss Protocol';
     const shortName = settings.pwa_short_name || 'fast now';
     const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';
@@ -64,17 +65,17 @@ serve(async (req) => {
       icons: [] as ManifestIcon[]
     };
 
-    // Add icons based on available logo
-    if (appLogo) {
+    // Add icons based on available app icon
+    if (appIcon) {
       manifest.icons = [
         {
-          src: appLogo,
+          src: appIcon,
           sizes: "192x192",
           type: "image/png",
           purpose: "maskable any"
         },
         {
-          src: appLogo,
+          src: appIcon,
           sizes: "512x512", 
           type: "image/png",
           purpose: "maskable any"
