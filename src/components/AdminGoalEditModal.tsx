@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { ImageUpload } from './ImageUpload';
+import { AdminImageUpload } from './AdminImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
 
@@ -26,17 +27,19 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (goal) {
+      console.log('📝 Loading goal data into form:', goal);
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
     }
   }, [goal]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       toast({
         title: "Title required",
@@ -48,15 +51,31 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
 
     if (!goal) return;
 
-    const updatedGoal: AdminGoalIdea = {
-      ...goal,
-      title: title.trim(),
-      description: description.trim(),
-      imageUrl: imageUrl || undefined,
-    };
+    setIsSubmitting(true);
+    
+    try {
+      const updatedGoal: AdminGoalIdea = {
+        ...goal,
+        title: title.trim(),
+        description: description.trim(),
+        imageUrl: imageUrl || undefined,
+      };
 
-    console.log('AdminGoalEditModal: Saving goal data:', updatedGoal);
-    onSave(updatedGoal);
+      console.log('💾 Saving goal data:', updatedGoal);
+      await onSave(updatedGoal);
+      
+      // Close modal after successful save
+      onClose();
+    } catch (error) {
+      console.error('❌ Error saving goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!goal) return null;
@@ -74,17 +93,27 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
           <Button
             variant="outline"
             onClick={onClose}
+            disabled={isSubmitting}
             className="w-full bg-ceramic-base border-ceramic-rim"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
-            disabled={!title.trim()}
+            disabled={!title.trim() || isSubmitting}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
+            {isSubmitting ? (
+              <>
+                <Save className="w-4 h-4 mr-2 animate-pulse" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </>
+            )}
           </Button>
         </>
       }
@@ -100,6 +129,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             onChange={(e) => setTitle(e.target.value)}
             className="bg-ceramic-base border-ceramic-rim"
             placeholder="Enter the motivator title..."
+            disabled={isSubmitting}
           />
         </div>
 
@@ -113,16 +143,16 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             onChange={(e) => setDescription(e.target.value)}
             className="bg-ceramic-base border-ceramic-rim min-h-[80px]"
             placeholder="Enter the motivator description..."
+            disabled={isSubmitting}
           />
         </div>
 
         <div className="space-y-2">
           <Label className="text-warm-text font-medium">Image</Label>
-          <ImageUpload
+          <AdminImageUpload
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
             onImageRemove={() => setImageUrl('')}
-            showUploadOptionsWhenImageExists={true}
           />
         </div>
       </div>

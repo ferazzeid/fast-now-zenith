@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
@@ -58,12 +59,14 @@ export const useAdminGoalManagement = () => {
 
       const updatedGoals = [...currentGoals, newGoalIdea];
 
-      // Update the database
+      // Update the database using upsert with conflict resolution
       const { error: updateError } = await supabase
         .from('shared_settings')
         .upsert({
           setting_key: 'admin_goal_ideas',
           setting_value: JSON.stringify(updatedGoals)
+        }, {
+          onConflict: 'setting_key'
         });
 
       if (updateError) {
@@ -110,12 +113,14 @@ export const useAdminGoalManagement = () => {
       // Remove the goal
       const updatedGoals = currentGoals.filter(goal => goal.id !== goalId);
 
-      // Update the database
+      // Update the database using upsert with conflict resolution
       const { error: updateError } = await supabase
         .from('shared_settings')
         .upsert({
           setting_key: 'admin_goal_ideas',
           setting_value: JSON.stringify(updatedGoals)
+        }, {
+          onConflict: 'setting_key'
         });
 
       if (updateError) {
@@ -144,6 +149,8 @@ export const useAdminGoalManagement = () => {
   const updateDefaultGoal = async (goalId: string, updates: Partial<Motivator>): Promise<boolean> => {
     setLoading(true);
     try {
+      console.log('🔄 Starting update for goal ID:', goalId, 'with updates:', updates);
+      
       // Get current goal ideas
       const { data, error } = await supabase
         .from('shared_settings')
@@ -158,9 +165,12 @@ export const useAdminGoalManagement = () => {
         goalIdeas = JSON.parse(data.setting_value);
       }
 
+      console.log('📋 Current goal ideas:', goalIdeas);
+
       // Find and update the goal
       const goalIndex = goalIdeas.findIndex((goal: any) => goal.id === goalId);
       if (goalIndex === -1) {
+        console.error('❌ Goal not found with ID:', goalId);
         toast({
           title: "Error",
           description: "Goal idea not found",
@@ -173,25 +183,28 @@ export const useAdminGoalManagement = () => {
       goalIdeas[goalIndex] = {
         ...goalIdeas[goalIndex],
         title: updates.title || goalIdeas[goalIndex].title,
-        description: updates.content || goalIdeas[goalIndex].description, // Map content -> description
+        description: updates.content || goalIdeas[goalIndex].description,
         imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : goalIdeas[goalIndex].imageUrl
       };
 
-      // Save back to database
-      console.log('Saving updated goal ideas:', goalIdeas);
+      console.log('✏️ Updated goal:', goalIdeas[goalIndex]);
+
+      // Save back to database using upsert with conflict resolution
       const { error: updateError } = await supabase
         .from('shared_settings')
         .upsert({
           setting_key: 'admin_goal_ideas',
           setting_value: JSON.stringify(goalIdeas)
+        }, {
+          onConflict: 'setting_key'
         });
 
       if (updateError) {
-        console.error('Database update error:', updateError);
+        console.error('❌ Database update error:', updateError);
         throw updateError;
       }
 
-      console.log('Successfully updated admin goal ideas in database');
+      console.log('✅ Successfully updated admin goal ideas in database');
       toast({
         title: "✅ Goal Updated!",
         description: "Admin goal idea has been updated successfully",
@@ -199,7 +212,7 @@ export const useAdminGoalManagement = () => {
 
       return true;
     } catch (error) {
-      console.error('Error updating default goal:', error);
+      console.error('❌ Error updating default goal:', error);
       toast({
         title: "Error",
         description: "Failed to update goal idea",
