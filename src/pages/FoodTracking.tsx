@@ -35,6 +35,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
+import { PhotoFoodEntry } from '@/components/PhotoFoodEntry';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -50,6 +51,7 @@ const FoodTracking = () => {
   // Remove tab state - using unified view now
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [showPhotoEntry, setShowPhotoEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [manualEntryData, setManualEntryData] = useState({
@@ -219,6 +221,31 @@ const FoodTracking = () => {
       imageUrl: ''
     });
     setShowManualEntry(true);
+  };
+
+  const handlePhotoEntry = async (data: any) => {
+    const result = await addFoodEntry(data);
+    
+    if (!result || 'error' in result) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save food entry"
+      });
+    } else {
+      toast({
+        title: "Food added successfully!",
+        description: `${data.name} has been added to your food plan`
+      });
+      
+      // Save to personal library
+      await saveToLibrary({
+        name: data.name,
+        calories: data.calories,
+        carbs: data.carbs,
+        serving_size: data.serving_size
+      });
+    }
   };
 
 
@@ -585,7 +612,7 @@ const FoodTracking = () => {
 
         {/* Action Buttons - Moved above Today's Food Plan */}
         <div className="my-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-3">
             {/* Voice Add */}
             <div className="flex flex-col items-center">
               <PremiumGate feature="AI Food Assistant" grayOutForFree={true}>
@@ -601,6 +628,22 @@ const FoodTracking = () => {
               </PremiumGate>
               <ClickableTooltip content="Use voice to describe your food and AI will add it with estimated nutrition">
                 <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Voice Add</p>
+              </ClickableTooltip>
+            </div>
+
+            {/* Photo Add */}
+            <div className="flex flex-col items-center">
+              <Button
+                onClick={() => setShowPhotoEntry(true)}
+                variant="action-primary"
+                size="action-tall"
+                className="flex items-center justify-center w-full"
+                aria-label="Add food with photo"
+              >
+                <Camera className="w-5 h-5" />
+              </Button>
+              <ClickableTooltip content="Take a photo and AI will analyze the nutritional information automatically">
+                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Photo Add</p>
               </ClickableTooltip>
             </div>
             
@@ -1274,6 +1317,13 @@ const FoodTracking = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Photo Food Entry Modal */}
+        <PhotoFoodEntry
+          isOpen={showPhotoEntry}
+          onClose={() => setShowPhotoEntry(false)}
+          onSave={handlePhotoEntry}
+        />
         
       </div>
     </div>
