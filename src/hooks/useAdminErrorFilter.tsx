@@ -39,7 +39,7 @@ export const useAdminAwareToast = () => {
           props.description?.includes('server') ||
           props.description?.includes('connection') ||
           props.description?.includes('network') ||
-          props.description?.includes('archived conversations') ||
+          
           props.title?.includes('Error checking') ||
           props.title?.includes('Failed to') ||
           props.title?.includes('Subscription error') ||

@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
-import { useArchivedConversations } from '@/hooks/useArchivedConversations';
+
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -46,7 +46,7 @@ const subscription = useOptimizedSubscription();
 const multiSub = useMultiPlatformSubscription();
 const isWebPlatform = multiSub.platform === 'web';
 const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platform === 'android' ? 'Google Play' : 'Stripe';
-  const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
+  
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
