@@ -82,8 +82,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             </div>
           )}
           
-          {/* Rotating Goal Text - Show when text motivators exist AND no image motivators */}
-          {showSlideshow && motivatorsWithImages.length === 0 && motivatorsWithoutImages.length > 0 && (
+          {/* Rotating Goal Text - Show when text motivators exist (regardless of image motivators) */}
+          {showSlideshow && motivatorsWithoutImages.length > 0 && (
             <RotatingGoalText 
               isActive={true} // Always active to allow goal rotation per user request
               onModeChange={setMotivatorMode}
