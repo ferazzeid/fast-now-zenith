@@ -11,7 +11,7 @@ import { Info } from "lucide-react";
 
 export const UserRequestLimits: React.FC = () => {
   const [paidUserLimit, setPaidUserLimit] = useState('');
-  const [grantedUserLimit, setGrantedUserLimit] = useState('');
+  const [freeUserLimit, setFreeUserLimit] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -30,27 +30,27 @@ export const UserRequestLimits: React.FC = () => {
         console.error('Error loading request limits:', error);
         // Set defaults if no data exists
         setPaidUserLimit('1000');
-        setGrantedUserLimit('15');
+        setFreeUserLimit('15');
         return;
       }
 
       // Set defaults first
       setPaidUserLimit('1000');
-      setGrantedUserLimit('15');
+      setFreeUserLimit('15');
 
       // Then override with database values if they exist
       data?.forEach(setting => {
         if (setting.setting_key === 'monthly_request_limit') {
           setPaidUserLimit(setting.setting_value || '1000');
         } else if (setting.setting_key === 'free_request_limit') {
-          setGrantedUserLimit(setting.setting_value || '15');
+          setFreeUserLimit(setting.setting_value || '15');
         }
       });
     } catch (error) {
       console.error('Error loading request limits:', error);
       // Set defaults on error
       setPaidUserLimit('1000');
-      setGrantedUserLimit('15');
+      setFreeUserLimit('15');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export const UserRequestLimits: React.FC = () => {
         },
         {
           setting_key: 'free_request_limit',
-          setting_value: grantedUserLimit
+          setting_value: freeUserLimit
         }
       ];
 
@@ -139,27 +139,27 @@ export const UserRequestLimits: React.FC = () => {
               />
             </div>
 
-            {/* Granted User Limit */}
+            {/* Free User Limit */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <Label htmlFor="grantedUserLimit" className="text-xs">Granted</Label>
+                <Label htmlFor="freeUserLimit" className="text-xs">Free</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="w-3 h-3 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    Monthly requests for granted users
+                    Monthly requests for free users (after trial ends)
                   </TooltipContent>
                 </Tooltip>
               </div>
               <Input
-                id="grantedUserLimit"
+                id="freeUserLimit"
                 type="number"
-                value={grantedUserLimit}
-                onChange={(e) => setGrantedUserLimit(e.target.value)}
+                value={freeUserLimit}
+                onChange={(e) => setFreeUserLimit(e.target.value)}
                 placeholder="15"
                 className="h-8 w-24 text-sm"
-                aria-label="Granted user monthly requests"
+                aria-label="Free user monthly requests"
               />
             </div>
 

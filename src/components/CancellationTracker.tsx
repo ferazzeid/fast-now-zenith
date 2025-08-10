@@ -22,7 +22,20 @@ export const CancellationTracker = () => {
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-      // Fetch cancellations from usage_analytics where event_type includes 'cancel' or 'subscription_ended'
+      // Fetch trial endings and subscription cancellations
+      const { data: todayTrialEnds } = await supabase
+        .from('profiles')
+        .select('id')
+        .gte('trial_ends_at', startOfDay.toISOString())
+        .lt('trial_ends_at', new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).toISOString())
+        .eq('subscription_status', 'free');
+
+      const { data: monthTrialEnds } = await supabase
+        .from('profiles')
+        .select('id')
+        .gte('trial_ends_at', startOfMonth.toISOString())
+        .eq('subscription_status', 'free');
+
       const { data: todayCancellations } = await supabase
         .from('usage_analytics')
         .select('id')
@@ -36,8 +49,8 @@ export const CancellationTracker = () => {
         .gte('created_at', startOfMonth.toISOString());
 
       setData({
-        cancellationsToday: todayCancellations?.length || 0,
-        cancellationsThisMonth: monthCancellations?.length || 0
+        cancellationsToday: (todayCancellations?.length || 0) + (todayTrialEnds?.length || 0),
+        cancellationsThisMonth: (monthCancellations?.length || 0) + (monthTrialEnds?.length || 0)
       });
     } catch (error) {
       console.error('Error fetching cancellation data:', error);
@@ -71,7 +84,7 @@ export const CancellationTracker = () => {
 
   const cancellationMetrics = [
     { 
-      title: 'Cancellations Today',
+      title: 'Trial Endings + Cancellations Today',
       items: [
         { label: 'Count', value: data.cancellationsToday }
       ]
@@ -88,7 +101,7 @@ export const CancellationTracker = () => {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
-          Cancellation Tracking
+          Trial Endings & Cancellation Tracking
           <Button variant="outline" size="sm" onClick={refreshData}>
             Refresh
           </Button>

@@ -57,7 +57,7 @@ function SharedKeySettings() {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-1">
-          <Label htmlFor="sharedKey" className="text-sm">Shared Key (used for Paid/Granted users)</Label>
+          <Label htmlFor="sharedKey" className="text-sm">Shared Key (used for Paid users in trial or subscribed)</Label>
           <Input
             id="sharedKey"
             type="password"
