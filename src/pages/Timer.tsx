@@ -48,7 +48,7 @@ const Timer = () => {
   const { toast } = useToast();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
-  const { celebration, checkForMilestones, resetMilestones } = useCelebrationMilestones();
+  const { celebration, checkForMilestones, resetMilestones } = useCelebrationMilestones(fastingSession?.id);
 
 
   const isRunning = !!fastingSession;

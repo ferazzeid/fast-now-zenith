@@ -13,7 +13,33 @@ interface CelebrationState {
   currentEvent: MilestoneEvent | null;
 }
 
-export const useCelebrationMilestones = () => {
+// Persistent storage key for celebrated milestones per session
+const CELEBRATION_STORAGE_KEY = 'fasting_celebrated_milestones';
+
+// Get celebrated milestones for current session from localStorage
+const getCelebratedMilestones = (sessionId?: string): Set<number> => {
+  if (!sessionId) return new Set();
+  
+  try {
+    const stored = localStorage.getItem(`${CELEBRATION_STORAGE_KEY}_${sessionId}`);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+// Store celebrated milestone for current session
+const storeCelebratedMilestone = (sessionId: string, hour: number) => {
+  try {
+    const celebrated = getCelebratedMilestones(sessionId);
+    celebrated.add(hour);
+    localStorage.setItem(`${CELEBRATION_STORAGE_KEY}_${sessionId}`, JSON.stringify([...celebrated]));
+  } catch {
+    // Silent fail for localStorage issues
+  }
+};
+
+export const useCelebrationMilestones = (sessionId?: string) => {
   const [celebration, setCelebration] = useState<CelebrationState>({
     lastMilestoneHour: 0,
     isVisible: false,
@@ -22,6 +48,18 @@ export const useCelebrationMilestones = () => {
   const { toast } = useToast();
 
   const triggerCelebration = useCallback((event: MilestoneEvent) => {
+    // Check if this milestone was already celebrated for this session
+    if (sessionId) {
+      const celebrated = getCelebratedMilestones(sessionId);
+      if (celebrated.has(event.hours)) {
+        console.log(`Milestone ${event.hours} already celebrated for session ${sessionId}, skipping`);
+        return;
+      }
+      
+      // Store that we've celebrated this milestone
+      storeCelebratedMilestone(sessionId, event.hours);
+    }
+    
     console.log(`🎉 Triggering celebration for ${event.type} milestone:`, event);
     
     setCelebration({
@@ -41,13 +79,17 @@ export const useCelebrationMilestones = () => {
     setTimeout(() => {
       setCelebration(prev => ({ ...prev, isVisible: false }));
     }, 3000);
-  }, [toast]);
+  }, [toast, sessionId]);
 
   const checkForMilestones = useCallback((currentElapsedSeconds: number, goalDurationSeconds?: number) => {
     const currentHours = Math.floor(currentElapsedSeconds / 3600);
     
+    if (!sessionId) return; // Don't check milestones without a session ID
+    
+    const celebrated = getCelebratedMilestones(sessionId);
+    
     // Check for hourly milestones (every full hour)
-    if (currentHours > celebration.lastMilestoneHour && currentHours > 0) {
+    if (currentHours > 0 && !celebrated.has(currentHours)) {
       const event: MilestoneEvent = {
         type: 'hourly',
         hours: currentHours,
@@ -60,7 +102,7 @@ export const useCelebrationMilestones = () => {
     // Check for completion milestone
     if (goalDurationSeconds && currentElapsedSeconds >= goalDurationSeconds) {
       const goalHours = Math.floor(goalDurationSeconds / 3600);
-      if (celebration.lastMilestoneHour < goalHours) {
+      if (!celebrated.has(goalHours)) {
         const event: MilestoneEvent = {
           type: 'completion',
           hours: goalHours,
@@ -69,7 +111,7 @@ export const useCelebrationMilestones = () => {
         triggerCelebration(event);
       }
     }
-  }, [celebration.lastMilestoneHour, triggerCelebration]);
+  }, [sessionId, triggerCelebration]);
 
   const resetMilestones = useCallback(() => {
     setCelebration({
@@ -77,7 +119,16 @@ export const useCelebrationMilestones = () => {
       isVisible: false,
       currentEvent: null
     });
-  }, []);
+    
+    // Clear celebrated milestones for this session when starting a new fast
+    if (sessionId) {
+      try {
+        localStorage.removeItem(`${CELEBRATION_STORAGE_KEY}_${sessionId}`);
+      } catch {
+        // Silent fail for localStorage issues
+      }
+    }
+  }, [sessionId]);
 
   return {
     celebration,
