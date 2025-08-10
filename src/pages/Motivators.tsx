@@ -238,23 +238,6 @@ const Motivators = () => {
           <div className="grid grid-cols-3 gap-4 mb-6">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  onClick={() => setShowFormModal(true)}
-                  variant="action-primary"
-                  size="action-tall"
-                  className="flex items-center justify-center"
-                  aria-label="Create motivator manually"
-                >
-                  <Plus className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Create a motivator by typing title, description, and adding images</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
                 <PremiumGate feature="Voice Input" grayOutForFree={true}>
                   <Button
                     onClick={() => {
@@ -275,6 +258,23 @@ const Motivators = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Create a motivator by talking about what drives you</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  onClick={() => setShowFormModal(true)}
+                  variant="action-primary"
+                  size="action-tall"
+                  className="flex items-center justify-center"
+                  aria-label="Create motivator manually"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create a motivator by typing title, description, and adding images</p>
               </TooltipContent>
             </Tooltip>
 
