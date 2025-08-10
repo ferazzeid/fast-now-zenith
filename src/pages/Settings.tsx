@@ -17,8 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
-
-import { MotivatorsModal } from '@/components/MotivatorsModal';
+import { CelebrationAnimationTester } from '@/components/dev/CelebrationAnimationTester';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
@@ -641,6 +640,26 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                 </div>
               </div>
             </Card>
+
+            {isAdmin && (
+              <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <h3 className="text-lg font-semibold text-warm-text">Dev: Celebration Preview</h3>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/admin/dev')}>
+                      Open Admin Dev
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Preview hourly/completion celebration popup designs.</p>
+                  <div className="border border-ceramic-rim rounded-md p-4 bg-ceramic-base">
+                    <CelebrationAnimationTester />
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Account Management - moved down (5th priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">

@@ -193,15 +193,23 @@ export const useFastingSessionQuery = () => {
     mutationFn: async (sessionId: string): Promise<FastingSession> => {
       if (!user) throw new Error('User not authenticated');
 
-      const currentSession = activeSessionQuery.data;
-      if (!currentSession) throw new Error('No active session found');
+      // Fetch the current session by ID (do not rely on cache here)
+      const { data: session, error: fetchError } = await supabase
+        .from('fasting_sessions')
+        .select('id, user_id, start_time, goal_duration_seconds')
+        .eq('id', sessionId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!session) throw new Error('No active session found');
 
       const now = new Date();
-      const startTime = new Date(currentSession.start_time);
+      const startTime = new Date(session.start_time);
       const actualDurationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
 
       // Determine status based on whether goal was reached
-      const goalDurationSeconds = currentSession.goal_duration_seconds || 0;
+      const goalDurationSeconds = session.goal_duration_seconds || 0;
       const status = actualDurationSeconds >= goalDurationSeconds ? 'completed' : 'incomplete';
 
       const { data, error } = await supabase
@@ -215,6 +223,10 @@ export const useFastingSessionQuery = () => {
         .eq('user_id', user.id)
         .select()
         .single();
+
+      if (error) throw error;
+      return data;
+    },
 
       if (error) throw error;
       return data;

@@ -15,50 +15,40 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showBelow, setShowBelow] = useState(false);
+  const [alignLeft, setAlignLeft] = useState(false);
   const isMobile = useIsMobile();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
+  const recomputePosition = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceAbove = rect.top;
+    const spaceRight = window.innerWidth - rect.right;
+    setShowBelow(spaceAbove < 120);
+    setAlignLeft(spaceRight < 180);
+  };
+
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     if (isMobile) {
-      // On mobile, always use click/touch
       setIsOpen(!isOpen);
-      
-      // Check if we should show below instead of above
-      if (triggerRef.current && !isOpen) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        const spaceAbove = rect.top;
-        const spaceBelow = window.innerHeight - rect.bottom;
-        
-        // If less than 120px space above, show below
-        setShowBelow(spaceAbove < 120);
-      }
+      if (!isOpen) recomputePosition();
     }
   };
 
   const handleMouseEnter = () => {
     if (!isMobile) {
       setIsOpen(true);
-      
-      // Check positioning for desktop hover too
-      if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        const spaceAbove = rect.top;
-        setShowBelow(spaceAbove < 120);
-      }
+      recomputePosition();
     }
   };
 
   const handleMouseLeave = () => {
-    if (!isMobile) {
-      setIsOpen(false);
-    }
+    if (!isMobile) setIsOpen(false);
   };
 
-  // Close on outside click for mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobile && isOpen && tooltipRef.current && triggerRef.current) {
@@ -90,7 +80,6 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
       >
         {children}
       </div>
-      
       {isOpen && (
         <>
           {isMobile && (
@@ -103,18 +92,17 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
             ref={tooltipRef}
             className={cn(
               "absolute z-50 px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
-              "w-[160px] text-left leading-relaxed",
+              "w-[180px] max-w-[calc(100vw-32px)] text-left leading-relaxed",
               "animate-in fade-in-0 zoom-in-95 duration-200",
-              // Smart positioning based on available space
               showBelow 
-                ? "top-full right-0 mt-2" 
-                : "bottom-full right-0 mb-2"
+                ? (alignLeft ? "top-full left-0 mt-2" : "top-full right-0 mt-2")
+                : (alignLeft ? "bottom-full left-0 mb-2" : "bottom-full right-0 mb-2")
             )}
           >
             {content}
-            {/* Arrow pointing to trigger */}
             <div className={cn(
-              "absolute right-4",
+              "absolute",
+              alignLeft ? "left-4" : "right-4",
               showBelow 
                 ? "top-0 -mt-1 w-2 h-2 bg-popover border-l border-t border-border rotate-45"
                 : "bottom-0 -mb-1 w-2 h-2 bg-popover border-r border-b border-border rotate-45"

@@ -401,11 +401,13 @@ const Timer = () => {
         )}
 
         {/* Inspirational Content */}
-        <FastingInspirationRotator 
-          quotes={quotes.fasting_timer_quotes}
-          currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
-          className="mt-8"
-        />
+        {profile?.enable_fasting_slideshow ? (
+          <FastingInspirationRotator 
+            quotes={quotes.fasting_timer_quotes}
+            currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
+            className="mt-8"
+          />
+        ) : null}
       </div>
 
       {/* Fast Selector Modal */}
