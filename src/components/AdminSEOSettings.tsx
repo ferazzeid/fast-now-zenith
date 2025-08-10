@@ -136,8 +136,8 @@ export const AdminSEOSettings = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Search className="h-5 w-5" />
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Search className="h-4 w-4" />
           SEO Indexing Settings
         </CardTitle>
         <CardDescription>
