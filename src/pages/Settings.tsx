@@ -495,72 +495,154 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
-            {/* Save Settings Button - moved under Profile */}
+            {/* Save Settings Button - under Profile */}
             <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
               Save Settings
             </Button>
 
-            {/* Connection Status - moved down */}
+            {/* Account Section - moved up (2nd priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Wifi className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Connection</h3>
+                  <User className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-warm-text">Network Status</span>
-                    <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-                      {isOnline ? 'Online' : 'Offline'}
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="text-warm-text font-medium">{user?.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Login Method</span>
+                    <span className="text-warm-text font-medium">
+                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-warm-text">Server Connection</span>
-                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                      {isConnected ? 'Connected' : 'Disconnected'}
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Account Type</span>
+                    <span className="text-warm-text font-medium">
+                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 'Free User'}
                     </span>
                   </div>
-                  {(!isOnline || !isConnected) && (
-                    <div className="pt-2">
-                      <Button
-                        onClick={async () => {
-                          toast({ title: "Reconnecting...", description: "Checking connection status" });
-                          await forceRetry();
-                          const connected = await checkConnection();
-                          toast({
-                            title: connected ? "Connected" : "Still offline",
-                            description: connected 
-                              ? "Connection restored successfully" 
-                              : "Unable to connect. Please check your internet connection.",
-                            variant: connected ? "default" : "destructive"
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Member since</span>
+                    <span className="text-warm-text font-medium">
+                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-ceramic-rim space-y-3">
+                  {subscription.subscription_tier !== 'paid_user' && (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await multiSub.createSubscription();
+                          toast({ 
+                            title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
+                            description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
                           });
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Wifi className="w-4 h-4 mr-2" />
-                        Reconnect
-                      </Button>
-                    </div>
+                        } catch {
+                          toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
+                        }
+                      }}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
+                    </Button>
                   )}
-                  {(!isOnline || !isConnected) && (
-                    <div className="pt-2">
-                      <Button
-                        onClick={() => window.location.reload()}
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
-                      >
-                        Reload App
-                      </Button>
-                    </div>
-                  )}
+                  <Button
+                    onClick={() => { signOut(); navigate('/auth'); }}
+                    variant="outline"
+                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
                 </div>
               </div>
             </Card>
 
-            {/* Account Management - moved down */}
+            {/* Appearance Section - moved up (3rd priority) */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                </div>
+                <div className="flex justify-center">
+                  <ThemeToggle />
+                </div>
+              </div>
+            </Card>
+
+            {/* Animation Settings - (4th priority) */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Animations</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Fasting Motivator Slideshow</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_fasting_slideshow ?? true}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_fasting_slideshow: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Fasting slideshow enabled" : "Fasting slideshow disabled",
+                            description: "Changes will take effect immediately"
+                          });
+                          setProfile(prev => ({ ...prev, enable_fasting_slideshow: checked }));
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-warm-text">Walking Motivator Slideshow</span>
+                    </div>
+                    <Switch
+                      checked={profile?.enable_walking_slideshow ?? true}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await supabase
+                            .from('profiles')
+                            .update({ enable_walking_slideshow: checked })
+                            .eq('user_id', user?.id);
+                          toast({
+                            title: checked ? "Walking slideshow enabled" : "Walking slideshow disabled",
+                            description: "Changes will take effect immediately"
+                          });
+                          setProfile(prev => ({ ...prev, enable_walking_slideshow: checked }));
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update setting",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Account Management - moved down (5th priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -635,145 +717,62 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
-            {/* Theme Toggle Section */}
+            {/* Connection Status - moved down (6th priority) */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Palette className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                  <Wifi className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Connection</h3>
                 </div>
-                <div className="flex justify-center">
-                  <ThemeToggle />
-                </div>
-              </div>
-            </Card>
-
-            {/* Account Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Email</span>
-                    <span className="text-warm-text font-medium">{user?.email}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Login Method</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-warm-text">Network Status</span>
+                    <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+                      {isOnline ? 'Online' : 'Offline'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Account Type</span>
-                    <span className="text-warm-text font-medium">
-                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 'Free User'}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-warm-text">Server Connection</span>
+                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                      {isConnected ? 'Connected' : 'Disconnected'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Member since</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-ceramic-rim space-y-3">
-                  {subscription.subscription_tier !== 'paid_user' && (
-<Button
-                      onClick={async () => {
-                        try {
-                          await multiSub.createSubscription();
-                          toast({ 
-                            title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
-                            description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
+                  {(!isOnline || !isConnected) && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={async () => {
+                          toast({ title: "Reconnecting...", description: "Checking connection status" });
+                          await forceRetry();
+                          const connected = await checkConnection();
+                          toast({
+                            title: connected ? "Connected" : "Still offline",
+                            description: connected 
+                              ? "Connection restored successfully" 
+                              : "Unable to connect. Please check your internet connection.",
+                            variant: connected ? "default" : "destructive"
                           });
-                        } catch {
-                          toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
-                        }
-                      }}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
-                    </Button>
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Wifi className="w-4 h-4 mr-2" />
+                        Reconnect
+                      </Button>
+                    </div>
                   )}
-                  <Button
-                    onClick={() => { signOut(); navigate('/auth'); }}
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </div>
-            </Card>
-
-
-            {/* Animation Settings */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Animations</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-warm-text">Fasting Motivator Slideshow</span>
+                  {(!isOnline || !isConnected) && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => window.location.reload()}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+                      >
+                        Reload App
+                      </Button>
                     </div>
-                    <Switch
-                      checked={profile?.enable_fasting_slideshow ?? true}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          await supabase
-                            .from('profiles')
-                            .update({ enable_fasting_slideshow: checked })
-                            .eq('user_id', user?.id);
-                          toast({
-                            title: checked ? "Fasting slideshow enabled" : "Fasting slideshow disabled",
-                            description: "Changes will take effect immediately"
-                          });
-                          setProfile(prev => ({ ...prev, enable_fasting_slideshow: checked }));
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update setting",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-warm-text">Walking Motivator Slideshow</span>
-                    </div>
-                    <Switch
-                      checked={profile?.enable_walking_slideshow ?? true}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          await supabase
-                            .from('profiles')
-                            .update({ enable_walking_slideshow: checked })
-                            .eq('user_id', user?.id);
-                          toast({
-                            title: checked ? "Walking slideshow enabled" : "Walking slideshow disabled",
-                            description: "Changes will take effect immediately"
-                          });
-                          setProfile(prev => ({ ...prev, enable_walking_slideshow: checked }));
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update setting",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    />
-                  </div>
+                  )}
                 </div>
               </div>
             </Card>
