@@ -97,22 +97,24 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
         size="sm"
         showCloseButton={true}
         footer={
-          <div className="flex gap-3 w-full">
+          <>
             <Button 
               variant="outline" 
               onClick={() => setIsOpen(false)}
-              className="flex-1"
+              className="w-full h-10"
+              size="default"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleSave}
               disabled={saving || !activityName.trim() || !caloriesBurned}
-              className="flex-1"
+              className="w-full h-10"
+              size="default"
             >
               {saving ? 'Saving...' : 'Add Activity'}
             </Button>
-          </div>
+          </>
         }
       >
         <div className="space-y-4">
