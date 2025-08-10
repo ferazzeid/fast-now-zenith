@@ -24,11 +24,11 @@ export const SequentialGoalRotation = ({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const modeRef = useRef<'timer-focused' | 'motivator-focused'>('timer-focused');
 
-  // Filter motivators without images to show as rotating text
-  const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
+  // Use ALL motivators with titles for rotation (regardless of image presence)
+  const motivatorsWithTitles = motivators.filter(m => m.title);
 
   useEffect(() => {
-    if (!isActive || motivatorsWithoutImages.length === 0) {
+    if (!isActive || motivatorsWithTitles.length === 0) {
       setDisplayState('timer');
       if (modeRef.current !== 'timer-focused') {
         onModeChange?.('timer-focused');
@@ -67,7 +67,7 @@ export const SequentialGoalRotation = ({
           if (runIdRef.current !== thisRun) return;
 
           // Advance to next and repeat
-          setCurrentIndex(prev => (prev + 1) % motivatorsWithoutImages.length);
+          setCurrentIndex(prev => (prev + 1) % motivatorsWithTitles.length);
           loop();
         }, 4000); // goal duration
       }, 5000); // timer duration
@@ -80,13 +80,13 @@ export const SequentialGoalRotation = ({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       runIdRef.current += 1; // invalidate this run
     };
-  }, [isActive, motivatorsWithoutImages.length, onModeChange]);
+  }, [isActive, motivatorsWithTitles.length, onModeChange]);
 
-  if (!isActive || motivatorsWithoutImages.length === 0) {
+  if (!isActive || motivatorsWithTitles.length === 0) {
     return null;
   }
 
-  const currentMotivator = motivatorsWithoutImages[currentIndex];
+  const currentMotivator = motivatorsWithTitles[currentIndex];
 
   return (
     <div className={`absolute inset-0 ${className}`}>

@@ -42,9 +42,9 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   const circumference = 2 * Math.PI * 45; // radius of 45px
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  // Check if we have motivators with and without images
+  // Check if we have motivators with images and titles
   const motivatorsWithImages = motivators.filter(m => m.imageUrl);
-  const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
+  const motivatorsWithTitles = motivators.filter(m => m.title);
 
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
@@ -76,14 +76,14 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           }}
         >
           {/* Image Background - MOVED INSIDE center well where it belongs */}
-          {showSlideshow && isActive && motivatorsWithImages.length > 0 && motivatorsWithoutImages.length === 0 && (
+          {showSlideshow && isActive && motivatorsWithImages.length > 0 && motivatorsWithTitles.length === 0 && (
             <div className="absolute inset-0 rounded-full overflow-hidden">
               <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
             </div>
           )}
           
           {/* Sequential Goal Rotation - Show when text motivators exist */}
-          {showSlideshow && motivatorsWithoutImages.length > 0 && (
+          {showSlideshow && motivatorsWithTitles.length > 0 && (
             <SequentialGoalRotation 
               isActive={isActive} // Only active when timer is running
               onModeChange={setMotivatorMode}

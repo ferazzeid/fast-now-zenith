@@ -112,9 +112,9 @@ const WalkingTimerComponent = ({
   // Convert stored speed (MPH) to display speed for the select component
   const displaySpeed = storageSpeedToDisplaySpeed(selectedSpeed, units);
 
-  // Check if we have motivators with and without images
+  // Check if we have motivators with images and titles
   const motivatorsWithImages = motivators.filter(m => m.imageUrl);
-  const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
+  const motivatorsWithTitles = motivators.filter(m => m.title);
 
   return (
     <TooltipProvider>
@@ -125,7 +125,7 @@ const WalkingTimerComponent = ({
         {/* Main Timer Card */}
         <Card className="p-6 text-center relative overflow-hidden">
           {/* Walking Motivator Slideshow Background */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && motivatorsWithoutImages.length === 0 && (
+          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && motivatorsWithTitles.length === 0 && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
               <WalkingMotivatorSlideshow 
                 isActive={showSlideshow && isActive && !isPaused} 
@@ -135,7 +135,7 @@ const WalkingTimerComponent = ({
           )}
           
           {/* Sequential Goal Rotation - Show when text motivators exist */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithoutImages.length > 0 && (
+          {showSlideshow && isActive && !isPaused && motivatorsWithTitles.length > 0 && (
             <SequentialGoalRotation 
               isActive={showSlideshow && isActive && !isPaused} 
               onModeChange={setMotivatorMode}
