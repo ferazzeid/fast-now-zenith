@@ -235,7 +235,7 @@ const Motivators = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-6">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
@@ -250,6 +250,31 @@ const Motivators = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Create a motivator by typing title, description, and adding images</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                  <Button
+                    onClick={() => {
+                      setAiChatContext("Help me create a powerful motivator for my fasting journey. I want to record what drives me and why it's important.");
+                      setShowAiChat(true);
+                      trackAIEvent('chat', 'motivator_voice');
+                    }}
+                    variant="ai"
+                    size="action-tall"
+                    className="flex items-center justify-center"
+                    aria-label="Create motivator with voice"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </Button>
+                </PremiumGate>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create a motivator by talking about what drives you</p>
               </TooltipContent>
             </Tooltip>
 
