@@ -2,9 +2,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const forcePWARefresh = async () => {
   try {
-    console.log('Starting aggressive PWA cache refresh...');
+    console.log('Starting PWA cache refresh (preserving uploaded icons)...');
     
-    // 1. Fetch ALL PWA-related settings from database
+    // 1. Fetch current PWA settings from database (DO NOT overwrite them)
     const { data: settingsData } = await supabase
       .from('shared_settings')
       .select('setting_key, setting_value')
@@ -15,10 +15,10 @@ export const forcePWARefresh = async () => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    console.log('Fetched PWA settings:', settings);
+    console.log('Preserving existing PWA settings:', settings);
 
-    // 2. Update all favicon and icon links with cache busting
-    const cacheBust = `?v=${Date.now()}&mobile=${Date.now()}`;
+    // 2. Update HTML icon links with cache busting (using existing URLs)
+    const cacheBust = `?v=${Date.now()}&refresh=${Date.now()}`;
     
     // Update favicon links
     if (settings.app_favicon) {
@@ -40,7 +40,7 @@ export const forcePWARefresh = async () => {
       });
     }
 
-    // 3. Update apple touch icons with app_icon_url or fallback to app_logo
+    // Update apple touch icons with app_icon_url or fallback to app_logo
     const appIconUrl = settings.app_icon_url || settings.app_logo;
     if (appIconUrl) {
       const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
@@ -50,7 +50,7 @@ export const forcePWARefresh = async () => {
       });
     }
     
-    // 4. Aggressively clear ALL caches first (critical for mobile)
+    // 3. Clear ALL browser caches
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       console.log('Clearing ALL caches:', cacheNames);
@@ -62,7 +62,7 @@ export const forcePWARefresh = async () => {
       );
     }
 
-    // 5. Unregister and re-register service worker for complete refresh
+    // 4. Unregister and re-register service worker for complete refresh
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const registration of registrations) {
@@ -71,22 +71,18 @@ export const forcePWARefresh = async () => {
       }
     }
     
-    // 6. Force manifest refresh with aggressive cache busting
+    // 5. Force manifest refresh with aggressive cache busting
     const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
     if (manifestLink) {
       const url = new URL(manifestLink.href, window.location.origin);
       url.searchParams.set('v', Date.now().toString());
       url.searchParams.set('bust', Math.random().toString(36));
-      url.searchParams.set('mobile', '1');
       url.searchParams.set('refresh', Date.now().toString());
       manifestLink.href = url.toString();
-      console.log('Manifest URL aggressively updated:', manifestLink.href);
+      console.log('Manifest URL updated:', manifestLink.href);
     }
 
-    // 7. Force manifest refresh by updating the link (no direct fetch needed)
-    console.log('Manifest URL aggressively updated:', manifestLink?.href);
-
-    // 8. Re-register service worker after delay
+    // 6. Re-register service worker after delay
     setTimeout(async () => {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
@@ -96,7 +92,7 @@ export const forcePWARefresh = async () => {
       }
     }, 1000);
 
-    // 9. Force page reload on mobile devices for complete refresh
+    // 7. Force page reload on mobile devices for complete refresh
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
       console.log('Mobile device detected, forcing page reload in 2 seconds...');
@@ -106,7 +102,7 @@ export const forcePWARefresh = async () => {
       }, 2000);
     }
     
-    console.log('Aggressive PWA cache refresh completed');
+    console.log('PWA cache refresh completed (icons preserved)');
     return true;
   } catch (error) {
     console.error('Error refreshing PWA cache:', error);
