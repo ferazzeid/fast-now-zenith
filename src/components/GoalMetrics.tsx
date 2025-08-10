@@ -40,8 +40,9 @@ export const GoalMetrics = () => {
             {currentWeight} → {goalWeight} {units}
           </div>
         </div>
-        {/* Ring pulse animation */}
-        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" />
+        {/* Multiple celebration rings for stronger effect */}
+        <div className="absolute inset-1 border-3 border-primary/30 rounded-lg goal-celebration pointer-events-none" />
+        <div className="absolute inset-2 border-2 border-primary/40 rounded-lg goal-celebration pointer-events-none" style={{ animationDelay: '0.2s' }} />
       </Card>
 
       {/* Time to Goal */}
@@ -60,8 +61,9 @@ export const GoalMetrics = () => {
             at current deficit
           </div>
         </div>
-        {/* Ring pulse animation */}
-        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '0.5s' }} />
+        {/* Multiple celebration rings for stronger effect */}
+        <div className="absolute inset-1 border-3 border-primary/30 rounded-lg goal-celebration pointer-events-none" />
+        <div className="absolute inset-2 border-2 border-primary/40 rounded-lg goal-celebration pointer-events-none" style={{ animationDelay: '0.4s' }} />
       </Card>
 
       {/* Today's Fat Loss */}
@@ -80,8 +82,9 @@ export const GoalMetrics = () => {
             today's deficit
           </div>
         </div>
-        {/* Ring pulse animation */}
-        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+        {/* Multiple celebration rings for stronger effect */}
+        <div className="absolute inset-1 border-3 border-primary/30 rounded-lg goal-celebration pointer-events-none" />
+        <div className="absolute inset-2 border-2 border-primary/40 rounded-lg goal-celebration pointer-events-none" style={{ animationDelay: '0.6s' }} />
       </Card>
 
       {/* 30-Day Projection */}
@@ -100,8 +103,9 @@ export const GoalMetrics = () => {
             projected fat loss
           </div>
         </div>
-        {/* Ring pulse animation */}
-        <div className="absolute inset-2 border-2 border-primary/20 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '1.5s' }} />
+        {/* Multiple celebration rings for stronger effect */}
+        <div className="absolute inset-1 border-3 border-primary/30 rounded-lg goal-celebration pointer-events-none" />
+        <div className="absolute inset-2 border-2 border-primary/40 rounded-lg goal-celebration pointer-events-none" style={{ animationDelay: '0.8s' }} />
       </Card>
     </div>
   );

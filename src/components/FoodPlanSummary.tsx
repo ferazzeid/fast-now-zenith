@@ -44,8 +44,9 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
       <div className="grid grid-cols-2 gap-4">
         {/* Calories Card */}
         <Card className="p-4 relative overflow-hidden">
-          {/* Ring pulse animation */}
-          <div className="absolute inset-2 border-2 border-primary/15 rounded-lg ring-pulse pointer-events-none" />
+          {/* Multiple celebration rings for stronger effect */}
+          <div className="absolute inset-1 border-3 border-primary/25 rounded-lg goal-celebration pointer-events-none" />
+          <div className="absolute inset-2 border-2 border-primary/35 rounded-lg goal-celebration pointer-events-none" style={{ animationDelay: '0.3s' }} />
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Calories
@@ -71,8 +72,9 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
 
         {/* Carbs Card */}
         <Card className="p-4 relative overflow-hidden">
-          {/* Ring pulse animation */}
-          <div className="absolute inset-2 border-2 border-primary/15 rounded-lg ring-pulse pointer-events-none" style={{ animationDelay: '0.7s' }} />
+          {/* Multiple celebration rings for stronger effect */}
+          <div className="absolute inset-1 border-3 border-primary/25 rounded-lg goal-celebration pointer-events-none" />
+          <div className="absolute inset-2 border-2 border-primary/35 rounded-lg goal-celebration pointer-events-none" style={{ animationDelay: '0.5s' }} />
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Carbs (g)
