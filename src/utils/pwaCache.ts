@@ -133,9 +133,13 @@ export const validatePWAManifest = async (): Promise<{
       return { isValid: false, error: 'No manifest link found' };
     }
 
+    // Use a CORS-friendly approach with mode: 'cors'
     const response = await fetch(manifestLink.href, { 
+      method: 'GET',
+      mode: 'cors',
       cache: 'no-cache',
       headers: {
+        'Accept': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate'
       }
     });
