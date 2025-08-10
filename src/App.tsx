@@ -43,6 +43,7 @@ import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 // Using optimized query client from @/lib/query-client
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
@@ -77,6 +78,7 @@ const AppContent = () => {
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { isOnline, isConnected } = useConnectionStore();
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -119,6 +121,21 @@ const AppContent = () => {
       setShowOnboarding(false);
     }
   }, [user, profile, isProfileComplete]);
+
+  // Handle browser back/forward navigation when offline
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // When offline, ensure we stay within the SPA
+      if (!isOnline || !isConnected) {
+        // Let React Router handle the navigation naturally
+        // The service worker will serve the cached index.html
+        console.log('Offline navigation detected, using cached app shell');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isOnline, isConnected]);
   
   return (
     <>

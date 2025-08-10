@@ -60,12 +60,24 @@ self.addEventListener('fetch', (event) => {
           cache.put('/index.html', network.clone());
           return network;
         } catch {
-          // Serve the cached app shell instead of just "Offline" text
+          // For SPA routes, always serve the cached index.html which contains the React app
           const cached = await caches.match('/index.html');
           if (cached) {
-            return cached;
+            // Clone the response to modify headers
+            const modifiedResponse = new Response(cached.body, {
+              status: cached.status,
+              statusText: cached.statusText,
+              headers: {
+                ...Object.fromEntries(cached.headers.entries()),
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+              }
+            });
+            return modifiedResponse;
           }
-          // Fallback offline page that still provides app functionality
+          
+          // Last resort fallback - but this should rarely be reached
+          // since we cache index.html during install
           return new Response(`
             <!DOCTYPE html>
             <html>
@@ -74,16 +86,27 @@ self.addEventListener('fetch', (event) => {
               <meta name="viewport" content="width=device-width, initial-scale=1">
               <title>FastNow - Offline</title>
               <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-                       padding: 20px; text-align: center; }
-                .offline-msg { margin-top: 50px; color: #666; }
+                body { 
+                  font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+                  padding: 20px; text-align: center; 
+                  background: #f5f5f5;
+                }
+                .offline-msg { 
+                  margin-top: 50px; color: #666; 
+                  max-width: 400px; margin: 50px auto;
+                }
+                .retry-btn {
+                  background: #007AFF; color: white; border: none;
+                  padding: 12px 24px; border-radius: 6px; margin-top: 20px;
+                  cursor: pointer; font-size: 16px;
+                }
               </style>
             </head>
             <body>
               <div class="offline-msg">
                 <h1>You're Offline</h1>
-                <p>The app will work with cached data when you're back online.</p>
-                <button onclick="location.reload()">Try Again</button>
+                <p>Please check your internet connection and try again.</p>
+                <button class="retry-btn" onclick="location.reload()">Retry</button>
               </div>
             </body>
             </html>
