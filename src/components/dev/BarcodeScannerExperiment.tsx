@@ -79,10 +79,23 @@ export const BarcodeScannerExperiment: React.FC = () => {
         videoRef.current,
         (result, err) => {
           if (result) {
+            console.log('Barcode detected:', result.getText());
             const text = result.getText();
             setBarcode(text);
             fetchProduct(text);
             stopScanning();
+            toast({
+              title: 'Barcode scanned!',
+              description: `Found barcode: ${text}`,
+            });
+          }
+          if (err && !(err.name === 'NotFoundException')) {
+            console.error('Barcode scanning error:', err);
+            toast({
+              title: 'Scanning error',
+              description: err.message || 'Failed to scan barcode',
+              variant: 'destructive'
+            });
           }
         }
       );
@@ -136,7 +149,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
     <Card className="shadow-sm">
       <CardContent className="space-y-4 pt-6">
         <div className="flex gap-2">
-          <Button onClick={startScanning} disabled={scanning} className="flex-1" variant="secondary">
+          <Button onClick={startScanning} disabled={scanning} className="flex-1" variant="action-primary">
             {scanning ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scanning...
@@ -148,7 +161,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
             )}
           </Button>
           {scanning && (
-            <Button onClick={stopScanning} variant="outline">
+            <Button onClick={stopScanning} variant="action-secondary">
               <Square className="w-4 h-4 mr-2" /> Stop
             </Button>
           )}
