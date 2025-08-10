@@ -148,7 +148,11 @@ export const formatUnitDisplay = (amount: string, unit: string): string => {
 export const getUnitDisplayName = (unit: string): string => {
   switch (unit) {
     case 'grams': return 'Grams';
-    case 'ounces': return 'Ounces';
+    case 'milliliters':
+    case 'ml': return 'Milliliters';
+    case 'fl_oz': return 'Fluid Ounces';
+    case 'ounces':
+    case 'oz': return 'Ounces';
     case 'pieces': return 'Pieces';
     case 'cups': return 'Cups';
     case 'slices': return 'Slices';

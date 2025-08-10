@@ -126,35 +126,28 @@ export const ModalAiChat = ({
 
 You are a comprehensive food tracking assistant. Your goals are to:
 
-**FOR ADDING FOODS:**
-1. IMMEDIATELY process food information and call add_multiple_foods function
-2. ONLY respond with clean, minimal format: "Food Name (Amount) - Calories cal, Carbs g carbs" for each item
-3. Use reasonable portion sizes (150g apple, 100g chicken breast, 60g bread slice, etc.)
-4. Always call add_multiple_foods function immediately when processing food input
+FOR ADDING FOODS:
+1. IMMEDIATELY process food information and call add_multiple_foods
+2. Output minimal confirmations only; no extra chit-chat
+3. Prefer one clear portion. If the user asks for choices, give at most 2 sensible options with consistent gram estimates
+4. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
 
-**FOR EDITING FOODS:**
-1. When users want to edit/change/update/fix foods, FIRST call search_foods_for_edit to find the food
-2. Use context clues to determine search location:
+FOR EDITING/DELETING FOODS:
+1. When users want to edit/change/delete/remove foods, FIRST call search_foods_for_edit to find the item
+2. Context hints:
    - "today's food", "my lunch", "the chicken I ate" → context: "today"
-   - "in my library", "my saved foods" → context: "library" 
-   - "my template", "daily template" → context: "templates"
-3. After finding foods, if user specifies exact changes, call edit_food_entry or edit_library_food
-4. Be smart about matching: "the chicken" should find recent chicken entries, "my banana" finds banana entries
+   - "in my library", "my saved foods" → context: "library"
+   - "my template" → context: "templates"
+3. For deletion phrases like "I didn't eat that", "remove it", "delete the banana":
+   - search_foods_for_edit first (context defaults to today)
+   - then call delete_food_entry (or delete_library_food for library items)
+4. For updates, after finding foods, call edit_food_entry or edit_library_food
 
-**EDITING EXAMPLES:**
-- "Change my lunch chicken to 150g" → search_foods_for_edit("chicken", "today") then edit_food_entry
-- "Update the banana calories to 120" → search_foods_for_edit("banana", "today") then edit_food_entry  
-- "Fix my salmon library entry, should be 250 calories per 100g" → search_foods_for_edit("salmon", "library") then edit_library_food
+FORMATS:
+- For adding: list each as "Name (Xg) - Y cal, Zg carbs" and include Total line
+- For editing/deleting: call the tool first, then a short confirmation
 
-**RESPONSE FORMAT FOR ADDING:**
-- Ham (200g) - 240 cal, 2g carbs
-- Mozzarella (125g) - 315 cal, 1.5g carbs
-Total: 555 calories, 3.5g carbs
-
-**RESPONSE FORMAT FOR EDITING:**
-Always call the appropriate function first, then provide confirmation.
-
-CRITICAL: Always use function calls for food operations. NO manual text responses for food data.`;
+CRITICAL: Always use function calls for food operations.`;
       } else if (title === 'Motivator Assistant') {
         enhancedSystemPrompt = `${systemPrompt}
 
@@ -1109,13 +1102,29 @@ ${updatedContent}`
               </Card>
             ))}
             
-            {/* Add All Foods button - only show if not added yet */}
+            {/* Sticky action bar */}
             {!lastFoodSuggestion.added && (
-              <div className="flex gap-2 mt-3">
+              <div className="sticky bottom-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-t pt-2 pb-2 px-1">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-xs text-muted-foreground">Add to</span>
+                  <div className="flex gap-1">
+                    {(['today','template','library'] as const).map(dest => (
+                      <Button
+                        key={dest}
+                        size="sm"
+                        variant={ (lastFoodSuggestion.destination || 'today') === dest ? 'default' : 'outline' }
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setLastFoodSuggestion((prev:any) => ({...prev, destination: dest}))}
+                      >
+                        {dest.charAt(0).toUpperCase() + dest.slice(1)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <Button
                   size="sm"
                   onClick={handleAddAllFoods}
-                  className="flex-1"
+                  className="w-full"
                   disabled={isProcessing}
                 >
                   {isProcessing ? 'Adding...' : 'Add All Foods'}
