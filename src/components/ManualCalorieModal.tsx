@@ -94,10 +94,10 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
         onClose={() => setIsOpen(false)}
         title="Add External Activity"
         variant="standard"
-        size="md"
+        size="sm"
         showCloseButton={true}
         footer={
-          <div className="flex gap-2 w-full">
+          <div className="flex gap-3 w-full">
             <Button 
               variant="outline" 
               onClick={() => setIsOpen(false)}
