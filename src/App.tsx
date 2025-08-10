@@ -26,6 +26,7 @@ import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
+import { HistoryDebugHelper } from "@/components/enhanced/HistoryDebugHelper";
 import { EnhancedConnectionStatus } from "./components/enhanced/ConnectionRecovery";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
@@ -114,6 +115,7 @@ const AppContent = () => {
   
   return (
     <>
+      <HistoryDebugHelper />
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}

@@ -83,30 +83,32 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
                   onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
                 >
                   <div className="flex gap-3">
-                    {/* Goal Image */}
-                    <div className="w-12 h-12 flex-shrink-0">
-                      <MotivatorImageWithFallback
-                        src={goal.imageUrl}
-                        alt={goal.title}
-                        className="w-full h-full object-cover rounded"
-                      />
-                    </div>
+                    {/* Goal Image - Reduced size for mobile */}
+                    {goal.imageUrl && (
+                      <div className="w-8 h-8 flex-shrink-0">
+                        <MotivatorImageWithFallback
+                          src={goal.imageUrl}
+                          alt={goal.title}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      </div>
+                    )}
                     
-                    {/* Goal Content */}
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-warm-text text-sm">{goal.title}</h4>
-                        <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                    {/* Goal Content - Takes most of the space */}
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <div className="flex items-start gap-2">
+                        <h4 className="font-medium text-warm-text text-sm leading-tight">{goal.title}</h4>
+                        <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground flex-shrink-0">
                           {goal.category}
                         </Badge>
                       </div>
-                      <p className={`text-xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
+                      <p className={`text-xs text-muted-foreground leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
                         {goal.description}
                       </p>
                     </div>
                     
                     {/* Expand/Add Button */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       {isExpanded ? (
                         <ChevronDown className="w-4 h-4 text-muted-foreground" />
                       ) : (

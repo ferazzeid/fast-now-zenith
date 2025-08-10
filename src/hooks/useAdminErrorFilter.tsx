@@ -15,7 +15,6 @@ export const useAdminErrorFilter = (): AdminUser => {
   const isAdmin = Boolean(
     user?.email === 'test@test.com' || // Admin email
     user?.email?.includes('admin') ||
-    profile?.user_tier === 'admin' || // Check user_tier in profile
     profile?.display_name?.toLowerCase().includes('admin')
   );
 
