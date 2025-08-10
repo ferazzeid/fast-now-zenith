@@ -163,18 +163,11 @@ export const UniversalModal = ({
           'border border-border',
           'rounded-lg shadow-xl',
           'p-0 overflow-hidden',
-          // PROPER_CENTERING: Constrained to app container max-width
+          // CONSTRAIN TO APP CONTAINER: Force modal to never exceed app's container width
           'mx-4 my-8',
           'max-h-[90vh]',
-          // CONSTRAIN TO APP CONTAINER: Match the app's max-width container
-          'w-[calc(100vw-2rem)] max-w-md', // Mobile-first, constrained to app width
-          'md:max-w-lg', // Desktop gets slightly larger but still constrained
-          // SIZE: Remove conflicting responsive sizing that might override constraints
-          size === 'sm' && 'md:max-w-md',
-          size === 'md' && 'md:max-w-lg', 
-          size === 'lg' && 'md:max-w-2xl',
-          size === 'xl' && 'md:max-w-4xl',
-          size === 'full' && 'md:max-w-[95vw]',
+          // CRITICAL: Match app container exactly - use max-w-md for all sizes on desktop
+          'w-[calc(100vw-2rem)] max-w-md', // Force maximum width to match app container
           'focus:outline-none focus:ring-2 focus:ring-primary',
           // Hide default dialog close button when showCloseButton is false
           !showCloseButton && '[&>button]:hidden',
