@@ -65,7 +65,7 @@ export const BarcodeScannerExperiment: React.FC = () => {
   const startScanning = async () => {
     if (!videoRef.current) return;
     try {
-      setError(null);
+      setError(null); // Clear any previous errors
       setProduct(null);
       setBarcode('');
       setScanning(true);
@@ -89,13 +89,18 @@ export const BarcodeScannerExperiment: React.FC = () => {
               description: `Found barcode: ${text}`,
             });
           }
-          if (err && !(err.name === 'NotFoundException')) {
+          // Only show error toasts for serious errors, not NotFoundException
+          if (err && err.name !== 'NotFoundException' && err.name !== 'ChecksumException') {
             console.error('Barcode scanning error:', err);
-            toast({
-              title: 'Scanning error',
-              description: err.message || 'Failed to scan barcode',
-              variant: 'destructive'
-            });
+            // Only show toast for the first serious error to avoid spam
+            if (!error) {
+              setError(err.message || 'Scanner error occurred');
+              toast({
+                title: 'Scanner error',
+                description: 'Having trouble scanning. Try adjusting camera angle or lighting.',
+                variant: 'destructive'
+              });
+            }
           }
         }
       );
