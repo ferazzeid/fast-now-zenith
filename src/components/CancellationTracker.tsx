@@ -114,27 +114,6 @@ export const CancellationTracker = () => {
     );
   }
 
-  const metrics = [
-    {
-      title: 'Trial Endings',
-      color: 'text-orange-600',
-      today: data.trialEndingsToday,
-      month: data.trialEndingsMonth
-    },
-    {
-      title: 'Cancellations',
-      color: 'text-red-600',
-      today: data.cancellationsToday,
-      month: data.cancellationsMonth
-    },
-    {
-      title: 'Upgrades to Paid',
-      color: 'text-green-600',
-      today: data.upgradestoday,
-      month: data.upgradesMonth
-    }
-  ];
-
   return (
     <Card>
       <CardHeader>
@@ -146,24 +125,57 @@ export const CancellationTracker = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {metrics.map((metric, index) => (
-            <div key={index} className="space-y-3">
-              <h4 className={`text-sm font-semibold ${metric.color} text-center`}>
-                {metric.title}
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Today</span>
-                  <span className={`text-lg font-bold ${metric.color}`}>{metric.today}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">This Month</span>
-                  <span className={`text-lg font-bold ${metric.color}`}>{metric.month}</span>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Trial Endings */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+              Trial Endings
+            </h4>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <span className="text-xs text-muted-foreground">Today</span>
+                <span className="text-sm font-semibold text-foreground">{data.trialEndingsToday}</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <span className="text-xs text-muted-foreground">This Month</span>
+                <span className="text-sm font-semibold text-foreground">{data.trialEndingsMonth}</span>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Cancellations */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+              Cancellations
+            </h4>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <span className="text-xs text-muted-foreground">Today</span>
+                <span className="text-sm font-semibold text-foreground">{data.cancellationsToday}</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <span className="text-xs text-muted-foreground">This Month</span>
+                <span className="text-sm font-semibold text-foreground">{data.cancellationsMonth}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Upgrades to Paid */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground mb-3 text-center">
+              Upgrades to Paid
+            </h4>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <span className="text-xs text-muted-foreground">Today</span>
+                <span className="text-sm font-semibold text-foreground">{data.upgradestoday}</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <span className="text-xs text-muted-foreground">This Month</span>
+                <span className="text-sm font-semibold text-foreground">{data.upgradesMonth}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
