@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image } from 'lucide-react';
+import { Image, Plus } from 'lucide-react';
 import placeholderImage from '@/assets/motivator-placeholder.jpg';
 
 interface MotivatorImageWithFallbackProps {
@@ -8,6 +8,8 @@ interface MotivatorImageWithFallbackProps {
   className?: string;
   style?: React.CSSProperties;
   onError?: () => void;
+  onAddImageClick?: () => void;
+  showAddImagePrompt?: boolean;
 }
 
 export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProps> = ({
@@ -15,7 +17,9 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
   alt,
   className = '',
   style,
-  onError
+  onError,
+  onAddImageClick,
+  showAddImagePrompt = true
 }) => {
   const [imageError, setImageError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
@@ -29,8 +33,21 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
     setFallbackError(true);
   };
 
-  // If no src provided or both main and fallback failed, show icon
+  // If no src provided or both main and fallback failed, show add image prompt or icon
   if (!src || (imageError && fallbackError)) {
+    if (showAddImagePrompt && onAddImageClick && !src) {
+      return (
+        <div 
+          className={`bg-muted/40 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/60 transition-colors ${className}`}
+          style={style}
+          onClick={onAddImageClick}
+        >
+          <Plus className="w-8 h-8 text-primary" />
+          <span className="text-xs text-muted-foreground font-medium">add image</span>
+        </div>
+      );
+    }
+    
     return (
       <div 
         className={`bg-muted flex items-center justify-center ${className}`}

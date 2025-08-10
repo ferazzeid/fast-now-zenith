@@ -64,6 +64,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               src={currentImageUrl}
               alt={motivator.title}
               className={`w-full h-full object-cover ${isGenerating ? 'opacity-50' : ''}`}
+              onAddImageClick={onEdit}
+              showAddImagePrompt={!currentImageUrl}
             />
             {isGenerating && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded">
