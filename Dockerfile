@@ -1,4 +1,4 @@
-FROM node:20-alpine as builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -12,8 +12,9 @@ RUN npm ci
 COPY . .
 
 # Clean all caches and build artifacts to ensure fresh build
-RUN npm ci --cache /tmp/empty-cache
 RUN rm -rf dist node_modules/.cache .vite
+
+# Build the application  
 RUN npm run build
 
 # Production stage with nginx
