@@ -36,8 +36,10 @@ export const useAuthStore = create<AuthState>()(
         if (!state.loading) return; // Already initialized
 
         try {
-          // Check connection first
-          await get().checkConnection();
+          // Gentle connection check with timeout
+          const connectionPromise = get().checkConnection();
+          const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(true), 2000));
+          await Promise.race([connectionPromise, timeoutPromise]);
           
           // Set up auth state listener
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -47,11 +49,18 @@ export const useAuthStore = create<AuthState>()(
                 user: session?.user ?? null,
                 loading: false,
               });
+              // Mark as successfully initialized
+              (window as any).__authInitialized = true;
             }
           );
 
-          // Get current session
-          const { data: { session } } = await supabase.auth.getSession();
+          // Get current session with timeout
+          const sessionPromise = supabase.auth.getSession();
+          const sessionTimeout = new Promise((resolve) => 
+            setTimeout(() => resolve({ data: { session: null } }), 3000)
+          );
+          
+          const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
           
           set({
             session,
@@ -59,12 +68,15 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
 
-          // Store subscription for cleanup (we'll handle this in a provider)
+          // Store subscription for cleanup
           (window as any).__authSubscription = subscription;
+          (window as any).__authInitialized = true;
           
         } catch (error) {
           console.error('Auth initialization failed:', error);
+          // Graceful degradation - still allow app to work
           set({ loading: false, isConnected: false });
+          (window as any).__authInitialized = true; // Don't block the app
         }
       },
 
@@ -131,13 +143,20 @@ export const useAuthStore = create<AuthState>()(
         set({ connectionChecking: true });
         
         try {
-          const { error } = await supabase.from('profiles').select('id').limit(1);
+          // Timeout connection check to prevent hanging
+          const connectionPromise = supabase.from('profiles').select('id').limit(1);
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Connection timeout')), 5000)
+          );
+          
+          const { error } = await Promise.race([connectionPromise, timeoutPromise]) as any;
           const connected = !error;
           set({ isConnected: connected, connectionChecking: false });
           return connected;
         } catch (error) {
-          set({ isConnected: false, connectionChecking: false });
-          return false;
+          // Fail gracefully - assume connected to avoid blocking
+          set({ isConnected: true, connectionChecking: false });
+          return true;
         }
       },
 

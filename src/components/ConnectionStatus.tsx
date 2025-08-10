@@ -19,26 +19,27 @@ export const ConnectionStatus = () => {
     }
   }, [isOnline, isConnected, prolongedOutageStart]);
 
-  // Show toast for brief connectivity issues (not too frequent)
+  // Show toast for connectivity issues (less aggressive)
   useEffect(() => {
     const now = Date.now();
-    if (!isConnected && isOnline && now - lastToastTime > 30000) { // Max one toast per 30 seconds
+    // Only show if not during app initialization and with longer delay
+    if (!isConnected && isOnline && now - lastToastTime > 60000 && !(window as any).__initializingApp) {
       toast({
         title: "Connection Issue",
         description: "Checking connection...",
-        duration: 3000,
+        duration: 2000,
       });
       setLastToastTime(now);
     }
   }, [isConnected, isOnline, toast, lastToastTime]);
 
-  // Show toast when connection is restored
+  // Show toast when connection is restored (only if we had real issues)
   useEffect(() => {
-    if (isConnected && isOnline && retryCount > 0) {
+    if (isConnected && isOnline && retryCount > 2 && !(window as any).__initializingApp) {
       toast({
         title: "Connected",
         description: "Connection restored successfully",
-        duration: 2000,
+        duration: 1500,
       });
     }
   }, [isConnected, isOnline, retryCount, toast]);
