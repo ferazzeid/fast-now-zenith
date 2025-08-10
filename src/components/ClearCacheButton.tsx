@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, Trash2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -100,9 +100,8 @@ export const ClearCacheButton = () => {
       <AlertDialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full bg-ceramic-base border-ceramic-rim"
+          className="w-full bg-ceramic-base border-ceramic-rim justify-start"
         >
-          <RefreshCw className="w-3 h-3 mr-2" />
           Clear Cache
         </Button>
       </AlertDialogTrigger>
@@ -118,15 +117,9 @@ export const ClearCacheButton = () => {
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={handleClearCache} disabled={isClearing}>
             {isClearing ? (
-              <>
-                <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
-                Clearing...
-              </>
+              <>Clearing...</>
             ) : (
-              <>
-                <Trash2 className="w-3 h-3 mr-2" />
-                Clear Cache
-              </>
+              <>Clear Cache</>
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

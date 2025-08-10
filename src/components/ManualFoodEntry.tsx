@@ -132,8 +132,10 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               </Label>
               <PremiumGate feature="Voice Input" grayOutForFree={true}>
                 <button
+                  type="button"
+                  aria-label="Start voice input for food name"
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
                 >
                   <Mic className="w-3 h-3 mx-auto" />
                 </button>
@@ -156,8 +158,10 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               </Label>
               <PremiumGate feature="Voice Input" grayOutForFree={true}>
                 <button
+                  type="button"
+                  aria-label="Start voice input for serving size"
                   onClick={() => setShowServingVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
                 >
                   <Mic className="w-3 h-3 mx-auto" />
                 </button>
@@ -210,9 +214,11 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                 </Label>
                 <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                   <button
+                    type="button"
+                    aria-label="AI estimate calories per 100g"
                     onClick={() => handleAiEstimate('calories')}
                     disabled={isAiFillingCalories || !data.name}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAiFillingCalories ? (
                       <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
@@ -240,9 +246,11 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                 </Label>
                 <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                   <button
+                    type="button"
+                    aria-label="AI estimate carbs per 100g"
                     onClick={() => handleAiEstimate('carbs')}
                     disabled={isAiFillingCarbs || !data.name}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 disabled:opacity-50"
+                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAiFillingCarbs ? (
                       <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />

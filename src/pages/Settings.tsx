@@ -554,9 +554,8 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                   <Button
                     onClick={() => { signOut(); navigate('/auth'); }}
                     variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                    className="w-full bg-ceramic-base border-ceramic-rim justify-start hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
@@ -677,13 +676,12 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                    {/* Reset Account */}
                    <AlertDialog>
                      <AlertDialogTrigger asChild>
-                       <Button 
-                         variant="outline" 
-                         className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
-                       >
-                         <Database className="w-4 h-4 mr-2" />
-                         Reset Account Data
-                       </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10 justify-start"
+                    >
+                      Reset Account Data
+                    </Button>
                      </AlertDialogTrigger>
                      <AlertDialogContent>
                        <AlertDialogHeader>
@@ -707,13 +705,12 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                    {/* Delete Account */}
                    <AlertDialog>
                      <AlertDialogTrigger asChild>
-                       <Button 
-                         variant="outline" 
-                         className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
-                       >
-                         <Trash2 className="w-4 h-4 mr-2" />
-                         Delete Account
-                       </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 justify-start"
+                    >
+                      Delete Account
+                    </Button>
                      </AlertDialogTrigger>
                      <AlertDialogContent>
                        <AlertDialogHeader>

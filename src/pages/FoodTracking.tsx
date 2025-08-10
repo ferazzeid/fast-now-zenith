@@ -619,7 +619,7 @@ const FoodTracking = () => {
             <div className="flex flex-col items-center">
               <Button
                 onClick={() => setShowPhotoEntry(true)}
-                variant="action-primary"
+                variant="ai"
                 size="action-tall"
                 className="flex items-center justify-center w-full"
                 aria-label="Add food with photo"
