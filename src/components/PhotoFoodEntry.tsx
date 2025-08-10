@@ -155,28 +155,28 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
       isOpen={isOpen}
       onClose={handleClose}
       title="Photo Food Entry"
-      size="md"
+      size="sm"
     >
-      <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+      <div className="space-y-6">
         {!imageUrl ? (
-          <div className="space-y-4">
-            <div className="text-center py-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-                <Camera className="w-8 h-8 text-muted-foreground" />
+          <div className="space-y-6">
+            <div className="text-center py-4">
+              <div className="w-12 h-12 mx-auto mb-3 bg-muted rounded-full flex items-center justify-center">
+                <Camera className="w-6 h-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium mb-2">Take or Upload Food Photo</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              <h3 className="font-medium mb-2">Take or Upload Food Photo</h3>
+              <p className="text-sm text-muted-foreground">
                 Upload a photo and our AI will analyze the nutritional information for you
               </p>
             </div>
-            <div className="max-w-sm mx-auto">
+            <div className="w-full">
               <SimpleImageUpload onImageUpload={handleUpload} />
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Image Preview */}
-            <div className="aspect-video w-full max-h-[30vh] overflow-hidden rounded-lg border bg-muted flex items-center justify-center">
+            <div className="aspect-video w-full max-w-xs mx-auto overflow-hidden rounded-lg border bg-muted flex items-center justify-center">
               <img 
                 src={imageUrl} 
                 alt="Food photo for analysis" 
@@ -295,24 +295,27 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
       </div>
 
       {/* Footer */}
-      <div className="flex gap-2 pt-4 border-t">
-        <Button variant="outline" onClick={handleClose} size="sm" className="flex-1">
-          <X className="w-4 h-4 mr-2" />
+      <div className="flex gap-3 pt-4">
+        <Button variant="outline" onClick={handleClose} className="flex-1">
           Cancel
         </Button>
         {imageUrl && (
           <Button 
             onClick={handleSave} 
             disabled={saving || !name || !calories || !carbs}
-            size="sm"
             className="flex-1"
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Adding...
+              </>
             ) : (
-              <Camera className="w-4 h-4 mr-2" />
+              <>
+                <Camera className="w-4 h-4 mr-2" />
+                Add to Food Plan
+              </>
             )}
-            {saving ? 'Adding...' : 'Add to Food Plan'}
           </Button>
         )}
       </div>
