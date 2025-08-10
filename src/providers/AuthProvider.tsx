@@ -36,27 +36,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Start connection monitoring first
         startMonitoring();
         
-        // Then initialize auth with timeout
-        const authPromise = initialize();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Auth initialization timeout')), 15000)
-        );
-        
-        await Promise.race([authPromise, timeoutPromise]);
+        // Initialize auth without aggressive timeout
+        await initialize();
         console.log('🚀 App initialization complete');
         
       } catch (error) {
         console.error('🚀 App initialization failed:', error);
-        
-        // Show user-friendly error only for persistent failures
-        if (error.message.includes('timeout')) {
-          toast({
-            title: "Loading Issue",
-            description: "The app is taking longer than expected to load. Please refresh if this continues.",
-            variant: "destructive",
-            duration: 5000,
-          });
-        }
       }
     };
     
