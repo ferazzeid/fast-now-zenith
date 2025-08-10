@@ -194,15 +194,13 @@ const Motivators = () => {
   };
 
   const handleEditGoalIdea = (goal: AdminGoalIdea) => {
-    // For now, we'll convert the goal idea to a motivator format for editing
+    // Create a new motivator based on the goal idea
     const motivatorData = {
-      id: undefined, // This will create a new motivator based on the idea
       title: goal.title,
       content: goal.description || '',
       imageUrl: goal.imageUrl
     };
     setEditingMotivator(motivatorData);
-    setShowFormModal(true);
     setShowMotivatorIdeasModal(false);
   };
   
