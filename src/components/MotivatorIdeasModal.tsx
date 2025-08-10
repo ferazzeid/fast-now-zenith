@@ -56,6 +56,13 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
     checkAdminRole();
   }, [user]);
 
+  // Refresh list every time the modal opens to show latest changes
+  useEffect(() => {
+    if (isOpen) {
+      refreshGoalIdeas();
+    }
+  }, [isOpen, refreshGoalIdeas]);
+
   const handleDeleteGoal = async (goalId: string) => {
     const success = await removeFromDefaultGoals(goalId);
     if (success) {
