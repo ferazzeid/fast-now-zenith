@@ -7,8 +7,7 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  isConnected: boolean;
-  connectionChecking: boolean;
+  initialized: boolean;
   
   // Actions
   initialize: () => Promise<void>;
@@ -18,8 +17,8 @@ interface AuthState {
   signInWithGoogle: () => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
-  checkConnection: () => Promise<boolean>;
   setLoading: (loading: boolean) => void;
+  reset: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,55 +27,92 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       session: null,
       loading: true,
-      isConnected: true,
-      connectionChecking: false,
+      initialized: false,
 
       initialize: async () => {
         const state = get();
-        if (!state.loading) return; // Already initialized
+        if (state.initialized) {
+          set({ loading: false });
+          return;
+        }
 
         try {
-          // Check connection first
-          await get().checkConnection();
+          console.log('🔐 Initializing auth...');
           
           // Set up auth state listener
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-              set({
-                session,
-                user: session?.user ?? null,
-                loading: false,
-              });
+            async (event, session) => {
+              console.log('🔐 Auth state changed:', event, !!session);
+              
+              // Handle specific auth events
+              if (event === 'SIGNED_OUT') {
+                set({
+                  session: null,
+                  user: null,
+                  loading: false,
+                });
+              } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                set({
+                  session,
+                  user: session?.user ?? null,
+                  loading: false,
+                });
+              } else if (event === 'INITIAL_SESSION') {
+                set({
+                  session,
+                  user: session?.user ?? null,
+                  loading: false,
+                  initialized: true,
+                });
+              }
             }
           );
 
-          // Get current session
-          const { data: { session } } = await supabase.auth.getSession();
+          // Get current session immediately
+          const { data: { session }, error } = await supabase.auth.getSession();
           
-          set({
-            session,
-            user: session?.user ?? null,
-            loading: false,
-          });
+          if (error) {
+            console.error('🔐 Auth session error:', error);
+            // Clear any invalid persisted state
+            set({ session: null, user: null, loading: false, initialized: true });
+          } else {
+            console.log('🔐 Initial session:', !!session);
+            set({
+              session,
+              user: session?.user ?? null,
+              loading: false,
+              initialized: true,
+            });
+          }
 
-          // Store subscription for cleanup (we'll handle this in a provider)
+          // Store subscription for cleanup
           (window as any).__authSubscription = subscription;
           
         } catch (error) {
-          console.error('Auth initialization failed:', error);
-          set({ loading: false, isConnected: false });
+          console.error('🔐 Auth initialization failed:', error);
+          set({ 
+            session: null, 
+            user: null, 
+            loading: false, 
+            initialized: true 
+          });
         }
       },
 
       signIn: async (email: string, password: string) => {
+        set({ loading: true });
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        if (error) {
+          set({ loading: false });
+        }
         return { error };
       },
 
       signUp: async (email: string, password: string) => {
+        set({ loading: true });
         const redirectUrl = `${window.location.origin}/`;
         
         const { error } = await supabase.auth.signUp({
@@ -86,6 +122,9 @@ export const useAuthStore = create<AuthState>()(
             emailRedirectTo: redirectUrl
           }
         });
+        if (error) {
+          set({ loading: false });
+        }
         return { error };
       },
 
@@ -95,7 +134,11 @@ export const useAuthStore = create<AuthState>()(
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: redirectUrl
+            redirectTo: redirectUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            }
           }
         });
         return { error };
@@ -118,37 +161,37 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signOut: async () => {
+        set({ loading: true });
         const { error } = await supabase.auth.signOut();
         if (!error) {
-          set({ user: null, session: null });
+          set({ user: null, session: null, loading: false });
+        } else {
+          set({ loading: false });
         }
         return { error };
       },
 
-      checkConnection: async () => {
-        if (get().connectionChecking) return get().isConnected;
-        
-        set({ connectionChecking: true });
-        
-        try {
-          const { error } = await supabase.from('profiles').select('id').limit(1);
-          const connected = !error;
-          set({ isConnected: connected, connectionChecking: false });
-          return connected;
-        } catch (error) {
-          set({ isConnected: false, connectionChecking: false });
-          return false;
-        }
-      },
-
       setLoading: (loading: boolean) => set({ loading }),
+      
+      reset: () => set({ 
+        user: null, 
+        session: null, 
+        loading: true, 
+        initialized: false 
+      }),
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        user: state.user,
-        session: state.session,
+        // Only persist minimal data to avoid conflicts
+        initialized: state.initialized,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Reset loading state on rehydration
+        if (state) {
+          state.loading = true;
+        }
+      },
     }
   )
 );

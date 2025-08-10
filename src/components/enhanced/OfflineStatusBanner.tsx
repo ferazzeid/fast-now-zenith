@@ -24,10 +24,11 @@ export const OfflineStatusBanner = () => {
     <div className="fixed top-2 left-2 z-50 pointer-events-none">
       <div className={cn(
         "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium",
-        "bg-yellow-100/95 dark:bg-yellow-900/95 backdrop-blur-sm",
-        "border border-yellow-200 dark:border-yellow-800",
-        "text-yellow-800 dark:text-yellow-200",
-        "shadow-sm transition-all duration-300"
+        "transition-all duration-300 shadow-sm",
+        !isOnline 
+          ? "bg-red-100/95 dark:bg-red-900/95 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200"
+          : "bg-blue-100/95 dark:bg-blue-900/95 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200",
+        "backdrop-blur-sm"
       )}>
         {!isOnline ? (
           <WifiOff className="h-3 w-3" />

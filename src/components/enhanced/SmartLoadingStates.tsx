@@ -16,10 +16,11 @@ export const EnhancedLoadingScreen = ({
   const [timeoutReached, setTimeoutReached] = React.useState(false);
   
   React.useEffect(() => {
-    // Set timeout for mobile loading issues
+    // Set timeout for loading issues - increased for slower connections
     const timer = setTimeout(() => {
+      console.log('⚠️ Loading timeout reached, offering refresh option');
       setTimeoutReached(true);
-    }, 8000); // 8 seconds timeout
+    }, 12000); // 12 seconds timeout
 
     return () => clearTimeout(timer);
   }, []);

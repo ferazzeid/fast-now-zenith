@@ -44,6 +44,9 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useAuthRecovery } from '@/hooks/useAuthRecovery';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { AuthRecoveryPanel } from '@/components/AuthRecoveryPanel';
 
 // Using optimized query client from @/lib/query-client
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
@@ -75,10 +78,16 @@ const AppContent = () => {
   // Load dynamic HTML meta tags
   useDynamicHTMLMeta();
   const location = useLocation();
-  const user = useAuthStore(state => state.user);
+  const { user, loading, initialized } = useAuthStore();
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { isOnline, isConnected } = useConnectionStore();
+  const { isRecovering } = useAuthRecovery();
+
+  // Show loading screen while auth is initializing
+  if (loading || !initialized) {
+    return <LoadingScreen message={isRecovering ? "Recovering session..." : "Initializing..."} />;
+  }
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -146,6 +155,7 @@ const AppContent = () => {
         {/* Mobile-first centered container with phone-like frame */}
         <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
+          <AuthRecoveryPanel />
           <EnhancedConnectionStatus />
           {!isAuthRoute && <DailyStatsPanel />}
           <Routes>
