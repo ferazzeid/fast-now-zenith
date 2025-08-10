@@ -117,11 +117,36 @@ serve(async (req) => {
       req.headers.get('X-OpenAI-API-Key')
     );
 
-    // Get user's food library for enhanced context
+    // Get comprehensive food context for the user
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Get user's food library
     const { data: userFoods } = await supabase
       .from('user_foods')
       .select('name, calories_per_100g, carbs_per_100g')
       .eq('user_id', userId);
+
+    // Get today's food entries
+    const { data: todayEntries } = await supabase
+      .from('food_entries')
+      .select('id, name, calories, carbs, serving_size, consumed')
+      .eq('user_id', userId)
+      .eq('source_date', today);
+
+    // Get recent foods (last 30 days, grouped by name)
+    const { data: recentEntries } = await supabase
+      .from('food_entries')
+      .select('name, calories, carbs, created_at')
+      .eq('user_id', userId)
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false });
+
+    // Get daily food templates
+    const { data: dailyTemplates } = await supabase
+      .from('daily_food_templates')
+      .select('id, name, calories, carbs, serving_size')
+      .eq('user_id', userId)
+      .order('sort_order');
 
     // Get global settings for chat guardrails
     const { data: globalSettings } = await supabase
@@ -130,16 +155,47 @@ serve(async (req) => {
       .eq('setting_key', 'food_chat_guardrails')
       .single();
 
+    // Process recent foods (group by name, get most recent)
+    const recentFoodsMap = new Map();
+    recentEntries?.forEach(entry => {
+      const key = entry.name.toLowerCase();
+      if (!recentFoodsMap.has(key) || new Date(entry.created_at) > new Date(recentFoodsMap.get(key).created_at)) {
+        recentFoodsMap.set(key, entry);
+      }
+    });
+    const recentFoodsArray = Array.from(recentFoodsMap.values()).slice(0, 20);
+
+    // Build comprehensive food context
     const foodLibraryContext = userFoods && userFoods.length > 0 
-      ? `\n\nUser's Food Library (for reference): ${userFoods.map(f => `${f.name}: ${f.calories_per_100g} cal/100g, ${f.carbs_per_100g}g carbs/100g`).join('; ')}`
+      ? `\n\nUser's Personal Food Library: ${userFoods.map(f => `${f.name}: ${f.calories_per_100g} cal/100g, ${f.carbs_per_100g}g carbs/100g`).join('; ')}`
+      : '';
+
+    const todayFoodsContext = todayEntries && todayEntries.length > 0
+      ? `\n\nToday's Food Entries (ID | Name | Serving | Calories | Carbs | Status): ${todayEntries.map(f => `${f.id} | ${f.name} | ${f.serving_size}g | ${f.calories} cal | ${f.carbs}g carbs | ${f.consumed ? 'consumed' : 'planned'}`).join('; ')}`
+      : '';
+
+    const recentFoodsContext = recentFoodsArray.length > 0
+      ? `\n\nRecent Foods (last 30 days): ${recentFoodsArray.map(f => `${f.name}: ${f.calories} cal, ${f.carbs}g carbs`).join('; ')}`
+      : '';
+
+    const templatesContext = dailyTemplates && dailyTemplates.length > 0
+      ? `\n\nDaily Food Templates (ID | Name | Serving | Calories | Carbs): ${dailyTemplates.map(t => `${t.id} | ${t.name} | ${t.serving_size}g | ${t.calories} cal | ${t.carbs}g carbs`).join('; ')}`
       : '';
 
     const guardrailsContext = globalSettings?.setting_value?.guardrails 
       ? `\n\nChat Guardrails: ${globalSettings.setting_value.guardrails}`
       : '';
 
-    // Enhanced system message
-    const enhancedSystemMessage = `${messages[0]?.content || ''}${foodLibraryContext}${guardrailsContext}`;
+    // Enhanced system message with comprehensive food access
+    const enhancedSystemMessage = `${messages[0]?.content || ''}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
+
+IMPORTANT: When users ask to edit/change/modify foods, you can find them in:
+1. Today's Food Entries (with specific IDs for editing)
+2. Personal Food Library (per 100g values)
+3. Recent Foods (from last 30 days)
+4. Daily Food Templates (with specific IDs)
+
+For editing foods, always search across ALL these sources to find matches by name.`;
     
     const systemMessages = [
       { role: 'system', content: enhancedSystemMessage },
