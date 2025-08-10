@@ -55,7 +55,18 @@ export const useDynamicPWAAssets = () => {
           const url = new URL(manifestLink.href, window.location.origin);
           url.searchParams.set('v', Date.now().toString());
           url.searchParams.set('bust', Math.random().toString(36));
+          url.searchParams.set('mobile', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? '1' : '0');
           manifestLink.href = url.toString();
+        }
+
+        // Clear browser caches on mobile for immediate effect
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile && 'caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+          console.log('Cleared all caches for mobile device');
         }
 
         console.log('PWA assets updated with dynamic values');

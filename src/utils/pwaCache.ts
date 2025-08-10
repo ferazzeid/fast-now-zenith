@@ -2,77 +2,119 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const forcePWARefresh = async () => {
   try {
-    console.log('Starting PWA cache refresh...');
+    console.log('Starting aggressive PWA cache refresh...');
     
-    // 1. Fetch icon URLs from database and update favicon links
+    // 1. Fetch ALL PWA-related settings from database
     const { data: settingsData } = await supabase
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['app_favicon', 'app_logo']);
+      .in('setting_key', ['app_favicon', 'app_logo', 'app_icon_url']);
 
     const settings: Record<string, string> = {};
     settingsData?.forEach(item => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    const faviconLink = document.getElementById('dynamic-favicon') as HTMLLinkElement;
-    const shortcutIconLink = document.getElementById('dynamic-shortcut-icon') as HTMLLinkElement;
-    if (faviconLink && settings.app_favicon) {
-      faviconLink.href = settings.app_favicon;
-    }
-    if (shortcutIconLink && settings.app_favicon) {
-      shortcutIconLink.href = settings.app_favicon;
+    console.log('Fetched PWA settings:', settings);
+
+    // 2. Update all favicon and icon links with cache busting
+    const cacheBust = `?v=${Date.now()}&mobile=${Date.now()}`;
+    
+    // Update favicon links
+    if (settings.app_favicon) {
+      const faviconLink = document.getElementById('dynamic-favicon') as HTMLLinkElement;
+      const shortcutIconLink = document.getElementById('dynamic-shortcut-icon') as HTMLLinkElement;
+      const iconLinks = document.querySelectorAll('link[rel="icon"]');
+      
+      if (faviconLink) {
+        faviconLink.href = settings.app_favicon + cacheBust;
+        console.log('Updated dynamic favicon:', faviconLink.href);
+      }
+      if (shortcutIconLink) {
+        shortcutIconLink.href = settings.app_favicon + cacheBust;
+        console.log('Updated shortcut icon:', shortcutIconLink.href);
+      }
+      iconLinks.forEach((icon: any) => {
+        icon.href = settings.app_favicon + cacheBust;
+        console.log('Updated icon link:', icon.href);
+      });
     }
 
-    // 2. Update apple touch icons
-    const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
-    appleTouchIcons.forEach((icon: any) => {
-      if (settings.app_logo) {
-        icon.href = settings.app_logo;
-      }
-    });
+    // 3. Update apple touch icons with app_icon_url or fallback to app_logo
+    const appIconUrl = settings.app_icon_url || settings.app_logo;
+    if (appIconUrl) {
+      const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
+      appleTouchIcons.forEach((icon: any) => {
+        icon.href = appIconUrl + cacheBust;
+        console.log('Updated apple touch icon:', icon.href);
+      });
+    }
     
-    // 3. Force manifest refresh with cache busting
+    // 4. Aggressively clear ALL caches first (critical for mobile)
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      console.log('Clearing ALL caches:', cacheNames);
+      await Promise.all(
+        cacheNames.map(cacheName => {
+          console.log('Deleting cache:', cacheName);
+          return caches.delete(cacheName);
+        })
+      );
+    }
+
+    // 5. Unregister and re-register service worker for complete refresh
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+        console.log('Unregistered service worker');
+      }
+    }
+    
+    // 6. Force manifest refresh with aggressive cache busting
     const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
     if (manifestLink) {
       const url = new URL(manifestLink.href, window.location.origin);
       url.searchParams.set('v', Date.now().toString());
       url.searchParams.set('bust', Math.random().toString(36));
+      url.searchParams.set('mobile', '1');
+      url.searchParams.set('refresh', Date.now().toString());
       manifestLink.href = url.toString();
-      console.log('Manifest URL updated with cache busting');
+      console.log('Manifest URL aggressively updated:', manifestLink.href);
     }
 
-    // 4. Invoke dynamic manifest function to refresh server-side
-    await supabase.functions.invoke('dynamic-manifest');
-    console.log('Dynamic manifest function invoked');
-
-    // 5. Update service worker to clear PWA cache
-    if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.ready;
-      if (registration.active) {
-        registration.active.postMessage({ 
-          type: 'CLEAR_PWA_CACHE',
-          timestamp: Date.now()
-        });
-        console.log('Service worker notified to clear PWA cache');
+    // 7. Direct call to manifest endpoint with no-cache headers
+    const manifestResponse = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/dynamic-manifest', {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       }
-    }
+    });
+    console.log('Manifest response status:', manifestResponse.status);
 
-    // 6. Clear any cached manifest data in browser
-    if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      for (const cacheName of cacheNames) {
-        if (cacheName.includes('manifest') || cacheName.includes('pwa') || cacheName.includes('icon')) {
-          await caches.delete(cacheName);
-          console.log(`Cleared cache: ${cacheName}`);
-        }
+    // 8. Re-register service worker after delay
+    setTimeout(async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('Re-registered service worker:', registration);
+      } catch (error) {
+        console.error('Failed to re-register service worker:', error);
       }
-    }
+    }, 1000);
 
-    // 7. Force a small delay to allow updates to propagate
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 9. Force page reload on mobile devices for complete refresh
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      console.log('Mobile device detected, forcing page reload in 3 seconds...');
+      setTimeout(() => {
+        console.log('Reloading page for mobile cache clear...');
+        window.location.reload();
+      }, 3000);
+    }
     
-    console.log('PWA cache refresh completed');
+    console.log('Aggressive PWA cache refresh completed');
     return true;
   } catch (error) {
     console.error('Error refreshing PWA cache:', error);
