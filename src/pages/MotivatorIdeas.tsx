@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
-import { MotivatorFormModal } from '@/components/MotivatorFormModal';
+import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
 import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown } from 'lucide-react';
 
 export default function MotivatorIdeas() {
@@ -29,7 +29,7 @@ export default function MotivatorIdeas() {
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [editingMotivator, setEditingMotivator] = useState<any | null>(null);
+  const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -66,20 +66,20 @@ export default function MotivatorIdeas() {
   };
 
   const handleEdit = (goal: AdminGoalIdea) => {
-    setEditingMotivator({ id: goal.id, title: goal.title, content: goal.description || '', imageUrl: goal.imageUrl });
+    setEditingGoal(goal);
   };
 
-  const handleSaveEdit = async (updated: any) => {
+  const handleSaveEdit = async (updatedGoal: AdminGoalIdea) => {
     try {
-      console.log('Saving edit with data:', updated);
-      const success = await updateDefaultGoal(updated.id, {
-        title: updated.title,
-        content: updated.content,
-        imageUrl: updated.imageUrl,
+      console.log('Saving edit with data:', updatedGoal);
+      const success = await updateDefaultGoal(updatedGoal.id, {
+        title: updatedGoal.title,
+        content: updatedGoal.description,
+        imageUrl: updatedGoal.imageUrl,
       });
       if (success) {
         console.log('Update successful, refreshing ideas...');
-        setEditingMotivator(null);
+        setEditingGoal(null);
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
         // Force immediate refresh of the ideas with a slight delay to ensure DB update is complete
         setTimeout(async () => {
@@ -236,11 +236,11 @@ export default function MotivatorIdeas() {
         )}
       </main>
 
-      {editingMotivator && (
-        <MotivatorFormModal
-          motivator={editingMotivator}
+      {editingGoal && (
+        <AdminGoalEditModal
+          goal={editingGoal}
           onSave={handleSaveEdit}
-          onClose={() => setEditingMotivator(null)}
+          onClose={() => setEditingGoal(null)}
         />
       )}
     </div>
