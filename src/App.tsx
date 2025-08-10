@@ -31,6 +31,7 @@ import { EnhancedConnectionStatus } from "./components/enhanced/ConnectionRecove
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
+import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -66,6 +67,8 @@ const AppContent = () => {
   useColorTheme();
   // Load dynamic favicon from admin settings
   useDynamicFavicon();
+  // Load dynamic PWA assets (logo, icons)
+  useDynamicPWAAssets();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();

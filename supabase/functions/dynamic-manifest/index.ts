@@ -45,8 +45,8 @@ serve(async (req) => {
     });
 
     const appLogo = settings.app_logo || settings.app_icon_url;
-    const appName = settings.pwa_app_name || 'FastNow - Mindful App';
-    const shortName = settings.pwa_short_name || 'FastNow';
+    const appName = settings.pwa_app_name || 'fast now - The No-BS Fat Loss Protocol';
+    const shortName = settings.pwa_short_name || 'fast now';
     const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';
 
     // Create dynamic manifest
