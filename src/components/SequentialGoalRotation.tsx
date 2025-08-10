@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 
 interface SequentialGoalRotationProps {
@@ -19,49 +19,66 @@ export const SequentialGoalRotation = ({
   const [displayState, setDisplayState] = useState<DisplayState>('timer');
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Internal refs to ensure single, deterministic loop
+  const runIdRef = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const modeRef = useRef<'timer-focused' | 'motivator-focused'>('timer-focused');
+
   // Filter motivators without images to show as rotating text
   const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
 
   useEffect(() => {
     if (!isActive || motivatorsWithoutImages.length === 0) {
       setDisplayState('timer');
-      onModeChange?.('timer-focused');
+      if (modeRef.current !== 'timer-focused') {
+        onModeChange?.('timer-focused');
+        modeRef.current = 'timer-focused';
+      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      runIdRef.current += 1;
       return;
     }
 
-    let timer: NodeJS.Timeout;
+    const thisRun = ++runIdRef.current;
 
-    const runCycle = () => {
-      // Reset to timer state
-      setDisplayState('timer');
-      setIsAnimating(false);
-      onModeChange?.('timer-focused');
-      
-      // Show timer for 5 seconds
-      timer = setTimeout(() => {
-        // Switch to goal
-        setDisplayState('goal');
-        onModeChange?.('motivator-focused');
-        
-        // Show goal for 4 seconds, then advance to next
-        timer = setTimeout(() => {
-          // Move to next goal and back to timer
-          setCurrentIndex(prev => (prev + 1) % motivatorsWithoutImages.length);
-          setDisplayState('timer');
-          onModeChange?.('timer-focused');
-        }, 4000);
-      }, 5000);
+    const setPhase = (phase: 'timer' | 'goal') => {
+      setDisplayState(phase);
+      const mode = phase === 'goal' ? 'motivator-focused' : 'timer-focused';
+      if (modeRef.current !== mode) {
+        onModeChange?.(mode);
+        modeRef.current = mode;
+      }
     };
 
-    // Start immediately
-    runCycle();
-    
-    // Repeat every 10 seconds (5s timer + 4s goal + 1s buffer)
-    const interval = setInterval(runCycle, 10000);
+    const loop = () => {
+      if (runIdRef.current !== thisRun) return;
+
+      // Show timer
+      setIsAnimating(false);
+      setPhase('timer');
+
+      timeoutRef.current = setTimeout(() => {
+        if (runIdRef.current !== thisRun) return;
+
+        // Show goal
+        setPhase('goal');
+
+        timeoutRef.current = setTimeout(() => {
+          if (runIdRef.current !== thisRun) return;
+
+          // Advance to next and repeat
+          setCurrentIndex(prev => (prev + 1) % motivatorsWithoutImages.length);
+          loop();
+        }, 4000); // goal duration
+      }, 5000); // timer duration
+    };
+
+    // Start loop
+    loop();
 
     return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      runIdRef.current += 1; // invalidate this run
     };
   }, [isActive, motivatorsWithoutImages.length, onModeChange]);
 

@@ -76,7 +76,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           }}
         >
           {/* Image Background - MOVED INSIDE center well where it belongs */}
-          {showSlideshow && isActive && motivatorsWithImages.length > 0 && (
+          {showSlideshow && isActive && motivatorsWithImages.length > 0 && motivatorsWithoutImages.length === 0 && (
             <div className="absolute inset-0 rounded-full overflow-hidden">
               <MotivatorSlideshow isActive={showSlideshow && isActive} onModeChange={setMotivatorMode} />
             </div>
@@ -130,7 +130,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           <div 
             className={cn(
               "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-1000",
-              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
+              motivatorMode === 'motivator-focused' ? 'opacity-0 pointer-events-none' : 'opacity-100'
             )}
             style={{ zIndex: 13 }} // Above progress ring but can fade
           >

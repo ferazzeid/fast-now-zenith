@@ -125,7 +125,7 @@ const WalkingTimerComponent = ({
         {/* Main Timer Card */}
         <Card className="p-6 text-center relative overflow-hidden">
           {/* Walking Motivator Slideshow Background */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && (
+          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && motivatorsWithoutImages.length === 0 && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
               <WalkingMotivatorSlideshow 
                 isActive={showSlideshow && isActive && !isPaused} 
@@ -148,7 +148,7 @@ const WalkingTimerComponent = ({
           <div 
             className={cn(
               "mb-4 transition-opacity duration-1000 relative flex flex-col justify-center items-center",
-              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
+              motivatorMode === 'motivator-focused' ? 'opacity-0 pointer-events-none' : 'opacity-100'
             )}
             style={{ zIndex: 13 }}
           >
