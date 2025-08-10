@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Clock, Utensils, Calendar } from 'lucide-react';
+import { X, Clock, Utensils, Calendar, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -57,26 +57,28 @@ export const FastSelector = ({
       onClose={onClose}
       title="Configure Fast"
       variant="standard"
-      size="md"
+      size="sm"
       showCloseButton={true}
       contentClassName="px-4 sm:px-6 py-3 sm:py-4 max-h-[85vh] sm:max-h-[90vh]"
       footer={
-        <div className="flex gap-3 w-full px-4 sm:px-6 py-3 sm:py-4">
+        <>
           <Button 
             variant="outline" 
             onClick={onClose} 
-            className="flex-1"
+            className="w-full h-10"
+            size="default"
           >
             Cancel
           </Button>
           <Button 
             onClick={handleConfirm} 
             disabled={!isValidDateTime()}
-            className="flex-1"
+            className="w-full h-10"
+            size="default"
           >
             {startInPast ? 'Start Past Fasting' : 'Start Fasting'}
           </Button>
-        </div>
+        </>
       }
     >
 
@@ -98,9 +100,7 @@ export const FastSelector = ({
               >
                 <span className="font-medium">{preset.name}</span>
                 {preset.recommended && (
-                  <span className="ml-2 text-xs bg-primary-foreground/20 text-primary-foreground px-2 py-0.5 rounded-full">
-                    Recommended
-                  </span>
+                  <Check className="ml-2 w-4 h-4 text-primary-foreground" />
                 )}
                 <span className="ml-auto text-muted-foreground text-sm">
                   {preset.hours} hours
@@ -129,7 +129,7 @@ export const FastSelector = ({
         </div>
 
         {/* Start in Past Section */}
-        <div className="space-y-4 mb-2 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border border-ceramic-rim/50">
+        <div className="space-y-4 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border border-ceramic-rim/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-primary" />
