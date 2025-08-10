@@ -95,15 +95,13 @@ const Motivators = () => {
 
   const handleDeleteMotivator = async (motivatorId) => {
     try {
-      await deleteMotivator(motivatorId);
+      const success = await deleteMotivator(motivatorId);
       
-      trackMotivatorEvent('delete', 'personal');
-      toast({
-        title: "🗑️ Motivator Removed",
-        description: "Motivator has been deleted.",
-      });
-      
-      refreshMotivators();
+      if (success) {
+        trackMotivatorEvent('delete', 'personal');
+        // Note: No need to call refreshMotivators() here as deleteMotivator already updates local state
+        // and shows a toast notification
+      }
     } catch (error) {
       toast({
         title: "Error",
