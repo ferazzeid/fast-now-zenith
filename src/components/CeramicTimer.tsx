@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
 import { MotivatorSlideshow } from './MotivatorSlideshow';
 import { RotatingGoalText } from './RotatingGoalText';
-import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
+import { MotivatorRotationSystem } from './MotivatorRotationSystem';
 import { useMotivators } from '@/hooks/useMotivators';
 
 interface CeramicTimerProps {
@@ -76,13 +76,11 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
             boxShadow: 'var(--shadow-well)',
           }}
         >
-          {/* Unified Motivator Rotation - Shows ALL motivators in sequence */}
+          {/* Motivator Rotation System - Clean celebration-style animations */}
           {showSlideshow && (motivatorsWithImages.length > 0 || motivatorsWithoutImages.length > 0) && (
-            <UnifiedMotivatorRotation 
+            <MotivatorRotationSystem 
               isActive={showSlideshow && isActive}
               onModeChange={setMotivatorMode}
-              radius={110}
-              textSize="text-xs"
               className="rounded-full"
             />
           )}
@@ -126,8 +124,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           {/* Timer display */}
           <div 
             className={cn(
-              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-1000",
-              motivatorMode === 'motivator-focused' ? 'opacity-5' : 'opacity-100'
+              "absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500",
+              motivatorMode === 'motivator-focused' ? 'opacity-0' : 'opacity-100'
             )}
             style={{ zIndex: 13 }} // Above progress ring but can fade
           >
