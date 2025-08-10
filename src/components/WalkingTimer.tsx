@@ -6,9 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WalkingMotivatorSlideshow } from './WalkingMotivatorSlideshow';
+import { RotatingGoalText } from './RotatingGoalText';
 import { ClickableTooltip } from './ClickableTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
+import { useMotivators } from '@/hooks/useMotivators';
 
 interface WalkingTimerProps {
   displayTime: string;
@@ -49,6 +51,7 @@ const WalkingTimerComponent = ({
   selectedSpeed,
   onSpeedChange
 }: WalkingTimerProps) => {
+  const { motivators } = useMotivators();
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const { isAnimationsSuspended } = useAnimationControl();
   const { toast } = useToast();
@@ -109,6 +112,10 @@ const WalkingTimerComponent = ({
   // Convert stored speed (MPH) to display speed for the select component
   const displaySpeed = storageSpeedToDisplaySpeed(selectedSpeed, units);
 
+  // Check if we have motivators with and without images
+  const motivatorsWithImages = motivators.filter(m => m.imageUrl);
+  const motivatorsWithoutImages = motivators.filter(m => !m.imageUrl && m.title);
+
   return (
     <TooltipProvider>
       <div className={`relative ${className}`}>
@@ -118,13 +125,24 @@ const WalkingTimerComponent = ({
         {/* Main Timer Card */}
         <Card className="p-6 text-center relative overflow-hidden">
           {/* Walking Motivator Slideshow Background */}
-          {showSlideshow && isActive && !isPaused && (
+          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length > 0 && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
               <WalkingMotivatorSlideshow 
                 isActive={showSlideshow && isActive && !isPaused} 
                 onModeChange={setMotivatorMode}
               />
             </div>
+          )}
+          
+          {/* Rotating Goal Text - Only show when no images are available */}
+          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length === 0 && motivatorsWithoutImages.length > 0 && (
+            <RotatingGoalText 
+              isActive={showSlideshow && isActive && !isPaused} 
+              onModeChange={setMotivatorMode}
+              radius={140}
+              textSize="text-sm"
+              className="rounded-lg"
+            />
           )}
           
           
