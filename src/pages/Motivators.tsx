@@ -85,8 +85,14 @@ const Motivators = () => {
         if (success) {
           trackMotivatorEvent('edit', 'admin_goal');
           setEditingMotivator(null);
-          setShowFormModal(false);
-          // No need to refresh motivators for admin goals
+          
+          toast({
+            title: "✅ Admin Goal Updated!",
+            description: "The goal idea has been updated successfully.",
+          });
+          
+          // Re-open the ideas modal to show updated content
+          setShowMotivatorIdeasModal(true);
         }
       } else {
         // Update regular motivator
@@ -263,7 +269,7 @@ const Motivators = () => {
     };
     setEditingMotivator(motivatorData);
     setShowMotivatorIdeasModal(false);
-    setShowFormModal(true); // Open the form modal for editing
+    // Don't set showFormModal here since we're using editingMotivator to control the modal
   };
   
   const handleSelectGoalIdea = async (goal: AdminGoalIdea) => {
