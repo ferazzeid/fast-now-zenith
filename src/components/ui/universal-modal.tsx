@@ -163,12 +163,18 @@ export const UniversalModal = ({
           'border border-border',
           'rounded-lg shadow-xl',
           'p-0 overflow-hidden',
-          // PROPER_CENTERING: Margins on left/right, not touching edges
+          // PROPER_CENTERING: Constrained to app container max-width
           'mx-4 my-8',
           'max-h-[90vh]',
-          'w-[calc(100vw-2rem)]', // Ensure proper width constraint
-          // SIZE: Responsive sizing
-          sizeClasses[size],
+          // CONSTRAIN TO APP CONTAINER: Match the app's max-width container
+          'w-[calc(100vw-2rem)] max-w-md', // Mobile-first, constrained to app width
+          'md:max-w-lg', // Desktop gets slightly larger but still constrained
+          // SIZE: Remove conflicting responsive sizing that might override constraints
+          size === 'sm' && 'md:max-w-md',
+          size === 'md' && 'md:max-w-lg', 
+          size === 'lg' && 'md:max-w-2xl',
+          size === 'xl' && 'md:max-w-4xl',
+          size === 'full' && 'md:max-w-[95vw]',
           'focus:outline-none focus:ring-2 focus:ring-primary',
           // Hide default dialog close button when showCloseButton is false
           !showCloseButton && '[&>button]:hidden',
