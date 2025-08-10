@@ -88,12 +88,18 @@ export const RotatingGoalText = ({
     <div className={`absolute inset-0 ${className}`}>
       {/* Circular text removed per user request - too fast to read */}
       
-      {/* Central Goal Text Display - Keep this as it's readable */}
+      {/* Central Goal Text Display with Pulsating Circles */}
       {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
         <div 
           className="absolute inset-0 flex items-center justify-center"
           style={{ zIndex: 15 }}
         >
+          {/* Pulsating Circles around the ceramic plate */}
+          <div className="absolute inset-[-40px] border-4 border-primary/20 rounded-full goal-celebration pointer-events-none" />
+          <div className="absolute inset-[-30px] border-3 border-primary/30 rounded-full goal-celebration pointer-events-none" style={{ animationDelay: '0.3s' }} />
+          <div className="absolute inset-[-20px] border-2 border-primary/40 rounded-full goal-celebration pointer-events-none" style={{ animationDelay: '0.6s' }} />
+          <div className="absolute inset-[-10px] border-2 border-primary/50 rounded-full goal-celebration pointer-events-none" style={{ animationDelay: '0.9s' }} />
+          
           <div 
             className="text-primary font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-background/80 backdrop-blur-sm border border-primary/20 animate-scale-in max-w-[80%]"
             style={{

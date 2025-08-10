@@ -164,18 +164,12 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                  {displayTime}
               </div>
               
-              {/* Goal Display - Only show during longterm fasting */}
-              {isActive && fastType === 'longterm' && goalDuration && (
-                <div className="relative">
-                  <div className="text-xs text-muted-foreground font-medium">
-                    {Math.round(goalDuration)}h goal
-                  </div>
-                  {/* Multiple celebration rings for stronger effect */}
-                  <div className="absolute inset-2 border-4 border-primary/40 rounded-full goal-celebration pointer-events-none" />
-                  <div className="absolute inset-3 border-3 border-primary/60 rounded-full goal-celebration pointer-events-none" style={{ animationDelay: '0.3s' }} />
-                  <div className="absolute inset-4 border-2 border-primary/80 rounded-full goal-celebration pointer-events-none" style={{ animationDelay: '0.6s' }} />
-                </div>
-              )}
+               {/* Goal Display - Only show during longterm fasting */}
+               {isActive && fastType === 'longterm' && goalDuration && (
+                 <div className="text-xs text-muted-foreground font-medium">
+                   {Math.round(goalDuration)}h goal
+                 </div>
+               )}
               
               {/* Progress Percentage - Show fasting progress during fast, eating progress during eating */}
               {isActive && progress > 0 && (
