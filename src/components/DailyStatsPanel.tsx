@@ -194,7 +194,7 @@ export const DailyStatsPanel = memo(() => {
                 />
 
                 {/* Breakdown */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 px-1">
                   {/* Calories In with Carbs */}
                   <PremiumGatedCaloriesIn 
                     calories={deficitData.caloriesConsumed}
