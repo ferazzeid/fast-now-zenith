@@ -1,5 +1,5 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Build stage - Updated 2025-08-10 to fix vite build issue
+FROM node:18-alpine as builder
 
 # Set working directory
 WORKDIR /app
