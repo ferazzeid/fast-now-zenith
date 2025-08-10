@@ -155,24 +155,28 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
       isOpen={isOpen}
       onClose={handleClose}
       title="Photo Food Entry"
-      size="lg"
+      size="md"
     >
-      <div className="space-y-6">
+      <div className="space-y-4 max-h-[70vh] overflow-y-auto">
         {!imageUrl ? (
           <div className="space-y-4">
-            <div className="text-center">
-              <Camera className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <div className="text-center py-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+                <Camera className="w-8 h-8 text-muted-foreground" />
+              </div>
               <h3 className="text-lg font-medium mb-2">Take or Upload Food Photo</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                 Upload a photo and our AI will analyze the nutritional information for you
               </p>
             </div>
-            <SimpleImageUpload onImageUpload={handleUpload} />
+            <div className="max-w-sm mx-auto">
+              <SimpleImageUpload onImageUpload={handleUpload} />
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Image Preview */}
-            <div className="aspect-video w-full max-h-[40vh] overflow-hidden rounded-lg border bg-muted flex items-center justify-center">
+            <div className="aspect-video w-full max-h-[30vh] overflow-hidden rounded-lg border bg-muted flex items-center justify-center">
               <img 
                 src={imageUrl} 
                 alt="Food photo for analysis" 
@@ -214,58 +218,63 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
             )}
 
             {/* Editable Form Fields */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <Label htmlFor="name">Food Name</Label>
+                <Label htmlFor="name" className="text-sm font-medium">Food Name</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter food name"
+                  className="mt-1"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="servingSize">Serving Size (g)</Label>
+                  <Label htmlFor="servingSize" className="text-sm font-medium">Serving Size (g)</Label>
                   <Input
                     id="servingSize"
                     type="number"
                     value={servingSize}
                     onChange={(e) => setServingSize(e.target.value)}
                     placeholder="100"
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="calories">Calories</Label>
+                  <Label htmlFor="calories" className="text-sm font-medium">Calories</Label>
                   <Input
                     id="calories"
                     type="number"
                     value={calories}
                     onChange={(e) => setCalories(e.target.value)}
                     placeholder="Enter calories"
+                    className="mt-1"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="carbs">Carbohydrates (g)</Label>
+                <Label htmlFor="carbs" className="text-sm font-medium">Carbohydrates (g)</Label>
                 <Input
                   id="carbs"
                   type="number"
                   value={carbs}
                   onChange={(e) => setCarbs(e.target.value)}
                   placeholder="Enter carbs"
+                  className="mt-1"
                 />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
                 onClick={() => imageUrl && analyze(imageUrl)}
                 disabled={analyzing}
+                size="sm"
                 className="flex-1"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -274,6 +283,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
               <Button
                 variant="action-secondary"
                 onClick={handleRetakePhoto}
+                size="sm"
                 className="flex-1"
               >
                 <RefreshCcw className="w-4 h-4 mr-2" />
@@ -285,8 +295,8 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
       </div>
 
       {/* Footer */}
-      <div className="flex gap-3 pt-4">
-        <Button variant="outline" onClick={handleClose} className="flex-1">
+      <div className="flex gap-2 pt-4 border-t">
+        <Button variant="outline" onClick={handleClose} size="sm" className="flex-1">
           <X className="w-4 h-4 mr-2" />
           Cancel
         </Button>
@@ -294,6 +304,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
           <Button 
             onClick={handleSave} 
             disabled={saving || !name || !calories || !carbs}
+            size="sm"
             className="flex-1"
           >
             {saving ? (
