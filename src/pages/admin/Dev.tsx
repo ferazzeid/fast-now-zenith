@@ -2,7 +2,7 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { BarcodeScannerExperiment } from "@/components/dev/BarcodeScannerExperiment";
-import { FoodPhotoAnalyzerExperiment } from "@/components/dev/FoodPhotoAnalyzerExperiment";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -72,15 +72,11 @@ export default function AdminDev() {
           <AIImageToggleSettings />
         </section>
 
-        <section aria-label="Barcode Scanner Experiment" className="space-y-4">
+        <section aria-label="Barcode Scanner Experiment" className="space-y-4 pb-24">
           <h2 className="text-xl font-semibold">Barcode Scanner</h2>
           <BarcodeScannerExperiment />
         </section>
 
-        <section aria-label="Food Photo Nutrition Analyzer" className="space-y-4 pb-24">
-          <h2 className="text-xl font-semibold">Food Photo Nutrition Analyzer</h2>
-          <FoodPhotoAnalyzerExperiment />
-        </section>
       </main>
     </AdminProtectedRoute>
   );
