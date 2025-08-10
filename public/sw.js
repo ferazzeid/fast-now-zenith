@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Always fetch dynamic manifest fresh (never cache)
-  if (url.pathname === '/api/dynamic-manifest.json') {
+  if (url.pathname === '/api/dynamic-manifest.json' || url.pathname.includes('/supabase/functions/v1/dynamic-manifest')) {
     event.respondWith(
       fetch(request, { 
         cache: 'no-cache',
