@@ -27,6 +27,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const startRecording = async () => {
     try {
+      // Check browser compatibility
+      if (typeof MediaRecorder === 'undefined') {
+        throw new Error('MediaRecorder is not supported in this browser');
+      }
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Microphone access is not supported in this browser');
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
@@ -70,9 +79,30 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       
     } catch (error) {
       console.error('Error starting recording:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Could not start recording. Please check your microphone permissions.";
+      let errorTitle = "Recording Error";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('not supported')) {
+          errorTitle = "Browser Not Supported";
+          errorMessage = error.message + ". Please try a different browser like Chrome or Firefox.";
+        } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorTitle = "Permission Denied";
+          errorMessage = "Microphone access was denied. Please allow microphone permissions and try again.";
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorTitle = "No Microphone Found";
+          errorMessage = "No microphone detected. Please connect a microphone and try again.";
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorTitle = "Microphone Busy";
+          errorMessage = "Microphone is being used by another application. Please close other apps and try again.";
+        }
+      }
+      
       toast({
-        title: "Recording Error",
-        description: "Could not start recording. Please check your microphone permissions.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     }

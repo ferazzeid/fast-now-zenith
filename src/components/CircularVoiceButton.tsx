@@ -3,6 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Mic, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  checkVoiceCapabilities, 
+  checkMicrophonePermission, 
+  createMediaRecorder,
+  getAudioConstraints 
+} from '@/utils/voiceUtils';
 
 interface CircularVoiceButtonProps {
   onTranscription: (text: string) => void;
@@ -58,22 +64,24 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
   const startRecording = async () => {
     try {
       console.log('🎤 Starting recording...');
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
+      
+      // Check voice capabilities first
+      const capabilities = checkVoiceCapabilities();
+      if (!capabilities.isSupported) {
+        throw new Error(capabilities.error || 'Voice recording is not supported');
+      }
+      
+      // Check microphone permission
+      const permissionCheck = await checkMicrophonePermission();
+      if (!permissionCheck.granted) {
+        throw new Error(permissionCheck.error || 'Microphone permission denied');
+      }
+      
+      const constraints = getAudioConstraints(true);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       console.log('🎤 MediaStream obtained, creating MediaRecorder...');
-      const mimeType = getSupportedMimeType();
-      console.log('🎤 Selected mimeType:', mimeType || 'default');
-      mediaRecorderRef.current = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
+      mediaRecorderRef.current = createMediaRecorder(stream);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
@@ -113,9 +121,45 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
       
     } catch (error) {
       console.error('🎤 Error starting recording:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Could not access microphone. Please check permissions.";
+      let errorTitle = "Recording Error";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('not supported')) {
+          errorTitle = "Browser Not Supported";
+          errorMessage = error.message + ". Please try a different browser like Chrome or Firefox.";
+        } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorTitle = "Permission Denied";
+          errorMessage = "Microphone access was denied. Please allow microphone permissions and try again.";
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorTitle = "No Microphone Found";
+          errorMessage = "No microphone detected. Please connect a microphone and try again.";
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorTitle = "Microphone Busy";
+          errorMessage = "Microphone is being used by another application. Please close other apps and try again.";
+        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+          errorTitle = "Audio Settings Error";
+          errorMessage = "Audio settings are not supported. Trying with default settings...";
+          
+          // Try with basic audio constraints as fallback
+          setTimeout(async () => {
+            try {
+              const basicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const basicRecorder = new MediaRecorder(basicStream);
+              // Continue with basic setup...
+              console.log('🎤 Fallback recording started with basic settings');
+            } catch (fallbackError) {
+              console.error('🎤 Fallback recording also failed:', fallbackError);
+            }
+          }, 1000);
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: "Could not access microphone. Please check permissions.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -200,9 +244,33 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
       }
     } catch (error) {
       console.error('🎤 Transcription error:', error);
+      
+      // Provide more specific transcription error messages
+      let errorMessage = "Please try recording again";
+      let errorTitle = "Failed to Process";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('No transcription received')) {
+          errorTitle = "No Speech Detected";
+          errorMessage = "No speech was detected in your recording. Please speak clearly and try again.";
+        } else if (error.message.includes('OpenAI API error') || error.message.includes('API key')) {
+          errorTitle = "Service Error";
+          errorMessage = "Voice processing service is temporarily unavailable. Please try again later.";
+        } else if (error.message.includes('Monthly request limit')) {
+          errorTitle = "Usage Limit Reached";
+          errorMessage = "You've reached your monthly voice input limit. Please upgrade your subscription.";
+        } else if (error.message.includes('Too many requests')) {
+          errorTitle = "Too Many Requests";
+          errorMessage = "Please wait a moment before trying voice input again.";
+        } else if (error.message.includes('Audio blob is empty')) {
+          errorTitle = "Recording Too Short";
+          errorMessage = "Recording was too short. Please hold the button longer and speak clearly.";
+        }
+      }
+      
       toast({
-        title: "Failed to Process",
-        description: "Please try recording again",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

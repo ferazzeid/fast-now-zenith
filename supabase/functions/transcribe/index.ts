@@ -194,9 +194,26 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    if (!isProd) console.error('Error in transcribe function:', error);
+    console.error('Error in transcribe function:', error);
+    
+    // Provide more specific error messages even in production
+    let errorMessage = 'Internal server error';
+    if (error instanceof Error) {
+      if (error.message.includes('Monthly request limit')) {
+        errorMessage = error.message;
+      } else if (error.message.includes('OpenAI API key')) {
+        errorMessage = 'Voice service configuration error';
+      } else if (error.message.includes('OpenAI API error')) {
+        errorMessage = 'Voice processing service temporarily unavailable';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many voice requests. Please wait a moment and try again.';
+      } else if (!isProd) {
+        errorMessage = error.message;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ error: isProd ? 'Internal server error' : (error as Error).message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { 

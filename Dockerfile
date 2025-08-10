@@ -1,19 +1,23 @@
-FROM node:20-alpine as builder
+# Build stage
+FROM node:18-alpine AS builder
 
+# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY bun.lockb* ./
 
-# Install dependencies
+# Install dependencies including dev dependencies for build
 RUN npm ci
 
 # Copy source code
 COPY . .
 
 # Clean all caches and build artifacts to ensure fresh build
-RUN npm ci --cache /tmp/empty-cache
 RUN rm -rf dist node_modules/.cache .vite
+
+# Build the application
 RUN npm run build
 
 # Production stage with nginx

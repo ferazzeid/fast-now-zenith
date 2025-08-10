@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Mic } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
+import { VoiceDiagnostic } from '@/components/VoiceDiagnostic';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -636,6 +637,19 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
               </div>
             </Card>
 
+            {/* Voice Settings Section */}
+            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Mic className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Voice Input Settings</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <VoiceDiagnostic />
+                </div>
+              </div>
+            </Card>
 
             {/* Account Management - Danger Zone */}
             <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">
