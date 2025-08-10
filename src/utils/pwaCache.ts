@@ -4,20 +4,32 @@ export const forcePWARefresh = async () => {
   try {
     console.log('Starting PWA cache refresh...');
     
-    // 1. Update favicon links with new assets
+    // 1. Fetch icon URLs from database and update favicon links
+    const { data: settingsData } = await supabase
+      .from('shared_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['app_favicon', 'app_logo']);
+
+    const settings: Record<string, string> = {};
+    settingsData?.forEach(item => {
+      settings[item.setting_key] = item.setting_value;
+    });
+
     const faviconLink = document.getElementById('dynamic-favicon') as HTMLLinkElement;
     const shortcutIconLink = document.getElementById('dynamic-shortcut-icon') as HTMLLinkElement;
-    if (faviconLink) {
-      faviconLink.href = '/src/assets/favicon-512.png';
+    if (faviconLink && settings.app_favicon) {
+      faviconLink.href = settings.app_favicon;
     }
-    if (shortcutIconLink) {
-      shortcutIconLink.href = '/src/assets/favicon-512.png';
+    if (shortcutIconLink && settings.app_favicon) {
+      shortcutIconLink.href = settings.app_favicon;
     }
 
     // 2. Update apple touch icons
     const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
     appleTouchIcons.forEach((icon: any) => {
-      icon.href = '/src/assets/apple-touch-icon-512.png';
+      if (settings.app_logo) {
+        icon.href = settings.app_logo;
+      }
     });
     
     // 3. Force manifest refresh with cache busting

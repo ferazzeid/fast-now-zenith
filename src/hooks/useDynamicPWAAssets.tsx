@@ -23,9 +23,11 @@ export const useDynamicPWAAssets = () => {
           
           if (faviconLink) {
             faviconLink.href = settings.app_favicon;
+            console.log('Updated favicon link to:', settings.app_favicon);
           }
           if (shortcutIconLink) {
             shortcutIconLink.href = settings.app_favicon;
+            console.log('Updated shortcut icon link to:', settings.app_favicon);
           }
         }
 
@@ -34,6 +36,7 @@ export const useDynamicPWAAssets = () => {
           const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
           appleTouchIcons.forEach((icon: any) => {
             icon.href = settings.app_logo;
+            console.log('Updated apple touch icon to:', settings.app_logo);
           });
         }
 
