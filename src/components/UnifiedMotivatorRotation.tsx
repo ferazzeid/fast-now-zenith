@@ -12,6 +12,7 @@ interface UnifiedMotivatorRotationProps {
 }
 
 type MotivatorType = 'image' | 'text';
+type AnimationPhase = 'entering' | 'active' | 'exiting' | 'hidden';
 
 interface MotivatorItem {
   type: MotivatorType;
@@ -30,8 +31,8 @@ export const UnifiedMotivatorRotation: React.FC<UnifiedMotivatorRotationProps> =
   const { motivators } = useMotivators();
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [displayMode, setDisplayMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
-  const [isVisible, setIsVisible] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('hidden');
+  const [blackMask, setBlackMask] = useState(false);
 
   // Create unified list of all motivators (image + text)
   const motivatorsWithImages = motivators.filter(m => m.imageUrl);
@@ -42,47 +43,68 @@ export const UnifiedMotivatorRotation: React.FC<UnifiedMotivatorRotationProps> =
     ...motivatorsWithoutImages.map((m, i) => ({ type: 'text' as MotivatorType, motivator: m, index: i }))
   ];
 
+  // Dynamic text sizing based on length
+  const getTextSize = (text: string) => {
+    if (text.length > 40) return textSize === 'text-xs' ? '1.1rem' : '1.3rem';
+    if (text.length > 20) return textSize === 'text-xs' ? '1.4rem' : '1.6rem';
+    return textSize === 'text-xs' ? '1.8rem' : '2rem';
+  };
+
   useEffect(() => {
     if (!isActive || allMotivatorItems.length === 0) {
-      setIsVisible(false);
+      setAnimationPhase('hidden');
+      setDisplayMode('timer-focused');
+      onModeChange?.('timer-focused');
       return;
     }
 
     let phaseTimer: NodeJS.Timeout;
-    let slideTimer: NodeJS.Timeout;
-    let transitionTimer: NodeJS.Timeout;
+    let blackMaskTimer: NodeJS.Timeout;
+    let nextItemTimer: NodeJS.Timeout;
 
     const startCycle = () => {
-      // Start with timer-focused mode
+      // Phase 1: Show timer (3 seconds)
       setDisplayMode('timer-focused');
       onModeChange?.('timer-focused');
-      setIsVisible(true);
-      setIsTransitioning(false);
+      setAnimationPhase('hidden');
+      setBlackMask(false);
 
-      // Switch to motivator-focused after 4 seconds with smooth transition
+      // Phase 2: Transition to motivator with black mask (after 3 seconds)
       phaseTimer = setTimeout(() => {
-        setIsTransitioning(true);
+        setBlackMask(true);
+        
         setTimeout(() => {
           setDisplayMode('motivator-focused');
           onModeChange?.('motivator-focused');
-          setIsTransitioning(false);
-        }, 300);
-      }, 4000);
-
-      // Switch back to timer-focused and advance to next motivator after 8 more seconds
-      slideTimer = setTimeout(() => {
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setDisplayMode('timer-focused');
-          onModeChange?.('timer-focused');
-          setIsTransitioning(false);
+          setAnimationPhase('entering');
+          setBlackMask(false);
           
-          // Advance to next motivator after timer is visible
-          transitionTimer = setTimeout(() => {
+          // Phase 3: Show motivator fully (after entering animation)
+          setTimeout(() => {
+            setAnimationPhase('active');
+          }, 600);
+          
+        }, 400); // Black mask duration
+      }, 3000);
+
+      // Phase 4: Exit motivator and advance to next (after 7 more seconds)
+      const exitTimer = setTimeout(() => {
+        setAnimationPhase('exiting');
+        
+        setTimeout(() => {
+          setBlackMask(true);
+          
+          setTimeout(() => {
+            setAnimationPhase('hidden');
+            setBlackMask(false);
             setCurrentItemIndex(prev => (prev + 1) % allMotivatorItems.length);
-          }, 1500);
-        }, 300);
+          }, 400);
+        }, 500);
       }, 10000);
+
+      return () => {
+        clearTimeout(exitTimer);
+      };
     };
 
     // Initial delay to let component render
@@ -96,8 +118,8 @@ export const UnifiedMotivatorRotation: React.FC<UnifiedMotivatorRotationProps> =
     return () => {
       clearTimeout(initialDelay);
       clearTimeout(phaseTimer);
-      clearTimeout(slideTimer);
-      clearTimeout(transitionTimer);
+      clearTimeout(blackMaskTimer);
+      clearTimeout(nextItemTimer);
       clearInterval(interval);
     };
   }, [isActive, allMotivatorItems.length, transitionTime, onModeChange]);
@@ -107,77 +129,126 @@ export const UnifiedMotivatorRotation: React.FC<UnifiedMotivatorRotationProps> =
   }
 
   const currentItem = allMotivatorItems[currentItemIndex];
+  const isMotivatorVisible = displayMode === 'motivator-focused' && animationPhase !== 'hidden';
   
   return (
     <div className={`absolute inset-0 ${className}`}>
+      {/* Black transition mask */}
+      {blackMask && (
+        <div className="absolute inset-0 bg-black rounded-full z-50 animate-in fade-in duration-400" />
+      )}
+
       {/* Image Motivator Display */}
-      {currentItem?.type === 'image' && (
-        <div 
-          className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-500 ease-out ${
-            isTransitioning ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
-          }`}
-        >
+      {currentItem?.type === 'image' && isMotivatorVisible && (
+        <div className="absolute inset-0 rounded-full overflow-hidden">
+          {/* Background image with subtle zoom */}
           <MotivatorImageWithFallback
             src={currentItem.motivator.imageUrl}
             alt={currentItem.motivator.title}
-            className={`w-full h-full object-cover transition-all duration-700 ease-out ${
-              isVisible && displayMode === 'motivator-focused' ? 'opacity-100 scale-105' : 'opacity-20 scale-100'
+            className={`w-full h-full object-cover transition-all duration-1000 ease-out ${
+              animationPhase === 'entering' 
+                ? 'opacity-0 scale-110' 
+                : animationPhase === 'active'
+                ? 'opacity-100 scale-100'
+                : animationPhase === 'exiting'
+                ? 'opacity-0 scale-95'
+                : 'opacity-0 scale-110'
             }`}
           />
-          {/* Centered text overlay for images */}
-          {isVisible && displayMode === 'motivator-focused' && !isTransitioning && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div 
-                className="text-white font-bold text-center px-4 animate-in zoom-in-95 duration-700 ease-out"
-                style={{ 
-                  textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
-                  fontSize: textSize === 'text-xs' ? '1.25rem' : '1.5rem',
-                  letterSpacing: '0.5px'
-                }}
-              >
-                {currentItem.motivator.title}
-              </div>
+          
+          {/* Dark overlay for better text contrast */}
+          <div 
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-1000 ${
+              animationPhase === 'active' ? 'opacity-100' : 'opacity-0'
+            }`} 
+          />
+          
+          {/* Text overlay with enhanced entrance */}
+          <div 
+            className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-out ${
+              animationPhase === 'entering' 
+                ? 'opacity-0 scale-75 translate-y-8' 
+                : animationPhase === 'active'
+                ? 'opacity-100 scale-100 translate-y-0'
+                : animationPhase === 'exiting'
+                ? 'opacity-0 scale-75 -translate-y-8'
+                : 'opacity-0 scale-75 translate-y-8'
+            }`}
+          >
+            <div 
+              className="text-white font-bold text-center px-6 py-2 rounded-lg bg-black/20 backdrop-blur-sm"
+              style={{ 
+                textShadow: '0 4px 16px rgba(0,0,0,0.8)',
+                fontSize: getTextSize(currentItem.motivator.title),
+                letterSpacing: '0.5px',
+                lineHeight: '1.2',
+                maxWidth: '90%'
+              }}
+            >
+              {currentItem.motivator.title}
             </div>
-          )}
+          </div>
         </div>
       )}
 
       {/* Text Motivator Display */}
-      {currentItem?.type === 'text' && isVisible && displayMode === 'motivator-focused' && !isTransitioning && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center animate-in zoom-in-95 duration-700 ease-out"
-        >
-          {/* Enhanced pulsating background */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 border-3 border-primary/40 rounded-full animate-pulse" 
+      {currentItem?.type === 'text' && isMotivatorVisible && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Animated background circles */}
+          <div 
+            className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-out ${
+              animationPhase === 'entering' 
+                ? 'opacity-0 scale-50' 
+                : animationPhase === 'active'
+                ? 'opacity-100 scale-100'
+                : animationPhase === 'exiting'
+                ? 'opacity-0 scale-125'
+                : 'opacity-0 scale-50'
+            }`}
+          >
+            {/* Multiple pulsating rings */}
+            <div className="absolute w-20 h-20 border-2 border-primary/60 rounded-full animate-pulse" 
                  style={{ animationDuration: '2s' }} />
-            <div className="absolute w-36 h-36 border-2 border-primary/25 rounded-full animate-pulse" 
+            <div className="absolute w-32 h-32 border border-primary/40 rounded-full animate-pulse" 
                  style={{ animationDuration: '2.5s', animationDelay: '0.3s' }} />
-            <div className="absolute w-48 h-48 border border-primary/15 rounded-full animate-pulse" 
+            <div className="absolute w-44 h-44 border border-primary/20 rounded-full animate-pulse" 
                  style={{ animationDuration: '3s', animationDelay: '0.6s' }} />
-            {/* Gradient background for more presence */}
-            <div className="absolute w-40 h-40 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 animate-pulse"
+            
+            {/* Central glow */}
+            <div className="absolute w-24 h-24 rounded-full bg-gradient-radial from-primary/30 via-primary/10 to-transparent animate-pulse"
                  style={{ animationDuration: '2.2s' }} />
           </div>
           
-          {/* Enhanced text content */}
+          {/* Enhanced text with bounce entrance */}
           <div 
-            className="relative z-10 font-bold text-primary text-center px-6 leading-tight animate-in zoom-in-95 duration-700 ease-out"
+            className={`relative z-10 font-bold text-primary text-center px-8 transition-all duration-1000 ease-out ${
+              animationPhase === 'entering' 
+                ? 'opacity-0 scale-50 translate-y-12' 
+                : animationPhase === 'active'
+                ? 'opacity-100 scale-100 translate-y-0'
+                : animationPhase === 'exiting'
+                ? 'opacity-0 scale-50 -translate-y-12'
+                : 'opacity-0 scale-50 translate-y-12'
+            }`}
             style={{ 
-              textShadow: '0 4px 12px rgba(0,0,0,0.2)',
-              fontSize: textSize === 'text-xs' ? '2rem' : '2.25rem',
+              textShadow: '0 6px 20px rgba(0,0,0,0.3)',
+              fontSize: getTextSize(currentItem.motivator.title),
               letterSpacing: '1px',
-              transform: 'translateY(-2px)'
+              lineHeight: '1.1',
+              maxWidth: '85%',
+              wordWrap: 'break-word'
             }}
           >
             {currentItem.motivator.title}
           </div>
           
-          {/* Additional glow effect */}
+          {/* Outer glow effect */}
           <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
+              animationPhase === 'active' ? 'opacity-100' : 'opacity-0'
+            }`}
             style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.1) 30%, transparent 70%)',
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 20%, transparent 60%)',
             }}
           />
         </div>
