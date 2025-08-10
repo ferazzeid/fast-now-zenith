@@ -134,8 +134,8 @@ const WalkingTimerComponent = ({
             </div>
           )}
           
-          {/* Rotating Goal Text - Only show when no images are available */}
-          {showSlideshow && isActive && !isPaused && motivatorsWithImages.length === 0 && motivatorsWithoutImages.length > 0 && (
+          {/* Rotating Goal Text - Show when text motivators exist */}
+          {showSlideshow && isActive && !isPaused && motivatorsWithoutImages.length > 0 && (
             <RotatingGoalText 
               isActive={showSlideshow && isActive && !isPaused} 
               onModeChange={setMotivatorMode}
