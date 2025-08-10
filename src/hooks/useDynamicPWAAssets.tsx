@@ -40,6 +40,15 @@ export const useDynamicPWAAssets = () => {
           });
         }
 
+        // Update regular favicon icons
+        if (settings.app_favicon) {
+          const iconLinks = document.querySelectorAll('link[rel="icon"]');
+          iconLinks.forEach((icon: any) => {
+            icon.href = settings.app_favicon;
+            console.log('Updated icon link to:', settings.app_favicon);
+          });
+        }
+
         // Force manifest refresh with enhanced cache busting
         const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
         if (manifestLink) {
