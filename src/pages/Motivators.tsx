@@ -335,9 +335,10 @@ const Motivators = () => {
                 >
                   <CardContent className="p-0">
                     <div className="flex">
-                      {/* Placeholder Image */}
-                      <div className="w-32 h-32 flex-shrink-0 bg-muted/40 flex items-center justify-center">
-                        <Target className="w-12 h-12 text-muted-foreground/50" />
+                      {/* Placeholder Image with Add Image Encouragement */}
+                      <div className="w-32 h-32 flex-shrink-0 bg-muted/40 flex flex-col items-center justify-center gap-2">
+                        <Plus className="w-8 h-8 text-primary" />
+                        <span className="text-xs text-muted-foreground font-medium">add image</span>
                       </div>
                       
                       {/* Placeholder Content */}
