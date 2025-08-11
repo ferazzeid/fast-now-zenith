@@ -3,8 +3,8 @@
 
 import { openDB, IDBPDatabase } from 'idb';
 
-export type EntityType = 'walking_session';
-export type ActionType = 'start' | 'pause' | 'resume' | 'end' | 'cancel' | 'update_speed';
+export type EntityType = 'walking_session' | 'food_entry' | 'fasting_session';
+export type ActionType = 'start' | 'pause' | 'resume' | 'end' | 'cancel' | 'update_speed' | 'create' | 'update' | 'delete';
 
 export interface OutboxOperation {
   id: string;
@@ -27,13 +27,26 @@ let dbPromise: Promise<IDBPDatabase> | null = null;
 
 const getDB = () => {
   if (!dbPromise) {
-    dbPromise = openDB('fastnow_outbox', 1, {
-      upgrade(db) {
+    dbPromise = openDB('fastnow_outbox', 2, {
+      upgrade(db, oldVersion) {
         if (!db.objectStoreNames.contains('operations')) {
           db.createObjectStore('operations', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('mappings')) {
           db.createObjectStore('mappings', { keyPath: 'localId' });
+        }
+        
+        // V2: Add indexes for better performance
+        if (oldVersion < 2) {
+          if (db.objectStoreNames.contains('operations')) {
+            const opStore = db.transaction(['operations'], 'readwrite').objectStore('operations');
+            if (!opStore.indexNames.contains('entity-action')) {
+              opStore.createIndex('entity-action', ['entity', 'action']);
+            }
+            if (!opStore.indexNames.contains('createdAt')) {
+              opStore.createIndex('createdAt', 'createdAt');
+            }
+          }
         }
       },
     });

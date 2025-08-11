@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAIImageGeneration } from "@/hooks/useAIImageGeneration";
+import { useOfflineMode } from "@/hooks/useOfflineMode";
 
-function AIImageToggleSettings() {
-  const { aiImageEnabled, loading, updateAIImageSetting } = useAIImageGeneration();
+function ExperimentalFeatures() {
+  const { aiImageEnabled, loading: aiLoading, updateAIImageSetting } = useAIImageGeneration();
+  const { offlineEnabled, loading: offlineLoading, updateOfflineSetting } = useOfflineMode();
   const { toast } = useToast();
 
-  const handleToggle = async (checked: boolean) => {
+  const handleAIToggle = async (checked: boolean) => {
     const result = await updateAIImageSetting(checked);
     if (result.success) {
       toast({
@@ -32,12 +34,30 @@ function AIImageToggleSettings() {
     }
   };
 
+  const handleOfflineToggle = async (checked: boolean) => {
+    const result = await updateOfflineSetting(checked);
+    if (result.success) {
+      toast({
+        title: checked ? 'Offline Mode Enabled' : 'Offline Mode Disabled',
+        description: checked 
+          ? 'App will now queue operations when offline and sync when back online.'
+          : 'App will require internet connection for all operations.'
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Failed to update offline mode setting',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Experimental Features</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <Label className="text-sm font-medium">Enable AI Image Generation</Label>
@@ -47,8 +67,22 @@ function AIImageToggleSettings() {
           </div>
           <Switch
             checked={aiImageEnabled}
-            onCheckedChange={handleToggle}
-            disabled={loading}
+            onCheckedChange={handleAIToggle}
+            disabled={aiLoading}
+          />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Enable Offline Mode</Label>
+            <p className="text-xs text-muted-foreground">
+              Enable offline-first operation with automatic sync when back online (beta)
+            </p>
+          </div>
+          <Switch
+            checked={offlineEnabled}
+            onCheckedChange={handleOfflineToggle}
+            disabled={offlineLoading}
           />
         </div>
       </CardContent>
@@ -70,7 +104,7 @@ export default function AdminDev() {
         <AdminSubnav />
 
         <section aria-label="Experimental features">
-          <AIImageToggleSettings />
+          <ExperimentalFeatures />
         </section>
 
         <section aria-label="Celebration Animation Testing" className="space-y-4">

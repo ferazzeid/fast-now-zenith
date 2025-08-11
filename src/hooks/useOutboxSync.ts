@@ -10,7 +10,7 @@ import {
   getPendingCount,
 } from '@/utils/outbox';
 
-// Processes the outbox when online. Focused on walking_sessions for now.
+// Processes the outbox when online. Handles all entity types.
 export const useOutboxSync = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [pending, setPending] = useState<number>(0);
@@ -117,6 +117,78 @@ export const useOutboxSync = () => {
     }
   }, []);
 
+  const processFoodOp = useCallback(async (op: any) => {
+    const { action, payload, user_id } = op;
+    const resolveId = async (id?: string | null) => await resolveMappedId(id);
+
+    if (action === 'create') {
+      const { local_id, ...foodData } = payload;
+      const { data, error } = await supabase.from('food_entries')
+        .insert({ ...foodData, user_id })
+        .select()
+        .single();
+      if (error) throw error;
+      if (local_id && data?.id) {
+        await setIdMapping(local_id, data.id);
+      }
+      return;
+    }
+
+    if (action === 'update') {
+      const id = await resolveId(payload.id);
+      const { error } = await supabase.from('food_entries')
+        .update(payload.updates)
+        .eq('id', id!);
+      if (error) throw error;
+      return;
+    }
+
+    if (action === 'delete') {
+      const id = await resolveId(payload.id);
+      const { error } = await supabase.from('food_entries')
+        .delete()
+        .eq('id', id!);
+      if (error) throw error;
+      return;
+    }
+  }, []);
+
+  const processFastingOp = useCallback(async (op: any) => {
+    const { action, payload, user_id } = op;
+    const resolveId = async (id?: string | null) => await resolveMappedId(id);
+
+    if (action === 'start') {
+      const { local_id, ...sessionData } = payload;
+      const { data, error } = await supabase.from('fasting_sessions')
+        .insert({ ...sessionData, user_id })
+        .select()
+        .single();
+      if (error) throw error;
+      if (local_id && data?.id) {
+        await setIdMapping(local_id, data.id);
+      }
+      return;
+    }
+
+    if (action === 'end') {
+      const id = await resolveId(payload.session_id);
+      const { error } = await supabase.from('fasting_sessions')
+        .update(payload.updateData)
+        .eq('id', id!);
+      if (error) throw error;
+      return;
+    }
+
+    if (action === 'cancel') {
+      const id = await resolveId(payload.session_id);
+      const { error } = await supabase.from('fasting_sessions')
+        .delete()
+        .eq('id', id!);
+      if (error) throw error;
+      return;
+    }
+  }, []);
+
   const processOutbox = useCallback(async () => {
     if (isSyncing) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
@@ -129,6 +201,10 @@ export const useOutboxSync = () => {
         try {
           if (op.entity === 'walking_session') {
             await processWalkingOp(op);
+          } else if (op.entity === 'food_entry') {
+            await processFoodOp(op);
+          } else if (op.entity === 'fasting_session') {
+            await processFastingOp(op);
           }
           await removeOperation(op.id);
         } catch (err: any) {
@@ -144,7 +220,7 @@ export const useOutboxSync = () => {
       dispatchOutboxEvent('sync-complete');
       refreshCount();
     }
-  }, [isSyncing, processWalkingOp, refreshCount]);
+  }, [isSyncing, processWalkingOp, processFoodOp, processFastingOp, refreshCount]);
 
   useEffect(() => {
     const onlineHandler = () => processOutbox();
