@@ -62,6 +62,7 @@ export const ModalAiChat = ({
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
+  const calorieSummaryRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const {
     searchResults,
@@ -74,6 +75,15 @@ export const ModalAiChat = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Auto-scroll to calorie summary when food suggestions appear
+  useEffect(() => {
+    if (lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0) {
+      setTimeout(() => {
+        calorieSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [lastFoodSuggestion?.foods]);
 
   useEffect(() => {
     if (isOpen) {
@@ -366,6 +376,7 @@ ${args.content}`,
       delete updated[foodIndex];
       return updated;
     });
+    // Don't filter the foods array when canceling edit
   };
 
   const handleRemoveFood = (foodIndex: number) => {
@@ -1063,36 +1074,18 @@ ${updatedContent}`
 
         {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
           <div className="space-y-2">
-            {/* Total summary */}
-            <Card className="p-3 bg-muted/50">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">
-                  Selected: {Array.from(selectedFoodIds).reduce((sum: number, index) => {
-                    const food = lastFoodSuggestion.foods[index];
-                    return sum + (food?.calories || 0);
-                  }, 0)} calories, {Math.round(Array.from(selectedFoodIds).reduce((sum: number, index) => {
-                    const food = lastFoodSuggestion.foods[index];
-                    return sum + (food?.carbs || 0);
-                  }, 0))}g carbs
-                  {lastFoodSuggestion.added && (
-                    <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
-                  )}
-                </div>
-                {!lastFoodSuggestion.added && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      if (selectedFoodIds.size === lastFoodSuggestion.foods.length) {
-                        setSelectedFoodIds(new Set());
-                      } else {
-                        setSelectedFoodIds(new Set(lastFoodSuggestion.foods.map((_: any, index: number) => index)));
-                      }
-                    }}
-                    className="h-6 px-2 text-xs"
-                  >
-                    {selectedFoodIds.size === lastFoodSuggestion.foods.length ? 'Deselect All' : 'Select All'}
-                  </Button>
+            {/* Total summary - compact single line */}
+            <Card ref={calorieSummaryRef} className="p-3 bg-muted/50">
+              <div className="text-sm font-medium">
+                Selected: {Array.from(selectedFoodIds).reduce((sum: number, index) => {
+                  const food = lastFoodSuggestion.foods[index];
+                  return sum + (food?.calories || 0);
+                }, 0)} calories, {Math.round(Array.from(selectedFoodIds).reduce((sum: number, index) => {
+                  const food = lastFoodSuggestion.foods[index];
+                  return sum + (food?.carbs || 0);
+                }, 0))}g carbs
+                {lastFoodSuggestion.added && (
+                  <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
                 )}
               </div>
             </Card>
