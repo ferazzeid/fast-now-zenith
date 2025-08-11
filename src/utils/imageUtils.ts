@@ -205,7 +205,8 @@ export const uploadImageHybrid = async (
   file: File, 
   userId: string, 
   hasCloudStorage: boolean, 
-  supabase: any
+  supabase: any,
+  bucketName: string = 'motivator-images'
 ): Promise<{ success: boolean; imageId: string; url: string; error?: string }> => {
   try {
     // Check storage limit
@@ -227,13 +228,13 @@ export const uploadImageHybrid = async (
       // Upload to Supabase Storage for paid users
       const fileName = `${userId}/${Date.now()}_${file.name}`;
       const { data, error } = await supabase.storage
-        .from('motivator-images')
+        .from(bucketName)
         .upload(fileName, compressed.blob);
 
       if (error) throw error;
 
       const { data: urlData } = supabase.storage
-        .from('motivator-images')
+        .from(bucketName)
         .getPublicUrl(fileName);
 
       return {

@@ -21,6 +21,7 @@ interface ImageUploadProps {
   motivatorId?: string;
   onAiGenerate?: () => void;
   isGenerating?: boolean;
+  storageBucket?: string;
 }
 
 export const ImageUpload = ({ 
@@ -32,7 +33,8 @@ export const ImageUpload = ({
   aiGenerationPrompt,
   motivatorId,
   onAiGenerate,
-  isGenerating = false
+  isGenerating = false,
+  storageBucket = 'motivator-images'
 }: ImageUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -120,7 +122,7 @@ export const ImageUpload = ({
       setPreviewUrl(preview);
 
       // Use hybrid upload system
-      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase);
+      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase, storageBucket);
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');

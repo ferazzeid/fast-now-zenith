@@ -391,6 +391,7 @@ export const UnifiedFoodEditModal = ({
               aiGenerationPrompt={name ? `High-quality photo of ${name} on a white background, clean food photography, well-lit, appetizing` : undefined}
               onAiGenerate={handleGenerateImage}
               isGenerating={generatingImage}
+              storageBucket="food-images"
             />
           </div>
         </div>
