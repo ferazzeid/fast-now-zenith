@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useFoodEditingActions } from '@/hooks/useFoodEditingActions';
 import { FoodEditPreview } from '@/components/FoodEditPreview';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -29,6 +30,7 @@ interface ModalAiChatProps {
   conversationType?: 'general';
   proactiveMessage?: string;
   quickReplies?: string[];
+  onFoodAdd?: (foods: any[], destination: string) => void;
 }
 
 export const ModalAiChat = ({ 
@@ -40,7 +42,8 @@ export const ModalAiChat = ({
   systemPrompt = 'You are a helpful AI assistant.',
   conversationType = 'general',
   proactiveMessage = '',
-  quickReplies = []
+  quickReplies = [],
+  onFoodAdd
 }: ModalAiChatProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -55,9 +58,10 @@ export const ModalAiChat = ({
   const [motivatorEditData, setMotivatorEditData] = useState<{title: string, content: string}>({title: '', content: ''});
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const [inlineMotivatorEditData, setInlineMotivatorEditData] = useState<{[key: number]: any}>({});
+  const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
-  // const { toast } = useToast(); // Already imported directly
   const { user } = useAuth();
   const {
     searchResults,
@@ -91,6 +95,7 @@ export const ModalAiChat = ({
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
+      setSelectedFoodIds(new Set());
     } else if (!isOpen) {
       // Clear messages when modal closes - but only after a small delay to prevent flickering
       setTimeout(() => {
@@ -104,6 +109,7 @@ export const ModalAiChat = ({
         setLastFoodSuggestion(null);
         setLastMotivatorSuggestion(null);
         setLastMotivatorsSuggestion(null);
+        setSelectedFoodIds(new Set());
       }, 100);
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
@@ -128,7 +134,7 @@ You are a comprehensive food tracking assistant. Your goals are to:
 
 FOR ADDING FOODS:
 1. IMMEDIATELY process food information and call add_multiple_foods
-2. Output minimal confirmations only; no extra chit-chat
+2. Be concise but helpful - when users ask about your reasoning or assumptions, provide brief explanations
 3. CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "two cucumbers", "three bananas", "four apples"), create SEPARATE entries for each item. DO NOT aggregate quantities.
 4. EXAMPLES OF CORRECT BEHAVIOR:
    - "two cucumbers" → 2 separate cucumber entries (e.g., 150g each)
@@ -137,7 +143,8 @@ FOR ADDING FOODS:
    - "two Greek yogurts" → 2 separate Greek yogurt entries
    - "200g of rice" → 1 rice entry at 200g
 5. Only aggregate when NO specific count is mentioned and user gives total weight
-6. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
+6. When making assumptions (like estimating portion sizes), briefly explain your reasoning when asked
+7. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
 
 FOR EDITING/DELETING FOODS:
 1. When users want to edit/change/delete/remove foods, FIRST call search_foods_for_edit to find the item
@@ -204,7 +211,14 @@ You are a motivational goal creation assistant. Your task is to:
       // Handle function calls for food and motivator suggestions
       if (data.functionCall) {
         if (data.functionCall.name === 'add_multiple_foods') {
-          setLastFoodSuggestion(data.functionCall.arguments);
+          const foods = data.functionCall.arguments?.foods || [];
+          setLastFoodSuggestion({
+            foods,
+            destination: data.functionCall.arguments?.destination || 'today',
+            added: false
+          });
+          // Initialize all foods as selected
+          setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
           // Don't add any AI message for food suggestions - just show the interactive UI
           return;
         } else if (data.functionCall.name === 'create_multiple_motivators') {
@@ -364,6 +378,20 @@ ${args.content}`,
         foods: updatedFoods
       }));
       
+      // Update selected food IDs to remove the deleted item and adjust indices
+      setSelectedFoodIds(prev => {
+        const newSelected = new Set<number>();
+        Array.from(prev).forEach(selectedIndex => {
+          if (selectedIndex < foodIndex) {
+            newSelected.add(selectedIndex);
+          } else if (selectedIndex > foodIndex) {
+            newSelected.add(selectedIndex - 1);
+          }
+          // Skip the deleted index
+        });
+        return newSelected;
+      });
+      
       // Reset editing state if we were editing the removed item
       if (editingFoodIndex === foodIndex) {
         setEditingFoodIndex(null);
@@ -377,22 +405,56 @@ ${args.content}`,
   };
 
   const handleAddAllFoods = async () => {
-    if (lastFoodSuggestion?.foods && onResult) {
-      setIsProcessing(true);
-      try {
+    if (!lastFoodSuggestion?.foods || isProcessing) return;
+    
+    setIsProcessing(true);
+    try {
+      const destination = lastFoodSuggestion.destination || 'today';
+      const selectedFoods = lastFoodSuggestion.foods.filter((_: any, index: number) => 
+        selectedFoodIds.has(index)
+      );
+      
+      if (selectedFoods.length === 0) {
+        toast({
+          title: "No foods selected",
+          description: "Please select at least one food to add.",
+          variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      if (onFoodAdd) {
+        await onFoodAdd(selectedFoods, destination);
+      } else if (onResult) {
         await onResult({
           name: 'add_multiple_foods',
-          arguments: { foods: lastFoodSuggestion.foods, destination: lastFoodSuggestion.destination || 'today' }
+          arguments: { foods: selectedFoods, destination }
         });
-        const confirmationMessage: Message = { role: 'assistant', content: '✅ Foods added successfully!', timestamp: new Date() };
-        setMessages(prev => [...prev, confirmationMessage]);
-        // Collapse the list after adding
-        setLastFoodSuggestion(null);
-      } catch (error) {
-        console.error('Error adding foods:', error);
-      } finally {
-        setIsProcessing(false);
       }
+      
+      // Mark as added
+      setLastFoodSuggestion((prev: any) => ({ ...prev, added: true }));
+      
+      toast({
+        title: "Foods added successfully",
+        description: `Added ${selectedFoods.length} foods to your ${destination}`,
+      });
+      
+      // Close the modal after a short delay
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error adding foods:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add foods. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -1003,10 +1065,34 @@ ${updatedContent}`
           <div className="space-y-2">
             {/* Total summary */}
             <Card className="p-3 bg-muted/50">
-              <div className="text-sm font-medium">
-                Total: {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0)} calories, {lastFoodSuggestion.foods.reduce((sum: number, food: any) => sum + (food.carbs || 0), 0)}g carbs
-                {lastFoodSuggestion.added && (
-                  <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium">
+                  Selected: {Array.from(selectedFoodIds).reduce((sum: number, index) => {
+                    const food = lastFoodSuggestion.foods[index];
+                    return sum + (food?.calories || 0);
+                  }, 0)} calories, {Array.from(selectedFoodIds).reduce((sum: number, index) => {
+                    const food = lastFoodSuggestion.foods[index];
+                    return sum + (food?.carbs || 0);
+                  }, 0)}g carbs
+                  {lastFoodSuggestion.added && (
+                    <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
+                  )}
+                </div>
+                {!lastFoodSuggestion.added && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (selectedFoodIds.size === lastFoodSuggestion.foods.length) {
+                        setSelectedFoodIds(new Set());
+                      } else {
+                        setSelectedFoodIds(new Set(lastFoodSuggestion.foods.map((_: any, index: number) => index)));
+                      }
+                    }}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {selectedFoodIds.size === lastFoodSuggestion.foods.length ? 'Deselect All' : 'Select All'}
+                  </Button>
                 )}
               </div>
             </Card>
@@ -1015,7 +1101,7 @@ ${updatedContent}`
               <Card key={index} className="p-3 bg-background border">
                 {editingFoodIndex === index ? (
                   // Inline editing mode
-                  <div className="space-y-2">{/* ... rest of inline editing JSX ... */}
+                  <div className="space-y-2">
                     <Input
                       value={inlineEditData[index]?.name || ''}
                       onChange={(e) => setInlineEditData(prev => ({
@@ -1083,7 +1169,22 @@ ${updatedContent}`
                   </div>
                 ) : (
                   // Display mode
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {!lastFoodSuggestion.added && (
+                      <Checkbox
+                        checked={selectedFoodIds.has(index)}
+                        onCheckedChange={(checked) => {
+                          const newSelected = new Set(selectedFoodIds);
+                          if (checked) {
+                            newSelected.add(index);
+                          } else {
+                            newSelected.delete(index);
+                          }
+                          setSelectedFoodIds(newSelected);
+                        }}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                    )}
                     <div className="flex-1">
                       <div className="text-sm font-medium">{food.name}</div>
                       <div className="text-xs text-muted-foreground">
@@ -1138,9 +1239,9 @@ ${updatedContent}`
                   size="sm"
                   onClick={handleAddAllFoods}
                   className="w-full"
-                  disabled={isProcessing}
+                  disabled={isProcessing || selectedFoodIds.size === 0}
                 >
-                  {isProcessing ? 'Adding...' : 'Add All Foods'}
+                  {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''}`}
                 </Button>
               </div>
             )}
