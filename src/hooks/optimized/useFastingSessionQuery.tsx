@@ -193,11 +193,27 @@ export const useFastingSessionQuery = () => {
     mutationFn: async (sessionId: string): Promise<FastingSession> => {
       if (!user) throw new Error('User not authenticated');
 
+      // Resolve temp optimistic IDs by fetching the latest active session
+      let effectiveSessionId = sessionId;
+      if (sessionId.startsWith('temp-')) {
+        const { data: active, error: activeErr } = await supabase
+          .from('fasting_sessions')
+          .select('id, user_id, start_time, goal_duration_seconds')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('start_time', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (activeErr) throw activeErr;
+        if (!active) throw new Error('No active session found');
+        effectiveSessionId = active.id;
+      }
+
       // Fetch the current session by ID (do not rely on cache here)
       const { data: session, error: fetchError } = await supabase
         .from('fasting_sessions')
         .select('id, user_id, start_time, goal_duration_seconds')
-        .eq('id', sessionId)
+        .eq('id', effectiveSessionId)
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -219,7 +235,7 @@ export const useFastingSessionQuery = () => {
           duration_seconds: actualDurationSeconds,
           status,
         })
-        .eq('id', sessionId)
+        .eq('id', effectiveSessionId)
         .eq('user_id', user.id)
         .select()
         .single();
