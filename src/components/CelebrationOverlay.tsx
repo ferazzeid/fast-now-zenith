@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
+type AnimationType = 'ring-pulse' | 'particle-burst' | 'color-wave' | 'fireworks';
+
 interface CelebrationOverlayProps {
   isVisible: boolean;
   type: 'hourly' | 'completion';
   hours: number;
   message: string;
+  animationType?: AnimationType;
 }
 
 export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   isVisible,
   type,
   hours,
-  message
+  message,
+  animationType = 'ring-pulse'
 }) => {
   const [animationPhase, setAnimationPhase] = useState<'enter' | 'show' | 'exit'>('enter');
 
@@ -69,8 +73,13 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
       )}>
         {/* Animated background effects */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
-          {/* Sparkle animation for completion */}
-          {type === 'completion' && (
+          {/* Ring pulse animation */}
+          {animationType === 'ring-pulse' && (
+            <div className="absolute inset-4 border-2 border-white/30 rounded-full animate-pulse" />
+          )}
+          
+          {/* Particle burst animation */}
+          {animationType === 'particle-burst' && (
             <div className="absolute inset-0">
               {[...Array(12)].map((_, i) => (
                 <div
@@ -87,9 +96,41 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
             </div>
           )}
           
-          {/* Ring pulse for hourly */}
-          {type === 'hourly' && (
-            <div className="absolute inset-4 border-2 border-white/30 rounded-full animate-pulse" />
+          {/* Color wave animation */}
+          {animationType === 'color-wave' && (
+            <div className="absolute inset-0">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute inset-0 rounded-2xl border-2 animate-ping"
+                  style={{
+                    borderColor: `hsl(${(i * 120) % 360}, 80%, 70%)`,
+                    animationDelay: `${i * 500}ms`,
+                    animationDuration: '2s'
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          
+          {/* Fireworks animation */}
+          {animationType === 'fireworks' && (
+            <div className="absolute inset-0">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1 h-8 bg-gradient-to-t from-yellow-400 to-transparent animate-bounce"
+                  style={{
+                    left: `${10 + (i * 10)}%`,
+                    top: `${20 + (i % 3) * 20}%`,
+                    animationDelay: `${i * 200}ms`,
+                    animationDuration: '1s',
+                    transform: `rotate(${i * 45}deg)`,
+                    transformOrigin: 'bottom'
+                  }}
+                />
+              ))}
+            </div>
           )}
         </div>
         

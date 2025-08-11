@@ -28,6 +28,8 @@ import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 import { CelebrationOverlay } from '@/components/CelebrationOverlay';
+import { AdminCelebrationTestMenu } from '@/components/AdminCelebrationTestMenu';
+import { useAdminRole } from '@/hooks/useAdminRole';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -49,6 +51,7 @@ const Timer = () => {
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
   const { celebration, checkForMilestones, resetMilestones } = useCelebrationMilestones(fastingSession?.id);
+  const { isAdmin } = useAdminRole();
 
 
   const isRunning = !!fastingSession;
@@ -475,8 +478,12 @@ const Timer = () => {
           type={celebration.currentEvent.type}
           hours={celebration.currentEvent.hours}
           message={celebration.currentEvent.message}
+          animationType={celebration.currentEvent.type === 'completion' ? 'particle-burst' : 'ring-pulse'}
         />
       )}
+
+      {/* Admin Celebration Test Menu */}
+      <AdminCelebrationTestMenu isVisible={isAdmin} />
     </div>
   );
 };
