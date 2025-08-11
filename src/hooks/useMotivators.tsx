@@ -26,55 +26,99 @@ export interface CreateMotivatorData {
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
+  const [isFetching, setIsFetching] = useState(false);
+  const [requestId, setRequestId] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
   const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
 
-  const loadMotivators = async (forceRefresh = false) => {
+  const loadMotivators = async (force = false, background = false) => {
     if (!user) {
       stopLoading();
       return;
     }
 
-    // Use cached data if available and not forcing refresh
-    if (!forceRefresh && Array.isArray(cachedMotivators) && cachedMotivators.length > 0 && !shouldFetchMotivators()) {
-      console.log('Using cached motivators, skipping API call', { count: cachedMotivators.length });
+    // Check if offline
+    if (!navigator.onLine) {
+      console.log('🔌 Offline: using cached data only');
+      if (cachedMotivators && cachedMotivators.length > 0) {
+        setMotivators(cachedMotivators);
+      }
+      stopLoading();
+      return;
+    }
+
+    // Prevent overlapping fetches
+    if (isFetching) {
+      console.log('⏸️ Fetch already in progress, skipping');
+      return;
+    }
+
+    // Stale-while-revalidate: Use cached data if available and not forcing refresh
+    if (!force && Array.isArray(cachedMotivators) && cachedMotivators.length > 0 && !shouldFetchMotivators()) {
+      console.log('📦 Using cached motivators, skipping API call', { count: cachedMotivators.length });
       setMotivators(cachedMotivators);
       stopLoading();
       return;
     }
 
-    startLoading();
+    // Only show loading state if no motivators exist and not a background refresh
+    if (!background && motivators.length === 0) {
+      startLoading();
+    }
+
+    const currentRequestId = requestId + 1;
+    setRequestId(currentRequestId);
+    setIsFetching(true);
+
     try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 second timeout
+
       const { data, error } = await supabase
         .from('motivators')
         .select('*, image_url')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .abortSignal(controller.signal);
+
+      clearTimeout(timeoutId);
+
+      // Check if this request is still current
+      if (currentRequestId !== requestId) {
+        console.log('🚫 Request superseded, ignoring result');
+        return;
+      }
 
       if (error) throw error;
       
       // Transform data to include imageUrl property with proper fallback
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        imageUrl: item.image_url || item.imageUrl || null // Handle both field names and provide fallback
+        imageUrl: item.image_url || item.imageUrl || null
       }));
       
       setMotivators(transformedData);
-      // Cache the fresh data
       cacheMotivators(transformedData);
       
-      console.log('Loaded fresh motivators from API:', transformedData.length);
-    } catch (error) {
-      console.error('Error loading motivators:', error);
+      console.log('✅ Loaded fresh motivators from API:', transformedData.length, background ? '(background)' : '');
+    } catch (error: any) {
+      // Check if this request is still current
+      if (currentRequestId !== requestId) {
+        console.log('🚫 Error from superseded request, ignoring');
+        return;
+      }
+
+      console.error('❌ Error loading motivators:', error);
       
       // If we have cached data, use it as fallback
       if (cachedMotivators && cachedMotivators.length > 0) {
-        console.log('Using cached motivators as fallback');
+        console.log('📦 Using cached motivators as fallback');
         setMotivators(cachedMotivators);
-      } else {
+      } else if (!error.name?.includes('AbortError')) {
         toast({
           title: "Error loading motivators",
           description: "Please check your connection and try again.",
@@ -82,6 +126,7 @@ export const useMotivators = () => {
         });
       }
     } finally {
+      setIsFetching(false);
       stopLoading();
     }
   };
@@ -255,8 +300,8 @@ export const useMotivators = () => {
       if (document.visibilityState === 'visible') {
         const needsFetch = shouldFetchMotivators() || motivators.length === 0;
         if (needsFetch) {
-          console.log('🔄 Visibility change: refetching motivators');
-          loadMotivators();
+          console.log('👀 Visibility change: background refresh');
+          loadMotivators(false, true); // Background refresh
         } else {
           console.log('✅ Visibility change: cache fresh, no fetch');
         }
@@ -265,7 +310,7 @@ export const useMotivators = () => {
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [shouldFetchMotivators, motivators.length, loadMotivators]);
+  }, [shouldFetchMotivators, motivators.length]);
 
   return {
     motivators,
