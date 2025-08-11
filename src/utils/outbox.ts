@@ -28,24 +28,25 @@ let dbPromise: Promise<IDBPDatabase> | null = null;
 const getDB = () => {
   if (!dbPromise) {
     dbPromise = openDB('fastnow_outbox', 2, {
-      upgrade(db, oldVersion) {
+      upgrade(db, oldVersion, newVersion, transaction) {
         if (!db.objectStoreNames.contains('operations')) {
-          db.createObjectStore('operations', { keyPath: 'id' });
+          const operationsStore = db.createObjectStore('operations', { keyPath: 'id' });
+          // Add indexes to new store
+          operationsStore.createIndex('entity-action', ['entity', 'action']);
+          operationsStore.createIndex('createdAt', 'createdAt');
         }
         if (!db.objectStoreNames.contains('mappings')) {
           db.createObjectStore('mappings', { keyPath: 'localId' });
         }
         
         // V2: Add indexes for better performance
-        if (oldVersion < 2) {
-          if (db.objectStoreNames.contains('operations')) {
-            const opStore = db.transaction(['operations'], 'readwrite').objectStore('operations');
-            if (!opStore.indexNames.contains('entity-action')) {
-              opStore.createIndex('entity-action', ['entity', 'action']);
-            }
-            if (!opStore.indexNames.contains('createdAt')) {
-              opStore.createIndex('createdAt', 'createdAt');
-            }
+        if (oldVersion < 2 && db.objectStoreNames.contains('operations')) {
+          const opStore = transaction?.objectStore('operations');
+          if (opStore && !opStore.indexNames.contains('entity-action')) {
+            opStore.createIndex('entity-action', ['entity', 'action']);
+          }
+          if (opStore && !opStore.indexNames.contains('createdAt')) {
+            opStore.createIndex('createdAt', 'createdAt');
           }
         }
       },
@@ -54,7 +55,7 @@ const getDB = () => {
   return dbPromise;
 };
 
-const uuid = () => (globalThis.crypto?.randomUUID?.() ?? `id_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+const uuid = () => globalThis.crypto?.randomUUID?.() ?? `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
 export const enqueueOperation = async (op: Omit<OutboxOperation, 'id' | 'createdAt' | 'attempts'>) => {
   const db = await getDB();
