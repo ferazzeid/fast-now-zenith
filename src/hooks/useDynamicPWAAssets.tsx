@@ -59,14 +59,10 @@ export const useDynamicPWAAssets = () => {
           manifestLink.href = url.toString();
         }
 
-        // Clear browser caches on mobile for immediate effect
+        // Avoid aggressive cache clears; rely on cache-busting above and prefetching
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile && 'caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(
-            cacheNames.map(cacheName => caches.delete(cacheName))
-          );
-          console.log('Cleared all caches for mobile device');
+        if (isMobile) {
+          console.log('Mobile device detected; skipping cache clear to preserve offline assets');
         }
 
         console.log('PWA assets updated with dynamic values');

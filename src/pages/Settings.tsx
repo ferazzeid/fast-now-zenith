@@ -58,18 +58,37 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
     const checkAdminRole = async () => {
       if (user) {
         try {
+          const cacheKey = `admin-check:${user.id}`;
+          const ttlMs = 10 * 60 * 1000; // 10 minutes
+          const cached = sessionStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached) as { isAdmin: boolean; ts: number };
+              if (Date.now() - parsed.ts < ttlMs) {
+                setIsAdmin(parsed.isAdmin);
+                return;
+              }
+            } catch {
+              // ignore parse errors
+            }
+          }
+
+          // Fallback to DB lookup
           const { data, error } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', user.id)
             .eq('role', 'admin')
             .maybeSingle();
-          
+
           if (error) {
             console.log('Admin check error (expected if no role):', error);
             setIsAdmin(false);
+            sessionStorage.setItem(cacheKey, JSON.stringify({ isAdmin: false, ts: Date.now() }));
           } else {
-            setIsAdmin(!!data);
+            const isAdminRole = !!data;
+            setIsAdmin(isAdminRole);
+            sessionStorage.setItem(cacheKey, JSON.stringify({ isAdmin: isAdminRole, ts: Date.now() }));
           }
         } catch (error) {
           console.error('Error checking admin role:', error);

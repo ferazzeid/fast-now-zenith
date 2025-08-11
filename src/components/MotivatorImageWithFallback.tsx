@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, Plus } from 'lucide-react';
 import placeholderImage from '@/assets/motivator-placeholder.jpg';
 
@@ -23,6 +23,12 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
 }) => {
   const [imageError, setImageError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
+
+  useEffect(() => {
+    // Reset error flags when the image source changes
+    setImageError(false);
+    setFallbackError(false);
+  }, [src]);
 
   const handleImageError = () => {
     setImageError(true);
@@ -62,6 +68,7 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
   if (imageError) {
     return (
       <img
+        key="placeholder"
         src={placeholderImage}
         alt={alt}
         className={className}
@@ -75,6 +82,7 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
   // Show main image
   return (
     <img
+      key={src || 'placeholder'}
       src={src}
       alt={alt}
       className={className}

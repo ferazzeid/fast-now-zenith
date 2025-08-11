@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
 import { useLoadingManager } from './useLoadingManager';
 import { useMotivatorCache } from './useMotivatorCache';
+import { usePrefetchMotivatorImages } from './usePrefetchMotivatorImages';
 
 export interface Motivator {
   id: string;
@@ -32,6 +33,12 @@ export const useMotivators = () => {
   const { toast } = useToast();
   const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
   const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
+  // Proactively prefetch motivator images when list changes
+  usePrefetchMotivatorImages(
+    motivators
+      .map(m => m.imageUrl)
+      .filter((u): u is string => typeof u === 'string' && u.length > 0)
+  );
 
   const loadMotivators = async (force = false, background = false) => {
     if (!user) {
