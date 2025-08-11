@@ -83,8 +83,8 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
 
   return (
     <>
-      {/* Floating Admin Button */}
-      <div className="fixed bottom-4 right-4 z-40">
+      {/* Floating Admin Button - Moved to top-right */}
+      <div className="fixed top-4 right-4 z-50">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -101,7 +101,7 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
                 <Settings className="w-5 h-5 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">
+            <TooltipContent side="bottom">
               <p>Admin: Test Celebrations</p>
             </TooltipContent>
           </Tooltip>
@@ -110,7 +110,7 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
 
       {/* Test Menu */}
       {isOpen && (
-        <div className="fixed bottom-20 right-4 z-40">
+        <div className="fixed top-16 right-4 z-50">
           <Card className="w-80 bg-background/95 backdrop-blur-sm border-primary/20 shadow-xl">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">

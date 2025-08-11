@@ -364,3 +364,22 @@ button[class*="bg-primary"],
 .universal-modal-header button {
   display: flex !important;
 }
+
+/* Hide Lovable development notifications */
+[data-testid="lovable-notification"],
+.lovable-notification,
+div[style*="Starting live preview"] {
+  display: none !important;
+}
+
+/* Hide any fixed positioned elements containing "Starting live preview" text */
+div:has-text("Starting live preview") {
+  display: none !important;
+}
+
+/* More aggressive hiding of Lovable development UI */
+div[class*="notification"]:has-text("Starting live preview"),
+div[class*="preview"]:has-text("Starting live preview"),
+div[style*="position: fixed"]:has-text("Starting live preview") {
+  display: none !important;
+}
