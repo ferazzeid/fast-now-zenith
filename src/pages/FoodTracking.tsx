@@ -1247,7 +1247,7 @@ const FoodTracking = () => {
               onResult={handleAiChatResult}
               context={aiChatContext}
               title="Food Assistant"
-              systemPrompt="You are a nutrition assistant helping users log food entries. Always ensure complete information: food name, portion size in grams, calories, and carbs. Provide reasonable estimates when exact values aren't known."
+              systemPrompt={aiChatContext}
             />
           </ComponentErrorBoundary>
         </PremiumGate>
