@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, Square, ScanLine } from 'lucide-react';
-import { BrowserMultiFormatReader } from '@zxing/browser';
 
 interface ProductNutriments {
   energy_kcal_100g?: number;
@@ -25,11 +24,9 @@ interface OpenFoodFactsProduct {
   nutriments?: ProductNutriments;
 }
 
-export const BarcodeScannerExperiment: React.FC = () => {
+export const BarcodeScannerExperiment = () => {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const controlsRef = useRef<any>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
   const [scanning, setScanning] = useState(false);
@@ -38,6 +35,8 @@ export const BarcodeScannerExperiment: React.FC = () => {
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
+  const [readerInstance, setReaderInstance] = useState<any>(null);
+  const [scanControls, setScanControls] = useState<any>(null);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -64,19 +63,34 @@ export const BarcodeScannerExperiment: React.FC = () => {
 
   const startScanning = async () => {
     if (!videoRef.current) return;
+    
     try {
-      setError(null); // Clear any previous errors
+      setError(null);
       setProduct(null);
       setBarcode('');
       setScanning(true);
-      if (!readerRef.current) {
-        readerRef.current = new BrowserMultiFormatReader();
-        // Configure for better barcode detection - remove the hints as they're causing issues
+      
+      // Dynamically import ZXing to avoid SSR issues
+      const { BrowserMultiFormatReader } = await import('@zxing/browser');
+      
+      if (!readerInstance) {
+        const reader = new BrowserMultiFormatReader();
+        setReaderInstance(reader);
       }
-      // Stop any previous scanning session before starting a new one
-      controlsRef.current?.stop();
+      
+      // Stop any previous scanning session
+      if (scanControls) {
+        scanControls.stop();
+      }
+      
+      // Use the current reader instance
+      const currentReader = readerInstance || new (await import('@zxing/browser')).BrowserMultiFormatReader();
+      if (!readerInstance) {
+        setReaderInstance(currentReader);
+      }
+      
       // Use improved video device scanning with better resolution
-      controlsRef.current = await readerRef.current.decodeFromVideoDevice(
+      const controls = await currentReader.decodeFromVideoDevice(
         selectedDeviceId,
         videoRef.current,
         (result, err) => {
@@ -106,6 +120,8 @@ export const BarcodeScannerExperiment: React.FC = () => {
           }
         }
       );
+      
+      setScanControls(controls);
     } catch (e) {
       console.error('Error starting scanner', e);
       toast({ title: 'Camera error', description: 'Could not access camera.', variant: 'destructive' });
@@ -115,8 +131,10 @@ export const BarcodeScannerExperiment: React.FC = () => {
 
   const stopScanning = () => {
     try {
-      controlsRef.current?.stop();
-      controlsRef.current = null;
+      if (scanControls) {
+        scanControls.stop();
+        setScanControls(null);
+      }
       setScanning(false);
     } catch {}
   };
