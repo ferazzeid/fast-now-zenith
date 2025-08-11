@@ -137,27 +137,27 @@ const Timer = () => {
   };
 
   const handleFastingStop = async () => {
-    if (!fastingSession) return;
+    if (!fastingSession?.id) {
+      console.error('No active fasting session found');
+      toast({
+        title: "Error",
+        description: "No active fasting session found.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       if (stopAction === 'cancel') {
         // Cancel fast - doesn't save to history
         await cancelFastingSession(fastingSession.id);
         trackFastingEvent('stop', fastType, timeElapsed);
-        toast({
-          title: "Fast cancelled", 
-          description: "Your fast was cancelled and removed from history."
-        });
+        // Don't show success toast - the mutation handles it
       } else {
         // Finish fast - saves to history
-        const result = await endFastingSession(fastingSession.id);
-        if (result) {
-          trackFastingEvent('stop', fastType, timeElapsed);
-          toast({
-            title: "Fast completed", 
-            description: `Great job! You fasted for ${formatTimeFasting(timeElapsed)}`
-          });
-        }
+        await endFastingSession(fastingSession.id);
+        trackFastingEvent('stop', fastType, timeElapsed);
+        // Don't show success toast - the mutation handles it
       }
     } catch (error) {
       console.error('Error stopping fasting session:', error);
