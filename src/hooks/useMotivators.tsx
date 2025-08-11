@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
@@ -27,7 +27,7 @@ export interface CreateMotivatorData {
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
   const [isFetching, setIsFetching] = useState(false);
-  const [requestId, setRequestId] = useState(0);
+  const fetchTokenRef = useRef(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
@@ -68,31 +68,40 @@ export const useMotivators = () => {
       startLoading();
     }
 
-    const currentRequestId = requestId + 1;
-    setRequestId(currentRequestId);
+    const token = fetchTokenRef.current + 1;
+    fetchTokenRef.current = token;
     setIsFetching(true);
 
     try {
-      // Add timeout to prevent hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 second timeout
-
-      const { data, error } = await supabase
+      // Build the query
+      const queryPromise = supabase
         .from('motivators')
         .select('*, image_url')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .abortSignal(controller.signal);
+        .order('created_at', { ascending: false });
 
-      clearTimeout(timeoutId);
+      // Timeout after 6s to avoid long hangs
+      const result: any = await Promise.race([
+        queryPromise,
+        new Promise((resolve) => setTimeout(() => resolve('timeout'), 6000))
+      ]);
 
       // Check if this request is still current
-      if (currentRequestId !== requestId) {
+      if (token !== fetchTokenRef.current) {
         console.log('🚫 Request superseded, ignoring result');
         return;
       }
 
+      if (result === 'timeout') {
+        console.log('⏲️ Motivators fetch timed out');
+        if (cachedMotivators && cachedMotivators.length > 0) {
+          setMotivators(cachedMotivators);
+        }
+        return;
+      }
+
+      const { data, error } = result;
       if (error) throw error;
       
       // Transform data to include imageUrl property with proper fallback
@@ -107,7 +116,7 @@ export const useMotivators = () => {
       console.log('✅ Loaded fresh motivators from API:', transformedData.length, background ? '(background)' : '');
     } catch (error: any) {
       // Check if this request is still current
-      if (currentRequestId !== requestId) {
+      if (token !== fetchTokenRef.current) {
         console.log('🚫 Error from superseded request, ignoring');
         return;
       }
@@ -118,7 +127,7 @@ export const useMotivators = () => {
       if (cachedMotivators && cachedMotivators.length > 0) {
         console.log('📦 Using cached motivators as fallback');
         setMotivators(cachedMotivators);
-      } else if (!error.name?.includes('AbortError')) {
+      } else {
         toast({
           title: "Error loading motivators",
           description: "Please check your connection and try again.",
