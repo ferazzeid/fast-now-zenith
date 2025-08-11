@@ -63,12 +63,15 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
       // Auto-populate form fields
       if (analysisResult.name) setName(analysisResult.name);
       if (analysisResult.estimated_serving_size) setServingSize(analysisResult.estimated_serving_size.toString());
-      if (analysisResult.calories_per_100g && analysisResult.estimated_serving_size) {
-        const totalCalories = Math.round((analysisResult.calories_per_100g * analysisResult.estimated_serving_size) / 100);
+      
+      // Always set calories and carbs, even if they're 0
+      if (analysisResult.estimated_serving_size) {
+        const caloriesPer100g = analysisResult.calories_per_100g || 0;
+        const totalCalories = Math.round((caloriesPer100g * analysisResult.estimated_serving_size) / 100);
         setCalories(totalCalories.toString());
-      }
-      if (analysisResult.carbs_per_100g && analysisResult.estimated_serving_size) {
-        const totalCarbs = Math.round((analysisResult.carbs_per_100g * analysisResult.estimated_serving_size) / 100);
+        
+        const carbsPer100g = analysisResult.carbs_per_100g || 0;
+        const totalCarbs = Math.round((carbsPer100g * analysisResult.estimated_serving_size) / 100);
         setCarbs(totalCarbs.toString());
       }
       
@@ -92,7 +95,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
       return;
     }
     
-    if (!calories || !carbs) {
+    if (calories === '' || carbs === '') {
       toast({ title: 'Calories and carbs are required', variant: 'destructive' });
       return;
     }
