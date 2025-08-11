@@ -35,6 +35,7 @@ const Settings = () => {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
+  const [sex, setSex] = useState('');
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
@@ -83,7 +84,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -101,6 +102,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
           setWeight(profileData.weight?.toString() || '');
           setHeight(profileData.height?.toString() || '');
           setAge(profileData.age?.toString() || '');
+          setSex(profileData.sex || '');
           setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
           setActivityLevel(profileData.activity_level || 'sedentary');
@@ -183,6 +185,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
           weight: weight ? parseFloat(weight) : null,
           height: height ? parseInt(height) : null,
           age: age ? parseInt(age) : null,
+          sex: sex || null,
           daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
           daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
           activity_level: activityLevel,
@@ -433,6 +436,20 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                           className="bg-ceramic-base border-ceramic-rim"
                         />
                       </div>
+                    </div>
+                    
+                    {/* Sex Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="sex" className="text-warm-text">Biological Sex</Label>
+                      <Select value={sex} onValueChange={setSex}>
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue placeholder="Select sex" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   
