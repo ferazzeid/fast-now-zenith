@@ -216,7 +216,7 @@ For editing foods, always search across ALL these sources to find matches by nam
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add multiple food entries to the user's food log",
+              description: "Add multiple food entries to the user's food log. CRITICAL: When users specify a COUNT of items (e.g., 'two cucumbers', 'three bananas'), create SEPARATE entries for each item. Do NOT aggregate quantities into a single entry. Only create one entry when user specifies total weight without count (e.g., '400g chicken').",
               parameters: {
                 type: "object",
                 properties: {
