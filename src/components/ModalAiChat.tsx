@@ -1070,10 +1070,10 @@ ${updatedContent}`
                   Selected: {Array.from(selectedFoodIds).reduce((sum: number, index) => {
                     const food = lastFoodSuggestion.foods[index];
                     return sum + (food?.calories || 0);
-                  }, 0)} calories, {Array.from(selectedFoodIds).reduce((sum: number, index) => {
+                  }, 0)} calories, {Math.round(Array.from(selectedFoodIds).reduce((sum: number, index) => {
                     const food = lastFoodSuggestion.foods[index];
                     return sum + (food?.carbs || 0);
-                  }, 0)}g carbs
+                  }, 0))}g carbs
                   {lastFoodSuggestion.added && (
                     <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
                   )}
@@ -1169,7 +1169,7 @@ ${updatedContent}`
                   </div>
                 ) : (
                   // Display mode
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {!lastFoodSuggestion.added && (
                       <Checkbox
                         checked={selectedFoodIds.has(index)}
@@ -1182,32 +1182,32 @@ ${updatedContent}`
                           }
                           setSelectedFoodIds(newSelected);
                         }}
-                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary shrink-0"
                       />
                     )}
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{food.name}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{food.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {food.serving_size}g • {food.calories} cal • {food.carbs}g carbs
+                        {food.serving_size}g • {food.calories} cal • {Math.round(food.carbs)}g carbs
                       </div>
                     </div>
                     {!lastFoodSuggestion.added && (
-                      <div className="flex gap-1 ml-3">
+                      <div className="flex gap-1 shrink-0">
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost" 
                           onClick={() => handleInlineEdit(index)}
-                          className="h-8 px-3 text-sm"
+                          className="h-7 w-7 p-0"
                         >
-                          Edit
+                          <Edit className="h-3 w-3" />
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost" 
                           onClick={() => handleRemoveFood(index)}
-                          className="h-8 px-3 text-sm text-destructive"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                         >
-                          Remove
+                          <X className="h-3 w-3" />
                         </Button>
                       </div>
                     )}

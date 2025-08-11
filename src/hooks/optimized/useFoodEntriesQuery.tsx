@@ -279,12 +279,43 @@ export const useFoodEntriesQuery = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      // Invalidate both queries to refresh
-      queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+    onMutate: async (id) => {
+      // PERFORMANCE: Optimistic update
+      await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
+
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => 
+          old.map(entry => 
+            entry.id === id 
+              ? { ...entry, consumed: !entry.consumed }
+              : entry
+          )
+      );
+
+      return { previousEntries };
+    },
+    onSuccess: (data) => {
+      // Show success message
+      const message = data.consumed ? "Food marked as eaten" : "Food returned to active list";
+      toast({
+        title: message,
+        description: "Food status updated successfully.",
+      });
+      
+      // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
     },
-    onError: () => {
+    onError: (err, id, context) => {
+      // Rollback on error
+      if (context?.previousEntries) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          context.previousEntries
+        );
+      }
       toast({
         title: "Error updating food entry",
         description: "Please try again.",

@@ -82,7 +82,7 @@ export const StopWalkingConfirmDialog = ({
               className="w-full h-10"
               size="default"
             >
-              Save Corrected Duration
+              Save
             </Button>
           </>
         ) : (
