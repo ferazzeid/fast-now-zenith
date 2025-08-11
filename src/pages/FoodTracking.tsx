@@ -805,6 +805,10 @@ const FoodTracking = () => {
                              </DropdownMenuItem>
                                <DropdownMenuItem
                                  onClick={async () => {
+                                   if (isInLibrary(entry.name)) {
+                                     toast({ title: 'Already in Library', description: `${entry.name} is already in your library` });
+                                     return;
+                                   }
                                    await saveToLibrary({
                                      name: entry.name,
                                      calories: entry.calories,
@@ -814,9 +818,10 @@ const FoodTracking = () => {
                                    addLibraryLocal(entry.name);
                                    toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
                                  }}
+                                 className={isInLibrary(entry.name) ? "text-muted-foreground cursor-default" : ""}
                                >
                                  <Save className="w-4 h-4 mr-2" />
-                                 Add to Library
+                                 {isInLibrary(entry.name) ? 'Already in Library' : 'Add to Library'}
                                </DropdownMenuItem>
                              <DropdownMenuItem
                                onClick={async () => {
@@ -1058,6 +1063,10 @@ const FoodTracking = () => {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={async () => {
+                                      if (isInLibrary(food.name)) {
+                                        toast({ title: 'Already in Library', description: `${food.name} is already in your library` });
+                                        return;
+                                      }
                                       await saveToLibrary({
                                         name: food.name,
                                         calories: food.calories,
@@ -1067,9 +1076,10 @@ const FoodTracking = () => {
                                       addLibraryLocal(food.name);
                                       toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
                                     }}
+                                    className={isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}
                                   >
                                     <Save className="w-4 h-4 mr-2" />
-                                    Add to Library
+                                    {isInLibrary(food.name) ? 'Already in Library' : 'Add to Library'}
                                   </DropdownMenuItem>
                                  <DropdownMenuItem 
                                    onClick={async () => {
