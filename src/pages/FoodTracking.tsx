@@ -731,7 +731,7 @@ const FoodTracking = () => {
                     {/* Entry Content - Compact */}
                     <div className="flex-1 min-w-0 relative">
                       <div className="mb-0 flex items-center gap-2 min-w-0">
-                        <h3 className={`text-sm font-semibold truncate ${
+                        <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
                           entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
                         }`}>
                           {entry.name}
@@ -970,7 +970,7 @@ const FoodTracking = () => {
                            )}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 min-w-0">
-                                <p className="font-medium truncate">{food.name}</p>
+                                <p className="font-medium truncate max-w-[180px]">{food.name}</p>
                                 {isInLibrary(food.name) && (
                                   <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
                                 )}
