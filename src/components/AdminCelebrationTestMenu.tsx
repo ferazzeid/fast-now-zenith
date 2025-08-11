@@ -16,6 +16,8 @@ interface AdminCelebrationTestMenuProps {
 export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> = ({
   isVisible = true
 }) => {
+  console.log('🎉 AdminCelebrationTestMenu render:', { isVisible });
+  
   const [isOpen, setIsOpen] = useState(false);
   const [activeCelebration, setActiveCelebration] = useState<{
     type: 'hourly' | 'completion';

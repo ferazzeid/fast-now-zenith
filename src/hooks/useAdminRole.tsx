@@ -12,6 +12,14 @@ export const useAdminRole = () => {
     profile?.display_name?.toLowerCase().includes('admin')
   );
 
+  // Debug logging to help troubleshoot admin detection
+  console.log('🔧 Admin Check:', {
+    userEmail: user?.email,
+    displayName: profile?.display_name,
+    isAdmin,
+    loading
+  });
+
   return {
     isAdmin,
     loading
