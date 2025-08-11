@@ -44,14 +44,17 @@ export const useMotivatorCache = () => {
   const shouldFetchMotivators = useCallback(() => {
     if (!user) return false;
     if (!cachedMotivators) return true;
+    // If cache exists but is empty, force a fetch to avoid "no motivators yet" stale state
+    if (Array.isArray(cachedMotivators) && cachedMotivators.length === 0) return true;
     
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetch;
     
     // Only fetch if:
     // 1. No cached data
-    // 2. Cache is expired (24 hours)
-    // 3. Tab is visible and user is active
+    // 2. Cached array is empty
+    // 3. Cache is expired (24 hours)
+    // 4. Tab is visible and user is active (every 30 min min)
     return timeSinceLastFetch > CACHE_TTL || 
            (timeSinceLastFetch > 30 * 60 * 1000 && shouldRefetch()); // 30 min minimum for active refresh
   }, [user, cachedMotivators, lastFetch, shouldRefetch]);

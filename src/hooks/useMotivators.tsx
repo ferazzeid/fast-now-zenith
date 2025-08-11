@@ -38,8 +38,8 @@ export const useMotivators = () => {
     }
 
     // Use cached data if available and not forcing refresh
-    if (!forceRefresh && cachedMotivators && !shouldFetchMotivators()) {
-      console.log('Using cached motivators, skipping API call');
+    if (!forceRefresh && Array.isArray(cachedMotivators) && cachedMotivators.length > 0 && !shouldFetchMotivators()) {
+      console.log('Using cached motivators, skipping API call', { count: cachedMotivators.length });
       setMotivators(cachedMotivators);
       stopLoading();
       return;
@@ -248,6 +248,24 @@ export const useMotivators = () => {
       loadMotivators();
     }
   }, [user?.id]); // Only depend on user.id to avoid unnecessary re-runs
+
+  // Refresh on tab visibility if needed
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const needsFetch = shouldFetchMotivators() || motivators.length === 0;
+        if (needsFetch) {
+          console.log('🔄 Visibility change: refetching motivators');
+          loadMotivators();
+        } else {
+          console.log('✅ Visibility change: cache fresh, no fetch');
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [shouldFetchMotivators, motivators.length, loadMotivators]);
 
   return {
     motivators,
