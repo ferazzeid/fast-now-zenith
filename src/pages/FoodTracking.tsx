@@ -803,6 +803,23 @@ const FoodTracking = () => {
                                <Plus className="w-4 h-4 mr-2" />
                                Duplicate Entry
                              </DropdownMenuItem>
+                              {!isInLibrary(entry.name) && (
+                                <DropdownMenuItem
+                                  onClick={async () => {
+                                    await saveToLibrary({
+                                      name: entry.name,
+                                      calories: entry.calories,
+                                      carbs: entry.carbs,
+                                      serving_size: entry.serving_size,
+                                    });
+                                    addLibraryLocal(entry.name);
+                                    toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
+                                  }}
+                                >
+                                  <Save className="w-4 h-4 mr-2" />
+                                  Add to Library
+                                </DropdownMenuItem>
+                              )}
                              {!isInLibrary(entry.name) && (
                                <DropdownMenuItem
                                  onClick={async () => {

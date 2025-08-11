@@ -833,21 +833,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             <TabsList className="grid w-full grid-cols-3 h-10 bg-muted rounded-lg p-1">
               <TabsTrigger 
                 value="my-foods" 
-                className="flex items-center justify-between gap-1 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+                className="flex items-center justify-center gap-1 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all relative"
               >
                 <span className="truncate">My Food</span>
                 {filteredUserFoods.length > 0 && (
-                  <button
+                  <span
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowDeleteAllConfirm(true);
                     }}
-                    className="w-4 h-4 text-destructive hover:text-destructive/80 transition-colors flex-shrink-0"
+                    className="absolute -top-1 -right-1 w-4 h-4 text-destructive hover:text-destructive/80 transition-colors flex-shrink-0 cursor-pointer"
                     title="Delete all foods"
                     aria-label="Delete all foods"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    <Trash2 className="w-3 h-3" />
+                  </span>
                 )}
               </TabsTrigger>
               <TabsTrigger 
