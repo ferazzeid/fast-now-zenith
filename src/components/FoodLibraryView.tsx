@@ -82,6 +82,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           loadDefaultFoodFavorites(),
           checkAdminRole()
         ]);
+      } catch (error) {
+        console.error('Error loading food library data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load food library",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -89,6 +96,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     
     if (user) {
       loadData();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 

@@ -20,11 +20,18 @@ export const useRecentFoods = () => {
   useEffect(() => {
     if (user) {
       loadRecentFoods();
+    } else {
+      setLoading(false);
+      setRecentFoods([]);
     }
   }, [user]);
 
   const loadRecentFoods = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      setRecentFoods([]);
+      return;
+    }
     
     try {
       setLoading(true);
@@ -43,7 +50,11 @@ export const useRecentFoods = () => {
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading recent foods:', error);
+        setRecentFoods([]);
+        return;
+      }
 
       // Group by food name and get most recent for each
       const foodMap = new Map<string, RecentFood>();
@@ -71,6 +82,7 @@ export const useRecentFoods = () => {
       setRecentFoods(recentArray);
     } catch (error) {
       console.error('Error loading recent foods:', error);
+      setRecentFoods([]);
     } finally {
       setLoading(false);
     }
