@@ -56,7 +56,7 @@ const FoodTracking = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [manualEntryData, setManualEntryData] = useState({
     name: '',
-    servingSize: '',
+    servingAmount: '1',
     servingUnit: 'grams',
     calories: '',
     carbs: '',
@@ -198,7 +198,7 @@ const FoodTracking = () => {
     trackFoodEvent('add', 'manual');
     setManualEntryData({
       name: '',
-      servingSize: '',
+      servingAmount: '1',
       servingUnit: 'grams',
       calories: '',
       carbs: '',
@@ -234,11 +234,11 @@ const FoodTracking = () => {
 
 
   const handleSaveManualEntry = async () => {
-    if (!manualEntryData.name.trim() || !manualEntryData.servingSize.trim()) {
+    if (!manualEntryData.name.trim() || !manualEntryData.servingAmount.trim()) {
       toast({
         variant: "destructive",
         title: "Missing required information",
-        description: "Please enter food name and serving size"
+        description: "Please enter food name and serving amount"
       });
       return;
     }
@@ -247,7 +247,7 @@ const FoodTracking = () => {
     let carbs = parseFloat(manualEntryData.carbs) || 0;
 
     // Convert serving amount to grams first
-    const servingAmount = parseFloat(manualEntryData.servingSize);
+    const servingAmount = parseFloat(manualEntryData.servingAmount);
     const servingGrams = convertToGrams(servingAmount, manualEntryData.servingUnit, manualEntryData.name);
     
     const per100gCalories = parseFloat(manualEntryData.calories) || 0;

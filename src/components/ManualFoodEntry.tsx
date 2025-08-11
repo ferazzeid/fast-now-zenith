@@ -21,7 +21,7 @@ interface ManualFoodEntryProps {
   onSave: () => void;
   data: {
     name: string;
-    servingSize: string;
+    servingAmount: string;
     servingUnit: string;
     calories: string;
     carbs: string;
@@ -93,10 +93,38 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     if (num == null || Number.isNaN(num)) {
       toast.error('Could not detect a number. Please try again.');
     } else {
-      updateField('servingSize', String(num));
-      toast.success('Serving size set from voice');
+      updateField('servingAmount', String(num));
+      toast.success('Serving amount set from voice');
     }
     setShowServingVoiceRecorder(false);
+  };
+
+  // Smart unit defaults based on food name
+  const getSmartDefaultUnit = (foodName: string): string => {
+    const name = foodName.toLowerCase();
+    if (name.includes('egg') || name.includes('apple') || name.includes('banana') || 
+        name.includes('orange') || name.includes('peach') || name.includes('pear')) {
+      return 'pieces';
+    }
+    if (name.includes('bread') || name.includes('pizza')) {
+      return 'slices';
+    }
+    if (name.includes('milk') || name.includes('water') || name.includes('juice')) {
+      return 'cups';
+    }
+    return profile?.units === 'imperial' ? 'ounces' : 'grams';
+  };
+
+  // Update unit when food name changes to a common food
+  const handleNameChange = (newName: string) => {
+    updateField('name', newName);
+    if (newName && !data.servingUnit) {
+      const smartUnit = getSmartDefaultUnit(newName);
+      const availableUnits = getServingUnitsForUser(profile?.units);
+      if (availableUnits.some(unit => unit.value === smartUnit)) {
+        updateField('servingUnit', smartUnit);
+      }
+    }
   };
 
   return (
@@ -144,7 +172,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             <Input
               id="food-name"
               value={data.name}
-              onChange={(e) => updateField('name', e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g., Grilled Chicken Breast"
               className="mt-1"
               required
@@ -153,8 +181,8 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
           <div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="serving-size" className="text-sm font-medium">
-                Serving Size <span className="text-red-500">*</span>
+              <Label htmlFor="serving-amount" className="text-sm font-medium">
+                Amount <span className="text-red-500">*</span>
               </Label>
               <PremiumGate feature="Voice Input" grayOutForFree={true}>
                 <button
@@ -169,16 +197,18 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             </div>
             <div className="flex gap-2 mt-1">
               <Input
-                id="serving-size"
+                id="serving-amount"
                 type="number"
-                value={data.servingSize}
-                onChange={(e) => updateField('servingSize', e.target.value)}
-                placeholder="e.g., 2"
+                value={data.servingAmount}
+                onChange={(e) => updateField('servingAmount', e.target.value)}
+                placeholder="1"
                 className="flex-1"
+                min="0.1"
+                step="0.1"
                 required
               />
               <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -190,6 +220,12 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                 </SelectContent>
               </Select>
             </div>
+            {/* Show conversion preview */}
+            {data.servingAmount && data.servingUnit && data.name && (
+              <div className="text-xs text-muted-foreground mt-1">
+                ≈ {Math.round(convertToGrams(parseFloat(data.servingAmount) || 1, data.servingUnit, data.name))}g
+              </div>
+            )}
           </div>
         </div>
 
@@ -210,7 +246,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="calories" className="text-sm font-medium">
-                  Calories (100g) <span className="text-red-500">*</span>
+                  Calories (per 100{profile?.units === 'imperial' ? 'oz' : 'g'}) <span className="text-red-500">*</span>
                 </Label>
                 <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                   <button
@@ -242,7 +278,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="carbs" className="text-sm font-medium">
-                  Carbs (100g) <span className="text-red-500">*</span>
+                  Carbs (per 100{profile?.units === 'imperial' ? 'oz' : 'g'}) <span className="text-red-500">*</span>
                 </Label>
                 <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                   <button
@@ -300,7 +336,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
             <div className="text-center mb-4">
               <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
-              <p className="text-sm text-muted-foreground">Speak the serving size (e.g., 150)</p>
+              <p className="text-sm text-muted-foreground">Speak the serving amount (e.g., 2, 1.5)</p>
             </div>
             <div className="space-y-4">
               <div className="flex justify-center">

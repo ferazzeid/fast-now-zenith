@@ -4,6 +4,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
 import { generate_image } from '@/utils/imageGeneration';
@@ -11,6 +12,8 @@ import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { extractNumber } from '@/utils/voiceParsing';
+import { useProfile } from '@/hooks/useProfile';
+import { getServingUnitsForUser, convertToGrams, getUnitDisplayName } from '@/utils/foodConversions';
 
 // Unified interfaces for both types
 interface FoodEntry {
@@ -67,7 +70,8 @@ export const UnifiedFoodEditModal = ({
       ? (food?.carbs_per_100g?.toString() || '') 
       : (entry?.carbs?.toString() || '')
   );
-  const [servingSize, setServingSize] = useState(entry?.serving_size?.toString() || '');
+  const [servingAmount, setServingAmount] = useState('1');
+  const [servingUnit, setServingUnit] = useState('pieces');
   const [imageUrl, setImageUrl] = useState(currentItem?.image_url || '');
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
@@ -77,14 +81,18 @@ export const UnifiedFoodEditModal = ({
       : ''
   );
   const { toast } = useToast();
+  const { profile } = useProfile();
+  
+  // Get available units based on user's preference
+  const availableUnits = getServingUnitsForUser(profile?.units || 'metric');
 
   const handleSave = async () => {
     if (!name || !calories || !carbs) {
       toast({ variant: 'destructive', title: 'Missing information', description: 'Please fill in all required fields' });
       return;
     }
-    if (!isLibraryMode && !servingSize) {
-      toast({ variant: 'destructive', title: 'Missing serving size', description: 'Please enter a serving size' });
+    if (!isLibraryMode && (!servingAmount || parseFloat(servingAmount) <= 0)) {
+      toast({ variant: 'destructive', title: 'Missing serving amount', description: 'Please enter a valid serving amount' });
       return;
     }
 
@@ -99,7 +107,7 @@ export const UnifiedFoodEditModal = ({
         name,
         calories: parseFloat(calories),
         carbs: parseFloat(carbs),
-        serving_size: parseFloat(servingSize),
+        serving_size: convertToGrams(parseFloat(servingAmount), servingUnit, name),
         image_url: imageUrl || null
       };
 
@@ -126,7 +134,8 @@ export const UnifiedFoodEditModal = ({
         ? (food?.carbs_per_100g?.toString() || '') 
         : (entry?.carbs?.toString() || '')
     );
-    setServingSize(entry?.serving_size?.toString() || '');
+    setServingAmount('1');
+    setServingUnit('pieces');
     setImageUrl(currentItem.image_url || '');
     if (currentItem.image_url && currentItem.name) {
       setCurrentPrompt(`High-quality photo of ${currentItem.name} on a white background, clean food photography, well-lit, appetizing`);
@@ -202,10 +211,37 @@ export const UnifiedFoodEditModal = ({
     if (num == null || Number.isNaN(num)) {
       toast({ variant: 'destructive', title: 'Voice input', description: 'Could not detect a number. Please try again.' });
     } else {
-      setServingSize(String(num));
-      toast({ title: 'Serving size set', description: 'Updated from voice input.' });
+      setServingAmount(String(num));
+      toast({ title: 'Serving amount set', description: 'Updated from voice input.' });
     }
     setShowServingVoiceRecorder(false);
+  };
+
+  // Smart unit defaults based on food name
+  const getSmartDefaultUnit = (foodName: string): string => {
+    const name = foodName.toLowerCase();
+    if (name.includes('egg') || name.includes('apple') || name.includes('banana') || 
+        name.includes('orange') || name.includes('peach') || name.includes('pear')) {
+      return 'pieces';
+    }
+    if (name.includes('bread') || name.includes('pizza')) {
+      return 'slices';
+    }
+    if (name.includes('milk') || name.includes('water') || name.includes('juice')) {
+      return 'cups';
+    }
+    return profile?.units === 'imperial' ? 'ounces' : 'grams';
+  };
+
+  // Update unit when food name changes to a common food
+  const handleNameChange = (newName: string) => {
+    setName(newName);
+    if (newName && !isLibraryMode) {
+      const smartUnit = getSmartDefaultUnit(newName);
+      if (availableUnits.some(unit => unit.value === smartUnit)) {
+        setServingUnit(smartUnit);
+      }
+    }
   };
 
   if (!currentItem) return null;
@@ -253,31 +289,72 @@ export const UnifiedFoodEditModal = ({
         }
       >
         <div className="space-y-4">
-          {/* Food Name and Serving Size - Two columns when serving size is needed */}
+          {/* Food Name and Serving Amount/Unit - Two columns when serving is needed */}
           {!isLibraryMode ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Food Name</Label>
-                <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Apple, Chicken Breast" />
+                <Input 
+                  id="edit-name" 
+                  value={name} 
+                  onChange={(e) => handleNameChange(e.target.value)} 
+                  placeholder="e.g., Apple, Chicken Breast" 
+                />
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="edit-serving">Serving Size (g)</Label>
-                  <button
-                    onClick={() => setShowServingVoiceRecorder(true)}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
-                    aria-label="Voice input for serving size"
-                  >
-                    <Mic className="w-3 h-3 mx-auto" />
-                  </button>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="edit-amount">Amount</Label>
+                    <button
+                      onClick={() => setShowServingVoiceRecorder(true)}
+                      className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                      aria-label="Voice input for serving amount"
+                    >
+                      <Mic className="w-3 h-3 mx-auto" />
+                    </button>
+                  </div>
+                  <Input 
+                    id="edit-amount" 
+                    type="number" 
+                    value={servingAmount} 
+                    onChange={(e) => setServingAmount(e.target.value)} 
+                    placeholder="1" 
+                    min="0.1"
+                    step="0.1"
+                  />
                 </div>
-                <Input id="edit-serving" type="number" value={servingSize} onChange={(e) => setServingSize(e.target.value)} placeholder="100" />
+                <div className="space-y-2">
+                  <Label htmlFor="edit-unit">Unit</Label>
+                  <Select value={servingUnit} onValueChange={setServingUnit}>
+                    <SelectTrigger id="edit-unit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(unit => (
+                        <SelectItem key={unit.value} value={unit.value}>
+                          {getUnitDisplayName(unit.value)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {/* Show conversion preview */}
+              {servingAmount && servingUnit && name && (
+                <div className="text-xs text-muted-foreground">
+                  ≈ {Math.round(convertToGrams(parseFloat(servingAmount) || 1, servingUnit, name))}g
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
               <Label htmlFor="edit-name">Food Name</Label>
-              <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Apple, Chicken Breast" />
+              <Input 
+                id="edit-name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                placeholder="e.g., Apple, Chicken Breast" 
+              />
             </div>
           )}
 
@@ -288,7 +365,12 @@ export const UnifiedFoodEditModal = ({
               <Input id="edit-calories" type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder={isLibraryMode ? 'per 100g' : 'per serving'} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-carbs">{isLibraryMode ? 'Carbs per 100g (g)' : 'Carbs (g)'}</Label>
+              <Label htmlFor="edit-carbs">
+                {isLibraryMode 
+                  ? `Carbs per 100${profile?.units === 'imperial' ? 'oz' : 'g'}` 
+                  : `Carbs (${profile?.units === 'imperial' ? 'oz' : 'g'})`
+                }
+              </Label>
               <Input id="edit-carbs" type="number" value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder={isLibraryMode ? 'grams per 100g' : 'grams'} />
             </div>
           </div>
@@ -320,7 +402,7 @@ export const UnifiedFoodEditModal = ({
           <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
             <div className="text-center mb-4">
               <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
-              <p className="text-sm text-muted-foreground">Speak the serving size (e.g., 150)</p>
+              <p className="text-sm text-muted-foreground">Speak the serving amount (e.g., 2, 1.5)</p>
             </div>
             <div className="space-y-4">
               <div className="flex justify-center">

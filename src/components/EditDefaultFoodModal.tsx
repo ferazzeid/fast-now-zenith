@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { RegenerateImageButton } from './RegenerateImageButton';
 import { ImageUpload } from './ImageUpload';
 import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from '@/hooks/useProfile';
 
 interface DefaultFood {
   id: string;
@@ -33,6 +34,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const { toast } = useToast();
+  const { profile } = useProfile();
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -261,7 +263,9 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="calories">Calories (per 100g)</Label>
+              <Label htmlFor="calories">
+                Calories (per 100{profile?.units === 'imperial' ? 'oz' : 'g'})
+              </Label>
               <Input
                 id="calories"
                 type="number"
@@ -274,7 +278,9 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="carbs">Carbs (per 100g)</Label>
+              <Label htmlFor="carbs">
+                Carbs (per 100{profile?.units === 'imperial' ? 'oz' : 'g'})
+              </Label>
               <Input
                 id="carbs"
                 type="number"
