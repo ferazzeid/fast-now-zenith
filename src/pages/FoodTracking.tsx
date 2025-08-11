@@ -770,11 +770,39 @@ const FoodTracking = () => {
                                <MoreVertical className="w-4 h-4 text-primary" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit Entry
-                            </DropdownMenuItem>
+                           <DropdownMenuContent align="end" className="w-44">
+                             <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
+                               <Edit className="w-4 h-4 mr-2" />
+                               Edit Entry
+                             </DropdownMenuItem>
+                             <DropdownMenuItem
+                               onClick={async () => {
+                                 const result = await addFoodEntry({
+                                   name: entry.name,
+                                   calories: entry.calories,
+                                   carbs: entry.carbs,
+                                   serving_size: entry.serving_size,
+                                   consumed: false,
+                                   image_url: entry.image_url
+                                 });
+                                 
+                                 if (!result || 'error' in result) {
+                                   toast({
+                                     variant: "destructive",
+                                     title: "Error",
+                                     description: "Failed to duplicate entry"
+                                   });
+                                 } else {
+                                   toast({
+                                     title: "Entry duplicated",
+                                     description: `${entry.name} has been duplicated`
+                                   });
+                                 }
+                               }}
+                             >
+                               <Plus className="w-4 h-4 mr-2" />
+                               Duplicate Entry
+                             </DropdownMenuItem>
                              {!isInLibrary(entry.name) && (
                                <DropdownMenuItem
                                  onClick={async () => {
@@ -964,39 +992,72 @@ const FoodTracking = () => {
                                    <MoreVertical className="w-4 h-4 text-primary" />
                                 </Button>
                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end" className="w-48">
-                                 <DropdownMenuItem 
-                                   onClick={async () => {
-                                     // Add template item to today's plan
-                                     const result = await addFoodEntry({
-                                       name: food.name,
-                                       calories: food.calories,
-                                       carbs: food.carbs,
-                                       serving_size: food.serving_size,
-                                       consumed: false
-                                     });
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuItem 
+                                    onClick={async () => {
+                                      // Add template item to today's plan
+                                      const result = await addFoodEntry({
+                                        name: food.name,
+                                        calories: food.calories,
+                                        carbs: food.carbs,
+                                        serving_size: food.serving_size,
+                                        consumed: false
+                                      });
 
-                                     if (!result || 'error' in result) {
-                                       toast({
-                                         variant: "destructive",
-                                         title: "Error",
-                                         description: "Failed to add to today's plan"
-                                       });
-                                     } else {
-                                       toast({
-                                         title: "Added to Today's Plan",
-                                         description: `${food.name} added to today's food plan`
-                                       });
-                                     }
-                                   }}
-                                 >
-                                   <Plus className="w-4 h-4 mr-2" />
-                                   Add to Today's Plan
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={() => setEditingEntry(food)}>
-                                   <Edit className="w-4 h-4 mr-2" />
-                                   Edit Template Item
-                                 </DropdownMenuItem>
+                                      if (!result || 'error' in result) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: "Failed to add to today's plan"
+                                        });
+                                      } else {
+                                        toast({
+                                          title: "Added to Today's Plan",
+                                          description: `${food.name} added to today's food plan`
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add to Today's Plan
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      // Duplicate template item in the template
+                                      try {
+                                        await supabase
+                                          .from('daily_food_templates')
+                                          .insert({
+                                            user_id: user?.id,
+                                            name: food.name,
+                                            calories: food.calories,
+                                            carbs: food.carbs,
+                                            serving_size: food.serving_size,
+                                            image_url: food.image_url,
+                                            sort_order: templateFoods.length
+                                          });
+                                        
+                                        await loadTemplate();
+                                        toast({
+                                          title: "Template item duplicated",
+                                          description: `${food.name} has been duplicated in template`
+                                        });
+                                      } catch (error) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: "Failed to duplicate template item"
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Duplicate Entry
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setEditingEntry(food)}>
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Edit Template Item
+                                  </DropdownMenuItem>
                                  {!isInLibrary(food.name) && (
                                    <DropdownMenuItem
                                      onClick={async () => {
