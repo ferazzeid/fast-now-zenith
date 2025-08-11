@@ -16,8 +16,8 @@ export const useAdminGoalIdeas = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const loadGoalIdeas = async () => {
-    console.log('🔄 Loading admin goal ideas...');
+  const loadGoalIdeas = async (retryCount = 0) => {
+    console.log('🔄 Loading admin goal ideas...', retryCount > 0 ? `(retry ${retryCount})` : '');
     try {
       const { data, error } = await supabase
         .from('shared_settings')
@@ -27,6 +27,20 @@ export const useAdminGoalIdeas = () => {
 
       if (error) {
         console.error('Admin Goal Ideas Database error:', error);
+        
+        // Retry on network errors up to 3 times with backoff
+        if (error.message?.includes('Failed to fetch') && retryCount < 3) {
+          const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+          console.log(`⏳ Retrying in ${delay}ms...`);
+          setTimeout(() => loadGoalIdeas(retryCount + 1), delay);
+          return;
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Connection Error",
+          description: "Failed to load motivator ideas. Please check your connection and try again."
+        });
         setGoalIdeas([]);
         setLoading(false);
         return;
@@ -41,6 +55,11 @@ export const useAdminGoalIdeas = () => {
           setGoalIdeas(validIdeas.map(idea => ({ ...idea })));
         } catch (parseError) {
           console.error('Error parsing admin goal ideas:', parseError);
+          toast({
+            variant: "destructive",
+            title: "Data Error",
+            description: "Failed to parse motivator ideas data."
+          });
           setGoalIdeas([]);
         }
       } else {
@@ -49,9 +68,27 @@ export const useAdminGoalIdeas = () => {
       }
     } catch (error) {
       console.error('Error loading admin goal ideas:', error);
+      
+      // Retry on network errors
+      if (error.message?.includes('Failed to fetch') && retryCount < 3) {
+        const delay = Math.pow(2, retryCount) * 1000;
+        console.log(`⏳ Retrying in ${delay}ms...`);
+        setTimeout(() => loadGoalIdeas(retryCount + 1), delay);
+        return;
+      }
+      
+      toast({
+        variant: "destructive", 
+        title: "Connection Error",
+        description: "Failed to load motivator ideas. Please check your connection and try again."
+      });
       setGoalIdeas([]);
     } finally {
-      setLoading(false);
+      if (retryCount >= 3) {
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
