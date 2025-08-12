@@ -191,9 +191,16 @@ export const useFastingSessionQuery = () => {
   // PERFORMANCE: Optimistic end fasting session mutation
   const endSessionMutation = useMutation({
     mutationFn: async (sessionId: string): Promise<FastingSession> => {
-      if (!user) throw new Error('User not authenticated');
+      console.log('🎯 Starting endSessionMutation with sessionId:', sessionId);
+      console.log('🎯 User:', user);
+      
+      if (!user) {
+        console.error('🎯 Error: User not authenticated');
+        throw new Error('User not authenticated');
+      }
 
       // Fetch the current session by ID (do not rely on cache here)
+      console.log('🎯 Fetching session from database...');
       const { data: session, error: fetchError } = await supabase
         .from('fasting_sessions')
         .select('id, user_id, start_time, goal_duration_seconds')
@@ -201,8 +208,16 @@ export const useFastingSessionQuery = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
-      if (!session) throw new Error('No active session found');
+      console.log('🎯 Fetch result:', { session, fetchError });
+
+      if (fetchError) {
+        console.error('🎯 Fetch error:', fetchError);
+        throw fetchError;
+      }
+      if (!session) {
+        console.error('🎯 Error: No active session found');
+        throw new Error('No active session found');
+      }
 
       const now = new Date();
       const startTime = new Date(session.start_time);
@@ -211,6 +226,12 @@ export const useFastingSessionQuery = () => {
       // Determine status based on whether goal was reached
       const goalDurationSeconds = session.goal_duration_seconds || 0;
       const status = actualDurationSeconds >= goalDurationSeconds ? 'completed' : 'incomplete';
+
+      console.log('🎯 Updating session with:', {
+        end_time: now.toISOString(),
+        duration_seconds: actualDurationSeconds,
+        status,
+      });
 
       const { data, error } = await supabase
         .from('fasting_sessions')
@@ -224,7 +245,12 @@ export const useFastingSessionQuery = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('🎯 Update result:', { data, error });
+
+      if (error) {
+        console.error('🎯 Update error:', error);
+        throw error;
+      }
       return data;
     },
 
