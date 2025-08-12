@@ -194,7 +194,37 @@ export const useFoodEntriesQuery = () => {
         throw new Error('User not authenticated');
       }
 
-      console.log('🍽️ Updating food entry in database...');
+      console.log('🍽️ Current user ID:', user.id);
+
+      // First, let's check if the food entry exists and belongs to this user
+      console.log('🍽️ Checking if food entry exists...');
+      const { data: existingEntry, error: checkError } = await supabase
+        .from('food_entries')
+        .select('id, user_id, name')
+        .eq('id', id)
+        .maybeSingle();
+
+      console.log('🍽️ Existing entry check:', { existingEntry, checkError });
+
+      if (checkError) {
+        console.error('🍽️ Error checking existing entry:', checkError);
+        throw new Error(`Failed to check existing entry: ${checkError.message}`);
+      }
+
+      if (!existingEntry) {
+        console.error('🍽️ Food entry not found in database');
+        throw new Error('Food entry not found');
+      }
+
+      if (existingEntry.user_id !== user.id) {
+        console.error('🍽️ User ID mismatch:', { 
+          entryUserId: existingEntry.user_id, 
+          currentUserId: user.id 
+        });
+        throw new Error('Permission denied - entry belongs to different user');
+      }
+
+      console.log('🍽️ Food entry found and belongs to user, proceeding with update...');
       const { data, error } = await supabase
         .from('food_entries')
         .update(updates)
@@ -211,9 +241,10 @@ export const useFoodEntriesQuery = () => {
       }
       
       if (!data) {
-        console.error('🍽️ No food entry found to update');
-        throw new Error('Food entry not found or permission denied');
+        console.error('🍽️ No data returned from update');
+        throw new Error('Update failed - no data returned');
       }
+
       return data;
     },
     onSuccess: (data) => {
