@@ -1038,13 +1038,14 @@ const FoodTracking = () => {
                                   <DropdownMenuItem 
                                     onClick={async () => {
                                       // Add template item to today's plan
-                                      const result = await addFoodEntry({
-                                        name: food.name,
-                                        calories: food.calories,
-                                        carbs: food.carbs,
-                                        serving_size: food.serving_size,
-                                        consumed: false
-                                      });
+                                       const result = await addFoodEntry({
+                                         name: food.name,
+                                         calories: food.calories,
+                                         carbs: food.carbs,
+                                         serving_size: food.serving_size,
+                                         image_url: food.image_url, // ✅ Include the image URL
+                                         consumed: false
+                                       });
 
                                       if (!result || 'error' in result) {
                                         toast({
