@@ -431,6 +431,9 @@ const FoodTracking = () => {
       // Auto-close library view
       setShowLibraryView(false);
       
+      // Ensure we stay on today's tab when adding from library
+      setActiveTab('today');
+      
       // Save to personal library if not already there (for default foods)
       await saveToLibrary({
         name: food.name,

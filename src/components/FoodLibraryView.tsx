@@ -189,6 +189,46 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }, 1000);
   };
 
+  const handleAddToTemplate = async (food: UserFood | DefaultFood) => {
+    if (!user) return;
+    
+    console.log('🍽️ FoodLibrary - handleAddToTemplate called with:', food);
+    
+    try {
+      const { data, error } = await supabase
+        .from('daily_food_templates')
+        .insert({
+          user_id: user.id,
+          name: food.name,
+          calories: food.calories_per_100g,
+          carbs: food.carbs_per_100g,
+          serving_size: 100,
+          image_url: food.image_url
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('🍽️ FoodLibrary - handleAddToTemplate error:', error);
+        throw error;
+      }
+
+      console.log('🍽️ FoodLibrary - handleAddToTemplate success:', data);
+      
+      toast({
+        title: "Added to templates",
+        description: `${food.name} has been added to your daily templates`,
+      });
+    } catch (error) {
+      console.error('🍽️ FoodLibrary - handleAddToTemplate failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add food to templates"
+      });
+    }
+  };
+
   const importToMyLibrary = async (defaultFood: DefaultFood) => {
     if (!user) return;
     
@@ -689,16 +729,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Add to template functionality would go here
-                            toast({
-                              title: "Feature Coming Soon",
-                              description: "Add to template functionality will be available soon"
-                            });
+                            handleAddToTemplate(food as UserFood);
                           }}
                           className="cursor-pointer"
                         >
                           <Save className="w-4 h-4 mr-2" />
-                          Add to Template
+                          Add to Daily Templates
                         </DropdownMenuItem>
                         {/* Only show Edit option for user foods and admin for default foods */}
                         {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
@@ -736,20 +772,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           <Plus className="w-4 h-4 mr-2" />
                           Add to Today
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Add to template functionality would go here
-                            toast({
-                              title: "Feature Coming Soon",
-                              description: "Add to template functionality will be available soon"
-                            });
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Save className="w-4 h-4 mr-2" />
-                          Add to Template
-                        </DropdownMenuItem>
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleAddToTemplate(food as UserFood);
+                           }}
+                           className="cursor-pointer"
+                         >
+                           <Save className="w-4 h-4 mr-2" />
+                           Add to Templates
+                         </DropdownMenuItem>
                          <DropdownMenuItem
                            onClick={(e) => {
                              e.stopPropagation();
