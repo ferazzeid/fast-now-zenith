@@ -187,8 +187,14 @@ export const useFoodEntriesQuery = () => {
   // PERFORMANCE: Optimistic update food entry mutation
   const updateFoodEntryMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<NewFoodEntry> }) => {
-      if (!user) throw new Error('User not authenticated');
+      console.log('🍽️ Starting updateFoodEntryMutation with:', { id, updates });
+      
+      if (!user) {
+        console.error('🍽️ Error: User not authenticated');
+        throw new Error('User not authenticated');
+      }
 
+      console.log('🍽️ Updating food entry in database...');
       const { data, error } = await supabase
         .from('food_entries')
         .update(updates)
@@ -197,18 +203,25 @@ export const useFoodEntriesQuery = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('🍽️ Update result:', { data, error });
+
+      if (error) {
+        console.error('🍽️ Database error:', error);
+        throw error;
+      }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🍽️ Update successful:', data);
       // Invalidate both queries to refresh
       queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('🍽️ Update mutation error:', error);
       toast({
         title: "Error updating food entry",
-        description: "Please try again.",
+        description: `Database error: ${error.message || 'Please try again.'}`,
         variant: "destructive",
       });
     },

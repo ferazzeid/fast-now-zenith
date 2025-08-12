@@ -111,11 +111,17 @@ export const UnifiedFoodEditModal = ({
         image_url: imageUrl || null
       };
 
+      console.log('🎭 UnifiedFoodEditModal handleSave - calling onUpdate with:', { id: currentItem!.id, updates });
       await onUpdate(currentItem!.id, updates);
       toast({ title: isLibraryMode ? 'Food updated' : 'Entry updated', description: isLibraryMode ? 'Food has been updated in your library' : 'Food entry has been updated successfully' });
       setOpen(false);
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: isLibraryMode ? 'Failed to update food in library' : 'Failed to update food entry' });
+      console.error('🎭 UnifiedFoodEditModal handleSave error:', error);
+      toast({ 
+        variant: 'destructive', 
+        title: 'Error', 
+        description: `${isLibraryMode ? 'Failed to update food in library' : 'Failed to update food entry'}: ${error.message || 'Unknown error'}` 
+      });
     } finally {
       setLoading(false);
     }
