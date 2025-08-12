@@ -385,7 +385,23 @@ export const UnifiedFoodEditModal = ({
             {/* Image Upload with AI generation */}
             <ImageUpload
               currentImageUrl={imageUrl}
-              onImageUpload={setImageUrl}
+              onImageUpload={async (url) => {
+                setImageUrl(url);
+                // Immediately save the image URL to the database
+                if (currentItem?.id) {
+                  try {
+                    await onUpdate(currentItem.id, { image_url: url });
+                    toast({ title: "✅ Image Saved", description: "Image has been saved automatically!" });
+                  } catch (error) {
+                    console.error('Failed to save image URL:', error);
+                    toast({ 
+                      variant: "destructive", 
+                      title: "❌ Save Failed", 
+                      description: "Image uploaded but failed to save. Please click Save to retry." 
+                    });
+                  }
+                }
+              }}
               onImageRemove={() => {
                 setImageUrl('');
                 // Update the database immediately to remove the image
