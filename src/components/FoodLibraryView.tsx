@@ -226,22 +226,36 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const toggleFavorite = async (foodId: string, currentFavorite: boolean) => {
+    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { foodId, currentFavorite });
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_foods')
         .update({ is_favorite: !currentFavorite })
         .eq('id', foodId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('🍽️ FoodLibrary - toggleFavorite error:', error);
+        throw error;
+      }
 
-      setFoods(foods.map(food => 
+      console.log('🍽️ FoodLibrary - toggleFavorite success:', data);
+
+      // Use functional state update to avoid stale closure
+      setFoods(prevFoods => prevFoods.map(food => 
         food.id === foodId 
           ? { ...food, is_favorite: !currentFavorite }
           : food
       ));
     } catch (error) {
-      console.error('Error updating favorite:', error);
+      console.error('🍽️ FoodLibrary - toggleFavorite failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update favorite status"
+      });
     }
   };
 
@@ -286,43 +300,73 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const updateFood = async (foodId: string, updates: Partial<UserFood>) => {
+    console.log('🍽️ FoodLibrary - updateFood called with:', { foodId, updates });
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_foods')
         .update(updates)
         .eq('id', foodId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('🍽️ FoodLibrary - updateFood error:', error);
+        throw error;
+      }
 
-      setFoods(foods.map(food => 
+      console.log('🍽️ FoodLibrary - updateFood success:', data);
+
+      // Use functional state update to avoid stale closure
+      setFoods(prevFoods => prevFoods.map(food => 
         food.id === foodId 
           ? { ...food, ...updates }
           : food
       ));
+
+      console.log('🍽️ FoodLibrary - food updated in local state');
     } catch (error) {
-      console.error('Error updating food:', error);
+      console.error('🍽️ FoodLibrary - updateFood failed:', error);
       throw error;
     }
   };
 
   const deleteFood = async (foodId: string) => {
+    console.log('🍽️ FoodLibrary - deleteFood called with:', { foodId });
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_foods')
         .delete()
         .eq('id', foodId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('🍽️ FoodLibrary - deleteFood error:', error);
+        throw error;
+      }
 
-      setFoods(foods.filter(food => food.id !== foodId));
+      if (!data || data.length === 0) {
+        console.warn('🍽️ FoodLibrary - No rows were deleted');
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Food not found or already deleted"
+        });
+        return;
+      }
+
+      console.log('🍽️ FoodLibrary - deleteFood success:', data);
+
+      // Use functional state update to avoid stale closure
+      setFoods(prevFoods => prevFoods.filter(food => food.id !== foodId));
+      
       toast({
         title: "Food removed",
         description: "Food has been removed from your library"
       });
     } catch (error) {
-      console.error('Error deleting food:', error);
+      console.error('🍽️ FoodLibrary - deleteFood failed:', error);
       toast({
         title: "Error",
         description: "Failed to remove food",
