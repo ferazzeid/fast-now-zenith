@@ -33,13 +33,16 @@ export const useDailyFoodTemplate = () => {
   const { loading, startLoading, stopLoading } = useLoadingManager('daily-template');
 
   const loadTemplate = useCallback(async () => {
+    console.log('🍽️ loadTemplate called, user:', user?.id);
     if (!user) {
+      console.log('🍽️ No user, stopping loading');
       stopLoading();
       return;
     }
     
     startLoading();
     try {
+      console.log('🍽️ Fetching daily food templates for user:', user.id);
       const result = await executeWithRetry(async () => {
         return await supabase
           .from('daily_food_templates')
@@ -50,12 +53,14 @@ export const useDailyFoodTemplate = () => {
       });
       
       const { data, error } = result;
+      console.log('🍽️ Template fetch result:', { data, error, count: data?.length });
 
       if (error) throw error;
 
       setTemplateFoods(data || []);
+      console.log('🍽️ Template foods set:', data?.length || 0, 'items');
     } catch (error) {
-      console.error('Error loading daily food template:', error);
+      console.error('🍽️ Error loading daily food template:', error);
     } finally {
       stopLoading();
     }
@@ -72,11 +77,17 @@ export const useDailyFoodTemplate = () => {
 
     startLoading();
     try {
+      console.log('🍽️ Saving template - clearing existing for user:', user.id);
       // Clear existing template
-      await supabase
+      const { error: deleteError } = await supabase
         .from('daily_food_templates')
         .delete()
         .eq('user_id', user.id);
+
+      if (deleteError) {
+        console.error('🍽️ Error clearing existing template:', deleteError);
+        throw deleteError;
+      }
 
       // Insert new template foods
       const templateData = foodEntries.map((entry, index) => ({
@@ -85,16 +96,21 @@ export const useDailyFoodTemplate = () => {
         sort_order: index
       }));
 
+      console.log('🍽️ Inserting template data:', templateData);
       const { error } = await supabase
         .from('daily_food_templates')
         .insert(templateData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('🍽️ Error inserting template data:', error);
+        throw error;
+      }
 
+      console.log('🍽️ Template saved successfully, reloading...');
       await loadTemplate();
       return { error: null };
     } catch (error: any) {
-      console.error('Error saving daily template:', error);
+      console.error('🍽️ Error saving daily template:', error);
       return { error };
     } finally {
       stopLoading();

@@ -65,12 +65,18 @@ export const useFoodEntriesQuery = () => {
   const foodEntriesQuery = useQuery({
     queryKey: foodEntriesQueryKey(user?.id || null, today),
     queryFn: async (): Promise<FoodEntry[]> => {
-      if (!user) return [];
+      console.log('🍽️ foodEntriesQuery queryFn - user:', user?.id);
+      if (!user) {
+        console.log('🍽️ No user authenticated, returning empty array');
+        return [];
+      }
       
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
+
+      console.log('🍽️ Fetching food entries from', today.toISOString(), 'to', tomorrow.toISOString(), 'for user:', user.id);
 
       const { data, error } = await supabase
         .from('food_entries')
@@ -80,6 +86,8 @@ export const useFoodEntriesQuery = () => {
         .lt('created_at', tomorrow.toISOString())
         .order('consumed', { ascending: true })
         .order('created_at', { ascending: false });
+
+      console.log('🍽️ Food entries query result:', { data, error, userCalling: user.id, count: data?.length });
 
       if (error) throw error;
       return data || [];
