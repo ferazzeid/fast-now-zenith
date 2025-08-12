@@ -1035,64 +1035,86 @@ const FoodTracking = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-48">
-                                  <DropdownMenuItem 
-                                    onClick={async () => {
-                                      // Add template item to today's plan
-                                       const result = await addFoodEntry({
-                                         name: food.name,
-                                         calories: food.calories,
-                                         carbs: food.carbs,
-                                         serving_size: food.serving_size,
-                                         image_url: food.image_url, // ✅ Include the image URL
-                                         consumed: false
-                                       });
+                                   <DropdownMenuItem 
+                                     onClick={async () => {
+                                       console.log('➕ Add to today clicked for:', { id: food.id, name: food.name });
+                                       try {
+                                         // Add template item to today's plan
+                                         const result = await addFoodEntry({
+                                           name: food.name,
+                                           calories: food.calories,
+                                           carbs: food.carbs,
+                                           serving_size: food.serving_size,
+                                           image_url: food.image_url, // ✅ Include the image URL
+                                           consumed: false
+                                         });
 
-                                      if (!result || 'error' in result) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: "Failed to add to today's plan"
-                                        });
-                                      } else {
-                                        toast({
-                                          title: "Added to Today's Plan",
-                                          description: `${food.name} added to today's food plan`
-                                        });
-                                      }
-                                    }}
+                                         if (!result || 'error' in result) {
+                                           console.error('➕ Failed to add to today:', result);
+                                           toast({
+                                             variant: "destructive",
+                                             title: "Error",
+                                             description: "Failed to add to today's plan"
+                                           });
+                                         } else {
+                                           console.log('➕ Successfully added to today:', result);
+                                           toast({
+                                             title: "Added to Today's Plan",
+                                             description: `${food.name} added to today's food plan`
+                                           });
+                                         }
+                                       } catch (error) {
+                                         console.error('➕ Exception adding to today:', error);
+                                         toast({
+                                           variant: "destructive",
+                                           title: "Error",
+                                           description: `Failed to add to today's plan: ${error.message || 'Unknown error'}`
+                                         });
+                                       }
+                                     }}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
                                     Add to Today's Plan
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={async () => {
-                                      // Duplicate template item in the template
-                                      try {
-                                        await supabase
-                                          .from('daily_food_templates')
-                                          .insert({
-                                            user_id: user?.id,
-                                            name: food.name,
-                                            calories: food.calories,
-                                            carbs: food.carbs,
-                                            serving_size: food.serving_size,
-                                            image_url: food.image_url,
-                                            sort_order: templateFoods.length
-                                          });
-                                        
-                                        await loadTemplate();
-                                        toast({
-                                          title: "Template item duplicated",
-                                          description: `${food.name} has been duplicated in template`
-                                        });
-                                      } catch (error) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: "Failed to duplicate template item"
-                                        });
-                                      }
-                                    }}
+                                   <DropdownMenuItem
+                                     onClick={async () => {
+                                       console.log('📋 Duplicate template item clicked for:', { id: food.id, name: food.name });
+                                       try {
+                                         // Duplicate template item in the template
+                                         const { data, error } = await supabase
+                                           .from('daily_food_templates')
+                                           .insert({
+                                             user_id: user?.id,
+                                             name: food.name,
+                                             calories: food.calories,
+                                             carbs: food.carbs,
+                                             serving_size: food.serving_size,
+                                             image_url: food.image_url,
+                                             sort_order: templateFoods.length
+                                           })
+                                           .select(); // Return inserted row to confirm
+                                         
+                                         if (error) {
+                                           console.error('📋 Duplicate error:', error);
+                                           throw error;
+                                         }
+                                         
+                                         console.log('📋 Successfully duplicated:', data);
+                                         
+                                         await loadTemplate();
+                                         toast({
+                                           title: "Template item duplicated",
+                                           description: `${food.name} has been duplicated in template`
+                                         });
+                                       } catch (error) {
+                                         console.error('📋 Duplicate failed:', error);
+                                         toast({
+                                           variant: "destructive",
+                                           title: "Error",
+                                           description: `Failed to duplicate template item: ${error.message || 'Unknown error'}`
+                                         });
+                                       }
+                                     }}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
                                     Duplicate Entry
@@ -1121,29 +1143,60 @@ const FoodTracking = () => {
                                     <Save className="w-4 h-4 mr-2" />
                                     {isInLibrary(food.name) ? 'Already in Library' : 'Add to Library'}
                                   </DropdownMenuItem>
-                                 <DropdownMenuItem 
-                                   onClick={async () => {
-                                     try {
-                                       await supabase
-                                         .from('daily_food_templates')
-                                         .delete()
-                                         .eq('id', food.id);
-                                       // Refresh template
+                                  <DropdownMenuItem 
+                                    onClick={async () => {
+                                      console.log('🗑️ Delete template item clicked for:', { id: food.id, name: food.name });
+                                      try {
+                                        console.log('🗑️ Attempting to delete template item with ID:', food.id);
+                                        
+                                        const { data, error } = await supabase
+                                          .from('daily_food_templates')
+                                          .delete()
+                                          .eq('id', food.id)
+                                          .eq('user_id', user?.id) // Add user_id check for safety
+                                          .select(); // Return deleted rows to confirm
+                                        
+                                        console.log('🗑️ Delete result:', { data, error });
+                                        
+                                        if (error) {
+                                          console.error('🗑️ Delete error:', error);
+                                          throw error;
+                                        }
+                                        
+                                        if (!data || data.length === 0) {
+                                          console.warn('🗑️ No rows were deleted');
+                                          toast({
+                                            variant: "destructive",
+                                            title: "Error",
+                                            description: "Template item not found or already deleted"
+                                          });
+                                          return;
+                                        }
+                                        
+                                        console.log('🗑️ Successfully deleted:', data);
+                                        
+                                        // Refresh template data
+                                        console.log('🗑️ Refreshing template data...');
                                         await loadTemplate();
+                                        
                                         // Also refresh today's food entries since they might be affected
                                         await refreshFoodEntries();
-                                       toast({
-                                         title: "Template item deleted",
-                                         description: "Item removed from daily template"
-                                       });
-                                     } catch (error) {
-                                       toast({
-                                         variant: "destructive",
-                                         title: "Error",
-                                         description: "Failed to delete template item"
-                                       });
-                                     }
-                                   }}
+                                        
+                                        console.log('🗑️ Template refresh complete');
+                                        
+                                        toast({
+                                          title: "Template item deleted",
+                                          description: `${food.name} removed from daily template`
+                                        });
+                                      } catch (error) {
+                                        console.error('🗑️ Delete failed:', error);
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: `Failed to delete template item: ${error.message || 'Unknown error'}`
+                                        });
+                                      }
+                                    }}
                                   className="text-destructive focus:text-destructive"
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
