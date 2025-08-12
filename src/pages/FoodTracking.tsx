@@ -673,7 +673,15 @@ const FoodTracking = () => {
         {/* Daily Food Plan System with Tabs - Remove white container */}
         <div className="mb-6 space-y-3">
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={(value) => {
+            console.log('🍽️ Tab changed to:', value);
+            setActiveTab(value);
+            // Force refresh template data when switching to template tab
+            if (value === 'template') {
+              console.log('🍽️ Switching to template tab, refreshing template data...');
+              loadTemplate();
+            }
+          }} className="w-full">
             <TabsList className="grid w-full grid-cols-2 p-1">
               <TabsTrigger value="today" className="text-sm relative">
                 Today's Plan
@@ -825,45 +833,57 @@ const FoodTracking = () => {
                                </DropdownMenuItem>
                              <DropdownMenuItem
                                onClick={async () => {
-                                 try {
-                                   // Use the same format as other template entries
-                                   const foodsToSave = [{
-                                     name: entry.name,
-                                     calories: entry.calories,
-                                     carbs: entry.carbs,
-                                     serving_size: entry.serving_size,
-                                   }];
-                                   
-                                   // Get existing template foods and append new one
-                                   const existingFoods = templateFoods.map(f => ({
-                                     name: f.name,
-                                     calories: f.calories,
-                                     carbs: f.carbs,
-                                     serving_size: f.serving_size,
-                                   }));
-                                   
-                                   const allFoods = [...existingFoods, ...foodsToSave];
-                                   const { error } = await saveTemplate(allFoods);
-                                   
-                                   if (error) {
-                                     toast({ 
-                                       title: 'Error', 
-                                       description: 'Failed to add to template',
-                                       variant: 'destructive'
-                                     });
-                                   } else {
-                                     toast({ 
-                                       title: 'Added to Template', 
-                                       description: `${entry.name} added to your daily template` 
-                                     });
-                                   }
-                                 } catch (error) {
-                                   toast({ 
-                                     title: 'Error', 
-                                     description: 'Failed to add to template',
-                                     variant: 'destructive'
-                                   });
-                                 }
+                                  try {
+                                    console.log('🍽️ Adding entry to template:', entry.name);
+                                    
+                                    // Use the same format as other template entries
+                                    const foodsToSave = [{
+                                      name: entry.name,
+                                      calories: entry.calories,
+                                      carbs: entry.carbs,
+                                      serving_size: entry.serving_size,
+                                      image_url: entry.image_url,
+                                    }];
+                                    
+                                    // Get existing template foods and append new one
+                                    const existingFoods = templateFoods.map(f => ({
+                                      name: f.name,
+                                      calories: f.calories,
+                                      carbs: f.carbs,
+                                      serving_size: f.serving_size,
+                                      image_url: f.image_url,
+                                    }));
+                                    
+                                    console.log('🍽️ Existing template foods:', existingFoods.length);
+                                    console.log('🍽️ Adding foods:', foodsToSave);
+                                    
+                                    const allFoods = [...existingFoods, ...foodsToSave];
+                                    console.log('🍽️ Total foods to save:', allFoods.length);
+                                    
+                                    const { error } = await saveTemplate(allFoods);
+                                    
+                                    if (error) {
+                                      console.error('🍽️ Error saving template:', error);
+                                      toast({ 
+                                        title: 'Error', 
+                                        description: 'Failed to add to template',
+                                        variant: 'destructive'
+                                      });
+                                    } else {
+                                      console.log('🍽️ Successfully added to template');
+                                      toast({ 
+                                        title: 'Added to Template', 
+                                        description: `${entry.name} added to your daily template` 
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error('🍽️ Exception adding to template:', error);
+                                    toast({ 
+                                      title: 'Error', 
+                                      description: 'Failed to add to template',
+                                      variant: 'destructive'
+                                    });
+                                  }
                                }}
                              >
                                <Plus className="w-4 h-4 mr-2" />
