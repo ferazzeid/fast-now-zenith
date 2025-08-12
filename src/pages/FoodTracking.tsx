@@ -993,8 +993,11 @@ const FoodTracking = () => {
                       </div>
                     </div>
                     <div className="space-y-1">
-                     {templateFoods.map((food) => (
-                       <div key={food.id} className="flex items-center justify-between p-2 bg-muted/20 border-0 rounded-lg">
+                      {templateFoods.map((food) => {
+                        // Create a stable food ID reference to avoid stale closures
+                        const foodId = food.id;
+                        return (
+                        <div key={food.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors">
                           <div className="flex items-center space-x-2">
                            {food.image_url ? (
                              <img
@@ -1037,15 +1040,26 @@ const FoodTracking = () => {
                                 <DropdownMenuContent align="end" className="w-48">
                                    <DropdownMenuItem 
                                      onClick={async () => {
-                                       console.log('➕ Add to today clicked for:', { id: food.id, name: food.name });
+                                       // Get fresh food data to avoid stale closures
+                                       const currentFood = templateFoods.find(f => f.id === foodId);
+                                       if (!currentFood) {
+                                         toast({
+                                           variant: "destructive",
+                                           title: "Error",
+                                           description: "Food item not found"
+                                         });
+                                         return;
+                                       }
+                                       
+                                       console.log('➕ Add to today clicked for:', { id: currentFood.id, name: currentFood.name });
                                        try {
                                          // Add template item to today's plan
                                          const result = await addFoodEntry({
-                                           name: food.name,
-                                           calories: food.calories,
-                                           carbs: food.carbs,
-                                           serving_size: food.serving_size,
-                                           image_url: food.image_url, // ✅ Include the image URL
+                                           name: currentFood.name,
+                                           calories: currentFood.calories,
+                                           carbs: currentFood.carbs,
+                                           serving_size: currentFood.serving_size,
+                                           image_url: currentFood.image_url, // ✅ Include the image URL
                                            consumed: false
                                          });
 
@@ -1060,7 +1074,7 @@ const FoodTracking = () => {
                                            console.log('➕ Successfully added to today:', result);
                                            toast({
                                              title: "Added to Today's Plan",
-                                             description: `${food.name} added to today's food plan`
+                                             description: `${currentFood.name} added to today's food plan`
                                            });
                                          }
                                        } catch (error) {
@@ -1078,18 +1092,29 @@ const FoodTracking = () => {
                                   </DropdownMenuItem>
                                    <DropdownMenuItem
                                      onClick={async () => {
-                                       console.log('📋 Duplicate template item clicked for:', { id: food.id, name: food.name });
+                                       // Get fresh food data to avoid stale closures
+                                       const currentFood = templateFoods.find(f => f.id === foodId);
+                                       if (!currentFood) {
+                                         toast({
+                                           variant: "destructive",
+                                           title: "Error",
+                                           description: "Food item not found"
+                                         });
+                                         return;
+                                       }
+                                       
+                                       console.log('📋 Duplicate template item clicked for:', { id: currentFood.id, name: currentFood.name });
                                        try {
                                          // Duplicate template item in the template
                                          const { data, error } = await supabase
                                            .from('daily_food_templates')
                                            .insert({
                                              user_id: user?.id,
-                                             name: food.name,
-                                             calories: food.calories,
-                                             carbs: food.carbs,
-                                             serving_size: food.serving_size,
-                                             image_url: food.image_url,
+                                             name: currentFood.name,
+                                             calories: currentFood.calories,
+                                             carbs: currentFood.carbs,
+                                             serving_size: currentFood.serving_size,
+                                             image_url: currentFood.image_url,
                                              sort_order: templateFoods.length
                                            })
                                            .select(); // Return inserted row to confirm
@@ -1104,7 +1129,7 @@ const FoodTracking = () => {
                                          await loadTemplate();
                                          toast({
                                            title: "Template item duplicated",
-                                           description: `${food.name} has been duplicated in template`
+                                           description: `${currentFood.name} has been duplicated in template`
                                          });
                                        } catch (error) {
                                          console.error('📋 Duplicate failed:', error);
@@ -1119,40 +1144,68 @@ const FoodTracking = () => {
                                     <Plus className="w-4 h-4 mr-2" />
                                     Duplicate Entry
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setEditingEntry(food)}>
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit Template Item
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={async () => {
-                                      if (isInLibrary(food.name)) {
-                                        toast({ title: 'Already in Library', description: `${food.name} is already in your library` });
-                                        return;
-                                      }
-                                      await saveToLibrary({
-                                        name: food.name,
-                                        calories: food.calories,
-                                        carbs: food.carbs,
-                                        serving_size: food.serving_size,
-                                      });
-                                      addLibraryLocal(food.name);
-                                      toast({ title: 'Saved to Library', description: `${food.name} added to your library` });
-                                    }}
-                                    className={isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}
+                                   <DropdownMenuItem onClick={() => {
+                                     // Get fresh food data to avoid stale closures
+                                     const currentFood = templateFoods.find(f => f.id === foodId);
+                                     if (currentFood) {
+                                       setEditingEntry(currentFood);
+                                     }
+                                   }}>
+                                     <Edit className="w-4 h-4 mr-2" />
+                                     Edit Template Item
+                                   </DropdownMenuItem>
+                                   <DropdownMenuItem
+                                     onClick={async () => {
+                                       // Get fresh food data to avoid stale closures
+                                       const currentFood = templateFoods.find(f => f.id === foodId);
+                                       if (!currentFood) {
+                                         toast({
+                                           variant: "destructive", 
+                                           title: "Error",
+                                           description: "Food item not found"
+                                         });
+                                         return;
+                                       }
+                                       
+                                       if (isInLibrary(currentFood.name)) {
+                                         toast({ title: 'Already in Library', description: `${currentFood.name} is already in your library` });
+                                         return;
+                                       }
+                                       await saveToLibrary({
+                                         name: currentFood.name,
+                                         calories: currentFood.calories,
+                                         carbs: currentFood.carbs,
+                                         serving_size: currentFood.serving_size,
+                                       });
+                                       addLibraryLocal(currentFood.name);
+                                       toast({ title: 'Saved to Library', description: `${currentFood.name} added to your library` });
+                                     }}
+                                     className={isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}
                                   >
                                     <Save className="w-4 h-4 mr-2" />
                                     {isInLibrary(food.name) ? 'Already in Library' : 'Add to Library'}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     onClick={async () => {
-                                      console.log('🗑️ Delete template item clicked for:', { id: food.id, name: food.name });
+                                      // Get fresh food data to avoid stale closures
+                                      const currentFood = templateFoods.find(f => f.id === foodId);
+                                      if (!currentFood) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error", 
+                                          description: "Food item not found"
+                                        });
+                                        return;
+                                      }
+                                      
+                                      console.log('🗑️ Delete template item clicked for:', { id: currentFood.id, name: currentFood.name });
                                       try {
-                                        console.log('🗑️ Attempting to delete template item with ID:', food.id);
+                                        console.log('🗑️ Attempting to delete template item with ID:', currentFood.id);
                                         
                                         const { data, error } = await supabase
                                           .from('daily_food_templates')
                                           .delete()
-                                          .eq('id', food.id)
+                                          .eq('id', currentFood.id)
                                           .eq('user_id', user?.id) // Add user_id check for safety
                                           .select(); // Return deleted rows to confirm
                                         
@@ -1186,7 +1239,7 @@ const FoodTracking = () => {
                                         
                                         toast({
                                           title: "Template item deleted",
-                                          description: `${food.name} removed from daily template`
+                                          description: `${currentFood.name} removed from daily template`
                                         });
                                       } catch (error) {
                                         console.error('🗑️ Delete failed:', error);
@@ -1205,8 +1258,9 @@ const FoodTracking = () => {
                               </DropdownMenuContent>
                            </DropdownMenu>
                          </div>
-                       </div>
-                     ))}
+                        </div>
+                        )
+                      })}
                    </div>
                 </>
               ) : (
