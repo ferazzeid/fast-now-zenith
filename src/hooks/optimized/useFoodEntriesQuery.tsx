@@ -201,13 +201,18 @@ export const useFoodEntriesQuery = () => {
         .eq('id', id)
         .eq('user_id', user.id)
         .select()
-        .single();
+        .maybeSingle();
 
       console.log('🍽️ Update result:', { data, error });
 
       if (error) {
         console.error('🍽️ Database error:', error);
         throw error;
+      }
+      
+      if (!data) {
+        console.error('🍽️ No food entry found to update');
+        throw new Error('Food entry not found or permission denied');
       }
       return data;
     },
