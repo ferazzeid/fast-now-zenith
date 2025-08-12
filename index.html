@@ -37,6 +37,16 @@
     <!-- Dynamic Favicon -->
     <link id="dynamic-favicon" rel="icon" href="https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/favicon-512.png" type="image/png">
     <link id="dynamic-shortcut-icon" rel="shortcut icon" href="https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/favicon-512.png" type="image/png">
+    <!-- Prevent theme flash -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>

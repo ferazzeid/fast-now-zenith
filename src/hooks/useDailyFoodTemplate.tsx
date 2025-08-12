@@ -72,28 +72,33 @@ export const useDailyFoodTemplate = () => {
     carbs: number;
     serving_size: number;
     image_url?: string;
-  }>) => {
+  }>, appendMode = false) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
     startLoading();
     try {
-      console.log('🍽️ Saving template - clearing existing for user:', user.id);
-      // Clear existing template
-      const { error: deleteError } = await supabase
-        .from('daily_food_templates')
-        .delete()
-        .eq('user_id', user.id);
+      if (!appendMode) {
+        console.log('🍽️ Saving template - clearing existing for user:', user.id);
+        // Clear existing template
+        const { error: deleteError } = await supabase
+          .from('daily_food_templates')
+          .delete()
+          .eq('user_id', user.id);
 
-      if (deleteError) {
-        console.error('🍽️ Error clearing existing template:', deleteError);
-        throw deleteError;
+        if (deleteError) {
+          console.error('🍽️ Error clearing existing template:', deleteError);
+          throw deleteError;
+        }
+      } else {
+        console.log('🍽️ Appending to existing template for user:', user.id);
       }
 
       // Insert new template foods
+      const currentSortOrder = appendMode ? templateFoods.length : 0;
       const templateData = foodEntries.map((entry, index) => ({
         ...entry,
         user_id: user.id,
-        sort_order: index
+        sort_order: currentSortOrder + index
       }));
 
       console.log('🍽️ Inserting template data:', templateData);
@@ -115,7 +120,7 @@ export const useDailyFoodTemplate = () => {
     } finally {
       stopLoading();
     }
-  }, [user, loadTemplate, startLoading, stopLoading]);
+  }, [user, loadTemplate, startLoading, stopLoading, templateFoods.length]);
 
   const clearTemplate = useCallback(async () => {
     if (!user) return { error: { message: 'User not authenticated' } };
@@ -177,10 +182,22 @@ export const useDailyFoodTemplate = () => {
     loadTemplate();
   }, [loadTemplate]);
 
+  // Add to template (append mode)
+  const addToTemplate = useCallback(async (foodEntries: {
+    name: string;
+    calories: number;
+    carbs: number;
+    serving_size: number;
+    image_url?: string;
+  }[]) => {
+    return await saveAsTemplate(foodEntries, true);
+  }, [saveAsTemplate]);
+
   return {
     templateFoods,
     loading,
     saveAsTemplate,
+    addToTemplate,
     clearTemplate,
     applyTemplate,
     loadTemplate

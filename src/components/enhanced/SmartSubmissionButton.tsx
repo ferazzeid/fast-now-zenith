@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface SmartSubmissionButtonProps {
   onSubmit: () => Promise<void>;
@@ -23,6 +24,7 @@ export const SmartSubmissionButton = ({
   loadingText = "Submitting..."
 }: SmartSubmissionButtonProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async () => {
     if (isSubmitting || disabled) return;
@@ -32,6 +34,11 @@ export const SmartSubmissionButton = ({
       await onSubmit();
     } catch (error) {
       console.error('Submission error:', error);
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: error?.message || "An error occurred while submitting. Please try again."
+      });
     } finally {
       setIsSubmitting(false);
     }

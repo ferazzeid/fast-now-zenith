@@ -75,7 +75,7 @@ const FoodTracking = () => {
   const { profile, updateProfile } = useProfile();
   const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
-  const { templateFoods, saveAsTemplate: saveTemplate, clearTemplate, applyTemplate, loadTemplate, loading: templateLoading } = useDailyFoodTemplate();
+  const { templateFoods, saveAsTemplate: saveTemplate, addToTemplate, clearTemplate, applyTemplate, loadTemplate, loading: templateLoading } = useDailyFoodTemplate();
   const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
 
   const handleVoiceFood = async () => {
@@ -442,9 +442,41 @@ const FoodTracking = () => {
   };
 
   const handleUpdateFoodEntry = async (id: string, updates: any) => {
-    const result = await updateFoodEntry({ id, updates });
-    if (!result || 'error' in result) {
-      throw new Error("Failed to update food entry");
+    console.log('🍽️ FoodTracking - handleUpdateFoodEntry called with:', { id, updates });
+    
+    // Determine if this is a template or food entry by checking which list contains the ID
+    const isTemplateItem = templateFoods.some(food => food.id === id);
+    const isTodayItem = todayEntries.some(entry => entry.id === id);
+    
+    console.log('🍽️ Item context check:', { id, isTemplateItem, isTodayItem });
+    
+    if (isTemplateItem) {
+      console.log('🍽️ Updating template item via direct Supabase call');
+      const { data, error } = await supabase
+        .from('daily_food_templates')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user?.id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('🍽️ Template update error:', error);
+        throw new Error("Failed to update template item");
+      }
+      
+      // Refresh template data
+      await loadTemplate();
+      console.log('🍽️ Template item updated successfully');
+    } else if (isTodayItem) {
+      console.log('🍽️ Updating today food entry via mutation');
+      const result = await updateFoodEntry({ id, updates });
+      if (!result || 'error' in result) {
+        throw new Error("Failed to update food entry");
+      }
+    } else {
+      console.error('🍽️ Item not found in any context');
+      throw new Error('Food item not found in current context');
     }
   };
 
@@ -845,22 +877,9 @@ const FoodTracking = () => {
                                       image_url: entry.image_url,
                                     }];
                                     
-                                    // Get existing template foods and append new one
-                                    const existingFoods = templateFoods.map(f => ({
-                                      name: f.name,
-                                      calories: f.calories,
-                                      carbs: f.carbs,
-                                      serving_size: f.serving_size,
-                                      image_url: f.image_url,
-                                    }));
-                                    
-                                    console.log('🍽️ Existing template foods:', existingFoods.length);
-                                    console.log('🍽️ Adding foods:', foodsToSave);
-                                    
-                                    const allFoods = [...existingFoods, ...foodsToSave];
-                                    console.log('🍽️ Total foods to save:', allFoods.length);
-                                    
-                                    const { error } = await saveTemplate(allFoods);
+                                     console.log('🍽️ Adding foods:', foodsToSave);
+                                     
+                                     const { error } = await addToTemplate(foodsToSave);
                                     
                                     if (error) {
                                       console.error('🍽️ Error saving template:', error);
