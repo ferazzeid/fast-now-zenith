@@ -1041,8 +1041,9 @@ const FoodTracking = () => {
       <UniversalModal
         isOpen={showLibraryView}
         onClose={() => setShowLibraryView(false)}
-        title="Food Library"
-        size="lg"
+        title=""
+        size="xl"
+        variant="fullscreen"
       >
         <FoodLibraryView onSelectFood={() => {}} onBack={() => setShowLibraryView(false)} />
       </UniversalModal>
