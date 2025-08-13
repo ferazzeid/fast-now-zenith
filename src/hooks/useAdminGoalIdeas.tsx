@@ -7,7 +7,6 @@ export interface AdminGoalIdea {
   title: string;
   description: string;
   category: string;
-  gender: 'male' | 'female';
   imageUrl?: string;
 }
 

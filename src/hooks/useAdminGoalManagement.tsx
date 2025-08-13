@@ -54,7 +54,6 @@ export const useAdminGoalManagement = () => {
         title: motivator.title,
         description: motivator.content || '',
         category: motivator.category || 'personal',
-        gender: 'male', // Default to male when adding from motivator
         imageUrl: motivator.imageUrl
       };
 
