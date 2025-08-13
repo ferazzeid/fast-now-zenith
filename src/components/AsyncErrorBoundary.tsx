@@ -13,7 +13,7 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
 
   useEffect(() => {
     // Handle unhandled promise rejections
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    const handleUnhandledRejection = async (event: PromiseRejectionEvent) => {
       const reason = String(event.reason);
       
       // Ignore browser extension errors that aren't from our app
@@ -24,6 +24,50 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
           reason.includes('MetaMask') ||
           reason.includes('connect to MetaMask')) {
         console.log('Ignoring browser extension error:', reason);
+        event.preventDefault();
+        return;
+      }
+      
+      // Handle IndexedDB VersionError automatically
+      if (event.reason?.name === 'VersionError' || reason.includes('VersionError')) {
+        console.log('VersionError detected - clearing IndexedDB');
+        
+        try {
+          // Clear IndexedDB databases
+          if ('indexedDB' in window) {
+            const databases = await indexedDB.databases();
+            await Promise.all(
+              databases.map(db => {
+                if (db.name) {
+                  return new Promise<void>((resolve, reject) => {
+                    const deleteReq = indexedDB.deleteDatabase(db.name!);
+                    deleteReq.onsuccess = () => resolve();
+                    deleteReq.onerror = () => reject(deleteReq.error);
+                  });
+                }
+              })
+            );
+          }
+          
+          toast({
+            title: "Database updated",
+            description: "Fixed version conflict. Please refresh the page.",
+          });
+          
+          // Auto-refresh after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+          
+        } catch (clearError) {
+          console.error('Failed to clear IndexedDB:', clearError);
+          toast({
+            title: "Database issue detected",
+            description: "Please clear your browser cache or try refreshing.",
+            variant: "destructive",
+          });
+        }
+        
         event.preventDefault();
         return;
       }
