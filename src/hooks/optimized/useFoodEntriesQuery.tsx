@@ -255,13 +255,38 @@ export const useFoodEntriesQuery = () => {
 
       return data;
     },
+    onMutate: async ({ id, updates }) => {
+      // PERFORMANCE: Optimistic update
+      await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
+
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => 
+          old.map(entry => 
+            entry.id === id 
+              ? { ...entry, ...updates }
+              : entry
+          )
+      );
+
+      return { previousEntries };
+    },
     onSuccess: (data) => {
       console.log('🍽️ Update successful:', data);
       // Invalidate both queries to refresh
       queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousEntries) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          context.previousEntries
+        );
+      }
       console.error('🍽️ Update mutation error:', error);
       toast({
         title: "Error updating food entry",

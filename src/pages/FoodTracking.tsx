@@ -64,7 +64,7 @@ const FoodTracking = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { profile, updateProfile } = useProfile();
-  const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, refreshFoodEntries } = useFoodEntriesQuery();
+  const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { 
     templateFoods, 
@@ -173,11 +173,7 @@ const FoodTracking = () => {
   };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
-    await updateFoodEntry({ id: entryId, updates: { consumed } });
-    toast({
-      title: consumed ? "Marked as eaten" : "Marked as not eaten",
-      description: consumed ? "Food entry marked as consumed" : "Food entry marked as not consumed"
-    });
+    await toggleConsumption(entryId);
   };
 
   const handleDeleteFoodEntry = async (entryId: string) => {
