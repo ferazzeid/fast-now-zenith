@@ -252,8 +252,8 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="border-b border-border py-4 px-0">
+      <Card className="w-full max-w-md mx-auto max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="border-b border-border py-4 px-0 flex-shrink-0">
           <div className="flex justify-between items-center px-6">
             <CardTitle className="text-lg font-semibold">Food History</CardTitle>
             <div className="flex gap-2">
@@ -294,7 +294,7 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
             </div>
           </div>
         </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
         {dailySummaries.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-muted-foreground">No food entries found</div>
