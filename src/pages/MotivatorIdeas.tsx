@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/usePageSEO';
-import { useToast } from '@/hooks/use-toast';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useMotivators } from '@/hooks/useMotivators';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
-import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Plus, ArrowLeft, Heart, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MotivatorIdeas() {
   usePageSEO({
@@ -21,48 +23,45 @@ export default function MotivatorIdeas() {
     canonicalPath: '/motivator-ideas',
   });
 
+  const { goalIdeas, loading: goalIdeasLoading, forceRefresh } = useAdminGoalIdeas();
+  const { removeFromDefaultGoals, updateDefaultGoal } = useAdminGoalManagement();
+  const { createMotivator } = useMotivators();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas();
-  const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
-  const { createMotivator } = useMotivators();
-
-  const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  
+  const [expandedGoals, setExpandedGoals] = useState<Set<string>>(new Set());
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
 
+  // Force refresh on mount
   useEffect(() => {
-    const checkAdminRole = async () => {
-      try {
-        const { data: auth } = await supabase.auth.getUser();
-        const uid = auth?.user?.id;
-        if (!uid) return;
-        const { data, error } = await supabase.rpc('has_role', { _user_id: uid, _role: 'admin' });
-        if (error) throw error;
-        setIsAdmin(!!data);
-      } catch (e) {
-        setIsAdmin(false);
-      }
-    };
-    checkAdminRole();
-  }, []);
-
-  useEffect(() => {
-    console.log('🔄 Force refreshing goal ideas on page load...');
     forceRefresh();
-  }, []); // Empty dependency array to run only once on mount
+  }, [forceRefresh]);
 
   const handleAdd = async (goal: AdminGoalIdea) => {
+    console.log('📝 Adding goal idea to personal motivators:', goal.title);
     try {
-      await createMotivator({
+      const motivator = {
+        id: crypto.randomUUID(),
         title: goal.title,
-        content: goal.description || '',
-        category: 'personal',
+        content: goal.description,
+        category: goal.category || 'personal',
         imageUrl: goal.imageUrl || undefined,
+      };
+
+      await createMotivator(motivator);
+      
+      toast({
+        title: "Goal Added",
+        description: `"${goal.title}" has been added to your personal goals.`,
       });
-      toast({ title: '✅ Added to My Goals', description: 'The motivator was added successfully.' });
-    } catch (e) {
-      toast({ title: 'Error', description: 'Failed to add motivator.', variant: 'destructive' });
+    } catch (error) {
+      console.error('❌ Error adding goal idea:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add goal idea to your personal goals.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -72,167 +71,255 @@ export default function MotivatorIdeas() {
 
   const handleSaveEdit = async (updatedGoal: AdminGoalIdea) => {
     try {
-      console.log('Saving edit with data:', updatedGoal);
-      const success = await updateDefaultGoal(updatedGoal.id, {
-        title: updatedGoal.title,
-        content: updatedGoal.description,
-        imageUrl: updatedGoal.imageUrl,
-      });
+      const success = await updateDefaultGoal(updatedGoal.id, updatedGoal);
       if (success) {
-        console.log('✅ Update successful, force refreshing ideas...');
-        setEditingGoal(null);
-        toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        // Force complete refresh using the new trigger mechanism
+        toast({
+          title: "Goal Updated",
+          description: "Goal idea has been updated successfully.",
+        });
         forceRefresh();
-      } else {
-        throw new Error('Update failed');
       }
-    } catch (e) {
-      console.error('Update error:', e);
-      toast({ title: 'Error', description: 'Failed to update idea.', variant: 'destructive' });
+    } catch (error) {
+      console.error('❌ Error updating goal idea:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update goal idea.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleDelete = async (goalId: string) => {
-    const ok = await removeFromDefaultGoals(goalId);
-    if (ok) {
-      toast({ title: 'Removed', description: 'Idea removed from defaults.' });
-      forceRefresh();
+    try {
+      const success = await removeFromDefaultGoals(goalId);
+      if (success) {
+        toast({
+          title: "Goal Deleted",
+          description: "Goal idea has been removed from the default list.",
+        });
+        forceRefresh();
+      }
+    } catch (error) {
+      console.error('❌ Error deleting goal idea:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete goal idea.",
+        variant: "destructive",
+      });
     }
   };
 
-  return (
-    <div className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
-      <header className="flex items-center gap-3 mb-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <h1 className="text-xl font-bold text-warm-text">Motivator Ideas</h1>
-      </header>
+  const toggleExpanded = (goalId: string) => {
+    const newExpanded = new Set(expandedGoals);
+    if (newExpanded.has(goalId)) {
+      newExpanded.delete(goalId);
+    } else {
+      newExpanded.add(goalId);
+    }
+    setExpandedGoals(newExpanded);
+  };
 
-      <main>
-        {loading ? (
-          <div className="space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="p-3 border border-ceramic-rim rounded-lg">
-                <div className="space-y-2">
-                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                  <div className="h-3 bg-muted animate-pulse rounded w-full" />
-                  <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-                  <div className="h-5 bg-muted animate-pulse rounded w-16" />
-                </div>
-              </div>
+  if (goalIdeasLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-ceramic-base to-stone-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-8 w-16" />
+                    </div>
+                    <Skeleton className="h-12 w-12 rounded" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-8 w-24" />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        ) : goalIdeas.length === 0 ? (
-          <section className="text-center py-10">
-            <Lightbulb className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground">No motivator ideas found</p>
-          </section>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-ceramic-base to-stone-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate('/')}
+            className="hover:bg-ceramic-rim"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold text-warm-text">Motivator Ideas</h1>
+        </div>
+
+        {goalIdeas.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Plus className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-warm-text">No Motivator Ideas Yet</h3>
+              <p className="text-muted-foreground max-w-md">
+                {isAdmin 
+                  ? "Start by creating some motivator ideas that users can add to their goals."
+                  : "Ask an admin to add some goal ideas for inspiration!"
+                }
+              </p>
+            </div>
+          </div>
         ) : (
-          <section className="space-y-3" aria-label="Motivator ideas list">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {goalIdeas.map((goal) => {
-              const isExpanded = expandedGoal === goal.id;
-              const shouldShowExpandButton = goal.description && goal.description.length > 50;
-
+              const isExpanded = expandedGoals.has(goal.id);
+              
               return (
-                <Card key={goal.id} className="overflow-hidden relative">
-                  <CardContent className="p-0">
-                    <div className="flex">
-                      <div className="w-32 h-32 flex-shrink-0">
-                        <MotivatorImageWithFallback src={goal.imageUrl} alt={goal.title} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 p-4 pr-2">
-                        <div className="flex items-start justify-between h-full">
-                          <div className="flex-1 space-y-1">
-                            <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
-                            {goal.description && (
-                              <div className="text-sm text-muted-foreground">
-                                {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{goal.description}</p>}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-2 ml-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button size="sm" onClick={() => handleAdd(goal)} className="p-1 h-6 w-6 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground" aria-label="Add to my goals">
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Add this motivator to your goals</p>
-                              </TooltipContent>
-                            </Tooltip>
-
-                            {isAdmin && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button size="sm" variant="ghost" onClick={() => handleEdit(goal)} className="p-1 h-6 w-6 rounded-md hover:bg-ceramic-base text-muted-foreground hover:text-warm-text" aria-label="Edit idea">
-                                    <Edit className="w-3 h-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Edit this idea (Admin)</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-
-                            {isAdmin && (
-                              <AlertDialog>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <AlertDialogTrigger asChild>
-                                      <Button size="sm" variant="ghost" disabled={adminLoading} className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive" aria-label="Delete idea">
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Remove from default goals (Admin)</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Remove Default Goal</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to remove "{goal.title}" from the default goal ideas? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDelete(goal.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                      Remove
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {shouldShowExpandButton && (
-                      <div className="absolute bottom-2 right-2">
+                <Card key={goal.id} className="overflow-hidden border-ceramic-rim transition-all duration-200 hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-warm-text text-sm">
+                        {goal.title}
+                        {isAdmin && (
+                          <span className="ml-1 text-xs">
+                            {goal.gender === 'male' ? '🔵' : '🔴'}
+                          </span>
+                        )}
+                      </h3>
+                      <div className="flex gap-1 ml-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button size="sm" variant="ghost" onClick={() => setExpandedGoal(isExpanded ? null : goal.id)} className="h-6 w-6 p-0 rounded-full hover:bg-muted/10" aria-label={isExpanded ? 'Show less' : 'Show full description'}>
-                              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAdd(goal);
+                              }}
+                              className="h-7 w-7 p-0 hover:bg-primary/10"
+                            >
+                              <Heart className="h-3 w-3 text-primary" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
+                            <p>Add to My Goals</p>
                           </TooltipContent>
                         </Tooltip>
+
+                        {isAdmin && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(goal);
+                                  }}
+                                  className="h-7 w-7 p-0 hover:bg-primary/10"
+                                >
+                                  <Edit className="h-3 w-3 text-primary" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit Goal</p>
+                              </TooltipContent>
+                            </Tooltip>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="h-7 w-7 p-0 hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Goal Idea</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{goal.title}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete(goal.id)}
+                                    className="bg-destructive hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        )}
                       </div>
-                    )}
+                    </div>
+
+                    <div className="space-y-3">
+                      {goal.imageUrl && (
+                        <div className="w-12 h-12">
+                          <MotivatorImageWithFallback
+                            src={goal.imageUrl}
+                            alt={goal.title}
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <p className={`text-xs text-muted-foreground leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}>
+                          {goal.description}
+                        </p>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleExpanded(goal.id)}
+                          className="h-6 px-2 text-xs text-muted-foreground hover:text-warm-text"
+                        >
+                          {isExpanded ? (
+                            <>
+                              <ChevronDown className="w-3 h-3 mr-1" />
+                              Show less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronRight className="w-3 h-3 mr-1" />
+                              Show more
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                        {goal.category}
+                      </Badge>
+                    </div>
                   </CardContent>
                 </Card>
               );
             })}
-          </section>
+          </div>
         )}
-      </main>
+      </div>
 
       {editingGoal && (
         <AdminGoalEditModal

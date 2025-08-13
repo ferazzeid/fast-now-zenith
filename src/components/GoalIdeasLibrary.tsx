@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
+import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface GoalIdeasLibraryProps {
@@ -16,11 +18,20 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const { goalIdeas, loading } = useAdminGoalIdeas();
+  const { profile } = useProfileQuery();
+  const { isAdmin } = useAdminRole();
 
-  const filteredGoals = goalIdeas.filter(goal =>
-    goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    goal.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter goals by user's sex and search term
+  const filteredGoals = goalIdeas.filter(goal => {
+    const matchesSearch = goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      goal.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // If user hasn't set their sex, show all goals
+    if (!profile?.sex) return matchesSearch;
+    
+    // Filter by user's sex
+    return matchesSearch && goal.gender === profile.sex;
+  });
 
   if (loading) {
     return (
@@ -97,7 +108,14 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
                     {/* Goal Content - Takes most of the space */}
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex items-start gap-2">
-                        <h4 className="font-medium text-warm-text text-sm leading-tight">{goal.title}</h4>
+                        <h4 className="font-medium text-warm-text text-sm leading-tight">
+                          {goal.title}
+                          {isAdmin && (
+                            <span className="ml-1 text-xs">
+                              {goal.gender === 'male' ? '🔵' : '🔴'}
+                            </span>
+                          )}
+                        </h4>
                         <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground flex-shrink-0">
                           {goal.category}
                         </Badge>
