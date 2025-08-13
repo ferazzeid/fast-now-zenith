@@ -718,44 +718,42 @@ const FoodTracking = () => {
             }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2 p-1">
-              <TabsTrigger value="today" className="text-sm relative flex items-center justify-between px-3 py-2">
-                <span>Today's Plan</span>
-                <div className="flex items-center gap-2">
-                  {/* Save Template Button */}
-                  {todayEntries.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 hover:bg-primary/10 text-primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowSaveTemplateDialog(true);
-                      }}
-                      aria-label="Save as template"
-                      title="Save current plan as template"
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {/* Clear All Button */}
-                  {todayEntries.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 hover:bg-destructive/10 text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowClearAllDialog(true);
-                      }}
-                      aria-label="Clear all foods"
-                      title="Clear all foods"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+              <TabsTrigger value="today" className="text-sm font-medium relative">
+                Today's Plan
+                {/* Save Template Button */}
+                {todayEntries.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-8 h-5 w-5 p-0 hover:bg-primary/10 text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSaveTemplateDialog(true);
+                    }}
+                    aria-label="Save as template"
+                    title="Save current plan as template"
+                  >
+                    <Save className="h-3 w-3" />
+                  </Button>
+                )}
+                {/* Clear All Button */}
+                {todayEntries.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 h-5 w-5 p-0 hover:bg-destructive/10 text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowClearAllDialog(true);
+                    }}
+                    aria-label="Clear all foods"
+                    title="Clear all foods"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
               </TabsTrigger>
-              <TabsTrigger value="template" className="text-sm px-3 py-2">
+              <TabsTrigger value="template" className="text-sm font-medium">
                 Daily Template
               </TabsTrigger>
             </TabsList>
