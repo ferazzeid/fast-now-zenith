@@ -28,36 +28,36 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
       animationType: 'ring-pulse' as CeramicAnimationType,
       icon: Circle,
       name: 'Hourly Ring Pulse',
-      description: 'Pulsing ring animation for hourly milestones',
-      hours: 24,
-      message: '24 hours of fasting completed!'
+      description: 'Enhanced pulsing ring with layered borders and shadows',
+      hours: 1,
+      message: '🎉 Testing Ring Pulse - Enhanced border effects!'
     },
     {
       type: 'completion' as const,
       animationType: 'particle-burst' as CeramicAnimationType,
       icon: Sparkles,
-      name: 'Completion Sparkles',
-      description: 'Sparkle burst for fast completion',
-      hours: 48,
-      message: '🏆 Goal completed! 48 hour fast achieved!'
+      name: 'Completion Spark',
+      description: 'Large-scale particle burst with 12 animated sparkles',
+      hours: 16,
+      message: '🎉 Testing Particle Burst - Sparkle explosion!'
     },
     {
       type: 'hourly' as const,
       animationType: 'color-wave' as CeramicAnimationType,
       icon: Waves,
       name: 'Color Wave',
-      description: 'Colorful wave animation',
+      description: 'Dual-layer rotating rainbow gradient rings',
       hours: 12,
-      message: '12 hours of fasting completed!'
+      message: '🎉 Testing Color Wave - Rainbow ring animation!'
     },
     {
       type: 'completion' as const,
       animationType: 'fireworks' as CeramicAnimationType,
       icon: Zap,
       name: 'Fireworks',
-      description: 'Explosive celebration for major achievements',
-      hours: 72,
-      message: '🏆 Goal completed! 72 hour fast achieved!'
+      description: '16 large animated firework bursts with gradient colors',
+      hours: 24,
+      message: '🎉 Testing Fireworks - Full celebration mode!'
     }
   ];
 

@@ -56,8 +56,9 @@ export const useCelebrationMilestones = (sessionId?: string) => {
   const { toast } = useToast();
 
   const triggerCelebration = useCallback((event: MilestoneEvent) => {
-    // Check if this milestone was already celebrated for this session
-    if (sessionId) {
+    // For admin testing, skip localStorage restrictions
+    // For normal sessions, check if already celebrated
+    if (sessionId && !event.message.includes('🎉 Testing')) {
       const celebrated = getCelebratedMilestones(sessionId);
       if (celebrated.has(event.hours)) {
         console.log(`Milestone ${event.hours} already celebrated for session ${sessionId}, skipping`);
