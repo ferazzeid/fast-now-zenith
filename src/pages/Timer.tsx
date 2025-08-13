@@ -28,7 +28,7 @@ import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
-import { CelebrationOverlay } from '@/components/CelebrationOverlay';
+
 import { AdminCelebrationTestMenu } from '@/components/AdminCelebrationTestMenu';
 import { useAdminRole } from '@/hooks/useAdminRole';
 

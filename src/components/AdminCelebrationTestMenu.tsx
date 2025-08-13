@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import { cn } from '@/lib/utils';
+import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 
-type AnimationType = 'ring-pulse' | 'particle-burst' | 'color-wave' | 'fireworks';
+import { CeramicAnimationType } from '@/components/CeramicCelebrationEffects';
 
 interface AdminCelebrationTestMenuProps {
   isVisible?: boolean;
@@ -19,66 +19,58 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
   console.log('🎉 AdminCelebrationTestMenu render:', { isVisible });
   
   const [isOpen, setIsOpen] = useState(false);
-  const [activeCelebration, setActiveCelebration] = useState<{
-    type: 'hourly' | 'completion';
-    hours: number;
-    message: string;
-    animationType: AnimationType;
-  } | null>(null);
+  const { triggerCelebration } = useCelebrationMilestones();
 
   if (!isVisible) return null;
 
   const celebrationTypes = [
     {
       type: 'hourly' as const,
-      animationType: 'ring-pulse' as AnimationType,
+      animationType: 'ring-pulse' as CeramicAnimationType,
       icon: Circle,
       name: 'Hourly Ring Pulse',
       description: 'Pulsing ring animation for hourly milestones',
       hours: 24,
-      message: 'Keep going strong!'
+      message: '24 hours of fasting completed!'
     },
     {
       type: 'completion' as const,
-      animationType: 'particle-burst' as AnimationType,
+      animationType: 'particle-burst' as CeramicAnimationType,
       icon: Sparkles,
       name: 'Completion Sparkles',
       description: 'Sparkle burst for fast completion',
       hours: 48,
-      message: 'Fast completed successfully!'
+      message: '🏆 Goal completed! 48 hour fast achieved!'
     },
     {
       type: 'hourly' as const,
-      animationType: 'color-wave' as AnimationType,
+      animationType: 'color-wave' as CeramicAnimationType,
       icon: Waves,
       name: 'Color Wave',
       description: 'Colorful wave animation',
       hours: 12,
-      message: 'Halfway milestone reached!'
+      message: '12 hours of fasting completed!'
     },
     {
       type: 'completion' as const,
-      animationType: 'fireworks' as AnimationType,
+      animationType: 'fireworks' as CeramicAnimationType,
       icon: Zap,
       name: 'Fireworks',
       description: 'Explosive celebration for major achievements',
       hours: 72,
-      message: 'Incredible achievement unlocked!'
+      message: '🏆 Goal completed! 72 hour fast achieved!'
     }
   ];
 
-  const triggerCelebration = (celebration: typeof celebrationTypes[0]) => {
-    setActiveCelebration({
+  const handleTestCelebration = (celebration: typeof celebrationTypes[0]) => {
+    console.log('🎉 Testing celebration animation:', celebration);
+    
+    // Trigger the ceramic timer celebration using the hook
+    triggerCelebration({
       type: celebration.type,
       hours: celebration.hours,
-      message: celebration.message,
-      animationType: celebration.animationType
+      message: celebration.message
     });
-
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      setActiveCelebration(null);
-    }, 3000);
   };
 
   return (
@@ -135,10 +127,9 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
                   return (
                     <Button
                       key={index}
-                      onClick={() => triggerCelebration(celebration)}
+                      onClick={() => handleTestCelebration(celebration)}
                       variant="ghost"
                       className="w-full justify-start h-auto p-3 hover:bg-primary/10"
-                      disabled={activeCelebration !== null}
                     >
                       <div className="flex items-start gap-3 w-full">
                         <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mt-0.5">
@@ -148,7 +139,7 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
                           <div className="font-medium text-sm">{celebration.name}</div>
                           <div className="text-xs text-muted-foreground">{celebration.description}</div>
                           <div className="text-xs text-primary/70 mt-1">
-                            {celebration.hours}h • {celebration.type}
+                            {celebration.hours}h • {celebration.type} • {celebration.animationType}
                           </div>
                         </div>
                       </div>
@@ -158,23 +149,12 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
               </div>
               <div className="mt-4 pt-3 border-t border-border/50">
                 <p className="text-xs text-muted-foreground text-center">
-                  Test different celebration animations for fasting milestones
+                  Test ceramic timer celebration animations • Animations appear on the ceramic timer below
                 </p>
               </div>
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {/* Enhanced Celebration Overlay */}
-      {activeCelebration && (
-        <CelebrationOverlay
-          isVisible={true}
-          type={activeCelebration.type}
-          hours={activeCelebration.hours}
-          message={activeCelebration.message}
-          animationType={activeCelebration.animationType}
-        />
       )}
     </>
   );
