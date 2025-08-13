@@ -130,10 +130,15 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     }
   }, [sessionId]);
 
+  const closeCelebration = useCallback(() => {
+    setCelebration(prev => ({ ...prev, isVisible: false }));
+  }, []);
+
   return {
     celebration,
     checkForMilestones,
     resetMilestones,
-    triggerCelebration
+    triggerCelebration,
+    closeCelebration
   };
 };

@@ -9,6 +9,7 @@ interface CelebrationOverlayProps {
   hours: number;
   message: string;
   animationType?: AnimationType;
+  onClose?: () => void;
 }
 
 export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
@@ -16,7 +17,8 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   type,
   hours,
   message,
-  animationType = 'ring-pulse'
+  animationType = 'ring-pulse',
+  onClose
 }) => {
   const [animationPhase, setAnimationPhase] = useState<'enter' | 'show' | 'exit'>('enter');
 
@@ -57,7 +59,10 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto"
+      onClick={onClose}
+    >
       {/* Background overlay */}
       <div className={cn(
         "absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300",
@@ -65,12 +70,15 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
       )} />
       
       {/* Celebration content */}
-      <div className={cn(
-        "relative max-w-sm mx-4 p-8 rounded-2xl transition-all duration-300",
-        "bg-gradient-to-br from-primary/90 to-primary-glow/90 backdrop-blur-md",
-        "border border-primary/30 shadow-2xl",
-        getAnimationClasses()
-      )}>
+      <div 
+        className={cn(
+          "relative max-w-sm mx-4 p-8 rounded-2xl transition-all duration-300",
+          "bg-gradient-to-br from-primary/90 to-primary-glow/90 backdrop-blur-md",
+          "border border-primary/30 shadow-2xl",
+          getAnimationClasses()
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Animated background effects */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
           {/* Ring pulse animation */}

@@ -50,7 +50,7 @@ const Timer = () => {
   const { toast } = useToast();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
-  const { celebration, checkForMilestones, resetMilestones } = useCelebrationMilestones(fastingSession?.id);
+  const { celebration, checkForMilestones, resetMilestones, closeCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { isAdmin } = useAdminRole();
 
 
@@ -505,6 +505,7 @@ const Timer = () => {
           hours={celebration.currentEvent.hours}
           message={celebration.currentEvent.message}
           animationType={celebration.currentEvent.type === 'completion' ? 'particle-burst' : 'ring-pulse'}
+          onClose={closeCelebration}
         />
       )}
 
