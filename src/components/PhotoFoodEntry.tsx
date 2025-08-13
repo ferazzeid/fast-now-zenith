@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { SimpleImageUpload } from '@/components/SimpleImageUpload';
+import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -167,13 +167,13 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
               <div className="w-12 h-12 mx-auto mb-3 bg-muted rounded-full flex items-center justify-center">
                 <Camera className="w-6 h-6 text-muted-foreground" />
               </div>
-              <h3 className="font-medium mb-2">Take or Upload Food Photo</h3>
+              <h3 className="font-medium mb-2">Take Food Photo</h3>
               <p className="text-sm text-muted-foreground">
-                Upload a photo and our AI will analyze the nutritional information for you
+                Take a photo and our AI will analyze the nutritional information for you
               </p>
             </div>
             <div className="w-full">
-              <SimpleImageUpload onImageUpload={handleUpload} />
+              <CameraOnlyImageUpload onImageUpload={handleUpload} />
             </div>
           </div>
         ) : (
