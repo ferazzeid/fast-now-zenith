@@ -718,9 +718,9 @@ const FoodTracking = () => {
             }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2 p-1">
-              <TabsTrigger value="today" className="text-sm relative flex items-center justify-start">
-                <span className="mr-auto">Today's Plan</span>
-                <div className="flex items-center gap-2 ml-4">
+              <TabsTrigger value="today" className="text-sm relative flex items-center justify-between px-3 py-2">
+                <span>Today's Plan</span>
+                <div className="flex items-center gap-2">
                   {/* Save Template Button */}
                   {todayEntries.length > 0 && (
                     <Button
@@ -755,7 +755,7 @@ const FoodTracking = () => {
                   )}
                 </div>
               </TabsTrigger>
-              <TabsTrigger value="template" className="font-medium">
+              <TabsTrigger value="template" className="text-sm px-3 py-2">
                 Daily Template
               </TabsTrigger>
             </TabsList>
@@ -825,7 +825,7 @@ const FoodTracking = () => {
                     </div>
                     
                      {/* Actions - Compact */}
-                     <div className="flex items-center gap-3 flex-shrink-0">
+                     <div className="flex items-center gap-4 flex-shrink-0">
                        
                        {/* More Options Menu */}
                          <DropdownMenu>
@@ -833,10 +833,10 @@ const FoodTracking = () => {
                               <Button 
                                 size="sm" 
                                 variant="ghost" 
-                                className="h-10 w-10 p-0 hover:bg-secondary/80 rounded"
+                                className="h-12 w-12 p-0 hover:bg-secondary/80 rounded"
                                 aria-label="More options"
                               >
-                                <MoreVertical className="w-6 h-6 text-primary" />
+                                <MoreVertical className="w-8 h-8 text-primary" />
                              </Button>
                            </DropdownMenuTrigger>
                            <DropdownMenuContent align="end" className="w-44">
