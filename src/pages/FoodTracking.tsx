@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera } from 'lucide-react';
+import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera, Brain, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { PageOnboardingButton } from '@/components/PageOnboardingButton';
 import { HistoryButton } from '@/components/HistoryButton';
@@ -365,7 +365,10 @@ const FoodTracking = () => {
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-foreground">Food Tracking</h1>
+              <div className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                <h1 className="text-xl font-bold text-foreground">Food Tracking</h1>
+              </div>
               <PageOnboardingButton 
                 onClick={() => setShowOnboarding(true)}
               />
@@ -375,6 +378,11 @@ const FoodTracking = () => {
               <HistoryButton onClick={() => setShowHistory(true)} />
             </div>
           </div>
+          
+          {/* Subtitle */}
+          <div className="mt-1">
+            <p className="text-sm text-muted-foreground">Lock your food intake</p>
+          </div>
         </div>
       </div>
 
@@ -383,52 +391,56 @@ const FoodTracking = () => {
         
         {/* Action Buttons */}
         <div className="mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <PremiumGate 
               feature="ai_food_voice"
               className="col-span-1"
             >
-              <Button 
-                variant="outline" 
-                className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
-                onClick={() => setShowAiChat(true)}
-              >
-                <Mic className="w-4 h-4" />
-                Voice & AI
-              </Button>
+              <div className="flex flex-col items-center gap-2">
+                <Button 
+                  className="h-16 w-full bg-ai text-ai-foreground hover:bg-ai/90 flex flex-col items-center justify-center gap-1"
+                  onClick={() => setShowAiChat(true)}
+                >
+                  <Mic className="w-5 h-5" />
+                </Button>
+                <span className="text-xs text-muted-foreground text-center">Voice add</span>
+              </div>
             </PremiumGate>
 
             <PremiumGate 
               feature="photo_food_analysis"
               className="col-span-1"
             >
-              <Button 
-                variant="outline" 
-                className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
-                onClick={handlePhotoEntry}
-              >
-                <Camera className="w-4 h-4" />
-                Photo
-              </Button>
+              <div className="flex flex-col items-center gap-2">
+                <Button 
+                  className="h-16 w-full bg-ai text-ai-foreground hover:bg-ai/90 flex flex-col items-center justify-center gap-1"
+                  onClick={handlePhotoEntry}
+                >
+                  <Camera className="w-5 h-5" />
+                </Button>
+                <span className="text-xs text-muted-foreground text-center">Photo add</span>
+              </div>
             </PremiumGate>
 
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
-              onClick={handleManualEntry}
-            >
-              <Plus className="w-4 h-4" />
-              Manual
-            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <Button 
+                className="h-16 w-full bg-primary text-primary-foreground hover:bg-primary/90 flex flex-col items-center justify-center gap-1"
+                onClick={handleManualEntry}
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+              <span className="text-xs text-muted-foreground text-center">Manual add</span>
+            </div>
 
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
-              onClick={() => setShowLibraryView(true)}
-            >
-              <Save className="w-4 h-4" />
-              Library
-            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <Button 
+                className="h-16 w-full bg-primary text-primary-foreground hover:bg-primary/90 flex flex-col items-center justify-center gap-1"
+                onClick={() => setShowLibraryView(true)}
+              >
+                <BookOpen className="w-5 h-5" />
+              </Button>
+              <span className="text-xs text-muted-foreground text-center">Library</span>
+            </div>
           </div>
         </div>
 
