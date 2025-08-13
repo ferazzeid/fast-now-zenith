@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
+import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -409,11 +410,18 @@ const Motivators = () => {
             <div className="space-y-4">
               {motivators.map((motivator) => (
                 <div key={motivator.id}>
-                  <ExpandableMotivatorCard
-                    motivator={motivator}
-                    onEdit={() => handleEditMotivator(motivator)}
-                    onDelete={() => handleDeleteMotivator(motivator.id)}
-                  />
+                  {motivator.category === 'saved_quote' ? (
+                    <SimpleMotivatorCard
+                      motivator={motivator}
+                      onDelete={() => handleDeleteMotivator(motivator.id)}
+                    />
+                  ) : (
+                    <ExpandableMotivatorCard
+                      motivator={motivator}
+                      onEdit={() => handleEditMotivator(motivator)}
+                      onDelete={() => handleDeleteMotivator(motivator.id)}
+                    />
+                  )}
                 </div>
               ))}
               
