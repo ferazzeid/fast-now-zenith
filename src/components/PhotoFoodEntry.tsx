@@ -37,7 +37,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
   
   // Form fields for manual adjustment
   const [name, setName] = useState('');
-  const [servingSize, setServingSize] = useState('');
+  const [servingSize, setServingSize] = useState('0');
   const [calories, setCalories] = useState('');
   const [carbs, setCarbs] = useState('');
 
@@ -133,7 +133,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
     setResult(null);
     setError(null);
     setName('');
-    setServingSize('');
+    setServingSize('0');
     setCalories('');
     setCarbs('');
   };
@@ -148,7 +148,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
     setResult(null);
     setError(null);
     setName('');
-    setServingSize('');
+    setServingSize('0');
     setCalories('');
     setCarbs('');
   };
@@ -233,17 +233,22 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label htmlFor="servingSize" className="text-sm font-medium">Serving Size (g)</Label>
+                  <Label htmlFor="servingSize" className="text-sm font-medium">Size (g)</Label>
                   <Input
                     id="servingSize"
                     type="number"
                     value={servingSize}
                     onChange={(e) => setServingSize(e.target.value)}
-                    placeholder="100"
-                    className="mt-1"
+                    placeholder="0"
+                    className={`mt-1 ${
+                      parseFloat(servingSize) === 0 ? 'border-destructive text-destructive' : ''
+                    }`}
                   />
+                  {parseFloat(servingSize) === 0 && (
+                    <p className="text-xs text-destructive mt-1">Please specify amount</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="calories" className="text-sm font-medium">Calories</Label>
@@ -252,22 +257,23 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
                     type="number"
                     value={calories}
                     onChange={(e) => setCalories(e.target.value)}
-                    placeholder="Enter calories"
+                    placeholder="0"
+                    className={`mt-1 ${
+                      parseFloat(calories) === 0 ? 'border-destructive text-destructive' : ''
+                    }`}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="carbs" className="text-sm font-medium">Carbs (g)</Label>
+                  <Input
+                    id="carbs"
+                    type="number"
+                    value={carbs}
+                    onChange={(e) => setCarbs(e.target.value)}
+                    placeholder="0"
                     className="mt-1"
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="carbs" className="text-sm font-medium">Carbohydrates (g)</Label>
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={carbs}
-                  onChange={(e) => setCarbs(e.target.value)}
-                  placeholder="Enter carbs"
-                  className="mt-1"
-                />
               </div>
             </div>
 

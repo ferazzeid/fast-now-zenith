@@ -784,10 +784,18 @@ const FoodTracking = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="font-medium">{Math.round(entry.serving_size)}g</span>
+                        <span className={`font-medium ${
+                          Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
+                        }`}>
+                          {Math.round(entry.serving_size)}g
+                        </span>
                         <span className="text-muted-foreground/60">•</span>
                         <ClickableTooltip content="Calories">
-                          <span className="font-medium cursor-pointer">{Math.round(entry.calories)}</span>
+                          <span className={`font-medium cursor-pointer ${
+                            Math.round(entry.calories) === 0 ? 'text-destructive' : ''
+                          }`}>
+                            {Math.round(entry.calories)}
+                          </span>
                         </ClickableTooltip>
                         <span className="text-muted-foreground/60">•</span>
                         <ClickableTooltip content="Carbs">
