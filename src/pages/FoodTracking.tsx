@@ -725,7 +725,7 @@ const FoodTracking = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute right-10 h-5 w-5 p-0 hover:bg-primary/10 text-primary"
+                    className="absolute right-12 h-5 w-5 p-0 hover:bg-primary/10 text-primary"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowSaveTemplateDialog(true);
