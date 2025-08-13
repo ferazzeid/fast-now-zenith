@@ -56,6 +56,13 @@ const Timer = () => {
 
   const isRunning = !!fastingSession;
 
+  const formatTimeFasting = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     refreshActiveSession();
   }, [refreshActiveSession]);
@@ -111,6 +118,19 @@ const Timer = () => {
 
         // Check for celebration milestones
         checkForMilestones(elapsed, fastingSession.goal_duration_seconds);
+
+        // Auto-complete session when goal is reached
+        if (fastingSession.goal_duration_seconds && elapsed >= fastingSession.goal_duration_seconds) {
+          console.log('🎯 Goal achieved! Auto-completing fasting session...');
+          endFastingSession(fastingSession.id).then(() => {
+            toast({
+              title: "🎉 Goal Achieved!",
+              description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
+            });
+          }).catch((error) => {
+            console.error('Error auto-completing fasting session:', error);
+          });
+        }
       };
 
       // Update immediately
@@ -125,7 +145,7 @@ const Timer = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, fastingSession?.start_time, fastDuration, checkForMilestones]);
+  }, [isRunning, fastingSession?.start_time, fastDuration, checkForMilestones, fastingSession, endFastingSession, formatTimeFasting, toast]);
 
   const handleFastingStart = async () => {
     resetMilestones(); // Reset celebration state for new fast
@@ -206,12 +226,6 @@ const Timer = () => {
     }
   };
 
-  const formatTimeFasting = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const getDisplayTime = () => {
     if (countDirection === 'up') {
