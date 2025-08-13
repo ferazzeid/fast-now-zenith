@@ -10,105 +10,138 @@ interface CeramicCelebrationEffectsProps {
 
 export const CeramicCelebrationEffects = ({ isActive, animationType, onAnimationEnd }: CeramicCelebrationEffectsProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentRepeat, setCurrentRepeat] = useState(0);
+  const totalRepeats = 3;
 
   useEffect(() => {
     if (isActive) {
       setIsPlaying(true);
-      const duration = animationType === 'fireworks' ? 3000 : animationType === 'particle-burst' ? 2500 : 2000;
+      setCurrentRepeat(0);
+      
+      // Each animation cycle is 2 seconds, repeat 3 times
+      const singleCycleDuration = 2000;
+      const totalDuration = singleCycleDuration * totalRepeats;
+      
       const timer = setTimeout(() => {
         setIsPlaying(false);
+        setCurrentRepeat(0);
         onAnimationEnd();
-      }, duration);
-      return () => clearTimeout(timer);
+      }, totalDuration);
+      
+      // Update repeat counter every cycle
+      const repeatTimer = setInterval(() => {
+        setCurrentRepeat(prev => prev + 1);
+      }, singleCycleDuration);
+      
+      return () => {
+        clearTimeout(timer);
+        clearInterval(repeatTimer);
+      };
     }
   }, [isActive, animationType, onAnimationEnd]);
 
   if (!isPlaying) return null;
 
-  const getParticleEffect = () => {
-    if (animationType !== 'particle-burst') return null;
-    
-    return (
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-3 h-3 bg-accent rounded-full animate-ping"
-            style={{
-              top: '50%',
-              left: '50%',
-              animationDelay: `${i * 0.1}s`,
-              transform: `rotate(${i * 30}deg) translateY(-80px)`,
-              animationDuration: '1.5s'
-            }}
-          />
-        ))}
-      </div>
-    );
-  };
+  const getAnimationKey = () => `${animationType}-${currentRepeat}`;
 
-  const getFireworksEffect = () => {
-    if (animationType !== 'fireworks') return null;
-    
-    return (
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(16)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-12 bg-gradient-to-t from-yellow-400 via-orange-500 to-red-500 rounded-full animate-bounce"
-            style={{
-              top: '50%',
-              left: '50%',
-              animationDelay: `${i * 0.1}s`,
-              transform: `rotate(${i * 22.5}deg) translateY(-100px)`,
-              transformOrigin: 'bottom',
-              animationDuration: '1s'
-            }}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const getColorWaveEffect = () => {
-    if (animationType !== 'color-wave') return null;
-    
-    return (
-      <>
-        <div className="absolute inset-4 rounded-full bg-gradient-to-r from-primary via-accent to-secondary animate-spin" 
-             style={{ animationDuration: '2s' }} />
-        <div className="absolute inset-8 rounded-full bg-gradient-to-r from-secondary via-primary to-accent animate-spin" 
-             style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
-      </>
-    );
-  };
-
-  const getRingPulseEffect = () => {
-    if (animationType !== 'ring-pulse') return null;
-    
-    return (
-      <>
-        <div className="absolute inset-0 rounded-full border-8 border-primary animate-pulse shadow-2xl shadow-primary/60" />
-        <div className="absolute inset-4 rounded-full border-4 border-primary-glow animate-pulse shadow-xl shadow-primary-glow/40" 
-             style={{ animationDelay: '0.5s' }} />
-      </>
-    );
-  };
-
-  const getCenterContent = () => {
-    if (!isPlaying) return null;
-    
-    const centerClasses = "absolute inset-16 rounded-full bg-ceramic-base/90 border-4 border-white/30 flex items-center justify-center text-2xl font-bold text-white backdrop-blur-sm";
-    
+  const renderAnimation = () => {
     switch (animationType) {
       case 'ring-pulse':
-        return <div className={`${centerClasses} animate-pulse`}>GOAL!</div>;
+        return (
+          <>
+            <div 
+              key={getAnimationKey()}
+              className="absolute inset-0 rounded-full border-8 border-primary animate-pulse shadow-2xl shadow-primary/60" 
+            />
+            <div 
+              className="absolute inset-4 rounded-full border-4 border-accent animate-pulse shadow-xl shadow-accent/40" 
+              style={{ animationDelay: '0.5s' }} 
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-4xl font-bold text-white animate-pulse bg-ceramic-base/80 rounded-full px-6 py-3 border-2 border-white/30 backdrop-blur-sm">
+                GOAL!
+              </div>
+            </div>
+          </>
+        );
+
       case 'particle-burst':
-        return <div className={`${centerClasses} animate-bounce text-3xl`}>🎯</div>;
+        return (
+          <>
+            <div 
+              key={getAnimationKey()}
+              className="absolute inset-0 rounded-full animate-bounce border-4 border-accent shadow-xl shadow-accent/50"
+            />
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={`${getAnimationKey()}-particle-${i}`}
+                  className="absolute w-2 h-2 bg-accent rounded-full animate-ping"
+                  style={{
+                    top: '50%',
+                    left: '50%',
+                    animationDelay: `${i * 0.1}s`,
+                    transform: `rotate(${i * 45}deg) translateY(-120px)`,
+                    animationDuration: '1.5s'
+                  }}
+                />
+              ))}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-5xl animate-bounce bg-ceramic-base/80 rounded-full px-4 py-2 border-2 border-white/30 backdrop-blur-sm">
+                🎯
+              </div>
+            </div>
+          </>
+        );
+
       case 'color-wave':
-        return <div className={`${centerClasses} animate-pulse text-3xl`}>✨</div>;
+        return (
+          <>
+            <div 
+              key={getAnimationKey()}
+              className="absolute inset-2 rounded-full bg-gradient-to-r from-primary via-accent to-secondary animate-spin border-4" 
+              style={{ animationDuration: '2s' }} 
+            />
+            <div 
+              className="absolute inset-6 rounded-full bg-gradient-to-r from-secondary via-primary to-accent animate-spin" 
+              style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} 
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-5xl animate-pulse bg-ceramic-base/80 rounded-full px-4 py-2 border-2 border-white/30 backdrop-blur-sm">
+                ✨
+              </div>
+            </div>
+          </>
+        );
+
       case 'fireworks':
-        return <div className={`${centerClasses} animate-spin text-3xl`}>🎆</div>;
+        return (
+          <>
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={`${getAnimationKey()}-firework-${i}`}
+                  className="absolute w-1 h-4 bg-gradient-to-t from-yellow-400 via-orange-500 to-red-500 rounded-full animate-pulse"
+                  style={{
+                    top: '50%',
+                    left: '50%',
+                    animationDelay: `${i * 0.1}s`,
+                    transform: `rotate(${i * 30}deg) translateY(-140px)`,
+                    transformOrigin: 'bottom',
+                    animationDuration: '1s'
+                  }}
+                />
+              ))}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-5xl animate-spin bg-ceramic-base/80 rounded-full px-4 py-2 border-2 border-white/30 backdrop-blur-sm">
+                🎆
+              </div>
+            </div>
+          </>
+        );
+
       default:
         return null;
     }
@@ -116,11 +149,7 @@ export const CeramicCelebrationEffects = ({ isActive, animationType, onAnimation
 
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {getRingPulseEffect()}
-      {getColorWaveEffect()}
-      {getParticleEffect()}
-      {getFireworksEffect()}
-      {getCenterContent()}
+      {renderAnimation()}
     </div>
   );
 };
