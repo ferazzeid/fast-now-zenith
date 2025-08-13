@@ -19,12 +19,10 @@ export const useUserLibraryIndex = (): LibraryIndex => {
 
   const fetchLibrary = useCallback(async () => {
     if (!user?.id) {
-      console.log('🗂️ No user ID, clearing library');
       setNameSet(new Set());
       return;
     }
     setLoading(true);
-    console.log('🗂️ Fetching library for user:', user.id);
     try {
       const { data, error } = await supabase
         .from('user_foods')
@@ -32,27 +30,20 @@ export const useUserLibraryIndex = (): LibraryIndex => {
         .eq('user_id', user.id);
       
       if (error) {
-        console.error('🗂️ Error fetching library:', error);
-        setNameSet(new Set()); // Clear on error
+        console.error('Error fetching user library:', error);
+        setNameSet(new Set());
         return;
       }
       
-      if (data) {
-        const next = new Set<string>();
-        console.log('🗂️ Raw library data:', data);
+      const next = new Set<string>();
+      if (data && data.length > 0) {
         for (const row of data) {
-          const normalized = normalizeName(row.name);
-          next.add(normalized);
-          console.log('🗂️ Added to library:', row.name, '→', normalized);
+          next.add(normalizeName(row.name));
         }
-        console.log('🗂️ Final library set size:', next.size, 'items:', Array.from(next));
-        setNameSet(next);
-      } else {
-        console.log('🗂️ No library data returned');
-        setNameSet(new Set());
       }
+      setNameSet(next);
     } catch (err) {
-      console.error('🗂️ Exception fetching library:', err);
+      console.error('Exception fetching library:', err);
       setNameSet(new Set());
     } finally {
       setLoading(false);
@@ -63,7 +54,7 @@ export const useUserLibraryIndex = (): LibraryIndex => {
     fetchLibrary();
   }, [fetchLibrary]);
 
-  // Clear library when user changes/logs out
+  // Clear library when user changes
   useEffect(() => {
     if (!user?.id) {
       setNameSet(new Set());
@@ -72,34 +63,26 @@ export const useUserLibraryIndex = (): LibraryIndex => {
 
   const isInLibrary = useCallback(
     (name: string) => {
-      const normalized = normalizeName(name);
-      const result = nameSet.has(normalized);
-      console.log('🔍 Checking if in library:', name, '→', normalized, '→', result, 'Library size:', nameSet.size);
-      if (nameSet.size <= 5) { // Only log full set if small
-        console.log('🔍 Current library set:', Array.from(nameSet));
-      }
-      return result;
+      if (!name || nameSet.size === 0) return false;
+      return nameSet.has(normalizeName(name));
     },
     [nameSet]
   );
 
   const addLocal = useCallback((name: string) => {
+    if (!name) return;
     const normalizedName = normalizeName(name);
-    console.log('➕ Adding to local library:', name, '→', normalizedName);
     setNameSet((prev) => {
       if (prev.has(normalizedName)) {
-        console.log('➕ Already in library, skipping');
         return prev;
       }
       const copy = new Set(prev);
       copy.add(normalizedName);
-      console.log('➕ Added to library, new size:', copy.size);
       return copy;
     });
   }, []);
 
   const refresh = useCallback(async () => {
-    console.log('🔄 Refreshing library');
     await fetchLibrary();
   }, [fetchLibrary]);
 
