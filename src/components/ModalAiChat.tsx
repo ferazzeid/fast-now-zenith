@@ -1209,10 +1209,10 @@ ${updatedContent}`
               </Card>
             ))}
             
-            {/* Sticky action bar */}
+            {/* Sticky action bar with divider */}
             {!lastFoodSuggestion.added && (
-              <div className="sticky bottom-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-t pt-2 pb-2 px-1">
-                <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="sticky bottom-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-t pt-3 pb-2 px-1 mt-3">
+                <div className="flex items-center justify-between gap-2 mb-3">
                   <span className="text-xs text-muted-foreground">Add to</span>
                   <div className="flex gap-1">
                     {(['today','template','library'] as const).map(dest => (
@@ -1231,7 +1231,7 @@ ${updatedContent}`
                 <Button
                   size="sm"
                   onClick={handleAddAllFoods}
-                  className="w-full"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
                   disabled={isProcessing || selectedFoodIds.size === 0}
                 >
                   {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''}`}

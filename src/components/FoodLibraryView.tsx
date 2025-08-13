@@ -901,40 +901,32 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             Back
           </Button>
         </div>
-        
-        {/* Search */}
-        <div className="mt-4">
-          <Input
-            placeholder="Search foods..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md"
-          />
-        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 px-6 py-4 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested' | 'recent')} className="h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <TabsList className="grid w-fit grid-cols-3">
-              <TabsTrigger value="my-foods">My Food</TabsTrigger>
-              <TabsTrigger value="recent">Recent</TabsTrigger>
-              <TabsTrigger value="suggested">Suggested</TabsTrigger>
-            </TabsList>
-            
-            {/* Delete All Button positioned properly */}
-            {activeTab === 'my-foods' && filteredUserFoods.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteAllConfirm(true)}
-                className="text-destructive border-destructive/30 hover:bg-destructive/10"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete All
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              <TabsList className="grid w-fit grid-cols-3">
+                <TabsTrigger value="my-foods">My Food</TabsTrigger>
+                <TabsTrigger value="recent">Recent</TabsTrigger>
+                <TabsTrigger value="suggested">Suggested</TabsTrigger>
+              </TabsList>
+              
+              {/* Delete All Button positioned next to My Food tab */}
+              {activeTab === 'my-foods' && filteredUserFoods.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteAllConfirm(true)}
+                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete All
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* My Foods Tab */}
