@@ -48,681 +48,437 @@ const FoodTracking = () => {
   const [editingEntry, setEditingEntry] = useState<any>(null);
   
   const [showLibraryView, setShowLibraryView] = useState(false);
-  // Remove tab state - using unified view now
+  const [showHistory, setShowHistory] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [showPhotoEntry, setShowPhotoEntry] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [manualEntryData, setManualEntryData] = useState({
-    name: '',
-    servingAmount: '1',
-    servingUnit: 'grams',
-    calories: '',
-    carbs: '',
-    imageUrl: ''
-  });
-  const [aiChatContext, setAiChatContext] = useState('');
-  
-  // New state for daily food plan system
-  const [activeTab, setActiveTab] = useState('today');
-  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState<'today' | 'template'>('today');
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
-  const [clearingAll, setClearingAll] = useState(false);
-  
-  const { toast } = useToast();
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
+  const [showConfirmTemplateDialog, setShowConfirmTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('Daily Plan');
+  const [pendingSaveData, setPendingSaveData] = useState<any[]>([]);
+
   const { user } = useAuth();
+  const { toast } = useToast();
   const { profile, updateProfile } = useProfile();
-  const { addFoodEntry, updateFoodEntry, deleteFoodEntry, toggleConsumption, todayEntries, todayTotals, refreshFoodEntries } = useFoodEntriesQuery();
-  const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
-  const { templateFoods, saveAsTemplate: saveTemplate, addToTemplate, clearTemplate, applyTemplate, loadTemplate, loading: templateLoading } = useDailyFoodTemplate();
+  const { foodEntries: todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, refreshFoodEntries } = useFoodEntriesQuery();
+  const { walkingSteps, setWalkingSteps } = useFoodWalkingCalculation();
+  const { 
+    templateFoods, 
+    loadTemplate, 
+    saveTemplate,
+    addToTemplate,
+    clearTemplate,
+    applyTemplate
+  } = useDailyFoodTemplate();
   const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
 
-  const handleVoiceFood = async () => {
-    trackAIEvent('chat', 'food_assistant');
-    
-    // Load admin-configured prompts and user preferences
-    const unitLabel = profile?.units === 'metric' ? 'grams' : 'ounces';
-    const unitExample = profile?.units === 'metric' ? '150 grams' : '5 ounces';
-    
-    let systemPrompt = `To add food items, I'll need:
-1. Food name
-2. Portion size in ${unitLabel}
-3. Calories (I can estimate)
-4. Carbs in grams (I can estimate)`;
-    
-    const aiChatContext = systemPrompt;
-
-    let philosophyContext = '';
-
-    try {
-      // Load system prompt
-      const { data: systemData } = await supabase
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'ai_food_assistant_system_prompt')
-        .single();
-      
-      if (systemData?.setting_value) {
-        systemPrompt = systemData.setting_value.replace('{units}', profile?.units || 'metric').replace('{unit_label}', unitLabel).replace('{unit_example}', unitExample);
-      }
-
-      // Load program philosophy
-      const { data: philosophyData } = await supabase
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'ai_program_philosophy_prompt')
-        .single();
-      
-      if (philosophyData?.setting_value) {
-        philosophyContext = `\n\nProgram Philosophy: ${philosophyData.setting_value}`;
-      }
-    } catch (error) {
-      console.log('Using default prompts');
-    }
-
+  const handleVoiceFood = (result: { food: string }) => {
+    trackFoodEvent('voice_food_added', { 
+      food_name: result.food,
+      user_id: user?.id 
+    });
+    console.log('Voice result:', result);
     setShowAiChat(true);
-    setAiChatContext(aiChatContext);
   };
 
-  const handleAiChatResult = async (result: any) => {
-    if (result.name === 'add_food_entry') {
-      const { arguments: args } = result;
-      const foodResult = await addFoodEntry({
-        name: args.name,
-        calories: parseFloat(args.calories),
-        carbs: parseFloat(args.carbs),
-        serving_size: parseFloat(args.serving_size),
-        consumed: args.consumed || false
+  const handleAiChatResult = (result: any) => {
+    if (result.foodEntries && Array.isArray(result.foodEntries)) {
+      result.foodEntries.forEach(async (food: any) => {
+        await addFoodEntry({
+          name: food.name,
+          calories: food.calories,
+          carbs: food.carbs,
+          serving_size: food.serving_size,
+          consumed: false,
+          image_url: food.image_url
+        });
       });
-      if (!foodResult || 'error' in foodResult) {
-        toast({ variant: "destructive", title: "Error", description: "Failed to add food entry" });
-      } else {
-        trackFoodEvent('add', 'voice');
-        toast({ title: "✅ Food Added Successfully!", description: `${args.name} (${args.serving_size}g) added with ${args.calories} cal and ${args.carbs}g carbs.` });
-        await saveToLibrary({ name: args.name, calories: parseFloat(args.calories), carbs: parseFloat(args.carbs), serving_size: parseFloat(args.serving_size) });
-      }
-    } else if (result.name === 'add_multiple_foods') {
-      const { arguments: args } = result;
-      const foods = args.foods || [];
-      const destination = args.destination || 'today';
-      let successCount = 0;
-      let totalCalories = 0;
-      let totalCarbs = 0;
-
-      if (destination === 'today') {
-        for (const food of foods) {
-          const foodResult = await addFoodEntry({
-            name: food.name,
-            calories: parseFloat(food.calories),
-            carbs: parseFloat(food.carbs),
-            serving_size: parseFloat(food.serving_size),
-            consumed: food.consumed || false
-          });
-          if (foodResult && !('error' in foodResult)) {
-            successCount++;
-            totalCalories += parseFloat(food.calories);
-            totalCarbs += parseFloat(food.carbs);
-            await saveToLibrary({ name: food.name, calories: parseFloat(food.calories), carbs: parseFloat(food.carbs), serving_size: parseFloat(food.serving_size) });
-          }
-        }
-      } else if (destination === 'template') {
-        const foodsToSave = foods.map((f: any) => ({ name: f.name, calories: parseFloat(f.calories), carbs: parseFloat(f.carbs), serving_size: parseFloat(f.serving_size) }));
-        const { error } = await saveTemplate(foodsToSave);
-        if (!error) successCount = foods.length;
-      } else if (destination === 'library') {
-        for (const f of foods) {
-          await saveToLibrary({ name: f.name, calories: parseFloat(f.calories), carbs: parseFloat(f.carbs), serving_size: parseFloat(f.serving_size) });
-          successCount++;
-        }
-      }
-
-      if (successCount > 0) {
-        trackFoodEvent('add', 'voice');
-        toast({ title: destination === 'today' ? "✅ Foods Added!" : destination === 'template' ? "✅ Template Saved!" : "✅ Library Updated!", description: destination === 'today' ? `${successCount} items added (${Math.round(totalCalories)} cal, ${Math.round(totalCarbs)}g carbs).` : `${successCount} item(s) processed.` });
-      } else {
-        toast({ variant: "destructive", title: "Error", description: "Failed to process AI request." });
-      }
-    } else if (result.name === 'delete_food_entry') {
-      const { entry_id } = result.arguments;
-      await deleteFoodEntry(entry_id);
-      toast({ title: 'Removed', description: 'Food entry deleted.' });
-    } else if (result.name === 'delete_library_food') {
-      const { food_id } = result.arguments;
-      await supabase.from('user_foods').delete().eq('id', food_id).eq('user_id', user?.id);
-      toast({ title: 'Removed', description: 'Library food deleted.' });
+      
+      toast({
+        title: "Foods Added",
+        description: `Added ${result.foodEntries.length} food${result.foodEntries.length > 1 ? 's' : ''} to your plan`,
+      });
+      
+      trackFoodEvent('ai_food_added', { 
+        count: result.foodEntries.length,
+        user_id: user?.id 
+      });
     }
+    setShowAiChat(false);
   };
 
   const handleManualEntry = () => {
-    trackFoodEvent('add', 'manual');
-    setManualEntryData({
-      name: '',
-      servingAmount: '1',
-      servingUnit: 'grams',
-      calories: '',
-      carbs: '',
-      imageUrl: ''
-    });
     setShowManualEntry(true);
   };
 
-  const handlePhotoEntry = async (data: any) => {
-    const result = await addFoodEntry(data);
-    
-    if (!result || 'error' in result) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save food entry"
-      });
-    } else {
-      toast({
-        title: "Food added successfully!",
-        description: `${data.name} has been added to your food plan`
-      });
-      
-      // Save to personal library
-      await saveToLibrary({
-        name: data.name,
-        calories: data.calories,
-        carbs: data.carbs,
-        serving_size: data.serving_size
-      });
-    }
-  };
-
-
-  const handleSaveManualEntry = async () => {
-    if (!manualEntryData.name.trim() || !manualEntryData.servingAmount.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Missing required information",
-        description: "Please enter food name and serving amount"
-      });
-      return;
-    }
-
-    let calories = parseFloat(manualEntryData.calories) || 0;
-    let carbs = parseFloat(manualEntryData.carbs) || 0;
-
-    // Convert serving amount to grams first
-    const servingAmount = parseFloat(manualEntryData.servingAmount);
-    const servingGrams = convertToGrams(servingAmount, manualEntryData.servingUnit, manualEntryData.name);
-    
-    const per100gCalories = parseFloat(manualEntryData.calories) || 0;
-    const per100gCarbs = parseFloat(manualEntryData.carbs) || 0;
-    
-    // Calculate actual consumption based on serving size in grams
-    calories = (per100gCalories * servingGrams) / 100;
-    carbs = (per100gCarbs * servingGrams) / 100;
-
-    // If per-100g values are missing, get them from AI
-    if (per100gCalories === 0 || per100gCarbs === 0) {
-      try {
-        const { data, error } = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a nutrition expert. Provide nutritional information for foods. Return only a JSON object with calories_per_100g and carbs_per_100g as numbers.'
-              },
-              {
-                role: 'user',
-                content: `What are the calories and carbs per 100g for ${manualEntryData.name}? Return only JSON format: {"calories_per_100g": number, "carbs_per_100g": number}`
-              }
-            ]
-          }
-        });
-
-        if (data?.content) {
-          try {
-            const nutritionData = JSON.parse(data.content);
-            
-            if (per100gCalories === 0 && nutritionData.calories_per_100g) {
-              calories = (nutritionData.calories_per_100g * servingGrams) / 100;
-            }
-            if (per100gCarbs === 0 && nutritionData.carbs_per_100g) {
-              carbs = (nutritionData.carbs_per_100g * servingGrams) / 100;
-            }
-          } catch (parseError) {
-            console.error('Failed to parse AI nutrition response:', parseError);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to get AI nutrition data:', error);
-      }
-    }
-
-    const result = await addFoodEntry({
-      name: manualEntryData.name,
-      calories: Math.round(calories * 100) / 100,
-      carbs: Math.round(carbs * 100) / 100,
-      serving_size: Math.round(servingGrams * 100) / 100, // Store the actual grams
-      consumed: false,
-      image_url: manualEntryData.imageUrl || undefined
-    });
-
-    if (!result || 'error' in result) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save food entry"
-      });
-    } else {
-        trackFoodEvent('add', 'manual');
-        toast({
-          title: "Food added successfully!",
-          description: `${manualEntryData.name} has been added to your food plan`
-        });
-      setShowManualEntry(false);
-    }
-  };
-
-
-  const handleSave = async () => {
-    if (!foodName || !calories || !carbs) {
-      toast({
-        variant: "destructive",
-        title: "Missing information",
-        description: "Please fill in food name, calories, and carbs"
-      });
-      return;
-    }
-
-    const result = await addFoodEntry({
-      name: foodName,
-      calories: parseFloat(calories),
-      carbs: parseFloat(carbs),
-      serving_size: parseFloat(servingSize),
-      consumed: consumedNow,
-      image_url: imageUrl || undefined
-    });
-
-    if (!result || 'error' in result) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save food entry"
-      });
-    } else {
-      toast({
-        title: "Food logged",
-        description: `${foodName} has been added to your diary`
-      });
-      // Reset form
-      setFoodName('');
-      setCalories('');
-      setCarbs('');
-      setServingSize('100');
-      setImageUrl('');
-      setConsumedNow(true);
-      setShowForm(false);
-      
-      // Save to personal library if not already there
-      await saveToLibrary({
-        name: foodName,
-        calories: parseFloat(calories),
-        carbs: parseFloat(carbs),
-        serving_size: parseFloat(servingSize)
-      });
-    }
-  };
-
-  const saveToLibrary = async (entry: { name: string; calories: number; carbs: number; serving_size: number }) => {
-    try {
-      // Check if food already exists in library
-      const { data: existing } = await supabase
-        .from('user_foods')
-        .select('id')
-        .eq('user_id', user?.id)
-        .eq('name', entry.name)
-        .single();
-
-      if (!existing) {
-        // If serving_size is 100, values are already per 100g
-        // Otherwise, calculate per 100g values
-        const caloriesPer100g = entry.serving_size === 100 
-          ? entry.calories 
-          : (entry.calories / entry.serving_size) * 100;
-        const carbsPer100g = entry.serving_size === 100 
-          ? entry.carbs 
-          : (entry.carbs / entry.serving_size) * 100;
-
-        await supabase
-          .from('user_foods')
-          .insert({
-            user_id: user?.id,
-            name: entry.name,
-            calories_per_100g: caloriesPer100g,
-            carbs_per_100g: carbsPer100g
-          });
-      }
-    } catch (error) {
-      // Silent error - don't interrupt user flow
-      console.error('Error saving to library:', error);
-    }
-  };
-
-  const handleSelectFromLibrary = async (food: any, consumed: boolean = false) => {
-    // Directly add food to today's plan with 100g serving
+  const handleSaveManualEntry = async (food: { name: string; calories: number; carbs: number; serving_size: number; image_url?: string }) => {
     const result = await addFoodEntry({
       name: food.name,
-      calories: food.calories_per_100g,
-      carbs: food.carbs_per_100g,
-      serving_size: 100,
-      consumed: consumed,
-      image_url: food.image_url || undefined
+      calories: food.calories,
+      carbs: food.carbs,
+      serving_size: food.serving_size,
+      consumed: false,
+      image_url: food.image_url
     });
-
+    
     if (!result || 'error' in result) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add food entry"
+        description: "Failed to save food entry"
       });
     } else {
-      trackFoodEvent('add', 'manual');
       toast({
-        title: "Food added successfully!",
-        description: `${food.name} (100g) has been added to your food plan`
+        title: "Food Added",
+        description: `${food.name} has been added to your plan`
       });
       
-      // Auto-close library view
-      setShowLibraryView(false);
-      
-      // Ensure we stay on today's tab when adding from library
-      setActiveTab('today');
-      
-      // Save to personal library if not already there (for default foods)
-      await saveToLibrary({
-        name: food.name,
-        calories: food.calories_per_100g,
-        carbs: food.carbs_per_100g,
-        serving_size: 100
+      trackFoodEvent('manual_food_added', { 
+        food_name: food.name,
+        calories: food.calories,
+        user_id: user?.id 
       });
     }
+    setShowManualEntry(false);
   };
 
-  const handleUpdateFoodEntry = async (id: string, updates: any) => {
-    console.log('🍽️ FoodTracking - handleUpdateFoodEntry called with:', { id, updates });
+  const handlePhotoEntry = () => {
+    setShowPhotoEntry(true);
+  };
+
+  const handlePhotoSave = async (food: { name: string; calories: number; carbs: number; serving_size: number; quantity: number; image_url?: string }) => {
+    const totalCalories = food.calories * food.quantity;
+    const totalCarbs = food.carbs * food.quantity;
+    const totalServingSize = food.serving_size * food.quantity;
     
-    // Determine if this is a template or food entry by checking which list contains the ID
-    const isTemplateItem = templateFoods.some(food => food.id === id);
-    const isTodayItem = todayEntries.some(entry => entry.id === id);
+    const result = await addFoodEntry({
+      name: food.name,
+      calories: totalCalories,
+      carbs: totalCarbs,
+      serving_size: totalServingSize,
+      consumed: false,
+      image_url: food.image_url
+    });
     
-    console.log('🍽️ Item context check:', { id, isTemplateItem, isTodayItem });
-    
-    if (isTemplateItem) {
-      console.log('🍽️ Updating template item via direct Supabase call');
-      const { data, error } = await supabase
-        .from('daily_food_templates')
-        .update(updates)
-        .eq('id', id)
-        .eq('user_id', user?.id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('🍽️ Template update error:', error);
-        throw new Error("Failed to update template item");
-      }
-      
-      // Refresh template data
-      await loadTemplate();
-      console.log('🍽️ Template item updated successfully');
-    } else if (isTodayItem) {
-      console.log('🍽️ Updating today food entry via mutation');
-      const result = await updateFoodEntry({ id, updates });
-      if (!result || 'error' in result) {
-        throw new Error("Failed to update food entry");
-      }
+    if (!result || 'error' in result) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save food entry"
+      });
     } else {
-      console.error('🍽️ Item not found in any context');
-      throw new Error('Food item not found in current context');
+      toast({
+        title: "Food Added from Photo",
+        description: `${food.name} has been added to your plan`
+      });
+      
+      trackFoodEvent('photo_food_added', { 
+        food_name: food.name,
+        calories: totalCalories,
+        user_id: user?.id 
+      });
     }
+    setShowPhotoEntry(false);
   };
 
-  const handleDeleteFoodEntry = async (id: string) => {
-    try {
-      await deleteFoodEntry(id);
-      trackFoodEvent('delete', 'manual');
-      toast({
-        title: "Food deleted",
-        description: "Food entry has been removed"
-      });
-    } catch (error) {
+  const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
+    await updateFoodEntry(entryId, { consumed });
+    toast({
+      title: consumed ? "Marked as eaten" : "Marked as not eaten",
+      description: consumed ? "Food entry marked as consumed" : "Food entry marked as not consumed"
+    });
+  };
+
+  const handleDeleteFoodEntry = async (entryId: string) => {
+    const result = await deleteFoodEntry(entryId);
+    if (!result || 'error' in result) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to delete food entry"
       });
+    } else {
+      toast({
+        title: "Food Deleted",
+        description: "Food entry has been removed from your plan"
+      });
     }
   };
 
-  const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
+  const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }) => {
     try {
-      await toggleConsumption(entryId);
-      // Show success notification
+      const { data, error } = await supabase
+        .from('user_foods')
+        .insert([{
+          user_id: user?.id,
+          name: food.name,
+          calories: food.calories,
+          carbs: food.carbs,
+          serving_size: food.serving_size
+        }]);
+      
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving to library:', error);
+      return { error };
+    }
+  };
+
+  const handleClearAllEntries = async () => {
+    try {
+      const { error } = await supabase
+        .from('food_entries')
+        .delete()
+        .eq('user_id', user?.id)
+        .gte('created_at', new Date().toISOString().split('T')[0]);
+      
+      if (error) throw error;
+      
+      await refreshFoodEntries();
       toast({
-        variant: "default",
-        title: consumed ? "Marked as eaten" : "Marked as not eaten",
-        description: consumed ? "Food item has been consumed" : "Food item marked as not consumed"
+        title: "All Foods Cleared",
+        description: "All food entries for today have been removed"
       });
     } catch (error) {
+      console.error('Error clearing foods:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update consumption status"
+        description: "Failed to clear food entries"
       });
     }
+    setShowClearAllDialog(false);
   };
 
-  // Clear All and Template functions
-  const handleClearAll = async () => {
-    setClearingAll(true);
+  const handleSaveTemplate = async () => {
     try {
-      // Delete all today's entries
-      for (const entry of todayEntries) {
-        await deleteFoodEntry(entry.id);
-      }
+      const foodsToSave = todayEntries.map(entry => ({
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        image_url: entry.image_url,
+      }));
       
-      toast({
-        title: "All foods cleared",
-        description: "Successfully cleared all foods from today's plan."
-      });
+      setPendingSaveData(foodsToSave);
+      setShowSaveTemplateDialog(false);
+      setShowConfirmTemplateDialog(true);
     } catch (error) {
-      console.error('Error clearing all foods:', error);
+      console.error('Error preparing template save:', error);
       toast({
+        variant: "destructive",
         title: "Error",
-        description: "Failed to clear all foods. Please try again.",
-        variant: "destructive"
+        description: "Failed to prepare template save"
       });
-    } finally {
-      setClearingAll(false);
-      setShowClearAllDialog(false);
     }
   };
 
-  const handleSaveAsTemplate = async () => {
-    if (todayEntries.length === 0) {
-      toast({
-        title: "No foods to save",
-        description: "Add some foods to today's plan before saving as template.",
-        variant: "destructive"
+  const handleConfirmSaveTemplate = async () => {
+    try {
+      console.log('🍽️ Saving template with foods:', pendingSaveData);
+      
+      const { error } = await saveTemplate(pendingSaveData);
+      
+      if (error) {
+        console.error('🍽️ Error saving template:', error);
+        toast({ 
+          title: 'Error', 
+          description: 'Failed to save template',
+          variant: 'destructive'
+        });
+      } else {
+        console.log('🍽️ Successfully saved template');
+        toast({ 
+          title: 'Template Saved', 
+          description: `Your daily food plan has been saved as a template` 
+        });
+        
+        if (!profile?.enable_daily_reset) {
+          await updateProfile({ enable_daily_reset: true });
+        }
+      }
+    } catch (error) {
+      console.error('🍽️ Exception saving template:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to save template',
+        variant: 'destructive'
       });
-      return;
     }
-
-    const foodsToSave = todayEntries.map(entry => ({
-      name: entry.name,
-      calories: entry.calories,
-      carbs: entry.carbs,
-      serving_size: entry.serving_size,
-      image_url: entry.image_url
-    }));
-
-    const { error } = await saveTemplate(foodsToSave);
-    
-    if (error) {
-      toast({
-        title: "Error saving template",
-        description: "Failed to save daily template. Please try again.",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Template saved",
-        description: "Successfully saved today's plan as your daily template."
-      });
-      setShowSaveTemplateDialog(false);
-    }
+    setShowConfirmTemplateDialog(false);
+    setPendingSaveData([]);
   };
 
   const handleApplyTemplate = async () => {
-    if (templateFoods.length === 0) {
-      toast({
-        title: "No template available",
-        description: "Please save a daily template first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const { error } = await applyTemplate();
-    
-    if (error) {
-      toast({
-        title: "Error applying template",
-        description: "Failed to apply daily template. Please try again.",
-        variant: "destructive"
-      });
-    } else {
-      // Refresh the food entries to show the newly added items
-      await refreshFoodEntries();
+    try {
+      console.log('🍽️ Applying template...');
+      const { error } = await applyTemplate();
       
-      toast({
-        title: "Template applied",
-        description: "Successfully applied your daily template to today's plan."
+      if (error) {
+        console.error('🍽️ Error applying template:', error);
+        toast({ 
+          title: 'Error', 
+          description: 'Failed to apply template',
+          variant: 'destructive'
+        });
+      } else {
+        console.log('🍽️ Successfully applied template');
+        await refreshFoodEntries();
+        toast({ 
+          title: 'Template Applied', 
+          description: 'Your daily template has been applied to today\'s plan' 
+        });
+      }
+    } catch (error) {
+      console.error('🍽️ Exception applying template:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to apply template',
+        variant: 'destructive'
       });
     }
   };
 
+  const handleClearTemplate = async () => {
+    try {
+      console.log('🗑️ Clearing template...');
+      const { error } = await clearTemplate();
+      
+      if (error) {
+        console.error('🗑️ Error clearing template:', error);
+        toast({ 
+          title: 'Error', 
+          description: 'Failed to clear template',
+          variant: 'destructive'
+        });
+      } else {
+        console.log('🗑️ Successfully cleared template');
+        toast({ 
+          title: 'Template Cleared', 
+          description: 'Your daily template has been cleared' 
+        });
+      }
+    } catch (error) {
+      console.error('🗑️ Exception clearing template:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to clear template',
+        variant: 'destructive'
+      });
+    }
+    setShowClearTemplateDialog(false);
+  };
+
   return (
-    <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-      <div className="max-w-md mx-auto pt-10 pb-24">
-        {/* Header with Onboarding Button */}
-        <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
-          </div>
-          <div className="absolute right-0 top-0">
-            <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
-          </div>
-          <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
-              Food Tracking
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">Log your food intake</p>
-          </div>
-        </div>
-
-
-
-        {/* Action Buttons - Moved above Today's Food Plan */}
-        <div className="my-6">
-          <div className="grid grid-cols-4 gap-3">
-            {/* Voice Add */}
-            <div className="flex flex-col items-center">
-              <PremiumGate feature="AI Food Assistant" grayOutForFree={true}>
-                <Button
-                  onClick={handleVoiceFood}
-                  variant="ai"
-                  size="action-tall"
-                  className="flex items-center justify-center w-full"
-                  aria-label="Add food with voice"
-                >
-                  <Mic className="w-5 h-5" />
-                </Button>
-              </PremiumGate>
-              <ClickableTooltip content="Use voice to describe your food and AI will add it with estimated nutrition">
-                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Voice Add</p>
-              </ClickableTooltip>
-            </div>
-
-            {/* Photo Add */}
-            <div className="flex flex-col items-center">
-              <Button
-                onClick={() => setShowPhotoEntry(true)}
-                variant="ai"
-                size="action-tall"
-                className="flex items-center justify-center w-full"
-                aria-label="Add food with photo"
-              >
-                <Camera className="w-5 h-5" />
-              </Button>
-              <ClickableTooltip content="Take a photo and AI will analyze the nutritional information automatically">
-                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Photo Add</p>
-              </ClickableTooltip>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-foreground">Food Tracking</h1>
+              <PageOnboardingButton 
+                pageName="food-tracking"
+                onOpen={() => setShowOnboarding(true)}
+              />
             </div>
             
-            {/* Manual Add */}
-            <div className="flex flex-col items-center">
-              <Button
-                onClick={handleManualEntry}
-                variant="action-primary"
-                size="action-tall"
-                className="flex items-center justify-center w-full"
-                aria-label="Add food manually"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
-              <ClickableTooltip content="Type food details manually with serving size and nutrition per 100g">
-                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">Manual Add</p>
-              </ClickableTooltip>
-            </div>
-
-            {/* Add from Library */}
-            <div className="flex flex-col items-center">
-              <Button
-                onClick={() => setShowLibraryView(true)}
-                variant="action-primary"
-                size="action-tall"
-                className="flex items-center justify-center w-full"
-                aria-label="Open food library"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </Button>
-              <ClickableTooltip content="Quick-add foods from your saved library with pre-calculated 100g nutrition values">
-                <p className="text-xs text-center text-muted-foreground mt-1 cursor-pointer">From Library</p>
-              </ClickableTooltip>
+            <div className="flex items-center gap-2">
+              <HistoryButton onClick={() => setShowHistory(true)} />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Food Plan Summary - Above tabs */}
-        <FoodPlanSummary entries={todayEntries} />
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        
+        {/* Action Buttons */}
+        <div className="mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <PremiumGate 
+              feature="ai_food_voice"
+              description="Use voice to add foods with AI assistance"
+              className="col-span-1"
+            >
+              <Button 
+                variant="outline" 
+                className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
+                onClick={() => setShowAiChat(true)}
+              >
+                <Mic className="w-4 h-4" />
+                Voice & AI
+              </Button>
+            </PremiumGate>
 
-        {/* Daily Food Plan System with Tabs - Remove white container */}
-        <div className="mb-6 space-y-3">
-          
-          <Tabs value={activeTab} onValueChange={(value) => {
-            console.log('🍽️ Tab changed to:', value);
-            setActiveTab(value);
-            // Force refresh template data when switching to template tab
-            if (value === 'template') {
-              console.log('🍽️ Switching to template tab, refreshing template data...');
-              loadTemplate();
-            }
-          }} className="w-full">
+            <PremiumGate 
+              feature="photo_food_analysis"
+              description="Analyze food photos with AI to get nutritional information"
+              className="col-span-1"
+            >
+              <Button 
+                variant="outline" 
+                className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
+                onClick={handlePhotoEntry}
+              >
+                <Camera className="w-4 h-4" />
+                Photo
+              </Button>
+            </PremiumGate>
+
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
+              onClick={handleManualEntry}
+            >
+              <Plus className="w-4 h-4" />
+              Manual
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-1 text-xs"
+              onClick={() => setShowLibraryView(true)}
+            >
+              <Save className="w-4 h-4" />
+              Library
+            </Button>
+          </div>
+        </div>
+
+        {/* Daily Summary */}
+        <div className="mb-6">
+          <ComponentErrorBoundary>
+            <FoodPlanSummary 
+              entries={todayEntries}
+              walkingSteps={walkingSteps}
+              onWalkingStepsChange={setWalkingSteps}
+            />
+          </ComponentErrorBoundary>
+        </div>
+
+        {/* Food Lists */}
+        <div className="space-y-6">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => {
+              setActiveTab(value as 'today' | 'template');
+              if (value === 'template') {
+                loadTemplate();
+              }
+            }} 
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2 p-1">
               <TabsTrigger value="today" className="text-sm font-medium flex items-center justify-between px-3">
                 <span>Today's Plan</span>
                 {todayEntries.length > 0 && activeTab === 'today' && (
                   <div className="flex items-center gap-3">
-                    {/* Save Template Button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -736,7 +492,6 @@ const FoodTracking = () => {
                     >
                       <Save className="h-3 w-3" />
                     </Button>
-                    {/* Clear All Button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -759,23 +514,20 @@ const FoodTracking = () => {
             </TabsList>
             
             <TabsContent value="today" className="mt-4">
-          
-          {todayEntries.length === 0 ? (
-            <div className="text-center py-6">
-              <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">No foods added yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Add foods using the buttons above</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {todayEntries.map((entry) => (
-                <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-muted/20 border-0 ${
-                  entry.consumed 
-                    ? 'opacity-60' 
-                    : ''
-                }`}>
-                   <div className="flex items-center gap-2">
-                     
+              {todayEntries.length === 0 ? (
+                <div className="text-center py-6">
+                  <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">No foods added yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add foods using the buttons above</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {todayEntries.map((entry) => (
+                    <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-muted/20 border-0 ${
+                      entry.consumed ? 'opacity-60' : ''
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        
                         {/* More Options Menu - Moved to beginning */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -788,104 +540,96 @@ const FoodTracking = () => {
                               <MoreVertical className="w-5 h-5 text-primary" />
                             </Button>
                           </DropdownMenuTrigger>
-                       <DropdownMenuContent align="start" className="w-44">
-                         <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
-                           <Edit className="w-4 h-4 mr-2" />
-                           Edit Entry
-                         </DropdownMenuItem>
-                             <DropdownMenuItem
-                               onClick={async () => {
-                                 const result = await addFoodEntry({
-                                   name: entry.name,
-                                   calories: entry.calories,
-                                   carbs: entry.carbs,
-                                   serving_size: entry.serving_size,
-                                   consumed: false,
-                                   image_url: entry.image_url
-                                 });
-                                 
-                                 if (!result || 'error' in result) {
-                                   toast({
-                                     variant: "destructive",
-                                     title: "Error",
-                                     description: "Failed to duplicate entry"
-                                   });
-                                 } else {
-                                   toast({
-                                     title: "Entry duplicated",
-                                     description: `${entry.name} has been duplicated`
-                                   });
-                                 }
-                               }}
-                             >
-                               <Plus className="w-4 h-4 mr-2" />
-                               Duplicate Entry
-                             </DropdownMenuItem>
-                               <DropdownMenuItem
-                                 onClick={async () => {
-                                   if (isInLibrary(entry.name)) {
-                                     toast({ title: 'Already in Library', description: `${entry.name} is already in your library` });
-                                     return;
-                                   }
-                                   await saveToLibrary({
-                                     name: entry.name,
-                                     calories: entry.calories,
-                                     carbs: entry.carbs,
-                                     serving_size: entry.serving_size,
-                                   });
-                                   addLibraryLocal(entry.name);
-                                   toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
-                                 }}
-                                 className={isInLibrary(entry.name) ? "text-muted-foreground cursor-default" : ""}
-                               >
-                                 <Save className="w-4 h-4 mr-2" />
-                                 {isInLibrary(entry.name) ? 'Already in Library' : 'Add to Library'}
-                               </DropdownMenuItem>
-                             <DropdownMenuItem
-                               onClick={async () => {
-                                  try {
-                                    console.log('🍽️ Adding entry to template:', entry.name);
-                                    
-                                    // Use the same format as other template entries
-                                    const foodsToSave = [{
-                                      name: entry.name,
-                                      calories: entry.calories,
-                                      carbs: entry.carbs,
-                                      serving_size: entry.serving_size,
-                                      image_url: entry.image_url,
-                                    }];
-                                    
-                                     console.log('🍽️ Adding foods:', foodsToSave);
-                                     
-                                     const { error } = await addToTemplate(foodsToSave);
-                                    
-                                    if (error) {
-                                      console.error('🍽️ Error saving template:', error);
-                                      toast({ 
-                                        title: 'Error', 
-                                        description: 'Failed to add to template',
-                                        variant: 'destructive'
-                                      });
-                                    } else {
-                                      console.log('🍽️ Successfully added to template');
-                                      toast({ 
-                                        title: 'Added to Template', 
-                                        description: `${entry.name} added to your daily template` 
-                                      });
-                                    }
-                                  } catch (error) {
-                                    console.error('🍽️ Exception adding to template:', error);
+                          <DropdownMenuContent align="start" className="w-44">
+                            <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Entry
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                const result = await addFoodEntry({
+                                  name: entry.name,
+                                  calories: entry.calories,
+                                  carbs: entry.carbs,
+                                  serving_size: entry.serving_size,
+                                  consumed: false,
+                                  image_url: entry.image_url
+                                });
+                                
+                                if (!result || 'error' in result) {
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Error",
+                                    description: "Failed to duplicate entry"
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Entry duplicated",
+                                    description: `${entry.name} has been duplicated`
+                                  });
+                                }
+                              }}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Duplicate Entry
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                if (isInLibrary(entry.name)) {
+                                  toast({ title: 'Already in Library', description: `${entry.name} is already in your library` });
+                                  return;
+                                }
+                                await saveToLibrary({
+                                  name: entry.name,
+                                  calories: entry.calories,
+                                  carbs: entry.carbs,
+                                  serving_size: entry.serving_size,
+                                });
+                                addLibraryLocal(entry.name);
+                                toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
+                              }}
+                              className={isInLibrary(entry.name) ? "text-muted-foreground cursor-default" : ""}
+                            >
+                              <Save className="w-4 h-4 mr-2" />
+                              {isInLibrary(entry.name) ? 'Already in Library' : 'Add to Library'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  const foodsToSave = [{
+                                    name: entry.name,
+                                    calories: entry.calories,
+                                    carbs: entry.carbs,
+                                    serving_size: entry.serving_size,
+                                    image_url: entry.image_url,
+                                  }];
+                                  
+                                  const { error } = await addToTemplate(foodsToSave);
+                                  
+                                  if (error) {
                                     toast({ 
                                       title: 'Error', 
                                       description: 'Failed to add to template',
                                       variant: 'destructive'
                                     });
+                                  } else {
+                                    toast({ 
+                                      title: 'Added to Template', 
+                                      description: `${entry.name} added to your daily template` 
+                                    });
                                   }
-                               }}
-                             >
-                               <Plus className="w-4 h-4 mr-2" />
-                               Add to Template
-                             </DropdownMenuItem>
+                                } catch (error) {
+                                  toast({ 
+                                    title: 'Error', 
+                                    description: 'Failed to add to template',
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add to Template
+                            </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleDeleteFoodEntry(entry.id)}
                               className="text-destructive focus:text-destructive"
@@ -894,85 +638,81 @@ const FoodTracking = () => {
                               Delete Entry
                             </DropdownMenuItem>
                           </DropdownMenuContent>
-                       </DropdownMenu>
-                       
-                       {/* Entry Image - Compact but visible */}
-                       <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                         {entry.image_url ? (
-                           <img 
-                             src={entry.image_url} 
-                             alt={entry.name}
-                             className="w-10 h-10 object-cover rounded-lg"
-                           />
-                         ) : (
-                           <Utensils className="w-5 h-5 text-muted-foreground" />
-                         )}
-                       </div>
-                       
-                       {/* Entry Content - Compact */}
-                       <div className="flex-1 min-w-0 relative">
-                         <div className="mb-0 flex items-center gap-2 min-w-0">
-                           <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
-                             entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
-                           }`}>
-                             {entry.name}
-                           </h3>
-                           {isInLibrary(entry.name) && (
-                             <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
-                           )}
-                         </div>
-                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                           <span className={`font-medium ${
-                             Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
-                           }`}>
-                             {Math.round(entry.serving_size)}g
-                           </span>
-                           <span className="text-muted-foreground/60">•</span>
-                           <ClickableTooltip content="Calories">
-                             <span className={`font-medium cursor-pointer ${
-                               Math.round(entry.calories) === 0 ? 'text-destructive' : ''
-                             }`}>
-                               {Math.round(entry.calories)}
-                             </span>
-                           </ClickableTooltip>
-                           <span className="text-muted-foreground/60">•</span>
-                           <ClickableTooltip content="Carbs">
-                             <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
-                           </ClickableTooltip>
-                         </div>
-                       </div>
-                       
-                       {/* Actions - Compact */}
-                       <div className="flex items-center gap-4 flex-shrink-0">
-                         {/* Primary Consume Button */}
-                         <Button
-                           size="sm"
-                           variant="default"
-                           onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                           className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
-                           title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                           aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                         >
-                           <Check className="w-3 h-3 text-primary-foreground" />
-                         </Button>
-                       </div>
-                     </div>
-                   </div>
+                        </DropdownMenu>
+                        
+                        {/* Entry Image - Compact but visible */}
+                        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                          {entry.image_url ? (
+                            <img 
+                              src={entry.image_url} 
+                              alt={entry.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <Utensils className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        
+                        {/* Entry Content - Compact */}
+                        <div className="flex-1 min-w-0 relative">
+                          <div className="mb-0 flex items-center gap-2 min-w-0">
+                            <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
+                              entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
+                            }`}>
+                              {entry.name}
+                            </h3>
+                            {isInLibrary(entry.name) && (
+                              <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className={`font-medium ${
+                              Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
+                            }`}>
+                              {Math.round(entry.serving_size)}g
+                            </span>
+                            <span className="text-muted-foreground/60">•</span>
+                            <ClickableTooltip content="Calories">
+                              <span className={`font-medium cursor-pointer ${
+                                Math.round(entry.calories) === 0 ? 'text-destructive' : ''
+                              }`}>
+                                {Math.round(entry.calories)}
+                              </span>
+                            </ClickableTooltip>
+                            <span className="text-muted-foreground/60">•</span>
+                            <ClickableTooltip content="Carbs">
+                              <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
+                            </ClickableTooltip>
+                          </div>
+                        </div>
+                        
+                        {/* Actions - Compact */}
+                        <div className="flex items-center gap-4 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                            className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                            title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                            aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                          >
+                            <Check className="w-3 h-3 text-primary-foreground" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-          
-          </TabsContent>
-          
+              )}
+            </TabsContent>
+            
             <TabsContent value="template" className="mt-4">
               <div className="space-y-4">
                 {templateFoods.length > 0 ? (
                   <>
-                    {/* Subtle controls section */}
                     <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/50 pb-2">
                       <div className="flex items-center space-x-3">
-                         <div className="flex items-center space-x-1.5">
+                        <div className="flex items-center space-x-1.5">
                           <Switch 
                             id="activate-daily"
                             checked={profile?.enable_daily_reset || false}
@@ -999,19 +739,25 @@ const FoodTracking = () => {
                           <Label htmlFor="activate-daily" className="text-xs font-normal">
                             Auto-apply daily
                           </Label>
-                          <ClickableTooltip content="When enabled, your template will automatically replace today's plan each day at midnight">
-                            <Info className="h-3 w-3 text-muted-foreground/60" />
-                          </ClickableTooltip>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <ClickableTooltip content="Apply your template foods to today's plan right now">
+                      
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowClearTemplateDialog(true)}
+                          className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Clear
+                        </Button>
+                        <ClickableTooltip content="Apply template to today's plan">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={handleApplyTemplate}
-                            disabled={templateLoading}
-                            className="h-6 px-2 text-xs font-normal hover:bg-muted/30"
+                            className="h-6 px-2 text-xs text-primary hover:text-primary hover:bg-primary/10"
                           >
                             <Plus className="w-3 h-3 mr-1" />
                           </Button>
@@ -1019,175 +765,105 @@ const FoodTracking = () => {
                         <span className="text-xs font-normal text-muted-foreground">Apply today</span>
                       </div>
                     </div>
+                    
                     <div className="space-y-1">
                       {templateFoods.map((food) => {
-                        // Create a stable food ID reference to avoid stale closures
                         const foodId = food.id;
                         return (
-                         <div key={food.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors">
-                           <div className="flex items-center space-x-2">
-                             {/* More Options Menu - Moved to beginning */}
-                             <DropdownMenu>
-                               <DropdownMenuTrigger asChild>
-                                 <Button 
-                                   size="sm" 
-                                   variant="ghost" 
-                                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
-                                 >
-                                   <MoreVertical className="w-5 h-5 text-primary" />
-                                 </Button>
-                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="start" className="w-48">
-                                   <DropdownMenuItem 
-                                     onClick={async () => {
-                                       // Get fresh food data to avoid stale closures
-                                       const currentFood = templateFoods.find(f => f.id === foodId);
-                                       if (!currentFood) {
-                                         toast({
-                                           variant: "destructive",
-                                           title: "Error",
-                                           description: "Food item not found"
-                                         });
-                                         return;
-                                       }
-                                       
-                                       console.log('➕ Add to today clicked for:', { id: currentFood.id, name: currentFood.name });
-                                       try {
-                                         // Add template item to today's plan
-                                         const result = await addFoodEntry({
-                                           name: currentFood.name,
-                                           calories: currentFood.calories,
-                                           carbs: currentFood.carbs,
-                                           serving_size: currentFood.serving_size,
-                                           image_url: currentFood.image_url, // ✅ Include the image URL
-                                           consumed: false
-                                         });
+                          <div key={food.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors">
+                            <div className="flex items-center space-x-2">
+                              
+                              {/* More Options Menu - Moved to beginning */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
+                                  >
+                                    <MoreVertical className="w-5 h-5 text-primary" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-48">
+                                  <DropdownMenuItem 
+                                    onClick={async () => {
+                                      const currentFood = templateFoods.find(f => f.id === foodId);
+                                      if (!currentFood) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: "Food item not found"
+                                        });
+                                        return;
+                                      }
+                                      
+                                      try {
+                                        const result = await addFoodEntry({
+                                          name: currentFood.name,
+                                          calories: currentFood.calories,
+                                          carbs: currentFood.carbs,
+                                          serving_size: currentFood.serving_size,
+                                          image_url: currentFood.image_url,
+                                          consumed: false
+                                        });
 
-                                         if (!result || 'error' in result) {
-                                           console.error('➕ Failed to add to today:', result);
-                                           toast({
-                                             variant: "destructive",
-                                             title: "Error",
-                                             description: "Failed to add to today's plan"
-                                           });
-                                         } else {
-                                           console.log('➕ Successfully added to today:', result);
-                                           toast({
-                                             title: "Added to Today's Plan",
-                                             description: `${currentFood.name} added to today's food plan`
-                                           });
-                                         }
-                                       } catch (error) {
-                                         console.error('➕ Exception adding to today:', error);
-                                         toast({
-                                           variant: "destructive",
-                                           title: "Error",
-                                           description: `Failed to add to today's plan: ${error.message || 'Unknown error'}`
-                                         });
-                                       }
-                                     }}
+                                        if (!result || 'error' in result) {
+                                          toast({
+                                            variant: "destructive",
+                                            title: "Error",
+                                            description: "Failed to add to today's plan"
+                                          });
+                                        } else {
+                                          toast({
+                                            title: "Added to Today's Plan",
+                                            description: `${currentFood.name} added to today's food plan`
+                                          });
+                                        }
+                                      } catch (error) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: `Failed to add to today's plan: ${error.message || 'Unknown error'}`
+                                        });
+                                      }
+                                    }}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
                                     Add to Today's Plan
                                   </DropdownMenuItem>
-                                   <DropdownMenuItem
-                                     onClick={async () => {
-                                       // Get fresh food data to avoid stale closures
-                                       const currentFood = templateFoods.find(f => f.id === foodId);
-                                       if (!currentFood) {
-                                         toast({
-                                           variant: "destructive",
-                                           title: "Error",
-                                           description: "Food item not found"
-                                         });
-                                         return;
-                                       }
-                                       
-                                       console.log('📋 Duplicate template item clicked for:', { id: currentFood.id, name: currentFood.name });
-                                       try {
-                                         // Duplicate template item in the template
-                                         const { data, error } = await supabase
-                                           .from('daily_food_templates')
-                                           .insert({
-                                             user_id: user?.id,
-                                             name: currentFood.name,
-                                             calories: currentFood.calories,
-                                             carbs: currentFood.carbs,
-                                             serving_size: currentFood.serving_size,
-                                             image_url: currentFood.image_url,
-                                             sort_order: templateFoods.length
-                                           })
-                                           .select(); // Return inserted row to confirm
-                                         
-                                         if (error) {
-                                           console.error('📋 Duplicate error:', error);
-                                           throw error;
-                                         }
-                                         
-                                         console.log('📋 Successfully duplicated:', data);
-                                         
-                                         await loadTemplate();
-                                         toast({
-                                           title: "Template item duplicated",
-                                           description: `${currentFood.name} has been duplicated in template`
-                                         });
-                                       } catch (error) {
-                                         console.error('📋 Duplicate failed:', error);
-                                         toast({
-                                           variant: "destructive",
-                                           title: "Error",
-                                           description: `Failed to duplicate template item: ${error.message || 'Unknown error'}`
-                                         });
-                                       }
-                                     }}
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Duplicate Entry
-                                  </DropdownMenuItem>
-                                   <DropdownMenuItem onClick={() => {
-                                     // Get fresh food data to avoid stale closures
-                                     const currentFood = templateFoods.find(f => f.id === foodId);
-                                     if (currentFood) {
-                                       setEditingEntry(currentFood);
-                                     }
-                                   }}>
-                                     <Edit className="w-4 h-4 mr-2" />
-                                     Edit Template Item
-                                   </DropdownMenuItem>
-                                   <DropdownMenuItem
-                                     onClick={async () => {
-                                       // Get fresh food data to avoid stale closures
-                                       const currentFood = templateFoods.find(f => f.id === foodId);
-                                       if (!currentFood) {
-                                         toast({
-                                           variant: "destructive", 
-                                           title: "Error",
-                                           description: "Food item not found"
-                                         });
-                                         return;
-                                       }
-                                       
-                                       if (isInLibrary(currentFood.name)) {
-                                         toast({ title: 'Already in Library', description: `${currentFood.name} is already in your library` });
-                                         return;
-                                       }
-                                       await saveToLibrary({
-                                         name: currentFood.name,
-                                         calories: currentFood.calories,
-                                         carbs: currentFood.carbs,
-                                         serving_size: currentFood.serving_size,
-                                       });
-                                       addLibraryLocal(currentFood.name);
-                                       toast({ title: 'Saved to Library', description: `${currentFood.name} added to your library` });
-                                     }}
-                                     className={isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      const currentFood = templateFoods.find(f => f.id === foodId);
+                                      if (!currentFood) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: "Food item not found"
+                                        });
+                                        return;
+                                      }
+                                      
+                                      if (isInLibrary(currentFood.name)) {
+                                        toast({ title: 'Already in Library', description: `${currentFood.name} is already in your library` });
+                                        return;
+                                      }
+                                      
+                                      await saveToLibrary({
+                                        name: currentFood.name,
+                                        calories: currentFood.calories,
+                                        carbs: currentFood.carbs,
+                                        serving_size: currentFood.serving_size,
+                                      });
+                                      addLibraryLocal(currentFood.name);
+                                      toast({ title: 'Saved to Library', description: `${currentFood.name} added to your library` });
+                                    }}
+                                    className={isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}
                                   >
                                     <Save className="w-4 h-4 mr-2" />
                                     {isInLibrary(food.name) ? 'Already in Library' : 'Add to Library'}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     onClick={async () => {
-                                      // Get fresh food data to avoid stale closures
                                       const currentFood = templateFoods.find(f => f.id === foodId);
                                       if (!currentFood) {
                                         toast({
@@ -1198,26 +874,19 @@ const FoodTracking = () => {
                                         return;
                                       }
                                       
-                                      console.log('🗑️ Delete template item clicked for:', { id: currentFood.id, name: currentFood.name });
                                       try {
-                                        console.log('🗑️ Attempting to delete template item with ID:', currentFood.id);
-                                        
                                         const { data, error } = await supabase
                                           .from('daily_food_templates')
                                           .delete()
                                           .eq('id', currentFood.id)
-                                          .eq('user_id', user?.id) // Add user_id check for safety
-                                          .select(); // Return deleted rows to confirm
-                                        
-                                        console.log('🗑️ Delete result:', { data, error });
+                                          .eq('user_id', user?.id)
+                                          .select();
                                         
                                         if (error) {
-                                          console.error('🗑️ Delete error:', error);
                                           throw error;
                                         }
                                         
                                         if (!data || data.length === 0) {
-                                          console.warn('🗑️ No rows were deleted');
                                           toast({
                                             variant: "destructive",
                                             title: "Error",
@@ -1226,23 +895,14 @@ const FoodTracking = () => {
                                           return;
                                         }
                                         
-                                        console.log('🗑️ Successfully deleted:', data);
-                                        
-                                        // Refresh template data
-                                        console.log('🗑️ Refreshing template data...');
                                         await loadTemplate();
-                                        
-                                        // Also refresh today's food entries since they might be affected
                                         await refreshFoodEntries();
-                                        
-                                        console.log('🗑️ Template refresh complete');
                                         
                                         toast({
                                           title: "Template item deleted",
                                           description: `${currentFood.name} removed from daily template`
                                         });
                                       } catch (error) {
-                                        console.error('🗑️ Delete failed:', error);
                                         toast({
                                           variant: "destructive",
                                           title: "Error",
@@ -1250,297 +910,187 @@ const FoodTracking = () => {
                                         });
                                       }
                                     }}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete from Template
-                                </DropdownMenuItem>
-                               </DropdownMenuContent>
-                             </DropdownMenu>
-                             
-                             {food.image_url ? (
-                               <img
-                                 src={food.image_url}
-                                 alt={food.name}
-                                 className="w-10 h-10 rounded-lg object-cover"
-                               />
-                             ) : (
-                               <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                                 <Utensils className="w-5 h-5 text-muted-foreground" />
-                               </div>
-                             )}
-                             <div className="flex-1 min-w-0">
-                               <div className="flex items-center gap-2 min-w-0">
-                                 <p className="font-medium truncate max-w-[180px]">{food.name}</p>
-                                 {isInLibrary(food.name) && (
-                                   <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
-                                 )}
-                               </div>
-                               <p className="text-sm text-muted-foreground">
-                                 {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
-                               </p>
-                             </div>
-                           </div>
-                         </div>
-                        )
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete from Template
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              
+                              {food.image_url ? (
+                                <img
+                                  src={food.image_url}
+                                  alt={food.name}
+                                  className="w-10 h-10 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                  <Utensils className="w-5 h-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <p className="font-medium truncate max-w-[180px]">{food.name}</p>
+                                  {isInLibrary(food.name) && (
+                                    <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
                       })}
-                   </div>
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Save className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No daily template saved</p>
-                  <p className="text-sm mt-2">Add foods to today's plan and save as template</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Save className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No daily template saved</p>
+                    <p className="text-sm mt-2">Add foods to today's plan and save as template</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
-
-
-        {/* Food Entry Form */}
-        {showForm && (
-          <div className="space-y-4 mb-8">
-            
-            <div className="space-y-2">
-              <Label htmlFor="foodName">Food Name</Label>
-              <Input
-                id="foodName"
-                value={foodName}
-                onChange={(e) => setFoodName(e.target.value)}
-                placeholder="e.g., Apple, Chicken Breast"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="calories">Calories</Label>
-                <Input
-                  id="calories"
-                  type="number"
-                  value={calories}
-                  onChange={(e) => setCalories(e.target.value)}
-                  placeholder="per serving"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="carbs">Carbs (g)</Label>
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={carbs}
-                  onChange={(e) => setCarbs(e.target.value)}
-                  placeholder="grams"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="servingSize">Serving Size (g)</Label>
-              <Input
-                id="servingSize"
-                type="number"
-                value={servingSize}
-                onChange={(e) => setServingSize(e.target.value)}
-                placeholder="100"
-              />
-            </div>
-
-            {/* Consumption Status */}
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Status</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={consumedNow ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => setConsumedNow(true)}
-                  className="flex-1 h-8 text-xs bg-secondary/20 hover:bg-secondary/30"
-                >
-                  <Check className="w-3 h-3 mr-1" />
-                  Eaten
-                </Button>
-                <Button
-                  type="button"
-                  variant={!consumedNow ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => setConsumedNow(false)}
-                  className="flex-1 h-8 text-xs bg-secondary/20 hover:bg-secondary/30"
-                >
-                  <X className="w-3 h-3 mr-1" />
-                  Planning
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleSave} className="flex-1 h-12 text-base font-semibold">
-                <Save className="w-5 h-5 mr-2" />
-                Add to Today's List
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowForm(false);
-                  setFoodName('');
-                  setCalories('');
-                  setCarbs('');
-                  setServingSize('100');
-                  setConsumedNow(true);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Manual Food Entry Modal */}
-        <ComponentErrorBoundary>
-          <ManualFoodEntry
-            isOpen={showManualEntry}
-            onClose={() => setShowManualEntry(false)}
-            onSave={handleSaveManualEntry}
-            data={manualEntryData}
-            onDataChange={setManualEntryData}
-          />
-        </ComponentErrorBoundary>
-
-
-        {/* AI Chat Modal */}
-        <PremiumGate feature="AI Chat Assistant" showUpgrade={false}>
-          <ComponentErrorBoundary>
-            <ModalAiChat
-              isOpen={showAiChat}
-              onClose={() => setShowAiChat(false)}
-              onResult={handleAiChatResult}
-              context={aiChatContext}
-              title="Food Assistant"
-              systemPrompt={aiChatContext}
-            />
-          </ComponentErrorBoundary>
-        </PremiumGate>
-
-        {/* Food History Modal */}
-        {showHistory && (
-          <ComponentErrorBoundary>
-            <FoodHistory onClose={() => setShowHistory(false)} />
-          </ComponentErrorBoundary>
-        )}
-
-
-        {/* Food Library Modal - Using fullscreen pattern with content-only mode */}
-        <UniversalModal
-          isOpen={showLibraryView}
-          onClose={() => setShowLibraryView(false)}
-          title="" // Empty title since FoodLibraryView has its own header
-          variant="fullscreen"
-          showCloseButton={false} // FoodLibraryView has its own close button
-          contentClassName="p-0" // Remove padding since FoodLibraryView handles its own spacing
-        >
-          <FoodLibraryView 
-            onSelectFood={handleSelectFromLibrary} 
-            onBack={() => setShowLibraryView(false)} 
-          />
-        </UniversalModal>
-        
-        {/* Edit Food Entry Modal */}
-        {editingEntry && (
-          <UnifiedFoodEditModal
-            entry={editingEntry}
-            onUpdate={async (id: string, updates: any) => {
-              await handleUpdateFoodEntry(id, updates);
-              setEditingEntry(null);
-            }}
-            isOpen={!!editingEntry}
-            onClose={() => setEditingEntry(null)}
-            mode="entry"
-          />
-        )}
-
-        {/* Onboarding Modal */}
-        <PageOnboardingModal
-          isOpen={showOnboarding}
-          onClose={() => setShowOnboarding(false)}
-          title={onboardingContent.food.title}
-          subtitle={onboardingContent.food.subtitle}
-          heroQuote={onboardingContent.food.heroQuote}
-          backgroundImage={onboardingContent.food.backgroundImage}
-        >
-          <div className="space-y-6">
-            <div className="text-center">
-              <p className="text-lg text-warm-text/80 mb-6">{onboardingContent.food.subtitle}</p>
-            </div>
-            
-            {onboardingContent.food.sections.map((section, index) => {
-              const IconComponent = section.icon;
-              return (
-                <div key={index} className="flex gap-4 p-4 rounded-xl bg-ceramic-base/50">
-                  <div className="flex-shrink-0 w-12 h-12 bg-ceramic-plate rounded-full flex items-center justify-center">
-                    <IconComponent className="w-6 h-6 text-warm-text" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-warm-text mb-2">{section.title}</h3>
-                    <p className="text-warm-text/70 text-sm leading-relaxed">{section.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </PageOnboardingModal>
-        
-        {/* Clear All Confirmation Dialog */}
-        <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Clear all foods?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will remove all foods from today's plan. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleClearAll}
-                disabled={clearingAll}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {clearingAll ? "Clearing..." : "Clear All"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Save Template Confirmation Dialog */}
-        <AlertDialog open={showSaveTemplateDialog} onOpenChange={setShowSaveTemplateDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Save as daily template?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will save today's plan as your daily template. Any existing template will be replaced.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleSaveAsTemplate}
-                disabled={templateLoading}
-              >
-                {templateLoading ? "Saving..." : "Save Template"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Photo Food Entry Modal */}
-        <PhotoFoodEntry
-          isOpen={showPhotoEntry}
-          onClose={() => setShowPhotoEntry(false)}
-          onSave={handlePhotoEntry}
-        />
-        
       </div>
+
+      {/* Modals */}
+      <PageOnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        content={onboardingContent['food-tracking']}
+      />
+
+      <UniversalModal
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        title="Food History"
+        size="lg"
+      >
+        <FoodHistory />
+      </UniversalModal>
+
+      <UniversalModal
+        isOpen={showLibraryView}
+        onClose={() => setShowLibraryView(false)}
+        title="Food Library"
+        size="lg"
+      >
+        <FoodLibraryView />
+      </UniversalModal>
+
+      {editingEntry && (
+        <UnifiedFoodEditModal
+          isOpen={!!editingEntry}
+          onClose={() => setEditingEntry(null)}
+          entry={editingEntry}
+          onSave={async (updatedEntry) => {
+            const result = await updateFoodEntry(editingEntry.id, updatedEntry);
+            if (!result || 'error' in result) {
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to update food entry"
+              });
+            } else {
+              toast({
+                title: "Food Updated",
+                description: "Food entry has been updated successfully"
+              });
+            }
+            setEditingEntry(null);
+          }}
+        />
+      )}
+
+      <ModalAiChat
+        isOpen={showAiChat}
+        onClose={() => setShowAiChat(false)}
+        onResult={handleAiChatResult}
+      />
+
+      <ManualFoodEntry
+        isOpen={showManualEntry}
+        onClose={() => setShowManualEntry(false)}
+        onSave={handleSaveManualEntry}
+      />
+
+      <PhotoFoodEntry
+        isOpen={showPhotoEntry}
+        onClose={() => setShowPhotoEntry(false)}
+        onSave={handlePhotoSave}
+      />
+
+      {/* Dialogs */}
+      <AlertDialog open={showSaveTemplateDialog} onOpenChange={setShowSaveTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save as Daily Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will save your current food plan as a daily template. You can then apply this template to future days.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSaveTemplate}>Save Template</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showConfirmTemplateDialog} onOpenChange={setShowConfirmTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Template Save</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace your existing daily template with {pendingSaveData.length} food item{pendingSaveData.length !== 1 ? 's' : ''}. 
+              The template will be automatically applied each day at midnight if enabled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingSaveData([])}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSaveTemplate}>Confirm Save</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear All Foods</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove all food entries from today's plan. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearAllEntries} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Clear All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showClearTemplateDialog} onOpenChange={setShowClearTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear Daily Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove all items from your daily template. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearTemplate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Clear Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
