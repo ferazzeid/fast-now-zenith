@@ -688,7 +688,7 @@ const FoodTracking = () => {
             </TabsContent>
             
             <TabsContent value="template" className="mt-4">
-              <div className="space-y-4">
+              <div className="space-y-4 pb-20">
                 {templateFoods.length > 0 ? (
                   <>
                     <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/50 pb-2">
@@ -720,6 +720,9 @@ const FoodTracking = () => {
                           <Label htmlFor="activate-daily" className="text-xs font-normal">
                             Auto-apply daily
                           </Label>
+                          <ClickableTooltip content="When enabled, this template will automatically replace your current food plan every day at midnight">
+                            <Info className="w-3 h-3 text-muted-foreground/70 ml-1" />
+                          </ClickableTooltip>
                         </div>
                       </div>
                       
@@ -1148,8 +1151,7 @@ const FoodTracking = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Template Save</AlertDialogTitle>
             <AlertDialogDescription>
-              This will replace your existing daily template with {pendingSaveData.length} food item{pendingSaveData.length !== 1 ? 's' : ''}. 
-              The template will be automatically applied each day at midnight if enabled.
+              This will replace your existing daily template with {pendingSaveData.length} food item{pendingSaveData.length !== 1 ? 's' : ''}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
