@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Mic, Minus, Plus } from 'lucide-react';
+import { Sparkles, Mic, Minus, Plus, Camera, X } from 'lucide-react';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -38,6 +39,10 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showServingVoiceRecorder, setShowServingVoiceRecorder] = useState(false);
   const [quantity, setQuantity] = useState(1);
+
+  const handleImageUpload = (url: string) => {
+    updateField('imageUrl', url);
+  };
 
   // Set default unit if not already set
   if (!data.servingUnit) {
@@ -81,6 +86,16 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSave = () => {
+    // Multiply by quantity before saving
+    const finalData = {
+      ...data,
+      calories: String(parseFloat(data.calories || '0') * quantity),
+      carbs: String(parseFloat(data.carbs || '0') * quantity)
+    };
+    onSave();
   };
 
   const handleVoiceInput = (text: string) => {
@@ -136,36 +151,63 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       size="md"
       showCloseButton={true}
       footer={
-        <div className="flex items-center justify-between w-full">
-          {/* Quantity selector */}
-          <div className="flex items-center gap-2">
-            <button
+        <div className="flex items-center justify-between w-full gap-3">
+          {/* Quantity selector with border styling like PhotoFoodEntry */}
+          <div className="flex items-center border rounded-md">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center"
+              disabled={quantity <= 1}
+              className="h-8 w-8 p-0 rounded-r-none border-r"
             >
               <Minus className="w-4 h-4" />
-            </button>
-            <span className="text-sm font-medium min-w-[2rem] text-center">{quantity}</span>
-            <button
+            </Button>
+            <div className="px-3 py-1 min-w-[3rem] text-center text-sm font-medium">
+              {quantity}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setQuantity(quantity + 1)}
-              className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center"
+              className="h-8 w-8 p-0 rounded-l-none border-l"
             >
               <Plus className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
           
-          {/* Save button */}
-          <Button 
-            onClick={onSave} 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
-          >
-            Add to Food Plan
-          </Button>
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              size="sm"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Add to Food Plan
+            </Button>
+          </div>
         </div>
       }
     >
-      {/* Image at top - readonly display */}
-      {data.imageUrl && (
+      {/* Image section - camera upload or display */}
+      {!data.imageUrl ? (
+        <div className="space-y-4 mb-4">
+          <div className="text-center py-2">
+            <div className="w-10 h-10 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
+              <Camera className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">Add image (optional)</p>
+          </div>
+          <CameraOnlyImageUpload onImageUpload={handleImageUpload} />
+        </div>
+      ) : (
         <div className="w-full h-48 mb-4">
           <img
             src={data.imageUrl}
@@ -256,7 +298,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           <div>
             <div className="flex items-center justify-between mb-1">
               <Label htmlFor="calories" className="text-xs font-medium">
-                Cal <span className="text-red-500">*</span>
+                Calories <span className="text-red-500">*</span>
               </Label>
               <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                 <button
@@ -280,9 +322,14 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               value={data.calories}
               onChange={(e) => updateField('calories', e.target.value)}
               placeholder="0"
-              className="text-sm"
+              className={`text-sm ${
+                parseFloat(data.calories) === 0 && data.calories !== '' ? 'border-destructive text-destructive' : ''
+              }`}
               required
             />
+            {parseFloat(data.calories) === 0 && data.calories !== '' && (
+              <p className="text-xs text-destructive mt-1">Unlikely to be zero calories</p>
+            )}
           </div>
 
           {/* Carbs */}
