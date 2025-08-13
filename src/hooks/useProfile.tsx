@@ -155,14 +155,19 @@ export const useProfile = () => {
       // Clear cache and set new profile data
       console.log('Updating profile state with:', data);
       setProfile(data);
-      // Update local cache immediately
-      cacheProfile(user.id, data, 24);
       
-      // Force a reload of the profile to verify it was saved (bypass cache)
-      setTimeout(async () => {
-        console.log('Reloading profile to verify save (force)...');
-        await loadProfile(true);
-      }, 100);
+      // Clear existing cache to ensure fresh data
+      const cacheKey = `profile_${user.id}`;
+      const dedupeKey = `profile_${user.id}`;
+      
+      // Clear both cache systems
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`cache_${cacheKey}`);
+        localStorage.removeItem(`dedupe_${dedupeKey}`);
+      }
+      
+      // Update cache with new data immediately
+      cacheProfile(user.id, data, 24);
 
       return { data, error: null };
     } catch (error: any) {
