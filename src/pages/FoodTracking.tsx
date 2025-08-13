@@ -718,40 +718,42 @@ const FoodTracking = () => {
             }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2 p-1">
-              <TabsTrigger value="today" className="text-sm relative">
-                Today's Plan
-                {/* Save Template Button */}
-                {todayEntries.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-1 h-5 w-5 p-0 hover:bg-primary/10 text-primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSaveTemplateDialog(true);
-                    }}
-                    aria-label="Save as template"
-                    title="Save current plan as template"
-                  >
-                    <Save className="h-3 w-3" />
-                  </Button>
-                )}
-                {/* Clear All Button */}
-                {todayEntries.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-1 h-5 w-5 p-0 hover:bg-destructive/10 text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowClearAllDialog(true);
-                    }}
-                    aria-label="Clear all foods"
-                    title="Clear all foods"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
+              <TabsTrigger value="today" className="text-sm relative flex items-center justify-start">
+                <span className="mr-auto">Today's Plan</span>
+                <div className="flex items-center gap-2 ml-4">
+                  {/* Save Template Button */}
+                  {todayEntries.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-primary/10 text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSaveTemplateDialog(true);
+                      }}
+                      aria-label="Save as template"
+                      title="Save current plan as template"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {/* Clear All Button */}
+                  {todayEntries.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-destructive/10 text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowClearAllDialog(true);
+                      }}
+                      aria-label="Clear all foods"
+                      title="Clear all foods"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </TabsTrigger>
               <TabsTrigger value="template" className="font-medium">
                 Daily Template
@@ -822,23 +824,21 @@ const FoodTracking = () => {
                       </div>
                     </div>
                     
-                    {/* Actions - Compact */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      {/* Reduced spacing */}
-                      <div className="w-1"></div>
-                      
-                      {/* More Options Menu */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                             <Button 
-                               size="sm" 
-                               variant="ghost" 
-                               className="h-8 w-8 p-0 hover:bg-secondary/80 rounded"
-                               aria-label="More options"
-                             >
-                               <MoreVertical className="w-4 h-4 text-primary" />
-                            </Button>
-                          </DropdownMenuTrigger>
+                     {/* Actions - Compact */}
+                     <div className="flex items-center gap-3 flex-shrink-0">
+                       
+                       {/* More Options Menu */}
+                         <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-10 w-10 p-0 hover:bg-secondary/80 rounded"
+                                aria-label="More options"
+                              >
+                                <MoreVertical className="w-6 h-6 text-primary" />
+                             </Button>
+                           </DropdownMenuTrigger>
                            <DropdownMenuContent align="end" className="w-44">
                              <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
                                <Edit className="w-4 h-4 mr-2" />
