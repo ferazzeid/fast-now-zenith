@@ -87,21 +87,30 @@ export const ModalAiChat = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Initialize messages array
-      const initialMessages: Message[] = [];
-      
-      // Add context message if provided
-      if (context) {
-        const contextMessage: Message = {
-          role: 'assistant',
-          content: context,
-          timestamp: new Date()
-        };
-        initialMessages.push(contextMessage);
-      }
-      
-      
-      setMessages(initialMessages);
+    // Initialize messages array
+    const initialMessages: Message[] = [];
+    
+    // Add context message if provided
+    if (context) {
+      const contextMessage: Message = {
+        role: 'assistant',
+        content: context,
+        timestamp: new Date()
+      };
+      initialMessages.push(contextMessage);
+    }
+    
+    // Add proactive message if provided
+    if (proactiveMessage) {
+      const proactiveMsg: Message = {
+        role: 'assistant',
+        content: proactiveMessage,
+        timestamp: new Date()
+      };
+      initialMessages.push(proactiveMsg);
+    }
+    
+    setMessages(initialMessages);
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);

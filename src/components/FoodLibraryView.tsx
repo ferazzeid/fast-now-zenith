@@ -634,7 +634,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     return (
       <div 
-        className={`p-2 rounded-lg transition-all duration-200 cursor-pointer mb-1 bg-muted/20 border-0 ${
+        className={`p-3 mx-2 rounded-lg transition-all duration-200 cursor-pointer mb-2 bg-muted/20 border-0 ${
           isSelected 
             ? 'ring-2 ring-primary/50 bg-primary/10' 
             : 'hover:bg-muted/30'
@@ -904,7 +904,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 py-4 overflow-hidden">
+      <div className="flex-1 px-2 py-4 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested' | 'recent')} className="h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
