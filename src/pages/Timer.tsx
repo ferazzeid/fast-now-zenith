@@ -370,6 +370,13 @@ const Timer = () => {
         {/* Control Buttons - Only show for fasting mode */}
         {currentMode === 'fasting' && (
           <div className="space-y-4">
+            {/* Admin Celebration Test Menu - Place above start button for visibility */}
+            {isAdmin && (
+              <div className="mb-4">
+                <AdminCelebrationTestMenu isVisible={true} />
+              </div>
+            )}
+            
             {!isRunning ? (
               <div className="space-y-3">
                 <Button 
@@ -509,8 +516,6 @@ const Timer = () => {
         />
       )}
 
-      {/* Admin Celebration Test Menu */}
-      <AdminCelebrationTestMenu isVisible={isAdmin} />
     </div>
   );
 };

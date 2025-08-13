@@ -77,7 +77,6 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
           "border border-primary/30 shadow-2xl",
           getAnimationClasses()
         )}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Animated background effects */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden">
