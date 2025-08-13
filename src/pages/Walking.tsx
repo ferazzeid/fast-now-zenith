@@ -19,6 +19,8 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
+import { ClearCacheButton } from '@/components/ClearCacheButton';
+import { AlertTriangle } from 'lucide-react';
 
 
 const Walking = () => {
@@ -296,6 +298,18 @@ const Walking = () => {
               startTime: currentSession.start_time
             } : undefined}
           />
+        </div>
+
+        {/* Error Detection and Cache Clear */}
+        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <div className="flex items-center space-x-2 mb-2">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+            <h3 className="text-sm font-medium text-destructive">Having Issues?</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            If you're experiencing errors or the app isn't working properly, try clearing your cache.
+          </p>
+          <ClearCacheButton />
         </div>
 
         {/* Inspirational Quote */}
