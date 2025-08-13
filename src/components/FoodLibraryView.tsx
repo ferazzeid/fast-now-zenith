@@ -61,7 +61,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested' | 'recent'>('my-foods');
+  const [activeTab, setActiveTab] = useState<'recent' | 'my-foods' | 'suggested'>('recent');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
   // Multi-selection state
@@ -905,28 +905,24 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       {/* Content */}
       <div className="flex-1 px-2 py-4 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested' | 'recent')} className="h-full flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <TabsList className="grid w-fit grid-cols-3">
-                <TabsTrigger value="my-foods">My Food</TabsTrigger>
-                <TabsTrigger value="recent">Recent</TabsTrigger>
-                <TabsTrigger value="suggested">Suggested</TabsTrigger>
-              </TabsList>
-              
-              {/* Delete All Button positioned next to My Food tab */}
-              {activeTab === 'my-foods' && filteredUserFoods.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDeleteAllConfirm(true)}
-                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete All
-                </Button>
-              )}
-            </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'recent' | 'my-foods' | 'suggested')} className="h-full flex flex-col">
+          <div className="mb-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="recent">Recent</TabsTrigger>
+              <TabsTrigger value="my-foods" className="flex items-center gap-2">
+                My Food
+                {filteredUserFoods.length > 0 && (
+                  <Trash2 
+                    className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteAllConfirm(true);
+                    }}
+                  />
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="suggested">Default</TabsTrigger>
+            </TabsList>
           </div>
 
           {/* My Foods Tab */}
