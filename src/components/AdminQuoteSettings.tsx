@@ -128,6 +128,61 @@ export const AdminQuoteSettings: React.FC = () => {
     }
   };
 
+  // Function to add 20 additional motivational quotes to existing ones
+  const addAdditionalQuotes = async () => {
+    const additionalQuotes: Quote[] = [
+      { text: "He conquers who endures.", author: "Persius" },
+      { text: "Patience is bitter, but its fruit is sweet.", author: "Aristotle" },
+      { text: "Endurance is nobler than strength, and patience than beauty.", author: "John Ruskin" },
+      { text: "If you can't fly then run, if you can't run then walk, if you can't walk then crawl; but whatever you do, you have to keep moving forward.", author: "Martin Luther King Jr." },
+      { text: "The last of human freedoms is to choose one's attitude in any given set of circumstances.", author: "Viktor Frankl" },
+      { text: "We do not rise to the level of our expectations; we fall to the level of our training.", author: "Archilochus" },
+      { text: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
+      { text: "The bamboo that bends is stronger than the oak that resists.", author: "Japanese proverb" },
+      { text: "The man who masters himself is delivered from all others.", author: "Johann Wolfgang von Goethe" },
+      { text: "A warrior lives by acting, not by thinking about acting.", author: "Carlos Castaneda" },
+      { text: "Not everything that is faced can be changed, but nothing can be changed until it is faced.", author: "James Baldwin" },
+      { text: "Sometimes survival is an act of defiance.", author: "Anonymous" },
+      { text: "The greatest test of courage on earth is to bear defeat without losing heart.", author: "Robert Green Ingersoll" },
+      { text: "A hero is an ordinary individual who finds the strength to persevere and endure in spite of overwhelming obstacles.", author: "Christopher Reeve" },
+      { text: "The will to win means nothing without the will to prepare.", author: "Juma Ikangaa" },
+      { text: "You can't cross the sea merely by standing and staring at the water.", author: "Rabindranath Tagore" },
+      { text: "A diamond is a lump of coal that stuck with it under pressure.", author: "Anonymous" },
+      { text: "Pain is inevitable. Suffering is optional.", author: "Haruki Murakami" },
+      { text: "An ounce of patience is worth more than a ton of preaching.", author: "Dutch proverb" },
+      { text: "Great works are performed not by strength but by perseverance.", author: "Samuel Johnson" }
+    ];
+
+    try {
+      // Get current quotes and append the new ones
+      const currentFastingQuotes = [...quotes.fasting_timer_quotes, ...additionalQuotes];
+      const currentWalkingQuotes = [...quotes.walking_timer_quotes, ...additionalQuotes];
+      
+      // Update both sections with the combined quotes
+      const fastingResult = await updateQuotes('fasting_timer_quotes', currentFastingQuotes);
+      const walkingResult = await updateQuotes('walking_timer_quotes', currentWalkingQuotes);
+      
+      if (fastingResult.success && walkingResult.success) {
+        toast({
+          title: "Quotes Added",
+          description: "20 additional motivational quotes have been added to both timer sections."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add some quotes. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add quotes. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleAddQuote = (type: 'fasting_timer_quotes' | 'walking_timer_quotes') => {
     setEditingQuote({ type });
     setShowModal(true);
@@ -192,21 +247,39 @@ export const AdminQuoteSettings: React.FC = () => {
 
   return (
     <>
-      {/* Replace All Quotes Button */}
+      {/* Quote Management Actions */}
       <Card className="mt-8">
         <CardContent className="p-6">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-medium">Replace All Timer Quotes</h3>
-            <p className="text-sm text-muted-foreground">
-              Click below to replace all existing quotes in both Fasting Timer and Walking Timer sections with the new motivational quotes.
-            </p>
-            <Button 
-              onClick={replaceAllQuotes}
-              variant="destructive"
-              className="px-6"
-            >
-              Replace All Quotes with New Set
-            </Button>
+          <div className="space-y-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-medium">Replace All Timer Quotes</h3>
+              <p className="text-sm text-muted-foreground">
+                Click below to replace all existing quotes in both Fasting Timer and Walking Timer sections with the new motivational quotes.
+              </p>
+              <Button 
+                onClick={replaceAllQuotes}
+                variant="destructive"
+                className="px-6"
+              >
+                Replace All Quotes with New Set
+              </Button>
+            </div>
+            
+            <div className="border-t pt-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-lg font-medium">Add Additional Quotes</h3>
+                <p className="text-sm text-muted-foreground">
+                  Add 20 more motivational quotes to the existing quotes in both timer sections.
+                </p>
+                <Button 
+                  onClick={addAdditionalQuotes}
+                  variant="default"
+                  className="px-6"
+                >
+                  Add 20 More Quotes
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
