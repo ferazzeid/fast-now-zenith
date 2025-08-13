@@ -41,9 +41,19 @@ const storeCelebratedMilestone = (sessionId: string, hour: number) => {
   }
 };
 
-const getRandomAnimationType = (): CeramicAnimationType => {
-  const types: CeramicAnimationType[] = ['ring-pulse', 'particle-burst', 'color-wave', 'fireworks'];
-  return types[Math.floor(Math.random() * types.length)];
+const getAnimationTypeForMilestone = (type: 'hourly' | 'completion', hours: number): CeramicAnimationType => {
+  // Map specific animations to specific milestone combinations
+  if (type === 'hourly') {
+    if (hours === 1) return 'ring-pulse';
+    if (hours === 12) return 'color-wave';
+    // For other hourly milestones, alternate between ring-pulse and color-wave
+    return hours % 2 === 0 ? 'color-wave' : 'ring-pulse';
+  } else { // completion
+    if (hours === 16) return 'particle-burst';
+    if (hours === 24) return 'fireworks';
+    // For other completion milestones, use particle-burst for shorter fasts, fireworks for longer
+    return hours >= 20 ? 'fireworks' : 'particle-burst';
+  }
 };
 
 export const useCelebrationMilestones = (sessionId?: string) => {
@@ -71,11 +81,14 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     
     console.log(`🎉 Triggering celebration for ${event.type} milestone:`, event);
     
+    // Get the correct animation type for this milestone
+    const animationType = getAnimationTypeForMilestone(event.type, event.hours);
+    
     setCelebration({
       lastMilestoneHour: event.hours,
       isVisible: true,
       currentEvent: event,
-      animationType: getRandomAnimationType()
+      animationType: animationType
     });
 
     // Show toast notification
@@ -144,8 +157,7 @@ export const useCelebrationMilestones = (sessionId?: string) => {
   const closeCelebration = useCallback(() => {
     setCelebration(prev => ({ 
       ...prev, 
-      isVisible: false,
-      animationType: getRandomAnimationType() // Generate new animation for next celebration
+      isVisible: false
     }));
   }, []);
 
