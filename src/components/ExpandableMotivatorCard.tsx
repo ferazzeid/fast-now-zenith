@@ -147,7 +147,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             <div className="flex items-start justify-between h-full">
               <div className="flex-1 space-y-1">
                 <div className="flex items-center">
-                  <h3 className="font-semibold text-warm-text line-clamp-1">
+                  <h3 className={`font-semibold text-warm-text ${isExpanded ? '' : 'line-clamp-2'}`}>
                     {motivator.title}
                   </h3>
                 </div>
