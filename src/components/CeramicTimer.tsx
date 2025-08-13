@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { CircularMotivatorText } from './CircularMotivatorText';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
+import { CeramicCelebrationEffects, CeramicAnimationType } from './CeramicCelebrationEffects';
 
 interface CeramicTimerProps {
   /** Progress value from 0 to 100 */
@@ -22,6 +23,12 @@ interface CeramicTimerProps {
   goalDuration?: number;
   /** Additional className */
   className?: string;
+  /** Celebration animation configuration */
+  celebrationAnimation?: {
+    isActive: boolean;
+    type: CeramicAnimationType;
+    onAnimationEnd: () => void;
+  };
 }
 
 export const CeramicTimer: React.FC<CeramicTimerProps> = ({
@@ -33,7 +40,8 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
   onToggleCountDirection,
   fastType,
   goalDuration,
-  className
+  className,
+  celebrationAnimation
 }) => {
   
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
@@ -205,6 +213,15 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
           >
             {countDirection === 'up' ? '⬇' : '⬆'}
           </button>
+        )}
+
+        {/* Celebration Effects */}
+        {celebrationAnimation && (
+          <CeramicCelebrationEffects
+            isActive={celebrationAnimation.isActive}
+            animationType={celebrationAnimation.type}
+            onAnimationEnd={celebrationAnimation.onAnimationEnd}
+          />
         )}
       </div>
     </div>

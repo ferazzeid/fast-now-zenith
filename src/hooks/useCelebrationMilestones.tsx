@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { CeramicAnimationType } from '@/components/CeramicCelebrationEffects';
 
 export interface MilestoneEvent {
   type: 'hourly' | 'completion';
@@ -11,6 +12,7 @@ interface CelebrationState {
   lastMilestoneHour: number;
   isVisible: boolean;
   currentEvent: MilestoneEvent | null;
+  animationType: CeramicAnimationType;
 }
 
 // Persistent storage key for celebrated milestones per session
@@ -39,11 +41,17 @@ const storeCelebratedMilestone = (sessionId: string, hour: number) => {
   }
 };
 
+const getRandomAnimationType = (): CeramicAnimationType => {
+  const types: CeramicAnimationType[] = ['ring-pulse', 'particle-burst', 'color-wave', 'fireworks'];
+  return types[Math.floor(Math.random() * types.length)];
+};
+
 export const useCelebrationMilestones = (sessionId?: string) => {
   const [celebration, setCelebration] = useState<CelebrationState>({
     lastMilestoneHour: 0,
     isVisible: false,
-    currentEvent: null
+    currentEvent: null,
+    animationType: 'ring-pulse'
   });
   const { toast } = useToast();
 
@@ -65,7 +73,8 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     setCelebration({
       lastMilestoneHour: event.hours,
       isVisible: true,
-      currentEvent: event
+      currentEvent: event,
+      animationType: getRandomAnimationType()
     });
 
     // Show toast notification
@@ -117,7 +126,8 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     setCelebration({
       lastMilestoneHour: 0,
       isVisible: false,
-      currentEvent: null
+      currentEvent: null,
+      animationType: 'ring-pulse'
     });
     
     // Clear celebrated milestones for this session when starting a new fast
@@ -131,7 +141,11 @@ export const useCelebrationMilestones = (sessionId?: string) => {
   }, [sessionId]);
 
   const closeCelebration = useCallback(() => {
-    setCelebration(prev => ({ ...prev, isVisible: false }));
+    setCelebration(prev => ({ 
+      ...prev, 
+      isVisible: false,
+      animationType: getRandomAnimationType() // Generate new animation for next celebration
+    }));
   }, []);
 
   return {

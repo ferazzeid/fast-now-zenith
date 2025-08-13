@@ -353,6 +353,11 @@ const Timer = () => {
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
                 fastType={fastType}
                 goalDuration={fastDuration / 3600}
+                celebrationAnimation={celebration.isVisible ? {
+                  isActive: celebration.isVisible,
+                  type: celebration.animationType,
+                  onAnimationEnd: closeCelebration
+                } : undefined}
               />
             </>
           ) : (
@@ -507,17 +512,6 @@ const Timer = () => {
         </div>
       </PageOnboardingModal>
 
-      {/* Celebration Overlay */}
-      {celebration.isVisible && celebration.currentEvent && (
-        <CelebrationOverlay
-          isVisible={celebration.isVisible}
-          type={celebration.currentEvent.type}
-          hours={celebration.currentEvent.hours}
-          message={celebration.currentEvent.message}
-          animationType={celebration.currentEvent.type === 'completion' ? 'particle-burst' : 'ring-pulse'}
-          onClose={closeCelebration}
-        />
-      )}
 
     </div>
   );
