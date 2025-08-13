@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Loader2, Sparkles, X, RefreshCcw } from 'lucide-react';
+import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +40,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
   const [servingSize, setServingSize] = useState('0');
   const [calories, setCalories] = useState('');
   const [carbs, setCarbs] = useState('');
+  const [quantity, setQuantity] = useState(1);
 
   const handleUpload = async (url: string) => {
     setImageUrl(url);
@@ -104,9 +105,9 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
     try {
       const foodData = {
         name: name.trim(),
-        serving_size: parseFloat(servingSize) || 100,
-        calories: parseFloat(calories),
-        carbs: parseFloat(carbs),
+        serving_size: (parseFloat(servingSize) || 100) * quantity,
+        calories: parseFloat(calories) * quantity,
+        carbs: parseFloat(carbs) * quantity,
         consumed: false,
         image_url: imageUrl
       };
@@ -136,6 +137,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
     setServingSize('0');
     setCalories('');
     setCarbs('');
+    setQuantity(1);
   };
 
   const handleClose = () => {
@@ -151,6 +153,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
     setServingSize('0');
     setCalories('');
     setCarbs('');
+    setQuantity(1);
   };
 
   return (
@@ -278,25 +281,31 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-2">
+            <div className="grid grid-cols-3 gap-2 pt-2">
               <Button
                 variant="outline"
                 onClick={() => imageUrl && analyze(imageUrl)}
                 disabled={analyzing}
                 size="sm"
-                className="flex-1"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 mr-1" />
                 Re-analyze
               </Button>
               <Button
                 variant="action-secondary"
                 onClick={handleRetakePhoto}
                 size="sm"
-                className="flex-1"
               >
-                <RefreshCcw className="w-4 h-4 mr-2" />
+                <RefreshCcw className="w-4 h-4 mr-1" />
                 New Photo
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                size="sm"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
               </Button>
             </div>
           </div>
@@ -305,27 +314,51 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
 
       {/* Footer */}
       <div className="flex gap-3 pt-4">
-        <Button variant="outline" onClick={handleClose} className="flex-1">
-          Cancel
-        </Button>
         {imageUrl && (
-          <Button 
-            onClick={handleSave} 
-            disabled={saving || !name || !calories || !carbs}
-            className="flex-1"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Adding...
-              </>
-            ) : (
-              <>
-                <Camera className="w-4 h-4 mr-2" />
-                Add to Food Plan
-              </>
-            )}
-          </Button>
+          <>
+            {/* Quantity Input */}
+            <div className="flex items-center border rounded-md">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+                className="h-8 w-8 p-0 rounded-r-none border-r"
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <div className="px-3 py-1 min-w-[3rem] text-center text-sm font-medium">
+                {quantity}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setQuantity(quantity + 1)}
+                className="h-8 w-8 p-0 rounded-l-none border-l"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {/* Add Button */}
+            <Button 
+              onClick={handleSave} 
+              disabled={saving || !name || !calories || !carbs}
+              className="flex-1"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Add to Food Plan
+                </>
+              )}
+            </Button>
+          </>
         )}
       </div>
     </UniversalModal>
