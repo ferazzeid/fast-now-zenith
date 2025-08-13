@@ -7,18 +7,20 @@ interface FastingInspirationRotatorProps {
   quotes: Quote[];
   currentFastingHour?: number;
   className?: string;
+  onSaveQuote?: (quote: Quote) => void;
 }
 
 export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps> = ({ 
   quotes, 
   currentFastingHour = 0,
-  className = '' 
+  className = '',
+  onSaveQuote
 }) => {
   return (
     <div className={className}>
       <FastingTimelineV2 currentHour={currentFastingHour} />
       {quotes && quotes.length > 0 && (
-        <InspirationQuote quotes={quotes} className="mt-4" />
+        <InspirationQuote quotes={quotes} className="mt-4" onSaveQuote={onSaveQuote} />
       )}
     </div>
   );

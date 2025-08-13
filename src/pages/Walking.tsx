@@ -18,6 +18,7 @@ import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
+import { useMotivators } from '@/hooks/useMotivators';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
 
 
@@ -45,6 +46,7 @@ const Walking = () => {
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
+  const { saveQuoteAsGoal } = useMotivators();
 
   const isRunning = !!currentSession;
 
@@ -303,6 +305,7 @@ const Walking = () => {
         <InspirationQuote 
           quotes={quotes.walking_timer_quotes} 
           className="mt-8"
+          onSaveQuote={saveQuoteAsGoal}
         />
 
 

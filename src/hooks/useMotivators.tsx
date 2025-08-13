@@ -206,6 +206,48 @@ export const useMotivators = () => {
     }
   };
 
+  const saveQuoteAsGoal = async (quote: { text: string; author?: string }): Promise<string | null> => {
+    if (!user) return null;
+
+    try {
+      const title = quote.text.length > 50 ? `${quote.text.substring(0, 47)}...` : quote.text;
+      const content = `"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`;
+
+      const { data, error } = await supabase
+        .from('motivators')
+        .insert({
+          user_id: user.id,
+          title,
+          content,
+          category: 'saved_quote',
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const transformedData = { ...data, imageUrl: data.image_url };
+        setMotivators(prev => [transformedData as Motivator, ...prev]);
+        toast({
+          title: "📝 Quote Saved!",
+          description: "Quote has been saved to your goals.",
+        });
+        return data.id;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error saving quote:', error);
+      toast({
+        title: "Error saving quote",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   const deleteMotivator = async (id: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -280,6 +322,14 @@ export const useMotivators = () => {
       const result = await deleteMotivator(id);
       if (result) {
         invalidateCache(); // Clear cache when motivator is deleted
+      }
+      return result;
+    },
+    saveQuoteAsGoal: async (quote: { text: string; author?: string }) => {
+      const result = await saveQuoteAsGoal(quote);
+      if (result) {
+        invalidateCache(); // Clear cache when new quote is saved
+        await loadMotivators(true); // Force refresh
       }
       return result;
     },

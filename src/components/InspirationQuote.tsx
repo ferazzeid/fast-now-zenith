@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { Bookmark } from 'lucide-react';
 import { Quote } from '@/hooks/useQuoteSettings';
+import { Button } from '@/components/ui/button';
 
 interface InspirationQuoteProps {
   quotes: Quote[];
   className?: string;
+  onSaveQuote?: (quote: Quote) => void;
 }
 
 export const InspirationQuote: React.FC<InspirationQuoteProps> = ({ 
   quotes, 
-  className = '' 
+  className = '',
+  onSaveQuote
 }) => {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [lastShownIndex, setLastShownIndex] = useState<number>(-1);
@@ -53,6 +57,12 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
     setCurrentQuote(newQuote);
   };
 
+  const handleSaveQuote = () => {
+    if (currentQuote && onSaveQuote) {
+      onSaveQuote(currentQuote);
+    }
+  };
+
   if (!currentQuote || quotes.length === 0) {
     return null;
   }
@@ -72,8 +82,24 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
           </cite>
         )}
       </blockquote>
-      <div className="text-xs text-muted-foreground/40 mt-2">
-        Tap for another quote
+      <div className="flex items-center justify-between mt-2">
+        <div className="text-xs text-muted-foreground/40">
+          Tap for another quote
+        </div>
+        {onSaveQuote && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSaveQuote();
+            }}
+            className="h-6 px-2 text-xs text-muted-foreground/60 hover:text-muted-foreground"
+          >
+            <Bookmark className="w-3 h-3 mr-1" />
+            Save to Goals
+          </Button>
+        )}
       </div>
     </div>
   );

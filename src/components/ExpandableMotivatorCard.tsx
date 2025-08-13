@@ -101,8 +101,11 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     }
   };
 
+  // Special styling for saved quotes
+  const isSavedQuote = motivator.category === 'saved_quote';
+  
   return (
-    <Card className="overflow-hidden relative">
+    <Card className={`overflow-hidden relative ${isSavedQuote ? 'bg-gray-900 border-gray-700' : ''}`}>
       <CardContent className="p-0">
         <div className="flex">
           {/* Image */}
@@ -147,13 +150,13 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             <div className="flex items-start justify-between h-full">
               <div className="flex-1 space-y-1">
                 <div className="flex items-center">
-                  <h3 className={`font-semibold text-warm-text ${isExpanded ? '' : 'line-clamp-2'}`}>
+                  <h3 className={`font-semibold ${isSavedQuote ? 'text-white' : 'text-warm-text'} ${isExpanded ? '' : 'line-clamp-2'}`}>
                     {motivator.title}
                   </h3>
                 </div>
                 
                 {motivator.content && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className={`text-sm ${isSavedQuote ? 'text-gray-200' : 'text-muted-foreground'}`}>
                     {isExpanded ? (
                       <p className="whitespace-pre-wrap">{motivator.content}</p>
                     ) : (
