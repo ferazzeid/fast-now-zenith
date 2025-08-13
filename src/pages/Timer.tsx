@@ -33,7 +33,7 @@ import { useAdminRole } from '@/hooks/useAdminRole';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
-  const [fastDuration, setFastDuration] = useState(72 * 60 * 60); // 72 hours default (water fast)
+  const [fastDuration, setFastDuration] = useState(60 * 60 * 60); // 60 hours default (water fast)
   const [fastType, setFastType] = useState<'longterm'>('longterm');
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
