@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useMotivators } from '@/hooks/useMotivators';
+import { useProfile } from '@/hooks/useProfile';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,29 +25,18 @@ export default function MotivatorIdeas() {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas();
+  const { profile } = useProfile();
+  const { isAdmin } = useAdminRole();
+  
+  // Default to male if user sex is not set
+  const userGender = profile?.sex || 'male';
+  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas(userGender);
   const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
   const { createMotivator } = useMotivators();
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
 
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      try {
-        const { data: auth } = await supabase.auth.getUser();
-        const uid = auth?.user?.id;
-        if (!uid) return;
-        const { data, error } = await supabase.rpc('has_role', { _user_id: uid, _role: 'admin' });
-        if (error) throw error;
-        setIsAdmin(!!data);
-      } catch (e) {
-        setIsAdmin(false);
-      }
-    };
-    checkAdminRole();
-  }, []);
 
   useEffect(() => {
     console.log('🔄 Force refreshing goal ideas on page load...');
@@ -144,8 +135,15 @@ export default function MotivatorIdeas() {
                       </div>
                       <div className="flex-1 p-4 pr-2">
                         <div className="flex items-start justify-between h-full">
-                          <div className="flex-1 space-y-1">
-                            <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
+                         <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
+                              {isAdmin && goal.gender && (
+                                <span className="text-sm" title={`${goal.gender} goal`}>
+                                  {goal.gender === 'male' ? '🔵' : '🔴'}
+                                </span>
+                              )}
+                            </div>
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
                                 {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{goal.description}</p>}

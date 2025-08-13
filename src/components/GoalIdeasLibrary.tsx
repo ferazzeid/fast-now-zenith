@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
+import { useProfile } from '@/hooks/useProfile';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface GoalIdeasLibraryProps {
@@ -15,7 +17,12 @@ interface GoalIdeasLibraryProps {
 export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
-  const { goalIdeas, loading } = useAdminGoalIdeas();
+  const { profile } = useProfile();
+  const { isAdmin } = useAdminRole();
+  
+  // Default to male if user sex is not set
+  const userGender = profile?.sex || 'male';
+  const { goalIdeas, loading } = useAdminGoalIdeas(userGender);
 
   const filteredGoals = goalIdeas.filter(goal =>
     goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,7 +104,14 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
                     {/* Goal Content - Takes most of the space */}
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex items-start gap-2">
-                        <h4 className="font-medium text-warm-text text-sm leading-tight">{goal.title}</h4>
+                        <div className="flex items-center gap-1">
+                          <h4 className="font-medium text-warm-text text-sm leading-tight">{goal.title}</h4>
+                          {isAdmin && goal.gender && (
+                            <span className="text-xs" title={`${goal.gender} goal`}>
+                              {goal.gender === 'male' ? '🔵' : '🔴'}
+                            </span>
+                          )}
+                        </div>
                         <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground flex-shrink-0">
                           {goal.category}
                         </Badge>

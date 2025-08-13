@@ -8,9 +8,10 @@ export interface AdminGoalIdea {
   description: string;
   category: string;
   imageUrl?: string;
+  gender?: 'male' | 'female';
 }
 
-export const useAdminGoalIdeas = () => {
+export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
   const [goalIdeas, setGoalIdeas] = useState<AdminGoalIdea[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -35,7 +36,13 @@ export const useAdminGoalIdeas = () => {
       if (data?.setting_value) {
         try {
           const parsedGoalIdeas = JSON.parse(data.setting_value);
-          const validIdeas = Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : [];
+          let validIdeas = Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : [];
+          
+          // Apply gender filter if specified
+          if (genderFilter) {
+            validIdeas = validIdeas.filter(idea => idea.gender === genderFilter);
+          }
+          
           console.log('✅ Admin Goal Ideas loaded successfully:', validIdeas);
           // Create completely new array to force React re-render
           setGoalIdeas(validIdeas.map(idea => ({ ...idea })));
@@ -57,7 +64,7 @@ export const useAdminGoalIdeas = () => {
 
   useEffect(() => {
     loadGoalIdeas();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, genderFilter]);
 
   const forceRefresh = () => {
     console.log('🔄 Force refreshing admin goal ideas...');

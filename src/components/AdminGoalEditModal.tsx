@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { AdminImageUpload } from './AdminImageUpload';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +16,7 @@ interface AdminGoalIdea {
   description: string;
   category: string;
   imageUrl?: string;
+  gender?: 'male' | 'female';
 }
 
 interface AdminGoalEditModalProps {
@@ -27,6 +29,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -36,6 +39,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
+      setGender(goal.gender || 'male');
     }
   }, [goal]);
 
@@ -59,6 +63,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         title: title.trim(),
         description: description.trim(),
         imageUrl: imageUrl || undefined,
+        gender: gender,
       };
 
       console.log('💾 Saving goal data:', updatedGoal);
@@ -145,6 +150,20 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             placeholder="Enter the motivator description..."
             disabled={isSubmitting}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-warm-text font-medium">Gender</Label>
+          <RadioGroup value={gender} onValueChange={(value: 'male' | 'female') => setGender(value)}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="male" id="male" />
+              <Label htmlFor="male" className="text-warm-text">Male 🔵</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="female" id="female" />
+              <Label htmlFor="female" className="text-warm-text">Female 🔴</Label>
+            </div>
+          </RadioGroup>
         </div>
 
         <div className="space-y-2">

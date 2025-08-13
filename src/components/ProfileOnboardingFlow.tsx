@@ -65,7 +65,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         height: heightValue,
         age: parseInt(formData.age),
         activity_level: formData.activityLevel,
-        sex: formData.sex,
+        sex: formData.sex as 'male' | 'female',
       };
 
       console.log('About to save profile data:', profileData);

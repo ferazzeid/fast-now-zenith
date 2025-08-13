@@ -22,6 +22,7 @@ interface UserProfile {
   enable_walking_slideshow?: boolean;
   enable_food_image_generation?: boolean;
   enable_daily_reset?: boolean;
+  sex?: 'male' | 'female';
 }
 
 export const useProfile = () => {
