@@ -108,6 +108,7 @@ const Timer = () => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    let goalTimeout: NodeJS.Timeout;
     
     if (isRunning && fastingSession) {
       const updateTimer = () => {
@@ -118,34 +119,45 @@ const Timer = () => {
 
         // Check for celebration milestones
         checkForMilestones(elapsed, fastingSession.goal_duration_seconds);
-
-        // Auto-complete session when goal is reached
-        if (fastingSession.goal_duration_seconds && elapsed >= fastingSession.goal_duration_seconds) {
-          console.log('🎯 Goal achieved! Auto-completing fasting session...');
-          endFastingSession(fastingSession.id).then(() => {
-            toast({
-              title: "🎉 Goal Achieved!",
-              description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
-            });
-          }).catch((error) => {
-            console.error('Error auto-completing fasting session:', error);
-          });
-        }
       };
 
       // Update immediately
       updateTimer();
       
-      // Then update every second
+      // Then update every second for display
       interval = setInterval(updateTimer, 1000);
+
+      // Set a single timeout for when the goal should be reached
+      if (fastingSession.goal_duration_seconds) {
+        const startTime = new Date(fastingSession.start_time);
+        const goalEndTime = new Date(startTime.getTime() + (fastingSession.goal_duration_seconds * 1000));
+        const timeToGoal = goalEndTime.getTime() - Date.now();
+        
+        if (timeToGoal > 0) {
+          console.log(`🎯 Setting goal completion timeout for ${timeToGoal}ms from now`);
+          goalTimeout = setTimeout(async () => {
+            console.log('🎉 Goal achieved! Auto-completing fasting session...');
+            try {
+              await endFastingSession(fastingSession.id);
+              toast({
+                title: "🎉 Goal Achieved!",
+                description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
+              });
+            } catch (error) {
+              console.error('Error auto-completing fasting session:', error);
+            }
+          }, timeToGoal);
+        }
+      }
     } else {
       setTimeElapsed(0);
     }
 
     return () => {
       if (interval) clearInterval(interval);
+      if (goalTimeout) clearTimeout(goalTimeout);
     };
-  }, [isRunning, fastingSession?.start_time, fastDuration, checkForMilestones, fastingSession, endFastingSession, formatTimeFasting, toast]);
+  }, [isRunning, fastingSession?.start_time, fastingSession?.id, fastingSession?.goal_duration_seconds, checkForMilestones, endFastingSession, toast, formatTimeFasting]);
 
   const handleFastingStart = async () => {
     resetMilestones(); // Reset celebration state for new fast
