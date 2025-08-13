@@ -54,9 +54,6 @@ const Timer = () => {
   const { quotes } = useQuoteSettings();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { isAdmin } = useAdminRole();
-  
-  // Debug admin status
-  console.log('🔍 Timer Debug - isAdmin:', isAdmin, 'user:', user?.id);
 
 
   const isRunning = !!fastingSession;
@@ -373,14 +370,9 @@ const Timer = () => {
 
 
         {/* Admin Celebration Test Menu - Always visible for admins */}
-        {isAdmin ? (
-          <div className="mb-4 p-4 bg-red-500 border-2 border-yellow-400 rounded-lg">
-            <div className="text-white font-bold mb-2">🚨 ADMIN MENU (DEBUG)</div>
+        {isAdmin && (
+          <div className="mb-4">
             <AdminCelebrationTestMenu isVisible={true} />
-          </div>
-        ) : (
-          <div className="mb-2 p-2 bg-gray-200 text-black text-sm rounded">
-            Debug: Not admin (isAdmin: {String(isAdmin)})
           </div>
         )}
 
