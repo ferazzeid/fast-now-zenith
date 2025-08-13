@@ -886,59 +886,63 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="px-6 py-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Food Library</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-        </div>
-        
-        {/* Search */}
-        <div className="mt-4">
-          <Input
-            placeholder="Search foods..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md"
-          />
-        </div>
+    <div className="h-full flex flex-col bg-background">
+      {/* Sticky Header for small screens */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border px-6 py-4 flex items-center justify-between shadow-sm">
+        <h2 className="text-xl font-semibold text-foreground">Food Library</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="w-9 h-9 rounded-full hover:bg-muted transition-colors"
+          title="Close Food Library"
+          aria-label="Close Food Library"
+        >
+          <X className="w-5 h-5" />
+        </Button>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-6 py-4 overflow-hidden">
+      {/* Clean Tabs */}
+      <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested' | 'recent')} className="h-full flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList className="grid w-fit grid-cols-3">
-              <TabsTrigger value="my-foods">My Food</TabsTrigger>
-              <TabsTrigger value="recent">Recent</TabsTrigger>
-              <TabsTrigger value="suggested">Suggested</TabsTrigger>
-            </TabsList>
-            
-            {/* Delete All Button positioned properly */}
-            {activeTab === 'my-foods' && filteredUserFoods.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteAllConfirm(true)}
-                className="text-destructive border-destructive/30 hover:bg-destructive/10"
+          <div className="px-6 py-3 bg-background sticky top-0 z-20 border-b border-border">
+            <TabsList className="grid w-full grid-cols-3 h-10 bg-muted rounded-lg p-1">
+              <TabsTrigger 
+                value="my-foods" 
+                className="flex items-center justify-center gap-1 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all relative"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete All
-              </Button>
-            )}
+                <span className="truncate">My Food</span>
+                {filteredUserFoods.length > 0 && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteAllConfirm(true);
+                    }}
+                    className="absolute -top-1 -right-1 w-4 h-4 text-destructive hover:text-destructive/80 transition-colors flex-shrink-0 cursor-pointer"
+                    title="Delete all foods"
+                    aria-label="Delete all foods"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="recent" 
+                className="flex items-center justify-center text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <span className="truncate">Recent</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="suggested" 
+                className="flex items-center justify-center text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
+              >
+                <span className="truncate">Suggested</span>
+              </TabsTrigger>
+            </TabsList>
           </div>
 
           {/* My Foods Tab */}
-          <TabsContent value="my-foods" className="flex-1 overflow-y-auto mt-0">
+          <TabsContent value="my-foods" className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-1 mt-1">
             {/* My Foods List */}
             {loading ? (
@@ -981,7 +985,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </TabsContent>
 
           {/* Suggested Foods Tab */}
-          <TabsContent value="suggested" className="flex-1 overflow-y-auto mt-0">
+          <TabsContent value="suggested" className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-1 mt-1">
             {loading ? (
               <div className="space-y-1">
@@ -1023,7 +1027,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
          </TabsContent>
 
           {/* Recent Foods Tab */}
-          <TabsContent value="recent" className="flex-1 overflow-y-auto mt-0">
+          <TabsContent value="recent" className="flex-1 overflow-y-auto px-6 py-4">
             <div className="space-y-1 mt-1">
               {recentLoading ? (
                 <div className="space-y-1">
