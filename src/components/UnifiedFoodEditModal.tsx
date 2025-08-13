@@ -70,7 +70,9 @@ export const UnifiedFoodEditModal = ({
       ? (food?.carbs_per_100g?.toString() || '') 
       : (entry?.carbs?.toString() || '')
   );
-  const [servingAmount, setServingAmount] = useState('1');
+  const [servingAmount, setServingAmount] = useState(
+    !isLibraryMode && entry?.serving_size ? entry.serving_size.toString() : '1'
+  );
   const [servingUnit, setServingUnit] = useState('pieces');
   const [imageUrl, setImageUrl] = useState(currentItem?.image_url || '');
   const [loading, setLoading] = useState(false);

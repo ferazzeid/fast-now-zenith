@@ -1050,6 +1050,7 @@ const FoodTracking = () => {
           isOpen={!!editingEntry}
           onClose={() => setEditingEntry(null)}
           entry={editingEntry}
+          mode="entry"
           onUpdate={async (updatedEntry: any) => {
             // Check if this is a template item by checking if it exists in templateFoods
             const isTemplateItem = templateFoods.some(f => f.id === editingEntry.id);
