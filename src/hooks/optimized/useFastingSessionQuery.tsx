@@ -223,9 +223,9 @@ export const useFastingSessionQuery = () => {
       const startTime = new Date(session.start_time);
       const actualDurationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
 
-      // Determine status based on whether goal was reached
+      // Always use 'completed' status when ending a fast - database doesn't accept 'incomplete'
       const goalDurationSeconds = session.goal_duration_seconds || 0;
-      const status = actualDurationSeconds >= goalDurationSeconds ? 'completed' : 'incomplete';
+      const status = 'completed';
 
       console.log('🎯 Updating session with:', {
         end_time: now.toISOString(),
