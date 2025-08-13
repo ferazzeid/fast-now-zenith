@@ -30,6 +30,7 @@ export default function MotivatorIdeas() {
   
   // Default to male if user sex is not set
   const userGender = profile?.sex || 'male';
+  console.log('MotivatorIdeas - User gender for filtering:', userGender, 'Profile sex:', profile?.sex);
   const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas(userGender);
   const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
   const { createMotivator } = useMotivators();

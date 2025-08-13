@@ -18,7 +18,7 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
   const { toast } = useToast();
 
   const loadGoalIdeas = async () => {
-    console.log('🔄 Loading admin goal ideas...');
+    console.log('🔄 Loading admin goal ideas with gender filter:', genderFilter);
     try {
       const { data, error } = await supabase
         .from('shared_settings')
