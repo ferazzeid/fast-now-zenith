@@ -77,6 +77,57 @@ export const AdminQuoteSettings: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const { toast } = useToast();
 
+  // Function to replace all quotes with the new motivational quotes
+  const replaceAllQuotes = async () => {
+    const newQuotes: Quote[] = [
+      { text: "If you're going through hell, keep going.", author: "Winston Churchill" },
+      { text: "The man who moves a mountain begins by carrying away small stones.", author: "Confucius" },
+      { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" },
+      { text: "Discipline equals freedom.", author: "Jocko Willink" },
+      { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant (summarizing Aristotle)" },
+      { text: "Fall seven times and stand up eight.", author: "Japanese proverb" },
+      { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+      { text: "First you form the habit, then the habit forms you.", author: "Anonymous" },
+      { text: "Suffer the pain of discipline, or suffer the pain of regret.", author: "Anonymous" },
+      { text: "What you seek is seeking you.", author: "Rumi" },
+      { text: "Don't wish it were easier, wish you were better.", author: "Jim Rohn" },
+      { text: "Endurance is not just the ability to bear a hard thing, but to turn it into glory.", author: "William Barclay" },
+      { text: "A man who is a master of patience is master of everything else.", author: "George Savile" },
+      { text: "The temptation to quit will be greatest just before you are about to succeed.", author: "Chinese proverb" },
+      { text: "Perseverance is not a long race; it is many short races one after the other.", author: "Walter Elliot" },
+      { text: "Do not pray for an easy life, pray for the strength to endure a difficult one.", author: "Bruce Lee" },
+      { text: "Hard choices, easy life. Easy choices, hard life.", author: "Jerzy Gregorek" },
+      { text: "Chains of habit are too light to be felt until they are too heavy to be broken.", author: "Warren Buffett (adaptation of Samuel Johnson)" },
+      { text: "When you're at the end of your rope, tie a knot and hold on.", author: "Theodore Roosevelt" },
+      { text: "Strength does not come from winning. Your struggles develop your strengths.", author: "Arnold Schwarzenegger" }
+    ];
+
+    try {
+      // Update both fasting and walking timer quotes with the same set
+      const fastingResult = await updateQuotes('fasting_timer_quotes', newQuotes);
+      const walkingResult = await updateQuotes('walking_timer_quotes', newQuotes);
+      
+      if (fastingResult.success && walkingResult.success) {
+        toast({
+          title: "Quotes Updated",
+          description: "All timer quotes have been replaced with the new motivational quotes."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update some quotes. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update quotes. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleAddQuote = (type: 'fasting_timer_quotes' | 'walking_timer_quotes') => {
     setEditingQuote({ type });
     setShowModal(true);
@@ -141,6 +192,24 @@ export const AdminQuoteSettings: React.FC = () => {
 
   return (
     <>
+      {/* Replace All Quotes Button */}
+      <Card className="mt-8">
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <h3 className="text-lg font-medium">Replace All Timer Quotes</h3>
+            <p className="text-sm text-muted-foreground">
+              Click below to replace all existing quotes in both Fasting Timer and Walking Timer sections with the new motivational quotes.
+            </p>
+            <Button 
+              onClick={replaceAllQuotes}
+              variant="destructive"
+              className="px-6"
+            >
+              Replace All Quotes with New Set
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <Card className="mt-8">
         <CardContent className="space-y-6 p-6">
           <div>
