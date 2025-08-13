@@ -72,7 +72,8 @@ const FoodTracking = () => {
     saveAsTemplate,
     addToTemplate,
     clearTemplate,
-    applyTemplate
+    applyTemplate,
+    loadTemplate: forceLoadTemplate
   } = useDailyFoodTemplate();
   const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
 
@@ -275,6 +276,12 @@ const FoodTracking = () => {
           description: `Your daily food plan has been saved as a template` 
         });
         
+        // Force refresh template if we're on the template tab
+        if (activeTab === 'template') {
+          console.log('🍽️ On template tab, forcing immediate refresh...');
+          await forceLoadTemplate();
+        }
+        
         if (!profile?.enable_daily_reset) {
           await updateProfile({ enable_daily_reset: true });
         }
@@ -438,9 +445,13 @@ const FoodTracking = () => {
         <div className="space-y-6">
           <Tabs 
             value={activeTab} 
-            onValueChange={(value) => {
+            onValueChange={async (value) => {
               setActiveTab(value as 'today' | 'template');
-              // Template will load automatically when switching tabs
+              if (value === 'template') {
+                // Force refresh template data when switching to template tab
+                console.log('🍽️ Switching to template tab, forcing refresh...');
+                await forceLoadTemplate();
+              }
             }}
             className="w-full"
           >

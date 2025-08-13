@@ -112,6 +112,8 @@ export const useDailyFoodTemplate = () => {
       }
 
       console.log('🍽️ Template saved successfully, reloading...');
+      // Add a small delay and force refresh to ensure data consistency
+      await new Promise(resolve => setTimeout(resolve, 500));
       await loadTemplate();
       return { error: null };
     } catch (error: any) {
