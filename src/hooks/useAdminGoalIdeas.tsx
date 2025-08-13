@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { queryClient } from '@/lib/query-client';
 
 export interface AdminGoalIdea {
   id: string;
@@ -17,8 +18,16 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const loadGoalIdeas = async () => {
-    console.log('🔄 Loading admin goal ideas with gender filter:', genderFilter);
+  const loadGoalIdeas = async (forceClear: boolean = false) => {
+    console.log('🔄 Loading admin goal ideas with gender filter:', genderFilter, 'Force clear:', forceClear);
+    
+    // Clear cache if requested
+    if (forceClear) {
+      console.log('🧹 Clearing React Query cache for admin goal ideas...');
+      queryClient.invalidateQueries({ queryKey: ['admin', 'goal-ideas'] });
+      queryClient.removeQueries({ queryKey: ['admin', 'goal-ideas'] });
+    }
+    
     try {
       const { data, error } = await supabase
         .from('shared_settings')
@@ -66,9 +75,19 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
     loadGoalIdeas();
   }, [refreshTrigger, genderFilter]);
 
-  const forceRefresh = () => {
-    console.log('🔄 Force refreshing admin goal ideas...');
+  const forceRefresh = (forceClear: boolean = true) => {
+    console.log('🔄 Force refreshing admin goal ideas with cache clear:', forceClear);
+    
+    // Clear all related cache
+    if (forceClear) {
+      queryClient.invalidateQueries({ queryKey: ['admin'] });
+      queryClient.invalidateQueries({ queryKey: ['shared_settings'] });
+      queryClient.removeQueries({ queryKey: ['admin'] });
+      queryClient.removeQueries({ queryKey: ['shared_settings'] });
+    }
+    
     setRefreshTrigger(prev => prev + 1);
+    loadGoalIdeas(forceClear);
   };
 
   return {

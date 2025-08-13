@@ -47,10 +47,14 @@ export default function MotivatorIdeas() {
   // Force refresh goals when profile sex changes
   useEffect(() => {
     if (profile?.sex) {
-      console.log('MotivatorIdeas: Profile sex changed, forcing refresh. Sex:', profile.sex);
-      forceRefresh();
+      console.log('MotivatorIdeas: Profile sex changed, forcing complete refresh. Sex:', profile.sex);
+      // Force a complete page reload to ensure all caches are cleared
+      setTimeout(() => {
+        console.log('🔄 Reloading page to clear all caches...');
+        window.location.reload();
+      }, 500);
     }
-  }, [profile?.sex, forceRefresh]);
+  }, [profile?.sex]);
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
