@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Sparkles, Mic, Minus, Plus, Camera, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Minus, Plus, Camera } from 'lucide-react';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
-import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
+import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
 import { extractNumber } from '@/utils/voiceParsing';
 
 interface ManualFoodEntryProps {
@@ -33,22 +33,21 @@ interface ManualFoodEntryProps {
 export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }: ManualFoodEntryProps) => {
   const { session } = useAuth();
   const { profile } = useProfile();
-  const [isAiFilling, setIsAiFilling] = useState(false);
   const [isAiFillingCalories, setIsAiFillingCalories] = useState(false);
   const [isAiFillingCarbs, setIsAiFillingCarbs] = useState(false);
-  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [showServingVoiceRecorder, setShowServingVoiceRecorder] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
   const handleImageUpload = (url: string) => {
     updateField('imageUrl', url);
   };
 
-  // Set default unit if not already set
-  if (!data.servingUnit) {
-    const defaultUnit = getDefaultServingSizeUnit(profile?.units);
-    onDataChange({ ...data, servingUnit: defaultUnit });
-  }
+  // Set default unit when profile loads
+  useEffect(() => {
+    if (profile && !data.servingUnit) {
+      const defaultUnit = getDefaultServingSizeUnit(profile.units);
+      onDataChange({ ...data, servingUnit: defaultUnit });
+    }
+  }, [profile]);
 
   const updateField = (field: string, value: string) => {
     onDataChange({ ...data, [field]: value });
@@ -100,7 +99,6 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
   const handleVoiceInput = (text: string) => {
     updateField('name', text);
-    setShowVoiceRecorder(false);
   };
 
   const handleServingVoiceInput = (text: string) => {
@@ -111,7 +109,21 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       updateField('servingAmount', String(num));
       toast.success('Serving amount set from voice');
     }
-    setShowServingVoiceRecorder(false);
+  };
+
+  const handleUnitVoiceInput = (text: string) => {
+    const availableUnits = getServingUnitsForUser(profile?.units);
+    const matchedUnit = availableUnits.find(unit => 
+      text.toLowerCase().includes(getUnitDisplayName(unit.value).toLowerCase()) ||
+      text.toLowerCase().includes(unit.value.toLowerCase())
+    );
+    
+    if (matchedUnit) {
+      updateField('servingUnit', matchedUnit.value);
+      toast.success(`Unit set to ${getUnitDisplayName(matchedUnit.value)}`);
+    } else {
+      toast.error('Could not recognize unit. Please try again.');
+    }
   };
 
   // Smart unit defaults based on food name
@@ -150,51 +162,6 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       variant="standard"
       size="md"
       showCloseButton={true}
-      footer={
-        <div className="flex items-center justify-between w-full gap-3">
-          {/* Quantity selector with border styling like PhotoFoodEntry */}
-          <div className="flex items-center border rounded-md">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-              className="h-8 w-8 p-0 rounded-r-none border-r"
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <div className="px-3 py-1 min-w-[3rem] text-center text-sm font-medium">
-              {quantity}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setQuantity(quantity + 1)}
-              className="h-8 w-8 p-0 rounded-l-none border-l"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          {/* Action buttons */}
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              size="sm"
-            >
-              <X className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave} 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Add to Food Plan
-            </Button>
-          </div>
-        </div>
-      }
     >
       {/* Image section - camera upload or display */}
       {!data.imageUrl ? (
@@ -220,19 +187,15 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       <div className="space-y-4">
         {/* Food Name with voice input */}
         <div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <Label htmlFor="food-name" className="text-sm font-medium">
               Food Name <span className="text-red-500">*</span>
             </Label>
             <PremiumGate feature="Voice Input" grayOutForFree={true}>
-              <button
-                type="button"
-                aria-label="Start voice input for food name"
-                onClick={() => setShowVoiceRecorder(true)}
-                className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
-              >
-                <Mic className="w-3 h-3 mx-auto" />
-              </button>
+              <CircularVoiceButton 
+                onTranscription={handleVoiceInput}
+                size="sm"
+              />
             </PremiumGate>
           </div>
           <Input
@@ -240,13 +203,13 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             value={data.name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="e.g., Grilled Chicken Breast"
-            className="mt-1"
+            className="h-9"
             required
           />
         </div>
 
         {/* Single row: Serving Amount/Unit + Calories + Carbs */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-3">
           {/* Serving Amount */}
           <div>
             <div className="flex items-center justify-between mb-1">
@@ -254,14 +217,10 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                 Amount <span className="text-red-500">*</span>
               </Label>
               <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                <button
-                  type="button"
-                  aria-label="Start voice input for serving size"
-                  onClick={() => setShowServingVoiceRecorder(true)}
-                  className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
-                >
-                  <Mic className="w-2.5 h-2.5 mx-auto" />
-                </button>
+                <CircularVoiceButton 
+                  onTranscription={handleServingVoiceInput}
+                  size="sm"
+                />
               </PremiumGate>
             </div>
             <Input
@@ -270,7 +229,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               value={data.servingAmount}
               onChange={(e) => updateField('servingAmount', e.target.value)}
               placeholder="1"
-              className="text-sm"
+              className="text-sm h-9"
               min="0.1"
               step="0.1"
               required
@@ -279,9 +238,17 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
           {/* Serving Unit */}
           <div>
-            <Label className="text-xs font-medium mb-1 block">Unit</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs font-medium">Unit</Label>
+              <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                <CircularVoiceButton 
+                  onTranscription={handleUnitVoiceInput}
+                  size="sm"
+                />
+              </PremiumGate>
+            </div>
             <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
-              <SelectTrigger className="text-sm">
+              <SelectTrigger className="text-sm h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -322,7 +289,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               value={data.calories}
               onChange={(e) => updateField('calories', e.target.value)}
               placeholder="0"
-              className={`text-sm ${
+              className={`text-sm h-9 ${
                 parseFloat(data.calories) === 0 && data.calories !== '' ? 'border-destructive text-destructive' : ''
               }`}
               required
@@ -360,7 +327,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
               value={data.carbs}
               onChange={(e) => updateField('carbs', e.target.value)}
               placeholder="0"
-              className="text-sm"
+              className="text-sm h-9"
               required
             />
           </div>
@@ -372,45 +339,41 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
         </div>
       </div>
 
-      {/* Voice Recorder Modal - Food Name */}
-      {showVoiceRecorder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
-            <div className="text-center mb-4">
-              <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
-              <p className="text-sm text-muted-foreground">Speak the food name</p>
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <CircularVoiceButton onTranscription={handleVoiceInput} size="lg" />
-              </div>
-              <Button variant="outline" onClick={() => setShowVoiceRecorder(false)} className="w-full">
-                Cancel
-              </Button>
-            </div>
+      {/* Footer - Match PhotoFoodEntry exact layout */}
+      <div className="flex gap-3 pt-4">
+        {/* Quantity selector with border styling like PhotoFoodEntry */}
+        <div className="flex items-center border rounded-md">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            disabled={quantity <= 1}
+            className="h-8 w-8 p-0 rounded-r-none border-r"
+          >
+            <Minus className="w-4 h-4" />
+          </Button>
+          <div className="px-3 py-1 min-w-[3rem] text-center text-sm font-medium">
+            {quantity}
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setQuantity(quantity + 1)}
+            className="h-8 w-8 p-0 rounded-l-none border-l"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
         </div>
-      )}
-
-      {/* Voice Recorder Modal - Serving Size */}
-      {showServingVoiceRecorder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
-            <div className="text-center mb-4">
-              <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
-              <p className="text-sm text-muted-foreground">Speak the serving amount (e.g., 2, 1.5)</p>
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <CircularVoiceButton onTranscription={handleServingVoiceInput} size="lg" />
-              </div>
-              <Button variant="outline" onClick={() => setShowServingVoiceRecorder(false)} className="w-full">
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+        
+        {/* Add Button - takes remaining space */}
+        <Button 
+          onClick={handleSave} 
+          disabled={!data.name || !data.calories || !data.carbs}
+          className="flex-1"
+        >
+          Add to Food Plan
+        </Button>
+      </div>
     </UniversalModal>
   );
 };
