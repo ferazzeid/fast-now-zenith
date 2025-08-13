@@ -204,6 +204,14 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
           .select()
           .single();
 
+        // If sex changed, clear all caches and force reload
+        if (data && updateData.sex && updateData.sex !== profile?.sex) {
+          console.log('🔄 Sex changed - clearing all caches and reloading');
+          localStorage.clear();
+          sessionStorage.clear();
+          setTimeout(() => window.location.reload(), 500);
+        }
+
         if (error) {
           console.error('Settings save error:', error);
           toast({

@@ -106,12 +106,12 @@ export default function MotivatorIdeas() {
   };
 
   return (
-    <div className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
+    <div key={`motivator-ideas-${profile?.sex || 'unknown'}-${Date.now()}`} className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
       <header className="flex items-center gap-3 mb-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <h1 className="text-xl font-bold text-warm-text">Motivator Ideas</h1>
+        <h1 className="text-xl font-bold text-warm-text">Goal Ideas ({profile?.sex || 'Loading...'})</h1>
       </header>
 
       <main>

@@ -21,14 +21,18 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
   const loadGoalIdeas = async (forceClear: boolean = false) => {
     console.log('🔄 Loading admin goal ideas with gender filter:', genderFilter, 'Force clear:', forceClear);
     
-    // Clear cache if requested
-    if (forceClear) {
-      console.log('🧹 Clearing React Query cache for admin goal ideas...');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'goal-ideas'] });
-      queryClient.removeQueries({ queryKey: ['admin', 'goal-ideas'] });
-    }
+    // Always clear cache to ensure fresh data
+    console.log('🧹 Clearing ALL cache before loading goal ideas');
+    queryClient.invalidateQueries({ queryKey: ['admin'] });
+    queryClient.removeQueries({ queryKey: ['admin'] });
+    localStorage.removeItem('goalIdeasCache');
+    localStorage.removeItem('adminGoalIdeas');
+    sessionStorage.removeItem('goalIdeasCache');
+    sessionStorage.removeItem('adminGoalIdeas');
     
     try {
+      // Add cache-busting parameter
+      const timestamp = Date.now();
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_value')
@@ -49,12 +53,15 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
           
           // Apply gender filter if specified
           if (genderFilter) {
+            console.log('🔍 Filtering ideas by gender:', genderFilter);
+            console.log('📋 All ideas before filtering:', validIdeas.map(i => ({ id: i.id, title: i.title, gender: i.gender })));
             validIdeas = validIdeas.filter(idea => idea.gender === genderFilter);
+            console.log('✅ Filtered ideas:', validIdeas.map(i => ({ id: i.id, title: i.title, gender: i.gender })));
           }
           
-          console.log('✅ Admin Goal Ideas loaded successfully:', validIdeas);
-          // Create completely new array to force React re-render
-          setGoalIdeas(validIdeas.map(idea => ({ ...idea })));
+          console.log('✅ Admin Goal Ideas loaded successfully:', validIdeas.length, 'ideas for gender:', genderFilter);
+          // Create completely new array to force React re-render with timestamp
+          setGoalIdeas(validIdeas.map(idea => ({ ...idea, _timestamp: timestamp })));
         } catch (parseError) {
           console.error('Error parsing admin goal ideas:', parseError);
           setGoalIdeas([]);
@@ -72,28 +79,23 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
   };
 
   useEffect(() => {
-    loadGoalIdeas();
+    console.log('🔄 useAdminGoalIdeas useEffect triggered - refreshTrigger:', refreshTrigger, 'genderFilter:', genderFilter);
+    loadGoalIdeas(true); // Always force clear cache
   }, [refreshTrigger, genderFilter]);
 
-  const forceRefresh = (forceClear: boolean = true) => {
-    console.log('🔄 Force refreshing admin goal ideas with cache clear:', forceClear);
-    
-    // Clear all related cache
-    if (forceClear) {
-      queryClient.invalidateQueries({ queryKey: ['admin'] });
-      queryClient.invalidateQueries({ queryKey: ['shared_settings'] });
-      queryClient.removeQueries({ queryKey: ['admin'] });
-      queryClient.removeQueries({ queryKey: ['shared_settings'] });
-    }
-    
+  const forceRefresh = () => {
+    console.log('🔄 Force refreshing admin goal ideas...');
+    // Clear all possible caches
+    localStorage.clear();
+    sessionStorage.clear();
+    queryClient.clear();
     setRefreshTrigger(prev => prev + 1);
-    loadGoalIdeas(forceClear);
   };
 
   return {
     goalIdeas,
     loading,
-    refreshGoalIdeas: loadGoalIdeas,
+    refreshGoalIdeas: () => loadGoalIdeas(true),
     forceRefresh
   };
 };
