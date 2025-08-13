@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Minus, Plus, Camera } from 'lucide-react';
-import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +12,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
-import { extractNumber } from '@/utils/voiceParsing';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -41,7 +39,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     updateField('imageUrl', url);
   };
 
-  // Set default unit when profile loads
+  // Set default unit when profile loads - ensure grams for metric mode
   useEffect(() => {
     if (profile && !data.servingUnit) {
       const defaultUnit = getDefaultServingSizeUnit(profile.units);
@@ -95,35 +93,6 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       carbs: String(parseFloat(data.carbs || '0') * quantity)
     };
     onSave();
-  };
-
-  const handleVoiceInput = (text: string) => {
-    updateField('name', text);
-  };
-
-  const handleServingVoiceInput = (text: string) => {
-    const num = extractNumber(text);
-    if (num == null || Number.isNaN(num)) {
-      toast.error('Could not detect a number. Please try again.');
-    } else {
-      updateField('servingAmount', String(num));
-      toast.success('Serving amount set from voice');
-    }
-  };
-
-  const handleUnitVoiceInput = (text: string) => {
-    const availableUnits = getServingUnitsForUser(profile?.units);
-    const matchedUnit = availableUnits.find(unit => 
-      text.toLowerCase().includes(getUnitDisplayName(unit.value).toLowerCase()) ||
-      text.toLowerCase().includes(unit.value.toLowerCase())
-    );
-    
-    if (matchedUnit) {
-      updateField('servingUnit', matchedUnit.value);
-      toast.success(`Unit set to ${getUnitDisplayName(matchedUnit.value)}`);
-    } else {
-      toast.error('Could not recognize unit. Please try again.');
-    }
   };
 
   // Smart unit defaults based on food name
@@ -185,19 +154,11 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       )}
 
       <div className="space-y-4">
-        {/* Food Name with voice input */}
+        {/* Food Name */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <Label htmlFor="food-name" className="text-sm font-medium">
-              Food Name <span className="text-red-500">*</span>
-            </Label>
-            <PremiumGate feature="Voice Input" grayOutForFree={true}>
-              <CircularVoiceButton 
-                onTranscription={handleVoiceInput}
-                size="sm"
-              />
-            </PremiumGate>
-          </div>
+          <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
+            Food Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="food-name"
             value={data.name}
@@ -212,17 +173,9 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
         <div className="grid grid-cols-4 gap-3">
           {/* Serving Amount */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <Label htmlFor="serving-amount" className="text-xs font-medium">
-                Amount <span className="text-red-500">*</span>
-              </Label>
-              <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                <CircularVoiceButton 
-                  onTranscription={handleServingVoiceInput}
-                  size="sm"
-                />
-              </PremiumGate>
-            </div>
+            <Label htmlFor="serving-amount" className="text-xs font-medium mb-1 block">
+              Amount <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="serving-amount"
               type="number"
@@ -238,15 +191,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
           {/* Serving Unit */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <Label className="text-xs font-medium">Unit</Label>
-              <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                <CircularVoiceButton 
-                  onTranscription={handleUnitVoiceInput}
-                  size="sm"
-                />
-              </PremiumGate>
-            </div>
+            <Label className="text-xs font-medium mb-1 block">Unit</Label>
             <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
               <SelectTrigger className="text-sm h-9">
                 <SelectValue />
