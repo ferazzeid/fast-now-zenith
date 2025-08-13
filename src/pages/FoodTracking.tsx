@@ -774,74 +774,25 @@ const FoodTracking = () => {
                     ? 'opacity-60' 
                     : ''
                 }`}>
-                  <div className="flex items-center gap-2">
-                    
-                    {/* Entry Image - Compact but visible */}
-                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                      {entry.image_url ? (
-                        <img 
-                          src={entry.image_url} 
-                          alt={entry.name}
-                          className="w-10 h-10 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <Utensils className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    
-                    {/* Entry Content - Compact */}
-                    <div className="flex-1 min-w-0 relative">
-                      <div className="mb-0 flex items-center gap-2 min-w-0">
-                        <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
-                          entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
-                        }`}>
-                          {entry.name}
-                        </h3>
-                        {isInLibrary(entry.name) && (
-                          <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className={`font-medium ${
-                          Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
-                        }`}>
-                          {Math.round(entry.serving_size)}g
-                        </span>
-                        <span className="text-muted-foreground/60">•</span>
-                        <ClickableTooltip content="Calories">
-                          <span className={`font-medium cursor-pointer ${
-                            Math.round(entry.calories) === 0 ? 'text-destructive' : ''
-                          }`}>
-                            {Math.round(entry.calories)}
-                          </span>
-                        </ClickableTooltip>
-                        <span className="text-muted-foreground/60">•</span>
-                        <ClickableTooltip content="Carbs">
-                          <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
-                        </ClickableTooltip>
-                      </div>
-                    </div>
-                    
-                     {/* Actions - Compact */}
-                     <div className="flex items-center gap-4 flex-shrink-0">
-                       
-                       {/* More Options Menu */}
-                         <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-12 w-12 p-0 hover:bg-secondary/80 rounded"
-                                aria-label="More options"
-                              >
-                                <MoreVertical className="w-8 h-8 text-primary" />
-                             </Button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent align="end" className="w-44">
-                             <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
-                               <Edit className="w-4 h-4 mr-2" />
-                               Edit Entry
-                             </DropdownMenuItem>
+                   <div className="flex items-center gap-2">
+                     
+                        {/* More Options Menu - Moved to beginning */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
+                              aria-label="More options"
+                            >
+                              <MoreVertical className="w-5 h-5 text-primary" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                       <DropdownMenuContent align="start" className="w-44">
+                         <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
+                           <Edit className="w-4 h-4 mr-2" />
+                           Edit Entry
+                         </DropdownMenuItem>
                              <DropdownMenuItem
                                onClick={async () => {
                                  const result = await addFoodEntry({
@@ -943,21 +894,70 @@ const FoodTracking = () => {
                               Delete Entry
                             </DropdownMenuItem>
                           </DropdownMenuContent>
-                      </DropdownMenu>
-                      
-                      {/* Primary Consume Button - After 3-dots (consistent with library) */}
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                        className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
-                        title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                        aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                      >
-                        <Check className="w-3 h-3 text-primary-foreground" />
-                      </Button>
-                    </div>
-                  </div>
+                       </DropdownMenu>
+                       
+                       {/* Entry Image - Compact but visible */}
+                       <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                         {entry.image_url ? (
+                           <img 
+                             src={entry.image_url} 
+                             alt={entry.name}
+                             className="w-10 h-10 object-cover rounded-lg"
+                           />
+                         ) : (
+                           <Utensils className="w-5 h-5 text-muted-foreground" />
+                         )}
+                       </div>
+                       
+                       {/* Entry Content - Compact */}
+                       <div className="flex-1 min-w-0 relative">
+                         <div className="mb-0 flex items-center gap-2 min-w-0">
+                           <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
+                             entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
+                           }`}>
+                             {entry.name}
+                           </h3>
+                           {isInLibrary(entry.name) && (
+                             <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
+                           )}
+                         </div>
+                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                           <span className={`font-medium ${
+                             Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
+                           }`}>
+                             {Math.round(entry.serving_size)}g
+                           </span>
+                           <span className="text-muted-foreground/60">•</span>
+                           <ClickableTooltip content="Calories">
+                             <span className={`font-medium cursor-pointer ${
+                               Math.round(entry.calories) === 0 ? 'text-destructive' : ''
+                             }`}>
+                               {Math.round(entry.calories)}
+                             </span>
+                           </ClickableTooltip>
+                           <span className="text-muted-foreground/60">•</span>
+                           <ClickableTooltip content="Carbs">
+                             <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
+                           </ClickableTooltip>
+                         </div>
+                       </div>
+                       
+                       {/* Actions - Compact */}
+                       <div className="flex items-center gap-4 flex-shrink-0">
+                         {/* Primary Consume Button */}
+                         <Button
+                           size="sm"
+                           variant="default"
+                           onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+                           className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                           title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                           aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+                         >
+                           <Check className="w-3 h-3 text-primary-foreground" />
+                         </Button>
+                       </div>
+                     </div>
+                   </div>
                 </div>
               ))}
             </div>
@@ -1024,47 +1024,20 @@ const FoodTracking = () => {
                         // Create a stable food ID reference to avoid stale closures
                         const foodId = food.id;
                         return (
-                        <div key={food.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors">
-                          <div className="flex items-center space-x-2">
-                           {food.image_url ? (
-                             <img
-                               src={food.image_url}
-                               alt={food.name}
-                               className="w-10 h-10 rounded-lg object-cover"
-                             />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                                <Utensils className="w-5 h-5 text-muted-foreground" />
-                              </div>
-                           )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <p className="font-medium truncate max-w-[180px]">{food.name}</p>
-                                {isInLibrary(food.name) && (
-                                  <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
-                                )}
-                              </div>
-                             <p className="text-sm text-muted-foreground">
-                               {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
-                             </p>
-                           </div>
-                         </div>
-                         
-                         {/* Actions - 3-dots menu */}
-                         <div className="flex items-center gap-1 flex-shrink-0">
-                           <div className="w-1"></div>
-                           
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                         <div key={food.id} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors">
+                           <div className="flex items-center space-x-2">
+                             {/* More Options Menu - Moved to beginning */}
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild>
                                  <Button 
                                    size="sm" 
                                    variant="ghost" 
-                                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded"
+                                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
                                  >
-                                   <MoreVertical className="w-4 h-4 text-primary" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48">
+                                   <MoreVertical className="w-5 h-5 text-primary" />
+                                 </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="start" className="w-48">
                                    <DropdownMenuItem 
                                      onClick={async () => {
                                        // Get fresh food data to avoid stale closures
@@ -1282,10 +1255,33 @@ const FoodTracking = () => {
                                   <Trash2 className="w-4 h-4 mr-2" />
                                   Delete from Template
                                 </DropdownMenuItem>
-                              </DropdownMenuContent>
-                           </DropdownMenu>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
+                             
+                             {food.image_url ? (
+                               <img
+                                 src={food.image_url}
+                                 alt={food.name}
+                                 className="w-10 h-10 rounded-lg object-cover"
+                               />
+                             ) : (
+                               <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                 <Utensils className="w-5 h-5 text-muted-foreground" />
+                               </div>
+                             )}
+                             <div className="flex-1 min-w-0">
+                               <div className="flex items-center gap-2 min-w-0">
+                                 <p className="font-medium truncate max-w-[180px]">{food.name}</p>
+                                 {isInLibrary(food.name) && (
+                                   <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
+                                 )}
+                               </div>
+                               <p className="text-sm text-muted-foreground">
+                                 {food.calories} cal, {food.carbs}g carbs • {food.serving_size}g
+                               </p>
+                             </div>
+                           </div>
                          </div>
-                        </div>
                         )
                       })}
                    </div>
