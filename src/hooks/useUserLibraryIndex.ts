@@ -45,9 +45,13 @@ export const useUserLibraryIndex = (): LibraryIndex => {
   );
 
   const addLocal = useCallback((name: string) => {
+    const normalizedName = normalizeName(name);
     setNameSet((prev) => {
+      if (prev.has(normalizedName)) {
+        return prev; // Don't update if already exists
+      }
       const copy = new Set(prev);
-      copy.add(normalizeName(name));
+      copy.add(normalizedName);
       return copy;
     });
   }, []);

@@ -359,36 +359,25 @@ const FoodTracking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-primary" />
-                <h1 className="text-xl font-bold text-foreground">Food Tracking</h1>
-              </div>
-              <PageOnboardingButton 
-                onClick={() => setShowOnboarding(true)}
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <HistoryButton onClick={() => setShowHistory(true)} />
-            </div>
+    <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
+      <div className="max-w-md mx-auto pt-10 pb-24">
+        {/* Header with Onboarding and History Buttons */}
+        <div className="mb-4 mt-4 relative">
+          <div className="absolute left-0 top-0">
+            <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
           </div>
-          
-          {/* Subtitle */}
-          <div className="mt-1">
-            <p className="text-sm text-muted-foreground">Lock your food intake</p>
+          <div className="absolute right-0 top-0">
+            <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
+          </div>
+          <div className="pl-12 pr-12">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1 flex items-center">
+              <Brain className="w-6 h-6 mr-2" />
+              Food Tracking
+            </h1>
+            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        
         {/* Action Buttons */}
         <div className="mb-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
