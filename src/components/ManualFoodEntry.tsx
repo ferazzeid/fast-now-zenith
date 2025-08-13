@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Camera, Sparkles, Mic } from 'lucide-react';
+import { Sparkles, Mic, Minus, Plus } from 'lucide-react';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, convertToGrams, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
-import { ImageUpload } from '@/components/ImageUpload';
 import { extractNumber } from '@/utils/voiceParsing';
 
 interface ManualFoodEntryProps {
@@ -38,6 +37,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   const [isAiFillingCarbs, setIsAiFillingCarbs] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showServingVoiceRecorder, setShowServingVoiceRecorder] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   // Set default unit if not already set
   if (!data.servingUnit) {
@@ -136,52 +136,79 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
       size="md"
       showCloseButton={true}
       footer={
-        <>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <div className="flex items-center justify-between w-full">
+          {/* Quantity selector */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-medium min-w-[2rem] text-center">{quantity}</span>
+            <button
+              onClick={() => setQuantity(quantity + 1)}
+              className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+          
+          {/* Save button */}
+          <Button 
+            onClick={onSave} 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+          >
             Add to Food Plan
           </Button>
-        </>
+        </div>
       }
     >
-      <div className="mb-4">
-        <p className="text-xs text-muted-foreground">{getUnitSystemDisplay(profile?.units)} Mode</p>
-      </div>
+      {/* Image at top - readonly display */}
+      {data.imageUrl && (
+        <div className="w-full h-48 mb-4">
+          <img
+            src={data.imageUrl}
+            alt={data.name || "Food"}
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </div>
+      )}
 
-      <div className="space-y-4 p-4">
-        {/* Required Fields */}
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="food-name" className="text-sm font-medium">
-                Food Name <span className="text-red-500">*</span>
-              </Label>
-              <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                <button
-                  type="button"
-                  aria-label="Start voice input for food name"
-                  onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
-                >
-                  <Mic className="w-3 h-3 mx-auto" />
-                </button>
-              </PremiumGate>
-            </div>
-            <Input
-              id="food-name"
-              value={data.name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g., Grilled Chicken Breast"
-              className="mt-1"
-              required
-            />
+      <div className="space-y-4">
+        {/* Food Name with voice input */}
+        <div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="food-name" className="text-sm font-medium">
+              Food Name <span className="text-red-500">*</span>
+            </Label>
+            <PremiumGate feature="Voice Input" grayOutForFree={true}>
+              <button
+                type="button"
+                aria-label="Start voice input for food name"
+                onClick={() => setShowVoiceRecorder(true)}
+                className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
+              >
+                <Mic className="w-3 h-3 mx-auto" />
+              </button>
+            </PremiumGate>
           </div>
+          <Input
+            id="food-name"
+            value={data.name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            placeholder="e.g., Grilled Chicken Breast"
+            className="mt-1"
+            required
+          />
+        </div>
 
+        {/* Single row: Serving Amount/Unit + Calories + Carbs */}
+        <div className="grid grid-cols-4 gap-2">
+          {/* Serving Amount */}
           <div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="serving-amount" className="text-sm font-medium">
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="serving-amount" className="text-xs font-medium">
                 Amount <span className="text-red-500">*</span>
               </Label>
               <PremiumGate feature="Voice Input" grayOutForFree={true}>
@@ -189,124 +216,112 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                   type="button"
                   aria-label="Start voice input for serving size"
                   onClick={() => setShowServingVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
+                  className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Mic className="w-3 h-3 mx-auto" />
+                  <Mic className="w-2.5 h-2.5 mx-auto" />
                 </button>
               </PremiumGate>
             </div>
-            <div className="flex gap-2 mt-1">
-              <Input
-                id="serving-amount"
-                type="number"
-                value={data.servingAmount}
-                onChange={(e) => updateField('servingAmount', e.target.value)}
-                placeholder="1"
-                className="flex-1"
-                min="0.1"
-                step="0.1"
-                required
-              />
-              <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getServingUnitsForUser(profile?.units).map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {getUnitDisplayName(unit.value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Input
+              id="serving-amount"
+              type="number"
+              value={data.servingAmount}
+              onChange={(e) => updateField('servingAmount', e.target.value)}
+              placeholder="1"
+              className="text-sm"
+              min="0.1"
+              step="0.1"
+              required
+            />
+          </div>
+
+          {/* Serving Unit */}
+          <div>
+            <Label className="text-xs font-medium mb-1 block">Unit</Label>
+            <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
+              <SelectTrigger className="text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {getServingUnitsForUser(profile?.units).map((unit) => (
+                  <SelectItem key={unit.value} value={unit.value}>
+                    {getUnitDisplayName(unit.value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Calories */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="calories" className="text-xs font-medium">
+                Cal <span className="text-red-500">*</span>
+              </Label>
+              <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                <button
+                  type="button"
+                  aria-label="AI estimate calories per 100g"
+                  onClick={() => handleAiEstimate('calories')}
+                  disabled={isAiFillingCalories || !data.name}
+                  className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAiFillingCalories ? (
+                    <div className="w-2.5 h-2.5 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                  ) : (
+                    <Sparkles className="w-2.5 h-2.5 mx-auto" />
+                  )}
+                </button>
+              </PremiumGate>
             </div>
-            {/* Show conversion preview */}
-            {data.servingAmount && data.servingUnit && data.name && (
-              <div className="text-xs text-muted-foreground mt-1">
-                ≈ {Math.round(convertToGrams(parseFloat(data.servingAmount) || 1, data.servingUnit, data.name))}g
-              </div>
-            )}
+            <Input
+              id="calories"
+              type="number"
+              value={data.calories}
+              onChange={(e) => updateField('calories', e.target.value)}
+              placeholder="0"
+              className="text-sm"
+              required
+            />
+          </div>
+
+          {/* Carbs */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="carbs" className="text-xs font-medium">
+                Carbs <span className="text-red-500">*</span>
+              </Label>
+              <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                <button
+                  type="button"
+                  aria-label="AI estimate carbs per 100g"
+                  onClick={() => handleAiEstimate('carbs')}
+                  disabled={isAiFillingCarbs || !data.name}
+                  className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAiFillingCarbs ? (
+                    <div className="w-2.5 h-2.5 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                  ) : (
+                    <Sparkles className="w-2.5 h-2.5 mx-auto" />
+                  )}
+                </button>
+              </PremiumGate>
+            </div>
+            <Input
+              id="carbs"
+              type="number"
+              value={data.carbs}
+              onChange={(e) => updateField('carbs', e.target.value)}
+              placeholder="0"
+              className="text-sm"
+              required
+            />
           </div>
         </div>
 
-        {/* Image Upload Section */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Food Image (Optional)</Label>
-          <ImageUpload
-            currentImageUrl={data.imageUrl}
-            onImageUpload={(url) => updateField('imageUrl', url)}
-            onImageRemove={() => updateField('imageUrl', '')}
-            showUploadOptionsWhenImageExists={false}
-          />
-        </div>
-
-        {/* Nutritional Information */}
-        <div className="pt-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="calories" className="text-sm font-medium">
-                  Calories (per 100{profile?.units === 'imperial' ? 'oz' : 'g'}) <span className="text-red-500">*</span>
-                </Label>
-                <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                  <button
-                    type="button"
-                    aria-label="AI estimate calories per 100g"
-                    onClick={() => handleAiEstimate('calories')}
-                    disabled={isAiFillingCalories || !data.name}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isAiFillingCalories ? (
-                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                    ) : (
-                      <Sparkles className="w-3 h-3 mx-auto" />
-                    )}
-                  </button>
-                </PremiumGate>
-              </div>
-              <Input
-                id="calories"
-                type="number"
-                value={data.calories}
-                onChange={(e) => updateField('calories', e.target.value)}
-                placeholder="0"
-                className="mt-1"
-                required
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="carbs" className="text-sm font-medium">
-                  Carbs (per 100{profile?.units === 'imperial' ? 'oz' : 'g'}) <span className="text-red-500">*</span>
-                </Label>
-                <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                  <button
-                    type="button"
-                    aria-label="AI estimate carbs per 100g"
-                    onClick={() => handleAiEstimate('carbs')}
-                    disabled={isAiFillingCarbs || !data.name}
-                    className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isAiFillingCarbs ? (
-                      <div className="w-3 h-3 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                    ) : (
-                      <Sparkles className="w-3 h-3 mx-auto" />
-                    )}
-                  </button>
-                </PremiumGate>
-              </div>
-              <Input
-                id="carbs"
-                type="number"
-                value={data.carbs}
-                onChange={(e) => updateField('carbs', e.target.value)}
-                placeholder="0"
-                className="mt-1"
-                required
-              />
-            </div>
-          </div>
+        {/* Unit system display */}
+        <div className="text-xs text-muted-foreground text-center">
+          {getUnitSystemDisplay(profile?.units)} Mode • per 100{profile?.units === 'imperial' ? 'oz' : 'g'}
         </div>
       </div>
 

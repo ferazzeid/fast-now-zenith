@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Edit, Save, X, Sparkles, Mic } from 'lucide-react';
+import { Edit, Save, Sparkles, Mic, Minus, Plus, X } from 'lucide-react';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ImageUpload } from '@/components/ImageUpload';
 import { generate_image } from '@/utils/imageGeneration';
 import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +53,7 @@ export const UnifiedFoodEditModal = ({
   const [open, setOpen] = useState(false);
   const modalOpen = isOpen !== undefined ? isOpen : open;
   const [showServingVoiceRecorder, setShowServingVoiceRecorder] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   
   // Get current values based on mode
   const currentItem = food || entry;
@@ -279,145 +279,176 @@ export const UnifiedFoodEditModal = ({
         variant="standard"
         size="sm"
         footer={
-          <>
+          <div className="flex items-center justify-between w-full">
+            {/* Quantity selector for entry mode */}
+            {!isLibraryMode && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-medium min-w-[2rem] text-center">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            
+            {/* Save button */}
             <Button 
-              variant="outline" 
-              onClick={() => { if (onClose) onClose(); else setOpen(false); resetForm(); }}
-              disabled={loading || generatingImage}
-              className="w-full"
+              onClick={handleSave} 
+              disabled={loading || generatingImage} 
+              className={`${isLibraryMode ? 'w-full' : 'px-8'}`}
             >
-              <X className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={loading || generatingImage} className="w-full">
               <Save className="w-4 h-4 mr-2" />
               {loading ? 'Saving...' : 'Save'}
             </Button>
-          </>
+          </div>
         }
       >
+        {/* Image at top - readonly display */}
+        {imageUrl && (
+          <div className="w-full h-48 mb-4">
+            <img
+              src={imageUrl}
+              alt={name || "Food"}
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        )}
+
         <div className="space-y-4">
-          {/* Food Name and Serving Amount/Unit - Two columns when serving is needed */}
+          {/* Food Name */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-name">Food Name</Label>
+            <Input 
+              id="edit-name" 
+              value={name} 
+              onChange={(e) => handleNameChange(e.target.value)} 
+              placeholder="e.g., Apple, Chicken Breast" 
+            />
+          </div>
+
+          {/* Single row layout for entry mode, separate for library mode */}
           {!isLibraryMode ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Food Name</Label>
+            <div className="grid grid-cols-4 gap-2">
+              {/* Serving Amount */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label htmlFor="edit-amount" className="text-xs font-medium">Amount</Label>
+                  <button
+                    onClick={() => setShowServingVoiceRecorder(true)}
+                    className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                    aria-label="Voice input for serving amount"
+                  >
+                    <Mic className="w-2.5 h-2.5 mx-auto" />
+                  </button>
+                </div>
                 <Input 
-                  id="edit-name" 
-                  value={name} 
-                  onChange={(e) => handleNameChange(e.target.value)} 
-                  placeholder="e.g., Apple, Chicken Breast" 
+                  id="edit-amount" 
+                  type="number" 
+                  value={servingAmount} 
+                  onChange={(e) => setServingAmount(e.target.value)} 
+                  placeholder="1" 
+                  className="text-sm"
+                  min="0.1"
+                  step="0.1"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="edit-amount">Amount</Label>
-                    <button
-                      onClick={() => setShowServingVoiceRecorder(true)}
-                      className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
-                      aria-label="Voice input for serving amount"
-                    >
-                      <Mic className="w-3 h-3 mx-auto" />
-                    </button>
-                  </div>
-                  <Input 
-                    id="edit-amount" 
-                    type="number" 
-                    value={servingAmount} 
-                    onChange={(e) => setServingAmount(e.target.value)} 
-                    placeholder="1" 
-                    min="0.1"
-                    step="0.1"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-unit">Unit</Label>
-                  <Select value={servingUnit} onValueChange={setServingUnit}>
-                    <SelectTrigger id="edit-unit">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableUnits.map(unit => (
-                        <SelectItem key={unit.value} value={unit.value}>
-                          {getUnitDisplayName(unit.value)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+
+              {/* Serving Unit */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block">Unit</Label>
+                <Select value={servingUnit} onValueChange={setServingUnit}>
+                  <SelectTrigger className="text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableUnits.map(unit => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {getUnitDisplayName(unit.value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {/* Show conversion preview */}
-              {servingAmount && servingUnit && name && (
-                <div className="text-xs text-muted-foreground">
-                  ≈ {Math.round(convertToGrams(parseFloat(servingAmount) || 1, servingUnit, name))}g
-                </div>
-              )}
+
+              {/* Calories */}
+              <div>
+                <Label htmlFor="edit-calories" className="text-xs font-medium mb-1 block">Calories</Label>
+                <Input 
+                  id="edit-calories" 
+                  type="number" 
+                  value={calories} 
+                  onChange={(e) => setCalories(e.target.value)} 
+                  placeholder="0"
+                  className="text-sm"
+                />
+              </div>
+
+              {/* Carbs */}
+              <div>
+                <Label htmlFor="edit-carbs" className="text-xs font-medium mb-1 block">Carbs</Label>
+                <Input 
+                  id="edit-carbs" 
+                  type="number" 
+                  value={carbs} 
+                  onChange={(e) => setCarbs(e.target.value)} 
+                  placeholder="0"
+                  className="text-sm"
+                />
+              </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Food Name</Label>
-              <Input 
-                id="edit-name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                placeholder="e.g., Apple, Chicken Breast" 
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-calories">Calories per 100{profile?.units === 'imperial' ? 'oz' : 'g'}</Label>
+                <Input 
+                  id="edit-calories" 
+                  type="number" 
+                  value={calories} 
+                  onChange={(e) => setCalories(e.target.value)} 
+                  placeholder="per 100g" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-carbs">Carbs per 100{profile?.units === 'imperial' ? 'oz' : 'g'}</Label>
+                <Input 
+                  id="edit-carbs" 
+                  type="number" 
+                  value={carbs} 
+                  onChange={(e) => setCarbs(e.target.value)} 
+                  placeholder="grams per 100g" 
+                />
+              </div>
             </div>
           )}
 
-          {/* Calories and Carbs */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-calories">{isLibraryMode ? 'Calories per 100g' : 'Calories'}</Label>
-              <Input id="edit-calories" type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder={isLibraryMode ? 'per 100g' : 'per serving'} />
+          {/* AI Image Generation - only show button, no upload */}
+          {imageUrl && (
+            <div className="flex justify-center">
+              {createRegenerateButton()}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-carbs">
-                {isLibraryMode 
-                  ? `Carbs per 100${profile?.units === 'imperial' ? 'oz' : 'g'}` 
-                  : `Carbs (${profile?.units === 'imperial' ? 'oz' : 'g'})`
-                }
-              </Label>
-              <Input id="edit-carbs" type="number" value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder={isLibraryMode ? 'grams per 100g' : 'grams'} />
+          )}
+          
+          {!imageUrl && (
+            <div className="flex justify-center">
+              <Button
+                onClick={handleGenerateImage}
+                disabled={generatingImage || !name}
+                variant="outline"
+                className="w-full"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {generatingImage ? 'Generating...' : 'Generate AI Image'}
+              </Button>
             </div>
-          </div>
-
-          <div className="space-y-3">
-            {/* Image Upload with AI generation */}
-            <ImageUpload
-              currentImageUrl={imageUrl}
-              onImageUpload={async (url) => {
-                setImageUrl(url);
-                // Immediately save the image URL to the database
-                if (currentItem?.id) {
-                  try {
-                    await onUpdate(currentItem.id, { image_url: url });
-                    toast({ title: "✅ Image Saved", description: "Image has been saved automatically!" });
-                  } catch (error) {
-                    console.error('Failed to save image URL:', error);
-                    toast({ 
-                      variant: "destructive", 
-                      title: "❌ Save Failed", 
-                      description: "Image uploaded but failed to save. Please click Save to retry." 
-                    });
-                  }
-                }
-              }}
-              onImageRemove={() => {
-                setImageUrl('');
-                // Update the database immediately to remove the image
-                if (currentItem?.id) {
-                  onUpdate(currentItem.id, { image_url: null });
-                }
-              }}
-              showUploadOptionsWhenImageExists={true}
-              aiGenerationPrompt={name ? `High-quality photo of ${name} on a white background, clean food photography, well-lit, appetizing` : undefined}
-              onAiGenerate={handleGenerateImage}
-              isGenerating={generatingImage}
-              bucket="food-images"
-            />
-          </div>
+          )}
         </div>
       </UniversalModal>
 
