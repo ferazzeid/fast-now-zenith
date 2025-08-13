@@ -721,11 +721,11 @@ const FoodTracking = () => {
               <TabsTrigger value="today" className="text-sm font-medium relative">
                 Today's Plan
                 {/* Save Template Button */}
-                {todayEntries.length > 0 && (
+                {todayEntries.length > 0 && activeTab === 'today' && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute right-8 h-5 w-5 p-0 hover:bg-primary/10 text-primary"
+                    className="absolute right-10 h-5 w-5 p-0 hover:bg-primary/10 text-primary"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowSaveTemplateDialog(true);
@@ -737,7 +737,7 @@ const FoodTracking = () => {
                   </Button>
                 )}
                 {/* Clear All Button */}
-                {todayEntries.length > 0 && (
+                {todayEntries.length > 0 && activeTab === 'today' && (
                   <Button
                     variant="ghost"
                     size="sm"
