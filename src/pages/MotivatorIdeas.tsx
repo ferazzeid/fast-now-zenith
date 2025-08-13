@@ -44,6 +44,14 @@ export default function MotivatorIdeas() {
     forceRefresh();
   }, []); // Empty dependency array to run only once on mount
 
+  // Force refresh goals when profile sex changes
+  useEffect(() => {
+    if (profile?.sex) {
+      console.log('MotivatorIdeas: Profile sex changed, forcing refresh. Sex:', profile.sex);
+      forceRefresh();
+    }
+  }, [profile?.sex, forceRefresh]);
+
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
       await createMotivator({

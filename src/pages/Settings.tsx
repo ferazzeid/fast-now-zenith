@@ -192,10 +192,17 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
           units: units
         };
         
+        console.log('Settings: Saving profile data:', updateData);
         const { data, error } = await supabase
           .from('profiles')
-          .update(updateData)
-          .eq('user_id', user.id);
+          .upsert({ 
+            user_id: user.id, 
+            ...updateData 
+          }, {
+            onConflict: 'user_id'
+          })
+          .select()
+          .single();
 
         if (error) {
           console.error('Settings save error:', error);
