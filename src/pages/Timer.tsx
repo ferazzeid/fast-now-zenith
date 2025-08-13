@@ -52,7 +52,7 @@ const Timer = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
-  const { celebration, checkForMilestones, resetMilestones, closeCelebration } = useCelebrationMilestones(fastingSession?.id);
+  const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { isAdmin } = useAdminRole();
 
 
@@ -377,7 +377,10 @@ const Timer = () => {
         {/* Admin Celebration Test Menu - Always visible for admins */}
         {isAdmin && (
           <div className="mb-4">
-            <AdminCelebrationTestMenu isVisible={true} />
+            <AdminCelebrationTestMenu 
+              isVisible={true} 
+              onTriggerCelebration={triggerCelebration}
+            />
           </div>
         )}
 

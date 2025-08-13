@@ -5,21 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
-
 import { CeramicAnimationType } from '@/components/CeramicCelebrationEffects';
 
 interface AdminCelebrationTestMenuProps {
   isVisible?: boolean;
+  onTriggerCelebration?: (event: { type: 'hourly' | 'completion'; hours: number; message: string; }) => void;
 }
 
 export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> = ({
-  isVisible = true
+  isVisible = true,
+  onTriggerCelebration
 }) => {
-  console.log('🎉 AdminCelebrationTestMenu render:', { isVisible });
+  console.log('🎉 AdminCelebrationTestMenu render:', { isVisible, hasCallback: !!onTriggerCelebration });
   
   const [isOpen, setIsOpen] = useState(false);
-  const { triggerCelebration } = useCelebrationMilestones();
 
   if (!isVisible) return null;
 
@@ -65,12 +64,16 @@ export const AdminCelebrationTestMenu: React.FC<AdminCelebrationTestMenuProps> =
   const handleTestCelebration = (celebration: typeof celebrationTypes[0]) => {
     console.log('🎉 Testing celebration animation:', celebration);
     
-    // Trigger the ceramic timer celebration using the hook
-    triggerCelebration({
-      type: celebration.type,
-      hours: celebration.hours,
-      message: celebration.message
-    });
+    if (onTriggerCelebration) {
+      // Trigger the ceramic timer celebration using the passed callback
+      onTriggerCelebration({
+        type: celebration.type,
+        hours: celebration.hours,
+        message: celebration.message
+      });
+    } else {
+      console.warn('No onTriggerCelebration callback provided to AdminCelebrationTestMenu');
+    }
   };
 
   return (
