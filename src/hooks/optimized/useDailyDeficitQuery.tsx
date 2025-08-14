@@ -66,7 +66,14 @@ export const useDailyDeficitQuery = () => {
     'no-profile';
 
   // Get manual calorie burns for today
-  const { todayTotal: manualCaloriesTotal } = useManualCalorieBurns();
+  const { todayTotal: manualCaloriesTotal, loading: manualLoading } = useManualCalorieBurns();
+  
+  console.log('🔥 MANUAL CALORIE BURNS DEBUG:', {
+    manualCaloriesTotal,
+    manualLoading,
+    user: user?.id,
+    today
+  });
 
   // PERFORMANCE: Cached BMR/TDEE calculations (expensive operations)
   const bmrTdeeQuery = useQuery({
@@ -225,7 +232,13 @@ export const useDailyDeficitQuery = () => {
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
 
       // 🐛 DEBUG: FORCE LOG TO SHOW - Log deficit calculation breakdown
-      console.log('🚨 URGENT DEFICIT DEBUG - BASE BURN ISSUE 🚨');
+      console.log('🚨 MANUAL CALORIES TRACKING DEBUG 🚨');
+      console.log('🔥 MANUAL CALORIE FLOW:', {
+        'manualCaloriesTotal FROM HOOK': manualCaloriesTotal,
+        'manualCalories IN CALC': manualCalories,
+        'ARE THEY EQUAL?': manualCaloriesTotal === manualCalories,
+        'manualLoading': manualLoading
+      });
       console.log('📊 RAW VALUES:', {
         'BMR': bmrTdee.bmr,
         'TDEE (Base Daily Burn)': bmrTdee.tdee,
@@ -236,7 +249,6 @@ export const useDailyDeficitQuery = () => {
         'Final Deficit': Math.round(todayDeficit)
       });
       console.log('🔍 CALCULATION CHECK:', `${bmrTdee.tdee} + ${walkingCalories} + ${manualCalories} - ${caloriesConsumed} = ${Math.round(todayDeficit)}`);
-      console.log('🚨 BASE DAILY BURN SHOULD BE:', bmrTdee.tdee, 'NOT', Math.round(todayDeficit));
 
       return {
         todayDeficit: Math.round(todayDeficit),
@@ -250,7 +262,7 @@ export const useDailyDeficitQuery = () => {
       };
     },
     enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
-             walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined,
+             walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
     staleTime: 1 * 60 * 1000, // PERFORMANCE: 1 minute stale time for real-time feel
     gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
   });
