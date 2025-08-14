@@ -51,16 +51,12 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       };
       const met = metValues[speedMph] || 3.2;
       
-      let weightKg: number;
-      if (profile?.units === 'metric') {
-        weightKg = profile.weight;
-      } else {
-        weightKg = profile.weight * 0.453592;
-      }
+      // Weight is already in kg
+      const weightKg = profile.weight;
       
       return Math.round(met * weightKg * (durationMinutes / 60));
     };
-  }, [profile?.weight, profile?.units]);
+  }, [profile?.weight]);
 
   // Stable references to prevent infinite re-renders
   const sessionIdRef = useRef(currentSession?.id);
@@ -80,7 +76,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const selectedSpeedRef = useRef(selectedSpeed);
   const isProfileCompleteRef = useRef(isProfileComplete);
   const calculateCaloriesRef = useRef(calculateCalories);
-  const profileUnitsRef = useRef(profile?.units);
+  
   const estimateStepsRef = useRef(estimateStepsForSession);
 
   // Separate interval effect with minimal dependencies
@@ -92,10 +88,9 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     currentSessionRef.current = currentSession;
     isPausedRef.current = isPaused;
     selectedSpeedRef.current = selectedSpeed;
-    isProfileCompleteRef.current = isProfileComplete;
-    calculateCaloriesRef.current = calculateCalories;
-    profileUnitsRef.current = profile?.units;
-    estimateStepsRef.current = estimateStepsForSession;
+      isProfileCompleteRef.current = isProfileComplete;
+      calculateCaloriesRef.current = calculateCalories;
+      estimateStepsRef.current = estimateStepsForSession;
 
     const updateStats = () => {
       if (!mounted) return;
@@ -105,7 +100,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const speed = selectedSpeedRef.current;
       const profileComplete = isProfileCompleteRef.current;
       const calcCalories = calculateCaloriesRef.current;
-      const units = profileUnitsRef.current;
+      
       const estimateSteps = estimateStepsRef.current;
       
       if (!session) {
@@ -152,7 +147,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           calories,
           hasProfile: !!profile,
           profileWeight: profile?.weight,
-          profileUnits: profile?.units
+          
         });
       } else {
         console.log('WalkingStats - Profile incomplete for calories:', {
@@ -164,18 +159,15 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
       }
       
-      // Convert distance based on unit preference
-      let distance = (activeDurationMinutes / 60) * speedMph;
-      if (units === 'metric') {
-        distance = distance * 1.60934; // Convert miles to km
-      }
+      // Distance in km (always metric now)
+      let distance = (activeDurationMinutes / 60) * speedMph * 1.60934;
 
-      // Simpler step calculation - just calculate total steps from total time
-      // Use a more conservative and realistic step calculation
-      const heightInches = units === 'metric' ? (profile?.height || 70) / 2.54 : (profile?.height || 70);
-      const baseStride = heightInches * 0.37; // More conservative stride multiplier
+      // Step calculation using metric system (height in cm)
+      const heightCm = profile?.height || 175; // Default 175cm
+      const heightInches = heightCm / 2.54;
+      const baseStride = heightInches * 0.37; // Conservative stride multiplier
       
-      // Speed-based stride adjustment (more conservative)
+      // Speed-based stride adjustment
       let speedFactor = 1.0;
       if (speedMph <= 2.5) speedFactor = 0.85;      // Slow pace
       else if (speedMph <= 3.5) speedFactor = 1.0;  // Average pace
@@ -183,7 +175,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       else speedFactor = 1.3;                        // Fast pace
       
       const strideInches = baseStride * speedFactor;
-      const distanceInches = distance * (units === 'metric' ? 39370.1 : 63360); // Convert km/mi to inches
+      const distanceInches = distance * 39370.1; // Convert km to inches
       const totalSteps = Math.round(distanceInches / strideInches);
 
       setWalkingStats(prev => {

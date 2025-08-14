@@ -86,7 +86,7 @@ export const UnifiedFoodEditModal = ({
   const { profile } = useProfile();
   
   // Get available units based on user's preference
-  const availableUnits = getServingUnitsForUser(profile?.units || 'metric');
+  const availableUnits = getServingUnitsForUser();
 
   const handleSave = async () => {
     if (!name || !calories || !carbs) {
@@ -238,7 +238,7 @@ export const UnifiedFoodEditModal = ({
     if (name.includes('milk') || name.includes('water') || name.includes('juice')) {
       return 'cups';
     }
-    return profile?.units === 'imperial' ? 'ounces' : 'grams';
+    return 'grams';
   };
 
   // Update unit when food name changes to a common food
@@ -407,7 +407,7 @@ export const UnifiedFoodEditModal = ({
           ) : (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-calories">Calories per 100{profile?.units === 'imperial' ? 'oz' : 'g'}</Label>
+                <Label htmlFor="edit-calories">Calories per 100g</Label>
                 <Input 
                   id="edit-calories" 
                   type="number" 
@@ -417,7 +417,7 @@ export const UnifiedFoodEditModal = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-carbs">Carbs per 100{profile?.units === 'imperial' ? 'oz' : 'g'}</Label>
+                <Label htmlFor="edit-carbs">Carbs per 100g</Label>
                 <Input 
                   id="edit-carbs" 
                   type="number" 

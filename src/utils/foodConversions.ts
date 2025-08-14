@@ -1,51 +1,27 @@
-// Food unit conversion utilities
+// Food unit conversion utilities - Simplified for grams-only system
 
 export interface UnitConversion {
   value: string;
   label: string;
 }
 
-// Available serving size units by unit system
-export const METRIC_SERVING_UNITS: UnitConversion[] = [
-  { value: 'grams', label: 'grams' },
-  { value: 'milliliters', label: 'milliliters' },
-  { value: 'pieces', label: 'pieces' },
-  { value: 'cups', label: 'cups' },
-  { value: 'slices', label: 'slices' }
-];
-
-export const IMPERIAL_SERVING_UNITS: UnitConversion[] = [
-  { value: 'ounces', label: 'ounces' },
-  { value: 'fl_oz', label: 'fluid ounces' },
-  { value: 'pieces', label: 'pieces' },
-  { value: 'cups', label: 'cups' },
-  { value: 'slices', label: 'slices' }
-];
-
-// Legacy export for backward compatibility
+// Available serving size units (simplified set)
 export const SERVING_SIZE_UNITS: UnitConversion[] = [
   { value: 'grams', label: 'grams' },
   { value: 'milliliters', label: 'milliliters' },
-  { value: 'ounces', label: 'ounces' },
-  { value: 'fl_oz', label: 'fluid ounces' },
   { value: 'pieces', label: 'pieces' },
   { value: 'cups', label: 'cups' },
   { value: 'slices', label: 'slices' }
 ];
 
-// Get serving units based on user's preference
-export const getServingUnitsForUser = (userUnits: 'imperial' | 'metric' = 'metric'): UnitConversion[] => {
-  return userUnits === 'imperial' ? IMPERIAL_SERVING_UNITS : METRIC_SERVING_UNITS;
+// Get all available serving units
+export const getServingUnitsForUser = (): UnitConversion[] => {
+  return SERVING_SIZE_UNITS;
 };
 
-// Get default unit based on user's units preference
-export const getDefaultServingSizeUnit = (userUnits: 'imperial' | 'metric' = 'metric'): string => {
-  return userUnits === 'imperial' ? 'ounces' : 'grams';
-};
-
-// Get unit system display name
-export const getUnitSystemDisplay = (userUnits: 'imperial' | 'metric' = 'metric'): string => {
-  return userUnits === 'imperial' ? 'Imperial' : 'Metric';
+// Get default unit (always grams)
+export const getDefaultServingSizeUnit = (): string => {
+  return 'grams';
 };
 
 // Convert various units to grams (rough estimates for common foods)
@@ -60,15 +36,6 @@ export const convertToGrams = (amount: number, unit: string, foodName?: string):
       // Approximate: 1 ml ≈ 1 g for most liquids
       return amount * 1;
 
-    case 'fl_oz':
-    case 'fluid_ounces':
-    case 'fluid_ounce':
-      // 1 US fluid ounce = 29.57 ml ≈ 29.57 g
-      return amount * 29.57;
-    
-    case 'ounces':
-    case 'oz':
-      return amount * 28.35; // 1 oz = 28.35g
     
     case 'cups':
     case 'cup':
@@ -134,7 +101,6 @@ export const formatUnitDisplay = (amount: string, unit: string): string => {
       case 'pieces': return '1 piece';
       case 'cups': return '1 cup';
       case 'slices': return '1 slice';
-      case 'ounces': return '1 ounce';
       case 'grams': return '1 gram';
       default: return `1 ${unit}`;
     }
@@ -150,9 +116,6 @@ export const getUnitDisplayName = (unit: string): string => {
     case 'grams': return 'Grams';
     case 'milliliters':
     case 'ml': return 'Milliliters';
-    case 'fl_oz': return 'Fluid Ounces';
-    case 'ounces':
-    case 'oz': return 'Ounces';
     case 'pieces': return 'Pieces';
     case 'cups': return 'Cups';
     case 'slices': return 'Slices';

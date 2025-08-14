@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
-import { UnitsSelector } from '@/components/UnitsSelector';
+
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -41,7 +41,7 @@ const Settings = () => {
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
-  const [units, setUnits] = useState<'metric' | 'imperial'>('imperial');
+  
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, units, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -108,7 +108,6 @@ const Settings = () => {
           setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
           setActivityLevel(profileData.activity_level || 'sedentary');
-          setUnits((profileData.units as 'metric' | 'imperial') || 'imperial');
 
           // Check if profile is incomplete and show onboarding
           const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
@@ -139,41 +138,22 @@ const Settings = () => {
 
   const handleSaveSettings = async () => {
     try {
-      // Validate required fields first
-      if (units === 'metric') {
-        if (weight && (parseFloat(weight) < 30 || parseFloat(weight) > 300)) {
-          toast({
-            title: "Invalid Weight",
-            description: "Weight must be between 30-300 kg",
-            variant: "destructive"
-          });
-          return;
-        }
-        if (height && (parseInt(height) < 100 || parseInt(height) > 250)) {
-          toast({
-            title: "Invalid Height", 
-            description: "Height must be between 100-250 cm",
-            variant: "destructive"
-          });
-          return;
-        }
-      } else {
-        if (weight && (parseFloat(weight) < 60 || parseFloat(weight) > 700)) {
-          toast({
-            title: "Invalid Weight",
-            description: "Weight must be between 60-700 lbs",
-            variant: "destructive"
-          });
-          return;
-        }
-        if (height && (parseInt(height) < 48 || parseInt(height) > 96)) {
-          toast({
-            title: "Invalid Height",
-            description: "Height must be between 48-96 inches", 
-            variant: "destructive"
-          });
-          return;
-        }
+      // Validate required fields (metric only now)
+      if (weight && (parseFloat(weight) < 30 || parseFloat(weight) > 300)) {
+        toast({
+          title: "Invalid Weight",
+          description: "Weight must be between 30-300 kg",
+          variant: "destructive"
+        });
+        return;
+      }
+      if (height && (parseInt(height) < 100 || parseInt(height) > 250)) {
+        toast({
+          title: "Invalid Height", 
+          description: "Height must be between 100-250 cm",
+          variant: "destructive"
+        });
+        return;
       }
 
 
@@ -190,8 +170,7 @@ const Settings = () => {
           sex: (sex as 'male' | 'female') || null,
           daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
           daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-          activity_level: activityLevel,
-          units: units
+          activity_level: activityLevel
         };
         
         console.log('Settings: User ID:', user?.id);
@@ -407,40 +386,37 @@ const Settings = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <UnitsSelector
-                      selectedUnits={units}
-                      onUnitsChange={setUnits}
-                    />
-                    <ClickableTooltip content="Choose your preferred measurement system. This affects how weight, height, distance, and speed are displayed throughout the app.">
-                      <Info className="w-4 h-4 text-muted-foreground" />
-                    </ClickableTooltip>
-                  </div>
                   
                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
+                        <Label htmlFor="weight" className="text-warm-text">Weight (kg)</Label>
                         <Input
                           id="weight"
                           type="number"
-                          placeholder={units === 'metric' ? '70' : '154'}
+                          placeholder="70"
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
+                          min="30"
+                          max="300"
+                          step="0.1"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
+                        <Label htmlFor="height" className="text-warm-text">Height (cm)</Label>
                         <Input
                           id="height"
                           type="number"
-                          placeholder={units === 'metric' ? '175' : '69'}
+                          placeholder="175"
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
+                          min="100"
+                          max="250"
+                          step="1"
                         />
                       </div>
                       <div className="space-y-2">

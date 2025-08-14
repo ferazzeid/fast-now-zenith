@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
-import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName, getUnitSystemDisplay } from '@/utils/foodConversions';
+import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 
 interface ManualFoodEntryProps {
   isOpen: boolean;
@@ -42,7 +42,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
   // Set default unit when profile loads - ensure grams for metric mode
   useEffect(() => {
     if (profile && !data.servingUnit) {
-      const defaultUnit = getDefaultServingSizeUnit(profile.units);
+      const defaultUnit = getDefaultServingSizeUnit();
       onDataChange({ ...data, servingUnit: defaultUnit });
     }
   }, [profile]);
@@ -108,7 +108,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     if (name.includes('milk') || name.includes('water') || name.includes('juice')) {
       return 'cups';
     }
-    return profile?.units === 'imperial' ? 'ounces' : 'grams';
+    return 'grams';
   };
 
   // Update unit when food name changes to a common food
@@ -116,7 +116,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
     updateField('name', newName);
     if (newName && !data.servingUnit) {
       const smartUnit = getSmartDefaultUnit(newName);
-      const availableUnits = getServingUnitsForUser(profile?.units);
+      const availableUnits = getServingUnitsForUser();
       if (availableUnits.some(unit => unit.value === smartUnit)) {
         updateField('servingUnit', smartUnit);
       }
@@ -197,7 +197,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {getServingUnitsForUser(profile?.units).map((unit) => (
+                {getServingUnitsForUser().map((unit) => (
                   <SelectItem key={unit.value} value={unit.value}>
                     {getUnitDisplayName(unit.value)}
                   </SelectItem>
@@ -280,7 +280,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
 
         {/* Unit system display */}
         <div className="text-xs text-muted-foreground text-center">
-          {getUnitSystemDisplay(profile?.units)} Mode • per 100{profile?.units === 'imperial' ? 'oz' : 'g'}
+          Nutritional info per 100g
         </div>
       </div>
 

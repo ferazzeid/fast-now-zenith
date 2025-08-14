@@ -353,8 +353,8 @@ export const useWalkingSession = () => {
       } else {
         const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
         const distance = (activeDurationMinutes / 60) * speedMph;
-        const userHeight = profile?.height || 70;
-        const units = (profile?.units as 'metric' | 'imperial') || 'imperial';
+        const userHeight = profile?.height || 175; // Default 175cm
+        const units = 'metric' as const;
         const estimatedSteps = estimateSteps({
           durationMinutes: activeDurationMinutes,
           speedMph,

@@ -83,18 +83,18 @@ export const useStepEstimation = () => {
     return estimateSteps({
       durationMinutes,
       speedMph,
-      userHeight: profile?.height || 70,
-      units: (profile?.units as 'metric' | 'imperial') || 'imperial'
+      userHeight: profile?.height || 175,
+      units: 'metric' as const
     });
-  }, [profile?.height, profile?.units]);
+  }, [profile?.height]);
 
   const getRealTimeStepsPerMinute = useCallback((speedMph: number): number => {
     return getStepsPerMinute(
       speedMph,
-      profile?.height || 70,
-      (profile?.units as 'metric' | 'imperial') || 'imperial'
+      profile?.height || 175,
+      'metric' as const
     );
-  }, [profile?.height, profile?.units]);
+  }, [profile?.height]);
 
   return {
     estimateStepsForSession,

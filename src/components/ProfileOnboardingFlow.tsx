@@ -13,9 +13,7 @@ interface ProfileOnboardingFlowProps {
 
 interface FormData {
   weight: string;
-  weightUnit: string;
   height: string;
-  heightUnit: string;
   age: string;
   sex: string;
   activityLevel: string;
@@ -28,9 +26,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   // Initialize form data with existing profile values
   const [formData, setFormData] = useState<FormData>({
     weight: profile?.weight ? profile.weight.toString() : '',
-    weightUnit: profile?.units === 'metric' ? 'kg' : 'lbs',
     height: profile?.height ? profile.height.toString() : '',
-    heightUnit: profile?.units === 'metric' ? 'cm' : 'ft',
     age: profile?.age ? profile.age.toString() : '',
     sex: profile?.sex || '',
     activityLevel: profile?.activity_level || '',
@@ -41,9 +37,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     if (profile) {
       setFormData({
         weight: profile.weight ? profile.weight.toString() : '',
-        weightUnit: profile.units === 'metric' ? 'kg' : 'lbs',
         height: profile.height ? profile.height.toString() : '',
-        heightUnit: profile.units === 'metric' ? 'cm' : 'ft',
         age: profile.age ? profile.age.toString() : '',
         sex: profile.sex || '',
         activityLevel: profile.activity_level || '',
@@ -53,32 +47,13 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
 
   const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | 'activityLevel' | null>(null);
   const [tempValue, setTempValue] = useState('');
-  const [tempUnit, setTempUnit] = useState('');
+  
 
   const handleComplete = async () => {
     try {
-      // Infer units from user selections
-      const isMetric = formData.weightUnit === 'kg' || formData.heightUnit === 'cm';
-      const units = isMetric ? 'metric' : 'imperial';
-
-      // Convert height for imperial system
-      let heightValue = parseFloat(formData.height);
-      if (formData.heightUnit === 'ft') {
-        heightValue = heightValue * 12; // Convert feet to inches for storage
-      }
-
-      // Convert weight to kg if using pounds or stones
-      let weightValue = parseFloat(formData.weight);
-      if (formData.weightUnit === 'lbs') {
-        weightValue = weightValue * 0.453592; // Convert lbs to kg
-      } else if (formData.weightUnit === 'st') {
-        weightValue = weightValue * 6.35029; // Convert stones to kg
-      }
-
       const profileData = {
-        units: units as 'metric' | 'imperial',
-        weight: weightValue,
-        height: heightValue,
+        weight: parseFloat(formData.weight),
+        height: parseInt(formData.height),
         age: parseInt(formData.age),
         activity_level: formData.activityLevel,
         sex: formData.sex as 'male' | 'female',
@@ -122,8 +97,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   };
 
   const isFormValid = () => {
-    return formData.weight && formData.weightUnit && 
-           formData.height && formData.heightUnit && 
+    return formData.weight && formData.height && 
            formData.age && formData.sex && formData.activityLevel;
   };
 
@@ -131,27 +105,22 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     setActiveModal(field);
     if (field === 'weight') {
       setTempValue(formData.weight);
-      setTempUnit(formData.weightUnit);
     } else if (field === 'height') {
       setTempValue(formData.height);
-      setTempUnit(formData.heightUnit);
     } else if (field === 'age') {
       setTempValue(formData.age);
-      setTempUnit('');
     } else if (field === 'sex') {
       setTempValue(formData.sex);
-      setTempUnit('');
     } else if (field === 'activityLevel') {
       setTempValue(formData.activityLevel);
-      setTempUnit('');
     }
   };
 
   const saveModal = () => {
     if (activeModal === 'weight') {
-      setFormData(prev => ({ ...prev, weight: tempValue, weightUnit: tempUnit }));
+      setFormData(prev => ({ ...prev, weight: tempValue }));
     } else if (activeModal === 'height') {
-      setFormData(prev => ({ ...prev, height: tempValue, heightUnit: tempUnit }));
+      setFormData(prev => ({ ...prev, height: tempValue }));
     } else if (activeModal === 'age') {
       setFormData(prev => ({ ...prev, age: tempValue }));
     } else if (activeModal === 'sex') {
@@ -168,9 +137,9 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     
     switch (field) {
       case 'weight':
-        return `${value} ${formData.weightUnit}`;
+        return `${value} kg`;
       case 'height':
-        return `${value} ${formData.heightUnit}`;
+        return `${value} cm`;
       case 'age':
         return `${value} years`;
       case 'sex':
@@ -190,28 +159,16 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Weight</label>
+              <label className="text-sm font-medium">Weight (kg)</label>
               <Input
                 type="number"
                 value={tempValue}
                 onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Enter weight"
+                placeholder="Enter weight in kg"
                 min="30"
                 max="300"
+                step="0.1"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Unit</label>
-              <Select value={tempUnit} onValueChange={setTempUnit}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
-                  <SelectItem value="kg">kg</SelectItem>
-                  <SelectItem value="lbs">lbs</SelectItem>
-                  <SelectItem value="st">st</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Or select from list</label>
@@ -222,7 +179,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                 <SelectContent className="bg-background border z-50 max-h-60">
                   {Array.from({ length: 271 }, (_, i) => (
                     <SelectItem key={30 + i} value={(30 + i).toString()}>
-                      {30 + i}
+                      {30 + i} kg
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -235,27 +192,16 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Height</label>
+              <label className="text-sm font-medium">Height (cm)</label>
               <Input
                 type="number"
                 value={tempValue}
                 onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Enter height"
+                placeholder="Enter height in cm"
                 min="100"
                 max="250"
+                step="1"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Unit</label>
-              <Select value={tempUnit} onValueChange={setTempUnit}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
-                  <SelectItem value="cm">cm</SelectItem>
-                  <SelectItem value="ft">ft</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Or select from list</label>
@@ -264,25 +210,11 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                   <SelectValue placeholder="Select height" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border z-50 max-h-60">
-                  {tempUnit === 'cm' ? (
-                    Array.from({ length: 151 }, (_, i) => (
-                      <SelectItem key={100 + i} value={(100 + i).toString()}>
-                        {100 + i}
-                      </SelectItem>
-                    ))
-                  ) : tempUnit === 'ft' ? (
-                    Array.from({ length: 7 }, (_, i) => (
-                      <SelectItem key={3 + i} value={(3 + i).toString()}>
-                        {3 + i}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    Array.from({ length: 151 }, (_, i) => (
-                      <SelectItem key={100 + i} value={(100 + i).toString()}>
-                        {100 + i}
-                      </SelectItem>
-                    ))
-                  )}
+                  {Array.from({ length: 151 }, (_, i) => (
+                    <SelectItem key={100 + i} value={(100 + i).toString()}>
+                      {100 + i} cm
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -444,7 +376,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
             </Button>
             <Button 
               onClick={saveModal}
-              disabled={!tempValue || (activeModal !== 'sex' && activeModal !== 'age' && activeModal !== 'activityLevel' && !tempUnit)}
+              disabled={!tempValue}
             >
               Save
             </Button>

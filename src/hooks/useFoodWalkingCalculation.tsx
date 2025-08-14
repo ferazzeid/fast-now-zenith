@@ -17,13 +17,8 @@ export const useFoodWalkingCalculation = () => {
     
     const met = metValues[Math.round(speedMph)] || 3.2;
     
-    // Convert weight to kg if needed
-    let weightKg: number;
-    if (profile.units === 'metric') {
-      weightKg = profile.weight;
-    } else {
-      weightKg = profile.weight * 0.453592; // Convert lbs to kg
-    }
+    // Weight is already in kg
+    const weightKg = profile.weight;
     
     // Calculate calories burned per minute: MET × weight(kg) / 60
     const caloriesPerMinute = (met * weightKg) / 60;

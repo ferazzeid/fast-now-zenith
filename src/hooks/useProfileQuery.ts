@@ -15,7 +15,7 @@ export interface UserProfile {
   deficit_goal?: number;
   activity_level?: string;
   default_walking_speed?: number;
-  units?: string;
+  
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
   updated_at?: string;
@@ -120,13 +120,9 @@ export const useProfileQuery = () => {
     const profile = profileQuery.data;
     if (!profile?.weight || !profile?.height || !profile?.age) return 0;
 
-    let weightKg = profile.weight;
-    let heightCm = profile.height;
-
-    if (profile.units === 'imperial') {
-      weightKg = profile.weight * 0.453592; // Convert lbs to kg
-      heightCm = profile.height * 2.54; // Convert inches to cm
-    }
+    // Weight and height are already in kg and cm
+    const weightKg = profile.weight;
+    const heightCm = profile.height;
 
     // Enhanced Mifflin-St Jeor equation with sex consideration
     let bmr: number;
@@ -143,10 +139,8 @@ export const useProfileQuery = () => {
     const profile = profileQuery.data;
     if (!profile?.weight || !isProfileComplete()) return 0;
 
-    let weightKg = profile.weight;
-    if (profile.units === 'imperial') {
-      weightKg = profile.weight * 0.453592;
-    }
+    // Weight is already in kg
+    const weightKg = profile.weight;
 
     // Convert speed from mph to km/h if needed
     let speedKmh = speedMph * 1.60934;
