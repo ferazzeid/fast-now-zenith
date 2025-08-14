@@ -21,7 +21,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
 import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
-import { ManualFoodEntry } from '@/components/ManualFoodEntry';
+import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -30,12 +30,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
-import { PhotoFoodEntry } from '@/components/PhotoFoodEntry';
 
 const FoodTracking = () => {
   const [foodName, setFoodName] = useState('');
@@ -51,8 +51,7 @@ const FoodTracking = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
-  const [showManualEntry, setShowManualEntry] = useState(false);
-  const [showPhotoEntry, setShowPhotoEntry] = useState(false);
+  const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'template'>('today');
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
@@ -64,6 +63,8 @@ const FoodTracking = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { profile, updateProfile } = useProfile();
+  const { subscribed, hasPremiumFeatures } = useSubscription();
+  const isSubscriptionActive = subscribed || hasPremiumFeatures;
   const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { 
@@ -139,11 +140,11 @@ const FoodTracking = () => {
     setShowAiChat(false);
   };
 
-  const handleManualEntry = () => {
-    setShowManualEntry(true);
+  const handleUnifiedEntry = () => {
+    setShowUnifiedEntry(true);
   };
 
-  const handleSaveManualEntry = async (food: { name: string; calories: number; carbs: number; serving_size: number; image_url?: string }) => {
+  const handleSaveUnifiedEntry = async (food: { name: string; calories: number; carbs: number; serving_size: number; image_url?: string }) => {
     const result = await addFoodEntry({
       name: food.name,
       calories: food.calories,
@@ -165,44 +166,9 @@ const FoodTracking = () => {
         description: `${food.name} has been added to your plan`
       });
       
-      trackFoodEvent('add', 'manual');
+      trackFoodEvent('add', food.image_url ? 'image' : 'manual');
     }
-    setShowManualEntry(false);
-  };
-
-  const handlePhotoEntry = () => {
-    setShowPhotoEntry(true);
-  };
-
-  const handlePhotoSave = async (food: { name: string; calories: number; carbs: number; serving_size: number; quantity: number; image_url?: string }) => {
-    const totalCalories = food.calories * food.quantity;
-    const totalCarbs = food.carbs * food.quantity;
-    const totalServingSize = food.serving_size * food.quantity;
-    
-    const result = await addFoodEntry({
-      name: food.name,
-      calories: totalCalories,
-      carbs: totalCarbs,
-      serving_size: totalServingSize,
-      consumed: false,
-      image_url: food.image_url
-    });
-    
-    if (!result || 'error' in result) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save food entry"
-      });
-    } else {
-      toast({
-        title: "Food Added from Photo",
-        description: `${food.name} has been added to your plan`
-      });
-      
-      trackFoodEvent('add', 'image');
-    }
-    setShowPhotoEntry(false);
+    setShowUnifiedEntry(false);
   };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
@@ -409,7 +375,8 @@ const FoodTracking = () => {
 
         {/* Action Buttons */}
         <div className="mb-6">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Voice Add Button */}
             <PremiumGate 
               feature="ai_food_voice"
               className="col-span-1"
@@ -427,35 +394,20 @@ const FoodTracking = () => {
               </div>
             </PremiumGate>
 
-            <PremiumGate 
-              feature="photo_food_analysis"
-              className="col-span-1"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Button 
-                  variant="ai"
-                  size="action-tall"
-                  className="w-full flex flex-col items-center justify-center gap-1"
-                  onClick={handlePhotoEntry}
-                >
-                  <Camera className="w-5 h-5" />
-                </Button>
-                <span className="text-xs text-muted-foreground text-center">Photo add</span>
-              </div>
-            </PremiumGate>
-
+            {/* Large Unified Add Food Button */}
             <div className="flex flex-col items-center gap-2">
               <Button 
-                variant="action-primary"
-                size="action-tall"
-                className="w-full flex flex-col items-center justify-center gap-1"
-                onClick={handleManualEntry}
+                variant={isSubscriptionActive ? "ai" : "action-primary"}
+                size="start-button"
+                className="w-full flex flex-col items-center justify-center gap-2"
+                onClick={handleUnifiedEntry}
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-8 h-8" />
               </Button>
-              <span className="text-xs text-muted-foreground text-center">Manual add</span>
+              <span className="text-xs text-muted-foreground text-center">Add food</span>
             </div>
 
+            {/* Library Button */}
             <div className="flex flex-col items-center gap-2">
               <Button 
                 variant="action-primary"
@@ -1195,26 +1147,12 @@ const FoodTracking = () => {
         onResult={handleAiChatResult}
       />
 
-      <ManualFoodEntry
-        isOpen={showManualEntry}
-        onClose={() => setShowManualEntry(false)}
-        onSave={() => setShowManualEntry(false)}
-        data={{
-          name: '',
-          servingAmount: '100',
-          servingUnit: 'g',
-          calories: '',
-          carbs: '',
-          imageUrl: ''
-        }}
-        onDataChange={() => {}}
-      />
-
-      <PhotoFoodEntry
-        isOpen={showPhotoEntry}
-        onClose={() => setShowPhotoEntry(false)}
-        onSave={(food) => handlePhotoSave(food)}
-      />
+        {/* Unified Food Entry Modal */}
+        <UnifiedFoodEntry
+          isOpen={showUnifiedEntry}
+          onClose={() => setShowUnifiedEntry(false)}
+          onSave={handleSaveUnifiedEntry}
+        />
 
       {/* Dialogs */}
       <AlertDialog open={showSaveTemplateDialog} onOpenChange={setShowSaveTemplateDialog}>
