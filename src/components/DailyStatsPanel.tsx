@@ -211,8 +211,8 @@ export const DailyStatsPanel = memo(() => {
                   <StatDisplay
                     icon={<Activity className="w-4 h-4 text-primary" />}
                     label="Calories Out"
-                    value={Math.round(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}
-                    tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}`}
+                    value={deficitData.totalCaloriesBurned}
+                    tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.totalCaloriesBurned)}`}
                   />
                 </div>
 

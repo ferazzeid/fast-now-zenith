@@ -28,6 +28,7 @@ import { useCallback } from 'react';
 
 interface DailyDeficitData {
   todayDeficit: number;
+  totalCaloriesBurned: number;
   bmr: number;
   tdee: number;
   caloriesConsumed: number;
@@ -202,6 +203,7 @@ export const useDailyDeficitQuery = () => {
 
       return {
         todayDeficit: Math.round(todayDeficit),
+        totalCaloriesBurned: Math.round(totalCaloriesBurned),
         bmr: bmrTdee.bmr,
         tdee: bmrTdee.tdee,
         caloriesConsumed,
@@ -227,6 +229,7 @@ export const useDailyDeficitQuery = () => {
     // Data
     deficitData: dailyDeficitQuery.data || {
       todayDeficit: 0,
+      totalCaloriesBurned: 0,
       bmr: 0,
       tdee: 0,
       caloriesConsumed: 0,
