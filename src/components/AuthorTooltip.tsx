@@ -121,8 +121,26 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     }
   };
 
-  const handleMouseLeave = () => {
-    if (!isMobile) setIsOpen(false);
+  const handleMouseLeave = (e: React.MouseEvent) => {
+    if (!isMobile) {
+      // Check if mouse is moving to the tooltip
+      const relatedTarget = e.relatedTarget as Element;
+      if (tooltipRef.current && relatedTarget && tooltipRef.current.contains(relatedTarget)) {
+        return; // Don't close if moving to tooltip
+      }
+      setIsOpen(false);
+    }
+  };
+
+  const handleTooltipMouseLeave = (e: React.MouseEvent) => {
+    if (!isMobile) {
+      // Check if mouse is moving back to trigger
+      const relatedTarget = e.relatedTarget as Element;
+      if (triggerRef.current && relatedTarget && triggerRef.current.contains(relatedTarget)) {
+        return; // Don't close if moving back to trigger
+      }
+      setIsOpen(false);
+    }
   };
 
   useEffect(() => {
@@ -242,6 +260,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           )}
           <div
             ref={tooltipRef}
+            onMouseLeave={handleTooltipMouseLeave}
             className={cn(
               "absolute z-50 px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
               "w-[320px] max-w-[calc(100vw-32px)] text-left",
