@@ -170,16 +170,19 @@ export const useDailyDeficitQuery = () => {
       const totalCaloriesBurned = bmrTdee.tdee + walkingCalories + manualCalories;
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
 
-      // 🐛 DEBUG: Log deficit calculation breakdown
-      console.log('📊 DEFICIT CALCULATION DEBUG:', {
-        tdee: bmrTdee.tdee,
-        walkingCalories,
-        manualCalories,
-        totalCaloriesBurned,
-        caloriesConsumed,
-        todayDeficit: Math.round(todayDeficit),
-        calculation: `${bmrTdee.tdee} + ${walkingCalories} + ${manualCalories} - ${caloriesConsumed} = ${Math.round(todayDeficit)}`
+      // 🐛 DEBUG: FORCE LOG TO SHOW - Log deficit calculation breakdown
+      console.log('🚨 URGENT DEFICIT DEBUG - BASE BURN ISSUE 🚨');
+      console.log('📊 RAW VALUES:', {
+        'BMR': bmrTdee.bmr,
+        'TDEE (Base Daily Burn)': bmrTdee.tdee,
+        'Walking Calories': walkingCalories,
+        'Manual Calories': manualCalories,
+        'Total Burned': totalCaloriesBurned,
+        'Food Consumed': caloriesConsumed,
+        'Final Deficit': Math.round(todayDeficit)
       });
+      console.log('🔍 CALCULATION CHECK:', `${bmrTdee.tdee} + ${walkingCalories} + ${manualCalories} - ${caloriesConsumed} = ${Math.round(todayDeficit)}`);
+      console.log('🚨 BASE DAILY BURN SHOULD BE:', bmrTdee.tdee, 'NOT', Math.round(todayDeficit));
 
       return {
         todayDeficit: Math.round(todayDeficit),
