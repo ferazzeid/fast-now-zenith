@@ -164,7 +164,7 @@ export default function AdminDev() {
             </AlertDescription>
           </Alert>
 
-          <div className={`grid grid-cols-1 ${isMobile ? '' : 'xl:grid-cols-2'} gap-6`}>
+          <div className="grid grid-cols-1 gap-6">
             {/* Controls */}
             <Card>
               <CardHeader>
@@ -276,7 +276,7 @@ export default function AdminDev() {
               <CardTitle>Test Scenarios</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2 xl:grid-cols-3'} gap-4`}>
+              <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2'} gap-4`}>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Gradual Degradation</h4>
                   <p className="text-sm text-muted-foreground mb-3">Test how the app behaves when going from online to offline</p>
