@@ -205,16 +205,19 @@ export const Navigation = () => {
                   )}
                   
                   {/* Trial countdown badge ONLY for Settings button */}
-                  {label === 'Settings' && inTrial && trialEndsAt && (() => {
-                    console.log('🏷️ Rendering TrialTimerBadge on Settings:', { 
-                      label, 
-                      inTrial, 
-                      trialEndsAt, 
-                      path,
-                      timestamp: new Date().toISOString() 
-                    });
-                    return <TrialTimerBadge trialEndsAt={trialEndsAt} />;
-                  })()}
+                  {label === 'Settings' && inTrial && trialEndsAt && (
+                    <div className="absolute -top-2 -left-2">
+                      <TrialTimerBadge trialEndsAt={trialEndsAt} />
+                    </div>
+                  )}
+                  
+                  {/* Connection status indicator ONLY for Settings button */}
+                  {label === 'Settings' && (
+                    <div className="absolute -bottom-1 -right-1">
+                      <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${connectionStatus.shouldPulse ? 'animate-pulse' : ''}`} 
+                           title={connectionStatus.tooltip} />
+                    </div>
+                  )}
                 </Link>
               );
 
