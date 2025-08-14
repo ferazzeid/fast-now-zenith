@@ -56,7 +56,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     return <>{children}</>;
   }
 
-  // For locked features, show grayed out with modal on click
+  // For locked features, show grayed out and intercept all clicks
   const handleLockedClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -66,14 +66,46 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     }
   };
 
-  const modifiedChildren = replaceIconsInChildren(children);
+  // Helper function to disable onClick handlers in children
+  const disableClicksInChildren = (children: ReactNode): ReactNode => {
+    return React.Children.map(children, (child) => {
+      if (isValidElement(child)) {
+        // Remove all click handlers and add our interceptor
+        const disabledProps = { 
+          ...child.props, 
+          onClick: handleLockedClick,
+          onDoubleClick: undefined,
+          onMouseDown: undefined,
+          onMouseUp: undefined,
+        };
+        
+        // Check if this is a Utensils or Mic icon and replace with Lock
+        if (child.type === Utensils || child.type === Mic) {
+          return <Lock className={child.props.className} onClick={handleLockedClick} />;
+        }
+        
+        // If this element has children, recursively process them
+        if (child.props?.children) {
+          return cloneElement(child, {
+            ...disabledProps,
+            children: disableClicksInChildren(child.props.children)
+          } as any);
+        }
+        
+        return cloneElement(child, disabledProps);
+      }
+      return child;
+    });
+  };
+
+  const modifiedChildren = disableClicksInChildren(children);
 
   return (
     <>
       <div 
-        className={cn("opacity-50 cursor-pointer pointer-events-auto", className)}
+        className={cn("opacity-50 cursor-pointer", className)}
         onClick={handleLockedClick}
-        style={{ display: 'contents' }}
+        style={{ position: 'relative' }}
       >
         {modifiedChildren}
       </div>

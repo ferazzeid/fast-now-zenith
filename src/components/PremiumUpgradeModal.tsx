@@ -43,7 +43,7 @@ export const PremiumUpgradeModal = ({ isOpen, onClose, feature }: PremiumUpgrade
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999]" onClick={onClose}>
       <div 
         className="bg-background rounded-2xl p-6 w-full max-w-sm border border-border" 
         onClick={(e) => e.stopPropagation()}
