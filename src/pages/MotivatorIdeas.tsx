@@ -37,24 +37,24 @@ export default function MotivatorIdeas() {
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
-
+  const [previousSex, setPreviousSex] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('🔄 Force refreshing goal ideas on page load...');
     forceRefresh();
   }, []); // Empty dependency array to run only once on mount
 
-  // Force refresh goals when profile sex changes
+  // Force refresh goals when profile sex actually changes (not on initial load)
   useEffect(() => {
     if (profile?.sex) {
-      console.log('MotivatorIdeas: Profile sex changed, forcing complete refresh. Sex:', profile.sex);
-      // Force a complete page reload to ensure all caches are cleared
-      setTimeout(() => {
-        console.log('🔄 Reloading page to clear all caches...');
-        window.location.reload();
-      }, 500);
+      // Only refresh if the sex has actually changed, not on initial load
+      if (previousSex !== null && previousSex !== profile.sex) {
+        console.log('MotivatorIdeas: Profile sex changed from', previousSex, 'to', profile.sex, '- refreshing goals');
+        forceRefresh();
+      }
+      setPreviousSex(profile.sex);
     }
-  }, [profile?.sex]);
+  }, [profile?.sex, previousSex, forceRefresh]);
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
