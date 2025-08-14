@@ -177,16 +177,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     } as UserFood;
     
     onSelectFood(userFood, consumed);
-    
-    toast({
-      title: "Added to plan",
-      description: `${food.name} has been added to your food plan`,
-    });
-    
-    // Auto-close library after selection
-    setTimeout(() => {
-      onBack();
-    }, 1000);
   };
 
   const handleAddToTemplate = async (food: UserFood | DefaultFood) => {

@@ -1042,7 +1042,35 @@ const FoodTracking = () => {
         size="xl"
         variant="fullscreen"
       >
-        <FoodLibraryView onSelectFood={() => {}} onBack={() => setShowLibraryView(false)} />
+        <FoodLibraryView 
+          onSelectFood={async (food: any, consumed = false) => {
+            // Convert food to proper format for addFoodEntry
+            const foodEntry = {
+              name: food.name,
+              calories: food.calories_per_100g || food.calories,
+              carbs: food.carbs_per_100g || food.carbs,
+              serving_size: 100,
+              consumed: consumed,
+              image_url: food.image_url
+            };
+            
+            const result = await addFoodEntry(foodEntry);
+            
+            if (!result || 'error' in result) {
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to add food to your plan"
+              });
+            } else {
+              toast({
+                title: "Food Added",
+                description: `${food.name} has been added to your plan`
+              });
+            }
+          }} 
+          onBack={() => setShowLibraryView(false)} 
+        />
       </UniversalModal>
 
       {editingEntry && (
