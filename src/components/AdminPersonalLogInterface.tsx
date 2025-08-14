@@ -26,6 +26,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   const { currentSession } = useFastingSession();
   const queryClient = useQueryClient();
   const [logText, setLogText] = useState(existingLog);
+  const [originalText, setOriginalText] = useState(existingLog); // Store original for cancel
   const [isEditing, setIsEditing] = useState(!existingLog);
   const [isSaving, setIsSaving] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
@@ -34,6 +35,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   useEffect(() => {
     console.log('🔄 AdminPersonalLogInterface: existingLog changed:', { existingLog, currentHour });
     setLogText(existingLog || '');
+    setOriginalText(existingLog || ''); // Update original text too
     setIsEditing(!existingLog); // Only edit mode if no existing log
   }, [existingLog, currentHour]);
 
@@ -130,7 +132,10 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsEditing(true)}
+               onClick={() => {
+                 setOriginalText(logText); // Store current text as original when starting to edit
+                 setIsEditing(true);
+               }}
               className="h-7 w-7 p-0"
             >
               <Edit3 className="h-3 w-3" />
@@ -173,11 +178,11 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setLogText(existingLog);
-                setIsEditing(false);
-                setShowVoiceRecorder(false);
-              }}
+               onClick={() => {
+                 setLogText(originalText); // Restore to original text, not existingLog
+                 setIsEditing(false);
+                 setShowVoiceRecorder(false);
+               }}
               disabled={isSaving}
               className="h-7 px-3"
             >
