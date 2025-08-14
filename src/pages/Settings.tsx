@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useProfile } from '@/hooks/useProfile';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
-import { SubscriptionDebugPanel } from '@/components/SubscriptionDebugPanel';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -776,7 +776,7 @@ const Settings = () => {
         />
       </div>
       
-      <SubscriptionDebugPanel />
+      
     </div>
   );
 };
