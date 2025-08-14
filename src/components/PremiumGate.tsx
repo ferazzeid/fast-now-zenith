@@ -71,13 +71,12 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
   return (
     <>
       <div 
-        className={cn("opacity-50 cursor-pointer", className)}
+        className={cn("opacity-50 cursor-pointer pointer-events-auto", className)}
         onClick={handleLockedClick}
-        style={{ 
-          display: 'contents' // Preserves layout structure
-        }}
       >
-        {modifiedChildren}
+        <div className="pointer-events-none">
+          {modifiedChildren}
+        </div>
       </div>
       
       <PremiumUpgradeModal 
