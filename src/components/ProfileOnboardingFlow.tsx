@@ -22,18 +22,34 @@ interface FormData {
 }
 
 export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingFlowProps) => {
-  const { updateProfile, loading: isUpdating } = useProfile();
+  const { profile, updateProfile, loading: isUpdating } = useProfile();
   const { toast } = useToast();
   
+  // Initialize form data with existing profile values
   const [formData, setFormData] = useState<FormData>({
-    weight: '',
-    weightUnit: '',
-    height: '',
-    heightUnit: '',
-    age: '',
-    sex: '',
-    activityLevel: '',
+    weight: profile?.weight ? profile.weight.toString() : '',
+    weightUnit: profile?.units === 'metric' ? 'kg' : 'lbs',
+    height: profile?.height ? profile.height.toString() : '',
+    heightUnit: profile?.units === 'metric' ? 'cm' : 'ft',
+    age: profile?.age ? profile.age.toString() : '',
+    sex: profile?.sex || '',
+    activityLevel: profile?.activity_level || '',
   });
+
+  // Update form data when profile loads
+  React.useEffect(() => {
+    if (profile) {
+      setFormData({
+        weight: profile.weight ? profile.weight.toString() : '',
+        weightUnit: profile.units === 'metric' ? 'kg' : 'lbs',
+        height: profile.height ? profile.height.toString() : '',
+        heightUnit: profile.units === 'metric' ? 'cm' : 'ft',
+        age: profile.age ? profile.age.toString() : '',
+        sex: profile.sex || '',
+        activityLevel: profile.activity_level || '',
+      });
+    }
+  }, [profile]);
 
   const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | 'activityLevel' | null>(null);
   const [tempValue, setTempValue] = useState('');
