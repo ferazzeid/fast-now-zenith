@@ -124,18 +124,29 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
     const subscriptionEndDate = profile?.subscription_end_date ? new Date(profile.subscription_end_date) : null;
     const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
 
-    // Check if in trial
+    // Check if in trial - be more explicit about trial detection
     const inTrial = trialEndDate ? trialEndDate > now : false;
+    
+    console.log('🔍 Trial Detection Debug:', {
+      trialEndDate: trialEndDate?.toISOString(),
+      now: now.toISOString(),
+      inTrial,
+      profile_trial_ends_at: profile?.trial_ends_at,
+      profile_subscription_status: profile?.subscription_status
+    });
     
     // Check if subscribed (active subscription or platform-specific)
     let subscribed = false;
     let subscription_status = 'free';
     
+    // Priority: Active subscription > Trial > Free
     if (profile?.subscription_status === 'active' && subscriptionEndDate && subscriptionEndDate > now) {
       subscribed = true;
       subscription_status = 'active';
     } else if (inTrial) {
-      subscription_status = 'trial';
+      subscription_status = 'trial'; // Force trial status when in trial period
+    } else {
+      subscription_status = 'free';
     }
 
     // Platform-specific subscription check
