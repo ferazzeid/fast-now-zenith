@@ -51,13 +51,15 @@ export const useDailyActivityOverride = () => {
 
       console.log('Setting activity override:', { activityLevel, isPermanent, userId: user.id, date: today });
 
-      // Upsert the override for today
+      // Use upsert with conflict resolution
       const { data, error } = await supabase
         .from('daily_activity_overrides')
         .upsert({
           user_id: user.id,
           date: today,
           activity_level: activityLevel
+        }, {
+          onConflict: 'user_id,date'
         })
         .select()
         .single();
