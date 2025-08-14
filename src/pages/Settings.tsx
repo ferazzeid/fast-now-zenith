@@ -11,10 +11,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
-import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { SubscriptionDebugPanel } from '@/components/SubscriptionDebugPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
+
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
 import { CelebrationAnimationTester } from '@/components/dev/CelebrationAnimationTester';
@@ -43,10 +44,9 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-const subscription = useOptimizedSubscription();
-const multiSub = useMultiPlatformSubscription();
-const isWebPlatform = multiSub.platform === 'web';
-const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platform === 'android' ? 'Google Play' : 'Stripe';
+  const subscription = useUnifiedSubscription();
+  const isWebPlatform = subscription.platform === 'web';
+  const platformName = subscription.platform === 'ios' ? 'App Store' : subscription.platform === 'android' ? 'Google Play' : 'Stripe';
   
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
@@ -366,7 +366,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-24">
-          <div className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-2">
             {/* Header */}
             <div className="mb-2 mt-4">
@@ -568,7 +568,7 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                     <Button
                       onClick={async () => {
                         try {
-                          await multiSub.createSubscription();
+                          await subscription.createSubscription();
                           toast({ 
                             title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
                             description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
@@ -835,10 +835,9 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
                 </div>
               </div>
             </Card>
-            </div>
-          </div>
+        </div>
 
-          {/* Modals */}
+        {/* Modals */}
           {showMotivatorsModal && (
             <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
           )}
@@ -847,13 +846,16 @@ const platformName = multiSub.platform === 'ios' ? 'App Store' : multiSub.platfo
             <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
           )}
 
-          {/* Profile Onboarding Modal */}
-          <GlobalProfileOnboarding
-            isOpen={showOnboarding}
-            onClose={() => setShowOnboarding(false)}
-          />
-        </div>
-      );
-    };
+        {/* Profile Onboarding Modal */}
+        <GlobalProfileOnboarding
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+        />
+      </div>
+      
+      <SubscriptionDebugPanel />
+    </div>
+  );
+};
 
-    export default Settings;
+export default Settings;

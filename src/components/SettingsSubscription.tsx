@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useMultiPlatformSubscription } from '@/hooks/useMultiPlatformSubscription';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,9 @@ export const SettingsSubscription = () => {
     openCustomerPortal, 
     loading,
     platform,
-  } = useMultiPlatformSubscription();
+    login_method,
+    debug,
+  } = useUnifiedSubscription();
 
   const isWeb = platform === 'web';
   const platformName = platform === 'ios' ? 'App Store' : platform === 'android' ? 'Google Play' : 'Stripe';
@@ -94,6 +96,18 @@ export const SettingsSubscription = () => {
             </Badge>
           </div>
 
+          {/* Platform and Login Info */}
+          <div className="grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Platform</p>
+              <Badge variant="outline" className="mt-1">{platform}</Badge>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Login Method</p>
+              <Badge variant="outline" className="mt-1">{login_method || 'email'}</Badge>
+            </div>
+          </div>
+
           {/* Trial Information */}
           {inTrial && trialEndsAt && (
             <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
@@ -165,6 +179,11 @@ export const SettingsSubscription = () => {
                   Manage on {platformName}
                 </Button>
               )
+            )}
+            {debug && (
+              <div className="text-xs text-muted-foreground">
+                Debug: {debug.source} | {new Date(debug.timestamp).toLocaleTimeString()}
+              </div>
             )}
           </div>
 
