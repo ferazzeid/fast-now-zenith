@@ -9,9 +9,11 @@ import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
+import { TrialTimerBadge } from '@/components/TrialTimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -23,6 +25,7 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
+  const { inTrial, trialEndsAt } = useUnifiedSubscription();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Optimize timer updates - only update when needed for both fasting and walking
@@ -204,6 +207,11 @@ export const Navigation = () => {
                     <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
                       {caloriesBadge}
                     </span>
+                  )}
+                  
+                  {/* Trial countdown badge for Settings */}
+                  {label === 'Settings' && inTrial && trialEndsAt && (
+                    <TrialTimerBadge trialEndsAt={trialEndsAt} />
                   )}
                 </Link>
               );

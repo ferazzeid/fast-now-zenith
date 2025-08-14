@@ -45,6 +45,22 @@ export interface UnifiedSubscriptionData {
   };
 }
 
+// Trial helper functions
+export const getTrialDaysRemaining = (trialEndsAt?: string): number => {
+  if (!trialEndsAt) return 0;
+  const now = new Date();
+  const trialEnd = new Date(trialEndsAt);
+  const timeDiff = trialEnd.getTime() - now.getTime();
+  return Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
+};
+
+export const getTrialUrgencyLevel = (daysRemaining: number): 'low' | 'medium' | 'high' | 'critical' => {
+  if (daysRemaining <= 1) return 'critical';
+  if (daysRemaining <= 3) return 'high';
+  if (daysRemaining <= 7) return 'medium';
+  return 'low';
+};
+
 const DEFAULT_SUBSCRIPTION: UnifiedSubscriptionData = {
   subscribed: false,
   subscription_status: 'free',

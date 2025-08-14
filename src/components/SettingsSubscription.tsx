@@ -34,6 +34,40 @@ export const SettingsSubscription = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const getTrialTimeRemaining = () => {
+    if (!trialEndsAt) return null;
+    
+    const now = new Date();
+    const trialEnd = new Date(trialEndsAt);
+    const timeDiff = trialEnd.getTime() - now.getTime();
+    
+    if (timeDiff <= 0) return { expired: true, text: 'Trial expired' };
+    
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    
+    if (days > 0) {
+      return { 
+        expired: false, 
+        text: `${days} day${days > 1 ? 's' : ''}${hours > 0 ? ` and ${hours} hour${hours > 1 ? 's' : ''}` : ''} remaining` 
+      };
+    } else if (hours > 0) {
+      return { expired: false, text: `${hours} hour${hours > 1 ? 's' : ''} remaining` };
+    } else {
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      return { expired: false, text: `${Math.max(1, minutes)} minute${minutes > 1 ? 's' : ''} remaining` };
+    }
+  };
+
+  const getMemberSinceDate = () => {
+    if (!subscribed || !subscription_end_date) return null;
+    // Calculate member since date by going back one billing cycle (assuming monthly)
+    const renewalDate = new Date(subscription_end_date);
+    const memberSince = new Date(renewalDate);
+    memberSince.setMonth(memberSince.getMonth() - 1);
+    return memberSince.toLocaleDateString();
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active': return 'default';
@@ -109,32 +143,66 @@ export const SettingsSubscription = () => {
           </div>
 
           {/* Trial Information */}
-          {inTrial && trialEndsAt && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                  Trial expires on {formatDate(trialEndsAt)}
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Upgrade anytime to continue accessing premium features
-                </p>
+          {inTrial && trialEndsAt && (() => {
+            const timeRemaining = getTrialTimeRemaining();
+            if (!timeRemaining) return null;
+            
+            return (
+              <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                timeRemaining.expired 
+                  ? 'bg-red-50 dark:bg-red-950' 
+                  : 'bg-blue-50 dark:bg-blue-950'
+              }`}>
+                <Clock className={`w-5 h-5 ${
+                  timeRemaining.expired 
+                    ? 'text-red-600 dark:text-red-400' 
+                    : 'text-blue-600 dark:text-blue-400'
+                }`} />
+                <div className="flex-1">
+                  <p className={`text-sm font-medium ${
+                    timeRemaining.expired 
+                      ? 'text-red-800 dark:text-red-200' 
+                      : 'text-blue-800 dark:text-blue-200'
+                  }`}>
+                    {timeRemaining.expired ? 'Trial has expired' : `${timeRemaining.text}`}
+                  </p>
+                  <p className={`text-xs ${
+                    timeRemaining.expired 
+                      ? 'text-red-600 dark:text-red-400' 
+                      : 'text-blue-600 dark:text-blue-400'
+                  }`}>
+                    {timeRemaining.expired 
+                      ? 'Upgrade now to access premium features' 
+                      : 'Upgrade anytime to continue accessing premium features'
+                    }
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
-          {/* Subscription End Date */}
+          {/* Subscription Information */}
           {subscribed && subscription_end_date && (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Next Billing Date</p>
-                <p className="text-sm text-muted-foreground">
-                  Your subscription will renew automatically
-                </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Member Since</p>
+                  <p className="text-sm text-muted-foreground">
+                    You've been a premium member since {getMemberSinceDate()}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-sm">
-                <Calendar className="w-4 h-4" />
-                {formatDate(subscription_end_date)}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Next Billing Date</p>
+                  <p className="text-sm text-muted-foreground">
+                    Your subscription will renew automatically
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 text-sm">
+                  <Calendar className="w-4 h-4" />
+                  {formatDate(subscription_end_date)}
+                </div>
               </div>
             </div>
           )}
