@@ -642,64 +642,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
-          {/* Multi-select checkbox (visible for all tabs when enabled) */}
-          {canMultiSelect && (
-            <div className="flex-shrink-0">
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => toggleFoodSelection(food.id)}
-                onClick={(e) => e.stopPropagation()}
-                className="w-5 h-5"
-              />
-            </div>
-          )}
-
-          {/* Food Image - Compact but visible with placeholder for deleted images */}
-          {food.image_url ? (
-            <img 
-              src={food.image_url} 
-              alt={food.name}
-              className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-              loading="lazy"
-              onError={(e) => {
-                // Show placeholder if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const placeholder = target.nextElementSibling as HTMLElement;
-                if (placeholder) {
-                  placeholder.style.display = 'flex';
-                }
-              }}
-            />
-           ) : null}
-           {/* Default placeholder - always present, hidden when image loads */}
-           <div 
-             className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ${
-               food.image_url ? 'hidden' : 'flex'
-             }`}
-           >
-             <Utensils className="w-5 h-5 text-muted-foreground" />
-           </div>
-          
-          {/* Food Info - Compact typography */}
-          <div className="flex-1 min-w-0">
-            <div className="mb-0.5">
-              <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-medium">{Math.round(food.calories_per_100g)} cal</span>
-              <span className="text-muted-foreground/60">•</span>
-              <span className="font-medium">{Math.round(food.carbs_per_100g)}g carbs</span>
-            </div>
-          </div>
-          
-          {/* Actions - Compact spacing */}
+          {/* Options Dropdown - Now positioned on the left */}
           {(!isMultiSelectMode || !canMultiSelect) && (
-            <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-              {/* Space where favorite button was */}
-              <div className="w-2"></div>
-
-              {/* Options Dropdown - Increased hit area for accessibility */}
+            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -713,7 +658,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <MoreVertical className="w-4 h-4 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 z-50 bg-background border border-border shadow-lg">
+                <DropdownMenuContent align="start" className="w-48 z-50 bg-background border border-border shadow-lg">
                   {isUserFood ? (
                     <>
                         <DropdownMenuItem
@@ -831,8 +776,64 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                    )}
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+          )}
 
-              {/* Primary Action Button - Larger for mobile */}
+          {/* Food Image - Compact but visible with placeholder for deleted images */}
+          {food.image_url ? (
+            <img 
+              src={food.image_url} 
+              alt={food.name}
+              className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+              loading="lazy"
+              onError={(e) => {
+                // Show placeholder if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const placeholder = target.nextElementSibling as HTMLElement;
+                if (placeholder) {
+                  placeholder.style.display = 'flex';
+                }
+              }}
+            />
+           ) : null}
+           {/* Default placeholder - always present, hidden when image loads */}
+           <div 
+             className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ${
+               food.image_url ? 'hidden' : 'flex'
+             }`}
+           >
+             <Utensils className="w-5 h-5 text-muted-foreground" />
+           </div>
+          
+          {/* Food Info - Compact typography */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-0.5">
+              <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="font-medium">{Math.round(food.calories_per_100g)} cal</span>
+              <span className="text-muted-foreground/60">•</span>
+              <span className="font-medium">{Math.round(food.carbs_per_100g)}g carbs</span>
+            </div>
+          </div>
+          
+          {/* Actions - Checkbox (now on the right) and Primary Action Button */}
+          <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            {/* Multi-select checkbox (now positioned on the right) */}
+            {canMultiSelect && (
+              <div className="flex-shrink-0">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleFoodSelection(food.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-5 h-5"
+                />
+              </div>
+            )}
+
+            {/* Primary Action Button - Only shown when not in multi-select mode */}
+            {(!isMultiSelectMode || !canMultiSelect) && (
               <Button
                 variant="default"
                 size="sm"
@@ -856,8 +857,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   <Download className="w-3 h-3" />
                 )}
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
         {/* Edit Modal */}
