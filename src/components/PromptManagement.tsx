@@ -55,14 +55,6 @@ const STYLE_PRESETS: StylePreset[] = [
 
 const PROMPT_CONFIGS: PromptConfig[] = [
   {
-    key: 'ai_image_motivator_prompt',
-    title: 'Motivator Image Generation',
-    description: 'Visual style for motivational images. Uses {concept} only.',
-    defaultPrompt: 'Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.',
-    variables: ['{concept}'],
-    hasStylePresets: true
-  },
-  {
     key: 'ai_food_response_template',
     title: 'Food Entry Response Format',
     description: 'Controls how the AI formats responses when presenting food entry details to users.',
