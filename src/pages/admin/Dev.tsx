@@ -15,10 +15,12 @@ import { TestErrorTrigger } from "@/components/TestErrorTrigger";
 import { RealisticAppPreview } from "@/components/RealisticAppPreview";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function AdminDev() {
   const { isOnline, lastChecked, isTestingConnection, testConnection } = useConnectionStore();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [offlineTestMode, setOfflineTestMode] = useState(false);
   const [previewMode, setPreviewMode] = useState<'banner' | 'fullscreen' | 'error' | null>(null);
   const [networkSpeed, setNetworkSpeed] = useState<'normal' | 'slow' | 'offline'>('normal');
@@ -77,7 +79,7 @@ export default function AdminDev() {
 
   return (
     <AdminProtectedRoute>
-      <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
+      <main className={`container mx-auto ${isMobile ? 'p-4' : 'p-6'} space-y-6 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]`} role="main">
         <h1 className="sr-only">Admin Dev</h1>
         <AdminSubnav />
 
@@ -162,7 +164,7 @@ export default function AdminDev() {
             </AlertDescription>
           </Alert>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className={`grid grid-cols-1 ${isMobile ? '' : 'xl:grid-cols-2'} gap-6`}>
             {/* Controls */}
             <Card>
               <CardHeader>
@@ -189,7 +191,7 @@ export default function AdminDev() {
 
                 <div className="space-y-2">
                   <span className="text-sm font-medium">Preview Modes</span>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
                     <Button
                       onClick={() => setPreviewMode(previewMode === 'banner' ? null : 'banner')}
                       variant={previewMode === 'banner' ? "default" : "outline"}
@@ -274,7 +276,7 @@ export default function AdminDev() {
               <CardTitle>Test Scenarios</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2 xl:grid-cols-3'} gap-4`}>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Gradual Degradation</h4>
                   <p className="text-sm text-muted-foreground mb-3">Test how the app behaves when going from online to offline</p>
