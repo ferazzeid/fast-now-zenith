@@ -235,6 +235,12 @@ export const useDailyDeficitQuery = () => {
       const walkingCalories = walkingCaloriesQuery.data || 0;
       const manualCalories = manualCaloriesTotal || 0;
       
+      // 🚨 IMMEDIATE DEBUG - Log before any calculation
+      console.log('🚨 IMMEDIATE DEFICIT CALCULATION DEBUG:');
+      console.log('Raw walking calories:', walkingCalories);
+      console.log('Raw manual calories:', manualCalories); 
+      console.log('Sum should be:', walkingCalories + manualCalories);
+      
       const totalCaloriesBurned = bmrTdee.tdee + walkingCalories + manualCalories;
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
 
@@ -277,7 +283,7 @@ export const useDailyDeficitQuery = () => {
     },
     enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
              walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
-    staleTime: 1 * 60 * 1000, // PERFORMANCE: 1 minute stale time for real-time feel
+    staleTime: 0, // 🐛 FORCE IMMEDIATE REFRESH
     gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
   });
 
