@@ -117,6 +117,123 @@ export const useOutboxSync = () => {
     }
   }, []);
 
+  const processFastingOp = useCallback(async (op: any) => {
+    const { action, payload, user_id } = op;
+
+    // Helper to resolve possibly-local IDs
+    const resolveId = async (id?: string | null) => await resolveMappedId(id);
+
+    if (action === 'start') {
+      // End any existing active sessions first
+      await supabase
+        .from('fasting_sessions')
+        .update({ 
+          status: 'cancelled',
+          end_time: new Date().toISOString()
+        })
+        .eq('user_id', user_id)
+        .eq('status', 'active');
+
+      // Insert new session
+      const { local_id, start_time, goal_duration_seconds } = payload;
+      const { data, error } = await supabase.from('fasting_sessions')
+        .insert({
+          user_id,
+          start_time,
+          goal_duration_seconds,
+          status: 'active',
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      // Map local -> server id
+      if (local_id && data?.id) {
+        await setIdMapping(local_id, data.id);
+      }
+      return;
+    }
+
+    if (action === 'end') {
+      const id = await resolveId(payload.session_id);
+      const { end_time, duration_seconds, status } = payload;
+      const { error } = await supabase.from('fasting_sessions')
+        .update({ end_time, duration_seconds, status })
+        .eq('id', id!);
+      if (error) throw error;
+      return;
+    }
+
+    if (action === 'cancel') {
+      const id = await resolveId(payload.session_id);
+      const { error } = await supabase.from('fasting_sessions')
+        .update({ status: 'cancelled', end_time: new Date().toISOString() })
+        .eq('id', id!);
+      if (error) throw error;
+      return;
+    }
+  }, []);
+
+  const processFoodOp = useCallback(async (op: any) => {
+    const { action, payload, user_id } = op;
+
+    // Helper to resolve possibly-local IDs
+    const resolveId = async (id?: string | null) => await resolveMappedId(id);
+
+    if (action === 'create') {
+      const { local_id, name, calories, carbs, serving_size, consumed, image_url } = payload;
+      const { data, error } = await supabase.from('food_entries')
+        .insert({
+          user_id,
+          name,
+          calories,
+          carbs,
+          serving_size,
+          consumed: consumed ?? true,
+          image_url,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      // Map local -> server id
+      if (local_id && data?.id) {
+        await setIdMapping(local_id, data.id);
+      }
+      return;
+    }
+
+    if (action === 'update') {
+      const id = await resolveId(payload.entry_id);
+      const { updates } = payload;
+      const { error } = await supabase.from('food_entries')
+        .update(updates)
+        .eq('id', id!)
+        .eq('user_id', user_id);
+      if (error) throw error;
+      return;
+    }
+
+    if (action === 'delete') {
+      const id = await resolveId(payload.entry_id);
+      const { error } = await supabase.from('food_entries')
+        .delete()
+        .eq('id', id!)
+        .eq('user_id', user_id);
+      if (error) throw error;
+      return;
+    }
+
+    if (action === 'toggle_consumed') {
+      const id = await resolveId(payload.entry_id);
+      const { consumed } = payload;
+      const { error } = await supabase.from('food_entries')
+        .update({ consumed })
+        .eq('id', id!)
+        .eq('user_id', user_id);
+      if (error) throw error;
+      return;
+    }
+  }, []);
+
   const processOutbox = useCallback(async () => {
     if (isSyncing) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
@@ -129,6 +246,10 @@ export const useOutboxSync = () => {
         try {
           if (op.entity === 'walking_session') {
             await processWalkingOp(op);
+          } else if (op.entity === 'fasting_session') {
+            await processFastingOp(op);
+          } else if (op.entity === 'food_entry') {
+            await processFoodOp(op);
           }
           await removeOperation(op.id);
         } catch (err: any) {
@@ -144,7 +265,7 @@ export const useOutboxSync = () => {
       dispatchOutboxEvent('sync-complete');
       refreshCount();
     }
-  }, [isSyncing, processWalkingOp, refreshCount]);
+  }, [isSyncing, processWalkingOp, processFastingOp, processFoodOp, refreshCount]);
 
   useEffect(() => {
     const onlineHandler = () => processOutbox();

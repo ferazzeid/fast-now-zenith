@@ -13,6 +13,7 @@ import { OfflineScreen } from "@/components/OfflineScreen";
 import { NetworkErrorBoundary } from "@/components/NetworkErrorBoundary";
 import { TestErrorTrigger } from "@/components/TestErrorTrigger";
 import { RealisticAppPreview } from "@/components/RealisticAppPreview";
+import { OfflineTestingPanel } from "@/components/OfflineTestingPanel";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -319,6 +320,11 @@ export default function AdminDev() {
               </div>
             </CardContent>
           </Card>
+        </section>
+
+        {/* Offline Testing Panel */}
+        <section>
+          <OfflineTestingPanel />
         </section>
 
       </main>
