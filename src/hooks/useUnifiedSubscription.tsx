@@ -160,10 +160,12 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
     const dbSubscriptionTier = profile?.subscription_tier || 'free';
     
     // User is paid if they have active subscription OR in trial OR user_tier is paid_user
+    // BUT: When testing roles, trial status should still show (trials are tied to actual account)
     const isPaidUser = subscribed || inTrial || userTier === 'paid_user';
     const hasPremiumFeatures = isPaidUser;
     
     // Return the database subscription_tier but use user_tier for paid status
+    // For role testing: Keep trial info visible even when testing as free_user
     const displayTier = isPaidUser ? 'paid' : 'free';
 
     // Get auth provider info

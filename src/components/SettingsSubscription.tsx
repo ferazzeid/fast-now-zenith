@@ -4,8 +4,9 @@ import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Crown, ExternalLink, Calendar, Clock } from 'lucide-react';
+import { Crown, ExternalLink, Calendar, Clock, TestTube } from 'lucide-react';
 import { TrialIndicator } from './TrialIndicator';
+import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 
 export const SettingsSubscription = () => {
   const { 
@@ -22,6 +23,8 @@ export const SettingsSubscription = () => {
     login_method,
     debug,
   } = useUnifiedSubscription();
+
+  const { testRole, isTestingMode } = useRoleTestingContext();
 
   const isWeb = platform === 'web';
   const platformName = platform === 'ios' ? 'App Store' : platform === 'android' ? 'Google Play' : 'Stripe';
@@ -130,11 +133,31 @@ export const SettingsSubscription = () => {
         <CardContent className="space-y-6">
           {/* Account Information */}
           <div className="space-y-4">
+            {/* Role Testing Indicator */}
+            {isTestingMode && (
+              <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <TestTube className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                    Role Testing Active: {testRole}
+                  </p>
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                    Actual account data (trial/subscription) shown below
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Account Type</p>
                 <p className="text-sm text-muted-foreground">
                   {subscribed ? 'Premium User' : inTrial ? 'Free Trial' : 'Free User'}
+                  {isTestingMode && (
+                    <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
+                      (Real status, not test role)
+                    </span>
+                  )}
                 </p>
               </div>
               <Badge variant={getStatusBadgeVariant(subscription_status)}>
