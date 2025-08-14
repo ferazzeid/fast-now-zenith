@@ -164,15 +164,25 @@ export const useDailyDeficitQuery = () => {
       const tomorrowDate = new Date(todayDate);
       tomorrowDate.setDate(tomorrowDate.getDate() + 1);
 
+      console.log('🚶‍♂️ DATE FILTER SETUP:', {
+        todayDate: todayDate.toISOString(),
+        tomorrowDate: tomorrowDate.toISOString(),
+        todayDateLocal: todayDate.toString(),
+        userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+
       const todaySessions = walkingSessions.filter(session => {
         const sessionStart = new Date(session.start_time);
         const isToday = sessionStart >= todayDate && sessionStart < tomorrowDate;
         console.log('🚶‍♂️ SESSION DATE CHECK:', {
           sessionId: session.id,
           sessionStart: sessionStart.toISOString(),
+          sessionStartLocal: sessionStart.toString(),
           todayStart: todayDate.toISOString(),
           tomorrowStart: tomorrowDate.toISOString(),
-          isToday
+          isToday,
+          sessionCalories: session.calories_burned,
+          sessionEndTime: session.end_time
         });
         return isToday;
       });
