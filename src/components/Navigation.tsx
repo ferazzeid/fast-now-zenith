@@ -1,4 +1,4 @@
-import { Brain, Settings, Utensils, Clock, Footprints } from 'lucide-react';
+import { Brain, Settings, Utensils, Clock, Footprints, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
@@ -15,7 +15,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useToast } from '@/hooks/use-toast';
-import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
+import { showFoodTrackingLimitError } from '@/components/AIRequestLimitToast';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -189,11 +189,7 @@ export const Navigation = () => {
                 if (!hasAccess && label === 'Food') {
                   e.preventDefault();
                   e.stopPropagation();
-                  showAIRequestLimitError(
-                    { current_tier: 'free_user', limit_reached: true }, 
-                    toast, 
-                    createSubscription
-                  );
+                  showFoodTrackingLimitError(toast, createSubscription);
                   return;
                 }
               };
@@ -213,6 +209,13 @@ export const Navigation = () => {
                 >
                   <Icon className="w-5 h-5 mb-1" />
                   <span className="text-xs font-medium">{label}</span>
+                  
+                  {/* Lock icon overlay for Food button */}
+                  {isLocked && label === 'Food' && (
+                    <div className="absolute top-1 right-1">
+                      <Lock className="w-3 h-3 text-muted-foreground" />
+                    </div>
+                  )}
                   
                   {/* Timer badge for fasting/walking ONLY */}
                   {badge && (label === 'Fast' || label === 'Walk') && (
