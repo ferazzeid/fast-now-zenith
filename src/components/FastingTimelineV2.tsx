@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
-import { useFastingHoursQuery, FastingHour } from "@/hooks/optimized/useFastingHoursQuery";
+import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface FastingTimelineV2Props {
   currentHour?: number;
@@ -17,6 +18,7 @@ const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
+  const queryClient = useQueryClient();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -157,8 +159,8 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
         currentHour={selectedHour}
         existingLog={selected?.admin_personal_log}
         onLogSaved={() => {
-          // Refresh the data to show updated log
-          window.location.reload();
+          // Invalidate the fasting hours query to refresh the data
+          queryClient.invalidateQueries({ queryKey: fastingHoursKey });
         }}
       />
     </div>

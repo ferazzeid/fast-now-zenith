@@ -7,6 +7,8 @@ import { useAdminRole } from '@/hooks/useAdminRole';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
+import { useQueryClient } from '@tanstack/react-query';
+import { fastingHoursKey } from '@/hooks/optimized/useFastingHoursQuery';
 
 interface AdminPersonalLogInterfaceProps {
   currentHour: number;
@@ -22,6 +24,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   const { isAdmin } = useAdminRole();
   const { toast } = useToast();
   const { currentSession } = useFastingSession();
+  const queryClient = useQueryClient();
   const [logText, setLogText] = useState(existingLog);
   const [isEditing, setIsEditing] = useState(!existingLog);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,6 +64,10 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       });
 
       setIsEditing(false);
+      
+      // Invalidate the fasting hours query to refresh data immediately
+      await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+      
       onLogSaved?.();
     } catch (error) {
       console.error('Error saving personal log:', error);
