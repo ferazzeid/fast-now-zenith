@@ -141,11 +141,10 @@ export const useDailyDeficitQuery = () => {
   const walkingCaloriesQuery = useQuery({
     queryKey: ['walking-calories', user?.id, today],
     queryFn: (): number => {
-      console.log('🚶‍♂️ WALKING CALORIES DEBUG:', {
-        walkingSessions: walkingSessions?.length || 0,
-        profileWeight: profile?.weight,
-        today
-      });
+      console.log('🚶‍♂️ WALKING CALORIES CALCULATION START');
+      console.log('🚶‍♂️ Raw walking sessions:', walkingSessions?.length || 0);
+      console.log('🚶‍♂️ Profile weight:', profile?.weight);
+      console.log('🚶‍♂️ Today date:', today);
 
       if (!walkingSessions || !profile?.weight) return 0;
 
@@ -170,6 +169,12 @@ export const useDailyDeficitQuery = () => {
         if (session.is_edited) {
           console.log('🚶‍♂️ SKIPPING EDITED SESSION:', session.id);
           return total;
+        }
+
+        // 🐛 CRITICAL BUG FIX: Use stored calories_burned if available
+        if (session.calories_burned && session.session_state === 'completed') {
+          console.log('🚶‍♂️ USING STORED CALORIES:', session.calories_burned, 'for session', session.id);
+          return total + session.calories_burned;
         }
 
         // Calculate duration: use stored duration OR calculate from start/end times
