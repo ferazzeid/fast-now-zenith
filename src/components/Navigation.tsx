@@ -14,6 +14,8 @@ import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useToast } from '@/hooks/use-toast';
+import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -25,8 +27,9 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { inTrial, trialEndsAt, invalidate } = useUnifiedSubscription();
+  const { inTrial, trialEndsAt, invalidate, hasPremiumFeatures, subscription_tier, createSubscription } = useUnifiedSubscription();
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const { toast } = useToast();
 
   // Optimize timer updates - only update when needed for both fasting and walking
   useEffect(() => {
@@ -179,6 +182,24 @@ export const Navigation = () => {
                   default: return label;
                 }
               };
+
+              // Handle Food button click for premium gating
+              const handleFoodClick = (e: React.MouseEvent) => {
+                const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+                if (!hasAccess && label === 'Food') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showAIRequestLimitError(
+                    { current_tier: 'free_user', limit_reached: true }, 
+                    toast, 
+                    createSubscription
+                  );
+                  return;
+                }
+              };
+              
+              const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+              const isLocked = label === 'Food' && !hasAccess;
               
               const content = (
                 <Link
@@ -187,7 +208,8 @@ export const Navigation = () => {
                     isActive 
                       ? 'bg-primary text-primary-foreground shadow-lg' 
                       : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
-                  }`}
+                  } ${isLocked ? 'opacity-50' : ''}`}
+                  onClick={handleFoodClick}
                 >
                   <Icon className="w-5 h-5 mb-1" />
                   <span className="text-xs font-medium">{label}</span>
@@ -224,17 +246,7 @@ export const Navigation = () => {
               return (
                 <Tooltip key={path}>
                   <TooltipTrigger asChild>
-                    {label === 'Food' ? (
-                      <PremiumGate 
-                        feature="Food Tracking" 
-                        grayOutForFree={true}
-                        className="flex-1 min-w-0"
-                      >
-                        {content}
-                      </PremiumGate>
-                    ) : (
-                      content
-                    )}
+                    {content}
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{getTooltipText(label)}</p>
