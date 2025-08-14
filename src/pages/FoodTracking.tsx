@@ -398,7 +398,7 @@ const FoodTracking = () => {
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
           </div>
-          <div className="pl-12 pr-12">
+          <div className="px-4">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1 flex items-center">
               <Brain className="w-6 h-6 mr-2" />
               Food Tracking
@@ -416,7 +416,9 @@ const FoodTracking = () => {
             >
               <div className="flex flex-col items-center gap-2">
                 <Button 
-                  className="h-16 w-full bg-ai text-ai-foreground hover:bg-ai/90 flex flex-col items-center justify-center gap-1"
+                  variant="ai"
+                  size="action-tall"
+                  className="w-full flex flex-col items-center justify-center gap-1"
                   onClick={() => setShowAiChat(true)}
                 >
                   <Mic className="w-5 h-5" />
@@ -431,7 +433,9 @@ const FoodTracking = () => {
             >
               <div className="flex flex-col items-center gap-2">
                 <Button 
-                  className="h-16 w-full bg-ai text-ai-foreground hover:bg-ai/90 flex flex-col items-center justify-center gap-1"
+                  variant="ai"
+                  size="action-tall"
+                  className="w-full flex flex-col items-center justify-center gap-1"
                   onClick={handlePhotoEntry}
                 >
                   <Camera className="w-5 h-5" />
@@ -442,7 +446,9 @@ const FoodTracking = () => {
 
             <div className="flex flex-col items-center gap-2">
               <Button 
-                className="h-16 w-full bg-primary text-primary-foreground hover:bg-primary/90 flex flex-col items-center justify-center gap-1"
+                variant="action-primary"
+                size="action-tall"
+                className="w-full flex flex-col items-center justify-center gap-1"
                 onClick={handleManualEntry}
               >
                 <Plus className="w-5 h-5" />
@@ -452,7 +458,9 @@ const FoodTracking = () => {
 
             <div className="flex flex-col items-center gap-2">
               <Button 
-                className="h-16 w-full bg-primary text-primary-foreground hover:bg-primary/90 flex flex-col items-center justify-center gap-1"
+                variant="action-primary"
+                size="action-tall"
+                className="w-full flex flex-col items-center justify-center gap-1"
                 onClick={() => setShowLibraryView(true)}
               >
                 <BookOpen className="w-5 h-5" />
@@ -489,7 +497,7 @@ const FoodTracking = () => {
               <TabsTrigger value="today" className="text-sm font-medium flex items-center justify-between px-3">
                 <span>Today's Plan</span>
                 {todayEntries.length > 0 && activeTab === 'today' && (
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4 ml-2">
                     <Button
                       variant="ghost"
                       size="sm"
