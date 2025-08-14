@@ -239,23 +239,30 @@ export const useDailyDeficitQuery = () => {
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
 
       // 🐛 DEBUG: FORCE LOG TO SHOW - Log deficit calculation breakdown
-      console.log('🚨 MANUAL CALORIES TRACKING DEBUG 🚨');
+      console.log('🚨 MYSTERY 26 CALORIE DISCREPANCY DEBUG 🚨');
+      console.log('💾 DATABASE VALUES:', {
+        'Manual Calorie DB Entry': 500, // From DB query
+        'Walking Calorie DB Entry': 385, // From DB query  
+        'Expected Activity Total': 885
+      });
       console.log('🔥 MANUAL CALORIE FLOW:', {
         'manualCaloriesTotal FROM HOOK': manualCaloriesTotal,
         'manualCalories IN CALC': manualCalories,
         'ARE THEY EQUAL?': manualCaloriesTotal === manualCalories,
-        'manualLoading': manualLoading
+        'TYPE OF manualCaloriesTotal': typeof manualCaloriesTotal,
+        'TYPE OF manualCalories': typeof manualCalories
       });
-      console.log('📊 RAW VALUES:', {
+      console.log('📊 CALCULATION BREAKDOWN:', {
         'BMR': bmrTdee.bmr,
         'TDEE (Base Daily Burn)': bmrTdee.tdee,
-        'Walking Calories': walkingCalories,
-        'Manual Calories': manualCalories,
-        'Total Burned': totalCaloriesBurned,
-        'Food Consumed': caloriesConsumed,
-        'Final Deficit': Math.round(todayDeficit)
+        'Walking Calories FROM QUERY': walkingCalories,
+        'Manual Calories FROM HOOK': manualCalories,
+        'ACTIVITY TOTAL': walkingCalories + manualCalories,
+        'EXPECTED TOTAL BURNED': bmrTdee.tdee + walkingCalories + manualCalories,
+        'ACTUAL TOTAL BURNED': totalCaloriesBurned,
+        'DISCREPANCY': totalCaloriesBurned - (bmrTdee.tdee + walkingCalories + manualCalories)
       });
-      console.log('🔍 CALCULATION CHECK:', `${bmrTdee.tdee} + ${walkingCalories} + ${manualCalories} - ${caloriesConsumed} = ${Math.round(todayDeficit)}`);
+      console.log('🔍 MATH CHECK:', `${bmrTdee.tdee} + ${walkingCalories} + ${manualCalories} = ${bmrTdee.tdee + walkingCalories + manualCalories}, BUT SHOWING: ${totalCaloriesBurned}`);
 
       return {
         todayDeficit: Math.round(todayDeficit),
