@@ -127,6 +127,12 @@ export const useDailyDeficitQuery = () => {
   const walkingCaloriesQuery = useQuery({
     queryKey: ['walking-calories', user?.id, today],
     queryFn: (): number => {
+      console.log('🚶‍♂️ WALKING CALORIES DEBUG:', {
+        walkingSessions: walkingSessions?.length || 0,
+        profileWeight: profile?.weight,
+        today
+      });
+
       if (!walkingSessions || !profile?.weight) return 0;
 
       const todaySessions = walkingSessions.filter(session => {
@@ -134,45 +140,76 @@ export const useDailyDeficitQuery = () => {
         return sessionDate === today;
       });
 
+      console.log('🚶‍♂️ TODAY SESSIONS:', todaySessions.map(s => ({
+        id: s.id,
+        start_time: s.start_time,
+        end_time: s.end_time,
+        duration_minutes: s.duration_minutes,
+        speed_mph: s.speed_mph,
+        session_state: s.session_state,
+        is_edited: s.is_edited,
+        calories_burned: s.calories_burned
+      })));
+
       return todaySessions.reduce((total, session) => {
         // Skip edited sessions - they have nulled calculated data
         if (session.is_edited) {
+          console.log('🚶‍♂️ SKIPPING EDITED SESSION:', session.id);
           return total;
         }
 
-        // Calculate duration for active sessions or use stored duration
+        // Calculate duration: use stored duration OR calculate from start/end times
         let durationMinutes = session.duration_minutes;
+        
+        if (!durationMinutes && session.start_time && session.end_time) {
+          const startTime = new Date(session.start_time);
+          const endTime = new Date(session.end_time);
+          durationMinutes = Math.max(0, (endTime.getTime() - startTime.getTime()) / (1000 * 60));
+          console.log('🚶‍♂️ CALCULATED DURATION FROM TIMES:', durationMinutes, 'minutes');
+        }
+        
         if (!durationMinutes && session.session_state === 'active' && session.start_time) {
           const now = new Date();
           const startTime = new Date(session.start_time);
-          // For now, calculate simple elapsed time - can add pause handling later
           durationMinutes = Math.max(0, (now.getTime() - startTime.getTime()) / (1000 * 60));
+          console.log('🚶‍♂️ CALCULATED DURATION FOR ACTIVE:', durationMinutes, 'minutes');
         }
 
-        if (!durationMinutes || !session.speed_mph) return total;
+        console.log('🚶‍♂️ SESSION CALCULATION:', {
+          sessionId: session.id,
+          durationMinutes,
+          speedMph: session.speed_mph,
+          profileWeight: profile.weight
+        });
+
+        if (!durationMinutes || !session.speed_mph) {
+          console.log('🚶‍♂️ SKIPPING SESSION - NO DURATION OR SPEED');
+          return total;
+        }
 
         // Calculate calories using METs (Metabolic Equivalent of Task)
-        // Walking METs based on speed: 2.5mph=2.8, 3mph=3.2, 3.5mph=3.5, 4mph=3.8, 4.5mph=4.3, 5mph=4.8
         const speedToMets: { [key: number]: number } = {
           2: 2.8, 2.5: 2.8, 3: 3.2, 3.5: 3.5, 4: 3.8, 4.5: 4.3, 5: 4.8
         };
         
-        const mets = speedToMets[session.speed_mph] || 3.2; // Default to moderate pace
-        
-        // Note: Profile weight is stored in kg regardless of user preference
+        const mets = speedToMets[session.speed_mph] || 3.2;
         const weightKg = profile.weight;
-        
         const durationHours = durationMinutes / 60;
-        
-        // Calories = METs × weight (kg) × time (hours)
         const calories = Math.round(mets * weightKg * durationHours);
+        
+        console.log('🚶‍♂️ CALORIE CALCULATION:', {
+          mets,
+          weightKg,
+          durationHours,
+          calculatedCalories: calories
+        });
         
         return total + calories;
       }, 0);
     },
     enabled: !!walkingSessions && !!profile?.weight,
-    staleTime: 30 * 1000, // PERFORMANCE: 30 seconds for active sessions
-    gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
+    staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+    gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
   });
 
   // PERFORMANCE: Main daily deficit calculation
