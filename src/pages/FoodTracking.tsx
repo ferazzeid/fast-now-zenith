@@ -84,7 +84,7 @@ const FoodTracking = () => {
     setShowAiChat(true);
   };
 
-  const handleAiChatResult = (result: any) => {
+  const handleAiChatResult = async (result: any) => {
     console.log('🍽️ handleAiChatResult called with:', result);
     
     // Handle both old format (result.foodEntries) and new format (result.arguments.foods)
@@ -105,10 +105,15 @@ const FoodTracking = () => {
     }
 
     if (foods.length > 0) {
-      console.log('🍽️ Adding foods to plan:', foods);
+      console.log('🍽️ Adding foods sequentially to prevent duplicates:', foods);
       
-      foods.forEach(async (food: any) => {
+      let successCount = 0;
+      const failedItems: string[] = [];
+      
+      // Process foods sequentially to prevent race conditions
+      for (const food of foods) {
         try {
+          console.log('🍽️ Processing food:', food.name);
           await addFoodEntry({
             name: food.name,
             calories: food.calories,
@@ -118,20 +123,31 @@ const FoodTracking = () => {
             image_url: food.image_url
           });
           console.log('🍽️ Successfully added food:', food.name);
+          successCount++;
         } catch (error) {
           console.error('🍽️ Error adding food:', food.name, error);
-          toast({
-            variant: "destructive",
-            title: "Error Adding Food",
-            description: `Failed to add ${food.name} to your plan`
-          });
+          failedItems.push(food.name);
         }
-      });
+      }
       
-      toast({
-        title: "Foods Added",
-        description: `Added ${foods.length} food${foods.length > 1 ? 's' : ''} to your plan`,
-      });
+      // Show appropriate toast based on results
+      if (successCount > 0) {
+        toast({
+          title: "Foods Added",
+          description: successCount === foods.length 
+            ? `Added ${successCount} food${successCount > 1 ? 's' : ''} to your plan`
+            : `Added ${successCount} of ${foods.length} foods to your plan`,
+        });
+      }
+      
+      // Show error toast for failed items
+      if (failedItems.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Some Foods Failed",
+          description: `Failed to add: ${failedItems.join(', ')}`,
+        });
+      }
       
       trackFoodEvent('add', 'voice');
     } else {
