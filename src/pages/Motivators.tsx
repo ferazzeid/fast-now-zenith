@@ -5,7 +5,7 @@ import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Sparkles, Target, Mic } from 'lucide-react';
+import { Plus, Sparkles, Target, Mic, BookOpen } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
@@ -363,9 +363,7 @@ const Motivators = () => {
                     className="w-full flex items-center justify-center"
                     aria-label="Browse motivator ideas"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                    </svg>
+                    <BookOpen className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>

@@ -204,8 +204,8 @@ export const Navigation = () => {
                     </span>
                   )}
                   
-                  {/* Trial countdown badge ONLY for Settings button */}
-                  {label === 'Settings' && inTrial && trialEndsAt && (
+                  {/* Trial countdown badge ONLY for Goals button */}
+                  {label === 'Goals' && inTrial && trialEndsAt && (
                     <div className="absolute -top-2 -left-2">
                       <TrialTimerBadge trialEndsAt={trialEndsAt} />
                     </div>
