@@ -75,6 +75,13 @@ export const useDailyDeficitQuery = () => {
     today
   });
 
+  console.log('🚶‍♂️ WALKING SESSIONS FROM HOOK:', {
+    walkingSessions: walkingSessions?.length || 0,
+    walkingSessionsData: walkingSessions,
+    profileWeight: profile?.weight,
+    userLoaded: !!user
+  });
+
   // 🐛 THEME BUG FIX: Add theme stability check
   console.log('🎨 THEME STABILITY CHECK:', {
     userAgent: navigator.userAgent,
