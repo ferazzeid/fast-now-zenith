@@ -74,7 +74,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
         className={cn("opacity-50 cursor-pointer pointer-events-auto", className)}
         onClick={handleLockedClick}
       >
-        <div className="pointer-events-none">
+        <div className="pointer-events-none w-full h-full">
           {modifiedChildren}
         </div>
       </div>
