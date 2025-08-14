@@ -163,108 +163,112 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
           />
         </div>
 
-        {/* Single row: Serving Amount/Unit + Calories + Carbs */}
-        <div className="grid grid-cols-4 gap-3">
-          {/* Serving Amount */}
+        {/* Amount/Unit fields connected + Calories + Carbs */}
+        <div className="space-y-4">
+          {/* Connected Amount and Unit fields */}
           <div>
-            <Label htmlFor="serving-amount" className="text-xs font-medium mb-1 block">
+            <Label className="text-xs font-medium mb-1 block">
               Amount <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="serving-amount"
-              type="number"
-              value={data.servingAmount}
-              onChange={(e) => updateField('servingAmount', e.target.value)}
-              placeholder="1"
-              className="text-sm h-9"
-              min="0.1"
-              step="0.1"
-              required
-            />
+            <div className="flex">
+              <Input
+                id="serving-amount"
+                type="number"
+                value={data.servingAmount}
+                onChange={(e) => updateField('servingAmount', e.target.value)}
+                placeholder="100"
+                className="text-sm h-9 rounded-r-none border-r-0 focus-within:z-10"
+                min="0.1"
+                step="0.1"
+                required
+              />
+              <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
+                <SelectTrigger className="text-sm h-9 rounded-l-none w-24 border-l-0 focus-within:z-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getServingUnitsForUser().map((unit) => (
+                    <SelectItem key={unit.value} value={unit.value}>
+                      {getUnitDisplayName(unit.value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Serving Unit */}
-          <div>
-            <Label className="text-xs font-medium mb-1 block">Unit</Label>
-            <Select value={data.servingUnit} onValueChange={(value) => updateField('servingUnit', value)}>
-              <SelectTrigger className="text-sm h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {getServingUnitsForUser().map((unit) => (
-                  <SelectItem key={unit.value} value={unit.value}>
-                    {getUnitDisplayName(unit.value)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Calories and Carbs row */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Calories */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Label htmlFor="calories" className="text-xs font-medium">
+                  Calories <span className="text-red-500">*</span>
+                </Label>
+                <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                  <button
+                    type="button"
+                    aria-label="AI estimate calories for serving"
+                    onClick={() => handleAiEstimate('calories')}
+                    disabled={isAiFillingCalories || !data.name.trim() || !data.servingAmount.trim()}
+                    className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAiFillingCalories ? (
+                      <div className="w-2.5 h-2.5 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                    ) : (
+                      <Sparkles className="w-2.5 h-2.5 mx-auto" />
+                    )}
+                  </button>
+                </PremiumGate>
+              </div>
+              <Input
+                id="calories"
+                type="number"
+                value={data.calories}
+                onChange={(e) => updateField('calories', e.target.value)}
+                placeholder="0"
+                className={`text-sm h-9 ${
+                  parseFloat(data.calories) === 0 && data.calories !== '' ? 'border-destructive text-destructive' : ''
+                }`}
+                required
+              />
+              {parseFloat(data.calories) === 0 && data.calories !== '' && (
+                <p className="text-xs text-destructive mt-1">Unlikely to be zero calories</p>
+              )}
+            </div>
 
-          {/* Calories */}
-          <div>
-            <Label htmlFor="calories" className="text-xs font-medium mb-1 flex items-center justify-between">
-              <span>Calories <span className="text-red-500">*</span></span>
-              <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                <button
-                  type="button"
-                  aria-label="AI estimate calories for serving"
-                  onClick={() => handleAiEstimate('calories')}
-                  disabled={isAiFillingCalories || !data.name || !data.servingAmount || !data.servingUnit}
-                  className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAiFillingCalories ? (
-                    <div className="w-2.5 h-2.5 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                  ) : (
-                    <Sparkles className="w-2.5 h-2.5 mx-auto" />
-                  )}
-                </button>
-              </PremiumGate>
-            </Label>
-            <Input
-              id="calories"
-              type="number"
-              value={data.calories}
-              onChange={(e) => updateField('calories', e.target.value)}
-              placeholder="0"
-              className={`text-sm h-9 ${
-                parseFloat(data.calories) === 0 && data.calories !== '' ? 'border-destructive text-destructive' : ''
-              }`}
-              required
-            />
-            {parseFloat(data.calories) === 0 && data.calories !== '' && (
-              <p className="text-xs text-destructive mt-1">Unlikely to be zero calories</p>
-            )}
-          </div>
-
-          {/* Carbs */}
-          <div>
-            <Label htmlFor="carbs" className="text-xs font-medium mb-1 flex items-center justify-between">
-              <span>Carbs <span className="text-red-500">*</span></span>
-              <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                <button
-                  type="button"
-                  aria-label="AI estimate carbs for serving"
-                  onClick={() => handleAiEstimate('carbs')}
-                  disabled={isAiFillingCarbs || !data.name || !data.servingAmount || !data.servingUnit}
-                  className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAiFillingCarbs ? (
-                    <div className="w-2.5 h-2.5 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
-                  ) : (
-                    <Sparkles className="w-2.5 h-2.5 mx-auto" />
-                  )}
-                </button>
-              </PremiumGate>
-            </Label>
-            <Input
-              id="carbs"
-              type="number"
-              value={data.carbs}
-              onChange={(e) => updateField('carbs', e.target.value)}
-              placeholder="0"
-              className="text-sm h-9"
-              required
-            />
+            {/* Carbs */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Label htmlFor="carbs" className="text-xs font-medium">
+                  Carbs <span className="text-red-500">*</span>
+                </Label>
+                <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                  <button
+                    type="button"
+                    aria-label="AI estimate carbs for serving"
+                    onClick={() => handleAiEstimate('carbs')}
+                    disabled={isAiFillingCarbs || !data.name.trim() || !data.servingAmount.trim()}
+                    className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAiFillingCarbs ? (
+                      <div className="w-2.5 h-2.5 animate-spin rounded-full border border-ai-foreground border-t-transparent mx-auto" />
+                    ) : (
+                      <Sparkles className="w-2.5 h-2.5 mx-auto" />
+                    )}
+                  </button>
+                </PremiumGate>
+              </div>
+              <Input
+                id="carbs"
+                type="number"
+                value={data.carbs}
+                onChange={(e) => updateField('carbs', e.target.value)}
+                placeholder="0"
+                className="text-sm h-9"
+                required
+              />
+            </div>
           </div>
         </div>
       </div>

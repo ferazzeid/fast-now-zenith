@@ -346,9 +346,12 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          copyDayToToday(summary.date);
+                          const result = await copyDayToToday(summary.date);
+                          if (result?.success) {
+                            onClose(); // Close the history modal after successful copy
+                          }
                         }}
                         disabled={copyLoading}
                         className="h-7 px-2 text-xs"
