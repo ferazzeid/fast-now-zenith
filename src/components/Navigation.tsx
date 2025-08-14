@@ -197,19 +197,19 @@ export const Navigation = () => {
                   <Icon className="w-5 h-5 mb-1" />
                   <span className="text-xs font-medium">{label}</span>
                   
-                  {/* Timer badge for fasting/walking */}
-                  {badge && (
+                  {/* Timer badge for fasting/walking ONLY */}
+                  {badge && (label === 'Fast' || label === 'Walk') && (
                     <TimerBadge time={badge} isEating={isEating} />
                   )}
                   
-                  {/* Calorie badge for food */}
-                  {caloriesBadge && (
+                  {/* Calorie badge for food ONLY */}
+                  {caloriesBadge && label === 'Food' && (
                     <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
                       {caloriesBadge}
                     </span>
                   )}
                   
-                  {/* Trial countdown badge for Settings */}
+                  {/* Trial countdown badge ONLY for Settings button */}
                   {label === 'Settings' && inTrial && trialEndsAt && (
                     <TrialTimerBadge trialEndsAt={trialEndsAt} />
                   )}
