@@ -134,10 +134,10 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   };
 
   const handleAiEstimate = async (field: 'calories' | 'carbs') => {
-    if (!name) {
+    if (!name || !servingAmount || !servingUnit) {
       toast({
-        title: "Food name required",
-        description: "Please enter food name first",
+        title: "Missing information",
+        description: "Please enter food name, amount, and unit first",
         variant: "destructive"
       });
       return;
@@ -150,7 +150,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
         body: {
           messages: [
             { role: 'system', content: 'You are a nutrition expert. Return ONLY a number with no units.' },
-            { role: 'user', content: `Provide ${field} per 100g for ${name}. Number only.` }
+            { role: 'user', content: `Provide ${field} for ${servingAmount} ${servingUnit} of ${name}. Number only.` }
           ]
         }
       });
@@ -188,15 +188,9 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
   const getSmartDefaultUnit = (foodName: string): string => {
     const nameLower = foodName.toLowerCase();
-    if (nameLower.includes('egg') || nameLower.includes('apple') || nameLower.includes('banana') || 
-        nameLower.includes('orange') || nameLower.includes('peach') || nameLower.includes('pear')) {
-      return 'pieces';
-    }
-    if (nameLower.includes('bread') || nameLower.includes('pizza')) {
-      return 'slices';
-    }
-    if (nameLower.includes('milk') || nameLower.includes('water') || nameLower.includes('juice')) {
-      return 'cups';
+    if (nameLower.includes('milk') || nameLower.includes('water') || nameLower.includes('juice') || 
+        nameLower.includes('drink') || nameLower.includes('soda') || nameLower.includes('coffee')) {
+      return 'milliliters';
     }
     return 'grams';
   };
@@ -408,16 +402,14 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
           {/* Calories */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <Label htmlFor="calories" className="text-xs font-medium">
-                Calories <span className="text-red-500">*</span>
-              </Label>
+            <Label htmlFor="calories" className="text-xs font-medium mb-1 flex items-center justify-between">
+              <span>Calories <span className="text-red-500">*</span></span>
               <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                 <button
                   type="button"
-                  aria-label="AI estimate calories per 100g"
+                  aria-label="AI estimate calories for serving"
                   onClick={() => handleAiEstimate('calories')}
-                  disabled={isAiFillingCalories || !name}
+                  disabled={isAiFillingCalories || !name || !servingAmount || !servingUnit}
                   className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAiFillingCalories ? (
@@ -427,7 +419,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   )}
                 </button>
               </PremiumGate>
-            </div>
+            </Label>
             <Input
               id="calories"
               type="number"
@@ -446,16 +438,14 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
           {/* Carbs */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <Label htmlFor="carbs" className="text-xs font-medium">
-                Carbs <span className="text-red-500">*</span>
-              </Label>
+            <Label htmlFor="carbs" className="text-xs font-medium mb-1 flex items-center justify-between">
+              <span>Carbs <span className="text-red-500">*</span></span>
               <PremiumGate feature="AI Estimation" grayOutForFree={true}>
                 <button
                   type="button"
-                  aria-label="AI estimate carbs per 100g"
+                  aria-label="AI estimate carbs for serving"
                   onClick={() => handleAiEstimate('carbs')}
-                  disabled={isAiFillingCarbs || !name}
+                  disabled={isAiFillingCarbs || !name || !servingAmount || !servingUnit}
                   className="w-5 h-5 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAiFillingCarbs ? (
@@ -465,7 +455,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   )}
                 </button>
               </PremiumGate>
-            </div>
+            </Label>
             <Input
               id="carbs"
               type="number"
@@ -476,11 +466,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               required
             />
           </div>
-        </div>
-
-        {/* Unit system display */}
-        <div className="text-xs text-muted-foreground text-center">
-          Nutritional info per 100g
         </div>
 
         {/* Re-analyze button for photos */}
