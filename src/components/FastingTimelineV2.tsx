@@ -7,6 +7,7 @@ import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
+import { CacheDebugButton } from './CacheDebugButton';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface FastingTimelineV2Props {
@@ -164,6 +165,9 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           console.log('🔄 TIMELINE REFRESH: Forced refetch after log save for hour', selectedHour);
         }}
       />
+      
+      {/* Debug button for admin */}
+      <CacheDebugButton />
     </div>
   );
 };
