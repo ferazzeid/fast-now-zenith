@@ -19,7 +19,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
 import { UnitsSelector } from '@/components/UnitsSelector';
-import { CelebrationAnimationTester } from '@/components/dev/CelebrationAnimationTester';
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
