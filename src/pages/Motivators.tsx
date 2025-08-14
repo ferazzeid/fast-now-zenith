@@ -313,16 +313,6 @@ const Motivators = () => {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="mb-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="goals">Goals ({goalMotivators.length})</TabsTrigger>
-                <TabsTrigger value="quotes">Quotes ({savedQuotes.length})</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
           {/* Action Buttons */}
           <div className="mb-6 grid grid-cols-3 gap-4">
             <div className="col-span-1 flex flex-col items-center gap-1">
@@ -390,6 +380,16 @@ const Motivators = () => {
               </Tooltip>
               <span className="text-xs text-muted-foreground">Library</span>
             </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="mb-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="goals">Goals ({goalMotivators.length})</TabsTrigger>
+                <TabsTrigger value="quotes">Quotes ({savedQuotes.length})</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {/* Goal Ideas Library - Kept for backward compatibility but hidden */}

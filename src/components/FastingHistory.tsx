@@ -53,9 +53,17 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
   };
 
   const getStatusBadge = (session: FastingSession) => {
+    // Only show completed if goal was reached
+    const isGoalReached = session.duration_seconds && session.goal_duration_seconds && 
+                         session.duration_seconds >= session.goal_duration_seconds;
+    
     switch (session.status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Completed</Badge>;
+        return isGoalReached ? 
+          <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Completed</Badge> :
+          <div className="w-6 h-6 bg-destructive rounded-full flex items-center justify-center">
+            <X className="w-3 h-3 text-destructive-foreground" />
+          </div>;
       case 'incomplete':
         return <Badge variant="default" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">Incomplete</Badge>;
       case 'cancelled':

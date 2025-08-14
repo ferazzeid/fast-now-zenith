@@ -12,11 +12,9 @@ interface ActivityLevelOverrideProps {
 }
 
 const ACTIVITY_LEVELS = {
-  sedentary: 'Sedentary (Little/no exercise)',
-  lightly_active: 'Lightly Active (Light exercise 1-3 days/week)',
-  moderately_active: 'Moderately Active (Moderate exercise 3-5 days/week)',
-  very_active: 'Very Active (Hard exercise 6-7 days/week)',
-  extremely_active: 'Extremely Active (Very hard exercise & physical job)'
+  sedentary: 'Low (Little/no exercise)',
+  moderately_active: 'Medium (Moderate exercise 3-5 days/week)',
+  very_active: 'High (Hard exercise 6-7 days/week)'
 };
 
 export const ActivityLevelOverride: React.FC<ActivityLevelOverrideProps> = ({ currentDisplayLevel }) => {
