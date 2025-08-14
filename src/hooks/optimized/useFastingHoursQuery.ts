@@ -27,6 +27,7 @@ export interface FastingHour {
   physiological_effects?: string;
   mental_emotional_state?: string[];
   stage?: string;
+  admin_personal_log?: string;
 }
 
 export interface ContentVariant {

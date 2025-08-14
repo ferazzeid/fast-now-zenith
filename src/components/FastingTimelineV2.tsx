@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
+import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 
 interface FastingTimelineV2Props {
   currentHour?: number;
@@ -150,6 +151,16 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         )}
       </div>
+
+      {/* Admin Personal Log Interface */}
+      <AdminPersonalLogInterface
+        currentHour={selectedHour}
+        existingLog={selected?.admin_personal_log}
+        onLogSaved={() => {
+          // Refresh the data to show updated log
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

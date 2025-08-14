@@ -453,6 +453,7 @@ export type Database = {
       }
       fasting_hours: {
         Row: {
+          admin_personal_log: string | null
           autophagy_milestone: boolean | null
           benefits_challenges: string | null
           body_state: string
@@ -482,6 +483,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_personal_log?: string | null
           autophagy_milestone?: boolean | null
           benefits_challenges?: string | null
           body_state: string
@@ -511,6 +513,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_personal_log?: string | null
           autophagy_milestone?: boolean | null
           benefits_challenges?: string | null
           body_state?: string
