@@ -43,8 +43,11 @@ export const PremiumUpgradeModal = ({ isOpen, onClose, feature }: PremiumUpgrade
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose} style={{ paddingBottom: '80px' }}>
-      <Card className="w-full max-w-sm mx-4 bg-background border-border" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose}>
+      <Card 
+        className="w-full max-w-sm bg-background border-border fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mx-4" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6 space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center">
