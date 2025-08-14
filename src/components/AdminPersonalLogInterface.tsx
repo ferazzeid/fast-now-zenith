@@ -42,26 +42,12 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   // Don't show for non-admins
   if (!isAdmin) return null;
 
-  const calculateCurrentFastingHour = (): number => {
-    if (!currentSession?.start_time) return 1;
-    const startTime = new Date(currentSession.start_time);
-    const now = new Date();
-    const hoursPassed = Math.floor((now.getTime() - startTime.getTime()) / (1000 * 60 * 60));
-    return Math.max(1, Math.min(hoursPassed + 1, 72));
-  };
-
-  const getCurrentHour = (): number => {
-    // If actively fasting, use calculated hour, otherwise use the selected hour from timeline
-    return currentSession?.status === 'active' ? calculateCurrentFastingHour() : currentHour;
-  };
 
   const handleSaveLog = async () => {
     setIsSaving(true);
     try {
-      const hourToUpdate = getCurrentHour();
-      
       console.log('🔧 ADMIN LOG SAVE DEBUG:', {
-        hourToUpdate,
+        hourToUpdate: currentHour,
         logText: logText.trim(),
         logTextLength: logText.trim().length,
         userId: currentSession?.user_id
@@ -70,7 +56,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       const { data, error } = await supabase
         .from('fasting_hours')
         .update({ admin_personal_log: logText.trim() || null })
-        .eq('hour', hourToUpdate)
+        .eq('hour', currentHour)
         .select('*');
 
       console.log('🔧 SUPABASE UPDATE RESULT:', { data, error });
@@ -79,7 +65,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
 
       toast({
         title: "Personal log saved",
-        description: `Hour ${hourToUpdate} log updated successfully`,
+        description: `Hour ${currentHour} log updated successfully`,
       });
 
       setIsEditing(false);
@@ -109,9 +95,6 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
     if (!isEditing) setIsEditing(true);
   };
 
-  const activeHour = getCurrentHour();
-  const isCurrentlyFasting = currentSession?.status === 'active';
-
   return (
     <div className="mt-4 p-4 rounded-md border bg-card/50 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-3">
@@ -120,10 +103,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
             Admin Personal Log
           </h4>
           <div className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-            Hour {activeHour}
-            {isCurrentlyFasting && currentHour === activeHour && (
-              <span className="ml-1 text-accent">● Live</span>
-            )}
+            Hour {currentHour}
           </div>
         </div>
         
@@ -169,7 +149,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
           <Textarea
             value={logText}
             onChange={(e) => setLogText(e.target.value)}
-            placeholder={`Record your experience at hour ${activeHour} of your fast...`}
+            placeholder={`Record your experience at hour ${currentHour} of your fast...`}
             className="min-h-[80px] text-sm resize-none"
             disabled={isSaving}
           />
@@ -209,7 +189,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
             </div>
           ) : (
             <div className="text-sm text-muted-foreground italic p-3 rounded border bg-muted/10">
-              No personal log for hour {activeHour} yet. Click the edit button or mic to add one.
+              No personal log for hour {currentHour} yet. Click the edit button or mic to add one.
             </div>
           )}
         </div>
