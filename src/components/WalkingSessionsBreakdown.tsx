@@ -28,11 +28,15 @@ interface WalkingSession {
 
 interface WalkingSessionsBreakdownProps {
   totalCalories: number;
+  walkingCalories: number;
+  manualCalories: number;
   onRefresh?: () => void;
 }
 
 export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> = ({ 
-  totalCalories, 
+  totalCalories,
+  walkingCalories,
+  manualCalories,
   onRefresh 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -143,23 +147,18 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
 
   return (
     <div className="space-y-2">
-      {/* Header with total and expand button */}
+      {/* Header with breakdown */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Activity className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-warm-text">Activity Burn</span>
-          <ClickableTooltip content="Total calories burned from walking and external activities today">
+          <ClickableTooltip content="Calories burned from walking and external activities today">
             <Info className="w-4 h-4 text-muted-foreground" />
           </ClickableTooltip>
-          {sessionCount > 1 && (
-            <span className="text-xs text-muted-foreground">
-              ({sessionCount} activit{sessionCount > 1 ? 'ies' : 'y'})
-            </span>
-          )}
         </div>
         <div className="flex items-center space-x-2">
           <div className="text-sm font-bold text-warm-text">
-            {Math.round(displayCalories)} cal
+            {Math.round(totalCalories)} cal
           </div>
           {sessionCount > 1 && (
             <Button
@@ -177,6 +176,19 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
           )}
         </div>
       </div>
+      
+      {/* Activity breakdown - always show when we have both types */}
+      {(walkingCalories > 0 || manualCalories > 0) && (
+        <div className="text-xs text-muted-foreground">
+          {walkingCalories > 0 && (
+            <span>Walking: {walkingCalories} cal</span>
+          )}
+          {walkingCalories > 0 && manualCalories > 0 && <span> • </span>}
+          {manualCalories > 0 && (
+            <span>External: {manualCalories} cal</span>
+          )}
+        </div>
+      )}
 
       {/* Session breakdown (when expanded) */}
       {isExpanded && sessionCount > 1 && (

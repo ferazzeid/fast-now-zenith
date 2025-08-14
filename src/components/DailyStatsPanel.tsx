@@ -239,6 +239,8 @@ export const DailyStatsPanel = memo(() => {
                   {/* Activity Section with Sessions Breakdown */}
                   <WalkingSessionsBreakdown 
                     totalCalories={deficitData.walkingCalories + deficitData.manualCalories}
+                    walkingCalories={deficitData.walkingCalories}
+                    manualCalories={deficitData.manualCalories}
                     onRefresh={refreshDeficit}
                   />
                 </Card>
