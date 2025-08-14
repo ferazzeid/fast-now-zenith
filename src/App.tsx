@@ -29,6 +29,7 @@ import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
 import { HistoryDebugHelper } from "@/components/enhanced/HistoryDebugHelper";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeStabilityFix } from "./components/ThemeStabilityFix";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
 import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
@@ -299,6 +300,7 @@ const App = () => (
         <BrowserRouter>
           <AsyncErrorBoundary>
             <ThemeProvider>
+              <ThemeStabilityFix />
               <AuthProvider>
                 <SimpleWalkingStatsProvider>
                   <AppContent />

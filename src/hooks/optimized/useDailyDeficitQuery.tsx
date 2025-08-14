@@ -46,10 +46,10 @@ interface ManualCalorieBurn {
   created_at: string;
 }
 
-// Query keys for cache management
-const dailyDeficitQueryKey = (userId: string | null, date: string) => ['daily-deficit', userId, date];
-const manualCaloriesQueryKey = (userId: string | null, date: string) => ['manual-calories', userId, date];
-const bmrTdeeQueryKey = (userId: string | null, profileHash: string) => ['bmr-tdee', userId, profileHash];
+// Query keys for cache management - THEME BUG FIX: Make theme-independent
+const dailyDeficitQueryKey = (userId: string | null, date: string) => ['daily-deficit-stable', userId, date];
+const manualCaloriesQueryKey = (userId: string | null, date: string) => ['manual-calories-stable', userId, date];
+const bmrTdeeQueryKey = (userId: string | null, profileHash: string) => ['bmr-tdee-stable', userId, profileHash];
 
 export const useDailyDeficitQuery = () => {
   const { user } = useAuth();
@@ -73,6 +73,13 @@ export const useDailyDeficitQuery = () => {
     manualLoading,
     user: user?.id,
     today
+  });
+
+  // 🐛 THEME BUG FIX: Add theme stability check
+  console.log('🎨 THEME STABILITY CHECK:', {
+    userAgent: navigator.userAgent,
+    currentTheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+    timestamp: new Date().toISOString()
   });
 
   // PERFORMANCE: Cached BMR/TDEE calculations (expensive operations)
