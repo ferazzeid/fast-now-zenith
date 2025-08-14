@@ -1061,6 +1061,7 @@ export type Database = {
           deletion_reason: string | null
           deletion_scheduled_at: string | null
           display_name: string | null
+          enable_ceramic_animations: boolean | null
           enable_daily_reset: boolean | null
           enable_fasting_slideshow: boolean | null
           enable_food_image_generation: boolean | null
@@ -1106,6 +1107,7 @@ export type Database = {
           deletion_reason?: string | null
           deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_ceramic_animations?: boolean | null
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
           enable_food_image_generation?: boolean | null
@@ -1151,6 +1153,7 @@ export type Database = {
           deletion_reason?: string | null
           deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_ceramic_animations?: boolean | null
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
           enable_food_image_generation?: boolean | null

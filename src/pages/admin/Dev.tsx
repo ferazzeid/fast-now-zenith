@@ -4,6 +4,7 @@ import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
+import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 
@@ -31,6 +32,11 @@ export default function AdminDev() {
           </Alert>
 
           <AdminRoleTester />
+        </section>
+
+        <section aria-label="Animation Settings" className="space-y-4">
+          <h2 className="text-xl font-semibold">Animation Settings</h2>
+          <AdminAnimationSettings />
         </section>
 
       </main>
