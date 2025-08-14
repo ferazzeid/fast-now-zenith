@@ -165,10 +165,10 @@ export const DailyStatsPanel = memo(() => {
                 loading={loading}
                 tdee={deficitData.tdee}
               />
-              {/* 🐛 DEBUG: Show calculation components for transparency */}
-              {deficitData.walkingCalories > 0 && (
+              {/* ✅ FIXED: Show complete calculation including manual calories */}
+              {(deficitData.walkingCalories > 0 || deficitData.manualCalories > 0) && (
                 <span className="text-xs text-muted-foreground ml-1">
-                  ({formatNumber(deficitData.tdee)}+{formatNumber(deficitData.walkingCalories)})
+                  ({formatNumber(deficitData.tdee)}+{formatNumber(deficitData.walkingCalories + deficitData.manualCalories)})
                 </span>
               )}
             </div>
