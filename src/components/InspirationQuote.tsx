@@ -7,12 +7,14 @@ interface InspirationQuoteProps {
   quotes: Quote[];
   className?: string;
   onSaveQuote?: (quote: Quote) => void;
+  compact?: boolean;
 }
 
 export const InspirationQuote: React.FC<InspirationQuoteProps> = ({ 
   quotes, 
   className = '',
-  onSaveQuote
+  onSaveQuote,
+  compact = false
 }) => {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [lastShownIndex, setLastShownIndex] = useState<number>(-1);
@@ -69,21 +71,21 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <div 
-      className={`max-w-md mx-auto text-center px-6 py-4 cursor-pointer transition-opacity duration-500 hover:opacity-80 ${className}`}
+      className={`max-w-md mx-auto text-center ${compact ? 'px-4 py-2' : 'px-6 py-4'} cursor-pointer transition-opacity duration-500 hover:opacity-80 ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative">
-        <p className="text-sm italic text-muted-foreground/80 leading-relaxed mb-2">
+        <p className={`${compact ? 'text-xs' : 'text-sm'} italic text-muted-foreground/80 leading-relaxed mb-2`}>
           "{currentQuote.text}"
         </p>
         {currentQuote.author && (
-          <cite className="text-xs text-muted-foreground/60 not-italic">
+          <cite className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground/60 not-italic`}>
             — {currentQuote.author}
           </cite>
         )}
       </blockquote>
       <div className="flex items-center justify-between mt-2">
-        <div className="text-xs text-muted-foreground/40">
+        <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground/40`}>
           Tap for another quote
         </div>
         {onSaveQuote && (
@@ -94,9 +96,9 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
               e.stopPropagation();
               handleSaveQuote();
             }}
-            className="h-6 px-2 text-xs text-muted-foreground/60 hover:text-muted-foreground"
+            className={`${compact ? 'h-5 px-1 text-[10px]' : 'h-6 px-2 text-xs'} text-muted-foreground/60 hover:text-muted-foreground`}
           >
-            <Bookmark className="w-3 h-3 mr-1" />
+            <Bookmark className={`${compact ? 'w-2 h-2 mr-0.5' : 'w-3 h-3 mr-1'}`} />
             Save to Goals
           </Button>
         )}

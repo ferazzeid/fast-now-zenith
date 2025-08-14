@@ -306,6 +306,7 @@ const Walking = () => {
           quotes={quotes.walking_timer_quotes} 
           className="mt-8"
           onSaveQuote={saveQuoteAsGoal}
+          compact={true}
         />
 
 

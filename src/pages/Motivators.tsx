@@ -5,6 +5,7 @@ import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Plus, Sparkles, Target, Mic, BookOpen } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
@@ -29,6 +30,7 @@ const Motivators = () => {
   const { toast } = useToast();
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
+  const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showAiChat, setShowAiChat] = useState(false);
@@ -38,6 +40,10 @@ const Motivators = () => {
   
   const [aiChatContext, setAiChatContext] = useState('');
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
+
+  // Filter motivators based on active tab
+  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote');
+  const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
 
   const handleCreateMotivator = async (motivatorData) => {
     try {
@@ -298,11 +304,23 @@ const Motivators = () => {
               <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
             </div>
             <div className="pl-12 pr-12">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">My Goals</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
+                {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
+              </h1>
               <p className="text-sm text-muted-foreground text-left">
-                Your personal motivators
+                {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
               </p>
             </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="mb-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="goals">Goals ({goalMotivators.length})</TabsTrigger>
+                <TabsTrigger value="quotes">Quotes ({savedQuotes.length})</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {/* Action Buttons */}
@@ -386,75 +404,97 @@ const Motivators = () => {
             </div>
           )}
 
-          {/* Motivators List */}
+          {/* Content based on active tab */}
           {loading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <MotivatorSkeleton key={i} />
               ))}
             </div>
-          ) : motivators.length === 0 ? (
-            <Card className="p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                  <Sparkles className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-warm-text mb-2">No motivators yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Create your first motivator to stay inspired during your fasting journey
-                  </p>
-                  <Button onClick={() => setShowFormModal(true)} variant="action-secondary" size="action-secondary">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create
-                  </Button>
-                </div>
-              </div>
-            </Card>
           ) : (
-            <div className="space-y-4">
-              {motivators.map((motivator) => (
-                <div key={motivator.id}>
-                  {motivator.category === 'saved_quote' ? (
-                    <SimpleMotivatorCard
-                      motivator={motivator}
-                      onDelete={() => handleDeleteMotivator(motivator.id)}
-                    />
-                  ) : (
-                    <ExpandableMotivatorCard
-                      motivator={motivator}
-                      onEdit={() => handleEditMotivator(motivator)}
-                      onDelete={() => handleDeleteMotivator(motivator.id)}
-                    />
-                  )}
-                </div>
-              ))}
-              
-              {/* Placeholder cards to encourage creating up to 3 goals */}
-              {motivators.length < 3 && [...Array(3 - motivators.length)].map((_, index) => (
-                <Card 
-                  key={`placeholder-${index}`} 
-                  className="overflow-hidden border-dashed border-2 border-muted-foreground/20 hover:border-primary/30 cursor-pointer transition-all duration-200 hover:bg-muted/10 bg-muted/5"
-                  onClick={() => setShowFormModal(true)}
-                >
-                  <CardContent className="p-6">
-                    <div className="text-center space-y-3">
-                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                        <Plus className="w-6 h-6 text-primary/60" />
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsContent value="goals">
+                {goalMotivators.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                        <Target className="w-8 h-8 text-muted-foreground" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-muted-foreground mb-1">
-                          Add Goal #{motivators.length + index + 1}
-                        </h3>
-                        <p className="text-sm text-muted-foreground/60">
-                          Click to create your {motivators.length + index + 1 === 2 ? 'second' : 'third'} motivator
+                        <h3 className="font-semibold text-warm-text mb-2">No goals yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Create your first goal to stay inspired during your fasting journey
+                        </p>
+                        <Button onClick={() => setShowFormModal(true)} variant="action-secondary" size="action-secondary">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Goal
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {goalMotivators.map((motivator) => (
+                      <ExpandableMotivatorCard
+                        key={motivator.id}
+                        motivator={motivator}
+                        onEdit={() => handleEditMotivator(motivator)}
+                        onDelete={() => handleDeleteMotivator(motivator.id)}
+                      />
+                    ))}
+                    
+                    {/* Placeholder cards to encourage creating up to 3 goals */}
+                    {goalMotivators.length < 3 && [...Array(3 - goalMotivators.length)].map((_, index) => (
+                      <Card 
+                        key={`placeholder-${index}`} 
+                        className="overflow-hidden border-dashed border-2 border-muted-foreground/20 hover:border-primary/30 cursor-pointer transition-all duration-200 hover:bg-muted/10 bg-muted/5"
+                        onClick={() => setShowFormModal(true)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="text-center space-y-3">
+                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                              <Plus className="w-6 h-6 text-primary/60" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-muted-foreground/70 mb-1">Create Goal #{goalMotivators.length + index + 1}</h4>
+                              <p className="text-xs text-muted-foreground/50">Tap to add another motivating goal</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="quotes">
+                {savedQuotes.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                        <Sparkles className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-warm-text mb-2">No saved quotes yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Quotes you save from timer screens will appear here
                         </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {savedQuotes.map((motivator) => (
+                      <SimpleMotivatorCard
+                        key={motivator.id}
+                        motivator={motivator}
+                        onDelete={() => handleDeleteMotivator(motivator.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* Form Modals */}
@@ -537,4 +577,4 @@ const Motivators = () => {
   );
 };
 
-export default Motivators;
+export default memo(Motivators);
