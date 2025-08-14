@@ -31,14 +31,7 @@ export const useAdminRole = () => {
 
   const isAdmin = adminData?.isAdmin || false;
 
-  // Debug logging to help troubleshoot admin detection
-  console.log('🔧 Admin Check:', {
-    userEmail: user?.email,
-    userId: user?.id,
-    isAdmin,
-    loading,
-    adminData
-  });
+  // Removed noisy debug logging
 
   return {
     isAdmin,

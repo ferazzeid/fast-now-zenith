@@ -128,13 +128,7 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
     // Check if in trial - be more explicit about trial detection
     const inTrial = trialEndDate ? trialEndDate > now : false;
     
-    console.log('🔍 Trial Detection Debug:', {
-      trialEndDate: trialEndDate?.toISOString(),
-      now: now.toISOString(),
-      inTrial,
-      profile_trial_ends_at: profile?.trial_ends_at,
-      profile_subscription_status: profile?.subscription_status
-    });
+    // Removed noisy trial detection debug logging
     
     // Check if subscribed (active subscription or platform-specific)
     let subscribed = false;
