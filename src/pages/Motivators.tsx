@@ -306,11 +306,11 @@ const Motivators = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 justify-center mb-6">
-            <div className="flex flex-col items-center gap-1">
+          <div className="mb-6 grid grid-cols-3 gap-4">
+            <div className="col-span-1 flex flex-col items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                  <PremiumGate feature="Voice Input" grayOutForFree={true} className="w-full">
                     <Button
                       onClick={() => {
                         setAiChatContext("Help me create a powerful motivator for my fasting journey. I want to record what drives me and why it's important.");
@@ -319,7 +319,7 @@ const Motivators = () => {
                       }}
                       variant="ai"
                       size="action-tall"
-                      className="flex items-center justify-center"
+                      className="w-full flex items-center justify-center"
                       aria-label="Create motivator with voice"
                     >
                       <Mic className="w-5 h-5" />
@@ -333,14 +333,14 @@ const Motivators = () => {
               <span className="text-xs text-muted-foreground">Voice add</span>
             </div>
 
-            <div className="flex flex-col items-center gap-1">
+            <div className="col-span-1 flex flex-col items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
                     onClick={() => setShowFormModal(true)}
                     variant="action-primary"
                     size="action-tall"
-                    className="flex items-center justify-center"
+                    className="w-full flex items-center justify-center"
                     aria-label="Create motivator manually"
                   >
                     <Plus className="w-5 h-5" />
@@ -353,24 +353,27 @@ const Motivators = () => {
               <span className="text-xs text-muted-foreground">Manual add</span>
             </div>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => navigate('/motivator-ideas')}
-                  variant="action-secondary"
-                  size="action-tall"
-                  className="flex items-center justify-center"
-                  aria-label="Browse motivator ideas"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                  </svg>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Browse professionally designed motivators and add them to your collection</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="col-span-1 flex flex-col items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate('/motivator-ideas')}
+                    variant="action-secondary"
+                    size="action-tall"
+                    className="w-full flex items-center justify-center"
+                    aria-label="Browse motivator ideas"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Browse professionally designed motivators and add them to your collection</p>
+                </TooltipContent>
+              </Tooltip>
+              <span className="text-xs text-muted-foreground">Library</span>
+            </div>
           </div>
 
           {/* Goal Ideas Library - Kept for backward compatibility but hidden */}

@@ -44,54 +44,52 @@ export const PremiumUpgradeModal = ({ isOpen, onClose, feature }: PremiumUpgrade
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <Card className="w-full max-w-md bg-background border-border" onClick={(e) => e.stopPropagation()}>
-        <div className="p-6 flex flex-col h-full">
+      <Card className="w-full max-w-lg bg-background border-border" onClick={(e) => e.stopPropagation()}>
+        <div className="p-8 space-y-6">
           {/* Header */}
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                <Crown className="w-3 h-3 text-white" />
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+                <Crown className="w-4 h-4 text-white" />
               </div>
-              <h2 className="text-lg font-semibold text-foreground text-left">Premium Feature</h2>
+              <h2 className="text-xl font-semibold text-foreground">Premium Feature</h2>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 p-0">
               <X className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Content - Left aligned and spaced */}
-          <div className="flex-1 space-y-4 text-left">
-            <p className="text-sm text-muted-foreground text-left">
+          {/* Content */}
+          <div className="space-y-6">
+            <p className="text-base text-muted-foreground leading-relaxed">
               {inTrial 
                 ? `"${feature}" requires a premium subscription. Your trial is still active but this feature needs an upgrade.`
                 : `Your trial has expired. Upgrade to premium to access "${feature}" and all premium features.`
               }
             </p>
 
-            {/* Features List - Left aligned */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-foreground text-left">Premium includes:</h3>
-              <div className="grid grid-cols-1 gap-1.5">
+            {/* Features List */}
+            <div className="space-y-4">
+              <h3 className="text-base font-medium text-foreground">Premium includes:</h3>
+              <div className="grid grid-cols-1 gap-3">
                 {features.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-2 text-left">
-                    <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
-                    <span className="text-xs text-muted-foreground">{feature}</span>
+                  <div key={index} className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{feature}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Upgrade Button - Bottom positioned */}
-          <div className="mt-6">
-            <Button 
-              onClick={handleUpgrade}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 text-sm py-2"
-            >
-              <Crown className="w-3 h-3 mr-2" />
-              Upgrade to Premium
-            </Button>
-          </div>
+          {/* Upgrade Button */}
+          <Button 
+            onClick={handleUpgrade}
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 py-3"
+          >
+            <Crown className="w-4 h-4 mr-2" />
+            Upgrade to Premium
+          </Button>
         </div>
       </Card>
     </div>
