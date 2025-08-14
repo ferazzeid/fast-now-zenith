@@ -63,6 +63,7 @@ export const ModalAiChat = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
   const calorieSummaryRef = useRef<HTMLDivElement>(null);
+  const voiceButtonRef = useRef<{ stopRecording: () => void }>(null);
   const { user } = useAuth();
   const {
     searchResults,
@@ -116,6 +117,11 @@ export const ModalAiChat = ({
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
     } else if (!isOpen) {
+      // Stop any active recording when modal closes
+      if (voiceButtonRef.current) {
+        voiceButtonRef.current.stopRecording();
+      }
+      
       // Clear messages when modal closes - but only after a small delay to prevent flickering
       setTimeout(() => {
         setMessages([]);
@@ -1271,6 +1277,7 @@ ${updatedContent}`
           <div className="w-full flex justify-center">
             <PremiumGate feature="Voice Input" grayOutForFree={true}>
               <CircularVoiceButton
+                ref={voiceButtonRef}
                 onTranscription={handleVoiceTranscription}
                 isDisabled={isProcessing}
                 size="lg"

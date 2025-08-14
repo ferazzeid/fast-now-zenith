@@ -9,14 +9,19 @@ interface CircularVoiceButtonProps {
   isDisabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
   autoStart?: boolean;
+  onRecordingStateChange?: (isRecording: boolean) => void;
 }
 
-export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
+export const CircularVoiceButton = React.forwardRef<
+  { stopRecording: () => void },
+  CircularVoiceButtonProps
+>(({
   onTranscription,
   isDisabled = false,
   size = 'md',
-  autoStart = false
-}) => {
+  autoStart = false,
+  onRecordingStateChange
+}, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -30,6 +35,21 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
       startRecording();
     }
   }, [autoStart, isDisabled]);
+
+  // Expose stop recording method via ref
+  React.useImperativeHandle(ref, () => ({
+    stopRecording: () => {
+      if (isRecording) {
+        console.log('🎤 Stopping recording via ref...');
+        stopAndProcess();
+      }
+    }
+  }), [isRecording]);
+
+  // Notify parent of recording state changes
+  useEffect(() => {
+    onRecordingStateChange?.(isRecording);
+  }, [isRecording, onRecordingStateChange]);
 
   const sizeClasses = {
     sm: 'h-8 w-8',
@@ -255,4 +275,4 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
       )}
     </Button>
   );
-};
+});
