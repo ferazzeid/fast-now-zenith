@@ -397,7 +397,7 @@ const FoodTracking = () => {
             {/* Large Unified Add Food Button */}
             <div className="flex flex-col items-center gap-2">
               <Button 
-                variant="action-primary"
+                variant="ai"
                 size="start-button"
                 className="w-full flex flex-col items-center justify-center gap-2"
                 onClick={handleUnifiedEntry}
