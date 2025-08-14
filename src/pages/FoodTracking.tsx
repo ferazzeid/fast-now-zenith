@@ -84,24 +84,57 @@ const FoodTracking = () => {
   };
 
   const handleAiChatResult = (result: any) => {
+    console.log('🍽️ handleAiChatResult called with:', result);
+    
+    // Handle both old format (result.foodEntries) and new format (result.arguments.foods)
+    let foods: any[] = [];
+    
     if (result.foodEntries && Array.isArray(result.foodEntries)) {
-      result.foodEntries.forEach(async (food: any) => {
-        await addFoodEntry({
-          name: food.name,
-          calories: food.calories,
-          carbs: food.carbs,
-          serving_size: food.serving_size,
-          consumed: false,
-          image_url: food.image_url
-        });
+      // Old format
+      foods = result.foodEntries;
+      console.log('🍽️ Using old format (foodEntries):', foods);
+    } else if (result.arguments?.foods && Array.isArray(result.arguments.foods)) {
+      // New format from function calls
+      foods = result.arguments.foods;
+      console.log('🍽️ Using new format (arguments.foods):', foods);
+    } else if (result.name === 'add_multiple_foods' && result.arguments?.foods) {
+      // Function call format
+      foods = result.arguments.foods;
+      console.log('🍽️ Using function call format:', foods);
+    }
+
+    if (foods.length > 0) {
+      console.log('🍽️ Adding foods to plan:', foods);
+      
+      foods.forEach(async (food: any) => {
+        try {
+          await addFoodEntry({
+            name: food.name,
+            calories: food.calories,
+            carbs: food.carbs,
+            serving_size: food.serving_size,
+            consumed: false,
+            image_url: food.image_url
+          });
+          console.log('🍽️ Successfully added food:', food.name);
+        } catch (error) {
+          console.error('🍽️ Error adding food:', food.name, error);
+          toast({
+            variant: "destructive",
+            title: "Error Adding Food",
+            description: `Failed to add ${food.name} to your plan`
+          });
+        }
       });
       
       toast({
         title: "Foods Added",
-        description: `Added ${result.foodEntries.length} food${result.foodEntries.length > 1 ? 's' : ''} to your plan`,
+        description: `Added ${foods.length} food${foods.length > 1 ? 's' : ''} to your plan`,
       });
       
       trackFoodEvent('add', 'voice');
+    } else {
+      console.warn('🍽️ No foods found in result:', result);
     }
     setShowAiChat(false);
   };
