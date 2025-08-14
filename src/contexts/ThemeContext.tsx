@@ -21,7 +21,9 @@ export const useTheme = () => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme');
-    return (saved as Theme) || 'system';
+    // 🔧 FORCE STABLE THEME: Never auto-switch to system
+    const validTheme = (saved as Theme) || 'dark';
+    return validTheme === 'system' ? 'dark' : validTheme;
   });
 
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');

@@ -165,10 +165,10 @@ export const DailyStatsPanel = memo(() => {
                 loading={loading}
                 tdee={deficitData.tdee}
               />
-              {/* ✅ FIXED: Show complete calculation including manual calories */}
+              {/* 🐛 DEBUG: Show activity calculation breakdown */}
               {(deficitData.walkingCalories > 0 || deficitData.manualCalories > 0) && (
                 <span className="text-xs text-muted-foreground ml-1">
-                  ({formatNumber(deficitData.tdee)}+{formatNumber(deficitData.walkingCalories + deficitData.manualCalories)})
+                  ({formatNumber(deficitData.tdee)}+{formatNumber(deficitData.walkingCalories)}+{formatNumber(deficitData.manualCalories)}) = {formatNumber(deficitData.totalCaloriesBurned)}
                 </span>
               )}
             </div>
