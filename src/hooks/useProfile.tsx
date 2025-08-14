@@ -199,11 +199,25 @@ export const useProfile = () => {
   }, [user, executeWithRetry, toast, loadProfile]);
 
   const isProfileComplete = useCallback(() => {
-    const complete = !!(profile && profile.weight && profile.height && profile.age && 
+    const complete = !!(profile && 
+      profile.weight && 
+      profile.height && 
+      profile.age && 
+      profile.sex &&
       (profile.activity_level || profile['activity-level'])); // Handle both formats
-    console.log('Profile completion check:', { complete, activity_level: profile?.activity_level });
+    
+    console.log('Profile completion check:', { 
+      complete, 
+      weight: profile?.weight,
+      height: profile?.height,
+      age: profile?.age,
+      sex: profile?.sex,
+      activity_level: profile?.activity_level,
+      profile: profile
+    });
+    
     return complete;
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.sex, profile?.activity_level]);
 
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;
