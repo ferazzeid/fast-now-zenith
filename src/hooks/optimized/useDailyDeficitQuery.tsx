@@ -240,11 +240,16 @@ export const useDailyDeficitQuery = () => {
       const walkingCalories = walkingCaloriesQuery.data || 0;
       const manualCalories = manualCaloriesTotal || 0;
       
-      // 🚨 IMMEDIATE DEBUG - Log before any calculation
-      console.log('🚨 IMMEDIATE DEFICIT CALCULATION DEBUG:');
-      console.log('Raw walking calories:', walkingCalories);
-      console.log('Raw manual calories:', manualCalories); 
-      console.log('Sum should be:', walkingCalories + manualCalories);
+      // 🚨 THEME BUG DEBUG - Why are calculations different between themes?
+      const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      console.log('🎨 THEME CALCULATION DEBUG:', {
+        currentTheme,
+        bmr: bmrTdee.bmr,
+        tdee: bmrTdee.tdee,
+        walkingCalories,
+        manualCalories,
+        queryEnabled: bmrTdeeQuery.isSuccess && walkingCaloriesQuery.isSuccess
+      });
       
       const totalCaloriesBurned = bmrTdee.tdee + walkingCalories + manualCalories;
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
