@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, Square } from 'lucide-react';
+import { Mic, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -240,7 +240,7 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
         transition-all 
         duration-200 
         ${isRecording 
-          ? 'bg-red-500 hover:bg-red-600 recording-pulse' 
+          ? 'bg-orange-500 hover:bg-orange-600 recording-pulse' 
           : 'bg-green-500 hover:bg-green-600'
         }
         text-white
@@ -249,7 +249,7 @@ export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
       {isProcessing ? (
         <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${iconSizes[size]}`} />
       ) : isRecording ? (
-        <Square className={`${iconSizes[size]} fill-white`} />
+        <Send className={`${iconSizes[size]}`} />
       ) : (
         <Mic className={iconSizes[size]} />
       )}

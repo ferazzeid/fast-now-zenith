@@ -1145,6 +1145,8 @@ const FoodTracking = () => {
         isOpen={showAiChat}
         onClose={() => setShowAiChat(false)}
         onResult={handleAiChatResult}
+        title="Food Assistant"
+        proactiveMessage="Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity"
       />
 
         {/* Unified Food Entry Modal */}
