@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
+import { useProfile } from '@/hooks/useProfile';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { SubscriptionDebugPanel } from '@/components/SubscriptionDebugPanel';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,7 +53,7 @@ const Settings = () => {
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const { profile, updateProfile, loading: profileLoading } = useProfile();
   const { isOnline } = useConnectionStore();
   const { clearGoalsCache, clearProfileCache } = useCacheManager();
 
@@ -96,7 +97,7 @@ const Settings = () => {
         }
 
         if (profileData) {
-          setProfile(profileData);
+          // Profile data is now managed by useProfile hook, but we still need to set form fields
           setSpeechModel(profileData.speech_model || 'gpt-4o-mini-realtime');
           setTranscriptionModel(profileData.transcription_model || 'whisper-1');
           setTtsModel(profileData.tts_model || 'tts-1');
@@ -187,24 +188,30 @@ const Settings = () => {
           weight: weight ? parseFloat(weight) : null,
           height: height ? parseInt(height) : null,
           age: age ? parseInt(age) : null,
-          sex: sex || null,
+          sex: (sex as 'male' | 'female') || null,
           daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
           daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
           activity_level: activityLevel,
           units: units
         };
         
+        console.log('Settings: User ID:', user?.id);
         console.log('Settings: Saving profile data:', updateData);
-        const { data, error } = await supabase
-          .from('profiles')
-          .upsert({ 
-            user_id: user.id, 
-            ...updateData 
-          }, {
-            onConflict: 'user_id'
-          })
-          .select()
-          .single();
+        
+        // Use the useProfile hook's updateProfile method instead of direct Supabase call
+        const result = await updateProfile(updateData);
+        
+        if (result?.error) {
+          console.error('Settings save error:', result.error);
+          toast({
+            title: "Database Error",
+            description: `Failed to save: ${result.error.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        const data = result?.data;
 
         // If sex changed, clear relevant caches without page reload
         if (data && updateData.sex && updateData.sex !== profile?.sex) {
@@ -217,16 +224,7 @@ const Settings = () => {
             description: "Sex updated successfully. Goal recommendations have been refreshed.",
           });
         }
-
-        if (error) {
-          console.error('Settings save error:', error);
-          toast({
-            title: "Database Error",
-            description: `Failed to save: ${error.message}`,
-            variant: "destructive"
-          });
-          return;
-        }
+        const error = result?.error;
 
         // Ensure tier reflects latest settings (own API key overrides others)
         try {
@@ -637,7 +635,7 @@ const Settings = () => {
                             title: checked ? "Fasting slideshow enabled" : "Fasting slideshow disabled",
                             description: "Changes will take effect immediately"
                           });
-                          setProfile(prev => ({ ...prev, enable_fasting_slideshow: checked }));
+                          // Profile is now managed by useProfile hook
                         } catch (error) {
                           toast({
                             title: "Error",
@@ -664,7 +662,7 @@ const Settings = () => {
                             title: checked ? "Walking slideshow enabled" : "Walking slideshow disabled",
                             description: "Changes will take effect immediately"
                           });
-                          setProfile(prev => ({ ...prev, enable_walking_slideshow: checked }));
+                          // Profile is now managed by useProfile hook
                         } catch (error) {
                           toast({
                             title: "Error",

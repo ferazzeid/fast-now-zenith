@@ -119,15 +119,27 @@ export const useProfile = () => {
   }, [user?.id, executeWithRetry, toast]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user) return { error: { message: 'User not authenticated' } };
+    if (!user) {
+      console.error('updateProfile: User not authenticated');
+      return { error: { message: 'User not authenticated' } };
+    }
 
+    console.log('updateProfile: Starting update for user:', user.id);
     setLoading(true);
+    
     try {
-      console.log('Executing profile update with data:', updates);
+      // Verify we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('updateProfile: No valid session found');
+        throw new Error('No valid session. Please log in again.');
+      }
+      
+      console.log('updateProfile: Valid session found, executing update with data:', updates);
       
       const result = await executeWithRetry(async () => {
-        console.log('Making database upsert call...');
-        return await supabase
+        console.log('updateProfile: Making database upsert call with user_id:', user.id);
+        const { data, error } = await supabase
           .from('profiles')
           .upsert({
             user_id: user.id,
@@ -137,6 +149,9 @@ export const useProfile = () => {
           })
           .select()
           .single();
+          
+        console.log('updateProfile: Database response:', { data, error });
+        return { data, error };
       });
       
       const { data, error } = result;
