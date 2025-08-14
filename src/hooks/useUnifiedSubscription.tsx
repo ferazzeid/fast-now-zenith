@@ -240,16 +240,44 @@ export const useUnifiedSubscription = () => {
     queryKey: ['unified-subscription', user?.id],
     queryFn: () => fetchUnifiedSubscriptionData(user!.id, session?.access_token),
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes - shorter than optimized version for consistency
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 0, // Force fresh data
+    gcTime: 1 * 60 * 1000, // 1 minute cache
+    refetchOnWindowFocus: true, // Refresh when focus
+    refetchOnMount: true, // Always refresh on mount
     retry: 2,
   });
 
+  // Force cache clear on mount for debugging
+  useEffect(() => {
+    if (user?.id) {
+      console.log('🔄 Force invalidating subscription cache on mount');
+      queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+    }
+  }, [user?.id, queryClient]);
+
+  // Enhanced debug logging
+  useEffect(() => {
+    if (subscriptionData && user?.id) {
+      console.log('🔍 SUBSCRIPTION STATE DEBUG:', {
+        userId: user.id,
+        subscribed: subscriptionData.subscribed,
+        subscription_status: subscriptionData.subscription_status,
+        inTrial: subscriptionData.inTrial,
+        trialEndsAt: subscriptionData.trialEndsAt,
+        subscription_tier: subscriptionData.subscription_tier,
+        isPaidUser: subscriptionData.isPaidUser,
+        platform: subscriptionData.platform,
+        debug: subscriptionData.debug,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [subscriptionData, user?.id]);
+
   // Invalidate cache
   const invalidate = useCallback(() => {
+    console.log('🔄 Manual subscription cache invalidation');
     queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+    queryClient.refetchQueries({ queryKey: ['unified-subscription'] });
   }, [queryClient]);
 
   // Create subscription

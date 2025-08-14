@@ -1,165 +1,84 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-
-interface CacheManagerOptions {
-  showToast?: boolean;
-  delay?: number;
-}
+import { useCallback } from 'react';
 
 export const useCacheManager = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { user } = useAuth();
 
-  const clearSubscriptionCache = async (options: CacheManagerOptions = {}) => {
-    const { showToast = true, delay = 0 } = options;
+  const clearAllSubscriptionCache = useCallback(() => {
+    console.log('🗑️ Clearing ALL subscription-related cache');
+    
+    // Clear all subscription-related queries
+    queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+    queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    queryClient.invalidateQueries({ queryKey: ['optimized-subscription'] });
+    
+    // Remove from cache entirely
+    queryClient.removeQueries({ queryKey: ['unified-subscription'] });
+    queryClient.removeQueries({ queryKey: ['subscription'] });
+    queryClient.removeQueries({ queryKey: ['optimized-subscription'] });
+    
+    // Force refetch
+    queryClient.refetchQueries({ queryKey: ['unified-subscription'] });
+    
+    console.log('✅ All subscription cache cleared and refetching');
+  }, [queryClient]);
 
-    try {
-      // Clear React Query subscription caches
-      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      await queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
-      await queryClient.invalidateQueries({ queryKey: ['optimized-subscription'] });
-      await queryClient.invalidateQueries({ queryKey: ['multi-platform-subscription'] });
-      
-      // Clear profile cache since subscription is tied to profile
-      await queryClient.invalidateQueries({ queryKey: ['profile'] });
-      
-      // Clear legacy localStorage cache
-      if (user?.id) {
-        const legacyCacheKey = `subscription_${user.id}`;
-        localStorage.removeItem(legacyCacheKey);
-      }
-      localStorage.removeItem('subscription_cache');
-      
-      // Clear other subscription-related keys
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('subscription') || key.includes('user_tier'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+  const forceRefreshSubscription = useCallback(() => {
+    console.log('🔄 Force refreshing subscription data');
+    queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+    queryClient.refetchQueries({ queryKey: ['unified-subscription'] });
+  }, [queryClient]);
 
-      if (showToast) {
-        toast({
-          title: "✅ Cache Refreshed",
-          description: "Subscription data has been reloaded successfully.",
-        });
-      }
-
-      // Optional delay for better UX
-      if (delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-
-    } catch (error) {
-      console.error('Error clearing subscription cache:', error);
-      if (showToast) {
-        toast({
-          title: "Cache Error",
-          description: "Failed to refresh cache. Please try again.",
-          variant: "destructive",
-        });
-      }
+  const clearSubscriptionCache = useCallback((options: { showToast?: boolean; delay?: number } = {}) => {
+    console.log('🗑️ Clearing subscription cache');
+    queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+    queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    queryClient.removeQueries({ queryKey: ['unified-subscription'] });
+    queryClient.removeQueries({ queryKey: ['subscription'] });
+    
+    if (options.showToast) {
+      console.log('✅ Subscription cache cleared');
     }
-  };
+  }, [queryClient]);
 
-  const clearProfileCache = async (options: CacheManagerOptions = {}) => {
-    const { showToast = true } = options;
-
-    try {
-      await queryClient.invalidateQueries({ queryKey: ['profile'] });
-      await queryClient.invalidateQueries({ queryKey: ['user-settings'] });
-      
-      if (showToast) {
-        toast({
-          title: "✅ Profile Refreshed",
-          description: "Profile data has been reloaded successfully.",
-        });
-      }
-    } catch (error) {
-      console.error('Error clearing profile cache:', error);
-      if (showToast) {
-        toast({
-          title: "Cache Error",
-          description: "Failed to refresh profile cache.",
-          variant: "destructive",
-        });
-      }
+  const clearWalkingCache = useCallback((options: { showToast?: boolean } = {}) => {
+    console.log('🗑️ Clearing walking cache');
+    queryClient.invalidateQueries({ queryKey: ['walking'] });
+    queryClient.removeQueries({ queryKey: ['walking'] });
+    
+    if (options.showToast) {
+      console.log('✅ Walking cache cleared');
     }
-  };
+  }, [queryClient]);
 
-  const clearGoalsCache = async (options: CacheManagerOptions = {}) => {
-    const { showToast = false } = options;
-
-    try {
-      await queryClient.invalidateQueries({ queryKey: ['goals'] });
-      await queryClient.invalidateQueries({ queryKey: ['admin-goals'] });
-      await queryClient.invalidateQueries({ queryKey: ['goal-ideas'] });
-      
-      if (showToast) {
-        toast({
-          title: "✅ Goals Refreshed",
-          description: "Goal data has been reloaded successfully.",
-        });
-      }
-    } catch (error) {
-      console.error('Error clearing goals cache:', error);
+  const clearGoalsCache = useCallback(async (options: { showToast?: boolean } = {}) => {
+    console.log('🗑️ Clearing goals cache');
+    queryClient.invalidateQueries({ queryKey: ['goals'] });
+    queryClient.invalidateQueries({ queryKey: ['motivators'] });
+    queryClient.removeQueries({ queryKey: ['goals'] });
+    queryClient.removeQueries({ queryKey: ['motivators'] });
+    
+    if (options.showToast) {
+      console.log('✅ Goals cache cleared');
     }
-  };
+  }, [queryClient]);
 
-  const clearWalkingCache = async (options: CacheManagerOptions = {}) => {
-    const { showToast = false } = options;
-
-    try {
-      await queryClient.invalidateQueries({ queryKey: ['walking'] });
-      await queryClient.invalidateQueries({ queryKey: ['walking-sessions'] });
-      await queryClient.invalidateQueries({ queryKey: ['walking-history'] });
-      
-      if (showToast) {
-        toast({
-          title: "✅ Walking Data Refreshed",
-          description: "Walking session data has been reloaded successfully.",
-        });
-      }
-    } catch (error) {
-      console.error('Error clearing walking cache:', error);
+  const clearProfileCache = useCallback(async (options: { showToast?: boolean } = {}) => {
+    console.log('🗑️ Clearing profile cache');
+    queryClient.invalidateQueries({ queryKey: ['profile'] });
+    queryClient.removeQueries({ queryKey: ['profile'] });
+    
+    if (options.showToast) {
+      console.log('✅ Profile cache cleared');
     }
-  };
-
-  const clearAllCaches = async (options: CacheManagerOptions = {}) => {
-    const { showToast = true } = options;
-
-    try {
-      await queryClient.clear();
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      if (showToast) {
-        toast({
-          title: "✅ All Caches Cleared",
-          description: "All application data has been refreshed.",
-        });
-      }
-    } catch (error) {
-      console.error('Error clearing all caches:', error);
-      if (showToast) {
-        toast({
-          title: "Cache Error",
-          description: "Failed to clear all caches.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
+  }, [queryClient]);
 
   return {
+    clearAllSubscriptionCache,
+    forceRefreshSubscription,
     clearSubscriptionCache,
-    clearProfileCache,
-    clearGoalsCache,
     clearWalkingCache,
-    clearAllCaches,
+    clearGoalsCache,
+    clearProfileCache,
   };
 };

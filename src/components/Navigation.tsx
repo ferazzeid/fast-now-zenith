@@ -25,7 +25,7 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { inTrial, trialEndsAt } = useUnifiedSubscription();
+  const { inTrial, trialEndsAt, invalidate } = useUnifiedSubscription();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Optimize timer updates - only update when needed for both fasting and walking
@@ -53,6 +53,12 @@ export const Navigation = () => {
   useEffect(() => {
     refreshActiveSession();
   }, [refreshActiveSession]);
+
+  // Force refresh subscription data when navigation mounts
+  useEffect(() => {
+    console.log('🧭 Navigation mounted - refreshing subscription data');
+    invalidate();
+  }, [invalidate]);
 
   // Memoize fasting badge calculation to prevent unnecessary recalculations
   const getFastingBadge = useMemo(() => {
@@ -210,9 +216,16 @@ export const Navigation = () => {
                   )}
                   
                   {/* Trial countdown badge ONLY for Settings button */}
-                  {label === 'Settings' && inTrial && trialEndsAt && (
-                    <TrialTimerBadge trialEndsAt={trialEndsAt} />
-                  )}
+                  {label === 'Settings' && inTrial && trialEndsAt && (() => {
+                    console.log('🏷️ Rendering TrialTimerBadge on Settings:', { 
+                      label, 
+                      inTrial, 
+                      trialEndsAt, 
+                      path,
+                      timestamp: new Date().toISOString() 
+                    });
+                    return <TrialTimerBadge trialEndsAt={trialEndsAt} />;
+                  })()}
                 </Link>
               );
 

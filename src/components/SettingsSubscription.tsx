@@ -4,9 +4,10 @@ import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Crown, ExternalLink, Calendar, Clock, TestTube } from 'lucide-react';
+import { Crown, ExternalLink, Calendar, Clock, TestTube, RefreshCw } from 'lucide-react';
 import { TrialIndicator } from './TrialIndicator';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+import { useCacheManager } from '@/hooks/useCacheManager';
 
 export const SettingsSubscription = () => {
   const { 
@@ -22,9 +23,17 @@ export const SettingsSubscription = () => {
     platform,
     login_method,
     debug,
+    invalidate,
   } = useUnifiedSubscription();
 
   const { testRole, isTestingMode } = useRoleTestingContext();
+  const { clearAllSubscriptionCache } = useCacheManager();
+
+  // Force refresh subscription data when Settings page loads
+  React.useEffect(() => {
+    console.log('⚙️ Settings page loaded - refreshing subscription data');
+    invalidate();
+  }, [invalidate]);
 
   const isWeb = platform === 'web';
   const platformName = platform === 'ios' ? 'App Store' : platform === 'android' ? 'Google Play' : 'Stripe';
@@ -105,16 +114,24 @@ export const SettingsSubscription = () => {
     );
   }
 
-  // Debug logging
-  console.log('🔍 SettingsSubscription Debug:', {
-    subscribed,
-    subscription_status,
-    inTrial,
-    trialEndsAt,
-    subscription_tier,
-    platform,
-    login_method
-  });
+  // Enhanced debug logging
+  React.useEffect(() => {
+    console.log('⚙️ SETTINGS SUBSCRIPTION RENDER DEBUG:', {
+      subscribed,
+      subscription_status,
+      inTrial,
+      trialEndsAt,
+      subscription_tier,
+      platform,
+      login_method,
+      isTestingMode,
+      testRole,
+      debug,
+      computedAccountType: subscribed ? 'Premium User' : inTrial ? 'Free Trial' : 'Free User',
+      shouldShowTrial: inTrial && trialEndsAt,
+      timestamp: new Date().toISOString()
+    });
+  }, [subscribed, subscription_status, inTrial, trialEndsAt, subscription_tier, platform, login_method, isTestingMode, testRole, debug]);
 
   return (
     <div className="space-y-6">
@@ -228,6 +245,41 @@ export const SettingsSubscription = () => {
               <Badge variant="outline" className="mt-1">{login_method || 'email'}</Badge>
             </div>
           </div>
+
+          {/* Debug Section for Trial Issue */}
+          {debug && (
+            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-gray-600 dark:text-gray-400">Debug Info</span>
+                <Button
+                  onClick={() => {
+                    console.log('🔄 Manual cache clear requested');
+                    clearAllSubscriptionCache();
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Refresh
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-500">Trial:</span> {String(inTrial)}
+                </div>
+                <div>
+                  <span className="text-gray-500">Status:</span> {subscription_status}
+                </div>
+                <div>
+                  <span className="text-gray-500">Tier:</span> {subscription_tier}
+                </div>
+                <div>
+                  <span className="text-gray-500">Platform:</span> {platform}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t">
