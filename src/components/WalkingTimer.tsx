@@ -273,16 +273,13 @@ const WalkingTimerComponent = ({
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-primary">
-                  {currentSpeedOption.label}
-                </div>
+                <div className="flex items-center justify-start">
                   <Select 
                     value={currentSpeedOption.displaySpeed}
                     onValueChange={handleSpeedChange}
                   >
-                    <SelectTrigger className="h-6 w-20 text-xs bg-ceramic-base border-ceramic-rim">
-                      <SelectValue placeholder="Set" />
+                    <SelectTrigger className="h-7 w-24 text-sm bg-ceramic-base border-ceramic-rim">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-ceramic-plate border-ceramic-rim backdrop-blur-sm">
                       {SPEED_OPTIONS.map((option) => (

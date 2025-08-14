@@ -142,7 +142,7 @@ export const UnifiedMotivatorRotation = ({
               className="w-44 h-44 rounded-full bg-black/40 text-white backdrop-blur-sm border border-white/10 shadow-lg animate-scale-in flex items-center justify-center px-6 text-center"
               style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
             >
-              <span className="font-bold text-lg tracking-wide leading-snug">
+              <span className="font-semibold text-sm tracking-wide leading-snug">
                 {current!.title!.toUpperCase()}
               </span>
             </div>
