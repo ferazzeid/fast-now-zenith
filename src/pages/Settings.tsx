@@ -493,13 +493,11 @@ const Settings = () => {
                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sedentary">Sedentary (Default: desk job, minimal exercise)</SelectItem>
-                        <SelectItem value="lightly-active">Lightly Active (Some walking, light exercise)</SelectItem>
-                        <SelectItem value="moderately-active">Moderately Active (Regular exercise 3-5x/week)</SelectItem>
-                        <SelectItem value="very-active">Very Active (Heavy exercise 6-7x/week)</SelectItem>
-                        <SelectItem value="extra-active">Extra Active (Very heavy exercise, physical job)</SelectItem>
-                      </SelectContent>
+                       <SelectContent>
+                         <SelectItem value="sedentary">Low (Little/no exercise)</SelectItem>
+                         <SelectItem value="moderately_active">Medium (Moderate exercise 3-5 days/week)</SelectItem>
+                         <SelectItem value="very_active">High (Hard exercise 6-7 days/week)</SelectItem>
+                       </SelectContent>
                     </Select>
                   </div>
                 </div>

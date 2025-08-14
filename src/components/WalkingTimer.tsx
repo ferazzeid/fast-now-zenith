@@ -274,27 +274,24 @@ const WalkingTimerComponent = ({
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                <div className="text-base font-semibold text-primary">
+                <div className="text-sm font-medium text-primary">
                   {currentSpeedOption.label}
                 </div>
                   <Select 
                     value={currentSpeedOption.displaySpeed}
                     onValueChange={handleSpeedChange}
                   >
-                    <SelectTrigger className="h-6 w-16 text-xs bg-background border-muted">
+                    <SelectTrigger className="h-6 w-20 text-xs bg-ceramic-base border-ceramic-rim">
                       <SelectValue placeholder="Set" />
                     </SelectTrigger>
-                    <SelectContent className="z-50 bg-background border-border">
+                    <SelectContent className="z-50 bg-ceramic-plate border-ceramic-rim backdrop-blur-sm">
                       {SPEED_OPTIONS.map((option) => (
                         <SelectItem 
                           key={option.displaySpeed} 
                           value={option.displaySpeed}
-                          className="focus:bg-muted focus:text-muted-foreground hover:bg-muted hover:text-muted-foreground"
+                          className="text-xs hover:bg-ceramic-base focus:bg-ceramic-base"
                         >
-                          <div className="flex flex-col">
-                            <span className="font-medium">{option.label}</span>
-                            <span className="text-xs text-muted-foreground">{option.description}</span>
-                          </div>
+                          {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
