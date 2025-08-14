@@ -12,6 +12,7 @@ import { useAppLogo } from '@/hooks/useAppLogo';
 import { PremiumGatedDeficitDisplay } from '@/components/PremiumGatedDeficitDisplay';
 import { PremiumGatedCaloriesIn } from '@/components/PremiumGatedCaloriesIn';
 import { PremiumGatedGoalMetrics } from '@/components/PremiumGatedGoalMetrics';
+import { PremiumGatedDeficitDisplayLarge } from '@/components/PremiumGatedDeficitDisplayLarge';
 
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
@@ -165,12 +166,6 @@ export const DailyStatsPanel = memo(() => {
                 loading={loading}
                 tdee={deficitData.tdee}
               />
-              {/* 🐛 DEBUG: Show activity calculation breakdown */}
-              {(deficitData.walkingCalories > 0 || deficitData.manualCalories > 0) && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  ({formatNumber(deficitData.tdee)}+{formatNumber(deficitData.walkingCalories)}+{formatNumber(deficitData.manualCalories)}) = {formatNumber(deficitData.totalCaloriesBurned)}
-                </span>
-              )}
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
@@ -190,7 +185,7 @@ export const DailyStatsPanel = memo(() => {
             <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-muted-foreground">
               <div className="px-8 py-4 space-y-4">
                 {/* Main Deficit Display */}
-                <DeficitDisplay 
+                <PremiumGatedDeficitDisplayLarge 
                   deficit={deficitData.todayDeficit}
                   loading={loading}
                   tdee={deficitData.tdee}

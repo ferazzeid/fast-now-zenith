@@ -29,17 +29,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    // 🔧 DISABLE SYSTEM THEME MONITORING - No auto-switching
+    // 🔧 FORCE STABLE THEME - NO system monitoring whatsoever
+    let finalTheme = theme;
+    
+    // Convert system to dark for stability
     if (theme === 'system') {
-      // Force to dark mode instead of following system
+      finalTheme = 'dark';
       setTheme('dark');
       localStorage.setItem('theme', 'dark');
-      return;
     }
     
-    // Only apply the selected theme, never listen to system changes
-    setActualTheme(theme as 'light' | 'dark');
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    // Apply theme without any system monitoring
+    setActualTheme(finalTheme as 'light' | 'dark');
+    document.documentElement.classList.toggle('dark', finalTheme === 'dark');
   }, [theme]);
 
   const handleSetTheme = (newTheme: Theme) => {

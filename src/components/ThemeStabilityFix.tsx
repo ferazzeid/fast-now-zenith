@@ -13,26 +13,12 @@ export const ThemeStabilityFix: React.FC = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // AUTO-FIX: If user has system theme (causing auto-switching), set to stable theme
+    // 🔧 COMPLETE THEME STABILITY - Remove all system monitoring
     if (theme === 'system') {
-      const currentSystemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      console.log('🎨 THEME AUTO-FIX: Setting stable theme to', currentSystemTheme);
-      setTheme(currentSystemTheme);
+      setTheme('dark'); // Force stable theme
     }
-
-    // Listen for unwanted theme changes and stabilize cache
-    const handleThemeStabilization = () => {
-      console.log('🎨 THEME CHANGE DETECTED - Preventing cache corruption');
-      // Don't invalidate queries during theme changes to prevent calculation corruption
-    };
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', handleThemeStabilization);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleThemeStabilization);
-    };
-  }, [theme, setTheme, queryClient]);
+    // NO system theme listeners at all - complete stability
+  }, [theme, setTheme]);
 
   return null; // This is a utility component, renders nothing
 };
