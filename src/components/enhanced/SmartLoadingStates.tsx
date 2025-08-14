@@ -33,7 +33,7 @@ export const EnhancedLoadingScreen = ({
             <p className="text-muted-foreground text-sm">Taking longer than expected...</p>
             <Button 
               variant="outline" 
-              onClick={() => window.location.reload()}
+              onClick={() => location.reload()}
               className="mt-4"
             >
               <RefreshCw className="w-4 h-4 mr-2" />

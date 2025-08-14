@@ -24,6 +24,7 @@ import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useCacheManager } from '@/hooks/useCacheManager';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -53,6 +54,7 @@ const Settings = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const { isOnline } = useConnectionStore();
+  const { clearGoalsCache, clearProfileCache } = useCacheManager();
 
   useEffect(() => {
 
@@ -204,12 +206,16 @@ const Settings = () => {
           .select()
           .single();
 
-        // If sex changed, clear all caches and force reload
+        // If sex changed, clear relevant caches without page reload
         if (data && updateData.sex && updateData.sex !== profile?.sex) {
-          console.log('🔄 Sex changed - clearing all caches and reloading');
-          localStorage.clear();
-          sessionStorage.clear();
-          setTimeout(() => window.location.reload(), 500);
+          console.log('🔄 Sex changed - clearing goal and profile caches');
+          await clearGoalsCache({ showToast: false });
+          await clearProfileCache({ showToast: false });
+          
+          toast({
+            title: "Profile Updated",
+            description: "Sex updated successfully. Goal recommendations have been refreshed.",
+          });
         }
 
         if (error) {
@@ -764,7 +770,7 @@ const Settings = () => {
                   {!isOnline && (
                     <div className="pt-2">
                       <Button
-                        onClick={() => window.location.reload()}
+                        onClick={() => location.reload()}
                         variant="outline"
                         size="sm"
                         className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"

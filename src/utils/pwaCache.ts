@@ -98,7 +98,7 @@ export const forcePWARefresh = async () => {
       console.log('Mobile device detected, forcing page reload in 2 seconds...');
       setTimeout(() => {
         console.log('Reloading page for mobile cache clear...');
-        window.location.reload();
+        location.reload();
       }, 2000);
     }
     

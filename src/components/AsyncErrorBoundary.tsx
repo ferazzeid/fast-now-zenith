@@ -56,7 +56,7 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
           
           // Auto-refresh after a short delay
           setTimeout(() => {
-            window.location.reload();
+            location.reload();
           }, 2000);
           
         } catch (clearError) {

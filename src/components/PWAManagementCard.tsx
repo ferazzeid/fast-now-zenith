@@ -31,7 +31,7 @@ export const PWAManagementCard = () => {
 
       // Force reload to get fresh assets
       setTimeout(() => {
-        window.location.reload();
+        location.reload();
       }, 1000);
 
       toast({

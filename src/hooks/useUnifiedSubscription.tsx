@@ -83,6 +83,7 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
         stripe_customer_id,
         google_play_purchase_token,
         apple_transaction_id,
+        user_tier,
         created_at
       `)
       .eq('user_id', userId)
@@ -127,9 +128,16 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
       (platform === 'ios' && profile?.apple_transaction_id) ||
       (platform === 'web' && profile?.stripe_customer_id && subscribed);
 
-    const tier = profile?.subscription_tier || 'free_user';
-    const isPaidUser = subscribed || inTrial || tier !== 'free_user';
+    // Fix: Use user_tier from database as source of truth, not subscription_tier
+    const userTier = profile?.user_tier || 'free_user';
+    const dbSubscriptionTier = profile?.subscription_tier || 'free';
+    
+    // User is paid if they have active subscription OR in trial OR user_tier is paid_user
+    const isPaidUser = subscribed || inTrial || userTier === 'paid_user';
     const hasPremiumFeatures = isPaidUser;
+    
+    // Return the database subscription_tier but use user_tier for paid status
+    const displayTier = isPaidUser ? 'paid' : 'free';
 
     // Get auth provider info
     const { data: { user } } = await supabase.auth.getUser();
@@ -138,7 +146,7 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
     const result: UnifiedSubscriptionData = {
       subscribed: subscribed || !!hasValidPlatformSubscription,
       subscription_status,
-      subscription_tier: tier,
+      subscription_tier: displayTier,
       subscription_end_date: profile?.subscription_end_date,
       inTrial,
       trialEndsAt: profile?.trial_ends_at,

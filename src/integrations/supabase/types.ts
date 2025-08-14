@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1186,6 +1186,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ring_bell_gallery_items: {
+        Row: {
+          back_image_url: string | null
+          back_text: string | null
+          created_at: string
+          front_image_url: string | null
+          front_text: string | null
+          id: string
+          initial_state: string
+          is_active: boolean
+          order_position: number
+          updated_at: string
+        }
+        Insert: {
+          back_image_url?: string | null
+          back_text?: string | null
+          created_at?: string
+          front_image_url?: string | null
+          front_text?: string | null
+          id?: string
+          initial_state?: string
+          is_active?: boolean
+          order_position: number
+          updated_at?: string
+        }
+        Update: {
+          back_image_url?: string | null
+          back_text?: string | null
+          created_at?: string
+          front_image_url?: string | null
+          front_text?: string | null
+          id?: string
+          initial_state?: string
+          is_active?: boolean
+          order_position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shared_settings: {
         Row: {
           created_at: string
@@ -1470,28 +1509,28 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       track_usage_event: {
         Args: {
-          _user_id: string
           _event_type: string
           _requests_count?: number
           _subscription_status?: string
+          _user_id: string
         }
         Returns: undefined
       }
       update_subscription_from_receipt: {
         Args: {
-          _user_id: string
-          _provider: string
-          _subscription_id: string
-          _product_id: string
-          _status: string
           _expires_at?: string
+          _product_id: string
+          _provider: string
+          _status: string
+          _subscription_id: string
+          _user_id: string
         }
         Returns: undefined
       }
