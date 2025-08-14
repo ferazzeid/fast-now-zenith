@@ -376,7 +376,7 @@ const FoodTracking = () => {
 
         {/* Action Buttons */}
         <div className="mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             <PremiumGate 
               feature="ai_food_voice"
               className="col-span-1"
