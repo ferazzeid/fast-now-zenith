@@ -72,12 +72,20 @@ export const useDailyDeficitQuery = () => {
     queryKey: bmrTdeeQueryKey(user?.id || null, profileHash),
     queryFn: (): { bmr: number; tdee: number } => {
       if (!profile?.weight || !profile?.height || !profile?.age) {
+        console.log('🚨 PROFILE MISSING DATA:', { weight: profile?.weight, height: profile?.height, age: profile?.age });
         return { bmr: 0, tdee: 0 };
       }
 
       // Note: Profile weight/height are stored in metric (kg/cm) regardless of user preference
       const weightKg = profile.weight;
       const heightCm = profile.height;
+
+      console.log('🚨 BMR CALCULATION INPUT:', {
+        weight: weightKg,
+        height: heightCm,
+        age: profile.age,
+        activity_level: profile.activity_level
+      });
 
       // BMR calculation using Mifflin-St Jeor Equation (using male formula as default)
       const bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5;
@@ -99,11 +107,19 @@ export const useDailyDeficitQuery = () => {
       const multiplier = activityMultipliers[activityLevel as keyof typeof activityMultipliers] || 1.2;
       const tdee = bmr * multiplier;
 
+      console.log('🚨 BMR/TDEE CALCULATION RESULT:', {
+        bmr: Math.round(bmr),
+        tdee: Math.round(tdee),
+        multiplier,
+        activityLevel,
+        calculation: `${Math.round(bmr)} × ${multiplier} = ${Math.round(tdee)}`
+      });
+
       return { bmr: Math.round(bmr), tdee: Math.round(tdee) };
     },
     enabled: !!profile?.weight && !!profile?.height && !!profile?.age,
-    staleTime: 24 * 60 * 60 * 1000, // PERFORMANCE: 24 hours stale time (profile rarely changes)
-    gcTime: 48 * 60 * 60 * 1000, // PERFORMANCE: 48 hours garbage collection
+    staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+    gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
   });
 
   // PERFORMANCE: Cached walking calories calculation
