@@ -25,6 +25,11 @@ const BrandAssetsManager = () => {
     name: 'Admin',
     title: 'Personal Insight'
   });
+  const [authorDataDraft, setAuthorDataDraft] = useState({
+    name: 'Admin',
+    title: 'Personal Insight'
+  });
+  const [hasAuthorChanges, setHasAuthorChanges] = useState(false);
 
   useEffect(() => {
     fetchCurrentAssets();
@@ -77,6 +82,11 @@ const BrandAssetsManager = () => {
           name: settingsMap.author_tooltip_name || 'Admin',
           title: settingsMap.author_tooltip_title || 'Personal Insight'
         });
+        setAuthorDataDraft({
+          name: settingsMap.author_tooltip_name || 'Admin',
+          title: settingsMap.author_tooltip_title || 'Personal Insight'
+        });
+        setHasAuthorChanges(false);
       }
     } catch (error) {
       console.error('Failed to load author settings:', error);
@@ -203,6 +213,7 @@ const BrandAssetsManager = () => {
   };
 
   const updateAuthorField = async (field: 'name' | 'title', value: string) => {
+    setUploading(true);
     try {
       await supabase
         .from('shared_settings')
@@ -212,6 +223,7 @@ const BrandAssetsManager = () => {
         }, { onConflict: 'setting_key' });
 
       setAuthorData(prev => ({ ...prev, [field]: value }));
+      setHasAuthorChanges(false);
       
       toast({
         title: "Author info updated",
@@ -224,7 +236,58 @@ const BrandAssetsManager = () => {
         description: `Failed to update author ${field}. Please try again.`,
         variant: "destructive",
       });
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const saveAuthorInfo = async () => {
+    if (!hasAuthorChanges) return;
+    
+    setUploading(true);
+    try {
+      // Save both name and title
+      await Promise.all([
+        supabase
+          .from('shared_settings')
+          .upsert({ 
+            setting_key: 'author_tooltip_name', 
+            setting_value: authorDataDraft.name 
+          }, { onConflict: 'setting_key' }),
+        supabase
+          .from('shared_settings')
+          .upsert({ 
+            setting_key: 'author_tooltip_title', 
+            setting_value: authorDataDraft.title 
+          }, { onConflict: 'setting_key' })
+      ]);
+
+      setAuthorData(prev => ({ 
+        ...prev, 
+        name: authorDataDraft.name,
+        title: authorDataDraft.title 
+      }));
+      setHasAuthorChanges(false);
+      
+      toast({
+        title: "Author info saved",
+        description: "Author information has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving author info:', error);
+      toast({
+        title: "Save failed",
+        description: "Failed to save author information. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAuthorDataChange = (field: 'name' | 'title', value: string) => {
+    setAuthorDataDraft(prev => ({ ...prev, [field]: value }));
+    setHasAuthorChanges(true);
   };
 
   const updateManifestAndFavicon = async () => {
@@ -583,10 +646,10 @@ const BrandAssetsManager = () => {
             <Label htmlFor="author-name">Author Name</Label>
             <Input
               id="author-name"
-              value={authorData.name}
-              onChange={(e) => setAuthorData(prev => ({ ...prev, name: e.target.value }))}
-              onBlur={(e) => updateAuthorField('name', e.target.value)}
+              value={authorDataDraft.name}
+              onChange={(e) => handleAuthorDataChange('name', e.target.value)}
               placeholder="Enter author name"
+              disabled={uploading}
             />
           </div>
 
@@ -595,11 +658,27 @@ const BrandAssetsManager = () => {
             <Label htmlFor="author-title">Tooltip Title</Label>
             <Input
               id="author-title"
-              value={authorData.title}
-              onChange={(e) => setAuthorData(prev => ({ ...prev, title: e.target.value }))}
-              onBlur={(e) => updateAuthorField('title', e.target.value)}
+              value={authorDataDraft.title}
+              onChange={(e) => handleAuthorDataChange('title', e.target.value)}
               placeholder="e.g., Personal Insight, Author Note"
+              disabled={uploading}
             />
+          </div>
+
+          {/* Save Button */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={saveAuthorInfo}
+              disabled={!hasAuthorChanges || uploading}
+              className="flex-1 sm:flex-none"
+            >
+              {uploading ? "Saving..." : "Save Author Info"}
+            </Button>
+            {hasAuthorChanges && (
+              <p className="text-xs text-muted-foreground self-center">
+                You have unsaved changes
+              </p>
+            )}
           </div>
 
           {/* Preview */}
