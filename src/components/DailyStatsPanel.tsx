@@ -165,6 +165,12 @@ export const DailyStatsPanel = memo(() => {
                 loading={loading}
                 tdee={deficitData.tdee}
               />
+              {/* 🐛 DEBUG: Show calculation components for transparency */}
+              {deficitData.walkingCalories > 0 && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  ({formatNumber(deficitData.tdee)}+{formatNumber(deficitData.walkingCalories)})
+                </span>
+              )}
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
@@ -206,7 +212,7 @@ export const DailyStatsPanel = memo(() => {
                     icon={<Activity className="w-4 h-4 text-primary" />}
                     label="Calories Out"
                     value={Math.round(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}
-                    tooltip="Total calories burned today: Base Daily Burn + Walking + Manual Activities"
+                    tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)}`}
                   />
                 </div>
 
@@ -218,7 +224,7 @@ export const DailyStatsPanel = memo(() => {
                     <div className="flex items-center space-x-2">
                       <Target className="w-4 h-4 text-primary" />
                       <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
-                      <ClickableTooltip content="Calories your body burns naturally based on your metabolism and activity level">
+                      <ClickableTooltip content={`Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`}>
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>
                     </div>

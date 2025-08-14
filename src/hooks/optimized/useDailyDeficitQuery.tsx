@@ -170,6 +170,17 @@ export const useDailyDeficitQuery = () => {
       const totalCaloriesBurned = bmrTdee.tdee + walkingCalories + manualCalories;
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
 
+      // 🐛 DEBUG: Log deficit calculation breakdown
+      console.log('📊 DEFICIT CALCULATION DEBUG:', {
+        tdee: bmrTdee.tdee,
+        walkingCalories,
+        manualCalories,
+        totalCaloriesBurned,
+        caloriesConsumed,
+        todayDeficit: Math.round(todayDeficit),
+        calculation: `${bmrTdee.tdee} + ${walkingCalories} + ${manualCalories} - ${caloriesConsumed} = ${Math.round(todayDeficit)}`
+      });
+
       return {
         todayDeficit: Math.round(todayDeficit),
         bmr: bmrTdee.bmr,
