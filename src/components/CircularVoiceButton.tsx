@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -8,18 +8,28 @@ interface CircularVoiceButtonProps {
   onTranscription: (text: string) => void;
   isDisabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  autoStart?: boolean;
 }
 
 export const CircularVoiceButton: React.FC<CircularVoiceButtonProps> = ({
   onTranscription,
   isDisabled = false,
-  size = 'md'
+  size = 'md',
+  autoStart = false
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
+
+  // Auto-start recording when autoStart is true
+  useEffect(() => {
+    if (autoStart && !isDisabled && !isRecording && !isProcessing) {
+      console.log('🎤 Auto-starting recording...');
+      startRecording();
+    }
+  }, [autoStart, isDisabled]);
 
   const sizeClasses = {
     sm: 'h-8 w-8',

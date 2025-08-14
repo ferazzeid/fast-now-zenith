@@ -1274,6 +1274,7 @@ ${updatedContent}`
                 onTranscription={handleVoiceTranscription}
                 isDisabled={isProcessing}
                 size="lg"
+                autoStart={true}
               />
             </PremiumGate>
           </div>
