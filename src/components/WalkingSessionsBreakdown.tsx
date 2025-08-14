@@ -56,7 +56,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
         .from('walking_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'completed')
+        .eq('session_state', 'completed')
         .gte('start_time', startOfDay.toISOString())
         .lt('start_time', new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).toISOString())
         .order('start_time', { ascending: false });
@@ -105,10 +105,8 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const hasAnySessions = completedSessions.length > 0 || walkingStats.isActive || manualBurns.length > 0;
   const sessionCount = completedSessions.length + (walkingStats.isActive ? 1 : 0) + manualBurns.length;
   
-  // Calculate the actual combined total
-  const walkingCalories = walkingStats.isActive ? walkingStats.realTimeCalories : 0;
-  const completedWalkingCalories = completedSessions.reduce((sum, session) => sum + (session.calories_burned || 0), 0);
-  const actualTotalCalories = walkingCalories + completedWalkingCalories + manualCalorieTotal;
+  // Use the totalCalories prop which comes from useDailyDeficitQuery (more accurate)
+  const displayCalories = totalCalories;
 
   const handleDeleteManualBurn = async (burnId: string) => {
     try {
@@ -161,7 +159,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
         </div>
         <div className="flex items-center space-x-2">
           <div className="text-sm font-bold text-warm-text">
-            {Math.round(actualTotalCalories)} cal
+            {Math.round(displayCalories)} cal
           </div>
           {sessionCount > 1 && (
             <Button
