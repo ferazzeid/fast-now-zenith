@@ -31,7 +31,7 @@ export interface FastingHour {
 }
 
 export interface ContentVariant {
-  type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet' | 'stage' | 'encouragement';
+  type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet' | 'stage' | 'encouragement' | 'admin_personal_log';
   content: string;
   duration?: number; // milliseconds to show this variant
 }

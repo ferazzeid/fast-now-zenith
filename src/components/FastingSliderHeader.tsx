@@ -13,9 +13,12 @@ export const FastingSliderHeader: React.FC<FastingSliderHeaderProps> = ({
   maxHour = 72,
   onHourChange,
 }) => {
-  const clamp = (n: number) => Math.min(Math.max(n, 1), maxHour);
-  const prev = clamp(currentHour - 1);
-  const next = clamp(currentHour + 1);
+  const clamp = (n: number) => Math.min(Math.max(n, 0), maxHour);
+  const prev = Math.max(currentHour - 1, 0);
+  const next = Math.min(currentHour + 1, maxHour);
+  
+  const canGoBack = currentHour > 0;
+  const canGoForward = currentHour < maxHour;
 
   return (
     <div className={`w-full animate-fade-in ${className}`} aria-live="polite">
@@ -23,17 +26,27 @@ export const FastingSliderHeader: React.FC<FastingSliderHeaderProps> = ({
       <div className="flex items-center justify-between text-xs">
         <button
           type="button"
-          className="text-muted-foreground hover:text-primary transition-colors"
-          onClick={() => onHourChange?.(0)}
-          aria-label="Go to hour 0"
+          className={`transition-colors ${
+            canGoBack 
+              ? 'text-muted-foreground hover:text-primary' 
+              : 'text-muted-foreground/50 cursor-not-allowed'
+          }`}
+          onClick={() => canGoBack && onHourChange?.(prev)}
+          disabled={!canGoBack}
+          aria-label={`Go to hour ${prev}`}
         >
-          Hour 0
+          Hour {prev}
         </button>
         <span className="font-medium text-primary">Hour {clamp(currentHour)}</span>
         <button
           type="button"
-          className="text-muted-foreground hover:text-primary transition-colors"
-          onClick={() => onHourChange?.(next)}
+          className={`transition-colors ${
+            canGoForward 
+              ? 'text-muted-foreground hover:text-primary' 
+              : 'text-muted-foreground/50 cursor-not-allowed'
+          }`}
+          onClick={() => canGoForward && onHourChange?.(next)}
+          disabled={!canGoForward}
           aria-label={`Go to hour ${next}`}
         >
           Hour {next}

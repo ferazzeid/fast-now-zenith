@@ -28,7 +28,7 @@ export function useContentRotation({
     isRotating: autoRotate
   });
 
-  // Build content variants from fastingHour data
+  // Build content variants from fastingHour data (excludes admin_personal_log)
   const buildContentVariants = useCallback((hour: FastingHour): ContentVariant[] => {
     console.log('Building content variants for hour:', hour.hour, hour);
     
@@ -61,7 +61,10 @@ export function useContentRotation({
       variants.push({ type: 'physiological', content: hour.body_state });
     }
     
-    console.log('Built variants:', variants);
+    // NOTE: admin_personal_log is intentionally excluded from rotation
+    // It's displayed separately in AdminPersonalLogInterface
+    
+    console.log('Built variants (excluding admin logs):', variants);
     return variants;
   }, []);
 
@@ -76,11 +79,16 @@ export function useContentRotation({
 
     let variants: ContentVariant[] = [];
     
-    // Try to use provided rotation data first and filter out empty content and \n characters
+    // Try to use provided rotation data first and filter out empty content, \n characters, and admin logs
     if (fastingHour.content_rotation_data?.variants?.length) {
       console.log('Using provided rotation data:', fastingHour.content_rotation_data.variants);
       variants = fastingHour.content_rotation_data.variants
-        .filter(v => v.content && v.content.trim() !== '' && !v.content.includes('coming soon'))
+        .filter(v => 
+          v.content && 
+          v.content.trim() !== '' && 
+          !v.content.includes('coming soon') &&
+          v.type !== 'admin_personal_log' // Exclude admin logs from rotation
+        )
         .map(v => ({
           ...v,
           content: v.content.replace(/\\n/g, ' ').replace(/\n/g, ' ').trim()
