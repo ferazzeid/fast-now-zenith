@@ -556,9 +556,23 @@ const Settings = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Account Type</span>
                     <span className="text-warm-text font-medium">
-                      {subscription.subscription_tier === 'paid_user' ? 'Premium User' : 'Free User'}
+                      {subscription.inTrial ? 'Trial User' : 
+                       subscription.hasPremiumFeatures ? 'Premium User' : 'Free User'}
                     </span>
                   </div>
+                  {(subscription.inTrial || subscription.hasPremiumFeatures) && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">
+                        {subscription.inTrial ? 'Trial expires' : 'Renewal due'}
+                      </span>
+                      <span className="text-warm-text font-medium">
+                        {subscription.inTrial 
+                          ? (subscription.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString() : 'Unknown')
+                          : (subscription.subscription_end_date ? new Date(subscription.subscription_end_date).toLocaleDateString() : 'Unknown')
+                        }
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Member since</span>
                     <span className="text-warm-text font-medium">
