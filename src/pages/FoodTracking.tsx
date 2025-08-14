@@ -559,13 +559,21 @@ const FoodTracking = () => {
                               <MoreVertical className="w-5 h-5 text-primary" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-44">
-                            <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit Entry
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async () => {
+                          <DropdownMenuContent 
+                            align="start" 
+                            side="bottom" 
+                            sideOffset={8}
+                            avoidCollisions={true}
+                            collisionPadding={16}
+                            className="w-52 z-50 bg-background border border-border shadow-lg"
+                          >
+                             <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="py-2.5 px-3">
+                               <Edit className="w-4 h-4 mr-2" />
+                               Edit Entry
+                             </DropdownMenuItem>
+                             <DropdownMenuItem
+                               className="py-2.5 px-3"
+                               onClick={async () => {
                                 const result = await addFoodEntry({
                                   name: entry.name,
                                   calories: entry.calories,
@@ -592,8 +600,8 @@ const FoodTracking = () => {
                               <Plus className="w-4 h-4 mr-2" />
                               Duplicate Entry
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async () => {
+                             <DropdownMenuItem
+                               onClick={async () => {
                                 if (isInLibrary(entry.name)) {
                                   toast({ title: 'Already in Library', description: `${entry.name} is already in your library` });
                                   return;
@@ -607,13 +615,14 @@ const FoodTracking = () => {
                                 addLibraryLocal(entry.name);
                                 toast({ title: 'Saved to Library', description: `${entry.name} added to your library` });
                               }}
-                              className={isInLibrary(entry.name) ? "text-muted-foreground cursor-default" : ""}
+                              className={`py-2.5 px-3 ${isInLibrary(entry.name) ? "text-muted-foreground cursor-default" : ""}`}
                             >
                               <Save className="w-4 h-4 mr-2" />
                               {isInLibrary(entry.name) ? 'Already in Library' : 'Add to Library'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async () => {
+                             <DropdownMenuItem
+                               className="py-2.5 px-3"
+                               onClick={async () => {
                                 try {
                                   const foodsToSave = [{
                                     name: entry.name,
@@ -649,9 +658,9 @@ const FoodTracking = () => {
                               <Plus className="w-4 h-4 mr-2" />
                               Add to Template
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteFoodEntry(entry.id)}
-                              className="text-destructive focus:text-destructive"
+                             <DropdownMenuItem 
+                               onClick={() => handleDeleteFoodEntry(entry.id)}
+                               className="py-2.5 px-3 text-destructive focus:text-destructive"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete Entry
@@ -807,9 +816,17 @@ const FoodTracking = () => {
                                     <MoreVertical className="w-5 h-5 text-primary" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start" className="w-44">
-                                  <DropdownMenuItem 
-                                    onClick={() => {
+                                <DropdownMenuContent 
+                                  align="start" 
+                                  side="bottom" 
+                                  sideOffset={8}
+                                  avoidCollisions={true}
+                                  collisionPadding={16}
+                                  className="w-52 z-50 bg-background border border-border shadow-lg"
+                                >
+                                   <DropdownMenuItem 
+                                     className="py-2.5 px-3"
+                                     onClick={() => {
                                       // Create a mock entry for editing template items
                                       const mockEntry = {
                                         id: food.id,
@@ -830,8 +847,9 @@ const FoodTracking = () => {
                                     <Edit className="w-4 h-4 mr-2" />
                                     Edit Entry
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={async () => {
+                                   <DropdownMenuItem
+                                     className="py-2.5 px-3"
+                                     onClick={async () => {
                                       const currentFood = templateFoods.find(f => f.id === foodId);
                                       if (!currentFood) {
                                         toast({
@@ -877,8 +895,8 @@ const FoodTracking = () => {
                                     <Plus className="w-4 h-4 mr-2" />
                                     Duplicate Entry
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={async () => {
+                                   <DropdownMenuItem
+                                     onClick={async () => {
                                       const currentFood = templateFoods.find(f => f.id === foodId);
                                       if (!currentFood) {
                                         toast({
@@ -903,7 +921,7 @@ const FoodTracking = () => {
                                       addLibraryLocal(currentFood.name);
                                       toast({ title: 'Saved to Library', description: `${currentFood.name} added to your library` });
                                     }}
-                                    className={isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}
+                                    className={`py-2.5 px-3 ${isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}`}
                                   >
                                     <Save className="w-4 h-4 mr-2" />
                                     {isInLibrary(food.name) ? 'Already in Library' : 'Add to Library'}
@@ -952,10 +970,10 @@ const FoodTracking = () => {
                                     }}
                                   >
                                     <Plus className="w-4 h-4 mr-2" />
-                                    Add to Today's Plan
+                                    Add to Today
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={async () => {
+                                   <DropdownMenuItem 
+                                     onClick={async () => {
                                       const currentFood = templateFoods.find(f => f.id === foodId);
                                       if (!currentFood) {
                                         toast({
@@ -1002,7 +1020,7 @@ const FoodTracking = () => {
                                         });
                                       }
                                     }}
-                                    className="text-destructive focus:text-destructive"
+                                    className="py-2.5 px-3 text-destructive focus:text-destructive"
                                   >
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Delete Entry

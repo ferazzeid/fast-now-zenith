@@ -648,7 +648,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <MoreVertical className="w-4 h-4 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                 <DropdownMenuContent align="start" className="w-48 z-50 bg-background border border-border shadow-lg">
+                 <DropdownMenuContent 
+                   align="start" 
+                   side="bottom" 
+                   sideOffset={8}
+                   avoidCollisions={true}
+                   collisionPadding={16}
+                   className="w-52 z-50 bg-background border border-border shadow-lg"
+                 >
                    {isUserFood ? (
                      <>
                          <DropdownMenuItem
@@ -656,20 +663,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                              e.stopPropagation();
                              handleQuickSelect(food as UserFood, false);
                            }}
-                           className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                         >
-                           <Plus className="w-4 h-4 mr-3" />
-                           Add to Today's Plan
+                            className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                          >
+                            <Plus className="w-4 h-4 mr-3" />
+                            Add to Today
                          </DropdownMenuItem>
                          <DropdownMenuItem
                            onClick={(e) => {
                              e.stopPropagation();
                              handleAddToTemplate(food as UserFood);
                            }}
-                           className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                         >
-                           <Save className="w-4 h-4 mr-3" />
-                           Add to Daily Templates
+                            className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                          >
+                            <Save className="w-4 h-4 mr-3" />
+                            Add to Templates
                          </DropdownMenuItem>
                          {/* Only show Edit option for user foods and admin for default foods */}
                          {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
@@ -678,10 +685,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                e.stopPropagation();
                                setShowEditModal(true);
                              }}
-                             className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                           >
-                             <Edit className="w-4 h-4 mr-3" />
-                             Edit Food
+                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                            >
+                              <Edit className="w-4 h-4 mr-3" />
+                              Edit Food
                            </DropdownMenuItem>
                          )}
                          <DropdownMenuItem
@@ -689,10 +696,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                              e.stopPropagation();
                              deleteFood(food.id);
                            }}
-                           className="text-destructive focus:text-destructive cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-destructive/10 transition-colors"
-                         >
-                           <Trash2 className="w-4 h-4 mr-3" />
-                           Delete Food
+                            className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 mr-3" />
+                            Delete Food
                          </DropdownMenuItem>
                       </>
                     ) : (
@@ -702,30 +709,30 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                              e.stopPropagation();
                              handleQuickSelect(food as UserFood, false);
                            }}
-                           className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                         >
-                           <Plus className="w-4 h-4 mr-3" />
-                           Add to Today
+                            className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                          >
+                            <Plus className="w-4 h-4 mr-3" />
+                            Add to Today
                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               handleAddToTemplate(food as UserFood);
                             }}
-                            className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                          >
-                            <Save className="w-4 h-4 mr-3" />
-                            Add to Templates
+                             className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                           >
+                             <Save className="w-4 h-4 mr-3" />
+                             Add to Templates
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               importToMyLibrary(food as DefaultFood);
                             }}
-                            className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                          >
-                            <Download className="w-4 h-4 mr-3" />
-                            Add to Library
+                             className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                           >
+                             <Download className="w-4 h-4 mr-3" />
+                             Add to Library
                           </DropdownMenuItem>
                           {food.id.startsWith('recent-') ? (
                             <DropdownMenuItem
@@ -733,10 +740,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                 e.stopPropagation();
                                 deleteRecentFood(food.name);
                               }}
-                              className="text-destructive focus:text-destructive cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-destructive/10 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4 mr-3" />
-                              Remove from History
+                               className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                             >
+                               <Trash2 className="w-4 h-4 mr-3" />
+                               Remove from History
                             </DropdownMenuItem>
                           ) : isAdmin && (
                             <>
@@ -745,20 +752,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                    e.stopPropagation();
                                    setShowEditModal(true);
                                  }}
-                                 className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
-                               >
-                                 <Edit className="w-4 h-4 mr-3" />
-                                 Edit Food
+                                  className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                                >
+                                  <Edit className="w-4 h-4 mr-3" />
+                                  Edit Food
                                </DropdownMenuItem>
                                <DropdownMenuItem
                                  onClick={(e) => {
                                    e.stopPropagation();
                                    deleteDefaultFood(food.id);
                                  }}
-                                 className="text-destructive focus:text-destructive cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-destructive/10 transition-colors"
-                               >
-                                 <Trash2 className="w-4 h-4 mr-3" />
-                                 Delete Food
+                                  className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-3" />
+                                  Delete Food
                                </DropdownMenuItem>
                             </>
                           )}
