@@ -165,17 +165,6 @@ export const Navigation = () => {
       <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="bg-ceramic-plate px-4 py-2">
           <div className="flex justify-around gap-1 relative">
-            {/* Connection Status Indicator */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="absolute -top-1 right-1 z-10">
-                  <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${connectionStatus.shouldPulse ? 'animate-pulse' : ''}`} />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{connectionStatus.tooltip}</p>
-              </TooltipContent>
-            </Tooltip>
             {/* Navigation Items */}
             {navItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
               const isActive = location.pathname === path;

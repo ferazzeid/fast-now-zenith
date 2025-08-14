@@ -5,7 +5,7 @@ import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Sparkles, Target } from 'lucide-react';
+import { Plus, Sparkles, Target, Mic } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
@@ -306,48 +306,52 @@ const Motivators = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                  <Button
-                    onClick={() => {
-                      setAiChatContext("Help me create a powerful motivator for my fasting journey. I want to record what drives me and why it's important.");
-                      setShowAiChat(true);
-                      trackAIEvent('chat', 'motivator_voice');
-                    }}
-                    variant="ai"
+          <div className="flex gap-3 justify-center mb-6">
+            <div className="flex flex-col items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PremiumGate feature="Voice Input" grayOutForFree={true}>
+                    <Button
+                      onClick={() => {
+                        setAiChatContext("Help me create a powerful motivator for my fasting journey. I want to record what drives me and why it's important.");
+                        setShowAiChat(true);
+                        trackAIEvent('chat', 'motivator_voice');
+                      }}
+                      variant="ai"
+                      size="action-tall"
+                      className="flex items-center justify-center"
+                      aria-label="Create motivator with voice"
+                    >
+                      <Mic className="w-5 h-5" />
+                    </Button>
+                  </PremiumGate>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Create a motivator by talking about what drives you</p>
+                </TooltipContent>
+              </Tooltip>
+              <span className="text-xs text-muted-foreground">Add with Voice</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={() => setShowFormModal(true)}
+                    variant="action-primary"
                     size="action-tall"
                     className="flex items-center justify-center"
-                    aria-label="Create motivator with voice"
+                    aria-label="Create motivator manually"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
+                    <Plus className="w-5 h-5" />
                   </Button>
-                </PremiumGate>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Create a motivator by talking about what drives you</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={() => setShowFormModal(true)}
-                  variant="action-primary"
-                  size="action-tall"
-                  className="flex items-center justify-center"
-                  aria-label="Create motivator manually"
-                >
-                  <Plus className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Create a motivator by typing title, description, and adding images</p>
-              </TooltipContent>
-            </Tooltip>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Create a motivator by typing title, description, and adding images</p>
+                </TooltipContent>
+              </Tooltip>
+              <span className="text-xs text-muted-foreground">Add Manually</span>
+            </div>
 
             <Tooltip>
               <TooltipTrigger asChild>
