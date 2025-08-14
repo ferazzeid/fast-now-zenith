@@ -146,63 +146,79 @@ export const useDailyDeficitQuery = () => {
       console.log('🚶‍♂️ Profile weight:', profile?.weight);
       console.log('🚶‍♂️ Today date:', today);
 
-      if (!walkingSessions || !profile?.weight) return 0;
+      if (!walkingSessions || !profile?.weight) {
+        console.log('🚶‍♂️ EARLY RETURN: No sessions or profile weight');
+        return 0;
+      }
+
+      // Use more robust date filtering - compare dates in local timezone
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      const tomorrowDate = new Date(todayDate);
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
 
       const todaySessions = walkingSessions.filter(session => {
-        const sessionDate = new Date(session.start_time).toISOString().split('T')[0];
-        return sessionDate === today;
+        const sessionStart = new Date(session.start_time);
+        const isToday = sessionStart >= todayDate && sessionStart < tomorrowDate;
+        console.log('🚶‍♂️ SESSION DATE CHECK:', {
+          sessionId: session.id,
+          sessionStart: sessionStart.toISOString(),
+          todayStart: todayDate.toISOString(),
+          tomorrowStart: tomorrowDate.toISOString(),
+          isToday
+        });
+        return isToday;
       });
 
-      console.log('🚶‍♂️ TODAY SESSIONS:', todaySessions.map(s => ({
+      console.log('🚶‍♂️ TODAY SESSIONS FILTERED:', todaySessions.length);
+      console.log('🚶‍♂️ TODAY SESSIONS DETAILS:', todaySessions.map(s => ({
         id: s.id,
         start_time: s.start_time,
         end_time: s.end_time,
-        duration_minutes: s.duration_minutes,
         speed_mph: s.speed_mph,
         session_state: s.session_state,
         is_edited: s.is_edited,
         calories_burned: s.calories_burned
       })));
 
-      return todaySessions.reduce((total, session) => {
+      const totalCalories = todaySessions.reduce((total, session) => {
+        console.log('🚶‍♂️ PROCESSING SESSION:', session.id);
+        
         // Skip edited sessions - they have nulled calculated data
         if (session.is_edited) {
           console.log('🚶‍♂️ SKIPPING EDITED SESSION:', session.id);
           return total;
         }
 
-        // 🐛 CRITICAL BUG FIX: Use stored calories_burned if available
+        // 🐛 CRITICAL BUG FIX: Use stored calories_burned if available for completed sessions
         if (session.calories_burned && session.session_state === 'completed') {
           console.log('🚶‍♂️ USING STORED CALORIES:', session.calories_burned, 'for session', session.id);
           return total + session.calories_burned;
         }
 
-        // Calculate duration: use stored duration OR calculate from start/end times
-        let durationMinutes = session.duration_minutes;
+        // For active sessions or sessions without stored calories, calculate them
+        if (!session.start_time) {
+          console.log('🚶‍♂️ SKIPPING SESSION - NO START TIME');
+          return total;
+        }
+
+        // Calculate duration from start/end times
+        let durationMinutes = 0;
         
-        if (!durationMinutes && session.start_time && session.end_time) {
+        if (session.end_time) {
           const startTime = new Date(session.start_time);
           const endTime = new Date(session.end_time);
           durationMinutes = Math.max(0, (endTime.getTime() - startTime.getTime()) / (1000 * 60));
           console.log('🚶‍♂️ CALCULATED DURATION FROM TIMES:', durationMinutes, 'minutes');
-        }
-        
-        if (!durationMinutes && session.session_state === 'active' && session.start_time) {
+        } else if (session.session_state === 'active') {
           const now = new Date();
           const startTime = new Date(session.start_time);
           durationMinutes = Math.max(0, (now.getTime() - startTime.getTime()) / (1000 * 60));
           console.log('🚶‍♂️ CALCULATED DURATION FOR ACTIVE:', durationMinutes, 'minutes');
         }
 
-        console.log('🚶‍♂️ SESSION CALCULATION:', {
-          sessionId: session.id,
-          durationMinutes,
-          speedMph: session.speed_mph,
-          profileWeight: profile.weight
-        });
-
         if (!durationMinutes || !session.speed_mph) {
-          console.log('🚶‍♂️ SKIPPING SESSION - NO DURATION OR SPEED');
+          console.log('🚶‍♂️ SKIPPING SESSION - NO DURATION OR SPEED:', { durationMinutes, speed: session.speed_mph });
           return total;
         }
 
@@ -217,6 +233,7 @@ export const useDailyDeficitQuery = () => {
         const calories = Math.round(mets * weightKg * durationHours);
         
         console.log('🚶‍♂️ CALORIE CALCULATION:', {
+          sessionId: session.id,
           mets,
           weightKg,
           durationHours,
@@ -225,6 +242,9 @@ export const useDailyDeficitQuery = () => {
         
         return total + calories;
       }, 0);
+
+      console.log('🚶‍♂️ FINAL WALKING CALORIES TOTAL:', totalCalories);
+      return totalCalories;
     },
     enabled: !!walkingSessions && !!profile?.weight,
     staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
