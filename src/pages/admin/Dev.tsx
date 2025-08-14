@@ -8,10 +8,15 @@ import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConnectionStore } from "@/stores/connectionStore";
-import { Info, Wifi, RefreshCw } from "lucide-react";
+import { Info, Wifi, RefreshCw, Globe, WifiOff, Eye } from "lucide-react";
+import { OfflineScreen } from "@/components/OfflineScreen";
+import { NetworkErrorBoundary } from "@/components/NetworkErrorBoundary";
+import { useState } from "react";
 
 export default function AdminDev() {
   const { isOnline, lastChecked, isTestingConnection, testConnection } = useConnectionStore();
+  const [offlineTestMode, setOfflineTestMode] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'banner' | 'fullscreen' | 'error' | null>(null);
   
   usePageSEO({
     title: "Admin Dev",
@@ -101,6 +106,173 @@ export default function AdminDev() {
                 </div>
               </div>
             </div>
+          </Card>
+        </section>
+
+        <section aria-label="Offline Testing" className="space-y-4">
+          <h2 className="text-xl font-semibold">Offline Testing</h2>
+          
+          <Alert>
+            <Globe className="h-4 w-4" />
+            <AlertDescription>
+              Test offline screens and user experience without actually going offline. Preview how the app handles network issues.
+            </AlertDescription>
+          </Alert>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Controls */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <WifiOff className="w-5 h-5" />
+                  Offline Simulation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Test Mode</span>
+                    <div className={`w-2 h-2 rounded-full ${offlineTestMode ? 'bg-orange-500' : 'bg-green-500'}`} />
+                  </div>
+                  
+                  <Button
+                    onClick={() => setOfflineTestMode(!offlineTestMode)}
+                    variant={offlineTestMode ? "destructive" : "outline"}
+                    className="w-full"
+                  >
+                    {offlineTestMode ? 'Stop Offline Test' : 'Start Offline Test'}
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-sm font-medium">Preview Modes</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      onClick={() => setPreviewMode(previewMode === 'banner' ? null : 'banner')}
+                      variant={previewMode === 'banner' ? "default" : "outline"}
+                      size="sm"
+                    >
+                      Banner
+                    </Button>
+                    <Button
+                      onClick={() => setPreviewMode(previewMode === 'fullscreen' ? null : 'fullscreen')}
+                      variant={previewMode === 'fullscreen' ? "default" : "outline"}
+                      size="sm"
+                    >
+                      Full Screen
+                    </Button>
+                    <Button
+                      onClick={() => setPreviewMode(previewMode === 'error' ? null : 'error')}
+                      variant={previewMode === 'error' ? "default" : "outline"}
+                      size="sm"
+                    >
+                      Error Boundary
+                    </Button>
+                    <Button
+                      onClick={() => setPreviewMode(null)}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-xs text-muted-foreground">
+                  <p>• Banner: Shows inline offline notification</p>
+                  <p>• Full Screen: Shows blocking offline screen</p>
+                  <p>• Error Boundary: Shows network error recovery</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Preview Area */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="w-5 h-5" />
+                  Preview Area
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg p-4 min-h-[200px] bg-muted/30 relative">
+                  {previewMode === 'banner' && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">Sample page content above...</p>
+                      <OfflineScreen className="w-full" />
+                      <p className="text-sm text-muted-foreground">Sample page content below...</p>
+                    </div>
+                  )}
+                  
+                  {previewMode === 'fullscreen' && (
+                    <div className="absolute inset-0 rounded-lg overflow-hidden">
+                      <OfflineScreen showFullScreen={true} />
+                    </div>
+                  )}
+                  
+                  {previewMode === 'error' && (
+                    <NetworkErrorBoundary>
+                      <div className="p-4">
+                        <p className="text-sm">This would show error boundary for network issues</p>
+                        <Button 
+                          onClick={() => {
+                            throw new Error('Network request failed: Failed to fetch');
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                        >
+                          Trigger Network Error
+                        </Button>
+                      </div>
+                    </NetworkErrorBoundary>
+                  )}
+                  
+                  {!previewMode && (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      <div className="text-center">
+                        <Eye className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Select a preview mode to see offline screens</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Test Scenarios */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Scenarios</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Gradual Degradation</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Test how the app behaves when going from online to offline</p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Simulate Slow Network
+                  </Button>
+                </div>
+                
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Recovery Flow</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Test reconnection and data sync after being offline</p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Test Recovery
+                  </Button>
+                </div>
+                
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Critical Actions</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Test blocking offline actions that require connectivity</p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Test Blocking
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </section>
 
