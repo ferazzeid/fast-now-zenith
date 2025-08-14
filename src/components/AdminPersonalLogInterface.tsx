@@ -69,25 +69,14 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       });
 
       setIsEditing(false);
+      setOriginalText(logText.trim()); // Update original text with saved content
       
-      // Update cache immediately with new data and force refetch
-      if (data && data.length > 0) {
-        const updatedHour = data[0];
-        queryClient.setQueryData(fastingHoursKey, (oldData: any) => {
-          if (!oldData) return oldData;
-          return oldData.map((hour: any) => 
-            hour.hour === currentHour 
-              ? { ...hour, admin_personal_log: updatedHour.admin_personal_log }
-              : hour
-          );
-        });
-      }
+      // Simplified cache management - just invalidate and let React Query handle the rest
+      await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
       
-      // Force refetch to ensure we have the latest data
-      await queryClient.refetchQueries({ queryKey: fastingHoursKey });
+      console.log('🔄 CACHE INVALIDATED: Invalidated cache for hour', currentHour);
       
-      console.log('🔄 CACHE UPDATE: Cache updated and refetched for hour', currentHour);
-      
+      // Call the callback to notify parent component
       onLogSaved?.();
     } catch (error) {
       console.error('Error saving personal log:', error);
