@@ -383,3 +383,39 @@ div[class*="preview"]:has-text("Starting live preview"),
 div[style*="position: fixed"]:has-text("Starting live preview") {
   display: none !important;
 }
+
+/* Author Tooltip Animations */
+@keyframes elegant-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-width: 2px;
+    opacity: 0.7;
+  }
+  50% {
+    border-width: 3px;
+    opacity: 1;
+  }
+}
+
+.animate-elegant-pulse {
+  animation: elegant-pulse 3s ease-in-out infinite;
+}
+
+.animate-border-pulse {
+  animation: border-pulse 4s ease-in-out infinite;
+}
+
+.author-tooltip-bubble:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(218, 196, 113, 0.4);
+}

@@ -3,9 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette } from "lucide-react";
+import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User } from "lucide-react";
 import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
+import { AuthorTooltip } from "./AuthorTooltip";
 
 const BrandAssetsManager = () => {
   const [appIcon, setAppIcon] = useState<File | null>(null);
@@ -16,9 +18,17 @@ const BrandAssetsManager = () => {
   const [currentLogo, setCurrentLogo] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  
+  // Author tooltip state
+  const [authorData, setAuthorData] = useState({
+    image: '/lovable-uploads/default-author.png',
+    name: 'Admin',
+    title: 'Personal Insight'
+  });
 
   useEffect(() => {
     fetchCurrentAssets();
+    loadAuthorSettings();
   }, []);
 
   const fetchCurrentAssets = async () => {
@@ -46,6 +56,30 @@ const BrandAssetsManager = () => {
       }
     } catch (error) {
       console.error('Error fetching current assets:', error);
+    }
+  };
+
+  const loadAuthorSettings = async () => {
+    try {
+      const { data: settings } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['author_tooltip_image', 'author_tooltip_name', 'author_tooltip_title']);
+
+      if (settings) {
+        const settingsMap = settings.reduce((acc, setting) => {
+          acc[setting.setting_key] = setting.setting_value;
+          return acc;
+        }, {} as Record<string, string>);
+
+        setAuthorData({
+          image: settingsMap.author_tooltip_image || '/lovable-uploads/default-author.png',
+          name: settingsMap.author_tooltip_name || 'Admin',
+          title: settingsMap.author_tooltip_title || 'Personal Insight'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load author settings:', error);
     }
   };
 
@@ -106,6 +140,91 @@ const BrandAssetsManager = () => {
 
     console.log(`Public URL generated for ${type}:`, data.publicUrl);
     return data.publicUrl;
+  };
+
+  const handleAuthorImageSelect = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image under 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `author-${Math.random()}.${fileExt}`;
+      const filePath = `author/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('website-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('website-images')
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from('shared_settings')
+        .upsert({ 
+          setting_key: 'author_tooltip_image', 
+          setting_value: publicUrl 
+        }, { onConflict: 'setting_key' });
+
+      setAuthorData(prev => ({ ...prev, image: publicUrl }));
+      
+      toast({
+        title: "Author image updated",
+        description: "The author tooltip image has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error uploading author image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload the author image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const updateAuthorField = async (field: 'name' | 'title', value: string) => {
+    try {
+      await supabase
+        .from('shared_settings')
+        .upsert({ 
+          setting_key: `author_tooltip_${field}`, 
+          setting_value: value 
+        }, { onConflict: 'setting_key' });
+
+      setAuthorData(prev => ({ ...prev, [field]: value }));
+      
+      toast({
+        title: "Author info updated",
+        description: `Author ${field} has been updated successfully.`,
+      });
+    } catch (error) {
+      console.error(`Error updating author ${field}:`, error);
+      toast({
+        title: "Update failed",
+        description: `Failed to update author ${field}. Please try again.`,
+        variant: "destructive",
+      });
+    }
   };
 
   const updateManifestAndFavicon = async () => {
@@ -408,6 +527,90 @@ const BrandAssetsManager = () => {
             >
               {uploading ? "Uploading..." : "Save"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Author Profile Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <User className="w-5 h-5" />
+            <span>Author Profile</span>
+            <AuthorTooltip content="This configures the author information shown in tooltips throughout the app where you can leave personal insights for users." />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Author Image Upload */}
+          <div className="space-y-3">
+            <Label>Author Image</Label>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <img
+                  src={authorData.image}
+                  alt="Author"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                />
+              </div>
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleAuthorImageSelect(file);
+                  }}
+                  className="hidden"
+                  id="author-image-upload"
+                  disabled={uploading}
+                />
+                <label
+                  htmlFor="author-image-upload"
+                  className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <Upload className="w-4 h-4" />
+                  <span className="text-sm">Upload author image</span>
+                </label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recommended: Square image, max 5MB
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Author Name */}
+          <div className="space-y-2">
+            <Label htmlFor="author-name">Author Name</Label>
+            <Input
+              id="author-name"
+              value={authorData.name}
+              onChange={(e) => setAuthorData(prev => ({ ...prev, name: e.target.value }))}
+              onBlur={(e) => updateAuthorField('name', e.target.value)}
+              placeholder="Enter author name"
+            />
+          </div>
+
+          {/* Author Title */}
+          <div className="space-y-2">
+            <Label htmlFor="author-title">Tooltip Title</Label>
+            <Input
+              id="author-title"
+              value={authorData.title}
+              onChange={(e) => setAuthorData(prev => ({ ...prev, title: e.target.value }))}
+              onBlur={(e) => updateAuthorField('title', e.target.value)}
+              placeholder="e.g., Personal Insight, Author Note"
+            />
+          </div>
+
+          {/* Preview */}
+          <div className="space-y-2">
+            <Label>Preview</Label>
+            <div className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-muted/30">
+              <AuthorTooltip content="This is how your tooltips will appear throughout the app. You can customize the image, name, and title above." />
+              <span className="text-sm text-muted-foreground">
+                Hover or click the icon to see your tooltip
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
