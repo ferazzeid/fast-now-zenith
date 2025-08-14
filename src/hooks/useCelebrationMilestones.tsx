@@ -42,12 +42,9 @@ const storeCelebratedMilestone = (sessionId: string, hour: number) => {
 };
 
 const getAnimationTypeForMilestone = (type: 'hourly' | 'completion', hours: number): CeramicAnimationType => {
-  // Map specific animations to specific milestone combinations
+  // Always use color-wave for hourly milestones
   if (type === 'hourly') {
-    if (hours === 1) return 'ring-pulse';
-    if (hours === 12) return 'color-wave';
-    // For other hourly milestones, alternate between ring-pulse and color-wave
-    return hours % 2 === 0 ? 'color-wave' : 'ring-pulse';
+    return 'color-wave';
   } else { // completion
     if (hours === 16) return 'particle-burst';
     if (hours === 24) return 'fireworks';

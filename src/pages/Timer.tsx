@@ -376,15 +376,6 @@ const Timer = () => {
         </div>
 
 
-        {/* Admin Celebration Test Menu - Always visible for admins */}
-        {isAdmin && (
-          <div className="mb-4">
-            <AdminCelebrationTestMenu 
-              isVisible={true} 
-              onTriggerCelebration={triggerCelebration}
-            />
-          </div>
-        )}
 
         {/* Control Buttons - Only show for fasting mode */}
         {currentMode === 'fasting' && (
