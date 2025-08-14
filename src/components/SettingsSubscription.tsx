@@ -92,7 +92,7 @@ export const SettingsSubscription = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="w-5 h-5" />
-            Subscription
+            Account
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -101,6 +101,17 @@ export const SettingsSubscription = () => {
       </Card>
     );
   }
+
+  // Debug logging
+  console.log('🔍 SettingsSubscription Debug:', {
+    subscribed,
+    subscription_status,
+    inTrial,
+    trialEndsAt,
+    subscription_tier,
+    platform,
+    login_method
+  });
 
   return (
     <div className="space-y-6">
