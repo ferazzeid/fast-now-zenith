@@ -110,24 +110,77 @@ export const SettingsSubscription = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="w-5 h-5" />
-            Subscription
+            Account
           </CardTitle>
           <CardDescription>
-            Manage your subscription and billing information
+            Your account and subscription information
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Current Status */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Current Plan</p>
-              <p className="text-sm text-muted-foreground">
-                {subscribed ? 'Premium' : inTrial ? 'Free Trial' : 'Free'}
-              </p>
+          {/* Account Information */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Account Type</p>
+                <p className="text-sm text-muted-foreground">
+                  {subscribed ? 'Premium User' : inTrial ? 'Free Trial' : 'Free User'}
+                </p>
+              </div>
+              <Badge variant={getStatusBadgeVariant(subscription_status)}>
+                {getStatusLabel(subscription_status)}
+              </Badge>
             </div>
-            <Badge variant={getStatusBadgeVariant(subscription_status)}>
-              {getStatusLabel(subscription_status)}
-            </Badge>
+
+            {/* Trial Status */}
+            {inTrial && trialEndsAt && (() => {
+              const timeRemaining = getTrialTimeRemaining();
+              if (!timeRemaining) return null;
+              
+              return (
+                <div className="flex items-center justify-between py-2 px-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <div>
+                    <p className="font-medium text-blue-800 dark:text-blue-200">Trial Status</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      {timeRemaining.expired ? 'Trial expired' : timeRemaining.text}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-blue-600 dark:text-blue-400">Expires</p>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      {formatDate(trialEndsAt)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Premium Member Info */}
+            {subscribed && subscription_end_date && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Member Since</p>
+                    <p className="text-sm text-muted-foreground">
+                      {getMemberSinceDate()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-2 px-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <div>
+                    <p className="font-medium text-green-800 dark:text-green-200">Next Renewal</p>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      Your subscription renews automatically
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-green-600 dark:text-green-400">Date</p>
+                    <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                      {formatDate(subscription_end_date)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Platform and Login Info */}
@@ -141,71 +194,6 @@ export const SettingsSubscription = () => {
               <Badge variant="outline" className="mt-1">{login_method || 'email'}</Badge>
             </div>
           </div>
-
-          {/* Trial Information */}
-          {inTrial && trialEndsAt && (() => {
-            const timeRemaining = getTrialTimeRemaining();
-            if (!timeRemaining) return null;
-            
-            return (
-              <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                timeRemaining.expired 
-                  ? 'bg-red-50 dark:bg-red-950' 
-                  : 'bg-blue-50 dark:bg-blue-950'
-              }`}>
-                <Clock className={`w-5 h-5 ${
-                  timeRemaining.expired 
-                    ? 'text-red-600 dark:text-red-400' 
-                    : 'text-blue-600 dark:text-blue-400'
-                }`} />
-                <div className="flex-1">
-                  <p className={`text-sm font-medium ${
-                    timeRemaining.expired 
-                      ? 'text-red-800 dark:text-red-200' 
-                      : 'text-blue-800 dark:text-blue-200'
-                  }`}>
-                    {timeRemaining.expired ? 'Trial has expired' : `${timeRemaining.text}`}
-                  </p>
-                  <p className={`text-xs ${
-                    timeRemaining.expired 
-                      ? 'text-red-600 dark:text-red-400' 
-                      : 'text-blue-600 dark:text-blue-400'
-                  }`}>
-                    {timeRemaining.expired 
-                      ? 'Upgrade now to access premium features' 
-                      : 'Upgrade anytime to continue accessing premium features'
-                    }
-                  </p>
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* Subscription Information */}
-          {subscribed && subscription_end_date && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Member Since</p>
-                  <p className="text-sm text-muted-foreground">
-                    You've been a premium member since {getMemberSinceDate()}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Next Billing Date</p>
-                  <p className="text-sm text-muted-foreground">
-                    Your subscription will renew automatically
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 text-sm">
-                  <Calendar className="w-4 h-4" />
-                  {formatDate(subscription_end_date)}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t">
@@ -247,11 +235,6 @@ export const SettingsSubscription = () => {
                   Manage on {platformName}
                 </Button>
               )
-            )}
-            {debug && (
-              <div className="text-xs text-muted-foreground">
-                Debug: {debug.source} | {new Date(debug.timestamp).toLocaleTimeString()}
-              </div>
             )}
           </div>
 
