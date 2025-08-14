@@ -658,122 +658,122 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     <MoreVertical className="w-4 h-4 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 z-50 bg-background border border-border shadow-lg">
-                  {isUserFood ? (
-                    <>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleQuickSelect(food as UserFood, false);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add to Today's Plan
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToTemplate(food as UserFood);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Save className="w-4 h-4 mr-2" />
-                          Add to Daily Templates
-                        </DropdownMenuItem>
-                        {/* Only show Edit option for user foods and admin for default foods */}
-                        {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowEditModal(true);
-                            }}
-                            className="cursor-pointer"
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit Food
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteFood(food.id);
-                          }}
-                          className="text-destructive focus:text-destructive cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Food
-                        </DropdownMenuItem>
-                     </>
-                   ) : (
+                 <DropdownMenuContent align="start" className="w-48 z-50 bg-background border border-border shadow-lg">
+                   {isUserFood ? (
                      <>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleQuickSelect(food as UserFood, false);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add to Today
-                        </DropdownMenuItem>
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleQuickSelect(food as UserFood, false);
+                           }}
+                           className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
+                         >
+                           <Plus className="w-4 h-4 mr-3" />
+                           Add to Today's Plan
+                         </DropdownMenuItem>
                          <DropdownMenuItem
                            onClick={(e) => {
                              e.stopPropagation();
                              handleAddToTemplate(food as UserFood);
                            }}
-                           className="cursor-pointer"
+                           className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
                          >
-                           <Save className="w-4 h-4 mr-2" />
-                           Add to Templates
+                           <Save className="w-4 h-4 mr-3" />
+                           Add to Daily Templates
                          </DropdownMenuItem>
-                         <DropdownMenuItem
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             importToMyLibrary(food as DefaultFood);
-                           }}
-                           className="cursor-pointer"
-                         >
-                           <Download className="w-4 h-4 mr-2" />
-                           Add to Library
-                         </DropdownMenuItem>
-                         {food.id.startsWith('recent-') ? (
+                         {/* Only show Edit option for user foods and admin for default foods */}
+                         {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
                            <DropdownMenuItem
                              onClick={(e) => {
                                e.stopPropagation();
-                               deleteRecentFood(food.name);
+                               setShowEditModal(true);
                              }}
-                             className="text-destructive focus:text-destructive cursor-pointer"
+                             className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
                            >
-                             <Trash2 className="w-4 h-4 mr-2" />
-                             Remove from History
+                             <Edit className="w-4 h-4 mr-3" />
+                             Edit Food
                            </DropdownMenuItem>
-                         ) : isAdmin && (
-                           <>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowEditModal(true);
-                                }}
-                                className="cursor-pointer"
-                              >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit Food
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteDefaultFood(food.id);
-                                }}
-                                className="text-destructive focus:text-destructive cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Food
-                              </DropdownMenuItem>
-                           </>
                          )}
-                     </>
-                   )}
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             deleteFood(food.id);
+                           }}
+                           className="text-destructive focus:text-destructive cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-destructive/10 transition-colors"
+                         >
+                           <Trash2 className="w-4 h-4 mr-3" />
+                           Delete Food
+                         </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <>
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleQuickSelect(food as UserFood, false);
+                           }}
+                           className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
+                         >
+                           <Plus className="w-4 h-4 mr-3" />
+                           Add to Today
+                         </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToTemplate(food as UserFood);
+                            }}
+                            className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
+                          >
+                            <Save className="w-4 h-4 mr-3" />
+                            Add to Templates
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              importToMyLibrary(food as DefaultFood);
+                            }}
+                            className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
+                          >
+                            <Download className="w-4 h-4 mr-3" />
+                            Add to Library
+                          </DropdownMenuItem>
+                          {food.id.startsWith('recent-') ? (
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteRecentFood(food.name);
+                              }}
+                              className="text-destructive focus:text-destructive cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-destructive/10 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 mr-3" />
+                              Remove from History
+                            </DropdownMenuItem>
+                          ) : isAdmin && (
+                            <>
+                               <DropdownMenuItem
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setShowEditModal(true);
+                                 }}
+                                 className="cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-muted/80 transition-colors"
+                               >
+                                 <Edit className="w-4 h-4 mr-3" />
+                                 Edit Food
+                               </DropdownMenuItem>
+                               <DropdownMenuItem
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   deleteDefaultFood(food.id);
+                                 }}
+                                 className="text-destructive focus:text-destructive cursor-pointer py-3 px-4 min-h-[48px] flex items-center hover:bg-destructive/10 transition-colors"
+                               >
+                                 <Trash2 className="w-4 h-4 mr-3" />
+                                 Delete Food
+                               </DropdownMenuItem>
+                            </>
+                          )}
+                      </>
+                    )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -818,11 +818,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           </div>
           
-          {/* Actions - Checkbox (now on the right) and Primary Action Button */}
-          <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+           {/* Actions - Checkbox (now on the right) and Primary Action Button */}
+          <div className="flex items-center gap-6 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             {/* Multi-select checkbox (now positioned on the right) */}
             {canMultiSelect && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 flex items-center justify-center min-w-[44px] min-h-[44px]">
                 <Checkbox
                   checked={isSelected}
                   onCheckedChange={() => toggleFoodSelection(food.id)}
@@ -847,14 +847,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     importToMyLibrary(food as DefaultFood);
                   }
                 }}
-                className="h-5 w-5 p-1 flex-shrink-0 rounded"
+                className="min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors"
                 title={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
                 aria-label={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
               >
                 {isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? (
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-4 h-4" />
                 ) : (
-                  <Download className="w-3 h-3" />
+                  <Download className="w-4 h-4" />
                 )}
               </Button>
             )}
