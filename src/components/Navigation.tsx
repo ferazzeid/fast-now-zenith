@@ -231,9 +231,7 @@ export const Navigation = () => {
                   
                   {/* Trial countdown badge ONLY for Settings button */}
                   {label === 'Settings' && inTrial && trialEndsAt && (
-                    <div className="absolute -top-2 -left-2">
-                      <TrialTimerBadge trialEndsAt={trialEndsAt} />
-                    </div>
+                    <TrialTimerBadge trialEndsAt={trialEndsAt} />
                   )}
                   
                   {/* Connection status indicator ONLY for Settings button */}

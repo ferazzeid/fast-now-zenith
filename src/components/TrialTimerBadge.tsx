@@ -43,7 +43,7 @@ export const TrialTimerBadge = ({ trialEndsAt, className = "" }: TrialTimerBadge
   return (
     <div 
       className={`
-        absolute -top-1 -right-2
+        absolute -top-1 right-0
         text-white text-xs 
         px-1.5 py-0.5 
         rounded-full 
