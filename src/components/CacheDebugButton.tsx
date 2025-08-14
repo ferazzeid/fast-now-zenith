@@ -3,26 +3,37 @@ import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { fastingHoursKey } from '@/hooks/optimized/useFastingHoursQuery';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useToast } from '@/hooks/use-toast';
 
 export const CacheDebugButton: React.FC = () => {
   const { isAdmin } = useAdminRole();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   if (!isAdmin) return null;
 
-  const handleCacheDebug = () => {
-    console.log('🔧 CACHE DEBUG: Current fasting hours cache:', 
-      queryClient.getQueryData(fastingHoursKey)
-    );
+  const handleCacheDebug = async () => {
+    const cacheData = queryClient.getQueryData(fastingHoursKey);
+    console.log('🔧 BEFORE REFRESH - Cache data:', cacheData);
     
-    // Force a complete refresh
+    toast({
+      title: "Cache Debug",
+      description: "Check console for cache data. Forcing refresh...",
+    });
+    
+    // Aggressive cache clearing
     queryClient.removeQueries({ queryKey: fastingHoursKey });
-    queryClient.refetchQueries({ queryKey: fastingHoursKey });
+    await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+    await queryClient.refetchQueries({ queryKey: fastingHoursKey });
     
     setTimeout(() => {
-      console.log('🔧 CACHE DEBUG AFTER REFRESH: Updated fasting hours cache:', 
-        queryClient.getQueryData(fastingHoursKey)
-      );
+      const newCacheData = queryClient.getQueryData(fastingHoursKey);
+      console.log('🔧 AFTER REFRESH - Cache data:', newCacheData);
+      
+      toast({
+        title: "Cache Refreshed",
+        description: "Check console for updated cache data",
+      });
     }, 2000);
   };
 
@@ -33,7 +44,7 @@ export const CacheDebugButton: React.FC = () => {
       onClick={handleCacheDebug}
       className="mt-2"
     >
-      Debug Cache
+      Debug & Force Refresh Cache
     </Button>
   );
 };

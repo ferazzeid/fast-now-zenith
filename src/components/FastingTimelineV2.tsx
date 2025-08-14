@@ -157,12 +157,15 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
 
       {/* Admin Personal Log Interface */}
       <AdminPersonalLogInterface
+        key={`admin-log-${selectedHour}-${selected?.admin_personal_log}`} // Force re-render when data changes
         currentHour={selectedHour}
         existingLog={selected?.admin_personal_log}
         onLogSaved={async () => {
           // Force a complete data refresh to ensure UI updates
+          queryClient.removeQueries({ queryKey: fastingHoursKey });
+          await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
           await queryClient.refetchQueries({ queryKey: fastingHoursKey });
-          console.log('🔄 TIMELINE REFRESH: Forced refetch after log save for hour', selectedHour);
+          console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
         }}
       />
       

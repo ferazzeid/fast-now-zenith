@@ -37,6 +37,11 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
     setLogText(existingLog || '');
     setOriginalText(existingLog || ''); // Update original text too
     setIsEditing(!existingLog); // Only edit mode if no existing log
+    
+    // Force component to recognize the change
+    if (existingLog !== logText) {
+      console.log('🔄 FORCING STATE UPDATE:', { existingLog, currentLogText: logText });
+    }
   }, [existingLog, currentHour]);
 
   // Don't show for non-admins
@@ -71,10 +76,12 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       setIsEditing(false);
       setOriginalText(logText.trim()); // Update original text with saved content
       
-      // Simplified cache management - just invalidate and let React Query handle the rest
+      // Aggressive cache refresh to force UI update
+      queryClient.removeQueries({ queryKey: fastingHoursKey });
       await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+      await queryClient.refetchQueries({ queryKey: fastingHoursKey });
       
-      console.log('🔄 CACHE INVALIDATED: Invalidated cache for hour', currentHour);
+      console.log('🔄 CACHE AGGRESSIVELY REFRESHED: For hour', currentHour);
       
       // Call the callback to notify parent component
       onLogSaved?.();
