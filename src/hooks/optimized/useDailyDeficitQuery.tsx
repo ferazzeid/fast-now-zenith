@@ -182,9 +182,17 @@ export const useDailyDeficitQuery = () => {
           tomorrowStart: tomorrowDate.toISOString(),
           isToday,
           sessionCalories: session.calories_burned,
-          sessionEndTime: session.end_time
+          sessionEndTime: session.end_time,
+          sessionStartTime: session.start_time
         });
         return isToday;
+      });
+
+      console.log('🚶‍♂️ FILTERED SESSIONS RESULT:', {
+        totalSessions: walkingSessions.length,
+        todaySessionsCount: todaySessions.length,
+        todaySessionsIds: todaySessions.map(s => s.id),
+        todaySessionsCalories: todaySessions.map(s => s.calories_burned)
       });
 
       console.log('🚶‍♂️ TODAY SESSIONS FILTERED:', todaySessions.length);
