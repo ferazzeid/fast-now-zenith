@@ -330,7 +330,7 @@ const Motivators = () => {
                   <p>Create a motivator by talking about what drives you</p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-xs text-muted-foreground">Add with Voice</span>
+              <span className="text-xs text-muted-foreground">Voice add</span>
             </div>
 
             <div className="flex flex-col items-center gap-1">
@@ -350,7 +350,7 @@ const Motivators = () => {
                   <p>Create a motivator by typing title, description, and adding images</p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-xs text-muted-foreground">Add Manually</span>
+              <span className="text-xs text-muted-foreground">Manual add</span>
             </div>
 
             <Tooltip>

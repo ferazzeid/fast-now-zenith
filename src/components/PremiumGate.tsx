@@ -86,10 +86,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       if (isValidElement(child)) {
         // Check if this is a Utensils or Mic icon and replace with Lock
         if (child.type === Utensils || child.type === Mic) {
-          return cloneElement(child, { 
-            ...child.props,
-            children: undefined
-          } as any, <Lock className={child.props.className} />);
+          return <Lock className={child.props.className} />;
         }
         
         // If this element has children, recursively process them
@@ -135,7 +132,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     return (
       <>
         <div 
-          className={cn("opacity-50 cursor-pointer", className)}
+          className={cn("opacity-50 cursor-pointer w-full h-full flex", className)}
           onClick={handleGrayedClick}
         >
           {modifiedChildren}
