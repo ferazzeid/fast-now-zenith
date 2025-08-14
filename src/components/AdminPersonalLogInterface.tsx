@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { SimpleVoiceRecorder } from '@/components/SimpleVoiceRecorder';
@@ -29,6 +29,13 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   const [isEditing, setIsEditing] = useState(!existingLog);
   const [isSaving, setIsSaving] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+
+  // Sync local state with prop changes
+  useEffect(() => {
+    console.log('🔄 AdminPersonalLogInterface: existingLog changed:', { existingLog, currentHour });
+    setLogText(existingLog || '');
+    setIsEditing(!existingLog); // Only edit mode if no existing log
+  }, [existingLog, currentHour]);
 
   // Don't show for non-admins
   if (!isAdmin) return null;
