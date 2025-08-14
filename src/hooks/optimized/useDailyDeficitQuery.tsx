@@ -190,9 +190,9 @@ export const useDailyDeficitQuery = () => {
           return total;
         }
 
-        // 🐛 CRITICAL BUG FIX: Use stored calories_burned if available for completed sessions
-        if (session.calories_burned && session.session_state === 'completed') {
-          console.log('🚶‍♂️ USING STORED CALORIES:', session.calories_burned, 'for session', session.id);
+        // 🐛 CRITICAL BUG FIX: Use stored calories_burned if available for sessions with end_time
+        if (session.calories_burned && session.end_time) {
+          console.log('🚶‍♂️ USING STORED CALORIES:', session.calories_burned, 'for completed session', session.id);
           return total + session.calories_burned;
         }
 
