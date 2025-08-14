@@ -29,27 +29,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const handleSystemThemeChange = () => {
-      if (theme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        setActualTheme(systemTheme);
-        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
-      }
-    };
-
+    // 🔧 DISABLE SYSTEM THEME MONITORING - No auto-switching
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setActualTheme(systemTheme);
-      document.documentElement.classList.toggle('dark', systemTheme === 'dark');
-      
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', handleSystemThemeChange);
-      
-      return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
-    } else {
-      setActualTheme(theme as 'light' | 'dark');
-      document.documentElement.classList.toggle('dark', theme === 'dark');
+      // Force to dark mode instead of following system
+      setTheme('dark');
+      localStorage.setItem('theme', 'dark');
+      return;
     }
+    
+    // Only apply the selected theme, never listen to system changes
+    setActualTheme(theme as 'light' | 'dark');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   const handleSetTheme = (newTheme: Theme) => {
