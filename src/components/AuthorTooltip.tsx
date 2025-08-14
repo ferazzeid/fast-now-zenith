@@ -57,12 +57,22 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   }, []);
 
   const recomputePosition = () => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const spaceAbove = rect.top;
-    const spaceRight = window.innerWidth - rect.right;
-    setPosition(spaceAbove < 160 ? 'bottom' : 'top');
-    setAlignLeft(spaceRight < 200);
+    if (!triggerRef.current || !tooltipRef.current) return;
+    
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const tooltipWidth = 280; // Known width from tooltip
+    const tooltipHeight = 160; // Estimated height for calculation
+    
+    const spaceAbove = triggerRect.top;
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceRight = window.innerWidth - triggerRect.right;
+    const spaceLeft = triggerRect.left;
+    
+    // Determine vertical position (prefer top unless insufficient space)
+    setPosition(spaceAbove >= tooltipHeight ? 'top' : 'bottom');
+    
+    // Determine horizontal alignment (prefer right-aligned unless insufficient space)
+    setAlignLeft(spaceRight < tooltipWidth && spaceLeft >= tooltipWidth);
   };
 
   const handleToggle = (e: React.MouseEvent) => {

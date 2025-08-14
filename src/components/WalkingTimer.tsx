@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
+import { AuthorTooltip } from './AuthorTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
 
@@ -357,6 +358,14 @@ const WalkingTimerComponent = ({
                   </ClickableTooltip>
                 </div>
               </Card>
+            </div>
+            
+            {/* Author Tooltip - positioned under the metrics */}
+            <div className="flex justify-start mt-3">
+              <AuthorTooltip 
+                content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
+                size="sm"
+              />
             </div>
           </div>
         )}
