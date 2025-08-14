@@ -2,14 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit, Save, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthorTooltipProps {
-  content: string;
+  contentKey?: string; // Unique key for database content
+  content: string; // Fallback content if no database content exists
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
 export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
+  contentKey,
   content,
   size = 'md',
   className
@@ -17,6 +24,10 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState<'top' | 'bottom'>('top');
   const [alignLeft, setAlignLeft] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(content);
+  const [displayContent, setDisplayContent] = useState(content);
+  const [isSaving, setIsSaving] = useState(false);
   const [authorData, setAuthorData] = useState({
     image: '/lovable-uploads/default-author.png',
     name: 'Admin',
@@ -24,13 +35,16 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   });
   
   const isMobile = useIsMobile();
+  const { isAdmin } = useAdminRole();
+  const { toast } = useToast();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
-  // Load author settings
+  // Load author settings and content
   useEffect(() => {
-    const loadAuthorData = async () => {
+    const loadData = async () => {
       try {
+        // Load author settings
         const { data: settings } = await supabase
           .from('shared_settings')
           .select('setting_key, setting_value')
@@ -48,13 +62,27 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             title: settingsMap.author_tooltip_title || 'Personal Insight'
           });
         }
+
+        // Load content if contentKey is provided
+        if (contentKey) {
+          const { data: contentData } = await supabase
+            .from('tooltip_content')
+            .select('content')
+            .eq('content_key', contentKey)
+            .maybeSingle();
+
+          if (contentData) {
+            setDisplayContent(contentData.content);
+            setEditContent(contentData.content);
+          }
+        }
       } catch (error) {
         console.error('Failed to load author data:', error);
       }
     };
 
-    loadAuthorData();
-  }, []);
+    loadData();
+  }, [contentKey]);
 
   const recomputePosition = () => {
     if (!triggerRef.current || !tooltipRef.current) return;
@@ -112,6 +140,44 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isMobile, isOpen]);
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      setEditContent(displayContent); // Reset on cancel
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleSave = async () => {
+    if (!contentKey || !isAdmin) return;
+    
+    setIsSaving(true);
+    try {
+      await supabase
+        .from('tooltip_content')
+        .upsert({ 
+          content_key: contentKey, 
+          content: editContent 
+        }, { onConflict: 'content_key' });
+
+      setDisplayContent(editContent);
+      setIsEditing(false);
+      
+      toast({
+        title: "Content saved",
+        description: "Tooltip content has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving content:', error);
+      toast({
+        title: "Save failed",
+        description: "Failed to save content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const sizeClasses = {
     sm: 'w-10 h-10',
@@ -178,7 +244,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             ref={tooltipRef}
             className={cn(
               "absolute z-50 px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
-              "w-[280px] max-w-[calc(100vw-32px)] text-left",
+              "w-[320px] max-w-[calc(100vw-32px)] text-left",
               "animate-fade-in",
               position === 'bottom' 
                 ? (alignLeft ? "top-full left-0 mt-3" : "top-full left-0 mt-3")
@@ -203,9 +269,52 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             </div>
             
             {/* Content */}
-            <div className="text-sm text-popover-foreground leading-relaxed">
-              {content}
-            </div>
+            {isEditing ? (
+              <div className="space-y-3">
+                <Textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="text-sm leading-relaxed min-h-[80px] resize-none"
+                  placeholder="Enter tooltip content..."
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleEditToggle}
+                    disabled={isSaving}
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={isSaving || editContent.trim() === ''}
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-sm text-popover-foreground leading-relaxed mb-2">
+                  {displayContent}
+                </div>
+                {isAdmin && contentKey && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleEditToggle}
+                    className="text-xs h-6 px-2 hover:bg-muted"
+                  >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+            )}
 
             {/* Speech bubble arrow */}
             <div className={cn(

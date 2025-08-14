@@ -1351,6 +1351,30 @@ export type Database = {
         }
         Relationships: []
       }
+      tooltip_content: {
+        Row: {
+          content: string
+          content_key: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          content_key: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          content_key?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       usage_analytics: {
         Row: {
           created_at: string

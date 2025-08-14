@@ -363,6 +363,7 @@ const WalkingTimerComponent = ({
             {/* Author Tooltip - positioned under the metrics */}
             <div className="flex justify-start mt-3">
               <AuthorTooltip 
+                contentKey="walking_timer_health"
                 content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
                 size="sm"
               />
