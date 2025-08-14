@@ -58,10 +58,20 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
     try {
       const hourToUpdate = getCurrentHour();
       
-      const { error } = await supabase
+      console.log('🔧 ADMIN LOG SAVE DEBUG:', {
+        hourToUpdate,
+        logText: logText.trim(),
+        logTextLength: logText.trim().length,
+        userId: currentSession?.user_id
+      });
+      
+      const { data, error } = await supabase
         .from('fasting_hours')
         .update({ admin_personal_log: logText.trim() || null })
-        .eq('hour', hourToUpdate);
+        .eq('hour', hourToUpdate)
+        .select('*');
+
+      console.log('🔧 SUPABASE UPDATE RESULT:', { data, error });
 
       if (error) throw error;
 
