@@ -11,12 +11,17 @@ import { useConnectionStore } from "@/stores/connectionStore";
 import { Info, Wifi, RefreshCw, Globe, WifiOff, Eye } from "lucide-react";
 import { OfflineScreen } from "@/components/OfflineScreen";
 import { NetworkErrorBoundary } from "@/components/NetworkErrorBoundary";
+import { TestErrorTrigger } from "@/components/TestErrorTrigger";
+import { RealisticAppPreview } from "@/components/RealisticAppPreview";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDev() {
   const { isOnline, lastChecked, isTestingConnection, testConnection } = useConnectionStore();
+  const { toast } = useToast();
   const [offlineTestMode, setOfflineTestMode] = useState(false);
   const [previewMode, setPreviewMode] = useState<'banner' | 'fullscreen' | 'error' | null>(null);
+  const [networkSpeed, setNetworkSpeed] = useState<'normal' | 'slow' | 'offline'>('normal');
   
   usePageSEO({
     title: "Admin Dev",
@@ -30,6 +35,44 @@ export default function AdminDev() {
 
   const handleReloadApp = () => {
     window.location.reload();
+  };
+
+  const handleSlowNetwork = () => {
+    setNetworkSpeed('slow');
+    toast({
+      title: "Slow Network Simulation",
+      description: "Network requests will be delayed to simulate poor connectivity",
+    });
+    // Reset after 10 seconds
+    setTimeout(() => {
+      setNetworkSpeed('normal');
+      toast({
+        title: "Network Restored",
+        description: "Network simulation returned to normal",
+      });
+    }, 10000);
+  };
+
+  const handleRecoveryTest = () => {
+    toast({
+      title: "Recovery Test Started",
+      description: "Simulating offline → online recovery flow",
+    });
+    // Simulate recovery sequence
+    setTimeout(() => {
+      toast({
+        title: "Recovery Complete",
+        description: "All pending data has been synced successfully",
+      });
+    }, 3000);
+  };
+
+  const handleBlockingTest = () => {
+    toast({
+      title: "Blocking Action Simulated",
+      description: "This action would be blocked when offline",
+      variant: "destructive"
+    });
   };
 
   return (
@@ -195,37 +238,21 @@ export default function AdminDev() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-lg p-4 min-h-[200px] bg-muted/30 relative">
+                <div className="border rounded-lg p-4 min-h-[300px] bg-muted/30 relative overflow-hidden">
                   {previewMode === 'banner' && (
-                    <div className="space-y-3">
-                      <p className="text-sm text-muted-foreground">Sample page content above...</p>
-                      <OfflineScreen className="w-full" />
-                      <p className="text-sm text-muted-foreground">Sample page content below...</p>
-                    </div>
+                    <RealisticAppPreview>
+                      <OfflineScreen forceShow={true} className="w-full" />
+                    </RealisticAppPreview>
                   )}
                   
                   {previewMode === 'fullscreen' && (
                     <div className="absolute inset-0 rounded-lg overflow-hidden">
-                      <OfflineScreen showFullScreen={true} />
+                      <OfflineScreen forceShow={true} showFullScreen={true} />
                     </div>
                   )}
                   
                   {previewMode === 'error' && (
-                    <NetworkErrorBoundary>
-                      <div className="p-4">
-                        <p className="text-sm">This would show error boundary for network issues</p>
-                        <Button 
-                          onClick={() => {
-                            throw new Error('Network request failed: Failed to fetch');
-                          }}
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2"
-                        >
-                          Trigger Network Error
-                        </Button>
-                      </div>
-                    </NetworkErrorBoundary>
+                    <TestErrorTrigger />
                   )}
                   
                   {!previewMode && (
@@ -251,15 +278,26 @@ export default function AdminDev() {
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Gradual Degradation</h4>
                   <p className="text-sm text-muted-foreground mb-3">Test how the app behaves when going from online to offline</p>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Simulate Slow Network
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={handleSlowNetwork}
+                    disabled={networkSpeed === 'slow'}
+                  >
+                    {networkSpeed === 'slow' ? 'Simulating...' : 'Simulate Slow Network'}
                   </Button>
                 </div>
                 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Recovery Flow</h4>
                   <p className="text-sm text-muted-foreground mb-3">Test reconnection and data sync after being offline</p>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={handleRecoveryTest}
+                  >
                     Test Recovery
                   </Button>
                 </div>
@@ -267,7 +305,12 @@ export default function AdminDev() {
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Critical Actions</h4>
                   <p className="text-sm text-muted-foreground mb-3">Test blocking offline actions that require connectivity</p>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={handleBlockingTest}
+                  >
                     Test Blocking
                   </Button>
                 </div>

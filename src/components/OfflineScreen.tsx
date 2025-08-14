@@ -7,15 +7,17 @@ import { cn } from '@/lib/utils';
 
 export const OfflineScreen = ({ 
   showFullScreen = false,
-  className 
+  className,
+  forceShow = false
 }: { 
   showFullScreen?: boolean;
   className?: string;
+  forceShow?: boolean;
 }) => {
   const { isOnline, testConnection } = useConnectionStore();
   const { pending } = useOutboxSync();
 
-  if (isOnline) return null;
+  if (isOnline && !forceShow) return null;
 
   if (showFullScreen) {
     return (
