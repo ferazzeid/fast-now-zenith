@@ -163,9 +163,9 @@ export const useFastingSession = () => {
       const startTime = currentSession?.start_time || new Date().toISOString();
       const durationSeconds = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
       
-      // Determine status based on whether goal was reached
+      // When manually ending a session, determine status based on whether goal was reached
       const goalDurationSeconds = currentSession?.goal_duration_seconds || 0;
-      const status = durationSeconds >= goalDurationSeconds ? 'completed' : 'incomplete';
+      const status = durationSeconds >= goalDurationSeconds ? 'completed' : 'cancelled';
 
       const { data, error } = await supabase
         .from('fasting_sessions')

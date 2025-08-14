@@ -55,61 +55,27 @@ const WalkingTimerComponent = ({
   const { isAnimationsSuspended } = useAnimationControl();
   const { toast } = useToast();
 
-  // PERFORMANCE: Memoize static speed mappings to prevent recreation
-  const SPEED_MAPPINGS = useMemo(() => ({
-    metric: [
-      { displaySpeed: 3, storageSpeed: 1.9 },
-      { displaySpeed: 5, storageSpeed: 3.1 },
-      { displaySpeed: 6, storageSpeed: 3.7 },
-      { displaySpeed: 8, storageSpeed: 5.0 }
-    ],
-    imperial: [
-      { displaySpeed: 2, storageSpeed: 2.0 },
-      { displaySpeed: 3, storageSpeed: 3.0 },
-      { displaySpeed: 4, storageSpeed: 4.0 },
-      { displaySpeed: 5, storageSpeed: 5.0 }
-    ]
-  }), []);
+  // Simplified speed mappings - just Normal and Fast options (no units needed)
+  const SPEED_OPTIONS = useMemo(() => [
+    { displaySpeed: 'normal', storageSpeed: 3.1, label: 'Normal', description: 'Sustainable pace, light-moderate cardio' },
+    { displaySpeed: 'fast', storageSpeed: 4.3, label: 'Fast', description: 'Intense pace, higher calorie burn' }
+  ], []);
 
-  // PERFORMANCE: Memoize speed conversion functions
-  const storageSpeedToDisplaySpeed = useCallback((speedMph: number, units: 'metric' | 'imperial'): number => {
-    const mapping = SPEED_MAPPINGS[units].find(option => 
-      Math.abs(option.storageSpeed - speedMph) < 0.1
-    );
-    return mapping ? mapping.displaySpeed : SPEED_MAPPINGS[units][1].displaySpeed;
-  }, [SPEED_MAPPINGS]);
+  // Find current speed option
+  const getCurrentSpeedOption = useCallback((speedMph: number) => {
+    return SPEED_OPTIONS.find(option => 
+      Math.abs(option.storageSpeed - speedMph) < 0.2
+    ) || SPEED_OPTIONS[0]; // Default to normal if no match
+  }, [SPEED_OPTIONS]);
 
-  const displaySpeedToStorageSpeed = useCallback((displaySpeed: number, units: 'metric' | 'imperial'): number => {
-    const mapping = SPEED_MAPPINGS[units].find(option => option.displaySpeed === displaySpeed);
-    return mapping ? mapping.storageSpeed : SPEED_MAPPINGS[units][1].storageSpeed;
-  }, [SPEED_MAPPINGS]);
-
-  const formatPace = (speedMph: number) => {
-    // Convert stored speed (MPH) to display speed for calculations
-    const displaySpeed = storageSpeedToDisplaySpeed(speedMph, units);
-    
-    if (units === 'metric') {
-      const paceMinPerKm = 60 / displaySpeed;
-      const minutes = Math.floor(paceMinPerKm);
-      const seconds = Math.round((paceMinPerKm - minutes) * 60);
-      return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
-    } else {
-      const paceMinPerMile = 60 / displaySpeed;
-      const minutes = Math.floor(paceMinPerMile);
-      const seconds = Math.round((paceMinPerMile - minutes) * 60);
-      return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
+  const handleSpeedChange = useCallback((value: string) => {
+    const option = SPEED_OPTIONS.find(opt => opt.displaySpeed === value);
+    if (option) {
+      onSpeedChange(option.storageSpeed);
     }
-  };
+  }, [SPEED_OPTIONS, onSpeedChange]);
 
-  const getSpeedOptions = (units: 'metric' | 'imperial') => {
-    return SPEED_MAPPINGS[units].map(option => ({
-      value: option.displaySpeed,
-      label: units === 'metric' ? `${option.displaySpeed} km/h` : `${option.displaySpeed} mph`
-    }));
-  };
-
-  // Convert stored speed (MPH) to display speed for the select component
-  const displaySpeed = storageSpeedToDisplaySpeed(selectedSpeed, units);
+  const currentSpeedOption = getCurrentSpeedOption(selectedSpeed);
 
 
   return (
@@ -309,26 +275,26 @@ const WalkingTimerComponent = ({
                 </div>
                 <div className="flex items-center justify-between">
                 <div className="text-xl font-bold text-primary">
-                  {storageSpeedToDisplaySpeed(realTimeStats.speed, units)} <span className="text-sm font-normal text-muted-foreground">{units === 'metric' ? 'km/h' : 'mph'}</span>
+                  {currentSpeedOption.label}
                 </div>
                   <Select 
-                    onValueChange={(value) => {
-                      const newDisplaySpeed = parseInt(value);
-                      const newStorageSpeed = displaySpeedToStorageSpeed(newDisplaySpeed, units);
-                      onSpeedChange(newStorageSpeed);
-                    }}
+                    value={currentSpeedOption.displaySpeed}
+                    onValueChange={handleSpeedChange}
                   >
                     <SelectTrigger className="h-6 w-16 text-xs bg-background border-muted">
                       <SelectValue placeholder="Set" />
                     </SelectTrigger>
                     <SelectContent className="z-50 bg-background border-border">
-                      {getSpeedOptions(units).map((option) => (
+                      {SPEED_OPTIONS.map((option) => (
                         <SelectItem 
-                          key={option.value} 
-                          value={option.value.toString()}
+                          key={option.displaySpeed} 
+                          value={option.displaySpeed}
                           className="focus:bg-muted focus:text-muted-foreground hover:bg-muted hover:text-muted-foreground"
                         >
-                          <span className="font-medium">{option.label}</span>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{option.label}</span>
+                            <span className="text-xs text-muted-foreground">{option.description}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
