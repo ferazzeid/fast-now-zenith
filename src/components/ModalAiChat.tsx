@@ -63,7 +63,7 @@ export const ModalAiChat = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
   const calorieSummaryRef = useRef<HTMLDivElement>(null);
-  const voiceButtonRef = useRef<{ stopRecording: () => void }>(null);
+  const voiceButtonRef = useRef<{ stopRecording: () => void; cancelRecording: () => void }>(null);
   const { user } = useAuth();
   const {
     searchResults,
@@ -117,9 +117,9 @@ export const ModalAiChat = ({
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
     } else if (!isOpen) {
-      // Stop any active recording when modal closes
+      // Cancel any active recording when modal closes (don't process)
       if (voiceButtonRef.current) {
-        voiceButtonRef.current.stopRecording();
+        voiceButtonRef.current.cancelRecording();
       }
       
       // Clear messages when modal closes - but only after a small delay to prevent flickering

@@ -13,7 +13,7 @@ interface CircularVoiceButtonProps {
 }
 
 export const CircularVoiceButton = React.forwardRef<
-  { stopRecording: () => void },
+  { stopRecording: () => void; cancelRecording: () => void },
   CircularVoiceButtonProps
 >(({
   onTranscription,
@@ -42,6 +42,12 @@ export const CircularVoiceButton = React.forwardRef<
       if (isRecording) {
         console.log('🎤 Stopping recording via ref...');
         stopAndProcess();
+      }
+    },
+    cancelRecording: () => {
+      if (isRecording) {
+        console.log('🎤 Canceling recording via ref...');
+        cancelRecording();
       }
     }
   }), [isRecording]);
@@ -149,6 +155,26 @@ export const CircularVoiceButton = React.forwardRef<
         variant: "destructive"
       });
     }
+  };
+
+  const cancelRecording = () => {
+    console.log('🎤 Canceling recording...');
+    
+    // Clear timeout
+    if (mediaRecorderRef.current && (mediaRecorderRef.current as any).timeout) {
+      clearTimeout((mediaRecorderRef.current as any).timeout);
+    }
+    
+    // Stop recording without processing
+    if (isRecording && mediaRecorderRef.current) {
+      console.log('🎤 Stopping MediaRecorder (canceling)...');
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+    
+    // Clear audio chunks without processing them
+    audioChunksRef.current = [];
+    console.log('🎤 Recording canceled, no processing will occur');
   };
 
   const stopAndProcess = async () => {
