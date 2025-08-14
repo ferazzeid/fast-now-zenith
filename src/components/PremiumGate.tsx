@@ -73,10 +73,9 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       <div 
         className={cn("opacity-50 cursor-pointer pointer-events-auto", className)}
         onClick={handleLockedClick}
+        style={{ display: 'contents' }}
       >
-        <div className="pointer-events-none w-full h-full">
-          {modifiedChildren}
-        </div>
+        {modifiedChildren}
       </div>
       
       <PremiumUpgradeModal 
