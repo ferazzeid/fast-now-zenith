@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 export interface FastingHour {
   id?: string;
@@ -39,16 +40,20 @@ export interface ContentVariant {
 export const fastingHoursKey = ["fasting", "hours"] as const;
 
 export function useFastingHoursQuery() {
+  const { isAdmin } = useAdminRole();
+  
   return useQuery({
     queryKey: fastingHoursKey,
     queryFn: async () => {
+      console.log('🔄 FASTING HOURS QUERY: Fetching fresh data from database');
       const { data, error } = await supabase
         .from("fasting_hours")
         .select("*")
         .lte("hour", 72)
         .order("hour", { ascending: true });
       if (error) throw error;
-      return (data || []).map(item => ({
+      
+      const result = (data || []).map(item => ({
         ...item,
         content_rotation_data: item.content_rotation_data 
           ? (item.content_rotation_data as unknown as {
@@ -57,7 +62,12 @@ export function useFastingHoursQuery() {
             })
           : undefined
       })) as FastingHour[];
+      
+      console.log('🔄 FASTING HOURS QUERY: Fetched', result.length, 'hours');
+      return result;
     },
-    staleTime: 24 * 60 * 60 * 1000, // 24h cache as content rarely changes
+    // Use shorter cache time for admins actively editing logs
+    staleTime: isAdmin ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000, // 5 min for admins, 24h for users
+    refetchOnWindowFocus: isAdmin, // Refetch when admin switches back to window
   });
 }

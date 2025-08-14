@@ -70,8 +70,23 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
 
       setIsEditing(false);
       
-      // Invalidate the fasting hours query to refresh data immediately
-      await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+      // Update cache immediately with new data and force refetch
+      if (data && data.length > 0) {
+        const updatedHour = data[0];
+        queryClient.setQueryData(fastingHoursKey, (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.map((hour: any) => 
+            hour.hour === currentHour 
+              ? { ...hour, admin_personal_log: updatedHour.admin_personal_log }
+              : hour
+          );
+        });
+      }
+      
+      // Force refetch to ensure we have the latest data
+      await queryClient.refetchQueries({ queryKey: fastingHoursKey });
+      
+      console.log('🔄 CACHE UPDATE: Cache updated and refetched for hour', currentHour);
       
       onLogSaved?.();
     } catch (error) {
