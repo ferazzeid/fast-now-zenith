@@ -8,6 +8,7 @@ import { Crown, ExternalLink, Calendar, Clock, TestTube, RefreshCw } from 'lucid
 import { TrialIndicator } from './TrialIndicator';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { useCacheManager } from '@/hooks/useCacheManager';
+import { SubscriptionSystemReset } from './SubscriptionSystemReset';
 
 export const SettingsSubscription = () => {
   const { 
@@ -135,6 +136,7 @@ export const SettingsSubscription = () => {
 
   return (
     <div className="space-y-6">
+      <SubscriptionSystemReset />
       <TrialIndicator />
       
       <Card>

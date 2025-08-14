@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { SimpleImageUpload } from '@/components/SimpleImageUpload';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
-import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 import { GoalSettingNotification } from '@/components/GoalSettingNotification';
 import { useGoalNotification } from '@/hooks/useGoalNotification';
@@ -68,7 +68,7 @@ const AiChat = () => {
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
   
-  const { subscribed, subscription_tier } = useOptimizedSubscription();
+  const { subscribed, subscription_tier } = useUnifiedSubscription();
   const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
   const { isAdmin } = useAdminErrorFilter();
 

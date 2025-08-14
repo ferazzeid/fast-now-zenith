@@ -4,23 +4,39 @@ import { useCallback } from 'react';
 export const useCacheManager = () => {
   const queryClient = useQueryClient();
 
-  const clearAllSubscriptionCache = useCallback(() => {
+  const clearAllSubscriptionCache = useCallback(async () => {
     console.log('🗑️ Clearing ALL subscription-related cache');
     
-    // Clear all subscription-related queries
-    queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
-    queryClient.invalidateQueries({ queryKey: ['subscription'] });
-    queryClient.invalidateQueries({ queryKey: ['optimized-subscription'] });
-    
-    // Remove from cache entirely
-    queryClient.removeQueries({ queryKey: ['unified-subscription'] });
-    queryClient.removeQueries({ queryKey: ['subscription'] });
-    queryClient.removeQueries({ queryKey: ['optimized-subscription'] });
-    
-    // Force refetch
-    queryClient.refetchQueries({ queryKey: ['unified-subscription'] });
-    
-    console.log('✅ All subscription cache cleared and refetching');
+    try {
+      // Clear all subscription-related queries
+      await queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      await queryClient.invalidateQueries({ queryKey: ['optimized-subscription'] });
+      
+      // Remove from cache entirely to prevent stale data
+      queryClient.removeQueries({ queryKey: ['unified-subscription'] });
+      queryClient.removeQueries({ queryKey: ['subscription'] });
+      queryClient.removeQueries({ queryKey: ['optimized-subscription'] });
+      
+      // Clear any cached profile data that might affect subscription status
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      
+      // Force complete refetch with network request
+      await queryClient.refetchQueries({ 
+        queryKey: ['unified-subscription'],
+        type: 'active' 
+      });
+      
+      // Small delay to ensure cache is fully cleared
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('✅ All subscription cache cleared and refetched');
+      
+      // Force browser to refresh any cached subscription state
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ Error clearing subscription cache:', error);
+    }
   }, [queryClient]);
 
   const forceRefreshSubscription = useCallback(() => {

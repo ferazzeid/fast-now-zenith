@@ -2,7 +2,7 @@
 import React, { ReactNode, ReactElement, cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { cn } from '@/lib/utils';
@@ -16,21 +16,16 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, loading, createSubscription } = useOptimizedSubscription();
+  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, loading, createSubscription } = useUnifiedSubscription();
   
   // For trial detection, we need to check the status
   const inTrial = subscription_tier === 'paid_user' && !subscribed; // In trial if paid but not subscribed
   const { toast } = useToast();
   const { testRole, isTestingMode } = useRoleTestingContext();
 
-  // Use test role if in testing mode, otherwise use actual subscription data
-  const effectiveRole = isTestingMode ? testRole : subscription_tier;
-  const effectivePaidUser = isTestingMode ? (testRole === 'paid_user') : isPaidUser;
-  const effectiveHasPremiumFeatures = isTestingMode ? 
-    (testRole === 'paid_user' || testRole === 'admin' || testRole === 'trial_user') : hasPremiumFeatures;
-
-  // Check if user has access to the feature - admin bypasses all restrictions
-  const hasAccess = effectiveRole === 'admin' || effectiveHasPremiumFeatures;
+  // For role testing, only affect feature access, NOT display logic
+  // The unified subscription already handles test role overrides internally
+  const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
 
   // Throttled debug logging to understand access decisions (logs on change or every 10s)
   const lastSnapshotRef = useRef<string>("");
@@ -38,9 +33,9 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
   useEffect(() => {
     const snapshot = JSON.stringify({
       feature,
-      effectiveRole,
-      effectivePaidUser,
-      effectiveHasPremiumFeatures,
+      subscription_tier,
+      isPaidUser,
+      hasPremiumFeatures,
       hasAccess,
       loading,
       isTestingMode,
@@ -51,9 +46,9 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     if (snapshot !== lastSnapshotRef.current || now - lastLogTsRef.current > 10000) {
       console.info('[PremiumGate] Access check:', {
         feature,
-        effectiveRole,
-        effectivePaidUser,
-        effectiveHasPremiumFeatures,
+        subscription_tier,
+        isPaidUser,
+        hasPremiumFeatures,
         hasAccess,
         loading,
         isTestingMode,
@@ -63,7 +58,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
       lastSnapshotRef.current = snapshot;
       lastLogTsRef.current = now;
     }
-  }, [feature, effectiveRole, effectivePaidUser, effectiveHasPremiumFeatures, hasAccess, loading, isTestingMode, testRole, inTrial]);
+  }, [feature, subscription_tier, isPaidUser, hasPremiumFeatures, hasAccess, loading, isTestingMode, testRole, inTrial]);
 
   // Show content while loading to prevent flashing
   if (loading) {
@@ -86,7 +81,7 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
     }
   };
 
-  if (!hasAccess && (effectiveRole === 'free_user' || grayOutForFree)) {
+  if (!hasAccess && (subscription_tier === 'free_user' || grayOutForFree)) {
     const handleGrayedClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();

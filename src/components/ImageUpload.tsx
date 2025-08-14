@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { uploadImageHybrid } from '@/utils/imageUtils';
-import { useOptimizedSubscription } from '@/hooks/optimized/useOptimizedSubscription';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
@@ -43,7 +43,7 @@ export const ImageUpload = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasPremiumFeatures } = useOptimizedSubscription();
+  const { hasPremiumFeatures } = useUnifiedSubscription();
   const isMobile = useIsMobile();
   const { aiImageEnabled } = useAIImageGeneration();
 
