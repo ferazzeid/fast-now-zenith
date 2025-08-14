@@ -685,35 +685,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Connection Status - moved down (6th priority) */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Wifi className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Connection</h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-warm-text">Network Status</span>
-                    <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-                      {isOnline ? 'Online' : 'Offline'}
-                    </span>
-                  </div>
-                  {!isOnline && (
-                    <div className="pt-2">
-                      <Button
-                        onClick={() => location.reload()}
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
-                      >
-                        Reload App
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
 
 
             {/* About */}
