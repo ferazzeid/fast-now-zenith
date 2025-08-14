@@ -35,7 +35,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   });
   
   const isMobile = useIsMobile();
-  const { isAdmin } = useAdminRole();
+  const { isAdmin, loading: adminLoading } = useAdminRole();
   const { toast } = useToast();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -321,7 +321,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
                 <div className="text-sm text-popover-foreground leading-relaxed mb-2">
                   {displayContent}
                 </div>
-                {isAdmin && contentKey && (
+                {isAdmin && !adminLoading && contentKey && (
                   <Button
                     size="sm"
                     variant="ghost"
