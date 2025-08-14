@@ -63,13 +63,6 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     hasStylePresets: true
   },
   {
-    key: 'ai_image_food_prompt',
-    title: 'Food Image Generation',
-    description: 'Product packshot on white — single item, close-up, no props or background.',
-    defaultPrompt: 'Professional product photograph of {food_name} only, isolated on pure white seamless background. Shot from 45-degree angle, tight close-up composition, subject fills 85% of frame. Studio lighting setup with soft diffused key light, minimal shadow directly beneath. Commercial packshot quality, sharp focus, natural colors. Zero props: no plates, no bowls, no cutting boards, no utensils, no hands, no garnishes, no herbs, no spices, no crumbs, no napkins, no decorative elements whatsoever. Single food item only, nothing else visible. E-commerce product photography style.',
-    variables: ['{food_name}', '{primary_color}', '{accent_color}']
-  },
-  {
     key: 'ai_food_response_template',
     title: 'Food Entry Response Format',
     description: 'Controls how the AI formats responses when presenting food entry details to users.',
@@ -83,13 +76,6 @@ const PROMPT_CONFIGS: PromptConfig[] = [
     defaultPrompt: 'When estimating nutrition values, use these guidelines: Provide realistic estimates based on common food databases. For proteins like chicken/fish, estimate ~165-200 calories and 0-2g carbs per 100g. For fruits, estimate 40-80 calories and 10-20g carbs per 100g. For vegetables, estimate 20-50 calories and 3-10g carbs per 100g. Always ask for clarification if the food description is vague.',
     variables: []
   },
-  {
-    key: 'ai_high_carb_food_guidance',
-    title: 'High-Carb Food Response Template',
-    description: 'How to respond when users log high-carbohydrate foods.',
-    defaultPrompt: 'I\'ve logged your {food_name}! Since this contains about {carbs}g of carbs, you might want to consider pairing it with some protein or healthy fats to help balance your blood sugar. Some great lower-carb alternatives for next time could be {alternatives}. This would take approximately {walking_time} of walking to burn off.',
-    variables: ['{food_name}', '{carbs}', '{alternatives}', '{walking_time}']
-  }
 ];
 
 export const PromptManagement: React.FC = () => {
