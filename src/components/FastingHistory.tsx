@@ -362,20 +362,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
 
                     {/* Status badge in bottom right corner aligned with delete button */}
                     <div className="absolute bottom-3 right-3">
-                      {session.status === 'completed' && session.duration_seconds && session.goal_duration_seconds ? (
-                        <div className="flex flex-col items-end gap-1">
-                          {session.duration_seconds >= session.goal_duration_seconds ? (
-                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Achieved</span>
-                          ) : null}
-                          <div className="mt-1">
-                            {getStatusBadge(session)}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          {getStatusBadge(session)}
-                        </div>
-                      )}
+                      {getStatusBadge(session)}
                     </div>
                   </CardHeader>
                   
