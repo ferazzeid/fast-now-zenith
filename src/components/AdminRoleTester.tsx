@@ -10,6 +10,7 @@ const roleIcons = {
   admin: Crown,
   paid_user: Crown,
   granted_user: Users,
+  trial_user: User,
   free_user: UserX
 };
 
@@ -17,6 +18,7 @@ const roleDescriptions = {
   admin: 'Full admin access with all features',
   paid_user: 'Premium subscriber with unlimited requests',
   granted_user: 'Basic user with limited requests',
+  trial_user: 'Free trial user with temporary premium access',
   free_user: 'Free tier user with no premium features'
 };
 
@@ -65,6 +67,7 @@ export const AdminRoleTester = () => {
                 <SelectItem value="none">Admin (Default)</SelectItem>
                 <SelectItem value="paid_user">Premium User</SelectItem>
                 <SelectItem value="granted_user">Basic User</SelectItem>
+                <SelectItem value="trial_user">Trial User</SelectItem>
                 <SelectItem value="free_user">Free User</SelectItem>
               </SelectContent>
             </Select>

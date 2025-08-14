@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { detectPlatform, getPaymentProviderForPlatform } from '@/utils/platformDetection';
 import { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 
 export interface UnifiedSubscriptionData {
   // Core subscription info
@@ -230,6 +231,9 @@ export const useUnifiedSubscription = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [platform] = useState(() => detectPlatform());
+  
+  // Import role testing context
+  const { testRole, isTestingMode } = useRoleTestingContext();
 
   const {
     data: subscriptionData = DEFAULT_SUBSCRIPTION,
@@ -357,8 +361,40 @@ export const useUnifiedSubscription = () => {
     }
   }, [platform, user, session, toast]);
 
-  return {
+  // Apply test role overrides
+  const finalData = isTestingMode && testRole ? {
     ...subscriptionData,
+    // Override values based on test role
+    ...(testRole === 'trial_user' && {
+      subscription_status: 'trial',
+      subscription_tier: 'paid',
+      inTrial: true,
+      trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+      isPaidUser: false, // Still false because it's a trial, not paid
+      hasPremiumFeatures: true, // Has access during trial
+      request_limit: 1000,
+    }),
+    ...(testRole === 'free_user' && {
+      subscription_status: 'free',
+      subscription_tier: 'free',
+      inTrial: false,
+      trialEndsAt: undefined,
+      isPaidUser: false,
+      hasPremiumFeatures: false,
+      request_limit: 5,
+    }),
+    ...(testRole === 'paid_user' && {
+      subscription_status: 'active',
+      subscription_tier: 'paid',
+      inTrial: false,
+      isPaidUser: true,
+      hasPremiumFeatures: true,
+      request_limit: 1000,
+    })
+  } : subscriptionData;
+
+  return {
+    ...finalData,
     loading,
     error,
     refetch,

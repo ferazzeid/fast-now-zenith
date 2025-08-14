@@ -26,7 +26,8 @@ export const PremiumGate = ({ children, feature, className = "", showUpgrade = t
   // Use test role if in testing mode, otherwise use actual subscription data
   const effectiveRole = isTestingMode ? testRole : subscription_tier;
   const effectivePaidUser = isTestingMode ? (testRole === 'paid_user') : isPaidUser;
-  const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
+  const effectiveHasPremiumFeatures = isTestingMode ? 
+    (testRole === 'paid_user' || testRole === 'admin' || testRole === 'trial_user') : hasPremiumFeatures;
 
   // Check if user has access to the feature - admin bypasses all restrictions
   const hasAccess = effectiveRole === 'admin' || effectiveHasPremiumFeatures;
