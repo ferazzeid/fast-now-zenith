@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,17 +41,19 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const [caloriesPer100g, setCaloriesPer100g] = useState(food.calories_per_100g.toString());
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
+  const foodIdRef = useRef(food.id);
   
-  // Only initialize form values when modal first opens for a specific food
+  // Only reset form when switching to a completely different food
   useEffect(() => {
-    if ((isOpen !== undefined ? isOpen : internalOpen) && food.id) {
-      console.log('EditDefaultFoodModal: Initializing form for food:', food.id);
+    if (food.id !== foodIdRef.current) {
+      console.log('EditDefaultFoodModal: Switching to new food:', food.id);
       setName(food.name);
       setCaloriesPer100g(food.calories_per_100g.toString());
       setCarbsPer100g(food.carbs_per_100g.toString());
       setImageUrl(food.image_url || '');
+      foodIdRef.current = food.id;
     }
-  }, [food.id, (isOpen !== undefined ? isOpen : internalOpen)]); // Only when modal opens or food changes
+  }, [food.id]);
   const { toast } = useToast();
   const { profile } = useProfile();
 
