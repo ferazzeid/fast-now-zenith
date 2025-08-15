@@ -21,7 +21,7 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
   return (
     <div
       className={cn(
-        "w-full mb-4 transition-all duration-500 ease-out",
+        "w-full mb-4 transition-all duration-500 ease-out px-4",
         "flex",
         isUser ? "justify-end" : "justify-start",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -29,17 +29,17 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
     >
       <div
         className={cn(
-          "max-w-[80%] p-3 rounded-2xl shadow-lg",
-          "backdrop-blur-sm border",
+          "max-w-[85%] p-4 rounded-2xl shadow-lg relative",
+          "border",
           isUser ? 
-            "bg-ai/20 border-ai/30 text-ai rounded-tr-sm" :
-            "bg-primary/10 border-primary/30 text-primary rounded-tl-sm"
+            "bg-ai/90 border-ai/50 text-white rounded-tr-sm" :
+            "bg-primary/90 border-primary/50 text-white rounded-tl-sm"
         )}
       >
-        <p className="text-sm leading-relaxed">{content}</p>
+        <p className="text-sm leading-relaxed font-medium">{content}</p>
         <div className={cn(
           "absolute w-2 h-2 rounded-full",
-          isUser ? "bg-ai/40 -bottom-1 -right-1" : "bg-primary/40 -bottom-1 -left-1",
+          isUser ? "bg-ai -bottom-1 -right-1" : "bg-primary -bottom-1 -left-1",
           "animate-pulse"
         )} />
       </div>

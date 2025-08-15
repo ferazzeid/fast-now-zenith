@@ -181,18 +181,18 @@ export const AIVoiceButton = () => {
             variant="ghost"
             size="sm"
             onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/20 backdrop-blur-sm border border-border/30 hover:bg-background/30 hover:scale-110 transition-all duration-200"
+            className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200 safe-area-inset"
             title="Close"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6 text-foreground" />
           </Button>
 
           {/* Aquarium Container */}
           <div className="aquarium-container relative w-full h-full flex flex-col">
             {/* Chat Messages Area */}
-            <div className="flex-1 overflow-hidden px-4 pt-20 pb-24">
+            <div className="flex-1 overflow-hidden pt-20 pb-24">
               <ScrollArea className="h-full">
-                <div className="max-w-2xl mx-auto space-y-0">
+                <div className="max-w-full mx-auto space-y-0">
                   {bubbles.map((bubble, index) => (
                     <FloatingBubble
                       key={bubble.id}
@@ -203,13 +203,13 @@ export const AIVoiceButton = () => {
                   ))}
                   
                   {/* Processing Bubble */}
-                  {isProcessing && (
-                    <div className="w-full mb-4 flex justify-start">
-                      <div className="bg-primary/10 backdrop-blur-sm border border-primary/30 rounded-2xl rounded-tl-sm p-4 animate-pulse">
+                   {isProcessing && (
+                     <div className="w-full mb-4 flex justify-start px-4">
+                       <div className="bg-primary/90 border border-primary/50 rounded-2xl rounded-tl-sm p-4 animate-pulse">
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                         </div>
                       </div>
                     </div>
