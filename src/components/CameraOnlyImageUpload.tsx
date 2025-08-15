@@ -72,8 +72,8 @@ export const CameraOnlyImageUpload = ({ onImageUpload }: CameraOnlyImageUploadPr
         lastModified: Date.now(),
       });
 
-      // Use hybrid upload system with compressed file
-      const result = await uploadImageHybrid(compressedFile, user.id, hasPremiumFeatures, supabase);
+      // Use hybrid upload system with compressed file - CRITICAL: Use food-images bucket
+      const result = await uploadImageHybrid(compressedFile, user.id, hasPremiumFeatures, supabase, 'food-images');
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');
