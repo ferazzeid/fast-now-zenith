@@ -42,15 +42,16 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
   
-  // Initialize form when modal opens with a new food
+  // Only initialize form values when modal first opens for a specific food
   useEffect(() => {
-    if (isOpen !== undefined ? isOpen : internalOpen) {
+    if ((isOpen !== undefined ? isOpen : internalOpen) && food.id) {
+      console.log('EditDefaultFoodModal: Initializing form for food:', food.id);
       setName(food.name);
       setCaloriesPer100g(food.calories_per_100g.toString());
       setCarbsPer100g(food.carbs_per_100g.toString());
       setImageUrl(food.image_url || '');
     }
-  }, [food.id, isOpen, internalOpen]); // Only reset when modal opens or food ID changes
+  }, [food.id, (isOpen !== undefined ? isOpen : internalOpen)]); // Only when modal opens or food changes
   const { toast } = useToast();
   const { profile } = useProfile();
 
@@ -86,7 +87,9 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
     }
 
     try {
-      console.log('Saving default food with image_url:', imageUrl);
+      console.log('EditDefaultFoodModal: Saving food with image_url:', imageUrl);
+      console.log('EditDefaultFoodModal: Current imageUrl state:', imageUrl);
+      
       await onUpdate(food.id, {
         name: name.trim(),
         calories_per_100g: calories,
@@ -210,14 +213,14 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
             <ImageUpload 
               currentImageUrl={imageUrl}
               onImageUpload={(url) => {
-                console.log('Image uploaded:', url);
+                console.log('EditDefaultFoodModal: Image uploaded callback received:', url);
                 setImageUrl(url);
-                // Manual uploads require explicit save - no auto-save to avoid confusion
+                console.log('EditDefaultFoodModal: imageUrl state set to:', url);
               }}
               onImageRemove={() => {
-                console.log('Image removed');
+                console.log('EditDefaultFoodModal: Image removed callback received');
                 setImageUrl('');
-                // Manual removal requires explicit save - no auto-save to avoid confusion
+                console.log('EditDefaultFoodModal: imageUrl state cleared');
               }}
               bucket="food-images"
             />
