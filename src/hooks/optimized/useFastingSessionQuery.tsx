@@ -74,8 +74,8 @@ export const useFastingSessionQuery = () => {
     staleTime: 5 * 1000, // PERFORMANCE: 5 seconds stale time for active sessions
     gcTime: 30 * 1000, // PERFORMANCE: 30 seconds garbage collection
     refetchInterval: (data) => {
-      // PERFORMANCE: Only poll if there's an active session
-      return data ? 5000 : false; // 5 seconds for active sessions
+      // Only poll if there's an active session, and less frequently
+      return data ? 30000 : false; // 30 seconds for active sessions
     },
     refetchOnWindowFocus: true, // Refetch when user returns to tab
     retry: 3,

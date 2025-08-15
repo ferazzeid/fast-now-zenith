@@ -74,7 +74,7 @@ export const useWalkingSessionQuery = () => {
     enabled: !!user?.id,
     staleTime: 5 * 1000, // 5 seconds for active session
     gcTime: 30 * 1000, // 30 seconds
-    refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
+    refetchInterval: (data) => data ? 30000 : false, // Only poll every 30s if active session
     retry: 3,
   });
 
