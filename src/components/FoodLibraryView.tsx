@@ -861,7 +861,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* My Foods Tab */}
           <TabsContent value="my-foods" className="flex-1 overflow-y-auto mt-0">
-          <div className="space-y-1 mt-1 py-2">
+          <div className="space-y-2 mt-1">
             {/* My Foods List */}
             {loading ? (
               <div className="space-y-1">
@@ -904,7 +904,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* Suggested Foods Tab */}
           <TabsContent value="suggested" className="flex-1 overflow-y-auto mt-0">
-          <div className="space-y-1 mt-1 py-2">
+          <div className="space-y-2 mt-1">
             {loading ? (
               <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
@@ -946,7 +946,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
           {/* Recent Foods Tab */}
           <TabsContent value="recent" className="flex-1 overflow-y-auto mt-0">
-            <div className="space-y-1 mt-1 py-2">
+            <div className="space-y-2 mt-1">
               {recentLoading ? (
                 <div className="space-y-1">
                   {[...Array(8)].map((_, i) => (

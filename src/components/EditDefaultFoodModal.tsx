@@ -42,13 +42,15 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
   
-  // Update form when food prop changes
+  // Initialize form when modal opens with a new food
   useEffect(() => {
-    setName(food.name);
-    setCaloriesPer100g(food.calories_per_100g.toString());
-    setCarbsPer100g(food.carbs_per_100g.toString());
-    setImageUrl(food.image_url || '');
-  }, [food.id]); // Only update when food ID changes, not on every prop change
+    if (isOpen !== undefined ? isOpen : internalOpen) {
+      setName(food.name);
+      setCaloriesPer100g(food.calories_per_100g.toString());
+      setCarbsPer100g(food.carbs_per_100g.toString());
+      setImageUrl(food.image_url || '');
+    }
+  }, [food.id, isOpen, internalOpen]); // Only reset when modal opens or food ID changes
   const { toast } = useToast();
   const { profile } = useProfile();
 
@@ -138,7 +140,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         isOpen={isOpen !== undefined ? isOpen : internalOpen}
         onClose={() => {
           if (onClose) onClose(); else setInternalOpen(false);
-          resetForm();
+          // Don't reset form on close to preserve user changes including image uploads
         }}
         title={`Edit ${food.name}`}
         variant="standard"
