@@ -157,17 +157,9 @@ export const FloatingVoiceAssistant = () => {
   };
 
   const handleVoiceTranscription = (transcription: string) => {
-    console.log('🎤 VOICE DEBUG: handleVoiceTranscription called with transcription:', transcription);
-    console.log('🎤 VOICE DEBUG: Trimmed transcription length:', transcription.trim().length);
-    
     if (transcription.trim()) {
-      console.log('🎤 VOICE DEBUG: Transcription is valid, setting isOpen to true');
       setIsOpen(true); // Show chat when voice message received
-      console.log('🎤 VOICE DEBUG: About to call sendToAI with fromVoice=true');
       sendToAI(transcription, true);
-      console.log('🎤 VOICE DEBUG: sendToAI call completed');
-    } else {
-      console.log('🎤 VOICE DEBUG: Transcription is empty or only whitespace, skipping');
     }
   };
 

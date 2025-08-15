@@ -245,35 +245,9 @@ export const useUnifiedSubscription = () => {
     retry: 2,
   });
 
-  // Force cache clear on mount for debugging
-  useEffect(() => {
-    if (user?.id) {
-      console.log('🔄 Force invalidating subscription cache on mount');
-      queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
-    }
-  }, [user?.id, queryClient]);
+  // Removed excessive cache invalidation logging
 
-  // Enhanced debug logging
-  useEffect(() => {
-    if (subscriptionData && user?.id) {
-      console.log('🔍 SUBSCRIPTION STATE DEBUG:', {
-        userId: user.id,
-        subscribed: subscriptionData.subscribed,
-        subscription_status: subscriptionData.subscription_status,
-        inTrial: subscriptionData.inTrial,
-        trialEndsAt: subscriptionData.trialEndsAt,
-        subscription_tier: subscriptionData.subscription_tier,
-        isPaidUser: subscriptionData.isPaidUser,
-        platform: subscriptionData.platform,
-        debug: subscriptionData.debug,
-        timestamp: new Date().toISOString()
-      });
-    }
-  }, [subscriptionData, user?.id]);
-
-  // Invalidate cache
   const invalidate = useCallback(() => {
-    console.log('🔄 Manual subscription cache invalidation');
     queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
     queryClient.refetchQueries({ queryKey: ['unified-subscription'] });
   }, [queryClient]);
