@@ -62,6 +62,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [activeTab, setActiveTab] = useState<'recent' | 'my-foods' | 'suggested'>('recent');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
+  // Centralized edit modal state to prevent dropdown interference
+  const [editModalFood, setEditModalFood] = useState<(UserFood | DefaultFood) | null>(null);
+  const [editModalMode, setEditModalMode] = useState<'user' | 'default'>('user');
+  
   // Visual feedback state
   const [flashingItems, setFlashingItems] = useState<Set<string>>(new Set());
   
@@ -563,7 +567,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
     const isFlashing = flashingItems.has(food.id);
-    const [showEditModal, setShowEditModal] = useState(false);
+    const showEditModal = editModalFood?.id === food.id;
+    
+    console.log('🍽️ FoodCard rendering for', food.name, 'showEditModal:', showEditModal);
     
     const handleCardClick = (e: React.MouseEvent) => {
       // Don't trigger card actions if clicking on interactive elements
@@ -646,10 +652,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                          {/* Only show Edit option for user foods and admin for default foods */}
                          {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
                            <DropdownMenuItem
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               setShowEditModal(true);
-                             }}
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 console.log('🍽️ Opening edit modal for', food.name);
+                                 setEditModalFood(food);
+                                 setEditModalMode('user');
+                               }}
                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
                             >
                               <Edit className="w-4 h-4 mr-3" />
@@ -716,10 +724,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           ) : isAdmin && (
                             <>
                                <DropdownMenuItem
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   setShowEditModal(true);
-                                 }}
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     console.log('🍽️ Opening edit modal for default food', food.name);
+                                     setEditModalFood(food);
+                                     setEditModalMode('default');
+                                   }}
                                   className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
                                 >
                                   <Edit className="w-4 h-4 mr-3" />
@@ -812,14 +822,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </div>
         
-        {/* Edit Modal - Use EditDefaultFoodModal for both cases */}
+        {/* Edit Modal - Only render when this specific food is being edited */}
         {showEditModal && (
           <EditDefaultFoodModal 
-            food={food as DefaultFood | UserFood} 
-            onUpdate={isUserFood ? updateFood : updateDefaultFood}
+            food={editModalFood as DefaultFood | UserFood} 
+            onUpdate={editModalMode === 'user' ? updateFood : updateDefaultFood}
             isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            mode={isUserFood ? 'user' : 'default'}
+            onClose={() => {
+              console.log('🍽️ Edit modal onClose called for', food.name);
+              setEditModalFood(null);
+            }}
+            mode={editModalMode}
           />
         )}
       </div>
