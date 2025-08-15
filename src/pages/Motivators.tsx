@@ -148,7 +148,7 @@ const Motivators = () => {
 
 
   const handleAiChatResult = async (result: any) => {
-    
+    console.log('🎯 AI Chat Result received:', result); // Debug log
     console.log('🎯 Result name:', result.name);
     console.log('🎯 Result arguments:', result.arguments);
     

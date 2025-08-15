@@ -32,6 +32,7 @@ export const SettingsSubscription = () => {
 
   // Force refresh subscription data when Settings page loads
   React.useEffect(() => {
+    console.log('⚙️ Settings page loaded - refreshing subscription data');
     invalidate();
   }, [invalidate]);
 
@@ -114,6 +115,24 @@ export const SettingsSubscription = () => {
     );
   }
 
+  // Enhanced debug logging
+  React.useEffect(() => {
+    console.log('⚙️ SETTINGS SUBSCRIPTION RENDER DEBUG:', {
+      subscribed,
+      subscription_status,
+      inTrial,
+      trialEndsAt,
+      subscription_tier,
+      platform,
+      login_method,
+      isTestingMode,
+      testRole,
+      debug,
+      computedAccountType: subscribed ? 'Premium User' : inTrial ? 'Free Trial' : 'Free User',
+      shouldShowTrial: inTrial && trialEndsAt,
+      timestamp: new Date().toISOString()
+    });
+  }, [subscribed, subscription_status, inTrial, trialEndsAt, subscription_tier, platform, login_method, isTestingMode, testRole, debug]);
 
   return (
     <div className="space-y-6">

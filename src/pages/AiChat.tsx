@@ -19,7 +19,7 @@ import { useWalkingContext } from '@/hooks/useWalkingContext';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useNavigate } from 'react-router-dom';
-
+import { SimpleImageUpload } from '@/components/SimpleImageUpload';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
@@ -830,7 +830,21 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
       </div>
 
 
-      {/* Image Upload Dialog - Feature disabled since we removed SimpleImageUpload */}
+      {/* Image Upload Dialog */}
+      {isAdmin && imageAnalysisEnabled && (
+      <Dialog open={showImageUpload} onOpenChange={setShowImageUpload}>
+        <DialogContent className="sm:max-w-lg mx-auto">
+          <DialogHeader>
+            <DialogTitle>Upload Food Image</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <SimpleImageUpload 
+              onImageUpload={handleImageUpload}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      )}
     </div>
   );
 };

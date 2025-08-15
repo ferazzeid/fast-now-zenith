@@ -27,7 +27,9 @@ import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
+import { HistoryDebugHelper } from "@/components/enhanced/HistoryDebugHelper";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeStabilityFix } from "./components/ThemeStabilityFix";
 import { useColorTheme } from "./hooks/useColorTheme";
 import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
 import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
@@ -138,6 +140,8 @@ const AppContent = () => {
   
   return (
     <>
+      <HistoryDebugHelper />
+      
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
@@ -297,6 +301,7 @@ const App = () => (
         <BrowserRouter>
           <AsyncErrorBoundary>
             <ThemeProvider>
+              <ThemeStabilityFix />
               <AuthProvider>
                 <SimpleWalkingStatsProvider>
                   <AppContent />

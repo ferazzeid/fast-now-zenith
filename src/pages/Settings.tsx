@@ -530,9 +530,7 @@ const Settings = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Account Type</span>
                     <span className="text-warm-text font-medium">
-                      {subscription.isAdmin && subscription.inTrial ? 'Trial User (Admin)' : 
-                       subscription.isAdmin ? 'Admin User' :
-                       subscription.inTrial ? 'Trial User' : 
+                      {subscription.inTrial ? 'Trial User' : 
                        subscription.hasPremiumFeatures ? 'Premium User' : 'Free User'}
                     </span>
                   </div>

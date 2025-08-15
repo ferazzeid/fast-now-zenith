@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
+import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,10 +61,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'recent' | 'my-foods' | 'suggested'>('recent');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
-  
-  // Centralized edit modal state to prevent dropdown interference
-  const [editModalFood, setEditModalFood] = useState<(UserFood | DefaultFood) | null>(null);
-  const [editModalMode, setEditModalMode] = useState<'user' | 'default'>('user');
   
   // Visual feedback state
   const [flashingItems, setFlashingItems] = useState<Set<string>>(new Set());
@@ -465,48 +461,36 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
-    console.log('🍽️ FoodLibraryView: updateDefaultFood called with:', { foodId, updates });
-    
     try {
-      console.log('🍽️ FoodLibraryView: Attempting database update...');
-      const { data, error } = await supabase
+      console.log('🔄 FoodLibraryView: === UPDATE DEFAULT FOOD START ===');
+      console.log('🔄 FoodLibraryView: foodId:', foodId);
+      console.log('🔄 FoodLibraryView: updates received:', updates);
+      console.log('🔄 FoodLibraryView: image_url in updates:', updates.image_url);
+      
+      const { error } = await supabase
         .from('default_foods')
         .update(updates)
-        .eq('id', foodId)
-        .select()
-        .single();
+        .eq('id', foodId);
 
       if (error) {
-        console.error('🍽️ FoodLibraryView: Database update failed with error:', error);
-        console.error('🍽️ FoodLibraryView: Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        throw new Error(`Database update failed: ${error.message}`);
+        console.error('🔄 FoodLibraryView: Database update error:', error);
+        throw error;
       }
 
-      if (!data) {
-        console.error('🍽️ FoodLibraryView: No data returned from database update');
-        throw new Error('Database update returned no data - this indicates a permission or constraint issue');
-      }
+      console.log('🔄 FoodLibraryView: Database update successful');
+      console.log('🔄 FoodLibraryView: Updating local state...');
 
-      console.log('🍽️ FoodLibraryView: Database update successful, returned data:', data);
-
-      // Only update local state after confirmed database success
-      setDefaultFoods(prevFoods => prevFoods.map(food => 
+      setDefaultFoods(defaultFoods.map(food => 
         food.id === foodId 
           ? { ...food, ...updates }
           : food
       ));
       
-      console.log('🍽️ FoodLibraryView: Local state updated successfully for foodId:', foodId);
-      
+      console.log('🔄 FoodLibraryView: Local state updated');
+      console.log('🔄 FoodLibraryView: === UPDATE DEFAULT FOOD SUCCESS ===');
     } catch (error) {
-      console.error('🍽️ FoodLibraryView: updateDefaultFood operation failed:', error);
-      // Re-throw with more context
-      throw error instanceof Error ? error : new Error('Unknown error occurred during food update');
+      console.error('🔄 FoodLibraryView: Error updating default food:', error);
+      throw error;
     }
   };
 
@@ -589,9 +573,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
     const isFlashing = flashingItems.has(food.id);
-    const showEditModal = editModalFood?.id === food.id;
-    
-    console.log('🍽️ FoodCard rendering for', food.name, 'showEditModal:', showEditModal);
+    const [showEditModal, setShowEditModal] = useState(false);
     
     const handleCardClick = (e: React.MouseEvent) => {
       // Don't trigger card actions if clicking on interactive elements
@@ -673,32 +655,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                          </DropdownMenuItem>
                          {/* Only show Edit option for user foods and admin for default foods */}
                          {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
-                            <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log('🍽️ Opening edit modal for', food.name);
-                                  setEditModalFood(food);
-                                  setEditModalMode(isUserFood ? 'user' : 'default');
-                                }}
-                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                             >
+                           <DropdownMenuItem
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setShowEditModal(true);
+                             }}
+                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                            >
                               <Edit className="w-4 h-4 mr-3" />
                               Edit Food
                            </DropdownMenuItem>
                          )}
-                          {/* Only show Delete option for user foods and admin for default foods */}
-                          {(isUserFood || isAdmin) && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteFood(food.id);
-                              }}
-                               className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                             >
-                               <Trash2 className="w-4 h-4 mr-3" />
-                               Delete Food
-                            </DropdownMenuItem>
-                          )}
+                         <DropdownMenuItem
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             deleteFood(food.id);
+                           }}
+                            className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 mr-3" />
+                            Delete Food
+                         </DropdownMenuItem>
                       </>
                     ) : (
                       <>
@@ -746,12 +723,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           ) : isAdmin && (
                             <>
                                <DropdownMenuItem
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     console.log('🍽️ Opening edit modal for default food', food.name);
-                                     setEditModalFood(food);
-                                     setEditModalMode('default');
-                                   }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setShowEditModal(true);
+                                 }}
                                   className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
                                 >
                                   <Edit className="w-4 h-4 mr-3" />
@@ -844,17 +819,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </div>
         
-        {/* Edit Modal - Only render when this specific food is being edited */}
+        {/* Edit Modal - Use EditDefaultFoodModal for both cases */}
         {showEditModal && (
-          <UnifiedFoodEditModal 
-            food={editModalFood as DefaultFood | UserFood} 
-            onUpdate={editModalMode === 'user' ? updateFood : updateDefaultFood}
+          <EditDefaultFoodModal 
+            food={food as DefaultFood | UserFood} 
+            onUpdate={isUserFood ? updateFood : updateDefaultFood}
             isOpen={showEditModal}
-            onClose={() => {
-              console.log('🍽️ Edit modal onClose called for', food.name);
-              setEditModalFood(null);
-            }}
-            mode={editModalMode}
+            onClose={() => setShowEditModal(false)}
+            mode={isUserFood ? 'user' : 'default'}
           />
         )}
       </div>

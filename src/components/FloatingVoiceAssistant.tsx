@@ -36,6 +36,8 @@ export const FloatingVoiceAssistant = () => {
   }, [messages]);
 
   const addMessage = (role: 'user' | 'assistant', content: string) => {
+    console.log('💬 Adding message:', { role, content: content.substring(0, 50) + '...' });
+    
     const newMessage: Message = {
       id: Date.now().toString(),
       role,
@@ -43,14 +45,25 @@ export const FloatingVoiceAssistant = () => {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => {
+      const updated = [...prev, newMessage];
+      console.log('💬 Messages state updated, total messages:', updated.length);
+      return updated;
+    });
+    
     return newMessage.id;
   };
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    if (!user || isProcessing) return;
+    console.log('🤖 AI Chat: Starting request with message:', message);
+    
+    if (!user || isProcessing) {
+      console.log('🤖 AI Chat: Blocked - no user or already processing');
+      return;
+    }
 
-    addMessage('user', message);
+    console.log('🤖 AI Chat: Adding user message to chat');
+    const userMessageId = addMessage('user', message);
     setIsProcessing(true);
 
     try {
@@ -61,6 +74,8 @@ export const FloatingVoiceAssistant = () => {
       // Simplified system prompt - let edge function handle detailed knowledge
       const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
 
+      console.log('🤖 AI Chat: Making Supabase function call');
+
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
@@ -70,29 +85,39 @@ export const FloatingVoiceAssistant = () => {
         }
       });
 
+      console.log('🤖 AI Chat: Supabase function response:', { data, error });
+
       if (error) {
-        console.error('AI Chat error:', error);
+        console.error('🤖 AI Chat: Supabase function error:', error);
         throw error;
       }
 
+      console.log('🤖 AI Chat: Checking for completion in response:', data?.completion);
+
       if (data?.completion) {
+        console.log('🤖 AI Chat: Adding assistant message:', data.completion);
         addMessage('assistant', data.completion);
         
         // Play audio if from voice
         if (fromVoice) {
+          console.log('🤖 AI Chat: Playing audio response');
           await playTextAsAudio(data.completion);
         }
+        
+        console.log('🤖 AI Chat: Successfully processed response');
       } else {
+        console.error('🤖 AI Chat: No completion in response:', data);
         addMessage('assistant', 'Sorry, I had trouble processing your request. Please try again.');
       }
     } catch (error) {
-      console.error('AI Chat error:', error);
+      console.error('🤖 AI Chat: Error occurred:', error);
       toast({
         title: "Error",
         description: "Failed to get AI response. Please try again.",
         variant: "destructive"
       });
     } finally {
+      console.log('🤖 AI Chat: Finished processing, setting isProcessing to false');
       setIsProcessing(false);
     }
   };
@@ -132,9 +157,17 @@ export const FloatingVoiceAssistant = () => {
   };
 
   const handleVoiceTranscription = (transcription: string) => {
+    console.log('🎤 VOICE DEBUG: handleVoiceTranscription called with transcription:', transcription);
+    console.log('🎤 VOICE DEBUG: Trimmed transcription length:', transcription.trim().length);
+    
     if (transcription.trim()) {
+      console.log('🎤 VOICE DEBUG: Transcription is valid, setting isOpen to true');
       setIsOpen(true); // Show chat when voice message received
+      console.log('🎤 VOICE DEBUG: About to call sendToAI with fromVoice=true');
       sendToAI(transcription, true);
+      console.log('🎤 VOICE DEBUG: sendToAI call completed');
+    } else {
+      console.log('🎤 VOICE DEBUG: Transcription is empty or only whitespace, skipping');
     }
   };
 

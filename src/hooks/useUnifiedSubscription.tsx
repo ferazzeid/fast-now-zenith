@@ -29,7 +29,6 @@ export interface UnifiedSubscriptionData {
   // Computed fields
   isPaidUser: boolean;
   hasPremiumFeatures: boolean;
-  isAdmin?: boolean; // Add admin status
   
   // Platform info
   platform: 'web' | 'android' | 'ios';
@@ -82,6 +81,12 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
   const platform = detectPlatform();
   const payment_provider = getPaymentProviderForPlatform(platform);
   
+  console.log('🔄 Unified Subscription Fetch:', {
+    userId,
+    platform,
+    payment_provider,
+    timestamp: new Date().toISOString()
+  });
 
   try {
     // Get profile data including subscription info
@@ -125,29 +130,19 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
     
     // Removed noisy trial detection debug logging
     
-  // Check user roles to determine admin status
-  const { data: adminRole } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .eq('role', 'admin')
-    .single();
-  
-  const isAdmin = !!adminRole;
-  
-  // Check if subscribed (active subscription or platform-specific)
-  let subscribed = false;
-  let subscription_status = 'free';
-  
-  // Priority: Active subscription > Trial > Free
-  if (profile?.subscription_status === 'active' && subscriptionEndDate && subscriptionEndDate > now) {
-    subscribed = true;
-    subscription_status = 'active';
-  } else if (inTrial) {
-    subscription_status = 'trial'; // Force trial status when in trial period
-  } else {
-    subscription_status = 'free';
-  }
+    // Check if subscribed (active subscription or platform-specific)
+    let subscribed = false;
+    let subscription_status = 'free';
+    
+    // Priority: Active subscription > Trial > Free
+    if (profile?.subscription_status === 'active' && subscriptionEndDate && subscriptionEndDate > now) {
+      subscribed = true;
+      subscription_status = 'active';
+    } else if (inTrial) {
+      subscription_status = 'trial'; // Force trial status when in trial period
+    } else {
+      subscription_status = 'free';
+    }
 
     // Platform-specific subscription check
     const hasValidPlatformSubscription = 
@@ -159,11 +154,10 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
     const userTier = profile?.user_tier || 'free_user';
     const dbSubscriptionTier = profile?.subscription_tier || 'free';
     
-  // User is paid if they have active subscription OR in trial OR user_tier is paid_user
-  // BUT: When testing roles, trial status should still show (trials are tied to actual account)
-  const isPaidUser = subscribed || inTrial || userTier === 'paid_user';
-  // Admins always have premium features regardless of subscription status
-  const hasPremiumFeatures = isPaidUser || isAdmin;
+    // User is paid if they have active subscription OR in trial OR user_tier is paid_user
+    // BUT: When testing roles, trial status should still show (trials are tied to actual account)
+    const isPaidUser = subscribed || inTrial || userTier === 'paid_user';
+    const hasPremiumFeatures = isPaidUser;
     
     // Return the database subscription_tier but use user_tier for paid status
     // For role testing: Keep trial info visible even when testing as free_user
@@ -181,10 +175,9 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
       inTrial,
       trialEndsAt: profile?.trial_ends_at,
       requests_used: 0, // Will be fetched separately if needed
-      request_limit: (isPaidUser || isAdmin) ? 1000 : freeLimit,
+      request_limit: isPaidUser ? 1000 : freeLimit,
       isPaidUser,
       hasPremiumFeatures,
-      isAdmin, // Add admin status to the returned data
       platform,
       payment_provider,
       login_method,
@@ -205,6 +198,10 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
       }
     };
 
+    console.log('✅ Unified Subscription Result:', {
+      ...result,
+      fetchDuration: Date.now() - startTime + 'ms'
+    });
 
     return result;
   } catch (error) {
@@ -241,17 +238,42 @@ export const useUnifiedSubscription = () => {
     queryKey: ['unified-subscription', user?.id],
     queryFn: () => fetchUnifiedSubscriptionData(user!.id, session?.access_token),
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 0, // Force fresh data
+    gcTime: 1 * 60 * 1000, // 1 minute cache
+    refetchOnWindowFocus: true, // Refresh when focus
+    refetchOnMount: true, // Always refresh on mount
     retry: 2,
   });
 
+  // Force cache clear on mount for debugging
+  useEffect(() => {
+    if (user?.id) {
+      console.log('🔄 Force invalidating subscription cache on mount');
+      queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+    }
+  }, [user?.id, queryClient]);
 
+  // Enhanced debug logging
+  useEffect(() => {
+    if (subscriptionData && user?.id) {
+      console.log('🔍 SUBSCRIPTION STATE DEBUG:', {
+        userId: user.id,
+        subscribed: subscriptionData.subscribed,
+        subscription_status: subscriptionData.subscription_status,
+        inTrial: subscriptionData.inTrial,
+        trialEndsAt: subscriptionData.trialEndsAt,
+        subscription_tier: subscriptionData.subscription_tier,
+        isPaidUser: subscriptionData.isPaidUser,
+        platform: subscriptionData.platform,
+        debug: subscriptionData.debug,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [subscriptionData, user?.id]);
 
   // Invalidate cache
   const invalidate = useCallback(() => {
+    console.log('🔄 Manual subscription cache invalidation');
     queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
     queryClient.refetchQueries({ queryKey: ['unified-subscription'] });
   }, [queryClient]);
