@@ -3,7 +3,7 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UniversalModal } from '@/components/ui/universal-modal';
+import { StableEditModal } from '@/components/StableEditModal';
 import { useToast } from '@/hooks/use-toast';
 
 interface FoodEntry {
@@ -105,14 +105,13 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
   };
 
   return (
-    <UniversalModal
+    <StableEditModal
       isOpen={isOpen !== undefined ? isOpen : internalOpen}
       onClose={() => {
         if (onClose) onClose(); else setInternalOpen(false);
         resetForm();
       }}
       title={`Edit ${entry.name}`}
-      variant="standard"
       size="sm"
       footer={
         <>
@@ -195,6 +194,6 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
           </div>
         </div>
       </div>
-    </UniversalModal>
+    </StableEditModal>
   );
 };

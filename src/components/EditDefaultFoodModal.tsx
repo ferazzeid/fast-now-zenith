@@ -3,7 +3,7 @@ import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UniversalModal } from '@/components/ui/universal-modal';
+import { StableEditModal } from '@/components/StableEditModal';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from './ImageUpload';
 import { supabase } from '@/integrations/supabase/client';
@@ -209,13 +209,11 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       )}
 
       {/* Modal */}
-      <UniversalModal
+      <StableEditModal
         isOpen={isOpen !== undefined ? isOpen : internalOpen}
         onClose={handleClose}
         title={`Edit ${food.name}`}
-        variant="standard"
         size="sm"
-        closeOnOverlay={false}
         footer={
           <>
             <Button
@@ -304,9 +302,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
             )}
           </div>
         </div>
-
-
-      </UniversalModal>
+      </StableEditModal>
     </>
   );
 };
