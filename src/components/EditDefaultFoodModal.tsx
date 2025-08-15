@@ -85,14 +85,19 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   // Handle image upload with immediate preview and feedback
   const handleImageUpload = (newImageUrl: string) => {
     console.log('🖼️ Image uploaded successfully:', newImageUrl);
+    console.log('🔍 Modal should remain open after upload');
     setImageUrl(newImageUrl);
     setImageUploaded(true);
     
-    toast({
-      title: "Image uploaded",
-      description: "Don't forget to click Save to persist your changes",
-      variant: "default"
-    });
+    // Prevent any potential modal closure
+    setTimeout(() => {
+      toast({
+        title: "Image uploaded successfully!",
+        description: "Click 'Save Changes' to keep this image",
+        duration: 5000,
+        variant: "default"
+      });
+    }, 100);
   };
 
   const handleSave = async () => {
@@ -168,11 +173,18 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   };
 
   const handleClose = () => {
-    if (hasUnsavedChanges) {
+    console.log('🚪 Attempting to close modal, hasUnsavedChanges:', hasUnsavedChanges);
+    console.log('🚪 imageUploaded:', imageUploaded);
+    
+    if (hasUnsavedChanges || imageUploaded) {
       const confirm = window.confirm('You have unsaved changes. Are you sure you want to close?');
-      if (!confirm) return;
+      if (!confirm) {
+        console.log('🚪 User cancelled close - modal stays open');
+        return;
+      }
     }
     
+    console.log('🚪 Closing modal');
     if (onClose) onClose(); 
     else setInternalOpen(false);
   };
@@ -203,6 +215,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         title={`Edit ${food.name}`}
         variant="standard"
         size="sm"
+        closeOnOverlay={false}
         footer={
           <>
             <Button
