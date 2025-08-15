@@ -63,10 +63,14 @@ export const UnifiedFoodEditModal = ({
   const { toast } = useToast();
   const { isAdmin } = useAdminRole();
 
-  // Determine if this is a food entry or library food
+  // Determine food type and editing permissions
   const isFoodEntry = mode === 'entry' || 'serving_size' in food;
   const isDefaultFood = mode === 'default';
+  const isUserFood = mode === 'user';
   const canEditDefaultFood = isAdmin && isDefaultFood;
+  
+  // Smart detection: if it's a library food, we're editing per-100g values
+  const isEditingPer100g = !isFoodEntry;
 
   // Initialize form data based on food type
   useEffect(() => {
@@ -82,7 +86,7 @@ export const UnifiedFoodEditModal = ({
       setName(libraryFood.name);
       setCalories(libraryFood.calories_per_100g.toString());
       setCarbs(libraryFood.carbs_per_100g.toString());
-      setServingSize('100'); // Default for library foods
+      setServingSize('100'); // Default for library foods (per 100g reference)
       setImageUrl(libraryFood.image_url || '');
     }
     setHasUnsavedChanges(false);
@@ -158,16 +162,15 @@ export const UnifiedFoodEditModal = ({
       return;
     }
 
-    if (isFoodEntry) {
-      const servingSizeNum = parseFloat(servingSize);
-      if (isNaN(servingSizeNum) || servingSizeNum <= 0) {
-        toast({
-          title: "Error",
-          description: "Please enter a valid serving size",
-          variant: "destructive"
-        });
-        return;
-      }
+    // Always validate serving size since we always show it now
+    const servingSizeNum = parseFloat(servingSize);
+    if (isNaN(servingSizeNum) || servingSizeNum <= 0) {
+      toast({
+        title: "Error",
+        description: isEditingPer100g ? "Please enter a valid reference amount" : "Please enter a valid serving size",
+        variant: "destructive"
+      });
+      return;
     }
 
     if (isDefaultFood && !canEditDefaultFood) {
@@ -192,6 +195,7 @@ export const UnifiedFoodEditModal = ({
           image_url: imageUrl || undefined,
         };
       } else {
+        // For library foods, we're editing per-100g values
         updateData = {
           name: name.trim(),
           calories_per_100g: caloriesNum,
@@ -254,11 +258,15 @@ export const UnifiedFoodEditModal = ({
   };
 
   const getCaloriesLabel = () => {
-    return isFoodEntry ? "Calories" : "Calories per 100g";
+    return isEditingPer100g ? "Calories per 100g" : "Calories";
   };
 
   const getCarbsLabel = () => {
-    return isFoodEntry ? "Carbs (g)" : "Carbs per 100g";
+    return isEditingPer100g ? "Carbs per 100g" : "Carbs (g)";
+  };
+
+  const getServingSizeLabel = () => {
+    return isEditingPer100g ? "Reference amount (g)" : "Serving size (g)";
   };
 
   return (
@@ -299,7 +307,8 @@ export const UnifiedFoodEditModal = ({
           />
         </div>
 
-        <div className={isFoodEntry ? "grid grid-cols-3 gap-4" : "grid grid-cols-2 gap-4"}>
+        {/* Always show all three fields in a consistent grid */}
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="calories">{getCaloriesLabel()}</Label>
             <Input
@@ -328,20 +337,19 @@ export const UnifiedFoodEditModal = ({
             />
           </div>
 
-          {isFoodEntry && (
-            <div className="space-y-2">
-              <Label htmlFor="serving">Serving (g)</Label>
-              <Input
-                id="serving"
-                type="number"
-                value={servingSize}
-                onChange={(e) => setServingSize(e.target.value)}
-                placeholder="0"
-                min="0.1"
-                step="0.1"
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="serving">{getServingSizeLabel()}</Label>
+            <Input
+              id="serving"
+              type="number"
+              value={servingSize}
+              onChange={(e) => setServingSize(e.target.value)}
+              placeholder="0"
+              min="0.1"
+              step="0.1"
+              disabled={isDefaultFood && !canEditDefaultFood}
+            />
+          </div>
         </div>
 
         <div className="space-y-2">

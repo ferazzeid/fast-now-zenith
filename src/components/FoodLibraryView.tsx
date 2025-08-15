@@ -673,15 +673,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                          </DropdownMenuItem>
                          {/* Only show Edit option for user foods and admin for default foods */}
                          {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
-                           <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 console.log('🍽️ Opening edit modal for', food.name);
-                                 setEditModalFood(food);
-                                 setEditModalMode('user');
-                               }}
-                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                            >
+                            <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log('🍽️ Opening edit modal for', food.name);
+                                  setEditModalFood(food);
+                                  setEditModalMode(isUserFood ? 'user' : 'default');
+                                }}
+                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                             >
                               <Edit className="w-4 h-4 mr-3" />
                               Edit Food
                            </DropdownMenuItem>
