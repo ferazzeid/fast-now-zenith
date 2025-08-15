@@ -78,8 +78,10 @@ const Motivators = () => {
 
   const handleSaveMotivator = async (updatedMotivator) => {
     try {
-      // Check if this is an admin goal edit (has no numeric id, just string id)
-      const isAdminGoalEdit = editingMotivator && typeof editingMotivator.id === 'string' && !editingMotivator.id.match(/^\d+$/);
+      // Check if this is an admin goal edit by looking at the source/type
+      // Admin goals should have a specific flag or come from admin goal management
+      const isAdminGoalEdit = editingMotivator && 
+        (editingMotivator._isAdminGoal || editingMotivator.source === 'admin_goals');
       
       if (isAdminGoalEdit) {
         // Update admin goal idea

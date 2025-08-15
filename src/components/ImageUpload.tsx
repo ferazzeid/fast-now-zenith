@@ -137,16 +137,7 @@ export const ImageUpload = ({
         throw new Error(result.error || 'Upload failed');
       }
 
-      // Show success message first, then call callback with small delay
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      });
-
-      // Small delay ensures toast is visible before modal closes
-      setTimeout(() => {
-        onImageUpload(result.url);
-      }, 150);
+      onImageUpload(result.url);
 
     } catch (error) {
       console.error('Upload error:', error);
