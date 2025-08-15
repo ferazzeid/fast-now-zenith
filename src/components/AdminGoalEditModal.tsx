@@ -31,6 +31,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [imageUrl, setImageUrl] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [componentKey, setComponentKey] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,6 +41,8 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
       setGender(goal.gender || 'male');
+      setIsSubmitting(false);
+      setComponentKey(prev => prev + 1);
     }
   }, [goal]);
 
@@ -69,7 +72,12 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       console.log('💾 Saving goal data:', updatedGoal);
       await onSave(updatedGoal);
       
-      // Close modal after successful save
+      // Clear form state and close modal
+      setTitle('');
+      setDescription('');
+      setImageUrl('');
+      setGender('male');
+      setIsSubmitting(false);
       onClose();
     } catch (error) {
       console.error('❌ Error saving goal:', error);
@@ -78,7 +86,6 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         description: "Failed to save changes",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -87,6 +94,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
 
   return (
     <UniversalModal
+      key={componentKey}
       isOpen={true}
       onClose={onClose}
       title="Edit Motivator Idea"

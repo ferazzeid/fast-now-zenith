@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useToast } from '@/hooks/use-toast';
@@ -74,7 +74,7 @@ export default function MotivatorIdeas() {
     setEditingGoal(goal);
   };
 
-  const handleSaveEdit = async (updatedGoal: AdminGoalIdea) => {
+  const handleSaveEdit = useCallback(async (updatedGoal: AdminGoalIdea) => {
     try {
       console.log('Saving edit with data:', updatedGoal);
       const success = await updateDefaultGoal(updatedGoal.id, {
@@ -83,11 +83,12 @@ export default function MotivatorIdeas() {
         imageUrl: updatedGoal.imageUrl,
       });
       if (success) {
-        console.log('✅ Update successful, force refreshing ideas...');
-        setEditingGoal(null);
+        console.log('✅ Update successful, clearing modal...');
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        // Force complete refresh using the new trigger mechanism
-        forceRefresh();
+        
+        // Clear editing state first, then refresh
+        setEditingGoal(null);
+        setTimeout(() => forceRefresh(), 100);
       } else {
         throw new Error('Update failed');
       }
@@ -95,7 +96,7 @@ export default function MotivatorIdeas() {
       console.error('Update error:', e);
       toast({ title: 'Error', description: 'Failed to update idea.', variant: 'destructive' });
     }
-  };
+  }, [updateDefaultGoal, forceRefresh, toast]);
 
   const handleDelete = async (goalId: string) => {
     const ok = await removeFromDefaultGoals(goalId);
