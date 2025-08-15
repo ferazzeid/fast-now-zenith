@@ -56,30 +56,9 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const { toast } = useToast();
   const { profile } = useProfile();
 
-  // Handle immediate image save (auto-save image uploads without closing modal)
-  const handleImageSave = async (newImageUrl: string) => {
-    try {
-      const tableName = mode === 'user' ? 'user_foods' : 'default_foods';
-      
-      const { error } = await supabase
-        .from(tableName)
-        .update({ image_url: newImageUrl || null })
-        .eq('id', food.id);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Image updated",
-        description: "Food image has been saved"
-      });
-    } catch (error) {
-      console.error('Failed to save image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save image",
-        variant: "destructive"
-      });
-    }
+  // Handle image upload with immediate preview (no auto-save)
+  const handleImageUpload = (newImageUrl: string) => {
+    setImageUrl(newImageUrl);
   };
 
   const handleSave = async () => {
@@ -125,9 +104,10 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       
       // Only close modal after explicit save
       if (onClose) onClose(); else setInternalOpen(false);
+      
       toast({
-        title: "Success",
-        description: "Food updated successfully"
+        title: "Food updated successfully",
+        description: `${name} has been saved`
       });
     } catch (error) {
       console.error('Failed to update food:', error);
@@ -238,16 +218,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
             <Label>Food Image</Label>
             <ImageUpload 
               currentImageUrl={imageUrl}
-              onImageUpload={(url) => {
-                setImageUrl(url);
-                // Auto-save image immediately after upload
-                handleImageSave(url);
-              }}
-              onImageRemove={() => {
-                setImageUrl('');
-                // Auto-save image removal immediately
-                handleImageSave('');
-              }}
+              onImageUpload={handleImageUpload}
+              onImageRemove={() => setImageUrl('')}
               bucket="food-images"
             />
           </div>
