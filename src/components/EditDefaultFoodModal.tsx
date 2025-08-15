@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,14 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const [caloriesPer100g, setCaloriesPer100g] = useState(food.calories_per_100g.toString());
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
+  
+  // Update form when food prop changes
+  useEffect(() => {
+    setName(food.name);
+    setCaloriesPer100g(food.calories_per_100g.toString());
+    setCarbsPer100g(food.carbs_per_100g.toString());
+    setImageUrl(food.image_url || '');
+  }, [food.id]); // Only update when food ID changes, not on every prop change
   const { toast } = useToast();
   const { profile } = useProfile();
 
