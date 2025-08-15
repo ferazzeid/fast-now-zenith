@@ -45,22 +45,6 @@ export const useManualCalorieBurns = () => {
       const total = todayEntries.reduce((sum, burn) => sum + burn.calories_burned, 0);
       setTodayTotal(total);
       
-      console.log('🔥 MANUAL CALORIE BURNS HOOK RESULT:', {
-        totalAllEntries: (data || []).length,
-        todayEntriesCount: todayEntries.length,
-        todayEntries: todayEntries?.map(d => ({ 
-          activity: d.activity_name, 
-          calories: d.calories_burned,
-          date: d.created_at.split('T')[0]
-        })),
-        calculatedTotal: total,
-        todayDate: today,
-        filterCheck: data?.map(d => ({
-          burnDate: d.created_at.split('T')[0],
-          today,
-          matches: d.created_at.split('T')[0] === today
-        }))
-      });
     } catch (error) {
       console.error('Error loading manual calorie burns:', error);
       setManualBurns([]);
