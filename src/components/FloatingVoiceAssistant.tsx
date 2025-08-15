@@ -71,13 +71,16 @@ export const FloatingVoiceAssistant = () => {
 
       if (error) throw error;
 
-      if (data?.content) {
-        addMessage('assistant', data.content);
+      if (data?.completion) {
+        addMessage('assistant', data.completion);
         
         // Play audio if from voice
         if (fromVoice) {
-          await playTextAsAudio(data.content);
+          await playTextAsAudio(data.completion);
         }
+      } else {
+        console.error('No completion in response:', data);
+        addMessage('assistant', 'Sorry, I had trouble processing your request. Please try again.');
       }
     } catch (error) {
       console.error('AI chat error:', error);
