@@ -246,9 +246,12 @@ export const CircularVoiceButton = React.forwardRef<
       if (data?.text) {
         console.log('🎤 Transcription successful:', data.text);
         onTranscription(data.text);
+        // Tiny green checkmark toast at bottom
         toast({
-          title: "Message Received",
-          description: "I heard you clearly and I'm processing your request",
+          title: "✓",
+          description: "",
+          className: "w-16 h-8 p-2 text-center bg-green-600 text-white border-0 fixed bottom-4 right-4 text-xs",
+          duration: 1500,
         });
         audioChunksRef.current = [];
       } else {

@@ -217,7 +217,16 @@ USER PROFILE:
 - Activity level: ${profile.activity_level || 'sedentary'}
 - Default walking speed: ${profile.default_walking_speed || 3} mph`;
 
-    const enhancedSystemMessage = `${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
+    const enhancedSystemMessage = `You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
+
+${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
+
+RESPONSE STYLE: 
+- Use natural, flowing conversation 
+- Avoid numbered lists, bullet points, or structured formatting
+- Be conversational and helpful
+- Keep responses brief but informative
+- When describing multiple features, weave them into natural sentences
 
 IMPORTANT: When users ask to edit/change/modify foods, you can find them in:
 1. Today's Food Entries (with specific IDs for editing)

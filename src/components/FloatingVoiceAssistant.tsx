@@ -272,17 +272,11 @@ export const FloatingVoiceAssistant = () => {
         </PremiumGate>
       </div>
 
-      {/* Processing Indicator */}
+      {/* Processing Indicator - Tiny brain at bottom */}
       {isProcessing && (
-        <div className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 mb-2 z-40">
-          <div className="flex items-center gap-2 p-3 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg animate-fade-in">
-            <div className="flex gap-1">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse [animation-delay:0.2s]" />
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse [animation-delay:0.4s]" />
-            </div>
-            <span className="text-sm text-muted-foreground">AI is thinking...</span>
-          </div>
+        <div className="fixed bottom-2 right-2 z-50 flex items-center gap-1 bg-background/90 backdrop-blur-sm border border-border rounded-full px-2 py-1 shadow-lg text-xs">
+          <div className="text-lg animate-pulse">🧠</div>
+          <span className="text-xs text-muted-foreground hidden sm:inline">thinking...</span>
         </div>
       )}
     </div>
