@@ -186,8 +186,38 @@ serve(async (req) => {
       ? `\n\nChat Guardrails: ${globalSettings.setting_value.guardrails}`
       : '';
 
-    // Enhanced system message with comprehensive food access
-    const enhancedSystemMessage = `${messages[0]?.content || ''}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
+    // Enhanced system message with comprehensive app knowledge and food access
+    const appKnowledgeContext = `
+
+APP CALCULATIONS & CONSTANTS:
+- Walking speeds: Normal = 5 km/h (3.1 mph), Fast = 7 km/h (4.3 mph)
+- Step estimation formula: stride = height_inches * 0.414 * speed_factor
+- Calorie calculation: METs (Normal: 3.5, Fast: 4.3) * weight_kg * time_hours
+- Speed factors: ≤2.5mph=0.9, ≤3.5mph=1.0, ≤4.5mph=1.1, >4.5mph=1.2
+
+UNIT CONVERSIONS:
+- Weight: 1 kg = 2.204 lbs
+- Height: 1 cm = 0.393 inches, 1 inch = 2.54 cm
+- Distance: 1 km = 0.621 miles, 1 mile = 1.609 km
+- Volume: 1 ml = 0.034 fl oz, 1 cup = 240 ml, 1 tbsp = 15 ml
+
+FASTING TIMELINE:
+- 0-4h: Glucose depletion, digestion complete
+- 4-8h: Glycogen stores depleting, insulin dropping
+- 8-12h: Entering ketosis, fat oxidation increases
+- 12-16h: Ketosis established, mental clarity improves
+- 16-24h: Autophagy begins, cellular cleanup starts
+- 24h+: Deep autophagy, growth hormone peaks
+
+USER PROFILE:
+- Weight: ${profile.weight || 'Not set'} kg
+- Height: ${profile.height || 'Not set'} cm
+- Daily calorie goal: ${profile.daily_calorie_goal || 'Not set'}
+- Daily carb goal: ${profile.daily_carb_goal || 'Not set'}g
+- Activity level: ${profile.activity_level || 'sedentary'}
+- Default walking speed: ${profile.default_walking_speed || 3} mph`;
+
+    const enhancedSystemMessage = `${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
 IMPORTANT: When users ask to edit/change/modify foods, you can find them in:
 1. Today's Food Entries (with specific IDs for editing)
@@ -195,7 +225,9 @@ IMPORTANT: When users ask to edit/change/modify foods, you can find them in:
 3. Recent Foods (from last 30 days)
 4. Daily Food Templates (with specific IDs)
 
-For editing foods, always search across ALL these sources to find matches by name.`;
+For editing foods, always search across ALL these sources to find matches by name.
+
+When explaining app calculations, use the exact formulas and constants above. Help users understand unit conversions by showing the specific numbers they need to enter in the app.`;
     
     const systemMessages = [
       { role: 'system', content: enhancedSystemMessage },
