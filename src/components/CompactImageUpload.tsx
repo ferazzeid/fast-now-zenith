@@ -71,8 +71,8 @@ export const CompactImageUpload = ({ onImageUpload, onImageRemove, currentImageU
     setIsUploading(true);
 
     try {
-      // Use hybrid upload system
-      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase);
+      // Use hybrid upload system - CRITICAL: Use food-images bucket for food components  
+      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase, 'food-images');
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');
