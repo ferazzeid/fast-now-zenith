@@ -13,7 +13,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 interface ImageUploadProps {
   currentImageUrl?: string;
   onImageUpload: (url: string) => void;
-  onImageRemove: () => void;
+  onImageRemove?: () => void;
   showUploadOptionsWhenImageExists?: boolean;
   regenerateButton?: React.ReactNode;
   // New props for AI generation
@@ -120,8 +120,18 @@ export const ImageUpload = ({
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
 
-      // Use hybrid upload system with specified bucket
-      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase, bucket);
+      // Premium users only - cloud storage
+      if (!hasPremiumFeatures) {
+        toast({
+          title: "Premium Required",
+          description: "Image uploads are only available for premium users",
+          variant: "destructive",
+        });
+        setPreviewUrl(currentImageUrl || null);
+        return;
+      }
+
+      const result = await uploadImageToCloud(file, user.id, supabase, bucket);
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');
@@ -150,7 +160,7 @@ export const ImageUpload = ({
 
   const handleRemoveImage = () => {
     setPreviewUrl(null);
-    onImageRemove();
+    onImageRemove?.();
   };
 
   return (
