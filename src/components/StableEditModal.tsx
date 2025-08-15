@@ -1,12 +1,6 @@
-import React, { ReactNode } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import React, { ReactNode, useEffect } from 'react';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface StableEditModalProps {
   isOpen: boolean;
@@ -28,67 +22,92 @@ export const StableEditModal = ({
   size = 'sm' 
 }: StableEditModalProps) => {
   
-  // Prevent any automatic closing mechanisms
-  const handleInteraction = (e: React.MouseEvent | React.KeyboardEvent) => {
-    e.stopPropagation();
+  console.log('🔒 StableEditModal: Rendering with isOpen:', isOpen);
+  
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      console.log('🔒 StableEditModal: Locking body scroll');
+      document.body.style.overflow = 'hidden';
+    } else {
+      console.log('🔒 StableEditModal: Unlocking body scroll');
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const sizeClasses = {
+    sm: 'max-w-[425px]',
+    lg: 'max-w-[600px]', 
+    xl: 'max-w-[800px]'
   };
 
-  // Only allow manual closing through the onClose prop
-  const handleOpenChange = (open: boolean) => {
-    // Only close if explicitly set to false from parent component
-    if (!open) {
-      console.log('🔒 StableEditModal: Manual close requested');
-      onClose();
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    // Completely block overlay clicks - no closing allowed
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('🔒 StableEditModal: Overlay click blocked - modal stays open');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Block escape key
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🔒 StableEditModal: Escape key blocked - modal stays open');
     }
   };
 
-  const sizeClasses = {
-    sm: 'sm:max-w-[425px]',
-    lg: 'sm:max-w-[600px]',
-    xl: 'sm:max-w-[800px]'
-  };
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <Dialog 
-      open={isOpen} 
-      onOpenChange={handleOpenChange}
-      // Disable all automatic closing mechanisms
-      modal={true}
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
     >
-      <DialogContent 
-        className={`${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
-        onEscapeKeyDown={(e) => {
-          console.log('🔒 StableEditModal: Escape key blocked');
-          e.preventDefault();
-        }}
-        onPointerDownOutside={(e) => {
-          console.log('🔒 StableEditModal: Outside click blocked');
-          e.preventDefault();
-        }}
-        onInteractOutside={(e) => {
-          console.log('🔒 StableEditModal: Outside interaction blocked');
-          e.preventDefault();
-        }}
-        onClick={handleInteraction}
-        onKeyDown={handleInteraction}
+      {/* Backdrop - absolutely no closing allowed */}
+      <div 
+        className="fixed inset-0 bg-black/50"
+        onClick={handleOverlayClick}
+      />
+      
+      {/* Modal content */}
+      <div 
+        className={`
+          relative bg-background border rounded-lg shadow-lg p-0 mx-4 
+          ${sizeClasses[size]} w-full max-h-[90vh] overflow-y-auto
+        `}
+        onClick={(e) => e.stopPropagation()}
       >
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
-        </DialogHeader>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 pb-4">
+          <div>
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {description && (
+              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            )}
+          </div>
+          {/* No X button - force manual close only */}
+        </div>
         
-        <div className="py-4">
+        {/* Content */}
+        <div className="px-6 pb-4">
           {children}
         </div>
         
+        {/* Footer */}
         {footer && (
-          <DialogFooter className="gap-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4 border-t gap-2">
             {footer}
-          </DialogFooter>
+          </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };

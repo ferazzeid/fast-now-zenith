@@ -136,12 +136,15 @@ export const ImageUpload = ({
         throw new Error(result.error || 'Upload failed');
       }
 
+      console.log('🖼️ ImageUpload: About to call onImageUpload with URL:', result.url);
       onImageUpload(result.url!);
+      console.log('🖼️ ImageUpload: onImageUpload callback completed');
       
       toast({
         title: "Success",
         description: "Image uploaded successfully",
       });
+      console.log('🖼️ ImageUpload: Toast notification sent');
 
     } catch (error) {
       console.error('Upload error:', error);

@@ -84,13 +84,17 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
 
   // Handle image upload with immediate preview and feedback
   const handleImageUpload = (newImageUrl: string) => {
-    console.log('🖼️ Image uploaded successfully:', newImageUrl);
-    console.log('🔍 Modal should remain open after upload');
+    console.log('🖼️ EditDefaultFoodModal: handleImageUpload called with:', newImageUrl);
+    console.log('🖼️ EditDefaultFoodModal: Modal state before upload - isOpen:', isOpen !== undefined ? isOpen : internalOpen);
+    
     setImageUrl(newImageUrl);
     setImageUploaded(true);
     
+    console.log('🖼️ EditDefaultFoodModal: State updated, modal should remain open');
+    
     // Prevent any potential modal closure
     setTimeout(() => {
+      console.log('🖼️ EditDefaultFoodModal: Showing delayed toast notification');
       toast({
         title: "Image uploaded successfully!",
         description: "Click 'Save Changes' to keep this image",
@@ -98,6 +102,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         variant: "default"
       });
     }, 100);
+    
+    console.log('🖼️ EditDefaultFoodModal: handleImageUpload function completed');
   };
 
   const handleSave = async () => {
