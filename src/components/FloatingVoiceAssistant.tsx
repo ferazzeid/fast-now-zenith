@@ -57,31 +57,8 @@ export const FloatingVoiceAssistant = () => {
       const currentPath = window.location.pathname;
       const pageContext = getPageContext(currentPath);
 
-      const systemPrompt = `You are a knowledgeable assistant for a fasting and health tracking app. You have deep knowledge about:
-
-WALKING CALCULATIONS:
-- Normal walking speed: 5 km/h (3.1 mph)
-- Fast walking speed: 7 km/h (4.3 mph)
-- Step estimation: Based on stride length (height * 0.414) adjusted for speed
-- Calorie calculation: METs based (3.5 METs normal, 4.3 METs fast) * weight * time
-
-UNIT CONVERSIONS:
-- Weight: 1 kg = 2.204 lbs
-- Height: 1 cm = 0.393 inches, 1 inch = 2.54 cm  
-- Distance: 1 km = 0.621 miles, 1 mile = 1.609 km
-- Volume: 1 ml = 0.034 oz, 1 cup = 240 ml, 1 tbsp = 15 ml
-
-FASTING PHASES:
-- 0-4h: Glucose depletion begins
-- 4-8h: Glycogen stores depleting  
-- 8-12h: Entering ketosis
-- 12-16h: Fat burning accelerates
-- 16-24h: Autophagy begins
-- 24h+: Deep autophagy and cellular repair
-
-CURRENT PAGE: ${pageContext}
-
-Be helpful, accurate, and reference specific numbers from the app when explaining calculations. If users ask about unit conversions, help them understand what to enter in the app.`;
+      // Simplified system prompt - let edge function handle detailed knowledge
+      const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
@@ -178,12 +155,12 @@ Be helpful, accurate, and reference specific numbers from the app when explainin
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
       {/* Chat Messages */}
       {isOpen && messages.length > 0 && (
         <div 
           ref={messagesRef}
-          className="absolute bottom-20 right-0 w-80 max-h-96 overflow-y-auto space-y-3 pb-4"
+          className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 max-h-96 overflow-y-auto space-y-3 pb-4 pr-2"
         >
           {messages.map((message, index) => (
             <ChatBubble
@@ -200,7 +177,7 @@ Be helpful, accurate, and reference specific numbers from the app when explainin
 
       {/* Text Input */}
       {showInput && (
-        <div className="absolute bottom-20 right-0 w-80 mb-2">
+        <div className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 mb-2">
           <div className="flex gap-2 p-3 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg">
             <Input
               value={inputMessage}
@@ -258,7 +235,7 @@ Be helpful, accurate, and reference specific numbers from the app when explainin
 
       {/* Processing Indicator */}
       {isProcessing && (
-        <div className="absolute bottom-20 right-0 w-80 mb-2">
+        <div className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 mb-2 z-40">
           <div className="flex items-center gap-2 p-3 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg animate-fade-in">
             <div className="flex gap-1">
               <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
