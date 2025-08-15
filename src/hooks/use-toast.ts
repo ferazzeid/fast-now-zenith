@@ -140,6 +140,21 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
+  // Check if modal editing is active - suppress toasts if so
+  try {
+    const modalEditingElement = document.querySelector('[data-modal-editing="true"]');
+    if (modalEditingElement) {
+      console.log('🔇 Toast suppressed due to active modal editing');
+      return {
+        id: 'suppressed',
+        dismiss: () => {},
+        update: () => {},
+      };
+    }
+  } catch (error) {
+    // Ignore DOM query errors, proceed with normal toast
+  }
+
   const id = genId()
 
   const update = (props: ToasterToast) =>

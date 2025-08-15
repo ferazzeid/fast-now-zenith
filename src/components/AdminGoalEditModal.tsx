@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { AdminImageUpload } from './AdminImageUpload';
+import { AdminImageUploadSilent } from './AdminImageUploadSilent';
 import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
 
@@ -32,6 +32,8 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [componentKey, setComponentKey] = useState(0);
+  const [inlineError, setInlineError] = useState<string>('');
+  const [inlineSuccess, setInlineSuccess] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,23 +44,23 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       setImageUrl(goal.imageUrl || '');
       setGender(goal.gender || 'male');
       setIsSubmitting(false);
+      setInlineError('');
+      setInlineSuccess('');
       setComponentKey(prev => prev + 1);
     }
   }, [goal]);
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast({
-        title: "Title required",
-        description: "Please add a title for this idea.",
-        variant: "destructive",
-      });
+      setInlineError("Title is required");
       return;
     }
 
     if (!goal) return;
 
     setIsSubmitting(true);
+    setInlineError('');
+    setInlineSuccess('');
     
     try {
       const updatedGoal: AdminGoalIdea = {
@@ -72,20 +74,22 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       console.log('💾 Saving goal data:', updatedGoal);
       await onSave(updatedGoal);
       
-      // Clear form state and close modal
-      setTitle('');
-      setDescription('');
-      setImageUrl('');
-      setGender('male');
-      setIsSubmitting(false);
-      onClose();
+      setInlineSuccess("Changes saved successfully!");
+      
+      // Clear form state and close modal after a brief delay
+      setTimeout(() => {
+        setTitle('');
+        setDescription('');
+        setImageUrl('');
+        setGender('male');
+        setIsSubmitting(false);
+        setInlineError('');
+        setInlineSuccess('');
+        onClose();
+      }, 1000);
     } catch (error) {
       console.error('❌ Error saving goal:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save changes",
-        variant: "destructive",
-      });
+      setInlineError("Failed to save changes. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -131,7 +135,20 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         </>
       }
     >
-      <div className="space-y-4">
+      {/* Mark this modal as editing to suppress toasts */}
+      <div data-modal-editing="true" className="space-y-4">
+        {/* Inline Status Messages */}
+        {inlineError && (
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+            {inlineError}
+          </div>
+        )}
+        {inlineSuccess && (
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-600 text-sm">
+            {inlineSuccess}
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="goal-title" className="text-warm-text font-medium">
             Title *
@@ -176,10 +193,12 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
 
         <div className="space-y-2">
           <Label className="text-warm-text font-medium">Image</Label>
-          <AdminImageUpload
+          <AdminImageUploadSilent
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
             onImageRemove={() => setImageUrl('')}
+            onError={(error) => setInlineError(error)}
+            onSuccess={(message) => setInlineSuccess(message)}
           />
         </div>
       </div>
