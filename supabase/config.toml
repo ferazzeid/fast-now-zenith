@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.check-subscription]
 verify_jwt = true
+
+[functions.execute-ai-function]
+verify_jwt = true

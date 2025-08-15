@@ -665,6 +665,124 @@ When explaining app calculations, use the exact formulas and constants above. He
                 required: ["food_id", "updates"]
               }
             }
+          },
+          // === FUNDAMENTAL DATA ACCESS FUNCTIONS ===
+          {
+            type: "function",
+            function: {
+              name: "get_recent_foods",
+              description: "Get user's recent foods from the last 30 days",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_favorite_default_foods",
+              description: "Get user's favorite default foods",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "copy_yesterday_foods",
+              description: "Copy all food entries from yesterday to today",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_today_food_totals",
+              description: "Get today's total calories and carbs from food entries",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_manual_calorie_burns",
+              description: "Get today's manual calorie burns",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "add_manual_calorie_burn",
+              description: "Add a manual calorie burn activity",
+              parameters: {
+                type: "object",
+                properties: {
+                  activity_name: {
+                    type: "string",
+                    description: "Name of the activity"
+                  },
+                  calories_burned: {
+                    type: "number",
+                    description: "Number of calories burned"
+                  }
+                },
+                required: ["activity_name", "calories_burned"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_walking_sessions_today",
+              description: "Get today's walking sessions",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_fasting_sessions_recent",
+              description: "Get recent fasting sessions",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_daily_food_templates",
+              description: "Get user's daily food templates",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
           }
         ],
         tool_choice: "auto"
