@@ -322,41 +322,41 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
             </div>
             <ImageUpload 
               currentImageUrl={imageUrl}
-              onImageUpload={async (url) => {
+              onImageUpload={(url) => {
+                console.log('Image uploaded:', url);
                 setImageUrl(url);
                 // Auto-save manual uploads like AI generation
-                try {
-                  await onUpdate(food.id, { image_url: url });
+                onUpdate(food.id, { image_url: url }).then(() => {
                   toast({
                     title: "✅ Image Saved!",
                     description: "Image has been automatically saved.",
                   });
-                } catch (error) {
+                }).catch((error) => {
                   console.error('Failed to auto-save image:', error);
                   toast({
                     title: "Error",
                     description: "Image uploaded but failed to save. Please click Save manually.",
                     variant: "destructive",
                   });
-                }
+                });
               }}
-              onImageRemove={async () => {
+              onImageRemove={() => {
+                console.log('Image removed');
                 setImageUrl('');
                 // Auto-save removal like AI generation
-                try {
-                  await onUpdate(food.id, { image_url: null });
+                onUpdate(food.id, { image_url: null }).then(() => {
                   toast({
                     title: "Image Removed",
                     description: "Image has been removed and saved.",
                   });
-                } catch (error) {
+                }).catch((error) => {
                   console.error('Failed to auto-save image removal:', error);
                   toast({
                     title: "Error", 
                     description: "Image removed but failed to save. Please click Save manually.",
                     variant: "destructive",
                   });
-                }
+                });
               }}
               bucket="food-images"
             />
