@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { Mic, MessageCircle, X, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { ChatBubble } from '@/components/ChatBubble';
+import { FloatingBubble } from '@/components/FloatingBubble';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,24 +17,12 @@ interface Message {
 
 export const AIVoiceButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [bubbles, setBubbles] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showInput, setShowInput] = useState(false);
   const { user } = useAuth();
-  const messagesRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
-  };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Close modal on escape key
+  // Close modal on escape key or click outside
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -43,8 +30,19 @@ export const AIVoiceButton = () => {
       }
     };
 
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (isOpen && target.closest('.aquarium-container') === null && target.closest('.ai-voice-button') === null) {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isOpen]);
 
   // Prevent body scroll when modal is open
@@ -60,22 +58,26 @@ export const AIVoiceButton = () => {
     };
   }, [isOpen]);
 
-  const addMessage = (role: 'user' | 'assistant', content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
+  const addBubble = (role: 'user' | 'assistant', content: string) => {
+    const newBubble: Message = {
+      id: Date.now().toString() + Math.random(),
       role,
       content,
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newMessage]);
-    return newMessage.id;
+    setBubbles(prev => [...prev, newBubble]);
+    return newBubble.id;
+  };
+
+  const removeBubble = (id: string) => {
+    setBubbles(prev => prev.filter(bubble => bubble.id !== id));
   };
 
   const sendToAI = async (message: string, fromVoice = false) => {
     if (!user || isProcessing) return;
 
-    addMessage('user', message);
+    addBubble('user', message);
     setIsProcessing(true);
 
     try {
@@ -95,13 +97,13 @@ export const AIVoiceButton = () => {
       if (error) throw error;
 
       if (data?.completion) {
-        addMessage('assistant', data.completion);
+        addBubble('assistant', data.completion);
         
         if (fromVoice) {
           await playTextAsAudio(data.completion);
         }
       } else {
-        addMessage('assistant', 'Sorry, I had trouble processing your request. Please try again.');
+        addBubble('assistant', 'Sorry, I had trouble processing your request. Please try again.');
       }
     } catch (error) {
       console.error('AI Chat error:', error);
@@ -156,25 +158,8 @@ export const AIVoiceButton = () => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() && !isProcessing) {
-      sendToAI(inputMessage);
-      setInputMessage('');
-      setShowInput(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const clearChat = () => {
-    setMessages([]);
-    setIsOpen(false);
-    setShowInput(false);
+  const clearBubbles = () => {
+    setBubbles([]);
   };
 
   return (
@@ -184,122 +169,46 @@ export const AIVoiceButton = () => {
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="w-8 h-8 p-0 rounded-full bg-ai-orange/20 backdrop-blur-sm border border-ai-orange/30 hover:bg-ai-orange/30 hover:scale-110 transition-all duration-200"
+        className="ai-voice-button w-8 h-8 p-0 rounded-full bg-ai/20 backdrop-blur-sm border border-ai/30 hover:bg-ai/30 hover:scale-110 transition-all duration-200"
         title="AI Voice Assistant"
       >
-        <Mic className="w-4 h-4 text-ai-orange" />
+        <Mic className="w-4 h-4 text-ai" />
       </Button>
 
-      {/* Full Screen Modal Overlay */}
+      {/* Aquarium Glass Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          {/* Modal Content */}
-          <div className="relative w-full h-full max-w-md mx-auto bg-background/95 backdrop-blur-md border border-border shadow-2xl flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-ai-orange">AI Assistant</h2>
-              <div className="flex items-center gap-2">
-                {messages.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearChat}
-                    title="Clear chat"
-                  >
-                    Clear
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsOpen(false)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+        <div className="fixed inset-0 z-50 bg-background/5 backdrop-blur-lg">
+          {/* Aquarium Container */}
+          <div className="aquarium-container relative w-full h-full">
+            {/* Floating Bubbles */}
+            {bubbles.map((bubble) => (
+              <FloatingBubble
+                key={bubble.id}
+                content={bubble.content}
+                role={bubble.role}
+                onComplete={() => removeBubble(bubble.id)}
+              />
+            ))}
+
+            {/* Processing Bubble */}
+            {isProcessing && (
+              <div 
+                className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary/10 backdrop-blur-sm border border-primary/30 rounded-full p-4 animate-pulse"
+                style={{ animationDuration: '2s' }}
+              >
+                <div className="w-6 h-6 rounded-full bg-primary/20 animate-ping" />
               </div>
-            </div>
+            )}
 
-            {/* Messages */}
-            <div 
-              ref={messagesRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4"
-            >
-              {messages.length === 0 ? (
-                <div className="text-center text-muted-foreground mt-8">
-                  <div className="text-4xl mb-4">🤖</div>
-                  <p>Ask me anything about your fasting journey!</p>
-                  <p className="text-sm mt-2">Use voice or text to get started.</p>
-                </div>
-              ) : (
-                messages.map((message, index) => (
-                  <ChatBubble
-                    key={message.id}
-                    message={message}
-                    isLast={index === messages.length - 1}
-                    onDismiss={() => {
-                      setMessages(prev => prev.filter(m => m.id !== message.id));
-                    }}
-                  />
-                ))
-              )}
-
-              {/* Processing Indicator */}
-              {isProcessing && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="text-lg animate-pulse">🧠</div>
-                  <span className="text-sm">thinking...</span>
-                </div>
-              )}
-            </div>
-
-            {/* Input Area */}
-            <div className="p-4 border-t border-border bg-background/50">
-              {showInput ? (
-                <div className="flex gap-2">
-                  <Input
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Ask me anything about the app..."
-                    className="flex-1"
-                    autoFocus
-                  />
-                  <Button 
-                    size="sm" 
-                    onClick={handleSendMessage}
-                    disabled={!inputMessage.trim() || isProcessing}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowInput(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex justify-center gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowInput(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Type Message
-                  </Button>
-                  
-                  <PremiumGate feature="voice_chat">
-                    <CircularVoiceButton
-                      onTranscription={handleVoiceTranscription}
-                      isDisabled={isProcessing}
-                      size="md"
-                    />
-                  </PremiumGate>
-                </div>
-              )}
+            {/* Voice Button at Bottom */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+              <PremiumGate feature="voice_chat">
+                <CircularVoiceButton
+                  onTranscription={handleVoiceTranscription}
+                  isDisabled={isProcessing}
+                  size="lg"
+                />
+              </PremiumGate>
             </div>
           </div>
         </div>
