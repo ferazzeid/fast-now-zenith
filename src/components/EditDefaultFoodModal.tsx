@@ -42,6 +42,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const [caloriesPer100g, setCaloriesPer100g] = useState(food.calories_per_100g.toString());
   const [carbsPer100g, setCarbsPer100g] = useState(food.carbs_per_100g.toString());
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
+  const [imageUploaded, setImageUploaded] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const foodIdRef = useRef(food.id);
   
   const { toast } = useToast();
@@ -58,9 +60,21 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       setCaloriesPer100g(food.calories_per_100g.toString());
       setCarbsPer100g(food.carbs_per_100g.toString());
       setImageUrl(food.image_url || '');
+      setImageUploaded(false);
+      setHasUnsavedChanges(false);
       foodIdRef.current = food.id;
     }
   }, [food.id]);
+
+  // Track form changes
+  useEffect(() => {
+    const hasChanges = 
+      name !== food.name ||
+      caloriesPer100g !== food.calories_per_100g.toString() ||
+      carbsPer100g !== food.carbs_per_100g.toString() ||
+      imageUrl !== (food.image_url || '');
+    setHasUnsavedChanges(hasChanges);
+  }, [name, caloriesPer100g, carbsPer100g, imageUrl, food]);
   
   // Prevent rendering if trying to edit default food without admin rights
   if (mode === 'default' && !adminLoading && !isAdmin) {
@@ -68,9 +82,17 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
     return null;
   }
 
-  // Handle image upload with immediate preview (no auto-save)
+  // Handle image upload with immediate preview and feedback
   const handleImageUpload = (newImageUrl: string) => {
+    console.log('🖼️ Image uploaded successfully:', newImageUrl);
     setImageUrl(newImageUrl);
+    setImageUploaded(true);
+    
+    toast({
+      title: "Image uploaded",
+      description: "Don't forget to click Save to persist your changes",
+      variant: "default"
+    });
   };
 
   const handleSave = async () => {
@@ -112,7 +134,12 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         image_url: imageUrl || null
       };
       
+      console.log('💾 Saving food with data:', updateData);
       await onUpdate(food.id, updateData);
+      
+      // Reset states after successful save
+      setImageUploaded(false);
+      setHasUnsavedChanges(false);
       
       // Only close modal after explicit save
       if (onClose) onClose(); else setInternalOpen(false);
@@ -136,6 +163,18 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
     setCaloriesPer100g(food.calories_per_100g.toString());
     setCarbsPer100g(food.carbs_per_100g.toString());
     setImageUrl(food.image_url || '');
+    setImageUploaded(false);
+    setHasUnsavedChanges(false);
+  };
+
+  const handleClose = () => {
+    if (hasUnsavedChanges) {
+      const confirm = window.confirm('You have unsaved changes. Are you sure you want to close?');
+      if (!confirm) return;
+    }
+    
+    if (onClose) onClose(); 
+    else setInternalOpen(false);
   };
 
 
@@ -160,9 +199,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       {/* Modal */}
       <UniversalModal
         isOpen={isOpen !== undefined ? isOpen : internalOpen}
-        onClose={() => {
-          if (onClose) onClose(); else setInternalOpen(false);
-        }}
+        onClose={handleClose}
         title={`Edit ${food.name}`}
         variant="standard"
         size="sm"
@@ -170,15 +207,16 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
           <>
             <Button
               variant="outline"
-              onClick={() => {
-                if (onClose) onClose(); else setInternalOpen(false);
-              }}
+              onClick={handleClose}
               className="w-full"
             >
               Cancel
             </Button>
-            <Button onClick={handleSave} className="w-full">
-              Save
+            <Button 
+              onClick={handleSave} 
+              className={`w-full ${hasUnsavedChanges ? 'bg-primary hover:bg-primary/90' : ''}`}
+            >
+              {hasUnsavedChanges ? 'Save Changes' : 'Save'}
             </Button>
           </>
         }
@@ -231,9 +269,21 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
             <ImageUpload 
               currentImageUrl={imageUrl}
               onImageUpload={handleImageUpload}
-              onImageRemove={() => setImageUrl('')}
+              onImageRemove={() => {
+                setImageUrl('');
+                setImageUploaded(false);
+              }}
               bucket="food-images"
             />
+            
+            {imageUploaded && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-700 font-medium">
+                  ✅ Image uploaded successfully! Click "Save Changes" to persist it.
+                </p>
+              </div>
+            )}
+            
             {mode === 'default' && (
               <p className="text-xs text-muted-foreground">
                 ⚠️ Admin mode: Editing default food that affects all users
