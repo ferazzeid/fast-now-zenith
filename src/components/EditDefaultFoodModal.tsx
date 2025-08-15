@@ -46,7 +46,6 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   // Only reset form when switching to a completely different food
   useEffect(() => {
     if (food.id !== foodIdRef.current) {
-      console.log('🔄 EditDefaultFoodModal: Switching to new food:', food.id);
       setName(food.name);
       setCaloriesPer100g(food.calories_per_100g.toString());
       setCarbsPer100g(food.carbs_per_100g.toString());
@@ -54,13 +53,31 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       foodIdRef.current = food.id;
     }
   }, [food.id]);
-
-  // Log every state change for debugging
-  useEffect(() => {
-    console.log('📊 EditDefaultFoodModal: State changed - imageUrl:', imageUrl);
-  }, [imageUrl]);
   const { toast } = useToast();
   const { profile } = useProfile();
+
+  // Handle immediate image save (auto-save image uploads)
+  const handleImageSave = async (newImageUrl: string) => {
+    try {
+      const updateData = {
+        image_url: newImageUrl || null
+      };
+      
+      await onUpdate(food.id, updateData);
+      
+      toast({
+        title: "Image updated",
+        description: "Food image has been saved"
+      });
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save image",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -94,16 +111,6 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
     }
 
     try {
-      console.log('🍎 EditDefaultFoodModal: === SAVE PROCESS START ===');
-      console.log('🍎 EditDefaultFoodModal: Current form state before save:', {
-        foodId: food.id,
-        name: name.trim(),
-        calories: parseFloat(caloriesPer100g),
-        carbs: parseFloat(carbsPer100g),
-        imageUrl: imageUrl,
-        imageUrlLength: imageUrl?.length || 0
-      });
-      
       const updateData = {
         name: name.trim(),
         calories_per_100g: calories,
@@ -111,23 +118,19 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         image_url: imageUrl || null
       };
       
-      console.log('🍎 EditDefaultFoodModal: Data being sent to onUpdate:', updateData);
-      
       await onUpdate(food.id, updateData);
       
-      console.log('🍎 EditDefaultFoodModal: onUpdate completed successfully');
-      console.log('🍎 EditDefaultFoodModal: === SAVE PROCESS SUCCESS ===');
-      
+      // Only close modal after explicit save
       if (onClose) onClose(); else setInternalOpen(false);
       toast({
         title: "Success",
-        description: "Default food updated successfully"
+        description: "Food updated successfully"
       });
     } catch (error) {
-      console.error('Failed to update default food:', error);
+      console.error('Failed to update food:', error);
       toast({
         title: "Error",
-        description: "Failed to update default food",
+        description: "Failed to update food",
         variant: "destructive"
       });
     }
@@ -164,7 +167,6 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         isOpen={isOpen !== undefined ? isOpen : internalOpen}
         onClose={() => {
           if (onClose) onClose(); else setInternalOpen(false);
-          // Don't reset form on close to preserve user changes including image uploads
         }}
         title={`Edit ${food.name}`}
         variant="standard"
@@ -234,20 +236,14 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
             <ImageUpload 
               currentImageUrl={imageUrl}
               onImageUpload={(url) => {
-                console.log('🖼️ EditDefaultFoodModal: === IMAGE UPLOAD CALLBACK ===');
-                console.log('🖼️ EditDefaultFoodModal: Received image URL from upload:', url);
-                console.log('🖼️ EditDefaultFoodModal: URL length:', url?.length || 0);
-                console.log('🖼️ EditDefaultFoodModal: Previous imageUrl state:', imageUrl);
                 setImageUrl(url);
-                console.log('🖼️ EditDefaultFoodModal: Updated imageUrl state to:', url);
-                console.log('🖼️ EditDefaultFoodModal: === IMAGE UPLOAD CALLBACK END ===');
+                // Auto-save image immediately after upload
+                handleImageSave(url);
               }}
               onImageRemove={() => {
-                console.log('🗑️ EditDefaultFoodModal: === IMAGE REMOVE CALLBACK ===');
-                console.log('🗑️ EditDefaultFoodModal: Previous imageUrl state:', imageUrl);
                 setImageUrl('');
-                console.log('🗑️ EditDefaultFoodModal: Cleared imageUrl state');
-                console.log('🗑️ EditDefaultFoodModal: === IMAGE REMOVE CALLBACK END ===');
+                // Auto-save image removal immediately
+                handleImageSave('');
               }}
               bucket="food-images"
             />
