@@ -34,9 +34,13 @@ export const queryClient = new QueryClient({
         console.error('Query error:', error, 'Query key:', query.queryKey);
       }
       
-      // LOVABLE_PRESERVE: Don't show toast for background errors
-      if (query.meta?.showErrorToast !== false) {
-        // Could integrate with toast system here
+      // Handle auth errors by clearing the query
+      if ((error as any)?.message?.includes('Missing queryFn') || 
+          (error as any)?.message?.includes('auth') ||
+          (error as any)?.message?.includes('token')) {
+        console.warn('⚠️ Auth-related query error detected, invalidating query:', query.queryKey);
+        // Don't immediately refetch to prevent loops
+        query.cancel();
       }
     },
   }),

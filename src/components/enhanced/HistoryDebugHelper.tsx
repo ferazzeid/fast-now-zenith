@@ -15,38 +15,38 @@ export const HistoryDebugHelper = () => {
 
       console.log('🔍 HistoryDebug: Testing connections for user:', user.id);
 
-      // Test fasting sessions
+      // Test fasting sessions - Fixed count query
       try {
-        const { data: fastingData, error: fastingError } = await supabase
+        const { count: fastingCount, error: fastingError } = await supabase
           .from('fasting_sessions')
-          .select('count(*)')
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
         
-        console.log('🔍 HistoryDebug: Fasting sessions count:', fastingData, fastingError);
+        console.log('🔍 HistoryDebug: Fasting sessions count:', fastingCount, fastingError);
       } catch (error) {
         console.error('🔍 HistoryDebug: Fasting sessions error:', error);
       }
 
-      // Test walking sessions
+      // Test walking sessions - Fixed count query
       try {
-        const { data: walkingData, error: walkingError } = await supabase
+        const { count: walkingCount, error: walkingError } = await supabase
           .from('walking_sessions')
-          .select('count(*)')
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
         
-        console.log('🔍 HistoryDebug: Walking sessions count:', walkingData, walkingError);
+        console.log('🔍 HistoryDebug: Walking sessions count:', walkingCount, walkingError);
       } catch (error) {
         console.error('🔍 HistoryDebug: Walking sessions error:', error);
       }
 
-      // Test food entries
+      // Test food entries - Fixed count query
       try {
-        const { data: foodData, error: foodError } = await supabase
+        const { count: foodCount, error: foodError } = await supabase
           .from('food_entries')
-          .select('count(*)')
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
         
-        console.log('🔍 HistoryDebug: Food entries count:', foodData, foodError);
+        console.log('🔍 HistoryDebug: Food entries count:', foodCount, foodError);
       } catch (error) {
         console.error('🔍 HistoryDebug: Food entries error:', error);
       }

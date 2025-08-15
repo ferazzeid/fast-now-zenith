@@ -238,13 +238,20 @@ export const useUnifiedSubscription = () => {
     refetch,
   } = useQuery({
     queryKey: ['unified-subscription', user?.id],
-    queryFn: () => fetchUnifiedSubscriptionData(user!.id, session?.access_token),
+    queryFn: user?.id ? () => fetchUnifiedSubscriptionData(user.id, session?.access_token) : undefined,
     enabled: !!user?.id,
-    staleTime: 0, // Force fresh data
-    gcTime: 1 * 60 * 1000, // 1 minute cache
-    refetchOnWindowFocus: true, // Refresh when focus
-    refetchOnMount: true, // Always refresh on mount
-    retry: 2,
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minute cache
+    refetchOnWindowFocus: false, // Reduce unnecessary refetches
+    refetchOnMount: true,
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors
+      if (error?.message?.includes('auth') || error?.message?.includes('token')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Removed excessive cache invalidation logging
