@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StableEditModal } from '@/components/StableEditModal';
-import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
+import { EnhancedFoodImageUpload } from '@/components/EnhancedFoodImageUpload';
 import { useToast } from '@/hooks/use-toast';
 
 interface FoodEntry {
@@ -198,12 +198,14 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               />
             </div>
           )}
-          <CameraOnlyImageUpload 
+          <EnhancedFoodImageUpload 
+            currentImageUrl={imageUrl}
             onImageUpload={(url) => {
-              console.log('🔍 EditFoodEntryModal: CameraOnlyImageUpload callback called with:', url);
+              console.log('🔍 EditFoodEntryModal: Enhanced image upload callback called with:', url);
               setImageUrl(url);
               console.log('🔍 EditFoodEntryModal: imageUrl state set to:', url);
             }}
+            onImageRemove={() => setImageUrl('')}
           />
         </div>
       </div>

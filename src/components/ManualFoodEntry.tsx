@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
+import { EnhancedFoodImageUpload } from '@/components/EnhancedFoodImageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -135,7 +135,7 @@ export const ManualFoodEntry = ({ isOpen, onClose, onSave, data, onDataChange }:
             </div>
             <p className="text-sm text-muted-foreground">Add image (optional)</p>
           </div>
-          <CameraOnlyImageUpload onImageUpload={handleImageUpload} />
+          <EnhancedFoodImageUpload onImageUpload={handleImageUpload} />
         </div>
       ) : (
         <div className="w-full h-48 mb-4">

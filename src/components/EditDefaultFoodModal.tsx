@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StableEditModal } from '@/components/StableEditModal';
 import { useToast } from '@/hooks/use-toast';
-import { CameraOnlyImageUpload } from './CameraOnlyImageUpload';
+import { EnhancedFoodImageUpload } from './EnhancedFoodImageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
 import { useAdminRole } from '@/hooks/useAdminRole';
@@ -299,12 +299,14 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
                 />
               </div>
             )}
-            <CameraOnlyImageUpload 
+            <EnhancedFoodImageUpload 
+              currentImageUrl={imageUrl}
               onImageUpload={(url) => {
-                console.log('🔍 EditDefaultFoodModal: CameraOnlyImageUpload callback called with:', url);
+                console.log('🔍 EditDefaultFoodModal: Enhanced image upload callback called with:', url);
                 handleImageUpload(url);
                 console.log('🔍 EditDefaultFoodModal: handleImageUpload called');
               }}
+              onImageRemove={() => setImageUrl('')}
             />
             
             {imageUploaded && (

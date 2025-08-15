@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
+import { EnhancedFoodImageUpload } from '@/components/EnhancedFoodImageUpload';
 import { Badge } from '@/components/ui/badge';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useToast } from '@/hooks/use-toast';
@@ -295,7 +295,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               {isSubscriptionActive ? "Add photo for AI analysis (optional)" : "Add photo (optional)"}
             </p>
           </div>
-          <CameraOnlyImageUpload onImageUpload={handleImageUpload} />
+          <EnhancedFoodImageUpload onImageUpload={handleImageUpload} />
         </div>
       ) : (
         <div className="w-full h-48 mb-4 relative">
