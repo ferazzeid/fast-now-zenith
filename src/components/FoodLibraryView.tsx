@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   DropdownMenu, 
@@ -63,9 +62,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [activeTab, setActiveTab] = useState<'recent' | 'my-foods' | 'suggested'>('recent');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
-  // Multi-selection state
-  const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
-  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  // Visual feedback state
+  const [flashingItems, setFlashingItems] = useState<Set<string>>(new Set());
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -175,6 +173,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       variations: []
     } as UserFood;
     
+    // Add visual feedback
+    setFlashingItems(prev => new Set([...prev, food.id]));
+    setTimeout(() => {
+      setFlashingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(food.id);
+        return newSet;
+      });
+    }, 600);
+    
     onSelectFood(userFood, consumed);
   };
 
@@ -182,6 +190,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     if (!user) return;
     
     console.log('🍽️ FoodLibrary - handleAddToTemplate called with:', food);
+    
+    // Add visual feedback
+    setFlashingItems(prev => new Set([...prev, food.id]));
+    setTimeout(() => {
+      setFlashingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(food.id);
+        return newSet;
+      });
+    }, 600);
     
     try {
       const { data, error } = await supabase
@@ -220,6 +238,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const importToMyLibrary = async (defaultFood: DefaultFood) => {
     if (!user) return;
+    
+    // Add visual feedback
+    setFlashingItems(prev => new Set([...prev, defaultFood.id]));
+    setTimeout(() => {
+      setFlashingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(defaultFood.id);
+        return newSet;
+      });
+    }, 600);
     
     try {
       const { data, error } = await supabase
@@ -416,7 +444,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       if (error) throw error;
 
       setFoods([]);
-      clearSelection();
       setShowDeleteAllConfirm(false);
       
       toast({
@@ -505,65 +532,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  // Multi-selection functions
-  const toggleFoodSelection = (foodId: string) => {
-    setSelectedFoods(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(foodId)) {
-        newSet.delete(foodId);
-      } else {
-        newSet.add(foodId);
-      }
-      
-      // Update multi-select mode based on selection count
-      setIsMultiSelectMode(newSet.size > 0);
-      
-      return newSet;
-    });
-  };
-
-  const clearSelection = () => {
-    setSelectedFoods(new Set());
-    setIsMultiSelectMode(false);
-  };
-
-  const handleBulkAddToMeal = async () => {
-    if (selectedFoods.size === 0) return;
-    
-    let selectedFoodItems: (UserFood | DefaultFood)[] = [];
-    
-    // Get selected foods based on active tab
-    if (activeTab === 'my-foods') {
-      selectedFoodItems = foods.filter(food => selectedFoods.has(food.id));
-    } else if (activeTab === 'recent') {
-      selectedFoodItems = recentFoods.filter(food => selectedFoods.has(food.id));
-    } else if (activeTab === 'suggested') {
-      selectedFoodItems = defaultFoods.filter(food => selectedFoods.has(food.id));
-    }
-    
-    // Add each selected food to the meal plan
-    for (const food of selectedFoodItems) {
-      onSelectFood(food as UserFood, false);
-    }
-    
-    toast({
-      title: "Added to plan",
-      description: `${selectedFoods.size} foods have been added to your food plan`,
-    });
-
-    // Clear selection and close library
-    clearSelection();
-    setTimeout(() => {
-      onBack();
-    }, 1000);
-  };
-
-  const getSelectedFoodsTotals = () => {
-    const selectedFoodItems = foods.filter(food => selectedFoods.has(food.id));
-    const totalCalories = selectedFoodItems.reduce((sum, food) => sum + food.calories_per_100g, 0);
-    const totalCarbs = selectedFoodItems.reduce((sum, food) => sum + food.carbs_per_100g, 0);
-    return { totalCalories, totalCarbs };
-  };
 
   const filteredUserFoods = foods.filter(food =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -590,8 +558,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
-    const isSelected = selectedFoods.has(food.id);
-    const canMultiSelect = activeTab === 'my-foods' || activeTab === 'recent' || activeTab === 'suggested';
+    const isFlashing = flashingItems.has(food.id);
     const [showEditModal, setShowEditModal] = useState(false);
     
     const handleCardClick = (e: React.MouseEvent) => {
@@ -607,14 +574,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         return;
       }
 
-      if (canMultiSelect && isMultiSelectMode) {
-        toggleFoodSelection(food.id);
-      } else if (isUserFood) {
+      if (isUserFood) {
         handleQuickSelect(food as UserFood, false);
       } else {
         // For Recent and Suggested foods, add them directly to today's plan
         if (activeTab === 'recent' || activeTab === 'suggested') {
-          onSelectFood(food as UserFood, false);
+          handleQuickSelect(food as UserFood, false);
         } else {
           importToMyLibrary(food as DefaultFood);
         }
@@ -623,38 +588,35 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     return (
       <div 
-        className={`p-3 mx-2 rounded-lg transition-all duration-200 cursor-pointer mb-2 bg-muted/20 border-0 ${
-          isSelected 
-            ? 'ring-2 ring-primary/50 bg-primary/10' 
-            : 'hover:bg-muted/30'
+        className={`p-3 mx-2 rounded-lg transition-all duration-200 cursor-pointer mb-2 bg-muted/20 border-0 hover:bg-muted/30 ${
+          isFlashing ? 'animate-success-flash' : ''
         }`}
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
-          {/* Options Dropdown - Now positioned on the left */}
-          {(!isMultiSelectMode || !canMultiSelect) && (
-            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
-                    title="More options"
-                    aria-label="More options"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="w-4 h-4 text-primary" />
-                  </Button>
-                </DropdownMenuTrigger>
-                 <DropdownMenuContent 
-                   align="start" 
-                   side="bottom" 
-                   sideOffset={8}
-                   avoidCollisions={true}
-                   collisionPadding={16}
-                   className="w-52 z-50 bg-background border border-border shadow-lg"
-                 >
+          {/* Options Dropdown */}
+          <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                  title="More options"
+                  aria-label="More options"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="w-4 h-4 text-primary" />
+                </Button>
+              </DropdownMenuTrigger>
+               <DropdownMenuContent 
+                 align="start" 
+                 side="bottom" 
+                 sideOffset={8}
+                 avoidCollisions={true}
+                 collisionPadding={16}
+                 className="w-52 z-50 bg-background border border-border shadow-lg"
+               >
                    {isUserFood ? (
                      <>
                          <DropdownMenuItem
@@ -772,8 +734,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                     )}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          )}
+          </div>
 
           {/* Food Image - Compact but visible with placeholder for deleted images */}
           {food.image_url ? (
@@ -813,47 +774,34 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               <span className="font-medium">{Math.round(food.carbs_per_100g)}g carbs</span>
             </div>
           </div>
-          
-           {/* Actions - Checkbox (now on the right) and Primary Action Button */}
-          <div className="flex items-center gap-6 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-            {/* Multi-select checkbox (now positioned on the right) */}
-            {canMultiSelect && (
-              <div className="flex-shrink-0 flex items-center justify-center min-w-[44px] min-h-[44px]">
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={() => toggleFoodSelection(food.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-5 h-5"
-                />
-              </div>
-            )}
-
-            {/* Primary Action Button - Only shown when not in multi-select mode */}
-            {(!isMultiSelectMode || !canMultiSelect) && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isUserFood) {
-                    handleQuickSelect(food as UserFood, false);
-                  } else if (activeTab === 'recent' || activeTab === 'suggested') {
-                    onSelectFood(food as UserFood, false);
-                  } else {
-                    importToMyLibrary(food as DefaultFood);
-                  }
-                }}
-                className="min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors"
-                title={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
-                aria-label={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
-              >
-                {isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? (
-                  <Plus className="w-4 h-4" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-              </Button>
-            )}
+           
+            {/* Primary Action Button */}
+          <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isUserFood) {
+                  handleQuickSelect(food as UserFood, false);
+                } else if (activeTab === 'recent' || activeTab === 'suggested') {
+                  handleQuickSelect(food as UserFood, false);
+                } else {
+                  importToMyLibrary(food as DefaultFood);
+                }
+              }}
+              className={`min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors ${
+                isFlashing ? 'animate-button-success' : ''
+              }`}
+              title={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+              aria-label={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+            >
+              {isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? (
+                <Plus className="w-4 h-4" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+            </Button>
           </div>
         </div>
         
@@ -1038,38 +986,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         </Tabs>
       </div>
 
-      {/* Sticky Action Bar - appears when foods are selected */}
-      {isMultiSelectMode && selectedFoods.size > 0 && (
-        <div className="sticky bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-6 py-3 shadow-lg">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="text-sm font-medium">
-                <span>{selectedFoods.size} food{selectedFoods.size === 1 ? '' : 's'} selected</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearSelection}
-                className="h-9"
-              >
-                Clear
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleBulkAddToMeal}
-                className="h-9 px-4"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add {selectedFoods.size} to plan
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete All Confirmation Dialog */}
       <AlertDialog open={showDeleteAllConfirm} onOpenChange={setShowDeleteAllConfirm}>

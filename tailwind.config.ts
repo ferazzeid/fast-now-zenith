@@ -160,6 +160,34 @@ export default {
 						transform: 'translateY(100vh) scale(1.1)',
 						opacity: '0'
 					}
+				},
+				'success-flash': {
+					'0%': { 
+						backgroundColor: 'hsl(var(--primary) / 0.1)',
+						transform: 'scale(1)'
+					},
+					'50%': { 
+						backgroundColor: 'hsl(var(--primary) / 0.3)',
+						transform: 'scale(1.02)'
+					},
+					'100%': { 
+						backgroundColor: 'hsl(var(--muted) / 0.2)',
+						transform: 'scale(1)'
+					}
+				},
+				'button-success': {
+					'0%': { 
+						transform: 'scale(1)',
+						backgroundColor: 'hsl(var(--primary))'
+					},
+					'50%': { 
+						transform: 'scale(1.1)',
+						backgroundColor: 'hsl(var(--primary) / 0.8)'
+					},
+					'100%': { 
+						transform: 'scale(1)',
+						backgroundColor: 'hsl(var(--primary))'
+					}
 				}
 			},
 			animation: {
@@ -168,7 +196,9 @@ export default {
 				'chat-bubble-in': 'slideInUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
 				'chat-bubble-out': 'fadeOut 0.3s ease-out',
 				'float-up': 'float-up 4s ease-out forwards',
-				'float-down': 'float-down 4s ease-out forwards'
+				'float-down': 'float-down 4s ease-out forwards',
+				'success-flash': 'success-flash 0.6s ease-out',
+				'button-success': 'button-success 0.3s ease-out'
 			}
 		}
 	},
