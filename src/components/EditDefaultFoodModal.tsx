@@ -159,8 +159,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
       await onUpdate(food.id, { image_url: newImageUrl });
       
       toast({
-        title: "✨ Image Generated & Saved!",
-        description: "AI-generated image has been automatically saved.",
+        title: "✨ Image Generated!",
+        description: "AI-generated image has been saved.",
       });
     } catch (error) {
       console.error('Image generation error:', error);
@@ -191,8 +191,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
       await onUpdate(food.id, { image_url: newImageUrl });
       
       toast({
-        title: "✨ Image Regenerated & Saved!",
-        description: "Your new AI-generated image has been automatically saved.",
+        title: "✨ Image Regenerated!",
+        description: "Your new AI-generated image has been saved.",
       });
     } catch (error) {
       toast({
@@ -325,38 +325,12 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDe
               onImageUpload={(url) => {
                 console.log('Image uploaded:', url);
                 setImageUrl(url);
-                // Auto-save manual uploads like AI generation
-                onUpdate(food.id, { image_url: url }).then(() => {
-                  toast({
-                    title: "✅ Image Saved!",
-                    description: "Image has been automatically saved.",
-                  });
-                }).catch((error) => {
-                  console.error('Failed to auto-save image:', error);
-                  toast({
-                    title: "Error",
-                    description: "Image uploaded but failed to save. Please click Save manually.",
-                    variant: "destructive",
-                  });
-                });
+                // Manual uploads require explicit save - no auto-save to avoid confusion
               }}
               onImageRemove={() => {
                 console.log('Image removed');
                 setImageUrl('');
-                // Auto-save removal like AI generation
-                onUpdate(food.id, { image_url: null }).then(() => {
-                  toast({
-                    title: "Image Removed",
-                    description: "Image has been removed and saved.",
-                  });
-                }).catch((error) => {
-                  console.error('Failed to auto-save image removal:', error);
-                  toast({
-                    title: "Error", 
-                    description: "Image removed but failed to save. Please click Save manually.",
-                    variant: "destructive",
-                  });
-                });
+                // Manual removal requires explicit save - no auto-save to avoid confusion
               }}
               bucket="food-images"
             />
