@@ -1,6 +1,6 @@
 import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
@@ -301,7 +301,7 @@ const Motivators = () => {
           {/* Header with Onboarding Button */}
           <div className="mb-4 mt-4 relative">
             <div className="absolute left-0 top-0">
-              <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+              <AIVoiceButton />
             </div>
             <div className="pl-12 pr-12">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">

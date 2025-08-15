@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
-import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -218,7 +218,7 @@ const Walking = () => {
         {/* Header with Onboarding and History Buttons */}
         <div className="mb-4 mt-4 relative">
           <div className="absolute left-0 top-0">
-            <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+            <AIVoiceButton />
           </div>
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History, X, CheckCircle } from 'lucide-react';
-import { PageOnboardingButton } from '@/components/PageOnboardingButton';
+import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -324,7 +324,7 @@ const Timer = () => {
         {/* Header with Onboarding Button */}
         <div className="mb-4 mt-4 relative">
           <div className="absolute left-0 top-0">
-            <PageOnboardingButton onClick={() => setShowOnboarding(true)} />
+            <AIVoiceButton />
           </div>
           {/* History button - only show for fasting mode */}
           {currentMode === 'fasting' && (
