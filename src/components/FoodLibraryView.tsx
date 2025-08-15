@@ -465,15 +465,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
+    console.log('🍽️ FoodLibraryView: updateDefaultFood called with:', { foodId, updates });
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('default_foods')
         .update(updates)
-        .eq('id', foodId);
+        .eq('id', foodId)
+        .select()
+        .single();
 
       if (error) {
+        console.error('🍽️ FoodLibraryView: updateDefaultFood error:', error);
         throw error;
       }
+
+      console.log('🍽️ FoodLibraryView: updateDefaultFood success, returned data:', data);
 
       // Immediately update local state for instant visual feedback
       setDefaultFoods(prevFoods => prevFoods.map(food => 
@@ -482,8 +488,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           : food
       ));
       
+      console.log('🍽️ FoodLibraryView: Local state updated for foodId:', foodId);
+      
     } catch (error) {
-      console.error('Error updating default food:', error);
+      console.error('🍽️ FoodLibraryView: updateDefaultFood failed:', error);
       throw error;
     }
   };

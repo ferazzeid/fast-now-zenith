@@ -107,6 +107,10 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   };
 
   const handleSave = async () => {
+    console.log('🔍 EditDefaultFoodModal: handleSave called');
+    console.log('🔍 Current form state:', { name, caloriesPer100g, carbsPer100g, imageUrl });
+    console.log('🔍 Original food data:', food);
+    
     if (!name.trim()) {
       toast({
         title: "Error",
@@ -145,7 +149,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         image_url: imageUrl || null
       };
       
-      console.log('💾 Saving food with data:', updateData);
+      console.log('🔍 EditDefaultFoodModal: Calling onUpdate with:', updateData);
       await onUpdate(food.id, updateData);
       
       // Reset states after successful save
@@ -287,11 +291,17 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
               currentImageUrl={imageUrl}
               onImageUpload={handleImageUpload}
               onImageRemove={() => {
+                console.log('🖼️ EditDefaultFoodModal: Image remove called');
                 setImageUrl('');
                 setImageUploaded(false);
               }}
               bucket="food-images"
             />
+            
+            {/* Debug info */}
+            <div className="text-xs text-muted-foreground">
+              Current imageUrl: {imageUrl || 'none'}
+            </div>
             
             {imageUploaded && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
