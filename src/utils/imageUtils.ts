@@ -227,11 +227,18 @@ export const uploadImageHybrid = async (
     if (hasCloudStorage) {
       // Upload to Supabase Storage for paid users
       const fileName = `${userId}/${Date.now()}_${file.name}`;
+      console.log('🔄 Uploading to storage:', { bucketName, fileName, userId });
+      
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(fileName, compressed.blob);
 
-      if (error) throw error;
+      if (error) {
+        console.error('🔴 Storage upload error:', error);
+        throw error;
+      }
+
+      console.log('✅ Storage upload success:', data);
 
       const { data: urlData } = supabase.storage
         .from(bucketName)
