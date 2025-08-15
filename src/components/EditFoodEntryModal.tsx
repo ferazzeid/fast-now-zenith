@@ -199,7 +199,11 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
             </div>
           )}
           <CameraOnlyImageUpload 
-            onImageUpload={(url) => setImageUrl(url)}
+            onImageUpload={(url) => {
+              console.log('🔍 EditFoodEntryModal: CameraOnlyImageUpload callback called with:', url);
+              setImageUrl(url);
+              console.log('🔍 EditFoodEntryModal: imageUrl state set to:', url);
+            }}
           />
         </div>
       </div>

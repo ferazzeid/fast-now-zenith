@@ -81,6 +81,9 @@ export const CameraOnlyImageUpload = ({ onImageUpload }: CameraOnlyImageUploadPr
 
       onImageUpload(result.url);
       
+      console.log('🔍 CameraOnlyImageUpload: About to call onImageUpload with URL:', result.url);
+      console.log('🔍 CameraOnlyImageUpload: Upload result:', result);
+      
       toast({
         title: "Success",
         description: "Photo uploaded successfully",

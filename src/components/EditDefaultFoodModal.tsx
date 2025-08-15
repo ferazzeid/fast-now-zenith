@@ -300,7 +300,11 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
               </div>
             )}
             <CameraOnlyImageUpload 
-              onImageUpload={handleImageUpload}
+              onImageUpload={(url) => {
+                console.log('🔍 EditDefaultFoodModal: CameraOnlyImageUpload callback called with:', url);
+                handleImageUpload(url);
+                console.log('🔍 EditDefaultFoodModal: handleImageUpload called');
+              }}
             />
             
             {imageUploaded && (
