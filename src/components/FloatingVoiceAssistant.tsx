@@ -69,7 +69,11 @@ export const FloatingVoiceAssistant = () => {
         }
       });
 
+      console.log('Supabase function response:', { data, error }); // Debug log
+
       if (error) throw error;
+
+      console.log('AI Response received:', data); // Debug log
 
       if (data?.completion) {
         addMessage('assistant', data.completion);
