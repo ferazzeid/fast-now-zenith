@@ -19,7 +19,7 @@ import { useUserLibraryIndex } from '@/hooks/useUserLibraryIndex';
 
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
-import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
+import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -1101,11 +1101,11 @@ const FoodTracking = () => {
       </UniversalModal>
 
       {editingEntry && (
-        <EditFoodEntryModal
+        <UnifiedFoodEditModal
           isOpen={!!editingEntry}
           onClose={() => setEditingEntry(null)}
-          entry={editingEntry}
-          onUpdate={async (updatedEntry) => {
+          food={editingEntry}
+          onUpdate={async (id, updatedData) => {
             // Check if this is a template item by checking if it exists in templateFoods
             const isTemplateItem = templateFoods.some(f => f.id === editingEntry.id);
             
@@ -1115,14 +1115,10 @@ const FoodTracking = () => {
                 const { error } = await supabase
                   .from('daily_food_templates')
                   .update({
-                    name: updatedEntry.name,
-                    calories: updatedEntry.calories,
-                    carbs: updatedEntry.carbs,
-                    serving_size: updatedEntry.serving_size,
-                    image_url: updatedEntry.image_url,
+                    ...updatedData,
                     updated_at: new Date().toISOString()
                   })
-                  .eq('id', editingEntry.id)
+                  .eq('id', id)
                   .eq('user_id', user?.id);
                 
                 if (error) {
@@ -1145,7 +1141,7 @@ const FoodTracking = () => {
               }
             } else {
               // Update regular food entry
-              await updateFoodEntry({ id: editingEntry.id, updates: updatedEntry });
+              await updateFoodEntry({ id: id, updates: updatedData });
               toast({
                 title: "Food Updated",
                 description: "Food entry has been updated successfully"

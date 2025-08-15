@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
+import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -846,7 +846,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         
         {/* Edit Modal - Only render when this specific food is being edited */}
         {showEditModal && (
-          <EditDefaultFoodModal 
+          <UnifiedFoodEditModal 
             food={editModalFood as DefaultFood | UserFood} 
             onUpdate={editModalMode === 'user' ? updateFood : updateDefaultFood}
             isOpen={showEditModal}
