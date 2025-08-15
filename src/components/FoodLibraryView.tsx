@@ -22,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -858,26 +857,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </div>
         
-        {/* Edit Modal */}
+        {/* Edit Modal - Use EditDefaultFoodModal for both cases */}
         {showEditModal && (
-          <>
-            {isUserFood ? (
-              <UnifiedFoodEditModal 
-                food={food as UserFood} 
-                onUpdate={updateFood}
-                isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)}
-                mode="library"
-              />
-            ) : isAdmin ? (
-              <EditDefaultFoodModal 
-                food={food as DefaultFood} 
-                onUpdate={updateDefaultFood}
-                isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)}
-              />
-            ) : null}
-          </>
+          <EditDefaultFoodModal 
+            food={food as DefaultFood | UserFood} 
+            onUpdate={isUserFood ? updateFood : updateDefaultFood}
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            mode={isUserFood ? 'user' : 'default'}
+          />
         )}
       </div>
     );

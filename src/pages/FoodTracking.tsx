@@ -19,7 +19,7 @@ import { useUserLibraryIndex } from '@/hooks/useUserLibraryIndex';
 
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
-import { UnifiedFoodEditModal } from '@/components/UnifiedFoodEditModal';
+import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -1101,12 +1101,11 @@ const FoodTracking = () => {
       </UniversalModal>
 
       {editingEntry && (
-        <UnifiedFoodEditModal
+        <EditFoodEntryModal
           isOpen={!!editingEntry}
           onClose={() => setEditingEntry(null)}
           entry={editingEntry}
-          mode="entry"
-          onUpdate={async (updatedEntry: any) => {
+          onUpdate={async (updatedEntry) => {
             // Check if this is a template item by checking if it exists in templateFoods
             const isTemplateItem = templateFoods.some(f => f.id === editingEntry.id);
             
@@ -1137,7 +1136,7 @@ const FoodTracking = () => {
                   title: "Template Updated",
                   description: "Template item has been updated successfully"
                 });
-              } catch (error) {
+              } catch (error: any) {
                 toast({
                   variant: "destructive",
                   title: "Error",

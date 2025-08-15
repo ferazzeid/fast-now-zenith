@@ -18,14 +18,25 @@ interface DefaultFood {
   image_url?: string;
 }
 
-interface EditDefaultFoodModalProps {
-  food: DefaultFood;
-  onUpdate: (foodId: string, updates: Partial<DefaultFood>) => Promise<void>;
-  isOpen?: boolean;
-  onClose?: () => void;
+interface UserFood {
+  id: string;
+  name: string;
+  calories_per_100g: number;
+  carbs_per_100g: number;
+  image_url?: string;
+  is_favorite?: boolean;
+  variations?: any;
 }
 
-export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose }: EditDefaultFoodModalProps) => {
+interface EditDefaultFoodModalProps {
+  food: DefaultFood | UserFood;
+  onUpdate: (foodId: string, updates: Partial<DefaultFood | UserFood>) => Promise<void>;
+  isOpen?: boolean;
+  onClose?: () => void;
+  mode?: 'default' | 'user'; // New prop to determine which table we're editing
+}
+
+export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = 'default' }: EditDefaultFoodModalProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState(food.name);
   const [caloriesPer100g, setCaloriesPer100g] = useState(food.calories_per_100g.toString());
