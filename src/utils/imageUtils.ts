@@ -211,6 +211,38 @@ export const uploadImageHybrid = async (
   customPath?: string
 ): Promise<{ success: boolean; imageId?: string; url: string; error?: string }> => {
   try {
+    console.log('🚀 Starting upload:', { userId, hasCloudStorage, bucketName, isAdminUpload, customPath });
+    
+    // Check admin status first for debugging
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('🔍 Current auth user:', { id: user?.id, email: user?.email });
+    
+    if (isAdminUpload) {
+      // Double-check admin role before upload
+      const { data: adminRole, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+      
+      console.log('🔐 Admin role check:', { 
+        hasAdminRole: !!adminRole, 
+        roleError: roleError?.message,
+        userId,
+        authUserId: user?.id 
+      });
+      
+      if (!adminRole) {
+        return {
+          success: false,
+          imageId: '',
+          url: '',
+          error: `Admin role verification failed. User ${userId} does not have admin privileges.`
+        };
+      }
+    }
+
     // Check storage limit
     const { canUpload, currentCount, limit } = await checkStorageLimit(userId, hasCloudStorage);
     
@@ -246,8 +278,30 @@ export const uploadImageHybrid = async (
         .upload(fileName, compressed.blob);
 
       if (error) {
-        console.error('🔴 Storage upload error:', error);
-        throw error;
+        console.error('🔴 Storage upload error details:', { 
+          error, 
+          bucketName, 
+          fileName,
+          isAdminUpload,
+          userId,
+          authUserId: user?.id,
+          errorCode: error.statusCode,
+          errorMessage: error.message 
+        });
+        
+        // Provide more specific error messages
+        let friendlyError = 'Upload failed';
+        if (error.statusCode === 403) {
+          friendlyError = `Access denied (403). Admin permissions not recognized for bucket '${bucketName}'. Please check your admin role assignment.`;
+        } else if (error.statusCode === 404) {
+          friendlyError = `Bucket '${bucketName}' not found (404). Please check bucket configuration.`;
+        } else if (error.statusCode === 413) {
+          friendlyError = 'File too large (413). Please use a smaller image.';
+        } else {
+          friendlyError = `Upload failed: ${error.message} (${error.statusCode})`;
+        }
+        
+        throw new Error(friendlyError);
       }
 
       console.log('✅ Storage upload success:', data);
@@ -275,7 +329,7 @@ export const uploadImageHybrid = async (
       };
     }
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('💥 Upload error:', error);
     return {
       success: false,
       imageId: '',

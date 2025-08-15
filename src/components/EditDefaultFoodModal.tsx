@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from './ImageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
+import { useAdminRole } from '@/hooks/useAdminRole';
 
 interface DefaultFood {
   id: string;
@@ -43,6 +44,13 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const [imageUrl, setImageUrl] = useState(food.image_url || '');
   const foodIdRef = useRef(food.id);
   
+  const { toast } = useToast();
+  const { profile } = useProfile();
+  const { isAdmin, loading: adminLoading } = useAdminRole();
+  
+  // Admin protection: only allow editing default foods if user is admin
+  const canEditDefaultFood = mode === 'user' || isAdmin;
+  
   // Only reset form when switching to a completely different food
   useEffect(() => {
     if (food.id !== foodIdRef.current) {
@@ -53,8 +61,12 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       foodIdRef.current = food.id;
     }
   }, [food.id]);
-  const { toast } = useToast();
-  const { profile } = useProfile();
+  
+  // Prevent rendering if trying to edit default food without admin rights
+  if (mode === 'default' && !adminLoading && !isAdmin) {
+    console.warn('🚫 Non-admin user attempted to edit default food:', { food: food.id, mode });
+    return null;
+  }
 
   // Handle image upload with immediate preview (no auto-save)
   const handleImageUpload = (newImageUrl: string) => {
@@ -222,6 +234,11 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
               onImageRemove={() => setImageUrl('')}
               bucket="food-images"
             />
+            {mode === 'default' && (
+              <p className="text-xs text-muted-foreground">
+                ⚠️ Admin mode: Editing default food that affects all users
+              </p>
+            )}
           </div>
         </div>
 

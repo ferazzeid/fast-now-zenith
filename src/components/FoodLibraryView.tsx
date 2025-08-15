@@ -656,16 +656,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                               Edit Food
                            </DropdownMenuItem>
                          )}
-                         <DropdownMenuItem
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             deleteFood(food.id);
-                           }}
-                            className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 mr-3" />
-                            Delete Food
-                         </DropdownMenuItem>
+                          {/* Only show Delete option for user foods and admin for default foods */}
+                          {(isUserFood || isAdmin) && (
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteFood(food.id);
+                              }}
+                               className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                             >
+                               <Trash2 className="w-4 h-4 mr-3" />
+                               Delete Food
+                            </DropdownMenuItem>
+                          )}
                       </>
                     ) : (
                       <>

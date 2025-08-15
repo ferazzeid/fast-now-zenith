@@ -6,10 +6,12 @@ export const useAdminRole = () => {
   const { user } = useAuth();
 
   // Query to check if user has admin role in database
-  const { data: adminData, isLoading: loading } = useQuery({
+  const { data: adminData, isLoading: loading, refetch } = useQuery({
     queryKey: ['userRole', user?.id],
     queryFn: async () => {
       if (!user?.id) return { isAdmin: false };
+      
+      console.log('🔍 Checking admin role for user:', user.id);
       
       const { data, error } = await supabase
         .from('user_roles')
@@ -19,22 +21,25 @@ export const useAdminRole = () => {
         .single();
       
       if (error && error.code !== 'PGRST116') {
-        console.error('Error checking admin role:', error);
+        console.error('❌ Error checking admin role:', error);
         return { isAdmin: false };
       }
       
-      return { isAdmin: !!data };
+      const isAdmin = !!data;
+      console.log('✅ Admin role check result:', { isAdmin, userId: user.id });
+      
+      return { isAdmin };
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 1 * 60 * 1000, // Reduce cache to 1 minute for admin role persistence debugging
+    refetchOnWindowFocus: true, // Refetch when window gains focus to catch role changes
   });
 
   const isAdmin = adminData?.isAdmin || false;
 
-  // Removed noisy debug logging
-
   return {
     isAdmin,
-    loading
+    loading,
+    refetch // Export refetch for manual role refresh
   };
 };
