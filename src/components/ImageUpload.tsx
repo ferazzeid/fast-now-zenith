@@ -43,7 +43,7 @@ export const ImageUpload = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasPremiumFeatures } = useUnifiedSubscription();
+  const { hasPremiumFeatures, isAdmin } = useUnifiedSubscription();
   const isMobile = useIsMobile();
 
   const handleDragOver = (e: DragEvent) => {
@@ -121,13 +121,22 @@ export const ImageUpload = ({
       setPreviewUrl(preview);
 
       // Use hybrid upload system with specified bucket
-      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase, bucket);
+      // For default foods, use admin upload path if user is admin
+      const isDefaultFoodUpload = bucket === 'food-images' && isAdmin;
+      const result = await uploadImageHybrid(
+        file, 
+        user.id, 
+        hasPremiumFeatures, 
+        supabase, 
+        bucket,
+        isDefaultFoodUpload
+      );
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');
       }
 
-      onImageUpload(result.url);
+      onImageUpload(result.url!);
       
       toast({
         title: "Success",

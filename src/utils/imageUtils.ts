@@ -206,8 +206,10 @@ export const uploadImageHybrid = async (
   userId: string, 
   hasCloudStorage: boolean, 
   supabase: any,
-  bucketName: string = 'motivator-images'
-): Promise<{ success: boolean; imageId: string; url: string; error?: string }> => {
+  bucketName: string = 'motivator-images',
+  isAdminUpload: boolean = false,
+  customPath?: string
+): Promise<{ success: boolean; imageId?: string; url: string; error?: string }> => {
   try {
     // Check storage limit
     const { canUpload, currentCount, limit } = await checkStorageLimit(userId, hasCloudStorage);
@@ -226,8 +228,18 @@ export const uploadImageHybrid = async (
     
     if (hasCloudStorage) {
       // Upload to Supabase Storage for paid users
-      const fileName = `${userId}/${Date.now()}_${file.name}`;
-      console.log('🔄 Uploading to storage:', { bucketName, fileName, userId });
+      // Generate appropriate filename based on admin status
+      let fileName: string;
+      if (isAdminUpload && customPath) {
+        fileName = `${customPath}/${Date.now()}_${file.name}`;
+      } else if (isAdminUpload) {
+        // Admin uploads for default foods go to a shared location
+        fileName = `default-foods/${Date.now()}_${file.name}`;
+      } else {
+        // Regular user uploads go to user folders
+        fileName = `${userId}/${Date.now()}_${file.name}`;
+      }
+      console.log('🔄 Uploading to storage:', { bucketName, fileName, userId, isAdminUpload });
       
       const { data, error } = await supabase.storage
         .from(bucketName)
