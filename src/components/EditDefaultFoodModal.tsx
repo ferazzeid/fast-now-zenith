@@ -152,6 +152,8 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       console.log('🔍 EditDefaultFoodModal: Calling onUpdate with:', updateData);
       await onUpdate(food.id, updateData);
       
+      console.log('🔍 EditDefaultFoodModal: onUpdate completed successfully');
+      
       // Reset states after successful save
       setImageUploaded(false);
       setHasUnsavedChanges(false);
@@ -159,15 +161,16 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       // Only close modal after explicit save
       if (onClose) onClose(); else setInternalOpen(false);
       
+      // Show success toast ONLY after confirmed database update
       toast({
         title: "Food updated successfully",
-        description: `${name} has been saved`
+        description: `${name} has been saved to the database`
       });
     } catch (error) {
-      console.error('Failed to update food:', error);
+      console.error('🔍 EditDefaultFoodModal: onUpdate failed with error:', error);
       toast({
-        title: "Error",
-        description: "Failed to update food",
+        title: "Error updating food",
+        description: error instanceof Error ? error.message : "Failed to update food in database",
         variant: "destructive"
       });
     }

@@ -466,7 +466,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
     console.log('🍽️ FoodLibraryView: updateDefaultFood called with:', { foodId, updates });
+    
     try {
+      console.log('🍽️ FoodLibraryView: Attempting database update...');
       const { data, error } = await supabase
         .from('default_foods')
         .update(updates)
@@ -475,24 +477,36 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         .single();
 
       if (error) {
-        console.error('🍽️ FoodLibraryView: updateDefaultFood error:', error);
-        throw error;
+        console.error('🍽️ FoodLibraryView: Database update failed with error:', error);
+        console.error('🍽️ FoodLibraryView: Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Database update failed: ${error.message}`);
       }
 
-      console.log('🍽️ FoodLibraryView: updateDefaultFood success, returned data:', data);
+      if (!data) {
+        console.error('🍽️ FoodLibraryView: No data returned from database update');
+        throw new Error('Database update returned no data - this indicates a permission or constraint issue');
+      }
 
-      // Immediately update local state for instant visual feedback
+      console.log('🍽️ FoodLibraryView: Database update successful, returned data:', data);
+
+      // Only update local state after confirmed database success
       setDefaultFoods(prevFoods => prevFoods.map(food => 
         food.id === foodId 
           ? { ...food, ...updates }
           : food
       ));
       
-      console.log('🍽️ FoodLibraryView: Local state updated for foodId:', foodId);
+      console.log('🍽️ FoodLibraryView: Local state updated successfully for foodId:', foodId);
       
     } catch (error) {
-      console.error('🍽️ FoodLibraryView: updateDefaultFood failed:', error);
-      throw error;
+      console.error('🍽️ FoodLibraryView: updateDefaultFood operation failed:', error);
+      // Re-throw with more context
+      throw error instanceof Error ? error : new Error('Unknown error occurred during food update');
     }
   };
 
