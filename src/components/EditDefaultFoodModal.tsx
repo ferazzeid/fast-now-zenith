@@ -46,7 +46,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   // Only reset form when switching to a completely different food
   useEffect(() => {
     if (food.id !== foodIdRef.current) {
-      console.log('EditDefaultFoodModal: Switching to new food:', food.id);
+      console.log('🔄 EditDefaultFoodModal: Switching to new food:', food.id);
       setName(food.name);
       setCaloriesPer100g(food.calories_per_100g.toString());
       setCarbsPer100g(food.carbs_per_100g.toString());
@@ -54,6 +54,11 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
       foodIdRef.current = food.id;
     }
   }, [food.id]);
+
+  // Log every state change for debugging
+  useEffect(() => {
+    console.log('📊 EditDefaultFoodModal: State changed - imageUrl:', imageUrl);
+  }, [imageUrl]);
   const { toast } = useToast();
   const { profile } = useProfile();
 
