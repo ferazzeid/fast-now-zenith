@@ -226,7 +226,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         isOpen={isOpen !== undefined ? isOpen : internalOpen}
         onClose={handleClose}
         title={`Edit ${food.name}`}
-        size="sm"
+        size="lg"
         footer={
           <>
             <Button

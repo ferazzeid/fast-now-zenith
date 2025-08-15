@@ -46,18 +46,14 @@ export const StableEditModal = ({
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
-    // Completely block overlay clicks - no closing allowed
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('🔒 StableEditModal: Overlay click blocked - modal stays open');
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Block escape key
     if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('🔒 StableEditModal: Escape key blocked - modal stays open');
+      onClose();
     }
   };
 
@@ -81,7 +77,7 @@ export const StableEditModal = ({
       <div 
         className={`
           relative bg-background border rounded-lg shadow-lg p-0 mx-4 
-          ${sizeClasses[size]} w-full max-h-[90vh] overflow-y-auto
+          ${sizeClasses[size]} max-h-[90vh] overflow-y-auto
         `}
         onClick={(e) => e.stopPropagation()}
       >
@@ -93,7 +89,14 @@ export const StableEditModal = ({
               <p className="text-sm text-muted-foreground mt-1">{description}</p>
             )}
           </div>
-          {/* No X button - force manual close only */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-6 w-6 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         
         {/* Content */}
