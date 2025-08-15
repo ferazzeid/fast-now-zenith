@@ -173,60 +173,62 @@ export const AIVoiceButton = () => {
         <Mic className="w-4 h-4 text-ai" />
       </Button>
 
-      {/* Aquarium Glass Overlay */}
+      {/* Aquarium Glass Overlay - Constrained to app container */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-background/5 backdrop-blur-lg">
-          {/* Close Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200 safe-area-inset"
-            title="Close"
-          >
-            <X className="w-6 h-6 text-foreground" />
-          </Button>
+        <div className="fixed inset-0 z-50 flex justify-center bg-frame-background/50">
+          <div className="relative max-w-md w-full bg-background/5 backdrop-blur-lg">
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200"
+              title="Close"
+            >
+              <X className="w-6 h-6 text-foreground" />
+            </Button>
 
-          {/* Aquarium Container */}
-          <div className="aquarium-container relative w-full h-full flex flex-col">
-            {/* Chat Messages Area */}
-            <div className="flex-1 overflow-hidden pt-20 pb-24">
-              <ScrollArea className="h-full">
-                <div className="max-w-full mx-auto space-y-0">
-                  {bubbles.map((bubble, index) => (
-                    <FloatingBubble
-                      key={bubble.id}
-                      content={bubble.content}
-                      role={bubble.role}
-                      index={index}
-                    />
-                  ))}
-                  
-                  {/* Processing Bubble */}
-                   {isProcessing && (
-                     <div className="w-full mb-4 flex justify-start px-4">
-                       <div className="bg-primary/90 border border-primary/50 rounded-2xl rounded-tl-sm p-4 animate-pulse">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            {/* Aquarium Container */}
+            <div className="aquarium-container relative w-full h-screen flex flex-col">
+              {/* Chat Messages Area */}
+              <div className="flex-1 overflow-hidden pt-20 pb-24">
+                <ScrollArea className="h-full">
+                  <div className="max-w-full mx-auto space-y-0">
+                    {bubbles.map((bubble, index) => (
+                      <FloatingBubble
+                        key={bubble.id}
+                        content={bubble.content}
+                        role={bubble.role}
+                        index={index}
+                      />
+                    ))}
+                    
+                    {/* Processing Bubble */}
+                    {isProcessing && (
+                      <div className="w-full mb-4 flex justify-start px-4">
+                        <div className="bg-primary/90 border border-primary/50 rounded-2xl rounded-tl-sm p-4 animate-pulse">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
 
-            {/* Voice Button at Bottom */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-              <PremiumGate feature="voice_chat">
-                <CircularVoiceButton
-                  onTranscription={handleVoiceTranscription}
-                  isDisabled={isProcessing}
-                  size="lg"
-                />
-              </PremiumGate>
+              {/* Voice Button at Bottom */}
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                <PremiumGate feature="voice_chat">
+                  <CircularVoiceButton
+                    onTranscription={handleVoiceTranscription}
+                    isDisabled={isProcessing}
+                    size="lg"
+                  />
+                </PremiumGate>
+              </div>
             </div>
           </div>
         </div>
