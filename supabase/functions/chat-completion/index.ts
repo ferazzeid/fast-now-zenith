@@ -253,6 +253,228 @@ When explaining app calculations, use the exact formulas and constants above. He
         model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
         messages: systemMessages,
         tools: [
+          // === SESSION MANAGEMENT ===
+          {
+            type: "function",
+            function: {
+              name: "start_fasting_session",
+              description: "Start a new fasting session for the user",
+              parameters: {
+                type: "object",
+                properties: {
+                  goal_hours: {
+                    type: "number",
+                    description: "Goal duration in hours (optional, defaults to 16)"
+                  }
+                },
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "stop_fasting_session",
+              description: "End the current fasting session",
+              parameters: {
+                type: "object",
+                properties: {
+                  action: {
+                    type: "string",
+                    enum: ["complete", "cancel"],
+                    description: "Whether to complete or cancel the session"
+                  }
+                },
+                required: ["action"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "start_walking_session",
+              description: "Start a new walking session",
+              parameters: {
+                type: "object",
+                properties: {
+                  speed_mph: {
+                    type: "number",
+                    description: "Walking speed in miles per hour (defaults to user's default speed)"
+                  }
+                },
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "stop_walking_session",
+              description: "End the current walking session",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          // === STATUS QUERIES ===
+          {
+            type: "function",
+            function: {
+              name: "get_current_session_status",
+              description: "Get status of active fasting and walking sessions",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_current_fast_duration",
+              description: "Get current fasting duration if active",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_current_walk_duration",
+              description: "Get current walking duration if active",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_today_deficit",
+              description: "Get today's calorie deficit and progress",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          // === ADMIN FUNCTIONS ===
+          {
+            type: "function",
+            function: {
+              name: "add_admin_personal_log",
+              description: "Add admin personal log entry for a specific fasting hour (admin only)",
+              parameters: {
+                type: "object",
+                properties: {
+                  hour: {
+                    type: "number",
+                    description: "Fasting hour to log about (1-168)"
+                  },
+                  log_entry: {
+                    type: "string",
+                    description: "Personal experience log for this hour"
+                  }
+                },
+                required: ["hour", "log_entry"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_admin_personal_log",
+              description: "Get admin personal log for specific fasting hours (admin only)",
+              parameters: {
+                type: "object",
+                properties: {
+                  hour: {
+                    type: "number",
+                    description: "Specific hour to get log for (optional)"
+                  }
+                },
+                required: []
+              }
+            }
+          },
+          // === PROFILE UPDATES ===
+          {
+            type: "function",
+            function: {
+              name: "update_weight",
+              description: "Update user's current weight",
+              parameters: {
+                type: "object",
+                properties: {
+                  weight_kg: {
+                    type: "number",
+                    description: "New weight in kilograms"
+                  }
+                },
+                required: ["weight_kg"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "update_goal_weight",
+              description: "Update user's goal weight",
+              parameters: {
+                type: "object",
+                properties: {
+                  goal_weight_kg: {
+                    type: "number",
+                    description: "Goal weight in kilograms"
+                  }
+                },
+                required: ["goal_weight_kg"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "update_daily_goals",
+              description: "Update user's daily calorie and carb goals",
+              parameters: {
+                type: "object",
+                properties: {
+                  daily_calorie_goal: {
+                    type: "number",
+                    description: "Daily calorie goal"
+                  },
+                  daily_carb_goal: {
+                    type: "number",
+                    description: "Daily carb goal in grams"
+                  }
+                },
+                required: []
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_weight_loss_projection",
+              description: "Get current fat mass and 30-day weight loss projection",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
+          },
+          // === FOOD FUNCTIONS ===
           {
             type: "function",
             function: {

@@ -13,6 +13,12 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { useFoodEditingActions } from '@/hooks/useFoodEditingActions';
 import { FoodEditPreview } from '@/components/FoodEditPreview';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useFastingSession } from '@/hooks/useFastingSession';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useProfile } from '@/hooks/useProfile';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
+import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -72,6 +78,18 @@ export const ModalAiChat = ({
     applyEditPreview
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
+  
+  // Session and profile hooks
+  const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession } = useFastingSession();
+  const { 
+    currentSession: walkingSession, 
+    startWalkingSession, 
+    endWalkingSession
+  } = useWalkingSession();
+  const { profile, updateProfile } = useProfile();
+  const { isAdmin } = useAdminRole();
+  const { deficitData } = useDailyDeficitQuery();
+  const goalCalculations = useGoalCalculations();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -279,6 +297,56 @@ ${args.content}`,
         } else if (data.functionCall.name === 'delete_food_entry' || data.functionCall.name === 'delete_library_food') {
           // Forward deletion requests to parent handler
           await onResult?.(data.functionCall);
+          return;
+        }
+        // === SESSION MANAGEMENT ===
+        else if (data.functionCall.name === 'start_fasting_session') {
+          await handleStartFastingSession(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'stop_fasting_session') {
+          await handleStopFastingSession(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'start_walking_session') {
+          await handleStartWalkingSession(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'stop_walking_session') {
+          await handleStopWalkingSession();
+          return;
+        }
+        // === STATUS QUERIES ===
+        else if (data.functionCall.name === 'get_current_session_status') {
+          await handleGetCurrentSessionStatus();
+          return;
+        } else if (data.functionCall.name === 'get_current_fast_duration') {
+          await handleGetCurrentFastDuration();
+          return;
+        } else if (data.functionCall.name === 'get_current_walk_duration') {
+          await handleGetCurrentWalkDuration();
+          return;
+        } else if (data.functionCall.name === 'get_today_deficit') {
+          await handleGetTodayDeficit();
+          return;
+        }
+        // === ADMIN FUNCTIONS ===
+        else if (data.functionCall.name === 'add_admin_personal_log') {
+          await handleAddAdminPersonalLog(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'get_admin_personal_log') {
+          await handleGetAdminPersonalLog(data.functionCall.arguments);
+          return;
+        }
+        // === PROFILE UPDATES ===
+        else if (data.functionCall.name === 'update_weight') {
+          await handleUpdateWeight(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'update_goal_weight') {
+          await handleUpdateGoalWeight(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'update_daily_goals') {
+          await handleUpdateDailyGoals(data.functionCall.arguments);
+          return;
+        } else if (data.functionCall.name === 'get_weight_loss_projection') {
+          await handleGetWeightLossProjection();
           return;
         }
       }
@@ -771,6 +839,371 @@ ${args.content}`,
       timestamp: new Date()
     };
     setMessages(prev => [...prev, aiMessage]);
+  };
+
+  // === SESSION MANAGEMENT HANDLERS ===
+  const handleStartFastingSession = async (args: { goal_hours?: number }) => {
+    try {
+      const goalHours = args.goal_hours || 16;
+      await startFastingSession(goalHours * 3600); // Convert to seconds
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `✅ Started fasting! Your goal is ${goalHours} hours. I'll be here to support you throughout your journey.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to start fasting session. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleStopFastingSession = async (args: { action: 'complete' | 'cancel' }) => {
+    try {
+      if (args.action === 'complete') {
+        await endFastingSession();
+      } else {
+        await cancelFastingSession();
+      }
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: args.action === 'complete' 
+          ? `🎉 Congratulations on completing your fast! Well done!`
+          : `Fast cancelled. No worries - you can start again whenever you're ready.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to ${args.action} fasting session. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleStartWalkingSession = async (args: { speed_mph?: number }) => {
+    try {
+      const speed = args.speed_mph || profile?.default_walking_speed || 3;
+      await startWalkingSession(speed);
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `🚶‍♀️ Started walking at ${speed} mph! Enjoy your walk - I'll track your progress.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to start walking session. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleStopWalkingSession = async () => {
+    try {
+      await endWalkingSession();
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `🎉 Great walk! Session completed and calories have been logged.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to end walking session. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  // === STATUS QUERY HANDLERS ===
+  const handleGetCurrentSessionStatus = async () => {
+    let status = "";
+    
+    if (fastingSession) {
+      const duration = Math.floor((Date.now() - new Date(fastingSession.start_time).getTime()) / (1000 * 60 * 60));
+      status += `🕐 Currently fasting for ${duration} hours. `;
+    }
+    
+    if (walkingSession) {
+      const duration = Math.floor((Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60));
+      status += `🚶‍♀️ Currently walking for ${duration} minutes. `;
+    }
+    
+    if (!status) {
+      status = "No active sessions right now. Ready to start when you are!";
+    }
+    
+    const aiMessage: Message = {
+      role: 'assistant',
+      content: status,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  const handleGetCurrentFastDuration = async () => {
+    if (!fastingSession) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: "You're not currently fasting. Ready to start when you are!",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
+    const duration = Math.floor((Date.now() - new Date(fastingSession.start_time).getTime()) / (1000 * 60 * 60));
+    const hours = Math.floor(duration);
+    const minutes = Math.floor((duration - hours) * 60);
+    
+    const aiMessage: Message = {
+      role: 'assistant',
+      content: `🕐 You've been fasting for ${hours} hours and ${minutes} minutes. Keep going strong!`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  const handleGetCurrentWalkDuration = async () => {
+    if (!walkingSession) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: "You're not currently walking. Ready for a walk?",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
+    const duration = Math.floor((Date.now() - new Date(walkingSession.start_time).getTime()) / (1000 * 60));
+    
+    const aiMessage: Message = {
+      role: 'assistant',
+      content: `🚶‍♀️ You've been walking for ${duration} minutes. Great job!`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  const handleGetTodayDeficit = async () => {
+    const deficit = deficitData?.todayDeficit || 0;
+    const caloriesIn = deficitData?.caloriesConsumed || 0;
+    const caloriesOut = deficitData?.totalCaloriesBurned || 0;
+    
+    const aiMessage: Message = {
+      role: 'assistant',
+      content: `📊 Today's progress: ${Math.abs(deficit)} calorie ${deficit >= 0 ? 'deficit' : 'surplus'}. You've consumed ${caloriesIn} calories and burned ${caloriesOut} calories.`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  // === ADMIN HANDLERS ===
+  const handleAddAdminPersonalLog = async (args: { hour: number; log_entry: string }) => {
+    if (!isAdmin) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: "❌ Admin access required for personal logs.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('fasting_hours')
+        .update({ admin_personal_log: args.log_entry })
+        .eq('hour', args.hour);
+      
+      if (error) throw error;
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `✅ Added personal log for hour ${args.hour}.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to add personal log. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleGetAdminPersonalLog = async (args: { hour?: number }) => {
+    if (!isAdmin) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: "❌ Admin access required for personal logs.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
+    try {
+      let query = supabase
+        .from('fasting_hours')
+        .select('hour, admin_personal_log')
+        .not('admin_personal_log', 'is', null);
+      
+      if (args.hour) {
+        query = query.eq('hour', args.hour);
+      }
+      
+      const { data, error } = await query.order('hour');
+      
+      if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        const aiMessage: Message = {
+          role: 'assistant',
+          content: args.hour 
+            ? `No personal log found for hour ${args.hour}.`
+            : "No personal logs found.",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        return;
+      }
+      
+      const logs = data.map(d => `Hour ${d.hour}: ${d.admin_personal_log}`).join('\n\n');
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: logs,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to get personal logs. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  // === PROFILE UPDATE HANDLERS ===
+  const handleUpdateWeight = async (args: { weight_kg: number }) => {
+    try {
+      await updateProfile({ weight: args.weight_kg });
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `✅ Updated your weight to ${args.weight_kg} kg.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to update weight. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleUpdateGoalWeight = async (args: { goal_weight_kg: number }) => {
+    try {
+      await updateProfile({ goal_weight: args.goal_weight_kg });
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `✅ Updated your goal weight to ${args.goal_weight_kg} kg.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to update goal weight. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleUpdateDailyGoals = async (args: { daily_calorie_goal?: number; daily_carb_goal?: number }) => {
+    try {
+      const updates: any = {};
+      if (args.daily_calorie_goal) updates.daily_calorie_goal = args.daily_calorie_goal;
+      if (args.daily_carb_goal) updates.daily_carb_goal = args.daily_carb_goal;
+      
+      await updateProfile(updates);
+      
+      const messages = [];
+      if (args.daily_calorie_goal) messages.push(`calories to ${args.daily_calorie_goal}`);
+      if (args.daily_carb_goal) messages.push(`carbs to ${args.daily_carb_goal}g`);
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `✅ Updated your daily goals: ${messages.join(', ')}.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to update daily goals. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
+  };
+
+  const handleGetWeightLossProjection = async () => {
+    if (!profile?.weight || !profile?.goal_weight) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: "Please set your current weight and goal weight first to get projections.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
+    try {
+      const weightToLose = profile.weight - profile.goal_weight;
+      const fatGrams = weightToLose * 1000 * 0.85; // Estimate: 85% of weight loss is fat
+      const currentDeficit = deficitData?.todayDeficit || 500;
+      const daysToGoal = Math.ceil(fatGrams / currentDeficit);
+      
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `📈 Weight loss projection: You need to lose ${weightToLose.toFixed(1)} kg (${fatGrams.toFixed(0)}g of fat). At your current deficit rate of ${currentDeficit} calories/day, you'll reach your goal in approximately ${daysToGoal} days.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: `❌ Failed to calculate projection. ${(error as Error).message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }
   };
 
   // Helper function to check if message contains food suggestion
