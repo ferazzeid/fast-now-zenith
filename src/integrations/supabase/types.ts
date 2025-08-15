@@ -1541,6 +1541,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       track_usage_event: {
         Args: {
           _event_type: string
