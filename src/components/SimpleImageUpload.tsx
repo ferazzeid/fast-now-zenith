@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { uploadImageHybrid } from '@/utils/imageUtils';
+import { uploadImageToCloud } from '@/utils/imageUtils';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -69,8 +69,17 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
     setIsUploading(true);
 
     try {
-      // Use hybrid upload system
-      const result = await uploadImageHybrid(file, user.id, hasPremiumFeatures, supabase);
+      // Premium users only - cloud storage
+      if (!hasPremiumFeatures) {
+        toast({
+          title: "Premium Required",
+          description: "Image uploads are only available for premium users",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const result = await uploadImageToCloud(file, user.id, supabase);
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');

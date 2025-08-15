@@ -1565,6 +1565,14 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_tier"]
       }
+      user_has_premium_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"

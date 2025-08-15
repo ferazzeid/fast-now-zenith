@@ -9,10 +9,10 @@ interface PremiumGatedImageUploadProps {
   aiGenerationPrompt?: string;
 }
 
-export const PremiumGatedImageUpload = (props: PremiumGatedImageUploadProps) => {
+export const PremiumGatedImageUpload = ({ onImageRemove = () => {}, ...props }: PremiumGatedImageUploadProps) => {
   return (
     <PremiumGate feature="Image Upload" grayOutForFree={true}>
-      <ImageUpload {...props} />
+      <ImageUpload {...props} onImageRemove={onImageRemove} />
     </PremiumGate>
   );
 };
