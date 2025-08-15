@@ -56,14 +56,17 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
   const { toast } = useToast();
   const { profile } = useProfile();
 
-  // Handle immediate image save (auto-save image uploads)
+  // Handle immediate image save (auto-save image uploads without closing modal)
   const handleImageSave = async (newImageUrl: string) => {
     try {
-      const updateData = {
-        image_url: newImageUrl || null
-      };
+      const tableName = mode === 'user' ? 'user_foods' : 'default_foods';
       
-      await onUpdate(food.id, updateData);
+      const { error } = await supabase
+        .from(tableName)
+        .update({ image_url: newImageUrl || null })
+        .eq('id', food.id);
+
+      if (error) throw error;
       
       toast({
         title: "Image updated",
