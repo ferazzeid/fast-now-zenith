@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
+import { PremiumGatedImageUpload } from '@/components/PremiumGatedImageUpload';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -176,7 +176,7 @@ export const PhotoFoodEntry = ({ isOpen, onClose, onSave }: PhotoFoodEntryProps)
               </p>
             </div>
             <div className="w-full">
-              <CameraOnlyImageUpload onImageUpload={handleUpload} />
+              <PremiumGatedImageUpload onImageUpload={handleUpload} />
             </div>
           </div>
         ) : (

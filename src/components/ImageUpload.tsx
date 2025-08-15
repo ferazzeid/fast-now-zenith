@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { uploadImageHybrid } from '@/utils/imageUtils';
+import { uploadImageToCloud } from '@/utils/imageUtils';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PremiumGate } from '@/components/PremiumGate';
