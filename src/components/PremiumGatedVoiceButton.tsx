@@ -2,7 +2,7 @@
 import React from 'react';
 import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ interface PremiumGatedVoiceButtonProps {
 }
 
 export const PremiumGatedVoiceButton = (props: PremiumGatedVoiceButtonProps) => {
-  const { subscription_tier, isPaidUser, hasPremiumFeatures, createSubscription } = useSubscription();
+  const { subscription_tier, isPaidUser, hasPremiumFeatures, createSubscription } = useUnifiedSubscription();
   const { testRole, isTestingMode } = useRoleTestingContext();
   const { toast } = useToast();
   
