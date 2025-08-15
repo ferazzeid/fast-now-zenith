@@ -4,9 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2, Star } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
-import { RegenerateImageButton } from './RegenerateImageButton';
-import { PremiumGatedRegenerateButton } from './PremiumGatedRegenerateButton';
-import { useImageGenerationStatus } from '@/hooks/useImageGenerationStatus';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,17 +41,10 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
-  const { getGenerationStatus } = useImageGenerationStatus();
   const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
   
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
-  const generationStatus = getGenerationStatus(motivator.id);
-  const isGenerating = generationStatus === 'generating' || generationStatus === 'pending';
-
-  const handleImageGenerated = (newImageUrl: string) => {
-    setCurrentImageUrl(newImageUrl);
-  };
 
   // Check admin role
   useEffect(() => {
@@ -113,28 +103,10 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             <MotivatorImageWithFallback
               src={currentImageUrl}
               alt={motivator.title}
-              className={`w-full h-full object-cover ${isGenerating ? 'opacity-50' : ''}`}
+              className="w-full h-full object-cover"
               onAddImageClick={onEdit}
               showAddImagePrompt={!currentImageUrl}
             />
-            {isGenerating && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-            )}
-            {currentImageUrl && (
-              <div className="absolute -top-1 -right-1">
-                <RegenerateImageButton
-                  prompt={`${motivator.title}. ${motivator.content || ''}`}
-                  filename={`motivator-${motivator.id}-${Date.now()}.jpg`}
-                  onImageGenerated={handleImageGenerated}
-                  motivatorId={motivator.id}
-                  disabled={isGenerating}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  mode="motivator"
-                />
-              </div>
-            )}
           </div>
          
           {/* Content */}

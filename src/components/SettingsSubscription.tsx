@@ -340,10 +340,6 @@ export const SettingsSubscription = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                AI image generation for motivators
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 Advanced goal setting and tracking
               </div>
             </div>

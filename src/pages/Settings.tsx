@@ -86,7 +86,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, enable_fasting_slideshow, enable_walking_slideshow, enable_food_image_generation')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, enable_fasting_slideshow, enable_walking_slideshow')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 

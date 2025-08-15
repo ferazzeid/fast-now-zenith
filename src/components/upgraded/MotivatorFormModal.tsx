@@ -19,7 +19,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Save, Sparkles, Lightbulb, Mic } from 'lucide-react';
+import { Save, Lightbulb, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,13 +29,10 @@ import { Card } from '@/components/ui/card';
 import { FormModal } from '@/components/ui/universal-modal';
 import { ImageUpload } from '@/components/ImageUpload';
 import { SimpleVoiceRecorder } from '@/components/SimpleVoiceRecorder';
-import { RegenerateImageButton } from '@/components/RegenerateImageButton';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
-import { generate_image } from '@/utils/imageGeneration';
 import { supabase } from '@/integrations/supabase/client';
-import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
 
 interface Motivator {
   id?: string;
@@ -61,12 +58,10 @@ export const UpgradedMotivatorFormModal = ({
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();
-  const { aiImageEnabled } = useAIImageGeneration();
   const isEditing = !!motivator?.id;
 
   // LOVABLE_PRESERVE: Initialize form data when motivator changes
@@ -133,86 +128,6 @@ export const UpgradedMotivatorFormModal = ({
     }
   };
 
-  // LOVABLE_PRESERVE: Image generation handler
-  const handleGenerateImage = async () => {
-    if (!title && !content) {
-      toast({
-        title: "Need Content",
-        description: "Please add a title or content first to generate an image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGeneratingImage(true);
-    try {
-      // Extract concept
-      let concept = title || content;
-      try {
-        // Get user's OpenAI API key
-        // No longer supporting API keys - use shared service
-
-        const { data: conceptData } = await supabase.functions.invoke('extract-motivator-concept', {
-          body: { title, content }
-        });
-        if (conceptData?.concept) concept = conceptData.concept;
-      } catch {}
-
-      // Define style presets
-      const STYLE_PRESETS: Record<string, string> = {
-        'minimalist_bw': 'Minimalist vector poster in pure black and white only (no other colors). Single bold silhouette or icon as visual metaphor: {concept}. Flat shapes, clean geometry, strong contrast, ample negative space. Centered composition, no people or faces, no text/letters/logos/watermarks/UI. No gradients, no textures, no 3D, no photorealism, no backgrounds/scenes/props/patterns. 1:1 square, crisp, editorial poster quality.',
-        'vibrant_color': 'Minimalist poster design of {concept}. Use exactly 2-3 colors maximum: deep red, black, and white only. Clean geometric shapes, bold silhouette, strong contrast. Centered composition, no text, no fonts, no letters, no words, no numbers, no UI elements, no people, no faces. Simple, modern, classic aesthetic. Professional poster quality, 1:1 square format.',
-        'photorealistic': 'Professional photography of {concept}. Realistic, natural lighting with soft shadows and depth. High-quality DSLR camera shot, crisp focus, natural colors and textures. Clean composition with subtle background blur. Documentary or editorial photography style, authentic and inspiring mood. No people or faces, no artificial effects, no text/logos. Square format, professional quality.',
-        'artistic_painterly': 'Artistic illustration of {concept} in watercolor or oil painting style. Soft brushstrokes, artistic texture, flowing colors that blend naturally. Inspiring and uplifting mood with warm or cool color palette. Hand-painted aesthetic, organic shapes, artistic interpretation rather than literal representation. No people or faces, no text/logos. Square canvas format, fine art quality.'
-      };
-
-      // Load primary color and optional admin template
-      let primaryColor = "220 35% 45%";
-      let adminTemplate: string | undefined;
-      let selectedPreset = 'minimalist_bw';
-      try {
-        const { data: settingsData } = await supabase
-          .from('shared_settings')
-          .select('setting_key, setting_value')
-          .in('setting_key', ['brand_primary_color', 'ai_image_motivator_prompt', 'ai_image_motivator_prompt_preset']);
-        settingsData?.forEach((s) => {
-          if (s.setting_key === 'brand_primary_color' && s.setting_value) primaryColor = s.setting_value;
-          if (s.setting_key === 'ai_image_motivator_prompt' && s.setting_value) adminTemplate = s.setting_value;
-          if (s.setting_key === 'ai_image_motivator_prompt_preset' && s.setting_value) selectedPreset = s.setting_value;
-        });
-      } catch {}
-
-      const defaultConceptTemplate =
-        "Create a minimalist illustration in the style of a black and white photograph, using only black, white, and {primary_color}. The subject of the image should be: {concept}. No accent color, no other colors, no background details, no people or faces, no text. Style: simple, modern, and inspiring.";
-      // Use preset template or custom admin template
-      const templateToUse = (adminTemplate && adminTemplate.includes('{concept}'))
-        ? adminTemplate
-        : STYLE_PRESETS[selectedPreset] || defaultConceptTemplate;
-
-      const prompt = templateToUse
-        .replace(/{concept}/g, concept)
-        .replace(/{primary_color}/g, primaryColor);
-
-      const filename = `motivator-${Date.now()}.jpg`;
-      const generatedImageUrl = await generate_image(prompt, filename);
-      if (generatedImageUrl) {
-        setImageUrl(generatedImageUrl);
-        toast({
-          title: "Image Generated",
-          description: "Motivational image created successfully!",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating image:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
 
   // LOVABLE_PRESERVE: Template application handler
   const handleApplyTemplate = (template: any) => {
@@ -303,44 +218,14 @@ export const UpgradedMotivatorFormModal = ({
 
         {/* LOVABLE_PRESERVE: Image section */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Motivational Image</Label>
-            {aiImageEnabled && (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="ai"
-                  size="sm"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage || (!title && !content)}
-                  className="flex items-center gap-2"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {isGeneratingImage ? 'Generating...' : 'AI Generate'}
-                </Button>
-              </div>
-            )}
-          </div>
+          <Label className="text-sm font-medium">Motivational Image</Label>
           
           <ImageUpload
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
             onImageRemove={() => setImageUrl('')}
             showUploadOptionsWhenImageExists={true}
-            aiGenerationPrompt={title || content ? `${title}. ${content}` : undefined}
-            motivatorId={motivator?.id}
-            onAiGenerate={handleGenerateImage}
-            isGenerating={isGeneratingImage}
           />
-          
-          {imageUrl && (
-            <RegenerateImageButton
-              prompt={`${title} ${content}`.trim()}
-              filename="motivator-image"
-              onImageGenerated={setImageUrl}
-              mode="motivator"
-            />
-          )}
         </div>
 
         {/* LOVABLE_PRESERVE: Admin templates section */}

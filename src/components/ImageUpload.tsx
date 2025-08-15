@@ -1,5 +1,5 @@
 import { useState, useRef, DragEvent } from 'react';
-import { Upload, Camera, X, Loader2, Image, Sparkles, RotateCcw } from 'lucide-react';
+import { Upload, Camera, X, Loader2, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,7 @@ import { uploadImageHybrid } from '@/utils/imageUtils';
 import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PremiumGate } from '@/components/PremiumGate';
-import { useAIImageGeneration } from '@/hooks/useAIImageGeneration';
+
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -45,7 +45,6 @@ export const ImageUpload = ({
   const { user } = useAuth();
   const { hasPremiumFeatures } = useUnifiedSubscription();
   const isMobile = useIsMobile();
-  const { aiImageEnabled } = useAIImageGeneration();
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -148,38 +147,6 @@ export const ImageUpload = ({
     }
   };
 
-  const handleGenerateImage = async () => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Please sign in to generate images",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!aiGenerationPrompt?.trim()) {
-      toast({
-        title: "Error",
-        description: "Please add content to generate an image",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // If we have a motivatorId, use background generation like the frontend button
-    if (motivatorId) {
-      if (onAiGenerate) {
-        onAiGenerate();
-      }
-      return;
-    }
-
-    // For other cases, use direct generation (fallback)
-    if (onAiGenerate) {
-      onAiGenerate();
-    }
-  };
 
   const handleRemoveImage = () => {
     setPreviewUrl(null);
@@ -208,31 +175,10 @@ export const ImageUpload = ({
               <X className="w-4 h-4" />
             </Button>
             
-            {/* Custom regenerate button or default AI button */}
-            {regenerateButton ? (
+            {/* Custom regenerate button */}
+            {regenerateButton && (
               <div className="absolute top-2 right-12">
                 {regenerateButton}
-              </div>
-            ) : aiGenerationPrompt && aiImageEnabled && (
-              <div className="absolute top-2 right-12">
-                <PremiumGate feature="AI Image Generation" showUpgrade={false}>
-                  <Button
-                    variant="ai"
-                    size="sm"
-                    onClick={handleGenerateImage}
-                    disabled={isGenerating}
-                    className="h-8 w-8 p-0"
-                    title={previewUrl && currentImageUrl ? "Regenerate with AI" : "Generate with AI"}
-                  >
-                    {isGenerating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (previewUrl && currentImageUrl) ? (
-                      <RotateCcw className="w-4 h-4" />
-                    ) : (
-                      <Sparkles className="w-4 h-4" />
-                    )}
-                  </Button>
-                </PremiumGate>
               </div>
             )}
           </div>
@@ -338,29 +284,6 @@ export const ImageUpload = ({
             </div>
           )}
 
-          {/* AI Generation Button for Empty State */}
-          {aiGenerationPrompt && aiImageEnabled && (
-            <PremiumGate feature="AI Image Generation" showUpgrade={false}>
-              <Button
-                variant="ai"
-                onClick={handleGenerateImage}
-                disabled={isGenerating}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate with AI
-                  </>
-                )}
-              </Button>
-            </PremiumGate>
-          )}
 
           {/* Desktop: Additional button if no drag & drop used */}
           {!isMobile && (
