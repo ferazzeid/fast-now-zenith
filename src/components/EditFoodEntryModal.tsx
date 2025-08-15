@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StableEditModal } from '@/components/StableEditModal';
+import { CameraOnlyImageUpload } from '@/components/CameraOnlyImageUpload';
 import { useToast } from '@/hooks/use-toast';
 
 interface FoodEntry {
@@ -28,6 +29,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
   const [calories, setCalories] = useState(entry.calories.toString());
   const [carbs, setCarbs] = useState(entry.carbs.toString());
   const [servingSize, setServingSize] = useState(entry.serving_size.toString());
+  const [imageUrl, setImageUrl] = useState(entry.image_url || '');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -80,6 +82,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
         calories: caloriesNum,
         carbs: carbsNum,
         serving_size: servingSizeNum,
+        image_url: imageUrl || undefined,
       };
 
       await onUpdate(updatedEntry);
@@ -102,6 +105,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
     setCalories(entry.calories.toString());
     setCarbs(entry.carbs.toString());
     setServingSize(entry.serving_size.toString());
+    setImageUrl(entry.image_url || '');
   };
 
   return (
@@ -112,7 +116,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
         resetForm();
       }}
       title={`Edit ${entry.name}`}
-      size="sm"
+      size="lg"
       footer={
         <>
           <Button
@@ -132,17 +136,6 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
       }
     >
       <div className="space-y-4">
-        {/* Food Image - Display only */}
-        {entry.image_url && (
-          <div className="w-full h-32 mb-4">
-            <img
-              src={entry.image_url}
-              alt={entry.name}
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
-        )}
-
         <div className="space-y-2">
           <Label htmlFor="name">Food Name</Label>
           <Input
@@ -192,6 +185,22 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               step="0.1"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Food Image</Label>
+          {imageUrl && (
+            <div className="w-full h-32 mb-2">
+              <img
+                src={imageUrl}
+                alt={name}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+          )}
+          <CameraOnlyImageUpload 
+            onImageUpload={(url) => setImageUrl(url)}
+          />
         </div>
       </div>
     </StableEditModal>

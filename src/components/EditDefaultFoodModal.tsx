@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StableEditModal } from '@/components/StableEditModal';
 import { useToast } from '@/hooks/use-toast';
-import { ImageUpload } from './ImageUpload';
+import { CameraOnlyImageUpload } from './CameraOnlyImageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
 import { useAdminRole } from '@/hooks/useAdminRole';
@@ -290,21 +290,18 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
 
           <div className="space-y-2">
             <Label>Food Image</Label>
-            <ImageUpload 
-              currentImageUrl={imageUrl}
+            {imageUrl && (
+              <div className="w-full h-32 mb-2">
+                <img
+                  src={imageUrl}
+                  alt={name}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
+            )}
+            <CameraOnlyImageUpload 
               onImageUpload={handleImageUpload}
-              onImageRemove={() => {
-                console.log('🖼️ EditDefaultFoodModal: Image remove called');
-                setImageUrl('');
-                setImageUploaded(false);
-              }}
-              bucket="food-images"
             />
-            
-            {/* Debug info */}
-            <div className="text-xs text-muted-foreground">
-              Current imageUrl: {imageUrl || 'none'}
-            </div>
             
             {imageUploaded && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
