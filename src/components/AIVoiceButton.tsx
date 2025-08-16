@@ -142,6 +142,12 @@ export const AIVoiceButton = () => {
             case 'stop_walking_session':
               responseMessage = await handleStopWalkingSession();
               break;
+            case 'edit_motivator':
+              responseMessage = await handleEditMotivator(data.functionCall.arguments);
+              break;
+            case 'delete_motivator':
+              responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
+              break;
             default:
               responseMessage = 'I processed your request successfully.';
           }
@@ -415,6 +421,40 @@ export const AIVoiceButton = () => {
     } catch (error) {
       console.error('Error stopping walking session:', error);
       return 'Sorry, I had trouble stopping your walking session.';
+    }
+  };
+
+  const handleEditMotivator = async (args: any): Promise<string> => {
+    try {
+      const { motivator_id, updates } = args;
+      const { data, error } = await supabase
+        .from('motivators')
+        .update(updates)
+        .eq('id', motivator_id)
+        .eq('user_id', user!.id);
+
+      if (error) throw error;
+      return `Updated motivator successfully.`;
+    } catch (error) {
+      console.error('Error editing motivator:', error);
+      return 'Sorry, I had trouble updating that motivator.';
+    }
+  };
+
+  const handleDeleteMotivator = async (args: any): Promise<string> => {
+    try {
+      const { motivator_id } = args;
+      const { data, error } = await supabase
+        .from('motivators')
+        .delete()
+        .eq('id', motivator_id)
+        .eq('user_id', user!.id);
+
+      if (error) throw error;
+      return `Deleted motivator successfully.`;
+    } catch (error) {
+      console.error('Error deleting motivator:', error);
+      return 'Sorry, I had trouble deleting that motivator.';
     }
   };
 
