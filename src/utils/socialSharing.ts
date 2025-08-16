@@ -51,7 +51,7 @@ export const formatWalkingShareMessage = async (stats: WalkingStats): Promise<st
   const settings = await getShareSettings();
   
   const distanceUnit = stats.units === 'metric' ? 'km' : 'miles';
-  const speedUnit = stats.units === 'metric' ? 'km/h' : 'mph';
+  const speedLabel = (stats.speed || 3) >= 4 ? 'fast pace' : 'normal pace';
   
   const formattedDistance = stats.distance.toFixed(1);
   const formattedSpeed = stats.speed.toFixed(1);
@@ -60,7 +60,7 @@ export const formatWalkingShareMessage = async (stats: WalkingStats): Promise<st
 ⏱️ ${stats.time}
 🔥 ${stats.calories} calories burned
 📍 ${formattedDistance} ${distanceUnit} covered
-⚡ ${formattedSpeed} ${speedUnit} pace
+⚡ ${speedLabel}
 
 ${settings.motivationalText}
 ${settings.hashtags}`;

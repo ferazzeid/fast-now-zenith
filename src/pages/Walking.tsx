@@ -265,16 +265,12 @@ const Walking = () => {
                       description: "Unable to update walking speed. Please try again."
                     });
                   } else {
-                    // Show speed in user's preferred units
-                    const units = profile?.units || 'imperial';
-                    const displaySpeed = units === 'metric' 
-                      ? (newSpeed * 1.60934).toFixed(1) 
-                      : newSpeed.toFixed(1);
-                    const unitLabel = units === 'metric' ? 'km/h' : 'mph';
+                    // Show speed in neutral terms
+                    const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
                     
                     toast({
                       title: "Speed Updated",
-                      description: `Speed updated to ${displaySpeed} ${unitLabel}`
+                      description: `Speed updated to ${speedLabel}`
                     });
                   }
                 } catch (error) {

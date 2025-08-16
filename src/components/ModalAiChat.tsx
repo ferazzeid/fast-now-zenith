@@ -942,7 +942,7 @@ ${args.content}`,
       
       const aiMessage: Message = {
         role: 'assistant',
-        content: `🚶‍♀️ Started walking at ${speed} mph! Enjoy your walk - I'll track your progress.`,
+        content: `🚶‍♀️ Started walking at ${speed >= 4 ? 'fast' : 'normal'} pace! Enjoy your walk - I'll track your progress.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiMessage]);

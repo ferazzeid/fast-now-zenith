@@ -163,7 +163,7 @@ export const AdminWalkingShareSettings = () => {
             <p>⏱️ 25 minutes</p>
             <p>🔥 142 calories burned</p>
             <p>📍 1.2 miles covered</p>
-            <p>⚡ 2.8 mph pace</p>
+            <p>⚡ Fast pace</p>
             <p className="mt-2">{motivationalText}</p>
             <p className="text-blue-600">{hashtags}</p>
           </div>

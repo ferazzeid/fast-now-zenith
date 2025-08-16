@@ -268,7 +268,7 @@ const WalkingTimerComponent = ({
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
-                    <ClickableTooltip content="Normal walking: 3 mph (5 km/h) - Default. Brisk walking: 4+ mph (6+ km/h). Adjust during your walk if needed.">
+                    <ClickableTooltip content="Normal walking: Comfortable sustainable pace - Default. Fast walking: More intense pace for higher calorie burn. Adjust during your walk if needed.">
                       <Info className="w-4 h-4 text-muted-foreground" />
                     </ClickableTooltip>
                   </div>
