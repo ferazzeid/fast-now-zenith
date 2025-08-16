@@ -24,10 +24,7 @@ export const PremiumGatedDeficitDisplay = ({
   // For free users, show lock icon instead of actual values
   if (!hasAccess) {
     return (
-      <div className="flex items-center space-x-1">
-        <Lock className="w-3 h-3 text-muted-foreground" />
-        <span className="text-sm font-bold text-muted-foreground">Premium</span>
-      </div>
+      <Lock className="w-3 h-3 text-muted-foreground" />
     );
   }
 

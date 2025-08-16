@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
+import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { FloatingBubble } from '@/components/FloatingBubble';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -676,13 +677,11 @@ export const AIVoiceButton = () => {
 
               {/* Voice Button at Bottom */}
               <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-                <PremiumGate feature="voice_chat">
-                  <CircularVoiceButton
-                    onTranscription={handleVoiceTranscription}
-                    isDisabled={isProcessing}
-                    size="lg"
-                  />
-                </PremiumGate>
+                <PremiumGatedCircularVoiceButton
+                  onTranscription={handleVoiceTranscription}
+                  isDisabled={isProcessing}
+                  size="lg"
+                />
               </div>
             </div>
           </div>
