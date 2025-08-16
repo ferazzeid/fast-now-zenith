@@ -217,9 +217,13 @@ export const FloatingVoiceAssistant = () => {
   };
 
   const handleVoiceTranscription = (transcription: string) => {
+    console.log('🎤 FloatingVoiceAssistant: handleVoiceTranscription called with:', transcription);
     if (transcription.trim()) {
+      console.log('🎤 FloatingVoiceAssistant: Opening chat and sending to AI');
       setIsOpen(true); // Show chat when voice message received
       sendToAI(transcription, true);
+    } else {
+      console.log('🎤 FloatingVoiceAssistant: Empty transcription, ignoring');
     }
   };
 
