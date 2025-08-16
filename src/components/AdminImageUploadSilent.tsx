@@ -3,7 +3,6 @@ import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { deleteImageFromStorage } from '@/utils/imageUtils';
 
 interface AdminImageUploadSilentProps {
@@ -22,94 +21,103 @@ export const AdminImageUploadSilent = ({
   onSuccess,
 }: AdminImageUploadSilentProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const { user } = useAuth();
-  const { withSessionGuard } = useSessionGuard();
+  const { user, session } = useAuth();
 
   const handleFileSelect = async (file: File) => {
-    const result = await withSessionGuard(async () => {
-      if (!file) return;
+    if (!file) return;
 
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        onError?.("Please select an image file");
-        return;
-      }
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      onError?.("Please select an image file");
+      return;
+    }
 
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        onError?.("Image size must be less than 5MB");
-        return;
-      }
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      onError?.("Image size must be less than 5MB");
+      return;
+    }
 
-      setIsUploading(true);
+    // Check authentication before upload
+    if (!user || !session) {
+      onError?.("Authentication required. Please sign in to upload images.");
+      return;
+    }
 
-      try {
-        // Delete old image first (non-blocking)
-        if (currentImageUrl) {
-          const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
-          if (!deleteResult.success) {
-            console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
-          }
-        }
-        
-        // Generate unique filename for admin goal ideas
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user?.id}/${Date.now()}-admin-goal.${fileExt}`;
-        
-        console.log('🔄 Uploading admin goal image to:', fileName);
-        console.log('📊 File size:', file.size, 'bytes');
-        console.log('📄 File type:', file.type);
-
-        // Upload to Supabase Storage (motivator-images bucket)
-        const { data, error } = await supabase.storage
-          .from('motivator-images')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: true
-          });
-
-        if (error) {
-          console.error('❌ Storage upload error:', error);
-          throw new Error(`Upload failed: ${error.message}`);
-        }
-
-        if (!data) {
-          console.error('❌ No data returned from upload');
-          throw new Error('Upload failed: No data returned');
-        }
-
-        console.log('✅ File uploaded successfully:', data);
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('motivator-images')
-          .getPublicUrl(fileName);
-
-        if (!urlData?.publicUrl) {
-          console.error('❌ Failed to get public URL');
-          throw new Error('Failed to get public URL');
-        }
-
-        const publicUrl = urlData.publicUrl;
-        console.log('✅ Public URL generated:', publicUrl);
-
-        onImageUpload(publicUrl);
-        onSuccess?.("Image uploaded successfully");
-
-      } catch (error: any) {
-        console.error('❌ Upload error details:', {
-          message: error.message,
-          stack: error.stack,
-          error
-        });
-        
-        onError?.(error.message || "Failed to upload image. Please try again.");
-      } finally {
-        setIsUploading(false);
-      }
-    }, 'Admin Image Upload');
+    setIsUploading(true);
     
-    // Session guard handles the upload state reset, so we don't need additional logic here
+    // Log session state for debugging
+    console.log('🔐 Session state before upload:', {
+      hasUser: !!user,
+      hasSession: !!session,
+      sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000) : 'No expiry',
+      userId: user?.id
+    });
+
+    try {
+      // Delete old image first (non-blocking)
+      if (currentImageUrl) {
+        const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
+        if (!deleteResult.success) {
+          console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
+        }
+      }
+      
+      // Generate unique filename for admin goal ideas
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}-admin-goal.${fileExt}`;
+      
+      console.log('🔄 Uploading admin goal image to:', fileName);
+      console.log('📊 File size:', file.size, 'bytes');
+      console.log('📄 File type:', file.type);
+
+      // Upload to Supabase Storage (motivator-images bucket)
+      const { data, error } = await supabase.storage
+        .from('motivator-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) {
+        console.error('❌ Storage upload error:', error);
+        throw new Error(`Upload failed: ${error.message}`);
+      }
+
+      if (!data) {
+        console.error('❌ No data returned from upload');
+        throw new Error('Upload failed: No data returned');
+      }
+
+      console.log('✅ File uploaded successfully:', data);
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('motivator-images')
+        .getPublicUrl(fileName);
+
+      if (!urlData?.publicUrl) {
+        console.error('❌ Failed to get public URL');
+        throw new Error('Failed to get public URL');
+      }
+
+      const publicUrl = urlData.publicUrl;
+      console.log('✅ Public URL generated:', publicUrl);
+
+      onImageUpload(publicUrl);
+      onSuccess?.("Image uploaded successfully");
+
+    } catch (error: any) {
+      console.error('❌ Upload error details:', {
+        message: error.message,
+        stack: error.stack,
+        error
+      });
+      
+      onError?.(error.message || "Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleRemove = () => {
