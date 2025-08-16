@@ -380,9 +380,7 @@ const FoodTracking = () => {
               Food Tracking
             </h1>
           </div>
-          <div className="px-4">
-            <p className="text-sm text-muted-foreground">Lock your food intake</p>
-          </div>
+            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
         </div>
 
         {/* Action Buttons */}
