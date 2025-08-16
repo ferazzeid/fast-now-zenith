@@ -895,11 +895,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               </div>
             ) : filteredUserFoods.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">🍽️</div>
-                <h3 className="text-lg font-medium mb-2">
-                  {searchTerm ? 'No foods found' : 'Your library is empty'}
-                </h3>
+                <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
                 <p className="text-muted-foreground">
+                  {searchTerm ? 'No foods found' : 'Your library is empty'}
+                </p>
+                <p className="text-muted-foreground text-sm">
                   {searchTerm ? 'Try a different search term' : 'Log foods to automatically add them to your library'}
                 </p>
               </div>
