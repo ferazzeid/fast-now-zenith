@@ -471,9 +471,9 @@ const Settings = () => {
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                        <SelectContent>
-                         <SelectItem value="sedentary">Low (Little/no exercise)</SelectItem>
-                         <SelectItem value="moderately_active">Medium (Moderate exercise 3-5 days/week)</SelectItem>
-                         <SelectItem value="very_active">High (Hard exercise 6-7 days/week)</SelectItem>
+                          <SelectItem value="sedentary">Low</SelectItem>
+                          <SelectItem value="moderately_active">Medium</SelectItem>
+                          <SelectItem value="very_active">High</SelectItem>
                        </SelectContent>
                     </Select>
                   </div>
