@@ -368,9 +368,6 @@ const FoodTracking = () => {
       <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding and History Buttons */}
         <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <AIVoiceButton />
-          </div>
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
           </div>
@@ -385,49 +382,31 @@ const FoodTracking = () => {
 
         {/* Action Buttons */}
         <div className="mb-6">
-          <div className="grid grid-cols-3 gap-3">
-            {/* Voice Add Button */}
-            <PremiumGate 
-              feature="ai_food_voice"
-              className="col-span-1"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Button 
-                  variant="ai"
-                  size="action-tall"
-                  className="w-full flex flex-col items-center justify-center gap-1"
-                  onClick={() => setShowAiChat(true)}
-                >
-                  <Mic className="w-5 h-5" />
-                </Button>
-                <span className="text-xs text-muted-foreground text-center">Voice add</span>
-              </div>
-            </PremiumGate>
-
-            {/* Large Unified Add Food Button */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Large Add Food Button */}
             <div className="flex flex-col items-center gap-2">
               <Button 
                 variant="ai"
                 size="start-button"
-                className="w-full flex flex-col items-center justify-center gap-2"
+                className="w-full h-24 flex flex-col items-center justify-center gap-2"
                 onClick={handleUnifiedEntry}
               >
-                <Plus className="w-8 h-8" />
+                <Plus className="w-12 h-12" />
               </Button>
-              <span className="text-xs text-muted-foreground text-center">Add food</span>
+              <span className="text-sm font-medium text-muted-foreground text-center">Add Food</span>
             </div>
 
             {/* Library Button */}
             <div className="flex flex-col items-center gap-2">
               <Button 
                 variant="action-primary"
-                size="action-tall"
-                className="w-full flex flex-col items-center justify-center gap-1"
+                size="start-button"
+                className="w-full h-24 flex flex-col items-center justify-center gap-2"
                 onClick={() => setShowLibraryView(true)}
               >
-                <BookOpen className="w-5 h-5" />
+                <BookOpen className="w-8 h-8" />
               </Button>
-              <span className="text-xs text-muted-foreground text-center">Library</span>
+              <span className="text-sm font-medium text-muted-foreground text-center">Library</span>
             </div>
           </div>
         </div>
