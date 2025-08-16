@@ -563,26 +563,26 @@ const FoodTracking = () => {
                                   if (error) {
                                     toast({ 
                                       title: 'Error', 
-                                      description: 'Failed to add to templates',
+                                      description: 'Failed to add to template',
                                       variant: 'destructive'
                                     });
                                   } else {
                                     toast({ 
-                                      title: 'Added to Templates', 
-                                      description: `${entry.name} added to your daily templates` 
+                                      title: 'Added to Template', 
+                                      description: `${entry.name} added to your daily template` 
                                     });
                                   }
                                 } catch (error) {
                                   toast({ 
                                     title: 'Error', 
-                                    description: 'Failed to add to templates',
+                                    description: 'Failed to add to template',
                                     variant: 'destructive'
                                   });
                                 }
                               }}
                             >
                               <Plus className="w-4 h-4 mr-2" />
-                              Add to Templates
+                              Add to Template
                             </DropdownMenuItem>
                              <DropdownMenuItem
                                onClick={async () => {
@@ -609,7 +609,7 @@ const FoodTracking = () => {
                                className="py-2.5 px-3 text-destructive focus:text-destructive"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Remove from Today
+                              Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -770,207 +770,208 @@ const FoodTracking = () => {
                                   collisionPadding={16}
                                   className="w-52 z-50 bg-background border border-border shadow-lg"
                                 >
-                                   <DropdownMenuItem 
-                                     className="py-2.5 px-3"
-                                     onClick={() => {
-                                      // Create a mock entry for editing template items
-                                      const mockEntry = {
-                                        id: food.id,
-                                        name: food.name,
-                                        calories: food.calories,
-                                        carbs: food.carbs,
-                                        serving_size: food.serving_size,
-                                        image_url: food.image_url,
-                                        consumed: false,
-                                        user_id: user?.id || '',
-                                        created_at: new Date().toISOString(),
-                                        updated_at: new Date().toISOString(),
-                                        source_date: new Date().toISOString().split('T')[0]
-                                      };
-                                      setEditingEntry(mockEntry);
-                                    }}
-                                  >
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit Food
-                                  </DropdownMenuItem>
-                                   <DropdownMenuItem
-                                     className="py-2.5 px-3"
-                                     onClick={async () => {
-                                      const currentFood = templateFoods.find(f => f.id === foodId);
-                                      if (!currentFood) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: "Food item not found"
-                                        });
-                                        return;
-                                      }
-                                      
-                                      try {
-                                        const foodsToSave = [{
-                                          name: currentFood.name,
-                                          calories: currentFood.calories,
-                                          carbs: currentFood.carbs,
-                                          serving_size: currentFood.serving_size,
-                                          image_url: currentFood.image_url,
-                                        }];
-                                        
-                                        const { error } = await addToTemplate(foodsToSave);
-                                        
-                                        if (error) {
-                                          toast({ 
-                                            title: 'Error', 
-                                            description: 'Failed to duplicate food',
-                                            variant: 'destructive'
-                                          });
-                                        } else {
-                                          toast({ 
-                                            title: 'Food Duplicated', 
-                                            description: `${currentFood.name} has been duplicated in templates` 
-                                          });
-                                        }
-                                      } catch (error) {
-                                        toast({ 
-                                          title: 'Error', 
-                                          description: 'Failed to duplicate food',
-                                          variant: 'destructive'
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Duplicate Food
-                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="py-2.5 px-3"
+                                    onClick={() => {
+                                     // Create a mock entry for editing template items
+                                     const mockEntry = {
+                                       id: food.id,
+                                       name: food.name,
+                                       calories: food.calories,
+                                       carbs: food.carbs,
+                                       serving_size: food.serving_size,
+                                       image_url: food.image_url,
+                                       consumed: false,
+                                       user_id: user?.id || '',
+                                       created_at: new Date().toISOString(),
+                                       updated_at: new Date().toISOString(),
+                                       source_date: new Date().toISOString().split('T')[0]
+                                     };
+                                     setEditingEntry(mockEntry);
+                                   }}
+                                 >
+                                   <Edit className="w-4 h-4 mr-2" />
+                                   Edit Food
+                                 </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="py-2.5 px-3"
+                                    onClick={async () => {
+                                     const currentFood = templateFoods.find(f => f.id === foodId);
+                                     if (!currentFood) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: "Food item not found"
+                                       });
+                                       return;
+                                     }
+                                     
+                                     try {
+                                       const foodsToSave = [{
+                                         name: currentFood.name,
+                                         calories: currentFood.calories,
+                                         carbs: currentFood.carbs,
+                                         serving_size: currentFood.serving_size,
+                                         image_url: currentFood.image_url,
+                                       }];
+                                       
+                                       const { error } = await addToTemplate(foodsToSave);
+                                       
+                                       if (error) {
+                                         toast({ 
+                                           title: 'Error', 
+                                           description: 'Failed to duplicate food',
+                                           variant: 'destructive'
+                                         });
+                                       } else {
+                                         toast({ 
+                                           title: 'Food Duplicated', 
+                                           description: `${currentFood.name} has been duplicated in template` 
+                                         });
+                                       }
+                                     } catch (error) {
+                                       toast({ 
+                                         title: 'Error', 
+                                         description: 'Failed to duplicate food',
+                                         variant: 'destructive'
+                                       });
+                                     }
+                                   }}
+                                 >
+                                   <Plus className="w-4 h-4 mr-2" />
+                                   Duplicate Food
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem 
+                                   onClick={async () => {
+                                     const currentFood = templateFoods.find(f => f.id === foodId);
+                                     if (!currentFood) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: "Food item not found"
+                                       });
+                                       return;
+                                     }
+                                     
+                                     try {
+                                       const result = await addFoodEntry({
+                                         name: currentFood.name,
+                                         calories: currentFood.calories,
+                                         carbs: currentFood.carbs,
+                                         serving_size: currentFood.serving_size,
+                                         image_url: currentFood.image_url,
+                                         consumed: false
+                                       });
+
+                                       if (!result || 'error' in result) {
+                                         toast({
+                                           variant: "destructive",
+                                           title: "Error",
+                                           description: "Failed to add to today's plan"
+                                         });
+                                       } else {
+                                         toast({
+                                           title: "Added to Today",
+                                           description: `${currentFood.name} added to today's food plan`
+                                         });
+                                       }
+                                     } catch (error) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: `Failed to add to today's plan: ${error.message || 'Unknown error'}`
+                                       });
+                                     }
+                                   }}
+                                   className="py-2.5 px-3"
+                                 >
+                                   <Plus className="w-4 h-4 mr-2" />
+                                   Add to Today
+                                 </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                     const currentFood = templateFoods.find(f => f.id === foodId);
+                                     if (!currentFood) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: "Food item not found"
+                                       });
+                                       return;
+                                     }
+                                     
+                                     if (isInLibrary(currentFood.name)) {
+                                       toast({ title: 'Already in My Food', description: `${currentFood.name} is already in your food library` });
+                                       return;
+                                     }
+                                     
+                                     await saveToLibrary({
+                                       name: currentFood.name,
+                                       calories: currentFood.calories,
+                                       carbs: currentFood.carbs,
+                                       serving_size: currentFood.serving_size,
+                                     });
+                                     addLibraryLocal(currentFood.name);
+                                     toast({ title: 'Added to My Food', description: `${currentFood.name} added to your food library` });
+                                   }}
+                                   className={`py-2.5 px-3 ${isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}`}
+                                 >
+                                   <Save className="w-4 h-4 mr-2" />
+                                   {isInLibrary(food.name) ? 'Already in My Food' : 'Add to My Food'}
+                                 </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     onClick={async () => {
-                                      const currentFood = templateFoods.find(f => f.id === foodId);
-                                      if (!currentFood) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: "Food item not found"
-                                        });
-                                        return;
-                                      }
-                                      
-                                      try {
-                                        const result = await addFoodEntry({
-                                          name: currentFood.name,
-                                          calories: currentFood.calories,
-                                          carbs: currentFood.carbs,
-                                          serving_size: currentFood.serving_size,
-                                          image_url: currentFood.image_url,
-                                          consumed: false
-                                        });
-
-                                        if (!result || 'error' in result) {
-                                          toast({
-                                            variant: "destructive",
-                                            title: "Error",
-                                            description: "Failed to add to today's plan"
-                                          });
-                                        } else {
-                                          toast({
-                                            title: "Added to Today",
-                                            description: `${currentFood.name} added to today's food plan`
-                                          });
-                                        }
-                                      } catch (error) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: `Failed to add to today's plan: ${error.message || 'Unknown error'}`
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add to Today
-                                  </DropdownMenuItem>
-                                   <DropdownMenuItem
-                                     onClick={async () => {
-                                      const currentFood = templateFoods.find(f => f.id === foodId);
-                                      if (!currentFood) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: "Food item not found"
-                                        });
-                                        return;
-                                      }
-                                      
-                                      if (isInLibrary(currentFood.name)) {
-                                        toast({ title: 'Already in My Food', description: `${currentFood.name} is already in your food library` });
-                                        return;
-                                      }
-                                      
-                                      await saveToLibrary({
-                                        name: currentFood.name,
-                                        calories: currentFood.calories,
-                                        carbs: currentFood.carbs,
-                                        serving_size: currentFood.serving_size,
-                                      });
-                                      addLibraryLocal(currentFood.name);
-                                      toast({ title: 'Added to My Food', description: `${currentFood.name} added to your food library` });
-                                    }}
-                                    className={`py-2.5 px-3 ${isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}`}
-                                  >
-                                    <Save className="w-4 h-4 mr-2" />
-                                    {isInLibrary(food.name) ? 'Already in My Food' : 'Add to My Food'}
-                                  </DropdownMenuItem>
-                                   <DropdownMenuItem 
-                                     onClick={async () => {
-                                      const currentFood = templateFoods.find(f => f.id === foodId);
-                                      if (!currentFood) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error", 
-                                          description: "Food item not found"
-                                        });
-                                        return;
-                                      }
-                                      
-                                      try {
-                                        const { data, error } = await supabase
-                                          .from('daily_food_templates')
-                                          .delete()
-                                          .eq('id', currentFood.id)
-                                          .eq('user_id', user?.id)
-                                          .select();
-                                        
-                                        if (error) {
-                                          throw error;
-                                        }
-                                        
-                                        if (!data || data.length === 0) {
-                                          toast({
-                                            variant: "destructive",
-                                            title: "Error",
-                                            description: "Food item not found or already deleted"
-                                          });
-                                          return;
-                                        }
-                                        
-                                        // Template will refresh automatically
-                                        await refreshFoodEntries();
-                                        
-                                        toast({
-                                          title: "Food Removed",
-                                          description: `${currentFood.name} removed from templates`
-                                        });
-                                      } catch (error) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Error",
-                                          description: `Failed to remove food: ${error.message || 'Unknown error'}`
-                                        });
-                                      }
-                                    }}
-                                    className="py-2.5 px-3 text-destructive focus:text-destructive"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Remove from Template
-                                  </DropdownMenuItem>
+                                     const currentFood = templateFoods.find(f => f.id === foodId);
+                                     if (!currentFood) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error", 
+                                         description: "Food item not found"
+                                       });
+                                       return;
+                                     }
+                                     
+                                     try {
+                                       const { data, error } = await supabase
+                                         .from('daily_food_templates')
+                                         .delete()
+                                         .eq('id', currentFood.id)
+                                         .eq('user_id', user?.id)
+                                         .select();
+                                       
+                                       if (error) {
+                                         throw error;
+                                       }
+                                       
+                                       if (!data || data.length === 0) {
+                                         toast({
+                                           variant: "destructive",
+                                           title: "Error",
+                                           description: "Food item not found or already deleted"
+                                         });
+                                         return;
+                                       }
+                                       
+                                       // Template will refresh automatically
+                                       await refreshFoodEntries();
+                                       
+                                       toast({
+                                         title: "Food Deleted",
+                                         description: `${currentFood.name} removed from template`
+                                       });
+                                     } catch (error) {
+                                       toast({
+                                         variant: "destructive",
+                                         title: "Error",
+                                         description: `Failed to delete food: ${error.message || 'Unknown error'}`
+                                       });
+                                     }
+                                   }}
+                                   className="py-2.5 px-3 text-destructive focus:text-destructive"
+                                 >
+                                   <Trash2 className="w-4 h-4 mr-2" />
+                                   Delete
+                                 </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                               
