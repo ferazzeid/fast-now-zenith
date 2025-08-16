@@ -75,16 +75,75 @@ export const compressImage = async (
  */
 
 /**
- * Premium-only cloud storage upload
+ * Delete an image from Supabase Storage
+ */
+export const deleteImageFromStorage = async (
+  imageUrl: string,
+  bucketName: string,
+  supabase: any
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    if (!imageUrl) return { success: true }; // Nothing to delete
+    
+    // Extract filename from URL
+    const urlParts = imageUrl.split('/');
+    const bucketIndex = urlParts.findIndex(part => part === bucketName);
+    
+    if (bucketIndex === -1) {
+      console.warn('Could not extract filename from URL:', imageUrl);
+      return { success: false, error: 'Invalid image URL format' };
+    }
+    
+    // Get the path after the bucket name
+    const filePath = urlParts.slice(bucketIndex + 1).join('/');
+    
+    if (!filePath) {
+      console.warn('Empty file path extracted from URL:', imageUrl);
+      return { success: false, error: 'Could not determine file path' };
+    }
+    
+    console.log('🗑️ Deleting image:', { imageUrl, bucketName, filePath });
+    
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .remove([filePath]);
+      
+    if (error) {
+      console.error('Storage deletion error:', error);
+      return { success: false, error: error.message };
+    }
+    
+    console.log('✅ Image deleted successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Delete operation failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Delete failed' 
+    };
+  }
+};
+
+/**
+ * Premium-only cloud storage upload with optional old image cleanup
  * Free users will be blocked at the component level
  */
 export const uploadImageToCloud = async (
   file: File, 
   userId: string, 
   supabase: any,
-  bucketName: string = 'motivator-images'
+  bucketName: string = 'motivator-images',
+  oldImageUrl?: string
 ): Promise<{ success: boolean; imageId: string; url: string; error?: string }> => {
   try {
+    // Delete old image first (non-blocking - don't fail upload if deletion fails)
+    if (oldImageUrl) {
+      const deleteResult = await deleteImageFromStorage(oldImageUrl, bucketName, supabase);
+      if (!deleteResult.success) {
+        console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
+      }
+    }
+    
     // Compress image for optimal storage
     const compressed = await compressImage(file);
     

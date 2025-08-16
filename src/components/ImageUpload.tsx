@@ -131,7 +131,7 @@ export const ImageUpload = ({
         return;
       }
 
-      const result = await uploadImageToCloud(file, user.id, supabase, bucket);
+      const result = await uploadImageToCloud(file, user.id, supabase, bucket, currentImageUrl);
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');

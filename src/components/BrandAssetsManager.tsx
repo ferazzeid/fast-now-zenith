@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User } from "lucide-react";
 import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
 import { AuthorTooltip } from "./AuthorTooltip";
+import { deleteImageFromStorage } from "@/utils/imageUtils";
 
 const BrandAssetsManager = () => {
   const [appIcon, setAppIcon] = useState<File | null>(null);
@@ -124,6 +125,19 @@ const BrandAssetsManager = () => {
   };
 
   const uploadAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+    // Delete old asset first (non-blocking)
+    let oldImageUrl = '';
+    if (type === 'appIcon') oldImageUrl = currentAppIcon;
+    else if (type === 'favicon') oldImageUrl = currentFavicon;
+    else oldImageUrl = currentLogo;
+    
+    if (oldImageUrl) {
+      const deleteResult = await deleteImageFromStorage(oldImageUrl, 'website-images', supabase);
+      if (!deleteResult.success) {
+        console.warn(`Failed to delete old ${type} (continuing with upload):`, deleteResult.error);
+      }
+    }
+    
     const fileExt = file.name.split('.').pop();
     const fileName = `${type}-${Date.now()}.${fileExt}`;
     const filePath = `brand-assets/${fileName}`;
@@ -173,6 +187,14 @@ const BrandAssetsManager = () => {
 
     setUploading(true);
     try {
+      // Delete old author image first (non-blocking)
+      if (authorData.image && authorData.image !== '/lovable-uploads/default-author.png') {
+        const deleteResult = await deleteImageFromStorage(authorData.image, 'website-images', supabase);
+        if (!deleteResult.success) {
+          console.warn('Failed to delete old author image (continuing with upload):', deleteResult.error);
+        }
+      }
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `author-${Math.random()}.${fileExt}`;
       const filePath = `author/${fileName}`;

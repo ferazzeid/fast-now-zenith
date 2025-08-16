@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { deleteImageFromStorage } from '@/utils/imageUtils';
 
 interface AdminImageUploadProps {
   onImageUpload: (imageUrl: string) => void;
@@ -55,6 +56,14 @@ export const AdminImageUpload = ({
     setIsUploading(true);
 
     try {
+      // Delete old image first (non-blocking)
+      if (currentImageUrl) {
+        const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
+        if (!deleteResult.success) {
+          console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
+        }
+      }
+      
       // Generate unique filename for admin goal ideas
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-admin-goal.${fileExt}`;

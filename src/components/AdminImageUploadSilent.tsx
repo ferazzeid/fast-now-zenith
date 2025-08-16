@@ -3,6 +3,7 @@ import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { deleteImageFromStorage } from '@/utils/imageUtils';
 
 interface AdminImageUploadSilentProps {
   onImageUpload: (imageUrl: string) => void;
@@ -44,6 +45,14 @@ export const AdminImageUploadSilent = ({
     setIsUploading(true);
 
     try {
+      // Delete old image first (non-blocking)
+      if (currentImageUrl) {
+        const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
+        if (!deleteResult.success) {
+          console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
+        }
+      }
+      
       // Generate unique filename for admin goal ideas
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-admin-goal.${fileExt}`;
