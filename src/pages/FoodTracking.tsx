@@ -379,7 +379,7 @@ const FoodTracking = () => {
               <Brain className="w-6 h-6 mr-2" />
               Food Tracking
             </h1>
-            <p className="text-sm text-muted-foreground text-center">Lock your food intake</p>
+            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
           </div>
         </div>
 
