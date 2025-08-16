@@ -71,8 +71,26 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 export const useAccess = () => {
   const { user } = useAuth();
   
-  // Internal role testing state - simplified approach
-  const [testRole, setTestRole] = useState<'admin' | 'paid_user' | 'free_user' | null>(null);
+  // Internal role testing state with localStorage persistence
+  const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('admin_role_testing');
+      return stored ? (stored as 'admin' | 'paid_user' | 'free_user') : null;
+    }
+    return null;
+  });
+  
+  const setTestRole = (role: 'admin' | 'paid_user' | 'free_user' | null) => {
+    setTestRoleState(role);
+    if (typeof window !== 'undefined') {
+      if (role) {
+        localStorage.setItem('admin_role_testing', role);
+      } else {
+        localStorage.removeItem('admin_role_testing');
+      }
+    }
+  };
+  
   const isTestingMode = testRole !== null;
 
   const { data, isLoading, error, refetch } = useQuery({
