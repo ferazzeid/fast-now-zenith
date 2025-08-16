@@ -251,16 +251,12 @@ When explaining app calculations, use the exact formulas and constants above. He
 
     console.log('🤖 Calling OpenAI with messages:', messages.slice(-2)); // Log last 2 messages for debugging
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
-        messages: systemMessages,
-        tools: [
+    // Prepare OpenAI request payload
+    const requestPayload = {
+      model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
+      messages: systemMessages,
+      stream: stream,
+      tools: [
           // === SESSION MANAGEMENT ===
           {
             type: "function",
