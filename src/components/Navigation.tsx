@@ -27,7 +27,7 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, access_level, createSubscription, refetch } = useAccess();
+  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, access_level, createSubscription, refetch, testRole, isTestingMode } = useAccess();
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -186,14 +186,11 @@ export const Navigation = () => {
               };
 
               // Handle premium gating for Food navigation with role testing support
-              const { access_level: effectiveAccessLevel, hasPremiumFeatures: effectiveHasPremiumFeatures, testRole, isTestingMode } = useAccess();
-              
-              // Use test role if in testing mode, otherwise use actual access level
-              const currentAccessLevel = isTestingMode ? testRole : effectiveAccessLevel;
-              const currentHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : effectiveHasPremiumFeatures;
+              const currentAccessLevel = isTestingMode ? testRole : access_level;
+              const currentHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
               
               const handleFoodClick = (e: React.MouseEvent) => {
-                const hasAccess = currentAccessLevel !== 'free' || currentHasPremiumFeatures;
+                const hasAccess = currentAccessLevel === 'admin' || currentHasPremiumFeatures;
                 if (!hasAccess && label === 'Food') {
                   e.preventDefault();
                   e.stopPropagation();
@@ -202,7 +199,7 @@ export const Navigation = () => {
                 }
               };
               
-              const hasAccess = currentAccessLevel !== 'free' || currentHasPremiumFeatures;
+              const hasAccess = currentAccessLevel === 'admin' || currentHasPremiumFeatures;
               const isLocked = label === 'Food' && !hasAccess;
               
               const content = (

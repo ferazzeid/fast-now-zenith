@@ -31,7 +31,6 @@ export const PremiumGatedDeficitDisplayLarge = ({
       <Card className="p-4 bg-card border-border relative">
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center space-x-2">
-            <Lock className="w-6 h-6 text-muted-foreground" />
             <h3 className="text-lg font-semibold text-muted-foreground">Today's Deficit</h3>
           </div>
           <div className="text-3xl font-bold text-muted-foreground">

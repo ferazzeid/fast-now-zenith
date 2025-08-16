@@ -17,13 +17,6 @@ export const PremiumGatedCaloriesIn = ({ calories, carbs }: PremiumGatedCalories
   return (
     <PremiumGate feature="Food Tracking" grayOutForFree={true} showUpgrade={false}>
       <Card className="p-3 bg-card border-border relative">
-        {/* Lock icon overlay for free users */}
-        {!hasAccess && (
-          <div className="absolute top-1 left-1 z-10">
-            <Lock className="w-3 h-3 text-muted-foreground" />
-          </div>
-        )}
-        
         <div className="absolute top-2 right-2">
           <ClickableTooltip content="Total calories consumed from food today">
             <Info className="w-5 h-5 text-muted-foreground" />
