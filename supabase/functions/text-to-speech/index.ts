@@ -2,13 +2,41 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
-};
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
+  .split(',')
+  .map(o => o.trim());
+
+const ENV = Deno.env.get('ENV') || Deno.env.get('NODE_ENV') || 'development';
+const isProd = ENV === 'production';
+
+function buildCorsHeaders(origin: string | null) {
+  const allowOrigin = isProd
+    ? (origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0])
+    : (origin || '*');
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
+    'Access-Control-Allow-Credentials': 'true',
+  } as const;
+}
+
+// isProd already defined above
+// Simple in-memory burst limiter per user/function
+const burstTracker = new Map<string, number[]>();
+function checkBurstLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const windowStart = now - windowMs;
+  const timestamps = (burstTracker.get(key) || []).filter(ts => ts > windowStart);
+  if (timestamps.length >= limit) return false;
+  timestamps.push(now);
+  burstTracker.set(key, timestamps);
+  return true;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
+  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,10 +67,18 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
+    // Enforce soft burst limit: 5 requests / 10 seconds per user
+    if (!checkBurstLimit(`${userId}:text-to-speech`, 5, 10_000)) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get user profile and check subscription status
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, use_own_api_key, openai_api_key, subscription_status')
+      .select('monthly_ai_requests, subscription_status, user_tier')
       .eq('user_id', userId)
       .single();
 
@@ -50,29 +86,37 @@ serve(async (req) => {
       throw new Error('Failed to fetch user profile');
     }
 
-    // Get global settings for limits
+    // Get monthly request limit from settings
     const { data: settings } = await supabase
       .from('shared_settings')
-      .select('setting_key, setting_value')
-      .in('setting_key', ['free_request_limit', 'monthly_request_limit']);
+      .select('setting_value')
+      .eq('setting_key', 'monthly_request_limit')
+      .maybeSingle();
 
-    const freeLimit = parseInt(settings?.find(s => s.setting_key === 'free_request_limit')?.setting_value || '50');
-    const monthlyLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
-
-    // Check if user has reached their limit (unless using own API key)
-    if (!profile.use_own_api_key) {
-      const userLimit = profile.subscription_status === 'active' ? monthlyLimit : freeLimit;
-      if (profile.monthly_ai_requests >= userLimit) {
-        throw new Error(`Monthly request limit of ${userLimit} reached. Please upgrade your subscription or use your own API key.`);
-      }
+    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    
+    // Free users get 0 requests (only trial users get requests)
+    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
+    
+    if (profile.monthly_ai_requests >= userLimit) {
+      throw new Error(`Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : 'Your monthly limit has been reached.'}`);
     }
 
-    // Get API key - either from user's own key or from headers
+    // Resolve API key (shared key only)
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    const OPENAI_API_KEY = profile.use_own_api_key ? profile.openai_api_key : clientApiKey;
+    let OPENAI_API_KEY = clientApiKey;
+    
+    if (!OPENAI_API_KEY) {
+      const { data: sharedKey } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
+      OPENAI_API_KEY = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
+    }
 
     if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error('OpenAI API key not configured. Please contact support.');
     }
 
     // Send to OpenAI TTS API
@@ -91,8 +135,12 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI TTS API error:', errorData);
+      try {
+        const errorData = await response.json();
+        if (!isProd) console.error('OpenAI TTS API error:', errorData);
+      } catch (_) {
+        if (!isProd) console.error('OpenAI TTS API error: non-JSON body');
+      }
       throw new Error(`OpenAI TTS API error: ${response.status}`);
     }
 
@@ -108,8 +156,8 @@ serve(async (req) => {
     }
     const base64Audio = btoa(binary);
 
-    // Increment usage counter (only if not using own API key)
-    if (!profile.use_own_api_key) {
+    // Increment usage counter (all users count against limits now)
+    try {
       await supabase
         .from('profiles')
         .update({ 
@@ -124,6 +172,8 @@ serve(async (req) => {
         _requests_count: 1,
         _subscription_status: profile.subscription_status
       });
+    } catch (e) {
+      console.warn('Non-blocking: failed to increment usage tracking', e);
     }
 
     return new Response(
@@ -137,9 +187,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in text-to-speech function:', error);
+    if (!isProd) console.error('Error in text-to-speech function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isProd ? 'Internal server error' : (error as Error).message }),
       {
         status: 500,
         headers: { 

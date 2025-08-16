@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -77,6 +77,156 @@ export type Database = {
         }
         Relationships: []
       }
+      app_motivators: {
+        Row: {
+          caption: string | null
+          category: string
+          completed_sessions: number | null
+          created_at: string
+          description: string
+          difficulty: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_predefined: boolean | null
+          sort_order: number | null
+          subcategory: string | null
+          tags: string[] | null
+          timeframe: string | null
+          times_used: number | null
+          title: string
+          total_sessions: number | null
+          total_time_spent: number | null
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          category?: string
+          completed_sessions?: number | null
+          created_at?: string
+          description: string
+          difficulty?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_predefined?: boolean | null
+          sort_order?: number | null
+          subcategory?: string | null
+          tags?: string[] | null
+          timeframe?: string | null
+          times_used?: number | null
+          title: string
+          total_sessions?: number | null
+          total_time_spent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          category?: string
+          completed_sessions?: number | null
+          created_at?: string
+          description?: string
+          difficulty?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_predefined?: boolean | null
+          sort_order?: number | null
+          subcategory?: string | null
+          tags?: string[] | null
+          timeframe?: string | null
+          times_used?: number | null
+          title?: string
+          total_sessions?: number | null
+          total_time_spent?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      background_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author: string
+          categories: string[] | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          meta_description: string | null
+          meta_keywords: string | null
+          published_at: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          categories?: string[] | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          categories?: string[] | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           archived: boolean
@@ -137,6 +287,263 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_activity_overrides: {
+        Row: {
+          activity_level: string
+          created_at: string
+          date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_level: string
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_level?: string
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_food_templates: {
+        Row: {
+          calories: number
+          carbs: number
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          serving_size: number
+          sort_order: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories: number
+          carbs: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          serving_size?: number
+          sort_order?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          serving_size?: number
+          sort_order?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      default_food_favorites: {
+        Row: {
+          created_at: string
+          default_food_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_food_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_food_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "default_food_favorites_default_food_id_fkey"
+            columns: ["default_food_id"]
+            isOneToOne: false
+            referencedRelation: "default_foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      default_foods: {
+        Row: {
+          calories_per_100g: number
+          carbs_per_100g: number
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          calories_per_100g: number
+          carbs_per_100g: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          calories_per_100g?: number
+          carbs_per_100g?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          display_order: number
+          id: string
+          image_alignment: string | null
+          image_url: string | null
+          is_active: boolean
+          page_category: string | null
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_alignment?: string | null
+          image_url?: string | null
+          is_active?: boolean
+          page_category?: string | null
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_alignment?: string | null
+          image_url?: string | null
+          is_active?: boolean
+          page_category?: string | null
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fasting_hours: {
+        Row: {
+          admin_personal_log: string | null
+          autophagy_milestone: boolean | null
+          benefits_challenges: string | null
+          body_state: string
+          challenging_symptoms: string[] | null
+          common_feelings: string[] | null
+          content_rotation_data: Json | null
+          content_snippet: string | null
+          created_at: string
+          day: number
+          difficulty: string
+          encouragement: string | null
+          fat_burning_milestone: boolean | null
+          hour: number
+          id: string
+          image_url: string | null
+          ketosis_milestone: boolean | null
+          mental_emotional_state: string[] | null
+          metabolic_changes: string | null
+          motivator_tags: string[] | null
+          phase: string
+          physiological_effects: string | null
+          positive_symptoms: string[] | null
+          scientific_info: string | null
+          stage: string | null
+          tips: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_personal_log?: string | null
+          autophagy_milestone?: boolean | null
+          benefits_challenges?: string | null
+          body_state: string
+          challenging_symptoms?: string[] | null
+          common_feelings?: string[] | null
+          content_rotation_data?: Json | null
+          content_snippet?: string | null
+          created_at?: string
+          day: number
+          difficulty?: string
+          encouragement?: string | null
+          fat_burning_milestone?: boolean | null
+          hour: number
+          id?: string
+          image_url?: string | null
+          ketosis_milestone?: boolean | null
+          mental_emotional_state?: string[] | null
+          metabolic_changes?: string | null
+          motivator_tags?: string[] | null
+          phase?: string
+          physiological_effects?: string | null
+          positive_symptoms?: string[] | null
+          scientific_info?: string | null
+          stage?: string | null
+          tips?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_personal_log?: string | null
+          autophagy_milestone?: boolean | null
+          benefits_challenges?: string | null
+          body_state?: string
+          challenging_symptoms?: string[] | null
+          common_feelings?: string[] | null
+          content_rotation_data?: Json | null
+          content_snippet?: string | null
+          created_at?: string
+          day?: number
+          difficulty?: string
+          encouragement?: string | null
+          fat_burning_milestone?: boolean | null
+          hour?: number
+          id?: string
+          image_url?: string | null
+          ketosis_milestone?: boolean | null
+          mental_emotional_state?: string[] | null
+          metabolic_changes?: string | null
+          motivator_tags?: string[] | null
+          phase?: string
+          physiological_effects?: string | null
+          positive_symptoms?: string[] | null
+          scientific_info?: string | null
+          stage?: string | null
+          tips?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fasting_sessions: {
         Row: {
           created_at: string
@@ -173,6 +580,96 @@ export type Database = {
         }
         Relationships: []
       }
+      fasting_timeline_posts: {
+        Row: {
+          author: string
+          categories: string[] | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image: string | null
+          hour: number
+          how_youre_feeling: string | null
+          id: string
+          meta_description: string | null
+          meta_keywords: string | null
+          published_at: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          whats_happening: string | null
+        }
+        Insert: {
+          author?: string
+          categories?: string[] | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          hour: number
+          how_youre_feeling?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          whats_happening?: string | null
+        }
+        Update: {
+          author?: string
+          categories?: string[] | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image?: string | null
+          hour?: number
+          how_youre_feeling?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          whats_happening?: string | null
+        }
+        Relationships: []
+      }
+      feature_screenshots: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          image_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          image_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       food_entries: {
         Row: {
           calories: number
@@ -183,6 +680,7 @@ export type Database = {
           image_url: string | null
           name: string
           serving_size: number | null
+          source_date: string | null
           updated_at: string
           user_id: string
         }
@@ -195,6 +693,7 @@ export type Database = {
           image_url?: string | null
           name: string
           serving_size?: number | null
+          source_date?: string | null
           updated_at?: string
           user_id: string
         }
@@ -207,8 +706,90 @@ export type Database = {
           image_url?: string | null
           name?: string
           serving_size?: number | null
+          source_date?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      general_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      home_steps: {
+        Row: {
+          created_at: string
+          description: string
+          display_order: number
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          display_order?: number
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          display_order?: number
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
         }
         Relationships: []
       }
@@ -234,6 +815,54 @@ export type Database = {
           calories_burned?: number
           created_at?: string
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      motivator_image_generations: {
+        Row: {
+          bucket: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          filename: string
+          id: string
+          image_url: string | null
+          motivator_id: string
+          prompt: string
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          filename: string
+          id?: string
+          image_url?: string | null
+          motivator_id: string
+          prompt: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          filename?: string
+          id?: string
+          image_url?: string | null
+          motivator_id?: string
+          prompt?: string
+          requested_at?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -275,110 +904,479 @@ export type Database = {
         }
         Relationships: []
       }
+      navigation_settings: {
+        Row: {
+          created_at: string
+          custom_url: string | null
+          display_order: number
+          id: string
+          is_visible: boolean
+          page_key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_url?: string | null
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          page_key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_url?: string | null
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          page_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      page_content: {
+        Row: {
+          button_text: string | null
+          button_url: string | null
+          content: string | null
+          created_at: string
+          featured_image_url: string | null
+          id: string
+          is_published: boolean
+          meta_description: string | null
+          meta_title: string | null
+          page_key: string
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          button_text?: string | null
+          button_url?: string | null
+          content?: string | null
+          created_at?: string
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          page_key: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          button_text?: string | null
+          button_url?: string | null
+          content?: string | null
+          created_at?: string
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          page_key?: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_provider_configs: {
+        Row: {
+          config_data: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          config_data?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          config_data?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_receipts: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          provider: string
+          receipt_data: Json
+          subscription_id: string | null
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+          validation_response: Json | null
+          validation_status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          provider: string
+          receipt_data: Json
+          subscription_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+          validation_response?: Json | null
+          validation_status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          provider?: string
+          receipt_data?: Json
+          subscription_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+          validation_response?: Json | null
+          validation_status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          access_level: Database["public"]["Enums"]["access_level"] | null
           activity_level: string | null
           age: number | null
           ai_requests_reset_date: string | null
+          apple_transaction_id: string | null
           created_at: string
           daily_calorie_goal: number | null
           daily_carb_goal: number | null
+          default_walking_speed: number | null
+          deletion_reason: string | null
+          deletion_scheduled_at: string | null
           display_name: string | null
+          enable_ceramic_animations: boolean | null
+          enable_daily_reset: boolean | null
+          enable_fasting_slideshow: boolean | null
+          enable_food_image_generation: boolean | null
+          enable_walking_slideshow: boolean | null
+          goal_weight: number | null
+          google_play_purchase_token: string | null
           height: number | null
           id: string
           is_paid_user: boolean | null
+          last_activity_at: string | null
           monthly_ai_requests: number | null
-          openai_api_key: string | null
+          onboarding_completed: boolean | null
+          payment_method: string | null
+          payment_provider: string | null
+          platform_subscription_id: string | null
+          premium_expires_at: string | null
+          sex: string | null
           speech_model: string | null
           stripe_customer_id: string | null
           subscription_end_date: string | null
+          subscription_product_id: string | null
           subscription_status: string | null
           subscription_tier: string | null
           transcription_model: string | null
+          trial_ends_at: string | null
+          trial_started_at: string | null
           tts_model: string | null
           tts_voice: string | null
-          units: string | null
           updated_at: string
-          use_own_api_key: boolean | null
           user_id: string
+          user_tier: Database["public"]["Enums"]["user_tier"] | null
           weight: number | null
         }
         Insert: {
+          access_level?: Database["public"]["Enums"]["access_level"] | null
           activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
+          apple_transaction_id?: string | null
           created_at?: string
           daily_calorie_goal?: number | null
           daily_carb_goal?: number | null
+          default_walking_speed?: number | null
+          deletion_reason?: string | null
+          deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_ceramic_animations?: boolean | null
+          enable_daily_reset?: boolean | null
+          enable_fasting_slideshow?: boolean | null
+          enable_food_image_generation?: boolean | null
+          enable_walking_slideshow?: boolean | null
+          goal_weight?: number | null
+          google_play_purchase_token?: string | null
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
+          last_activity_at?: string | null
           monthly_ai_requests?: number | null
-          openai_api_key?: string | null
+          onboarding_completed?: boolean | null
+          payment_method?: string | null
+          payment_provider?: string | null
+          platform_subscription_id?: string | null
+          premium_expires_at?: string | null
+          sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
+          subscription_product_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           transcription_model?: string | null
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           tts_model?: string | null
           tts_voice?: string | null
-          units?: string | null
           updated_at?: string
-          use_own_api_key?: boolean | null
           user_id: string
+          user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
         }
         Update: {
+          access_level?: Database["public"]["Enums"]["access_level"] | null
           activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
+          apple_transaction_id?: string | null
           created_at?: string
           daily_calorie_goal?: number | null
           daily_carb_goal?: number | null
+          default_walking_speed?: number | null
+          deletion_reason?: string | null
+          deletion_scheduled_at?: string | null
           display_name?: string | null
+          enable_ceramic_animations?: boolean | null
+          enable_daily_reset?: boolean | null
+          enable_fasting_slideshow?: boolean | null
+          enable_food_image_generation?: boolean | null
+          enable_walking_slideshow?: boolean | null
+          goal_weight?: number | null
+          google_play_purchase_token?: string | null
           height?: number | null
           id?: string
           is_paid_user?: boolean | null
+          last_activity_at?: string | null
           monthly_ai_requests?: number | null
-          openai_api_key?: string | null
+          onboarding_completed?: boolean | null
+          payment_method?: string | null
+          payment_provider?: string | null
+          platform_subscription_id?: string | null
+          premium_expires_at?: string | null
+          sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
+          subscription_product_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           transcription_model?: string | null
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           tts_model?: string | null
           tts_voice?: string | null
-          units?: string | null
           updated_at?: string
-          use_own_api_key?: boolean | null
           user_id?: string
+          user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
+        }
+        Relationships: []
+      }
+      ring_bell_gallery_items: {
+        Row: {
+          back_image_url: string | null
+          back_text: string | null
+          created_at: string
+          front_image_url: string | null
+          front_text: string | null
+          id: string
+          initial_state: string
+          is_active: boolean
+          order_position: number
+          updated_at: string
+        }
+        Insert: {
+          back_image_url?: string | null
+          back_text?: string | null
+          created_at?: string
+          front_image_url?: string | null
+          front_text?: string | null
+          id?: string
+          initial_state?: string
+          is_active?: boolean
+          order_position: number
+          updated_at?: string
+        }
+        Update: {
+          back_image_url?: string | null
+          back_text?: string | null
+          created_at?: string
+          front_image_url?: string | null
+          front_text?: string | null
+          id?: string
+          initial_state?: string
+          is_active?: boolean
+          order_position?: number
+          updated_at?: string
         }
         Relationships: []
       }
       shared_settings: {
         Row: {
           created_at: string
-          id: string
           setting_key: string
           setting_value: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
-          id?: string
           setting_key: string
           setting_value?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
-          id?: string
           setting_key?: string
           setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      social_proof: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          metric_label: string
+          metric_value: string
+          source_name: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          metric_label: string
+          metric_value: string
+          source_name: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          metric_label?: string
+          metric_value?: string
+          source_name?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          author_name: string
+          author_role: string | null
+          avatar_url: string | null
+          content: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          rating: number | null
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          author_role?: string | null
+          avatar_url?: string | null
+          content: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          rating?: number | null
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          author_role?: string | null
+          avatar_url?: string | null
+          content?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          rating?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tooltip_content: {
+        Row: {
+          content: string
+          content_key: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          content_key: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          content_key?: string
+          created_at?: string
+          id?: string
           updated_at?: string
         }
         Relationships: []
@@ -416,6 +1414,7 @@ export type Database = {
           carbs_per_100g: number
           created_at: string
           id: string
+          image_url: string | null
           is_favorite: boolean | null
           name: string
           updated_at: string
@@ -427,6 +1426,7 @@ export type Database = {
           carbs_per_100g: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_favorite?: boolean | null
           name: string
           updated_at?: string
@@ -438,6 +1438,7 @@ export type Database = {
           carbs_per_100g?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_favorite?: boolean | null
           name?: string
           updated_at?: string
@@ -473,8 +1474,12 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           distance: number | null
+          edit_reason: string | null
           end_time: string | null
+          estimated_steps: number | null
           id: string
+          is_edited: boolean | null
+          original_duration_minutes: number | null
           pause_start_time: string | null
           session_state: string | null
           speed_mph: number | null
@@ -489,8 +1494,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           distance?: number | null
+          edit_reason?: string | null
           end_time?: string | null
+          estimated_steps?: number | null
           id?: string
+          is_edited?: boolean | null
+          original_duration_minutes?: number | null
           pause_start_time?: string | null
           session_state?: string | null
           speed_mph?: number | null
@@ -505,8 +1514,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           distance?: number | null
+          edit_reason?: string | null
           end_time?: string | null
+          estimated_steps?: number | null
           id?: string
+          is_edited?: boolean | null
+          original_duration_minutes?: number | null
           pause_start_time?: string | null
           session_state?: string | null
           speed_mph?: number | null
@@ -523,25 +1536,72 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
+      get_all_referenced_images: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          column_name: string
+          image_url: string
+          record_count: number
+          table_name: string
+        }[]
+      }
+      get_payment_provider_for_platform: {
+        Args: { _platform: string }
+        Returns: string
+      }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      is_user_admin: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
+      test_auth_uid: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       track_usage_event: {
         Args: {
-          _user_id: string
           _event_type: string
           _requests_count?: number
           _subscription_status?: string
+          _user_id: string
         }
         Returns: undefined
       }
+      update_subscription_from_receipt: {
+        Args: {
+          _expires_at?: string
+          _product_id: string
+          _provider: string
+          _status: string
+          _subscription_id: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      update_user_tier: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_tier"]
+      }
+      user_has_premium_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      validate_unified_auth_system: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          test_name: string
+        }[]
+      }
     }
     Enums: {
+      access_level: "free" | "trial" | "premium" | "admin"
       app_role: "admin" | "user"
+      user_tier: "api_user" | "paid_user" | "granted_user" | "free_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -669,7 +1729,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_level: ["free", "trial", "premium", "admin"],
       app_role: ["admin", "user"],
+      user_tier: ["api_user", "paid_user", "granted_user", "free_user"],
     },
   },
 } as const

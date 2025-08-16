@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette } from 'lucide-react';
+import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Wifi } from 'lucide-react';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,23 +11,26 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
-import { useSubscription } from '@/hooks/useSubscription';
+import { useProfile } from '@/hooks/useProfile';
+import { useAccess } from '@/hooks/useAccess';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+
 import { ClearCacheButton } from '@/components/ClearCacheButton';
-import { UnitsSelector } from '@/components/UnitsSelector';
-import { useArchivedConversations } from '@/hooks/useArchivedConversations';
-import { MotivatorsModal } from '@/components/MotivatorsModal';
+
+
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
+import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
+import { useConnectionStore } from '@/stores/connectionStore';
+import { useCacheManager } from '@/hooks/useCacheManager';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
-  const [openAiKey, setOpenAiKey] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [useOwnKey, setUseOwnKey] = useState(false);
   const [speechModel, setSpeechModel] = useState('gpt-4o-mini-realtime');
   const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
   const [ttsModel, setTtsModel] = useState('tts-1');
@@ -34,141 +38,175 @@ const Settings = () => {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
+  const [sex, setSex] = useState('');
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
-  const [units, setUnits] = useState<'metric' | 'imperial'>('imperial');
+  
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const subscription = useSubscription();
-  const { archivedConversations, loading: archiveLoading, restoreConversation, deleteArchivedConversation } = useArchivedConversations();
+  const { isAdmin: accessIsAdmin, originalIsAdmin, hasPremiumFeatures, createSubscription, openCustomerPortal, isTrial, daysRemaining, access_level } = useAccess();
+  const isWebPlatform = true; // Default to web for now
+  const platformName = 'Stripe'; // Default to Stripe for now
+  
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { profile, updateProfile, loading: profileLoading } = useProfile();
+  const { isOnline } = useConnectionStore();
+  const { clearGoalsCache, clearProfileCache } = useCacheManager();
 
   useEffect(() => {
-    // Load saved API key from localStorage
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setOpenAiKey(savedApiKey);
-    }
 
-    const checkAdminRole = async () => {
-      if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
-        setIsAdmin(!!data);
-      }
-    };
+    // Admin status now comes from useAccess hook
+    setIsAdmin(accessIsAdmin);
 
     const fetchUserSettings = async () => {
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('use_own_api_key, speech_model, transcription_model, tts_model, tts_voice, openai_api_key, weight, height, age, daily_calorie_goal, daily_carb_goal, activity_level, units')
-          .eq('user_id', user.id)
-          .single();
+        try {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, enable_fasting_slideshow, enable_walking_slideshow')
+            .eq('user_id', user.id)
+            .maybeSingle() as { data: any; error: any };
 
-        if (profile) {
-          setUseOwnKey(profile.use_own_api_key ?? true);
-          setSpeechModel(profile.speech_model || 'gpt-4o-mini-realtime');
-          setTranscriptionModel(profile.transcription_model || 'whisper-1');
-          setTtsModel(profile.tts_model || 'tts-1');
-          setTtsVoice(profile.tts_voice || 'alloy');
-          setWeight(profile.weight?.toString() || '');
-          setHeight(profile.height?.toString() || '');
-          setAge(profile.age?.toString() || '');
-          setDailyCalorieGoal(profile.daily_calorie_goal?.toString() || '');
-          setDailyCarbGoal(profile.daily_carb_goal?.toString() || '');
-          setActivityLevel(profile.activity_level || 'sedentary');
-          setUnits((profile.units as 'metric' | 'imperial') || 'imperial');
-          
-          // Load API key from database if available
-          if (profile.openai_api_key) {
-            setOpenAiKey(profile.openai_api_key);
+        if (error) {
+          console.error('Error loading profile settings:', error);
+          return;
+        }
+
+        if (profileData) {
+          // Profile data is now managed by useProfile hook, but we still need to set form fields
+          setSpeechModel(profileData.speech_model || 'gpt-4o-mini-realtime');
+          setTranscriptionModel(profileData.transcription_model || 'whisper-1');
+          setTtsModel(profileData.tts_model || 'tts-1');
+          setTtsVoice(profileData.tts_voice || 'alloy');
+          setWeight(profileData.weight?.toString() || '');
+          setHeight(profileData.height?.toString() || '');
+          setAge(profileData.age?.toString() || '');
+          setSex(profileData.sex || '');
+          setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
+          setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
+          setActivityLevel(profileData.activity_level || 'sedentary');
+
+          // Check if profile is incomplete and show onboarding
+          const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
+            (!profileData.activity_level && !profileData['activity-level']);
+          console.log('Profile incompleteness check:', { 
+            weight: profileData.weight, 
+            height: profileData.height, 
+            age: profileData.age, 
+            activity_level: profileData.activity_level,
+            isIncomplete 
+          });
+          if (isIncomplete) {
+            setShowOnboarding(true);
           }
+        } else {
+          // No profile data exists, show onboarding
+          setShowOnboarding(true);
+        }
+        } catch (error) {
+          console.error('Error fetching user settings:', error);
         }
       }
     };
 
-    checkAdminRole();
     fetchUserSettings();
-  }, [user]);
+  }, [user, accessIsAdmin]);
 
   const handleSaveSettings = async () => {
     try {
-      // Simple validation for API key
-      if (useOwnKey && openAiKey.trim()) {
-        if (!openAiKey.startsWith('sk-')) {
+      // Validate required fields (metric only now)
+      if (weight && (parseFloat(weight) < 30 || parseFloat(weight) > 300)) {
+        toast({
+          title: "Invalid Weight",
+          description: "Weight must be between 30-300 kg",
+          variant: "destructive"
+        });
+        return;
+      }
+      if (height && (parseInt(height) < 100 || parseInt(height) > 250)) {
+        toast({
+          title: "Invalid Height", 
+          description: "Height must be between 100-250 cm",
+          variant: "destructive"
+        });
+        return;
+      }
+
+
+      // Save user preferences to database
+      if (user) {
+        const updateData = {
+          speech_model: speechModel,
+          transcription_model: transcriptionModel,
+          tts_model: ttsModel,
+          tts_voice: ttsVoice,
+          weight: weight ? parseFloat(weight) : null,
+          height: height ? parseInt(height) : null,
+          age: age ? parseInt(age) : null,
+          sex: (sex as 'male' | 'female') || null,
+          daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
+          daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
+          activity_level: activityLevel
+        };
+        
+        console.log('Settings: User ID:', user?.id);
+        console.log('Settings: Saving profile data:', updateData);
+        
+        // Use the useProfile hook's updateProfile method instead of direct Supabase call
+        const result = await updateProfile(updateData);
+        
+        if (result?.error) {
+          console.error('Settings save error:', result.error);
           toast({
-            title: "Invalid API Key",
-            description: "Please enter a valid OpenAI API key starting with 'sk-'",
+            title: "Database Error",
+            description: `Failed to save: ${result.error.message}`,
             variant: "destructive"
           });
           return;
         }
         
-        // Store API key in localStorage
-        localStorage.setItem('openai_api_key', openAiKey);
-      } else if (!useOwnKey) {
-        localStorage.removeItem('openai_api_key');
-      }
+        const data = result?.data;
 
-      // Save user preferences to database
-      if (user) {
-        const updateData = {
-          use_own_api_key: useOwnKey,
-          speech_model: speechModel,
-          transcription_model: transcriptionModel,
-          tts_model: ttsModel,
-          tts_voice: ttsVoice,
-          openai_api_key: useOwnKey ? openAiKey : null,
-          weight: weight ? parseFloat(weight) : null,
-          height: height ? parseInt(height) : null,
-          age: age ? parseInt(age) : null,
-          daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
-          daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-          activity_level: activityLevel,
-          units: units
-        };
-        
-        const { data, error } = await supabase
-          .from('profiles')
-          .update(updateData)
-          .eq('user_id', user.id);
+        // If sex changed, clear relevant caches without page reload
+        if (data && updateData.sex && updateData.sex !== profile?.sex) {
+          console.log('🔄 Sex changed - clearing goal and profile caches');
+          await clearGoalsCache({ showToast: false });
+          await clearProfileCache({ showToast: false });
+          
+          toast({
+            title: "Profile Updated",
+            description: "Sex updated successfully. Goal recommendations have been refreshed.",
+          });
+        }
+        const error = result?.error;
 
-        if (error) {
-          console.error('Settings save error:', error);
-          throw error;
+        // Ensure tier reflects latest settings (own API key overrides others)
+        try {
+          await supabase.rpc('update_user_tier', { _user_id: user.id });
+        } catch (tierErr) {
+          console.warn('Tier update RPC failed:', tierErr);
         }
 
         console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",
-          description: useOwnKey ? "Using your own API key with selected models" : "Using shared service with selected models",
+          description: "Your settings have been updated successfully.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Settings save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save settings",
+        description: error?.message || "Failed to save settings. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const handleClearApiKey = () => {
-    setOpenAiKey('');
-    localStorage.removeItem('openai_api_key');
-    toast({
-      title: "🗑️ API Key Removed",
-      description: "AI features have been disabled.",
-    });
-  };
 
   const handleClearWalkingHistory = async () => {
     if (!user) return;
@@ -196,148 +234,166 @@ const Settings = () => {
     }
   };
 
+  const handleResetAccount = async () => {
+    if (!user) return;
+
+    try {
+      // Delete all user data but keep the account
+      const deleteOperations = [
+        supabase.from('chat_conversations').delete().eq('user_id', user.id),
+        supabase.from('motivators').delete().eq('user_id', user.id),
+        supabase.from('food_entries').delete().eq('user_id', user.id),
+        supabase.from('user_foods').delete().eq('user_id', user.id),
+        supabase.from('fasting_sessions').delete().eq('user_id', user.id),
+        supabase.from('walking_sessions').delete().eq('user_id', user.id),
+        supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
+        supabase.from('daily_activity_overrides').delete().eq('user_id', user.id),
+        supabase.from('daily_food_templates').delete().eq('user_id', user.id),
+        supabase.from('default_food_favorites').delete().eq('user_id', user.id)
+      ];
+
+      await Promise.all(deleteOperations);
+
+      // Reset profile data but keep account settings
+      await supabase
+        .from('profiles')
+        .update({
+          weight: null,
+          height: null,
+          age: null,
+          daily_calorie_goal: null,
+          daily_carb_goal: null,
+          goal_weight: null,
+          onboarding_completed: false
+        })
+        .eq('user_id', user.id);
+
+      toast({
+        title: "Account Reset Complete",
+        description: "All your data has been cleared. You can start fresh!",
+      });
+
+      // Navigate to home to start fresh
+      navigate('/');
+    } catch (error) {
+      console.error('Error resetting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    try {
+      // Call the delete account edge function
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.scheduled) {
+        toast({
+          title: "Account Deletion Scheduled",
+          description: data.message,
+        });
+      } else {
+        toast({
+          title: "Account Deleted",
+          description: data.message,
+        });
+        // Sign out and redirect
+        await signOut();
+        navigate('/auth');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-ceramic-base safe-top safe-bottom">
-      <ScrollArea className="h-screen">
-        <div className="px-4 pt-8 pb-24">
-          <div className="max-w-md mx-auto space-y-6 bg-ceramic-base">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+      <div className="max-w-md mx-auto pt-10 pb-24">
+        <div className="space-y-6">
+          <div className="space-y-2">
             {/* Header */}
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-warm-text">Settings</h1>
-              <p className="text-muted-foreground">Customize your fasting experience</p>
-            </div>
-
-            {/* Theme Toggle Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Palette className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-warm-text">Theme</p>
-                      <p className="text-xs text-muted-foreground">Choose your preferred color scheme</p>
-                    </div>
-                    <ThemeToggle />
-                  </div>
-                </div>
+            <div className="mb-2 mt-4">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
+                  Settings
+                </h1>
+                {(isAdmin || originalIsAdmin) && (
+                  <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
+                    Admin Dashboard
+                  </Button>
+                )}
               </div>
-            </Card>
+              <p className="text-sm text-muted-foreground text-left">Customize your fasting experience</p>
+            </div>
+          </div>
 
-            {/* Account Section */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            {/* User Profile */}
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
-                </div>
-                
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Email</span>
-                    <span className="text-warm-text font-medium">{user?.email}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Login Method</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Member since</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="pt-3 border-t border-ceramic-rim">
                   <Button
-                    onClick={() => {
-                      signOut();
-                      navigate('/auth');
-                    }}
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOnboarding(true)}
+                    className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                    title="Setup Profile Walkthrough"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                    <Brain className="w-4 h-4 text-warm-text" />
                   </Button>
                 </div>
-              </div>
-            </Card>
-
-            {/* Motivators */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Heart className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Motivators</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      onClick={() => setShowMotivatorsModal(true)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    >
-                      <Heart className="w-4 h-4 mr-2" />
-                      Manage
-                    </Button>
-                    <Button
-                      onClick={() => setShowAiGeneratorModal(true)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate with AI
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Create, edit, and organize your personal motivational content, images, and quotes. Use AI to automatically generate personalized motivators for your fasting journey.
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* User Profile & Goals */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Profile & Goals</h3>
-                </div>
                 
                 <div className="space-y-4">
-                  <UnitsSelector
-                    selectedUnits={units}
-                    onUnitsChange={setUnits}
-                  />
                   
                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="weight" className="text-warm-text">Weight ({units === 'metric' ? 'kg' : 'lbs'})</Label>
+                        <Label htmlFor="weight" className="text-warm-text">Weight (kg)</Label>
                         <Input
                           id="weight"
                           type="number"
-                          placeholder={units === 'metric' ? '70' : '154'}
+                          placeholder="70"
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
+                          min="30"
+                          max="300"
+                          step="0.1"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="height" className="text-warm-text">Height ({units === 'metric' ? 'cm' : 'in'})</Label>
+                        <Label htmlFor="height" className="text-warm-text">Height (cm)</Label>
                         <Input
                           id="height"
                           type="number"
-                          placeholder={units === 'metric' ? '175' : '69'}
+                          placeholder="175"
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
+                          min="100"
+                          max="250"
+                          step="1"
                         />
                       </div>
                       <div className="space-y-2">
@@ -352,63 +408,35 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Activity Level Section */}
-                  <div className="space-y-4 pt-6 border-t border-ceramic-rim/50">
-                    <h4 className="text-sm font-medium text-warm-text">Activity Level</h4>
+                    
+                    {/* Sex Selection */}
                     <div className="space-y-2">
-                      <Select value={activityLevel} onValueChange={setActivityLevel}>
+                      <Label htmlFor="sex" className="text-warm-text">Biological Sex</Label>
+                      <Select value={sex} onValueChange={setSex}>
                         <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                          <SelectValue placeholder="Select your activity level" />
+                          <SelectValue placeholder="Select sex" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sedentary" className="text-left">
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">Sedentary</span>
-                              <span className="text-xs text-muted-foreground">Little to no exercise</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="lightly_active" className="text-left">
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">Lightly Active</span>
-                              <span className="text-xs text-muted-foreground">Light exercise 1-3 days/week</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="moderately_active" className="text-left">
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">Moderately Active</span>
-                              <span className="text-xs text-muted-foreground">Moderate exercise 3-5 days/week</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="very_active" className="text-left">
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">Very Active</span>
-                              <span className="text-xs text-muted-foreground">Hard exercise 6-7 days/week</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="extremely_active" className="text-left">
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">Extremely Active</span>
-                              <span className="text-xs text-muted-foreground">Very hard exercise, physical job</span>
-                            </div>
-                          </SelectItem>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">
-                        This affects your base daily calorie burn (TDEE) calculation
-                      </p>
                     </div>
                   </div>
                   
-                  {/* Goals Section */}
-                  <div className="space-y-4 pt-6 border-t border-ceramic-rim/50">
-                    <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                  {/* Daily Goals Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
+                      <ClickableTooltip content="Set your daily calorie and carb targets. These help track your progress and calculate deficits. Leave blank if you don't want to track these goals.">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="dailyCalorieGoal" className="text-warm-text">Daily Calorie Goal</Label>
+                        <Label htmlFor="daily-calorie-goal" className="text-warm-text">Calorie Goal</Label>
                         <Input
-                          id="dailyCalorieGoal"
+                          id="daily-calorie-goal"
                           type="number"
                           placeholder="2000"
                           value={dailyCalorieGoal}
@@ -417,11 +445,11 @@ const Settings = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="dailyCarbGoal" className="text-warm-text">Daily Carb Goal (g)</Label>
+                        <Label htmlFor="daily-carb-goal" className="text-warm-text">Carb Goal (g)</Label>
                         <Input
-                          id="dailyCarbGoal"
+                          id="daily-carb-goal"
                           type="number"
-                          placeholder="150"
+                          placeholder="200"
                           value={dailyCarbGoal}
                           onChange={(e) => setDailyCarbGoal(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
@@ -430,250 +458,109 @@ const Settings = () => {
                     </div>
                   </div>
                   
-                  {weight && height && age && (
-                    <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg">
-                      <p className="text-sm text-primary font-medium">
-                        Estimated BMR: {Math.round(
-                          parseFloat(weight) && parseFloat(height) && parseFloat(age) 
-                            ? 10 * parseFloat(weight) + 6.25 * parseFloat(height) - 5 * parseFloat(age) + 5
-                            : 0
-                        )} calories/day
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Basal Metabolic Rate - calories needed at rest
-                      </p>
+                  {/* Activity Level Section */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
+                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Sedentary' (office work) or 'Lightly Active' (some walking). This is your default setting.">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
                     </div>
-                  )}
-                  
-                  <Button onClick={handleSaveSettings} className="w-full">
-                    Save Profile
-                  </Button>
+                    <Select value={activityLevel} onValueChange={setActivityLevel}>
+                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                       <SelectContent>
+                          <SelectItem value="sedentary">Low</SelectItem>
+                          <SelectItem value="moderately_active">Medium</SelectItem>
+                          <SelectItem value="very_active">High</SelectItem>
+                       </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </Card>
 
-            {/* REMOVED: Notifications section as per plan */}
+            {/* Save Settings Button - under Profile */}
+            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary">
+              Save Settings
+            </Button>
 
-
-        {/* AI Settings */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Key className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">AI Settings</h3>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="use-own-key" className="text-warm-text font-medium">Use your own API key</Label>
-                <p className="text-xs text-muted-foreground">Toggle to configure your own OpenAI API key</p>
-              </div>
-              <Switch
-                id="use-own-key"
-                checked={useOwnKey}
-                onCheckedChange={setUseOwnKey}
-              />
-            </div>
-            
-            {useOwnKey ? (
-              <div className="space-y-4 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
-                <div className="space-y-2">
-                  <Label htmlFor="openai-key" className="text-warm-text">OpenAI API Key</Label>
-                  <div className="relative">
-                    <Input
-                      id="openai-key"
-                      type={isKeyVisible ? 'text' : 'password'}
-                      placeholder="Enter your OpenAI API key"
-                      value={openAiKey}
-                      onChange={(e) => setOpenAiKey(e.target.value)}
-                      className="bg-ceramic-base border-ceramic-rim pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute inset-y-0 right-0 px-3 py-0 h-full"
-                      onClick={() => setIsKeyVisible(!isKeyVisible)}
-                    >
-                      {isKeyVisible ? '🙈' : '👁️'}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Get your API key from{" "}
-                    <a 
-                      href="https://platform.openai.com/api-keys" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      OpenAI Platform
-                    </a>
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-warm-text">Chat Model</Label>
-                  <Select value={speechModel} onValueChange={setSpeechModel}>
-                    <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                      <SelectValue placeholder="Select chat model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-4o-mini-realtime">GPT-4o Mini (Recommended)</SelectItem>
-                      <SelectItem value="gpt-4o-realtime">GPT-4o (Premium)</SelectItem>
-                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Fast)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={handleClearApiKey}
-                    variant="outline"
-                    className="flex-1 bg-ceramic-base border-ceramic-rim hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-                  >
-                    Clear API Key
-                  </Button>
-                  <Button 
-                    onClick={handleSaveSettings}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    Save AI Settings
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground p-3 rounded-lg bg-ceramic-base/30">
-                Using shared service with default models and voice settings.
-              </p>
-            )}
-
-            {/* Voice Settings - Available for all users */}
-            <div className="space-y-2 p-4 rounded-lg bg-ceramic-base/50 border border-ceramic-rim">
-              <Label className="text-warm-text">AI Voice</Label>
-              <Select value={ttsVoice} onValueChange={setTtsVoice} disabled={!useOwnKey && !subscription.subscribed}>
-                <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                  <SelectValue placeholder="Select voice" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alloy">Alloy</SelectItem>
-                  <SelectItem value="echo">Echo</SelectItem>
-                  <SelectItem value="fable">Fable</SelectItem>
-                  <SelectItem value="onyx">Onyx</SelectItem>
-                  <SelectItem value="nova">Nova</SelectItem>
-                  <SelectItem value="shimmer">Shimmer</SelectItem>
-                </SelectContent>
-              </Select>
-              {!useOwnKey && !subscription.subscribed && (
-                <p className="text-xs text-muted-foreground">
-                  Voice selection available with premium subscription or own API key
-                </p>
-              )}
-            </div>
-          </div>
-        </Card>
-
-            {/* Premium Subscription */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            {/* Account Section - moved up (2nd priority) */}
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Premium Subscription</h3>
+                  <User className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
                 </div>
-
-            {subscription.loading ? (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Loading subscription status...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Subscription Status */}
-                <div className="bg-accent/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {subscription.subscribed ? (
-                        <Crown className="w-5 h-5 text-yellow-500" />
-                      ) : (
-                        <CreditCard className="w-5 h-5 text-muted-foreground" />
-                      )}
-                      <span className="font-medium text-warm-text">
-                        {subscription.subscribed ? 'Premium' : 'Free'} Plan
-                      </span>
-                    </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      subscription.subscribed 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    }`}>
-                      {subscription.subscription_status}
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="text-warm-text font-medium">{user?.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Login Method</span>
+                    <span className="text-warm-text font-medium">
+                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
                     </span>
                   </div>
-
-                  {/* Usage Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">AI Requests Used</span>
-                      <span className="text-warm-text">
-                        {subscription.requests_used} / {subscription.request_limit}
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Account Type</span>
+                    <span className="text-warm-text font-medium">
+                      {isTrial ? 'Trial User' : 
+                       hasPremiumFeatures ? 'Premium User' : 'Free User'}
+                    </span>
+                  </div>
+                  {(isTrial || hasPremiumFeatures) && daysRemaining && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">
+                        {isTrial ? 'Trial expires' : 'Premium expires'}
+                      </span>
+                      <span className="text-warm-text font-medium">
+                        {new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="w-full bg-ceramic-base rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          (subscription.requests_used / subscription.request_limit) >= 0.9 
-                            ? 'bg-red-500' 
-                            : (subscription.requests_used / subscription.request_limit) >= 0.8 
-                            ? 'bg-amber-500' 
-                            : 'bg-primary'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, (subscription.requests_used / subscription.request_limit) * 100)}%` 
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Usage Warning */}
-                  {subscription.getUsageWarning() && (
-                    <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
-                      subscription.getUsageWarning()?.level === 'critical' 
-                        ? 'bg-red-500/10 border border-red-500/20'
-                        : subscription.getUsageWarning()?.level === 'warning'
-                        ? 'bg-amber-500/10 border border-amber-500/20'
-                        : 'bg-blue-500/10 border border-blue-500/20'
-                    }`}>
-                      <AlertTriangle className={`w-4 h-4 ${
-                        subscription.getUsageWarning()?.level === 'critical' 
-                          ? 'text-red-500'
-                          : subscription.getUsageWarning()?.level === 'warning'
-                          ? 'text-amber-500'
-                          : 'text-blue-500'
-                      }`} />
-                      <p className={`text-sm ${
-                        subscription.getUsageWarning()?.level === 'critical' 
-                          ? 'text-red-600 dark:text-red-400'
-                          : subscription.getUsageWarning()?.level === 'warning'
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-blue-600 dark:text-blue-400'
-                      }`}>
-                        {subscription.getUsageWarning()?.message}
-                      </p>
-                    </div>
                   )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Member since</span>
+                    <span className="text-warm-text font-medium">
+                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                    </span>
+                  </div>
                 </div>
-
-                {/* Subscription Actions */}
-                <div className="space-y-3">
-                  {!subscription.subscribed ? (
+                <div className="pt-3 border-t border-ceramic-rim space-y-3">
+                  {access_level === 'free' && (
                     <Button
-                      onClick={subscription.createSubscription}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
+                      onClick={async () => {
+                        try {
+                          await createSubscription();
+                          toast({ 
+                            title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
+                            description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
+                          });
+                        } catch {
+                          toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
+                        }
+                      }}
+                      className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary"
                     >
                       <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium - $9/month
+                      {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
                     </Button>
-                  ) : (
+                  )}
+                  {hasPremiumFeatures && (
                     <Button
-                      onClick={subscription.openCustomerPortal}
+                      onClick={async () => {
+                        try {
+                          await openCustomerPortal();
+                          toast({ 
+                            title: "Opening customer portal", 
+                            description: "Manage your subscription...",
+                          });
+                        } catch {
+                          toast({ title: "Error", description: "Failed to open customer portal. Please try again.", variant: "destructive" });
+                        }
+                      }}
                       variant="outline"
                       className="w-full bg-ceramic-base border-ceramic-rim"
                     >
@@ -681,213 +568,187 @@ const Settings = () => {
                       Manage Subscription
                     </Button>
                   )}
-
                   <Button
-                    onClick={subscription.checkSubscription}
-                    variant="ghost"
-                    className="w-full text-muted-foreground hover:text-warm-text"
+                    onClick={() => { signOut(); navigate('/auth'); }}
+                    variant="outline"
+                    className="w-full bg-ceramic-base border-ceramic-rim justify-start hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                   >
-                    Refresh Status
+                    Sign Out
                   </Button>
                 </div>
-
-                {/* Premium Benefits */}
-                {!subscription.subscribed && (
-                  <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-medium text-warm-text mb-2">Premium Benefits:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• 1,000 AI requests per month (generous limit)</li>
-                      <li>• Priority support</li>
-                      <li>• All AI features included</li>
-                      <li>• Cancel anytime, no hassle</li>
-                    </ul>
-                  </div>
-                )}
-
-                {/* Free users info - Compact */}
-                {!subscription.subscribed && subscription.requests_used < subscription.free_requests_limit && (
-                  <div className="text-xs text-muted-foreground p-2 rounded bg-ceramic-base/30">
-                    {subscription.free_requests_limit - subscription.requests_used} free requests remaining.
-                  </div>
-                )}
               </div>
-            )}
-          </div>
-        </Card>
+            </Card>
 
-
-
-        {/* Reset Account */}
-        {user && (
-          <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-red-200 dark:border-red-800">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Trash2 className="w-5 h-5 text-red-600" />
-                <h3 className="text-lg font-semibold text-warm-text">Reset Account</h3>
+            {/* Appearance Section - moved up (3rd priority) */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                </div>
+                <div className="flex justify-center">
+                  <ThemeToggle />
+                </div>
               </div>
-              
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  <strong>⚠️ Danger Zone:</strong> This will permanently delete ALL your data including chat conversations, motivators, food entries, fasting sessions, and walking data. This action cannot be undone.
-                </p>
-              </div>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="w-full bg-red-600 hover:bg-red-700">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Reset Account & Delete All Data
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-ceramic-plate border-ceramic-rim">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-warm-text flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-red-600" />
-                      Reset Account - Final Warning
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="space-y-3">
-                      <p>
-                        <strong>This action will permanently delete:</strong>
-                      </p>
-                      <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
-                        <li>All chat conversations and history</li>
-                        <li>All personal motivators and templates</li>
-                        <li>All food entries and tracking data</li>
-                        <li>All fasting sessions and progress</li>
-                        <li>All walking data and statistics</li>
-                        <li>Profile information and goals</li>
-                        <li>AI usage history</li>
-                      </ul>
-                      <p className="text-red-600 font-semibold">
-                        There is no way to recover this data once deleted. Are you absolutely sure?
-                      </p>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-ceramic-base border-ceramic-rim text-warm-text hover:bg-ceramic-base/80">
-                      Cancel - Keep My Data
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={async () => {
-                        if (user) {
-                          try {
-                            // Delete all user data
-                            await Promise.all([
-                              supabase.from('chat_conversations').delete().eq('user_id', user.id),
-                              supabase.from('motivators').delete().eq('user_id', user.id),
-                              supabase.from('food_entries').delete().eq('user_id', user.id),
-                              supabase.from('user_foods').delete().eq('user_id', user.id),
-                              supabase.from('fasting_sessions').delete().eq('user_id', user.id),
-                              supabase.from('walking_sessions').delete().eq('user_id', user.id),
-                              supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
-                              supabase.from('ai_usage_logs').delete().eq('user_id', user.id),
-                              supabase.from('profiles').update({
-                                weight: null,
-                                height: null,
-                                age: null,
-                                daily_calorie_goal: null,
-                                daily_carb_goal: null,
-                                activity_level: 'sedentary',
-                                monthly_ai_requests: 0,
-                                openai_api_key: null,
-                                use_own_api_key: false
-                              }).eq('user_id', user.id)
-                            ]);
-                            
-                            // Clear localStorage to remove any cached data
-                            localStorage.removeItem('openai_api_key');
-                            localStorage.removeItem('food_analysis_cache');
-                            localStorage.removeItem('walking_stats');
-                            localStorage.removeItem('fasting_context');
-                            
-                            toast({
-                              title: "Account Reset Complete",
-                              description: "All your data has been deleted. Reloading app to clear cache...",
-                              variant: "default",
-                            });
-                            
-                            // Force reload to clear all React state and caches
-                            setTimeout(() => {
-                              window.location.reload();
-                            }, 1500);
-                          } catch (error) {
-                            toast({
-                              title: "Error",
-                              description: "Failed to reset account. Please try again.",
-                              variant: "destructive",
-                            });
-                          }
-                        }
-                      }}
-                      className="bg-red-600 hover:bg-red-700 text-white"
+            </Card>
+
+
+
+            {/* Account Management - moved down (5th priority) */}
+            <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <h3 className="text-lg font-semibold text-warm-text">Account Management</h3>
+                </div>
+                
+                 <div className="space-y-3">
+                   {/* Cache clear */}
+                   
+                   {/* Clear Cache */}
+                   <ClearCacheButton />
+                   
+                   {/* Reset Account */}
+                   <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10 justify-start"
                     >
-                      Yes, Delete Everything
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </Card>
-        )}
+                      Reset Account Data
+                    </Button>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           This will permanently delete all your data (food entries, fasting sessions, walking history, motivators, etc.) but keep your account active. You can start fresh with a clean slate.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                         <AlertDialogAction
+                           onClick={handleResetAccount}
+                           className="bg-orange-500 hover:bg-orange-600"
+                         >
+                           Reset All Data
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
 
-        {/* About */}
-        <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Info className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-warm-text">About</h3>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Version</span>
-                <span className="text-warm-text font-medium">1.0.0</span>
+                   {/* Delete Account */}
+                   <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 justify-start"
+                    >
+                      Delete Account
+                    </Button>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           This will permanently delete your account and all associated data. This action cannot be undone. If you have an active subscription, it will be canceled.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                         <AlertDialogAction
+                           onClick={handleDeleteAccount}
+                           className="bg-destructive hover:bg-destructive/80"
+                         >
+                           Delete Forever
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Build</span>
-                <span className="text-warm-text font-medium">Beta</span>
-              </div>
-            </div>
-            
-            <div className="bg-accent/20 p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground text-center">
-                Made with ❤️ for your wellness journey
-              </p>
-            </div>
-            
-            <ClearCacheButton />
-            
-            <div className="bg-muted/20 p-2 rounded text-center">
-              <p className="text-xs text-muted-foreground">
-                Will log you out and require you to sign in again
-              </p>
-            </div>
-            
-            {isAdmin && (
-              <Button
-                onClick={() => navigate('/admin')}
-                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Admin Dashboard
-              </Button>
-            )}
-             </div>
-           </Card>
-           </div>
-         </div>
-       </ScrollArea>
+            </Card>
 
-       {/* Modals */}
-       {showMotivatorsModal && (
-         <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
-       )}
-       
-       {showAiGeneratorModal && (
-         <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
-       )}
-     </div>
-   );
- };
- 
- export default Settings;
+
+
+            {/* About */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Info className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">About</h3>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Version</span>
+                    <span className="text-warm-text font-medium">1.0.0</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Build</span>
+                    <span className="text-warm-text font-medium">Beta</span>
+                  </div>
+                </div>
+                
+                
+                 
+                </div>
+              </Card>
+
+            {/* Legal */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Shield className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Legal</h3>
+                </div>
+                <div className="space-y-4">
+                  <a
+                    href="https://fastnow.app/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-left text-sm text-primary hover:underline"
+                  >
+                    <div className="flex items-center">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Privacy Policy
+                    </div>
+                  </a>
+                  <a
+                    href="https://fastnow.app/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-left text-sm text-primary hover:underline"
+                  >
+                    <div className="flex items-center">
+                      <Info className="w-4 h-4 mr-2" />
+                      Terms of Service
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </Card>
+        </div>
+
+        {/* Modals */}
+          {showMotivatorsModal && (
+            <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
+          )}
+          
+          {showAiGeneratorModal && (
+            <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
+          )}
+
+        {/* Profile Onboarding Modal */}
+        <GlobalProfileOnboarding
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+        />
+      </div>
+      
+      
+    </div>
+  );
+};
+
+export default Settings;

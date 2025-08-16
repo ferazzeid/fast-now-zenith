@@ -1,13 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
+  .split(',')
+  .map(o => o.trim());
+
+function buildCorsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  } as const;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response('ok', { headers: corsHeaders });
   }
 
@@ -64,35 +73,26 @@ serve(async (req) => {
     // Get user profile with model preferences
     const { data: profile } = await supabase
       .from('profiles')
-      .select('speech_model, use_own_api_key')
+      .select('speech_model')
       .eq('user_id', tokenData.user_id)
       .single();
 
-    // Get shared settings for default models
+    // Get shared settings for default models and API key
     const { data: sharedSettings } = await supabase
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['default_speech_model', 'shared_openai_key']);
+      .in('setting_key', ['default_speech_model', 'shared_api_key']);
 
     const settings = Object.fromEntries(
       sharedSettings?.map(s => [s.setting_key, s.setting_value]) || []
     );
 
-    // Determine which API key and model to use
-    let apiKey = '';
-    let speechModel = 'gpt-4o-realtime-preview-2024-12-17'; // Correct OpenAI Realtime model
+    // Use shared API key only
+    const apiKey = settings.shared_api_key || Deno.env.get('OPENAI_API_KEY');
+    const speechModel = settings.default_speech_model || profile?.speech_model || 'gpt-4o-realtime-preview-2024-12-17';
 
-    if (profile?.use_own_api_key) {
-      // User should provide their own key via localStorage (handled in frontend)
-      speechModel = profile.speech_model || 'gpt-4o-realtime-preview-2024-12-17';
-    } else {
-      // Use shared API key
-      apiKey = settings.shared_openai_key;
-      speechModel = settings.default_speech_model || 'gpt-4o-realtime-preview-2024-12-17';
-    }
-
-    if (!apiKey && !profile?.use_own_api_key) {
-      return new Response("No API key configured", { status: 500 });
+    if (!apiKey) {
+      return new Response("No API key configured. Please contact support.", { status: 500 });
     }
 
     // Delete the used connection token for security
@@ -113,16 +113,14 @@ serve(async (req) => {
         const message = JSON.parse(event.data);
         
         if (message.type === 'start_session') {
-          // Use provided API key for own-key users
-          const finalApiKey = message.apiKey || apiKey;
+          // Use shared API key only
+          console.log('Start session - Using shared API key:', !!apiKey);
           
-          console.log('Start session - User API key:', !!message.apiKey, 'Shared API key:', !!apiKey, 'Final API key:', !!finalApiKey);
-          
-          if (!finalApiKey) {
+          if (!apiKey) {
             console.error('No API key available');
             socket.send(JSON.stringify({ 
               type: 'error', 
-              message: 'No API key provided. Please add your OpenAI API key in Settings.' 
+              message: 'Service temporarily unavailable. Please contact support.' 
             }));
             return;
           }
@@ -130,7 +128,7 @@ serve(async (req) => {
           // Connect to OpenAI Realtime API
           openAISocket = new WebSocket(
             `wss://api.openai.com/v1/realtime?model=${speechModel}`,
-            ['realtime', `Bearer.${finalApiKey}`]
+            ['realtime', `Bearer.${apiKey}`]
           );
 
           openAISocket.onopen = () => {
@@ -230,6 +228,7 @@ serve(async (req) => {
     return response;
   } catch (error) {
     console.error('Error in realtime-chat function:', error);
+    const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(`Error: ${error.message}`, { 
       status: 500, 
       headers: corsHeaders 

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
+import { cacheProfile, getCachedProfile, deduplicateRequest } from '@/utils/offlineStorage';
 
 interface UserProfile {
   id: string;
@@ -14,7 +15,15 @@ interface UserProfile {
   daily_carb_goal?: number;
   display_name?: string;
   units?: 'metric' | 'imperial';
-  activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  goal_weight?: number;
+  activity_level?: string;
+  default_walking_speed?: number;
+  enable_fasting_slideshow?: boolean;
+  enable_walking_slideshow?: boolean;
+  enable_food_image_generation?: boolean;
+  enable_daily_reset?: boolean;
+  enable_ceramic_animations?: boolean;
+  sex?: 'male' | 'female';
 }
 
 export const useProfile = () => {
@@ -24,28 +33,82 @@ export const useProfile = () => {
   const { toast } = useToast();
   const { executeWithRetry } = useRetryableSupabase();
 
-  const loadProfile = useCallback(async () => {
-    if (!user) return;
+  const loadProfile = useCallback(async (forceRefresh: boolean = false) => {
+    if (!user) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+    
+    if (!forceRefresh) {
+      // Check cache first - but force refresh if weight/height are missing
+      const cached = getCachedProfile(user.id);
+      if (cached && cached.weight && cached.height && cached.age) {
+        console.log('Using cached profile data:', cached);
+        setProfile(cached);
+        setLoading(false);
+        return;
+      } else {
+        console.log('Cache invalid or incomplete, fetching fresh profile data');
+      }
+    }
     
     setLoading(true);
     try {
-      const result = await executeWithRetry(async () => {
-        return await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-      });
-      
-      const { data, error } = result;
+      let data: any = null;
 
-      if (error) {
-        throw error;
+      if (forceRefresh) {
+        // Bypass request dedup + cache for guaranteed fresh read
+        const result = await executeWithRetry(async () => {
+          return await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+        });
+        const { data: directData, error } = result;
+        if (error) {
+          console.error('Profile load error (force):', error);
+          throw error;
+        }
+        data = directData;
+      } else {
+        // Use request deduplication
+        data = await deduplicateRequest(
+          `profile_${user.id}`,
+          async () => {
+            const result = await executeWithRetry(async () => {
+              return await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            });
+            
+            const { data, error } = result;
+
+            if (error) {
+              console.error('Profile load error:', error);
+              throw error;
+            }
+
+            return data;
+          },
+          30 // 30 minute cache for request deduplication
+        );
       }
 
+      console.log('Profile loaded successfully:', data);
+      
+      // SYNCHRONIZED: Cache the profile data for 1 hour (aligned with useAccess)
+      if (data) {
+        cacheProfile(user.id, data, 1);
+      }
+      
       setProfile(data || null);
     } catch (error) {
       console.error('Error loading profile:', error);
+      setProfile(null);
       toast({
         variant: "destructive",
         title: "Connection Error",
@@ -54,52 +117,106 @@ export const useProfile = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, executeWithRetry, toast]);
+  }, [user?.id, executeWithRetry, toast]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user) return { error: { message: 'User not authenticated' } };
+    if (!user) {
+      console.error('updateProfile: User not authenticated');
+      return { error: { message: 'User not authenticated' } };
+    }
 
+    console.log('updateProfile: Starting update for user:', user.id);
     setLoading(true);
+    
     try {
+      // Verify we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('updateProfile: No valid session found');
+        throw new Error('No valid session. Please log in again.');
+      }
+      
+      console.log('updateProfile: Valid session found, executing update with data:', updates);
+      
       const result = await executeWithRetry(async () => {
-        return await supabase
+        console.log('updateProfile: Making database upsert call with user_id:', user.id);
+        const { data, error } = await supabase
           .from('profiles')
           .upsert({
             user_id: user.id,
             ...updates,
+          }, {
+            onConflict: 'user_id'
           })
           .select()
           .single();
+          
+        console.log('updateProfile: Database response:', { data, error });
+        return { data, error };
       });
       
       const { data, error } = result;
+      console.log('Database response:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
+      if (!data) {
+        console.error('No data returned from database');
+        throw new Error('No data returned from database');
+      }
+
+      // Clear cache and set new profile data
+      console.log('Updating profile state with:', data);
       setProfile(data);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been saved successfully."
-      });
+      
+      // Clear existing cache to ensure fresh data
+      const cacheKey = `profile_${user.id}`;
+      const dedupeKey = `profile_${user.id}`;
+      
+      // Clear both cache systems
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`cache_${cacheKey}`);
+        localStorage.removeItem(`dedupe_${dedupeKey}`);
+      }
+      
+      // SYNCHRONIZED: Update cache with new data immediately (1 hour cache)
+      cacheProfile(user.id, data, 1);
+
       return { data, error: null };
     } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: "Unable to save profile. Please try again."
+        description: `Unable to save profile: ${error.message || 'Please try again.'}`
       });
       return { error, data: null };
     } finally {
       setLoading(false);
     }
-  }, [user, executeWithRetry, toast]);
+  }, [user, executeWithRetry, toast, loadProfile]);
 
-  const isProfileComplete = () => {
-    const complete = !!(profile && profile.weight && profile.height && profile.age);
-    console.log('isProfileComplete check:', { profile, complete, weight: profile?.weight, height: profile?.height, age: profile?.age });
+  const isProfileComplete = useCallback(() => {
+    const complete = !!(profile && 
+      profile.weight && 
+      profile.height && 
+      profile.age && 
+      (profile.activity_level || profile['activity-level'])); // Handle both formats, removed sex requirement
+    
+    console.log('Profile completion check:', { 
+      complete, 
+      weight: profile?.weight,
+      height: profile?.height,
+      age: profile?.age,
+      activity_level: profile?.activity_level,
+      profile: profile
+    });
+    
     return complete;
-  };
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
 
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;
@@ -149,8 +266,13 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+    if (user?.id) {
+      loadProfile();
+    } else {
+      setProfile(null);
+      setLoading(false);
+    }
+  }, [user?.id, loadProfile]);
 
   return {
     profile,

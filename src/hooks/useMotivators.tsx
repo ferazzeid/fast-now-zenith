@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
+import { useLoadingManager } from './useLoadingManager';
+import { useMotivatorCache } from './useMotivatorCache';
 
 export interface Motivator {
   id: string;
@@ -24,13 +26,26 @@ export interface CreateMotivatorData {
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
+  const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
 
-  const loadMotivators = async () => {
-    if (!user) return;
+  const loadMotivators = async (forceRefresh = false) => {
+    if (!user) {
+      stopLoading();
+      return;
+    }
 
+    // Use cached data if available and not forcing refresh
+    if (!forceRefresh && cachedMotivators && !shouldFetchMotivators()) {
+      console.log('Using cached motivators, skipping API call');
+      setMotivators(cachedMotivators);
+      stopLoading();
+      return;
+    }
+
+    startLoading();
     try {
       const { data, error } = await supabase
         .from('motivators')
@@ -41,22 +56,33 @@ export const useMotivators = () => {
 
       if (error) throw error;
       
-      // Transform data to include imageUrl property
+      // Transform data to include imageUrl property with proper fallback
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        imageUrl: item.image_url
+        imageUrl: item.image_url || item.imageUrl || null // Handle both field names and provide fallback
       }));
       
       setMotivators(transformedData);
+      // Cache the fresh data
+      cacheMotivators(transformedData);
+      
+      console.log('Loaded fresh motivators from API:', transformedData.length);
     } catch (error) {
       console.error('Error loading motivators:', error);
-      toast({
-        title: "Error loading motivators",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      
+      // If we have cached data, use it as fallback
+      if (cachedMotivators && cachedMotivators.length > 0) {
+        console.log('Using cached motivators as fallback');
+        setMotivators(cachedMotivators);
+      } else {
+        toast({
+          title: "Error loading motivators",
+          description: "Please check your connection and try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -139,6 +165,89 @@ export const useMotivators = () => {
     }
   };
 
+  const createMultipleMotivators = async (motivators: CreateMotivatorData[]): Promise<string[]> => {
+    if (!user || !motivators.length) return [];
+
+    try {
+      const motivatorData = motivators.map(motivator => ({
+        user_id: user.id,
+        title: motivator.title,
+        content: motivator.content,
+        category: motivator.category || 'general',
+        image_url: motivator.imageUrl,
+        is_active: true
+      }));
+
+      const { data, error } = await supabase
+        .from('motivators')
+        .insert(motivatorData)
+        .select();
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url }));
+        setMotivators(prev => [...transformedData as Motivator[], ...prev]);
+        toast({
+          title: "✨ Motivators Created!",
+          description: `Successfully created ${data.length} motivator${data.length > 1 ? 's' : ''}`,
+        });
+        return data.map(item => item.id);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error creating multiple motivators:', error);
+      toast({
+        title: "Error creating motivators",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      return [];
+    }
+  };
+
+  const saveQuoteAsGoal = async (quote: { text: string; author?: string }): Promise<string | null> => {
+    if (!user) return null;
+
+    try {
+      const title = quote.text.length > 50 ? `${quote.text.substring(0, 47)}...` : quote.text;
+      const content = `"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`;
+
+      const { data, error } = await supabase
+        .from('motivators')
+        .insert({
+          user_id: user.id,
+          title,
+          content,
+          category: 'saved_quote',
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const transformedData = { ...data, imageUrl: data.image_url };
+        setMotivators(prev => [transformedData as Motivator, ...prev]);
+        toast({
+          title: "📝 Quote Saved!",
+          description: "Quote has been saved to your goals.",
+        });
+        return data.id;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error saving quote:', error);
+      toast({
+        title: "Error saving quote",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   const deleteMotivator = async (id: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -169,16 +278,61 @@ export const useMotivators = () => {
     }
   };
 
+  // Load cached motivators immediately on mount, then check for fresh data
   useEffect(() => {
-    loadMotivators();
-  }, [user]);
+    if (user) {
+      // First load cached data if available (instant)
+      if (cachedMotivators) {
+        setMotivators(cachedMotivators);
+        stopLoading();
+      }
+      // Then check if we need fresh data (background)
+      loadMotivators();
+    }
+  }, [user?.id]); // Only depend on user.id to avoid unnecessary re-runs
 
   return {
     motivators,
     loading,
-    createMotivator,
-    updateMotivator,
-    deleteMotivator,
-    refreshMotivators: loadMotivators
+    createMotivator: async (motivatorData: CreateMotivatorData) => {
+      const result = await createMotivator(motivatorData);
+      if (result) {
+        invalidateCache(); // Clear cache when new motivator is created
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    createMultipleMotivators: async (motivators: CreateMotivatorData[]) => {
+      const result = await createMultipleMotivators(motivators);
+      if (result.length > 0) {
+        invalidateCache(); // Clear cache when new motivators are created
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    updateMotivator: async (id: string, updates: Partial<CreateMotivatorData>) => {
+      const result = await updateMotivator(id, updates);
+      if (result) {
+        invalidateCache(); // Clear cache when motivator is updated
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    deleteMotivator: async (id: string) => {
+      const result = await deleteMotivator(id);
+      if (result) {
+        invalidateCache(); // Clear cache when motivator is deleted
+      }
+      return result;
+    },
+    saveQuoteAsGoal: async (quote: { text: string; author?: string }) => {
+      const result = await saveQuoteAsGoal(quote);
+      if (result) {
+        invalidateCache(); // Clear cache when new quote is saved
+        await loadMotivators(true); // Force refresh
+      }
+      return result;
+    },
+    refreshMotivators: () => loadMotivators(true) // Always force refresh when manually called
   };
 };

@@ -1,0 +1,261 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom recording animation for smooth pulsing */
+@keyframes smooth-pulse {
+  0% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.05); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+.recording-pulse {
+  animation: smooth-pulse 2s ease-in-out infinite;
+}
+
+/* Hide input number arrows in dark mode */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Ceramic-inspired color palette */
+    --background: 35 20% 96%;
+    --foreground: 20 15% 25%;
+
+    --card: 35 25% 98%;
+    --card-foreground: 20 15% 25%;
+
+    --popover: 35 25% 98%;
+    --popover-foreground: 20 15% 25%;
+
+    --primary: 140 35% 45%;
+    --primary-foreground: 35 25% 98%;
+
+    --secondary: 35 15% 90%;
+    --secondary-foreground: 20 15% 25%;
+
+    --muted: 35 10% 88%;
+    --muted-foreground: 20 10% 55%;
+
+    --accent: 140 25% 85%;
+    --accent-foreground: 20 15% 25%;
+
+    --ai: 48 96% 53%;
+    --ai-foreground: 20 15% 25%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 35 25% 98%;
+
+    --warning: 45 85% 55%;
+    --warning-foreground: 35 25% 98%;
+
+    --info: 215 85% 65%;
+    --info-foreground: 35 25% 98%;
+
+    --border: 35 12% 85%;
+    --input: 35 12% 92%;
+    --ring: 140 35% 45%;
+
+    /* Ceramic plate colors - Light Mode */
+    --ceramic-light: 32 20% 95%;
+    --ceramic-base: 32 15% 92%;
+    --ceramic-warm: 32 18% 88%;
+    --ceramic-shadow: 32 12% 85%;
+    --ceramic-deep: 32 8% 80%;
+    --ceramic-plate: 32 18% 94%;
+    --ceramic-rim: 32 10% 82%;
+
+    /* 3D Effects - Light Mode */
+    --shadow-plate: 0 8px 32px -8px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(32 12% 85% / 0.2);
+    --shadow-rim: inset 0 1px 4px hsl(0 0% 100% / 0.8), inset 0 -1px 2px hsl(32 8% 80% / 0.3);
+    --shadow-well: inset 0 2px 8px hsl(32 8% 80% / 0.4), inset 0 4px 12px hsl(0 0% 0% / 0.1);
+
+    /* Gradients - Light Mode */
+    --gradient-ceramic: radial-gradient(ellipse at 30% 30%, hsl(var(--ceramic-light)), hsl(var(--ceramic-base)) 70%);
+    --gradient-rim: linear-gradient(135deg, hsl(var(--ceramic-light)), hsl(var(--ceramic-warm)) 50%, hsl(var(--ceramic-shadow)));
+    --gradient-well: radial-gradient(circle, hsl(var(--ceramic-base)), hsl(var(--ceramic-shadow)) 80%);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Frame background colors */
+    --frame-background: 32 8% 75%;
+    --warm-text: 20 15% 25%;
+  }
+
+  .dark {
+    /* Base dark theme colors */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 88%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 88%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 88%;
+
+    --primary: 140 35% 55%;
+    --primary-foreground: 0 0% 8%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 88%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 88%;
+
+    --ai: 48 96% 53%;
+    --ai-foreground: 0 0% 8%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 88%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 140 35% 55%;
+
+    /* Dark ceramic colors */
+    --ceramic-light: 0 0% 20%;
+    --ceramic-base: 0 0% 15%;
+    --ceramic-warm: 0 0% 18%;
+    --ceramic-shadow: 0 0% 8%;
+    --ceramic-deep: 0 0% 5%;
+    --ceramic-plate: 0 0% 12%;
+    --ceramic-rim: 0 0% 25%;
+
+    /* Dark 3D Effects */
+    --shadow-plate: 0 25px 50px -12px hsl(0 0% 0% / 0.8), 0 0 0 1px hsl(0 0% 25% / 0.1), inset 0 1px 0 hsl(0 0% 25% / 0.1);
+    --shadow-rim: inset 0 2px 8px hsl(0 0% 0% / 0.3), inset 0 -2px 4px hsl(0 0% 25% / 0.1), 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-well: inset 0 4px 12px hsl(0 0% 0% / 0.6), inset 0 -1px 2px hsl(0 0% 20% / 0.1), 0 1px 2px hsl(0 0% 25% / 0.1);
+
+    /* Dark gradients */
+    --gradient-ceramic: radial-gradient(ellipse at 30% 20%, hsl(var(--ceramic-light)), hsl(var(--ceramic-base)) 30%, hsl(var(--ceramic-shadow)) 70%, hsl(var(--ceramic-deep)));
+    --gradient-rim: linear-gradient(135deg, hsl(var(--ceramic-light)), hsl(var(--ceramic-warm)) 50%, hsl(var(--ceramic-shadow)));
+    --gradient-well: radial-gradient(circle at 60% 70%, hsl(var(--ceramic-shadow)), hsl(var(--ceramic-base)) 40%, hsl(var(--ceramic-warm)) 80%, hsl(var(--ceramic-light)));
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Frame background colors for dark mode */
+    --frame-background: 0 0% 6%;
+    --warm-text: 0 0% 85%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: max(2rem, env(safe-area-inset-top));
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(6rem, env(safe-area-inset-bottom) + 4rem);
+  }
+}
+
+/* Circular text rotation animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Horizontal marquee animation for walking timer */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Centered zoom-in animation for walking timer */
+@keyframes zoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+@keyframes fastFadeMarquee {
+  0% {
+    opacity: 0;
+    transform: translateX(50%);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+

@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, Target, Activity, Apple } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useFoodEntries } from '@/hooks/useFoodEntries';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { WalkingStats } from '@/components/WalkingStats';
+
 import { DailyStatsPanel } from '@/components/DailyStatsPanel';
 
 interface UserProfile {
@@ -21,7 +21,7 @@ export const TodaysDashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [todayWalkingStats, setTodayWalkingStats] = useState({ minutes: 0, calories: 0 });
   const { user } = useAuth();
-  const { todayTotals } = useFoodEntries();
+  const { todayTotals } = useFoodEntriesQuery();
   const { currentSession } = useWalkingSession();
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const TodaysDashboard = () => {
       <DailyStatsPanel />
       
       <div className="text-center">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
           Today's Overview
         </h2>
         <p className="text-muted-foreground">Your daily progress at a glance</p>
@@ -162,7 +162,7 @@ export const TodaysDashboard = () => {
 
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-blue-500" />
+                              <TrendingUp className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">Net Calories</span>
           </div>
           <div className="space-y-1">
@@ -210,7 +210,7 @@ export const TodaysDashboard = () => {
       </Card>
 
       {/* Walking Statistics Section */}
-      <WalkingStats />
+      
     </div>
   );
 };

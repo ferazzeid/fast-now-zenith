@@ -4,17 +4,38 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { uploadImageHybrid } from '@/utils/imageUtils';
-import { useSubscription } from '@/hooks/useSubscription';
+import { uploadImageToCloud } from '@/utils/imageUtils';
+import { useAccess } from '@/hooks/useAccess';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PremiumGate } from '@/components/PremiumGate';
+
 
 interface ImageUploadProps {
   currentImageUrl?: string;
   onImageUpload: (url: string) => void;
-  onImageRemove: () => void;
+  onImageRemove?: () => void;
+  showUploadOptionsWhenImageExists?: boolean;
+  regenerateButton?: React.ReactNode;
+  // New props for AI generation
+  aiGenerationPrompt?: string;
+  motivatorId?: string;
+  onAiGenerate?: () => void;
+  isGenerating?: boolean;
+  bucket?: string; // Storage bucket to upload to
 }
 
-export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: ImageUploadProps) => {
+export const ImageUpload = ({ 
+  currentImageUrl, 
+  onImageUpload, 
+  onImageRemove, 
+  showUploadOptionsWhenImageExists = false, 
+  regenerateButton,
+  aiGenerationPrompt,
+  motivatorId,
+  onAiGenerate,
+  isGenerating = false,
+  bucket = 'motivator-images' // Default to motivator-images for backward compatibility
+}: ImageUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
@@ -22,7 +43,7 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasCloudStorage } = useSubscription();
+  const { hasPremiumFeatures } = useAccess();
   const isMobile = useIsMobile();
 
   const handleDragOver = (e: DragEvent) => {
@@ -99,19 +120,24 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
 
-      // Use hybrid upload system
-      const result = await uploadImageHybrid(file, user.id, hasCloudStorage, supabase);
+      // Premium users only - cloud storage
+      if (!hasPremiumFeatures) {
+        toast({
+          title: "Premium Required",
+          description: "Image uploads are only available for premium users",
+          variant: "destructive",
+        });
+        setPreviewUrl(currentImageUrl || null);
+        return;
+      }
+
+      const result = await uploadImageToCloud(file, user.id, supabase, bucket, currentImageUrl);
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');
       }
 
       onImageUpload(result.url);
-      
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      });
 
     } catch (error) {
       console.error('Upload error:', error);
@@ -126,31 +152,83 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
     }
   };
 
+
   const handleRemoveImage = () => {
     setPreviewUrl(null);
-    onImageRemove();
+    onImageRemove?.();
   };
 
   return (
     <div className="space-y-4">
       {previewUrl ? (
-        <div className="relative">
-          <div className="aspect-video bg-ceramic-rim rounded-lg overflow-hidden">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="aspect-video max-h-[70vh] bg-ceramic-rim rounded-lg overflow-hidden flex items-center justify-center">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleRemoveImage}
+              className="absolute top-2 right-2 h-8 w-8 p-0"
+              disabled={isUploading}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            
+            {/* Custom regenerate button */}
+            {regenerateButton && (
+              <div className="absolute top-2 right-12">
+                {regenerateButton}
+              </div>
+            )}
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleRemoveImage}
-            className="absolute top-2 right-2"
-            disabled={isUploading}
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          
+          {showUploadOptionsWhenImageExists && (
+            <div className="space-y-3">
+              {/* Mobile: Separate buttons */}
+              {isMobile && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleFileSelect}
+                    disabled={isUploading}
+                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                  >
+                    <Image className="w-4 h-4" />
+                    <span className="text-xs">Upload photo</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleCameraCapture}
+                    disabled={isUploading}
+                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span className="text-xs">Use camera</span>
+                  </Button>
+                </div>
+              )}
+
+              {/* Desktop: Single upload button */}
+              {!isMobile && (
+                <Button
+                  variant="outline"
+                  onClick={handleFileSelect}
+                  disabled={isUploading}
+                  className="w-full bg-ceramic-base border-ceramic-rim"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload New Image
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -176,7 +254,7 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
                 <div className="flex flex-col items-center space-y-2">
                   <Upload className="w-8 h-8 text-muted-foreground" />
                   <p className="text-sm font-medium text-warm-text">
-                    Upload Photo
+                    Upload photo
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Drag & drop or click to browse
@@ -194,22 +272,23 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
                 onClick={handleFileSelect}
                 disabled={isUploading}
                 className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-              >
-                <Image className="w-6 h-6" />
-                <span className="text-sm">Choose from Gallery</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleCameraCapture}
-                disabled={isUploading}
-                className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-              >
-                <Camera className="w-6 h-6" />
-                <span className="text-sm">Take Photo</span>
-              </Button>
+                >
+                  <Image className="w-6 h-6" />
+                  <span className="text-sm">Upload photo</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleCameraCapture}
+                  disabled={isUploading}
+                  className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+                >
+                  <Camera className="w-6 h-6" />
+                  <span className="text-sm">Use camera</span>
+                </Button>
             </div>
           )}
+
 
           {/* Desktop: Additional button if no drag & drop used */}
           {!isMobile && (
@@ -220,7 +299,7 @@ export const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: I
               className="w-full bg-ceramic-base border-ceramic-rim"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Choose File
+              Upload photo
             </Button>
           )}
         </div>

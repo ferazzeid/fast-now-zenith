@@ -87,22 +87,19 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
       <div className="bg-ceramic-plate rounded-3xl w-full max-w-md max-h-[85vh] border border-ceramic-rim shadow-2xl mt-4 flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-ceramic-rim">
-          <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-bold text-warm-text">My Motivators</h3>
-            </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-warm-text">My Motivators</h3>
             <p className="text-sm text-muted-foreground">
-              Your personal collection of inspiration
+              Your personal motivators
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="hover:bg-ceramic-rim"
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
           >
-            <X className="w-5 h-5" />
+            <X className="w-8 h-8" />
           </Button>
         </div>
 
@@ -178,13 +175,14 @@ export const MotivatorsModal = ({ onClose }: MotivatorsModalProps) => {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleEditMotivator(motivator)}
+                              className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="ghost">
-                                  <Trash2 className="w-4 h-4" />
+                                <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive">
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>

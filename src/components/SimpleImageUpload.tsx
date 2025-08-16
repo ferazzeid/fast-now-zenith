@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { uploadImageHybrid } from '@/utils/imageUtils';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { uploadImageToCloud } from '@/utils/imageUtils';
+import { useAccess } from '@/hooks/useAccess';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SimpleImageUploadProps {
@@ -18,7 +19,8 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasCloudStorage } = useSubscription();
+  const { hasPremiumFeatures } = useAccess();
+  const { withSessionGuard } = useSessionGuard();
   const isMobile = useIsMobile();
 
   const handleFileSelect = () => {
@@ -37,15 +39,6 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Please sign in to upload images",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -66,33 +59,46 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
       return;
     }
 
-    setIsUploading(true);
+    // Use session guard to protect the upload operation
+    await withSessionGuard(async () => {
+      setIsUploading(true);
 
-    try {
-      // Use hybrid upload system
-      const result = await uploadImageHybrid(file, user.id, hasCloudStorage, supabase);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Upload failed');
+      try {
+        // Premium users only - cloud storage
+        if (!hasPremiumFeatures) {
+          toast({
+            title: "Premium Required",
+            description: "Image uploads are only available for premium users",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const result = await uploadImageToCloud(file, user!.id, supabase);
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Upload failed');
+        }
+
+        onImageUpload(result.url);
+        
+        toast({
+          title: "Success",
+          description: "Image uploaded successfully",
+        });
+
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to upload image",
+          variant: "destructive",
+        });
+        throw error; // Re-throw to let session guard handle it
+      } finally {
+        setIsUploading(false);
       }
-
-      onImageUpload(result.url);
-      
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      });
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload image",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+    }, 'Image Upload');
   };
 
   return (
@@ -107,7 +113,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
             className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
           >
             <Camera className="w-6 h-6" />
-            <span className="text-sm">Take Photo</span>
+            <span className="text-sm">Use camera</span>
           </Button>
           
           <Button
@@ -117,7 +123,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
             className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
           >
             <Image className="w-6 h-6" />
-            <span className="text-sm">Choose Photo</span>
+            <span className="text-sm">Upload photo</span>
           </Button>
         </div>
       ) : (
@@ -136,7 +142,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
           ) : (
             <>
               <Upload className="w-6 h-6" />
-              <span className="text-sm">Choose or Drop Image</span>
+              <span className="text-sm">Upload photo</span>
             </>
           )}
         </Button>

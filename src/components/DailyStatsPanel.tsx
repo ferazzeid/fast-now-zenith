@@ -1,39 +1,53 @@
-import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, TrendingDown, TrendingUp, Activity, Utensils, Clock, Target, Info, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
+import { ChevronDown, Activity, Utensils, Target } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useDailyDeficit } from '@/hooks/useDailyDeficit';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
+import { useLocation } from 'react-router-dom';
 import { ManualCalorieModal } from '@/components/ManualCalorieModal';
+import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
+import { GoalMetrics } from '@/components/GoalMetrics';
+import { useAppLogo } from '@/hooks/useAppLogo';
+import { PremiumGatedDeficitDisplay } from '@/components/PremiumGatedDeficitDisplay';
+import { PremiumGatedCaloriesIn } from '@/components/PremiumGatedCaloriesIn';
+import { PremiumGatedGoalMetrics } from '@/components/PremiumGatedGoalMetrics';
+import { PremiumGatedDeficitDisplayLarge } from '@/components/PremiumGatedDeficitDisplayLarge';
 
-export const DailyStatsPanel = () => {
+import { InlineActivitySelector } from '@/components/InlineActivitySelector';
+import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
+import { useGoalCalculations } from '@/hooks/useGoalCalculations';
+import { useProfile } from '@/hooks/useProfile';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
+import { Info } from 'lucide-react';
+
+export const DailyStatsPanel = memo(() => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { deficitData, loading, refreshDeficit } = useDailyDeficit();
+  const { deficitData, loading, refreshDeficit } = useDailyDeficitQuery();
+  const { fatInGrams, thirtyDayProjection } = useGoalCalculations();
+  const { profile } = useProfile();
+  const { todayEntries, todayTotals } = useFoodEntriesQuery();
+  const { appLogo } = useAppLogo();
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
-  const navigate = useNavigate();
+  
 
   // Hide panel on admin and auth pages to prevent menu overlap  
   // IMPORTANT: This check must come AFTER all hooks to avoid React hooks violation
   const shouldHidePanel = location.pathname === '/admin' || location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
 
   const formatNumber = (num: number) => {
-    return Math.abs(num).toLocaleString();
+    return Math.round(Math.abs(num)).toLocaleString();
   };
 
-  const getDeficitColor = (deficit: number) => {
+  const getDeficitColor = useMemo(() => (deficit: number) => {
     if (deficit > 0) return 'text-green-600 dark:text-green-400';
     if (deficit < 0) return 'text-red-600 dark:text-red-400';
     return 'text-muted-foreground';
-  };
+  }, []);
 
-  const getDeficitIcon = (deficit: number) => {
-    return deficit > 0 ? TrendingDown : TrendingUp;
-  };
-
-  const getActivityLevelDisplay = (level: string) => {
+  const getActivityLevelDisplay = useMemo(() => (level: string) => {
     const activityMap: { [key: string]: string } = {
       'sedentary': 'Low Activity',
       'lightly_active': 'Light Activity',
@@ -42,7 +56,7 @@ export const DailyStatsPanel = () => {
       'extremely_active': 'Very High Activity'
     };
     return activityMap[level] || level;
-  };
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientY);
@@ -71,12 +85,14 @@ export const DailyStatsPanel = () => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       
-      // Don't close if clicking inside the panel content or modal dialog
+      // Don't close if clicking inside the panel content, modal dialog, or select dropdown
       if (panelRef.current && !panelRef.current.contains(target)) {
-        // Also check if click is on modal/dialog content
+        // Also check if click is on modal/dialog content or select dropdown
         const isModalClick = target.closest('[role="dialog"]') || 
                             target.closest('.dialog-content') ||
-                            target.closest('[data-radix-portal]');
+                            target.closest('[data-radix-portal]') ||
+                            target.closest('[data-radix-popper-content-wrapper]') ||
+                            target.closest('[role="listbox"]');
         
         if (!isModalClick) {
           setIsExpanded(false);
@@ -105,11 +121,11 @@ export const DailyStatsPanel = () => {
     }
   }, [isExpanded]);
 
-  // Debug logging to understand why deficit panel isn't showing
-  console.log('DailyStatsPanel - shouldHidePanel:', shouldHidePanel);
-  console.log('DailyStatsPanel - deficitData:', deficitData);
-  console.log('DailyStatsPanel - loading:', loading);
-  console.log('DailyStatsPanel - caloriesConsumed:', deficitData.caloriesConsumed);
+  // Remove debug logging to fix re-render loop
+  // console.log('DailyStatsPanel - shouldHidePanel:', shouldHidePanel);
+  // console.log('DailyStatsPanel - deficitData:', deficitData);
+  // console.log('DailyStatsPanel - loading:', loading);
+  // console.log('DailyStatsPanel - caloriesConsumed:', deficitData.caloriesConsumed);
   
   // Don't render anything on admin pages, but show when we have profile data (even if no calories consumed yet)
   if (shouldHidePanel) {
@@ -126,40 +142,32 @@ export const DailyStatsPanel = () => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between bg-ceramic-plate/95 backdrop-blur-sm border-b border-ceramic-rim hover:bg-ceramic-plate/98 transition-colors">
+          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-muted-foreground' : ''}`}>
             <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-warm-text">
+              {appLogo ? (
+                <img 
+                  src={appLogo} 
+                  alt="App Logo" 
+                  className="w-5 h-5 object-contain"
+                />
+              ) : (
+                <Target className="w-5 h-5 text-primary" />
+              )}
+                <span className="text-sm font-medium text-warm-text">
                 Today's Deficit:
               </span>
-              <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal deficit`}
-              </span>
+              <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
+                <Info className="w-3 h-3 text-muted-foreground" />
+              </ClickableTooltip>
+              <PremiumGatedDeficitDisplay 
+                value={deficitData.todayDeficit}
+                formatNumber={formatNumber}
+                getDeficitColor={getDeficitColor}
+                loading={loading}
+                tdee={deficitData.tdee}
+              />
             </div>
             <div className="flex items-center space-x-2">
-              <button 
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  setIsRefreshing(true);
-                  console.log('Refresh button clicked, starting refresh...');
-                  try {
-                    await refreshDeficit();
-                    console.log('Refresh completed successfully');
-                  } catch (error) {
-                    console.error('Refresh failed:', error);
-                  } finally {
-                    setTimeout(() => {
-                      setIsRefreshing(false);
-                      console.log('Refresh button reset');
-                    }, 1000); // Add minimum 1 second loading time for visual feedback
-                  }
-                }}
-                className="p-1 hover:bg-accent rounded-full transition-colors"
-                title="Refresh data"
-                disabled={isRefreshing}
-              >
-                <RotateCcw className={`w-4 h-4 text-muted-foreground hover:text-primary transition-transform ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
               <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
@@ -174,159 +182,90 @@ export const DailyStatsPanel = () => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-ceramic-plate border-b border-ceramic-rim max-w-md mx-auto z-50">
-              <div className="px-4 py-4 space-y-4">
+            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-muted-foreground">
+              <div className="px-8 py-4 space-y-4">
                 {/* Main Deficit Display */}
-                <Card className="p-4 bg-ceramic-base border-ceramic-rim">
-                  <div className="text-center space-y-2">
-                    <div className="flex items-center justify-center space-x-2">
-                      {(() => {
-                        const DeficitIcon = getDeficitIcon(deficitData.todayDeficit);
-                        return <DeficitIcon className={`w-6 h-6 ${getDeficitColor(deficitData.todayDeficit)}`} />;
-                      })()}
-                      <h3 className="text-lg font-semibold text-warm-text">Today's Deficit</h3>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-6 h-6 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Your calorie deficit for today. A positive number means you're burning more than you consume (weight loss).</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className={`text-3xl font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
-                      {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0 ? '...' : `${formatNumber(deficitData.todayDeficit)} cal`}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {deficitData.todayDeficit > 0 ? 'Calorie deficit (weight loss)' : 'Calorie surplus (weight gain)'}
-                    </p>
-                  </div>
-                </Card>
+                <PremiumGatedDeficitDisplayLarge 
+                  deficit={deficitData.todayDeficit}
+                  loading={loading}
+                  tdee={deficitData.tdee}
+                  fatInGrams={fatInGrams}
+                  thirtyDayProjection={thirtyDayProjection}
+                  userUnits={profile?.units}
+                />
 
                 {/* Breakdown */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Calories In */}
-                  <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Utensils className="w-4 h-4 text-primary" />
-                      <span className="text-xs font-medium text-warm-text">Calories In</span>
-                       <Tooltip>
-                         <TooltipTrigger>
-                           <button className="p-2 hover:bg-accent rounded-md">
-                             <Info className="w-4 h-4 text-muted-foreground" />
-                           </button>
-                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Total calories consumed from food today</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="text-lg font-bold text-primary">
-                      {formatNumber(deficitData.caloriesConsumed)} cal
-                    </div>
-                  </Card>
+                <div className="grid grid-cols-2 gap-1 px-0.5">
+                  {/* Calories In with Carbs */}
+                  <PremiumGatedCaloriesIn 
+                    calories={deficitData.caloriesConsumed}
+                    carbs={todayTotals.carbs}
+                  />
 
                   {/* Calories Out */}
-                  <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Activity className="w-4 h-4 text-primary" />
-                      <span className="text-xs font-medium text-warm-text">Calories Out</span>
-                       <Tooltip>
-                         <TooltipTrigger>
-                           <button className="p-2 hover:bg-accent rounded-md">
-                             <Info className="w-4 h-4 text-muted-foreground" />
-                           </button>
-                         </TooltipTrigger>
-                         <TooltipContent>
-                           <p>Total calories burned today: Base Daily Burn + Walking + Manual Activities</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                     <div className="text-lg font-bold text-primary">
-                       {formatNumber(deficitData.tdee + deficitData.walkingCalories + deficitData.manualCalories)} cal
-                     </div>
-                  </Card>
+                  <StatDisplay
+                    icon={<Activity className="w-4 h-4 text-primary" />}
+                    label="Calories Out"
+                    value={deficitData.totalCaloriesBurned}
+                    tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.totalCaloriesBurned)}`}
+                  />
+                </div>
 
-                  {/* Base Daily Burn (TDEE) */}
-                  <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Target className="w-3 h-3 text-primary" />
-                      <span className="text-xs text-warm-text">Base Daily Burn</span>
-                       <Tooltip>
-                         <TooltipTrigger>
-                           <button className="p-2 hover:bg-accent rounded-md">
-                             <Info className="w-4 h-4 text-muted-foreground" />
-                           </button>
-                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Calories your body burns naturally based on your metabolism and activity level</p>
-                        </TooltipContent>
-                      </Tooltip>
+
+                {/* Unified Metabolism & Walking Card */}
+                <Card className="p-3 bg-card border-border">
+                  {/* Base Daily Burn Section */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
+                      <ClickableTooltip content={`Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`}>
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
                     </div>
-                    <div className="text-lg font-bold text-primary">
+                    <div className="text-sm font-bold text-warm-text">
                       {formatNumber(deficitData.tdee)} cal
                     </div>
-                     <div className="text-xs text-muted-foreground mt-1">
-                       {getActivityLevelDisplay(deficitData.activityLevel)}
-                     </div>
-                  </Card>
+                  </div>
+                  
+                  {/* Activity Level Selector */}
+                  <div className="mb-3">
+                    <InlineActivitySelector currentDisplayLevel={deficitData.activityLevel} />
+                  </div>
 
-                  {/* Walking */}
-                  <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Activity className="w-3 h-3 text-primary" />
-                      <span className="text-xs text-warm-text">Walking Burn</span>
-                       <Tooltip>
-                         <TooltipTrigger>
-                           <button className="p-2 hover:bg-accent rounded-md">
-                             <Info className="w-4 h-4 text-muted-foreground" />
-                           </button>
-                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Total calories burned from walking today (includes active sessions)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="text-lg font-bold text-primary">
-                      {formatNumber(deficitData.walkingCalories)} cal
-                    </div>
-                    <div className="flex items-center justify-between mt-1">
-                       <div className="text-xs text-muted-foreground">
-                        All walking sessions today
-                      </div>
-                    </div>
-                  </Card>
-                </div>
+                  {/* Divider */}
+                  <div className="border-t border-border my-3"></div>
 
-                 {/* Manual Activities (if applicable) */}
-                 {deficitData.manualCalories > 0 && (
-                   <Card className="p-3 bg-ceramic-base border-ceramic-rim">
-                     <div className="flex items-center justify-between">
-                       <div className="flex items-center space-x-2">
-                         <Activity className="w-4 h-4 text-green-500" />
-                         <span className="text-sm font-medium text-warm-text">Manual Activities</span>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <button className="p-2 hover:bg-accent rounded-md">
-                                <Info className="w-4 h-4 text-muted-foreground" />
-                              </button>
-                            </TooltipTrigger>
-                           <TooltipContent>
-                             <p>Calories burned from manually logged activities today</p>
-                           </TooltipContent>
-                         </Tooltip>
-                       </div>
-                       <div className="text-sm font-bold text-green-600 dark:text-green-400">
-                         {formatNumber(deficitData.manualCalories)} cal
-                       </div>
-                     </div>
-                   </Card>
-                 )}
+                  {/* Activity Section with Sessions Breakdown */}
+                  <WalkingSessionsBreakdown 
+                    totalCalories={deficitData.walkingCalories + deficitData.manualCalories}
+                    walkingCalories={deficitData.walkingCalories}
+                    manualCalories={deficitData.manualCalories}
+                    onRefresh={refreshDeficit}
+                  />
+                </Card>
 
-                {/* Manual Calorie Burn Addition */}
-                <div className="mt-4">
-                  <ManualCalorieModal onCalorieAdded={refreshDeficit} />
-                </div>
+
+                  {/* Goal Metrics */}
+                  <PremiumGatedGoalMetrics />
+
+
+
+                  {/* Manual Calorie Burn Addition */}
+                 <div className="mt-4">
+                   <ManualCalorieModal onCalorieAdded={refreshDeficit} />
+                 </div>
+
+                 {/* Bottom Close Button */}
+                 <div className="flex justify-center pt-4">
+                   <button
+                     onClick={() => setIsExpanded(false)}
+                     className="flex items-center justify-center p-2 rounded-full bg-card hover:bg-card/80 transition-colors"
+                     aria-label="Close expanded view"
+                   >
+                     <ChevronDown className="w-5 h-5 text-muted-foreground rotate-180" />
+                   </button>
+                 </div>
               </div>
             </div>
           </>
@@ -334,4 +273,6 @@ export const DailyStatsPanel = () => {
       </div>
     </TooltipProvider>
   );
-};
+});
+
+DailyStatsPanel.displayName = 'DailyStatsPanel';

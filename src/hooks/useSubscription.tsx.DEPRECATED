@@ -1,0 +1,37 @@
+/**
+ * DEPRECATED: This hook has been replaced by useAccess.tsx
+ * 
+ * This file is kept for reference but should not be used in new code.
+ * All components have been migrated to use useAccess instead.
+ * 
+ * Migration complete on: 2024-12-XX
+ */
+
+import { useAccess } from './useAccess';
+
+export const useSubscription = () => {
+  console.warn('🚨 useSubscription is DEPRECATED. Use useAccess instead.');
+  
+  // Redirect to useAccess for compatibility
+  const access = useAccess();
+  
+  return {
+    subscriptionData: {
+      subscribed: access.hasPremiumFeatures,
+      subscription_status: access.access_level,
+      subscription_tier: access.isAdmin ? 'admin' : access.hasPremiumFeatures ? 'paid' : 'free',
+      requests_used: 0,
+      request_limit: 100,
+      isPaidUser: access.hasPremiumFeatures,
+      hasPremiumFeatures: access.hasPremiumFeatures,
+      inTrial: access.isTrial,
+      trialEndsAt: access.daysRemaining ? new Date(Date.now() + access.daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null
+    },
+    loading: access.loading,
+    checkSubscription: access.refetch,
+    createSubscription: access.createSubscription,
+    openCustomerPortal: access.openCustomerPortal,
+    trackUsageEvent: () => console.warn('trackUsageEvent deprecated'),
+    getUsageWarning: () => 'Please upgrade to premium'
+  };
+};

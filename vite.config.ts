@@ -21,10 +21,16 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: 'esnext',
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-toast']
+        },
       },
     },
+    sourcemap: false,
   },
 }));

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Sparkles, Camera, Save } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Camera, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/hooks/use-toast';
-import { generate_image } from '@/utils/imageGeneration';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MotivatorTemplate {
   id: string;
@@ -41,43 +41,11 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
     content: '',
     imageUrl: ''
   });
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const { toast } = useToast();
 
   const currentTemplate = templates[currentTemplateIndex];
   const isLastTemplate = currentTemplateIndex === templates.length - 1;
 
-  const handleGenerateImage = async () => {
-    if (!currentMotivator.title && !currentMotivator.content) {
-      toast({
-        title: "Add some content first",
-        description: "Please add a title or description before generating an image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGeneratingImage(true);
-    try {
-      const prompt = `${currentTemplate.imagePrompt}: ${currentMotivator.title} - ${currentMotivator.content}. Make it inspiring and motivational for fasting goals. Ultra high resolution.`;
-      
-      const imageUrl = await generate_image(prompt, `motivator-${Date.now()}.jpg`);
-      setCurrentMotivator(prev => ({ ...prev, imageUrl }));
-      
-      toast({
-        title: "✨ Image Generated!",
-        description: "Your AI-generated motivator image is ready.",
-      });
-    } catch (error) {
-      toast({
-        title: "Image generation failed",
-        description: "Please try again or add your own image.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
 
   const handleNext = () => {
     if (!currentMotivator.title.trim()) {
@@ -207,31 +175,6 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
                   onImageUpload={(url) => setCurrentMotivator(prev => ({ ...prev, imageUrl: url }))}
                   onImageRemove={() => setCurrentMotivator(prev => ({ ...prev, imageUrl: '' }))}
                 />
-                
-                <div className="flex items-center gap-2">
-                  <div className="h-px bg-ceramic-rim flex-1" />
-                  <span className="text-xs text-muted-foreground">or</span>
-                  <div className="h-px bg-ceramic-rim flex-1" />
-                </div>
-                
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="w-full"
-                >
-                  {isGeneratingImage ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Generating AI Image...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Image
-                    </>
-                  )}
-                </Button>
               </div>
               
               <p className="text-xs text-muted-foreground">

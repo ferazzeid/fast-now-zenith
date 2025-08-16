@@ -1,47 +1,66 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { UniversalModal } from "@/components/ui/universal-modal";
+import { Button } from "@/components/ui/button";
 
 interface StopFastConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   currentDuration?: string;
+  actionType?: 'finish' | 'cancel';
 }
 
 export const StopFastConfirmDialog = ({ 
   open, 
   onOpenChange, 
   onConfirm,
-  currentDuration 
+  currentDuration,
+  actionType = 'finish'
 }: StopFastConfirmDialogProps) => {
+  const handleClose = () => onOpenChange(false);
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Stop Fast?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to stop your fast? You've been fasting for {currentDuration || '0:00:00'}.
-            This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Continue Fasting</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+    <UniversalModal
+      isOpen={open}
+      onClose={handleClose}
+      title={actionType === 'cancel' ? 'Cancel Fast?' : 'Finish Fast?'}
+      size="sm"
+      showCloseButton={false}
+      footer={
+        <>
+          <Button 
+            variant="outline" 
+            size="action-main"
+            onClick={handleClose}
+            className="text-sm w-full"
           >
-            Stop Fast
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            Close
+          </Button>
+          <Button 
+            variant="action-primary"
+            size="action-main"
+            onClick={onConfirm}
+            className="text-sm w-full"
+          >
+            {actionType === 'cancel' ? 'Cancel Fast' : 'Finish Fast'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {actionType === 'cancel' 
+            ? <>Are you sure you want to cancel your fast? You've been fasting for <span className="font-medium text-foreground">{currentDuration || '0:00:00'}</span>.</>
+            : <>Are you sure you want to finish your fast? You've been fasting for <span className="font-medium text-foreground">{currentDuration || '0:00:00'}</span>.</>
+          }
+        </p>
+        
+        <div className="text-xs text-muted-foreground font-medium bg-muted/30 rounded-lg p-3 border border-border">
+          {actionType === 'cancel' 
+            ? 'This will remove your fast from history completely.'
+            : 'This will save your fast progress to history.'
+          }
+        </div>
+      </div>
+    </UniversalModal>
   );
 };

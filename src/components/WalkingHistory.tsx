@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, ChevronDown, ChevronUp, TrendingUp, Edit3 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useCacheManager } from '@/hooks/useCacheManager';
+import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
 
 interface WalkingSession {
@@ -17,7 +19,12 @@ interface WalkingSession {
   calories_burned?: number;
   distance?: number;
   speed_mph?: number;
+  estimated_steps?: number;
   status: string;
+  is_edited?: boolean;
+  original_duration_minutes?: number;
+  edit_reason?: string;
+  duration_minutes?: number;
 }
 
 export const WalkingHistory = () => {
@@ -26,15 +33,18 @@ export const WalkingHistory = () => {
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [editingSession, setEditingSession] = useState<WalkingSession | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
+  const { clearWalkingCache } = useCacheManager();
 
   useEffect(() => {
     const fetchWalkingSessions = async () => {
       if (!user) return;
       
       console.log('Fetching walking sessions, refreshTrigger:', refreshTrigger);
+      setLoading(true);
 
       try {
         const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
@@ -42,7 +52,7 @@ export const WalkingHistory = () => {
         // First, get the sessions to display
         const { data, error } = await supabase
           .from('walking_sessions')
-          .select('id, start_time, end_time, calories_burned, distance, speed_mph, status')
+          .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .is('deleted_at', null) // Only get non-deleted sessions
@@ -89,7 +99,7 @@ export const WalkingHistory = () => {
     try {
       const { error } = await supabase
         .from('walking_sessions')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', sessionId)
         .eq('user_id', user.id);
 
@@ -100,7 +110,7 @@ export const WalkingHistory = () => {
       
       toast({
         title: "Session deleted",
-        description: "Walking session has been removed from your history.",
+        description: "Walking session has been permanently deleted.",
       });
     } catch (error) {
       console.error('Error deleting session:', error);
@@ -167,10 +177,7 @@ export const WalkingHistory = () => {
           size="sm" 
           onClick={() => {
             console.log('Manual refresh triggered');
-            setLoading(true);
-            setSessions([]);
-            // Force a refresh by updating the key
-            window.location.reload();
+            clearWalkingCache({ showToast: true });
           }}
           className="h-6 px-2 text-xs text-muted-foreground hover:text-primary"
         >
@@ -202,15 +209,29 @@ export const WalkingHistory = () => {
                   <Badge variant="outline" className="text-xs">
                     Completed
                   </Badge>
+                  {session.is_edited && (
+                    <Badge variant="secondary" className="text-xs">
+                      <Clock className="w-2.5 h-2.5 mr-1" />
+                      Edited
+                    </Badge>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                    onClick={() => setEditingSession(session)}
+                  >
+                    <Edit3 className="w-3 h-3" />
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                        className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         disabled={deletingId === session.id}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -237,7 +258,7 @@ export const WalkingHistory = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-500" />
+                  <Clock className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">{formatDuration(duration)}</p>
                     <p className="text-xs text-muted-foreground">Duration</p>
@@ -247,7 +268,9 @@ export const WalkingHistory = () => {
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-green-500" />
                   <div>
-                    <p className="text-sm font-medium">{session.distance?.toFixed(2) || 0} mi</p>
+                    <p className="text-sm font-medium">
+                      {session.is_edited ? 'Data removed' : `${session.distance?.toFixed(2) || 0} mi`}
+                    </p>
                     <p className="text-xs text-muted-foreground">Distance</p>
                   </div>
                 </div>
@@ -255,19 +278,31 @@ export const WalkingHistory = () => {
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-orange-500" />
                   <div>
-                    <p className="text-sm font-medium">{session.calories_burned || 0} cal</p>
+                    <p className="text-sm font-medium">
+                      {session.is_edited ? 'Data removed' : `${session.calories_burned || 0} cal`}
+                    </p>
                     <p className="text-xs text-muted-foreground">Burned</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Gauge className="w-4 h-4 text-purple-500" />
+                  <TrendingUp className="w-4 h-4 text-purple-500" />
                   <div>
-                    <p className="text-sm font-medium">{session.speed_mph || 3} mph</p>
-                    <p className="text-xs text-muted-foreground">Speed</p>
+                    <p className="text-sm font-medium">
+                      {session.is_edited ? 'Data removed' : (session.estimated_steps?.toLocaleString() || 'N/A')}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Steps (est.)</p>
                   </div>
                 </div>
+                
+                {session.is_edited && session.edit_reason && (
+                  <div className="col-span-2 mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                    <span className="font-medium">Edit reason:</span> {session.edit_reason}
+                  </div>
+                )}
               </div>
+              
+
             </Card>
           );
         })}
@@ -295,6 +330,21 @@ export const WalkingHistory = () => {
             )}
           </Button>
         </div>
+      )}
+
+      {editingSession && (
+        <EditWalkingSessionTimeModal
+          session={editingSession}
+          isOpen={!!editingSession}
+          onClose={() => setEditingSession(null)}
+          onSessionEdited={() => {
+            // Trigger refresh of walking sessions
+            clearWalkingCache({ showToast: false });
+            // Force refresh by clearing sessions and triggering re-fetch
+            setSessions([]);
+            setLoading(true);
+          }}
+        />
       )}
     </div>
   );

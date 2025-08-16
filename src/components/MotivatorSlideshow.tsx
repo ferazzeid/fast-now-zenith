@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
+import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface MotivatorSlideshowProps {
   isActive: boolean;
@@ -70,34 +71,7 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
 
   const currentMotivator = motivatorsWithImages[currentIndex];
 
-  // Create circular text path for the title - positioned away from inner edge
-  const createCircularText = (text: string, radius: number = 130) => {
-    const chars = text.split('');
-    const angleStep = (2 * Math.PI) / Math.max(chars.length, 20); // Prevent too tight spacing
-    
-    return chars.map((char, index) => {
-      const angle = index * angleStep - Math.PI / 2; // Start at top
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      
-      return (
-        <span
-          key={index}
-          className="absolute font-semibold text-primary text-sm tracking-wide drop-shadow-lg"
-          style={{
-            transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
-            transformOrigin: '50% 50%',
-            left: '50%',
-            top: '50%',
-            marginLeft: '-0.5ch',
-            marginTop: '-0.5em',
-          }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      );
-    });
-  };
+  // Circular text functionality removed per user request - too fast to read
 
   return (
     <>
@@ -106,15 +80,18 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         className={`absolute inset-0 rounded-full overflow-hidden transition-all duration-1000 ${
           displayMode === 'motivator-focused' ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1 }}
+        style={{ 
+          zIndex: displayMode === 'motivator-focused' ? 8 : 1,
+          willChange: 'transform, opacity',
+          transform: 'translate3d(0, 0, 0)' // GPU acceleration
+        }}
       >
-        <div 
-          className="absolute inset-0"
+        <MotivatorImageWithFallback
+          src={currentMotivator?.imageUrl}
+          alt={currentMotivator?.title || 'Motivator image'}
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            backgroundImage: `url(${currentMotivator?.imageUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
+            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)'
           }}
         />
         
@@ -128,7 +105,24 @@ export const MotivatorSlideshow = ({ isActive, transitionTime = 15, onModeChange
         />
       </div>
 
-      {/* Remove the circular text - it's now handled externally */}
+      {/* Centered Zoom-In Text for Ceramic Timer */}
+      {isVisible && currentMotivator && displayMode === 'motivator-focused' && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ zIndex: 15 }}
+        >
+          <div 
+            className="text-white font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm border border-white/20"
+            style={{
+              animation: 'zoomIn 8s ease-in-out',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+              maxWidth: '80%'
+            }}
+          >
+            {currentMotivator.title.toUpperCase()}
+          </div>
+        </div>
+      )}
     </>
   );
 };

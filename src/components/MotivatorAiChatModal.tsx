@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useMotivators } from '@/hooks/useMotivators';
 import { supabase } from '@/integrations/supabase/client';
-import { VoiceRecorder } from '@/components/VoiceRecorder';
-import { generate_image } from '@/utils/imageGeneration';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
+import { PremiumGate } from '@/components/PremiumGate';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -27,7 +27,6 @@ export const MotivatorAiChatModal = ({ onClose }: MotivatorAiChatModalProps) => 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -182,10 +181,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
               description: `"${motivatorData.title}" has been added to your motivators.`,
             });
 
-            // Generate image in background if motivator was created successfully
-            if (motivatorId) {
-              generateImageForMotivator(motivatorId, motivatorData.title, motivatorData.content);
-            }
+            // Note: AI image generation has been removed from this app
           }
         }
       } catch (parseError) {
@@ -239,79 +235,33 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
     }
   };
 
-  const generateImageForMotivator = async (motivatorId: string, title: string, content: string) => {
-    try {
-      setIsGeneratingImage(true);
-      
-      // Fetch admin image generation settings
-      let stylePrompt = "Create a clean, modern cartoon-style illustration with soft colors, rounded edges, and a warm, encouraging aesthetic. Focus on themes of personal growth, motivation, weight loss, and healthy lifestyle. Use gentle pastel colors with light gray and green undertones that complement a ceramic-like design. The style should be simple, uplifting, and relatable to people on a wellness journey. Avoid dark themes, futuristic elements, or overly complex designs.";
-      
-      try {
-        const { data: settingsData } = await supabase
-          .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'image_gen_style_prompt')
-          .single();
-        
-        if (settingsData?.setting_value) {
-          stylePrompt = settingsData.setting_value;
-        }
-      } catch (error) {
-        console.log('Using default style prompt as fallback');
-      }
-      
-      // Create a prompt for image generation based on the motivator and admin style
-      const imagePrompt = `${stylePrompt}\n\nSpecific subject: ${title}. ${content}`;
-      
-      // Generate a filename based on the motivator ID
-      const filename = `motivator-${motivatorId}.jpg`;
-      
-      // Generate the image
-      const imageUrl = await generate_image(imagePrompt, filename);
-      
-      // Update the motivator with the generated image
-      await updateMotivator(motivatorId, { imageUrl });
-      
-      toast({
-        title: "🎨 Image Generated!",
-        description: "AI generated an image for your motivator.",
-      });
-      
-    } catch (error) {
-      console.error('Error generating image for motivator:', error);
-      // Don't show error toast as this is a background operation
-      console.log('Image generation failed, but motivator was created successfully');
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
 
 
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] mt-8 flex flex-col p-0">
-        <DialogHeader className="border-b border-border p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">AI Motivator Coach</DialogTitle>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Switch
-                  id="modal-audio-mode"
-                  checked={audioEnabled}
-                  onCheckedChange={setAudioEnabled}
-                  className="scale-75"
-                />
-                <Label htmlFor="modal-audio-mode" className="text-sm">
-                  {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-                </Label>
-              </div>
-            </div>
-          </div>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={true}
+      onClose={onClose}
+      title="AI Motivator Coach"
+      variant="standard"
+      size="md"
+      showCloseButton={true}
+    >
+      {/* Audio toggle */}
+      <div className="flex items-center gap-2 mb-4 justify-end">
+        <Switch
+          id="modal-audio-mode"
+          checked={audioEnabled}
+          onCheckedChange={setAudioEnabled}
+          className="scale-75"
+        />
+        <Label htmlFor="modal-audio-mode" className="text-sm">
+          {audioEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+        </Label>
+      </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages */}
+      <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -348,49 +298,43 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             </div>
           )}
           
-          {isGeneratingImage && (
-            <div className="flex justify-start">
-              <Card className="max-w-[85%] p-3 bg-muted">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  <p className="text-sm">🎨 Generating motivational image...</p>
-                </div>
-              </Card>
-            </div>
-          )}
           
           <div ref={messagesEndRef} />
-        </div>
+      </div>
 
-        {/* Input */}
-        <div className="flex-shrink-0 border-t border-border p-4 space-y-3">
-          {/* Text Input */}
-          <div className="flex gap-2 items-end">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Tell me what motivates you..."
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              disabled={isLoading}
-              className="flex-1"
-            />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isLoading}
-              size="default"
-              className="flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Voice Recording */}
-          <VoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            isDisabled={isLoading}
+      {/* Input area */}
+      <div className="border-t border-border pt-4 mt-4 space-y-3">
+        {/* Text Input */}
+        <div className="flex gap-2 items-end">
+          <Input
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Tell me what motivates you..."
+            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+            disabled={isLoading}
+            className="flex-1"
           />
+          <Button
+            onClick={() => handleSendMessage()}
+            disabled={!inputMessage.trim() || isLoading}
+            size="default"
+            className="flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+        
+        {/* Voice Recording */}
+        <div className="flex justify-center">
+          <PremiumGate feature="Voice Input" grayOutForFree={true}>
+            <CircularVoiceButton
+              onTranscription={handleVoiceTranscription}
+              isDisabled={isLoading}
+              size="lg"
+            />
+          </PremiumGate>
+        </div>
+      </div>
+    </UniversalModal>
   );
 };

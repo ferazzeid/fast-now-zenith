@@ -1,15 +1,9 @@
-import { useState } from 'react';
-import { Edit, Save, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import React, { useState } from 'react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 
 interface FoodEntry {
@@ -23,11 +17,13 @@ interface FoodEntry {
 
 interface EditFoodEntryModalProps {
   entry: FoodEntry;
-  onUpdate: (id: string, updates: Partial<FoodEntry>) => Promise<void>;
+  onUpdate: (updatedEntry: FoodEntry) => Promise<void>;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps) => {
-  const [open, setOpen] = useState(false);
+export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoodEntryModalProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState(entry.name);
   const [calories, setCalories] = useState(entry.calories.toString());
   const [carbs, setCarbs] = useState(entry.carbs.toString());
@@ -36,35 +32,65 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
   const { toast } = useToast();
 
   const handleSave = async () => {
-    if (!name || !calories || !carbs) {
+    if (!name.trim()) {
       toast({
-        variant: "destructive",
-        title: "Missing information",
-        description: "Please fill in all required fields"
+        title: "Error",
+        description: "Food name is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const caloriesNum = parseFloat(calories);
+    const carbsNum = parseFloat(carbs);
+    const servingSizeNum = parseFloat(servingSize);
+
+    if (isNaN(caloriesNum) || caloriesNum < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid calories value",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isNaN(carbsNum) || carbsNum < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid carbs value",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isNaN(servingSizeNum) || servingSizeNum <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid serving size",
+        variant: "destructive"
       });
       return;
     }
 
     setLoading(true);
     try {
-      await onUpdate(entry.id, {
-        name,
-        calories: parseFloat(calories),
-        carbs: parseFloat(carbs),
-        serving_size: parseFloat(servingSize)
-      });
+      const updatedEntry: FoodEntry = {
+        ...entry,
+        name: name.trim(),
+        calories: caloriesNum,
+        carbs: carbsNum,
+        serving_size: servingSizeNum,
+      };
+
+      await onUpdate(updatedEntry);
       
-      toast({
-        title: "Entry updated",
-        description: "Food entry has been updated successfully"
-      });
-      
-      setOpen(false);
+      if (onClose) onClose(); else setInternalOpen(false);
     } catch (error) {
+      console.error('Failed to update food entry:', error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to update food entry"
+        description: "Failed to update food entry",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -79,81 +105,96 @@ export const EditFoodEntryModal = ({ entry, onUpdate }: EditFoodEntryModalProps)
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
-      if (!newOpen) resetForm();
-    }}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Food Entry</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
+    <UniversalModal
+      isOpen={isOpen !== undefined ? isOpen : internalOpen}
+      onClose={() => {
+        if (onClose) onClose(); else setInternalOpen(false);
+        resetForm();
+      }}
+      title={`Edit ${entry.name}`}
+      variant="standard"
+      size="sm"
+      footer={
+        <>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (onClose) onClose(); else setInternalOpen(false);
+            }}
+            className="w-full"
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={loading} className="w-full">
+            <Save className="w-4 h-4 mr-2" />
+            {loading ? 'Saving...' : 'Save'}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {/* Food Image - Display only */}
+        {entry.image_url && (
+          <div className="w-full h-32 mb-4">
+            <img
+              src={entry.image_url}
+              alt={entry.name}
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="name">Food Name</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter food name"
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">Food Name</Label>
+            <Label htmlFor="calories">Calories</Label>
             <Input
-              id="edit-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Apple, Chicken Breast"
+              id="calories"
+              type="number"
+              value={calories}
+              onChange={(e) => setCalories(e.target.value)}
+              placeholder="0"
+              min="0"
+              step="0.1"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="carbs">Carbs (g)</Label>
+            <Input
+              id="carbs"
+              type="number"
+              value={carbs}
+              onChange={(e) => setCarbs(e.target.value)}
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-calories">Calories</Label>
-              <Input
-                id="edit-calories"
-                type="number"
-                value={calories}
-                onChange={(e) => setCalories(e.target.value)}
-                placeholder="per serving"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-carbs">Carbs (g)</Label>
-              <Input
-                id="edit-carbs"
-                type="number"
-                value={carbs}
-                onChange={(e) => setCarbs(e.target.value)}
-                placeholder="grams"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="edit-serving">Serving Size (g)</Label>
+            <Label htmlFor="serving">Serving (g)</Label>
             <Input
-              id="edit-serving"
+              id="serving"
               type="number"
               value={servingSize}
               onChange={(e) => setServingSize(e.target.value)}
-              placeholder="100"
+              placeholder="0"
+              min="0.1"
+              step="0.1"
             />
           </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={loading} className="flex-1">
-              <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setOpen(false)}
-              disabled={loading}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </UniversalModal>
   );
 };

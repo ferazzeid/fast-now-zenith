@@ -2,13 +2,20 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
+  .split(',')
+  .map(o => o.trim());
+
+function buildCorsHeaders(origin: string | null) {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  } as const;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
+  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -43,24 +50,22 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Get OpenAI API key from environment or user profile
+    // Get OpenAI API key from shared settings or environment
     let openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     
     if (!openaiApiKey) {
-      // Try to get from user profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('openai_api_key, use_own_api_key')
-        .eq('user_id', userData.user.id)
-        .single();
+      // Get from shared settings
+      const { data: sharedKey } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
       
-      if (profile?.use_own_api_key && profile?.openai_api_key) {
-        openaiApiKey = profile.openai_api_key;
-      }
+      openaiApiKey = sharedKey?.setting_value;
     }
 
     if (!openaiApiKey) {
-      throw new Error('OpenAI API key not available');
+      throw new Error('OpenAI API key not configured. Please contact support.');
     }
 
     console.log('Analyzing food image with OpenAI Vision API');
@@ -114,21 +119,21 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are a nutrition expert analyzing food images. Extract nutritional information and return it as a JSON object with the following structure:
+            content: `You are a nutrition expert analyzing food images. Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues. Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.
+            Return ONLY JSON with this shape:
             {
-              "name": "Food name",
+              "name": "Food name (include brand/type if visible)",
               "calories_per_100g": number,
               "carbs_per_100g": number,
-              "estimated_serving_size": number (in grams),
-              "confidence": number (0-1),
-              "description": "Brief description of what you see"
+              "estimated_serving_size": number, // grams
+              "confidence": number, // 0-1
+              "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
             }
-            
-            If you can see a nutrition label, extract the exact values. If not, provide your best estimates based on typical nutritional values for the food you identify. Always return valid JSON only, no other text.`
+            If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.`
           },
           {
             role: 'user',
@@ -185,16 +190,13 @@ serve(async (req) => {
     console.log('Successfully analyzed food image:', nutritionData);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        nutritionData: {
-          name: nutritionData.name,
-          calories_per_100g: Math.round(nutritionData.calories_per_100g * 100) / 100,
-          carbs_per_100g: Math.round(nutritionData.carbs_per_100g * 100) / 100,
-          estimated_serving_size: nutritionData.estimated_serving_size || 100,
-          confidence: nutritionData.confidence || 0.8,
-          description: nutritionData.description || ''
-        }
+      JSON.stringify({
+        name: nutritionData.name,
+        calories_per_100g: Math.round(nutritionData.calories_per_100g * 100) / 100,
+        carbs_per_100g: Math.round(nutritionData.carbs_per_100g * 100) / 100,
+        estimated_serving_size: nutritionData.estimated_serving_size || 100,
+        confidence: nutritionData.confidence || 0.8,
+        description: nutritionData.description || ''
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

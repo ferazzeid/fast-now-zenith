@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
+import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface WalkingMotivatorSlideshowProps {
   isActive: boolean;
@@ -79,13 +80,12 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
         }`}
         style={{ zIndex: displayMode === 'motivator-focused' ? 8 : 1 }}
       >
-        <div 
-          className="absolute inset-0"
+        <MotivatorImageWithFallback
+          src={currentMotivator?.imageUrl}
+          alt={currentMotivator?.title || 'Motivator image'}
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            backgroundImage: `url(${currentMotivator?.imageUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)',
+            filter: 'brightness(0.9) saturate(1.1) contrast(1.05)'
           }}
         />
         
@@ -105,9 +105,10 @@ export const WalkingMotivatorSlideshow = ({ isActive, transitionTime = 15, onMod
           style={{ zIndex: 15 }}
         >
           <div 
-            className="text-white font-bold text-xl tracking-wide drop-shadow-lg text-center px-4 animate-zoom-in"
+            className="text-white font-bold text-xl tracking-wide text-center px-6 py-3 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 animate-zoom-in"
             style={{
-              animation: 'zoomIn 8s ease-in-out'
+              animation: 'zoomIn 8s ease-in-out',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8)'
             }}
           >
             {currentMotivator.title.toUpperCase()}

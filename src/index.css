@@ -4,54 +4,148 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom recording animation for smooth pulsing */
+@keyframes smooth-pulse {
+  0% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.05); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+/* Ring pulse animation for goals and milestones */
+@keyframes ring-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes goal-celebration {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.05);
+    opacity: 0.9;
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+    filter: brightness(1.4);
+  }
+  75% {
+    transform: scale(1.15);
+    opacity: 0.5;
+    filter: brightness(1.6);
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+    filter: brightness(2);
+  }
+}
+
+.recording-pulse {
+  animation: smooth-pulse 2s ease-in-out infinite;
+}
+
+.ring-pulse {
+  animation: ring-pulse 1.5s ease-out infinite;
+}
+
+.goal-celebration {
+  animation: goal-celebration 2s ease-out infinite;
+}
+
+/* Hide input number arrows in dark mode */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Ceramic-inspired color palette */
-    --background: 35 20% 96%;
-    --foreground: 20 15% 25%;
+    /* Clean neutral color palette - Light Mode */
+    --background: 0 0% 96%;
+    --foreground: 0 0% 15%;
 
-    --card: 35 25% 98%;
-    --card-foreground: 20 15% 25%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 15%;
 
-    --popover: 35 25% 98%;
-    --popover-foreground: 20 15% 25%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 15%;
 
     --primary: 140 35% 45%;
-    --primary-foreground: 35 25% 98%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 140 45% 55%;
+    --primary-hover: 140 35% 40%;
 
-    --secondary: 35 15% 90%;
-    --secondary-foreground: 20 15% 25%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 35 10% 88%;
-    --muted-foreground: 20 10% 55%;
+    --muted: 0 0% 88%;
+    --muted-foreground: 0 0% 45%;
 
     --accent: 140 25% 85%;
-    --accent-foreground: 20 15% 25%;
+    --accent-foreground: 0 0% 15%;
+
+    --ai: 48 96% 53%;
+    --ai-foreground: 0 0% 100%;
 
     --destructive: 0 65% 55%;
-    --destructive-foreground: 35 25% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 35 12% 85%;
-    --input: 35 12% 92%;
+    --warning: 45 85% 55%;
+    --warning-foreground: 0 0% 98%;
+
+    --info: 215 85% 65%;
+    --info-foreground: 0 0% 98%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 92%;
     --ring: 140 35% 45%;
 
-    /* Ceramic plate colors - Light Mode */
-    --ceramic-light: 32 20% 95%;
-    --ceramic-base: 32 15% 92%;
-    --ceramic-warm: 32 18% 88%;
-    --ceramic-shadow: 32 12% 85%;
-    --ceramic-deep: 32 8% 80%;
-    --ceramic-plate: 32 18% 94%;
-    --ceramic-rim: 32 10% 82%;
+    /* Ceramic plate colors - Light Mode (neutral with subtle warmth) */
+    --ceramic-light: 220 15% 95%;
+    --ceramic-base: 220 12% 92%;
+    --ceramic-warm: 220 10% 88%;
+    --ceramic-shadow: 220 8% 82%;
+    --ceramic-deep: 220 6% 75%;
+    --ceramic-plate: 220 12% 94%;
+    --ceramic-rim: 220 8% 80%;
 
     /* 3D Effects - Light Mode */
-    --shadow-plate: 0 8px 32px -8px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(32 12% 85% / 0.2);
-    --shadow-rim: inset 0 1px 4px hsl(0 0% 100% / 0.8), inset 0 -1px 2px hsl(32 8% 80% / 0.3);
-    --shadow-well: inset 0 2px 8px hsl(32 8% 80% / 0.4), inset 0 4px 12px hsl(0 0% 0% / 0.1);
+    --shadow-plate: 0 8px 32px -8px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(220 8% 82% / 0.3);
+    --shadow-rim: inset 0 1px 4px hsl(0 0% 100% / 0.9), inset 0 -1px 2px hsl(220 6% 75% / 0.4);
+    --shadow-well: inset 0 2px 8px hsl(220 6% 75% / 0.5), inset 0 4px 12px hsl(0 0% 0% / 0.1);
 
     /* Gradients - Light Mode */
     --gradient-ceramic: radial-gradient(ellipse at 30% 30%, hsl(var(--ceramic-light)), hsl(var(--ceramic-base)) 70%);
@@ -70,13 +164,13 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Frame background colors */
-    --frame-background: 32 8% 75%;
-    --warm-text: 20 15% 25%;
+    --frame-background: 0 0% 75%;
+    --warm-text: 0 0% 15%;
   }
 
   .dark {
-    /* Base dark theme colors */
-    --background: 0 0% 8%;
+    /* Base dark theme colors - Fixed from pure black to dark gray */
+    --background: 0 0% 11%;
     --foreground: 0 0% 88%;
 
     --card: 0 0% 10%;
@@ -86,7 +180,9 @@ All colors MUST be HSL.
     --popover-foreground: 0 0% 88%;
 
     --primary: 140 35% 55%;
-    --primary-foreground: 0 0% 8%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 140 45% 65%;
+    --primary-hover: 140 35% 50%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 88%;
@@ -97,6 +193,9 @@ All colors MUST be HSL.
     --accent: 0 0% 15%;
     --accent-foreground: 0 0% 88%;
 
+    --ai: 48 96% 53%;
+    --ai-foreground: 0 0% 100%;
+
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 88%;
 
@@ -104,14 +203,14 @@ All colors MUST be HSL.
     --input: 0 0% 15%;
     --ring: 140 35% 55%;
 
-    /* Dark ceramic colors */
-    --ceramic-light: 0 0% 20%;
-    --ceramic-base: 0 0% 15%;
-    --ceramic-warm: 0 0% 18%;
-    --ceramic-shadow: 0 0% 8%;
-    --ceramic-deep: 0 0% 5%;
-    --ceramic-plate: 0 0% 12%;
-    --ceramic-rim: 0 0% 25%;
+    /* Dark ceramic colors (brightened for visibility) */
+    --ceramic-light: 220 8% 30%;
+    --ceramic-base: 220 6% 25%;
+    --ceramic-warm: 220 4% 28%;
+    --ceramic-shadow: 220 6% 18%;
+    --ceramic-deep: 220 8% 15%;
+    --ceramic-plate: 220 6% 22%;
+    --ceramic-rim: 220 4% 35%;
 
     /* Dark 3D Effects */
     --shadow-plate: 0 25px 50px -12px hsl(0 0% 0% / 0.8), 0 0 0 1px hsl(0 0% 25% / 0.1), inset 0 1px 0 hsl(0 0% 25% / 0.1);
@@ -197,6 +296,23 @@ All colors MUST be HSL.
     transform: scale(1.1);
   }
 }
+
+/* Scale-in animation for goal text */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @keyframes fastFadeMarquee {
   0% {
     opacity: 0;
@@ -214,4 +330,96 @@ All colors MUST be HSL.
     opacity: 0;
     transform: translateX(-100%);
   }
+}
+
+/* Force AI button visibility in PremiumGate - Enhanced opacity override */
+.opacity-50 button[class*="bg-ai"],
+.opacity-50 .bg-ai,
+button[class*="bg-ai"] {
+  opacity: 1 !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Also ensure all AI buttons maintain proper styling */
+[class*="opacity-50"] button[class*="bg-ai"],
+[class*="opacity-50"] .bg-ai,
+div[class*="opacity-50"] button[class*="bg-ai"] {
+  opacity: 1 !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Ensure primary buttons in modals are not washed out */
+button[class*="bg-primary"],
+.bg-primary {
+  opacity: 1 !important;
+}
+
+/* Force hide duplicate close buttons in modals - aggressive fix */
+[data-radix-dialog-content] > button[data-radix-dialog-close] {
+  display: none !important;
+}
+
+/* Hide any automatic close buttons that might be added by Radix */
+[data-radix-dialog-content] > button:last-child:has(svg) {
+  display: none !important;
+}
+
+/* Ensure only UniversalModal's close button shows */
+.universal-modal-header button {
+  display: flex !important;
+}
+
+/* Hide Lovable development notifications */
+[data-testid="lovable-notification"],
+.lovable-notification,
+div[style*="Starting live preview"] {
+  display: none !important;
+}
+
+/* Hide any fixed positioned elements containing "Starting live preview" text */
+div:has-text("Starting live preview") {
+  display: none !important;
+}
+
+/* More aggressive hiding of Lovable development UI */
+div[class*="notification"]:has-text("Starting live preview"),
+div[class*="preview"]:has-text("Starting live preview"),
+div[style*="position: fixed"]:has-text("Starting live preview") {
+  display: none !important;
+}
+
+/* Author Tooltip Animations */
+@keyframes elegant-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-width: 2px;
+    opacity: 0.7;
+  }
+  50% {
+    border-width: 3px;
+    opacity: 1;
+  }
+}
+
+.animate-elegant-pulse {
+  animation: elegant-pulse 3s ease-in-out infinite;
+}
+
+.animate-border-pulse {
+  animation: border-pulse 4s ease-in-out infinite;
+}
+
+.author-tooltip-bubble:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(218, 196, 113, 0.4);
 }

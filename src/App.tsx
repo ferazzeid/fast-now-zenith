@@ -1,112 +1,320 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/query-client";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { CriticalErrorBoundary, PageErrorBoundary } from "@/components/enhanced/ComprehensiveErrorBoundary";
+import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
-import AiChat from "./pages/AiChat";
+import MotivatorIdeas from "./pages/MotivatorIdeas";
+
+
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
+import { useProfile } from '@/hooks/useProfile';
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
-import AdminOverview from "./pages/AdminOverview";
-import { UserManagement } from "./pages/UserManagement";
+// import AdminOverview from "./pages/AdminOverview";
+
 import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
-import { AuthProvider } from "./hooks/useAuth";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { useColorTheme } from "./hooks/useColorTheme";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { DailyStatsPanel } from "./components/DailyStatsPanel";
-import { WalkingStatsProvider } from "./contexts/WalkingStatsContext";
+import { AuthProvider } from "./providers/AuthProvider";
 
-const queryClient = new QueryClient();
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeStabilityFix } from "./components/ThemeStabilityFix";
+import { useColorTheme } from "./hooks/useColorTheme";
+import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
+import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
+import { useDynamicHTMLMeta } from "./hooks/useDynamicHTMLMeta";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import { DailyStatsPanel } from "./components/DailyStatsPanel";
+import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
+import { initializeAnalytics, trackPageView } from "./utils/analytics";
+import { SEOManager } from "./components/SEOManager";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState, lazy, Suspense } from "react";
+import { useAuthStore } from '@/stores/authStore';
+import { useConnectionStore } from '@/stores/connectionStore';
+
+
+
+// Using optimized query client from @/lib/query-client
+const AdminOverview = lazy(() => import("./pages/AdminOverview"));
+const AdminOperations = lazy(() => import("./pages/admin/Operations"));
+const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminBranding = lazy(() => import("./pages/admin/Branding"));
+const AdminPayments = lazy(() => import("./pages/admin/Payments"));
+const AdminDev = lazy(() => import("./pages/admin/Dev"));
+// Persist React Query cache to storage for offline reads
+if (typeof window !== 'undefined') {
+  const persister = createSyncStoragePersister({
+    storage: window.localStorage,
+    throttleTime: 1000,
+  });
+  persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  });
+}
 
 const AppContent = () => {
   // Load color theme on app startup
   useColorTheme();
+  // Load dynamic favicon from admin settings
+  useDynamicFavicon();
+  // Load dynamic PWA assets (logo, icons)
+  useDynamicPWAAssets();
+  // Load dynamic HTML meta tags
+  useDynamicHTMLMeta();
+  const location = useLocation();
+  const user = useAuthStore(state => state.user);
+  const { profile, isProfileComplete } = useProfile();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { isOnline } = useConnectionStore();
+
+  // Hide navigation on auth routes
+  const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
+  
+  // Initialize analytics on app startup (non-blocking)
+  useEffect(() => {
+    const initAnalytics = async () => {
+      try {
+        await initializeAnalytics();
+      } catch (error) {
+        console.warn('Analytics initialization failed (non-critical):', error);
+      }
+    };
+    
+    // Defer analytics initialization to not block app startup
+    setTimeout(initAnalytics, 1000);
+  }, []);
+  
+  // Track page views on route changes
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+
+  // Show onboarding if user is authenticated and profile is incomplete
+  useEffect(() => {
+    // Only check onboarding for authenticated users with loaded profile data
+    if (user && profile !== null) {
+      const profileComplete = isProfileComplete();
+      console.log('Profile onboarding check:', {
+        user: !!user,
+        // profile omitted for security
+        profileComplete,
+        weight: profile?.weight,
+        height: profile?.height,
+        age: profile?.age
+      });
+      setShowOnboarding(!profileComplete);
+    } else {
+      // User not authenticated or profile not loaded yet - don't show onboarding
+      setShowOnboarding(false);
+    }
+  }, [user, profile, isProfileComplete]);
+
+  // Handle browser back/forward navigation when offline
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // When offline, ensure we stay within the SPA
+      if (!isOnline) {
+        // Let React Router handle the navigation naturally
+        // The service worker will serve the cached index.html
+        console.log('Offline navigation detected, using cached app shell');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isOnline]);
   
   return (
     <>
+      
+      
       {/* Desktop frame background */}
-      <div className="min-h-screen bg-frame-background">
+      <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
-        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl">
-          <DailyStatsPanel />
+        <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
+          <SEOManager />
+          {!isAuthRoute && <DailyStatsPanel />}
           <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/auth" element={
+              <PageErrorBoundary>
+                <Auth />
+              </PageErrorBoundary>
+            } />
+            <Route path="/reset-password" element={
+              <PageErrorBoundary>
+                <ResetPassword />
+              </PageErrorBoundary>
+            } />
+            <Route path="/update-password" element={
+              <PageErrorBoundary>
+                <UpdatePassword />
+              </PageErrorBoundary>
+            } />
             <Route path="/" element={
               <ProtectedRoute>
-                <Timer />
+                <PageErrorBoundary>
+                  <Timer />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/motivators" element={
               <ProtectedRoute>
-                <Motivators />
+                <PageErrorBoundary>
+                  <Motivators />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/ai-chat" element={
+            <Route path="/motivator-ideas" element={
               <ProtectedRoute>
-                <AiChat />
+                <PageErrorBoundary>
+                  <MotivatorIdeas />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
               <ProtectedRoute>
-                <Settings />
+                <PageErrorBoundary>
+                  <Settings />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/walking" element={
               <ProtectedRoute>
-                <Walking />
+                <PageErrorBoundary>
+                  <Walking />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/food-tracking" element={
               <ProtectedRoute>
-                <FoodTracking />
+                <PageErrorBoundary>
+                  <FoodTracking />
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/admin" element={
+            <Route path="/admin" element={<Navigate to="/admin/operations" replace />} />
+            <Route path="/admin/operations" element={
               <ProtectedRoute>
-                <AdminOverview />
-              </ProtectedRoute>  
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminOperations />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
             } />
-            <Route path="/user-management" element={
+            <Route path="/admin/content" element={
               <ProtectedRoute>
-                <UserManagement />
-              </ProtectedRoute>  
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminContent />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
             } />
-            <Route path="/health" element={<HealthCheck />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/admin/branding" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminBranding />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/payments" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminPayments />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dev" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminDev />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/health" element={
+              <PageErrorBoundary>
+                <HealthCheck />
+              </PageErrorBoundary>
+            } />
+            <Route path="*" element={
+              <PageErrorBoundary>
+                <NotFound />
+              </PageErrorBoundary>
+            } />
           </Routes>
-          <Navigation />
+          {!isAuthRoute && <Navigation />}
         </div>
       </div>
+      
+      {/* Global Profile Onboarding */}
+      
+      <GlobalProfileOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </>
   );
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            <WalkingStatsProvider>
-              <AppContent />
-            </WalkingStatsProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <CriticalErrorBoundary 
+    onError={(error, errorInfo) => {
+      console.error('App-level error:', error, errorInfo);
+      // Could send to error tracking service here
+    }}
+  >
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AsyncErrorBoundary>
+            <ThemeProvider>
+              <ThemeStabilityFix />
+              <AuthProvider>
+                <SimpleWalkingStatsProvider>
+                  <AppContent />
+                </SimpleWalkingStatsProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </AsyncErrorBoundary>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </CriticalErrorBoundary>
 );
 
 export default App;

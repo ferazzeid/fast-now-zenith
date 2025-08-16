@@ -22,25 +22,45 @@ export const useManualCalorieBurns = () => {
     
     setLoading(true);
     try {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      // FIX: Use same date logic as deficit query for consistency
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       
       const { data, error } = await supabase
         .from('manual_calorie_burns')
         .select('*')
         .eq('user_id', user.id)
-        .gte('created_at', startOfDay.toISOString())
-        .lt('created_at', endOfDay.toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setManualBurns(data || []);
+      // Filter to today's entries using same date string comparison
+      const todayEntries = (data || []).filter(burn => {
+        const burnDate = burn.created_at.split('T')[0];
+        return burnDate === today;
+      });
+
+      setManualBurns(todayEntries);
       
       // Calculate today's total
-      const total = (data || []).reduce((sum, burn) => sum + burn.calories_burned, 0);
+      const total = todayEntries.reduce((sum, burn) => sum + burn.calories_burned, 0);
       setTodayTotal(total);
+      
+      console.log('🔥 MANUAL CALORIE BURNS HOOK RESULT:', {
+        totalAllEntries: (data || []).length,
+        todayEntriesCount: todayEntries.length,
+        todayEntries: todayEntries?.map(d => ({ 
+          activity: d.activity_name, 
+          calories: d.calories_burned,
+          date: d.created_at.split('T')[0]
+        })),
+        calculatedTotal: total,
+        todayDate: today,
+        filterCheck: data?.map(d => ({
+          burnDate: d.created_at.split('T')[0],
+          today,
+          matches: d.created_at.split('T')[0] === today
+        }))
+      });
     } catch (error) {
       console.error('Error loading manual calorie burns:', error);
       setManualBurns([]);
@@ -54,10 +74,31 @@ export const useManualCalorieBurns = () => {
     loadTodayManualBurns();
   }, [loadTodayManualBurns]);
 
+  const deleteManualBurn = useCallback(async (burnId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('manual_calorie_burns')
+        .delete()
+        .eq('id', burnId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Refresh the list
+      await loadTodayManualBurns();
+    } catch (error) {
+      console.error('Error deleting manual calorie burn:', error);
+      throw error;
+    }
+  }, [user, loadTodayManualBurns]);
+
   return {
     manualBurns,
     todayTotal,
     loading,
-    refreshManualBurns: loadTodayManualBurns
+    refreshManualBurns: loadTodayManualBurns,
+    deleteManualBurn
   };
 };
