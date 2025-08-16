@@ -13,7 +13,7 @@ import { TrialTimerBadge } from '@/components/TrialTimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { PremiumGate } from '@/components/PremiumGate';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { useToast } from '@/hooks/use-toast';
 import { showFoodTrackingLimitError } from '@/components/AIRequestLimitToast';
 
@@ -27,7 +27,9 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { inTrial, trialEndsAt, invalidate, hasPremiumFeatures, subscription_tier, createSubscription } = useUnifiedSubscription();
+  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, access_level, createSubscription, refetch } = useAccess();
+  // Calculate trial end date from days remaining
+  const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
   const { toast } = useToast();
 
@@ -59,9 +61,9 @@ export const Navigation = () => {
 
   // Force refresh subscription data when navigation mounts
   useEffect(() => {
-    console.log('🧭 Navigation mounted - refreshing subscription data');
-    invalidate();
-  }, [invalidate]);
+    console.log('🧭 Navigation mounted - refreshing access data');
+    refetch();
+  }, [refetch]);
 
   // Memoize fasting badge calculation to prevent unnecessary recalculations
   const getFastingBadge = useMemo(() => {
@@ -185,7 +187,7 @@ export const Navigation = () => {
 
               // Handle Food button click for premium gating
               const handleFoodClick = (e: React.MouseEvent) => {
-                const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+                const hasAccess = access_level !== 'free';
                 if (!hasAccess && label === 'Food') {
                   e.preventDefault();
                   e.stopPropagation();
@@ -194,7 +196,7 @@ export const Navigation = () => {
                 }
               };
               
-              const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+              const hasAccess = access_level !== 'free';
               const isLocked = label === 'Food' && !hasAccess;
               
               const content = (

@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useProfile } from '@/hooks/useProfile';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -45,9 +45,9 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const subscription = useUnifiedSubscription();
-  const isWebPlatform = subscription.platform === 'web';
-  const platformName = subscription.platform === 'ios' ? 'App Store' : subscription.platform === 'android' ? 'Google Play' : 'Stripe';
+  const { isAdmin: accessIsAdmin, hasPremiumFeatures, createSubscription, openCustomerPortal, isTrial, daysRemaining, access_level } = useAccess();
+  const isWebPlatform = true; // Default to web for now
+  const platformName = 'Stripe'; // Default to Stripe for now
   
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
   const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
@@ -58,28 +58,8 @@ const Settings = () => {
 
   useEffect(() => {
 
-    const checkAdminRole = async () => {
-      if (user) {
-        try {
-          const { data, error } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id)
-            .eq('role', 'admin')
-            .maybeSingle();
-          
-          if (error) {
-            console.log('Admin check error (expected if no role):', error);
-            setIsAdmin(false);
-          } else {
-            setIsAdmin(!!data);
-          }
-        } catch (error) {
-          console.error('Error checking admin role:', error);
-          setIsAdmin(false);
-        }
-      }
-    };
+    // Admin status now comes from useAccess hook
+    setIsAdmin(accessIsAdmin);
 
     const fetchUserSettings = async () => {
       if (user) {
@@ -132,9 +112,8 @@ const Settings = () => {
       }
     };
 
-    checkAdminRole();
     fetchUserSettings();
-  }, [user]);
+  }, [user, accessIsAdmin]);
 
   const handleSaveSettings = async () => {
     try {
@@ -207,9 +186,6 @@ const Settings = () => {
         // Ensure tier reflects latest settings (own API key overrides others)
         try {
           await supabase.rpc('update_user_tier', { _user_id: user.id });
-          // Invalidate cached subscription to reflect changes immediately
-          // @ts-ignore - optional chaining for safety if hook shape changes
-          subscription?.invalidate?.();
         } catch (tierErr) {
           console.warn('Tier update RPC failed:', tierErr);
         }
@@ -530,20 +506,17 @@ const Settings = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Account Type</span>
                     <span className="text-warm-text font-medium">
-                      {subscription.inTrial ? 'Trial User' : 
-                       subscription.hasPremiumFeatures ? 'Premium User' : 'Free User'}
+                      {isTrial ? 'Trial User' : 
+                       hasPremiumFeatures ? 'Premium User' : 'Free User'}
                     </span>
                   </div>
-                  {(subscription.inTrial || subscription.hasPremiumFeatures) && (
+                  {(isTrial || hasPremiumFeatures) && daysRemaining && (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">
-                        {subscription.inTrial ? 'Trial expires' : 'Renewal due'}
+                        {isTrial ? 'Trial expires' : 'Premium expires'}
                       </span>
                       <span className="text-warm-text font-medium">
-                        {subscription.inTrial 
-                          ? (subscription.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString() : 'Unknown')
-                          : (subscription.subscription_end_date ? new Date(subscription.subscription_end_date).toLocaleDateString() : 'Unknown')
-                        }
+                        {new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toLocaleDateString()}
                       </span>
                     </div>
                   )}
@@ -555,11 +528,11 @@ const Settings = () => {
                   </div>
                 </div>
                 <div className="pt-3 border-t border-ceramic-rim space-y-3">
-                  {subscription.subscription_tier !== 'paid_user' && (
+                  {access_level === 'free' && (
                     <Button
                       onClick={async () => {
                         try {
-                          await subscription.createSubscription();
+                          await createSubscription();
                           toast({ 
                             title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
                             description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
@@ -572,6 +545,26 @@ const Settings = () => {
                     >
                       <Crown className="w-4 h-4 mr-2" />
                       {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
+                    </Button>
+                  )}
+                  {hasPremiumFeatures && (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await openCustomerPortal();
+                          toast({ 
+                            title: "Opening customer portal", 
+                            description: "Manage your subscription...",
+                          });
+                        } catch {
+                          toast({ title: "Error", description: "Failed to open customer portal. Please try again.", variant: "destructive" });
+                        }
+                      }}
+                      variant="outline"
+                      className="w-full bg-ceramic-base border-ceramic-rim"
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Manage Subscription
                     </Button>
                   )}
                   <Button

@@ -2,7 +2,7 @@
 import React, { ReactNode, ReactElement, cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { Lock, Crown, Utensils, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { useToast } from '@/hooks/use-toast';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,11 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
-  const { subscribed, subscription_tier, isPaidUser, hasPremiumFeatures, loading, createSubscription, inTrial } = useUnifiedSubscription();
-  const { testRole, isTestingMode } = useRoleTestingContext();
+  const { access_level, hasPremiumFeatures, loading, createSubscription } = useAccess();
   const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
-  // For role testing, only affect feature access, NOT display logic
-  // The unified subscription already handles test role overrides internally
-  const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+  // Check access based on level
+  const hasAccess = access_level !== 'free';
 
   // Show content while loading to prevent flashing
   if (loading) {
