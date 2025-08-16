@@ -7,8 +7,8 @@ export interface UnitConversion {
 
 // Available serving size units (simplified set)
 export const SERVING_SIZE_UNITS: UnitConversion[] = [
-  { value: 'grams', label: 'grams' },
-  { value: 'milliliters', label: 'milliliters' }
+  { value: 'grams', label: 'g' },
+  { value: 'milliliters', label: 'ml' }
 ];
 
 // Get all available serving units
@@ -60,9 +60,9 @@ export const formatUnitDisplay = (amount: string, unit: string): string => {
 // Get unit display name for labels
 export const getUnitDisplayName = (unit: string): string => {
   switch (unit) {
-    case 'grams': return 'Grams';
+    case 'grams': return 'g';
     case 'milliliters':
-    case 'ml': return 'Milliliters';
+    case 'ml': return 'ml';
     default: return unit.charAt(0).toUpperCase() + unit.slice(1);
   }
 };
