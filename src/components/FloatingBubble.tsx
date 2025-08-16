@@ -21,7 +21,7 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
   return (
     <div
       className={cn(
-        "w-full mb-4 transition-all duration-500 ease-out px-4",
+        "w-full mb-6 transition-all duration-500 ease-out px-4",
         "flex",
         isUser ? "justify-end" : "justify-start",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"

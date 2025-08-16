@@ -228,13 +228,10 @@ export const AIVoiceButton = () => {
           .insert({
             user_id: user!.id,
             name: food.name,
-            serving_size: food.serving_size,
-            calories: food.calories,
+            serving_size: food.serving_size || 100,
+            calories: food.calories || 0,
             carbs: food.carbs || 0,
-            protein: food.protein || 0,
-            fat: food.fat || 0,
-            fiber: food.fiber || 0,
-            source_date: new Date().toISOString().split('T')[0] // Add today's date
+            source_date: new Date().toISOString().split('T')[0]
           });
 
         if (error) {
