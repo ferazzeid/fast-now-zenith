@@ -800,11 +800,20 @@ When explaining app calculations, use the exact formulas and constants above. He
     if (!response.ok) {
       try {
         const errorData = await response.json();
-        if (!isProd) console.error('OpenAI API error:', errorData);
-      } catch (_) {
-        if (!isProd) console.error('OpenAI API error: non-JSON body');
+        console.error('🚨 OpenAI API error details:', JSON.stringify(errorData, null, 2));
+        
+        // More specific error handling for common issues
+        if (errorData.error?.code === 'invalid_request_error') {
+          throw new Error(`OpenAI request error: ${errorData.error.message}`);
+        }
+        
+        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      } catch (parseError) {
+        console.error('🚨 Failed to parse OpenAI error response:', parseError);
+        const responseText = await response.text();
+        console.error('🚨 Raw error response:', responseText);
+        throw new Error(`OpenAI API error: ${response.status} - Unable to parse error details`);
       }
-      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     // Increment usage counter (all users count against limits now)
@@ -886,10 +895,21 @@ When explaining app calculations, use the exact formulas and constants above. He
     }
 
   } catch (error) {
-    if (!isProd) console.error('Error in chat-completion function:', error);
-    const message = isProd ? 'Internal server error' : (error as Error).message;
+    console.error('💥 Error in chat-completion function:', error);
+    console.error('💥 Error stack:', (error as Error).stack);
+    
+    // Return user-friendly error message for function call issues
+    let userMessage = "I'm having trouble processing your request. Please try again.";
+    
+    if ((error as Error).message.includes('OpenAI')) {
+      userMessage = "I'm experiencing difficulties with AI processing. Please try your request again.";
+    }
+    
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ 
+        error: (error as Error).message,
+        completion: userMessage
+      }),
       {
         status: 500,
         headers: { 
