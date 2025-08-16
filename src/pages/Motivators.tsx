@@ -299,24 +299,22 @@ const Motivators = () => {
         <div className="max-w-md mx-auto pt-10 pb-20">
           <div className="space-y-6">
           {/* Header */}
-          <div className="mb-4 mt-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
-              {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">
-              {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
-            </p>
+          <div className="mb-4 mt-4 relative">
+            <div className="absolute left-0 top-0">
+              <AIVoiceButton />
+            </div>
+            <div className="pl-12 pr-12">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
+                {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
+              </h1>
+              <p className="text-sm text-muted-foreground text-left">
+                {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
+              </p>
+            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="mb-6 grid grid-cols-3 gap-4">
-            <div className="col-span-1 flex flex-col items-center gap-1">
-              <div className="w-full flex items-center justify-center h-12">
-                <AIVoiceButton />
-              </div>
-              <span className="text-xs text-muted-foreground">AI Voice</span>
-            </div>
-
+          <div className="mb-6 grid grid-cols-2 gap-4">
             <div className="col-span-1 flex flex-col items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
