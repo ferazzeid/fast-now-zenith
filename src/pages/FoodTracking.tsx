@@ -374,12 +374,12 @@ const FoodTracking = () => {
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
           </div>
-          <div className="pl-12 pr-12">
+          <div className="px-4">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1 flex items-center">
               <Brain className="w-6 h-6 mr-2" />
               Food Tracking
             </h1>
-            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
+            <p className="text-sm text-muted-foreground text-center">Lock your food intake</p>
           </div>
         </div>
 
