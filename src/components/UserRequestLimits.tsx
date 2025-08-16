@@ -8,11 +8,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { SmartInlineLoading } from './enhanced/SmartLoadingStates';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { useAccess } from '@/hooks/useAccess';
 
 export const UserRequestLimits: React.FC = () => {
   const [paidUserLimit, setPaidUserLimit] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { isAdmin } = useAccess();
+
+  // Only show to admin users
+  if (!isAdmin) {
+    return null;
+  }
 
   useEffect(() => {
     loadCurrentLimits();

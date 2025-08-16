@@ -1,18 +1,18 @@
 
 import React from 'react';
 import { Clock, Crown } from 'lucide-react';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 export const TrialIndicator = () => {
-  const { inTrial, trialEndsAt, subscribed, createSubscription, loading } = useSubscription();
+  const { isTrial, daysRemaining, hasPremiumFeatures, createSubscription, loading } = useAccess();
 
-  if (loading || subscribed || (!inTrial && !trialEndsAt)) {
+  if (loading || hasPremiumFeatures || !isTrial) {
     return null;
   }
 
-  const daysLeft = trialEndsAt ? Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
+  const daysLeft = daysRemaining || 0;
   const trialExpired = daysLeft <= 0;
 
   const handleUpgrade = async () => {

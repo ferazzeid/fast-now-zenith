@@ -1,46 +1,38 @@
 
 import React from 'react';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Crown, ExternalLink, Calendar, Clock, TestTube, RefreshCw } from 'lucide-react';
 import { TrialIndicator } from './TrialIndicator';
-import { useAccess } from '@/hooks/useAccess';
 import { useCacheManager } from '@/hooks/useCacheManager';
 import { SubscriptionSystemReset } from './SubscriptionSystemReset';
 
 export const SettingsSubscription = () => {
   const { 
-    subscribed, 
-    subscription_status, 
-    subscription_tier,
-    subscription_end_date,
-    inTrial,
-    trialEndsAt,
+    hasPremiumFeatures, 
+    access_level,
+    isTrial,
+    daysRemaining,
     createSubscription, 
     openCustomerPortal, 
     loading,
-    platform,
-    login_method,
-    debug,
-    invalidate,
-  } = useUnifiedSubscription();
-
-  const { testRole, isTestingMode } = useAccess();
+    testRole, 
+    isTestingMode,
+    refetch,
+  } = useAccess();
   const { clearAllSubscriptionCache } = useCacheManager();
 
   // Force refresh subscription data when Settings page loads
   React.useEffect(() => {
     console.log('⚙️ Settings page loaded - refreshing subscription data');
-    invalidate();
-  }, [invalidate]);
+    refetch();
+  }, [refetch]);
 
-  const isWeb = platform === 'web';
-  const platformName = platform === 'ios' ? 'App Store' : platform === 'android' ? 'Google Play' : 'Stripe';
-  const manageUrl = platform === 'ios'
-    ? 'https://apps.apple.com/account/subscriptions'
-    : 'https://play.google.com/store/account/subscriptions';
+  const isWeb = true; // Always web platform
+  const platformName = 'Stripe';
+  const manageUrl = 'https://billing.stripe.com/p/login';
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -48,42 +40,28 @@ export const SettingsSubscription = () => {
   };
 
   const getTrialTimeRemaining = () => {
-    if (!trialEndsAt) return null;
+    if (!daysRemaining) return null;
     
-    const now = new Date();
-    const trialEnd = new Date(trialEndsAt);
-    const timeDiff = trialEnd.getTime() - now.getTime();
+    if (daysRemaining <= 0) return { expired: true, text: 'Trial expired' };
     
-    if (timeDiff <= 0) return { expired: true, text: 'Trial expired' };
-    
-    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
-    if (days > 0) {
-      return { 
-        expired: false, 
-        text: `${days} day${days > 1 ? 's' : ''}${hours > 0 ? ` and ${hours} hour${hours > 1 ? 's' : ''}` : ''} remaining` 
-      };
-    } else if (hours > 0) {
-      return { expired: false, text: `${hours} hour${hours > 1 ? 's' : ''} remaining` };
-    } else {
-      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-      return { expired: false, text: `${Math.max(1, minutes)} minute${minutes > 1 ? 's' : ''} remaining` };
-    }
+    return { 
+      expired: false, 
+      text: `${daysRemaining} day${daysRemaining > 1 ? 's' : ''} remaining` 
+    };
   };
 
   const getMemberSinceDate = () => {
-    if (!subscribed || !subscription_end_date) return null;
-    // Calculate member since date by going back one billing cycle (assuming monthly)
-    const renewalDate = new Date(subscription_end_date);
-    const memberSince = new Date(renewalDate);
-    memberSince.setMonth(memberSince.getMonth() - 1);
+    if (!hasPremiumFeatures) return null;
+    // For simplicity, estimate member since as 30 days ago
+    const memberSince = new Date();
+    memberSince.setDate(memberSince.getDate() - 30);
     return memberSince.toLocaleDateString();
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'active': return 'default';
+      case 'premium': 
+      case 'admin': return 'default';
       case 'trial': return 'secondary';
       case 'free': return 'outline';
       default: return 'outline';
@@ -92,7 +70,8 @@ export const SettingsSubscription = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active': return 'Active Subscription';
+      case 'premium': return 'Active Subscription';
+      case 'admin': return 'Admin Account';
       case 'trial': return 'Free Trial';
       case 'free': return 'Free Account';
       default: return status;
@@ -118,21 +97,17 @@ export const SettingsSubscription = () => {
   // Enhanced debug logging
   React.useEffect(() => {
     console.log('⚙️ SETTINGS SUBSCRIPTION RENDER DEBUG:', {
-      subscribed,
-      subscription_status,
-      inTrial,
-      trialEndsAt,
-      subscription_tier,
-      platform,
-      login_method,
+      hasPremiumFeatures,
+      access_level,
+      isTrial,
+      daysRemaining,
       isTestingMode,
       testRole,
-      debug,
-      computedAccountType: subscribed ? 'Premium User' : inTrial ? 'Free Trial' : 'Free User',
-      shouldShowTrial: inTrial && trialEndsAt,
+      computedAccountType: hasPremiumFeatures ? 'Premium User' : isTrial ? 'Free Trial' : 'Free User',
+      shouldShowTrial: isTrial && daysRemaining,
       timestamp: new Date().toISOString()
     });
-  }, [subscribed, subscription_status, inTrial, trialEndsAt, subscription_tier, platform, login_method, isTestingMode, testRole, debug]);
+  }, [hasPremiumFeatures, access_level, isTrial, daysRemaining, isTestingMode, testRole]);
 
   return (
     <div className="space-y-6">
@@ -171,7 +146,7 @@ export const SettingsSubscription = () => {
               <div>
                 <p className="font-medium">Account Type</p>
                 <p className="text-sm text-muted-foreground">
-                  {subscribed ? 'Premium User' : inTrial ? 'Free Trial' : 'Free User'}
+                  {hasPremiumFeatures ? 'Premium User' : isTrial ? 'Free Trial' : 'Free User'}
                   {isTestingMode && (
                     <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
                       (Real status, not test role)
@@ -179,13 +154,13 @@ export const SettingsSubscription = () => {
                   )}
                 </p>
               </div>
-              <Badge variant={getStatusBadgeVariant(subscription_status)}>
-                {getStatusLabel(subscription_status)}
+              <Badge variant={getStatusBadgeVariant(access_level)}>
+                {getStatusLabel(access_level)}
               </Badge>
             </div>
 
             {/* Trial Status */}
-            {inTrial && trialEndsAt && (() => {
+            {isTrial && daysRemaining && (() => {
               const timeRemaining = getTrialTimeRemaining();
               if (!timeRemaining) return null;
               
@@ -198,9 +173,9 @@ export const SettingsSubscription = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">Expires</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">Days Left</p>
                     <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                      {formatDate(trialEndsAt)}
+                      {daysRemaining}
                     </p>
                   </div>
                 </div>
@@ -208,7 +183,7 @@ export const SettingsSubscription = () => {
             })()}
 
             {/* Premium Member Info */}
-            {subscribed && subscription_end_date && (
+            {hasPremiumFeatures && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -220,15 +195,15 @@ export const SettingsSubscription = () => {
                 </div>
                 <div className="flex items-center justify-between py-2 px-3 bg-green-50 dark:bg-green-950 rounded-lg">
                   <div>
-                    <p className="font-medium text-green-800 dark:text-green-200">Next Renewal</p>
+                    <p className="font-medium text-green-800 dark:text-green-200">Active Subscription</p>
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      Your subscription renews automatically
+                      You have full access to premium features
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-green-600 dark:text-green-400">Date</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">Status</p>
                     <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                      {formatDate(subscription_end_date)}
+                      Active
                     </p>
                   </div>
                 </div>
@@ -240,52 +215,50 @@ export const SettingsSubscription = () => {
           <div className="grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg">
             <div>
               <p className="text-xs font-medium text-muted-foreground">Platform</p>
-              <Badge variant="outline" className="mt-1">{platform}</Badge>
+              <Badge variant="outline" className="mt-1">web</Badge>
             </div>
             <div>
               <p className="text-xs font-medium text-muted-foreground">Login Method</p>
-              <Badge variant="outline" className="mt-1">{login_method || 'email'}</Badge>
+              <Badge variant="outline" className="mt-1">email</Badge>
             </div>
           </div>
 
-          {/* Debug Section for Trial Issue */}
-          {debug && (
-            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border text-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-gray-600 dark:text-gray-400">Debug Info</span>
-                <Button
-                  onClick={() => {
-                    console.log('🔄 Manual cache clear requested');
-                    clearAllSubscriptionCache();
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  Refresh
-                </Button>
+          {/* Debug Section */}
+          <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-gray-600 dark:text-gray-400">Debug Info</span>
+              <Button
+                onClick={() => {
+                  console.log('🔄 Manual cache clear requested');
+                  clearAllSubscriptionCache();
+                }}
+                variant="outline"
+                size="sm"
+                className="h-6 px-2 text-xs"
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Refresh
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-gray-500">Trial:</span> {String(isTrial)}
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-gray-500">Trial:</span> {String(inTrial)}
-                </div>
-                <div>
-                  <span className="text-gray-500">Status:</span> {subscription_status}
-                </div>
-                <div>
-                  <span className="text-gray-500">Tier:</span> {subscription_tier}
-                </div>
-                <div>
-                  <span className="text-gray-500">Platform:</span> {platform}
-                </div>
+              <div>
+                <span className="text-gray-500">Access:</span> {access_level}
+              </div>
+              <div>
+                <span className="text-gray-500">Premium:</span> {String(hasPremiumFeatures)}
+              </div>
+              <div>
+                <span className="text-gray-500">Platform:</span> web
               </div>
             </div>
-          )}
+          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t">
-            {!subscribed ? (
+            {!hasPremiumFeatures ? (
               isWeb ? (
                 <Button 
                   onClick={createSubscription}

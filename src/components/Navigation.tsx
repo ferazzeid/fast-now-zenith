@@ -232,8 +232,8 @@ export const Navigation = () => {
                   )}
                   
                   {/* Trial countdown badge ONLY for Settings button */}
-                  {label === 'Settings' && inTrial && trialEndsAt && (
-                    <TrialTimerBadge trialEndsAt={trialEndsAt} />
+                  {label === 'Settings' && inTrial && daysRemaining && (
+                    <TrialTimerBadge daysRemaining={daysRemaining} />
                   )}
                   
                   {/* Connection status indicator ONLY for Settings button */}

@@ -1,27 +1,20 @@
 interface TrialTimerBadgeProps {
-  trialEndsAt: string;
+  daysRemaining: number | null;
   className?: string;
 }
 
-export const TrialTimerBadge = ({ trialEndsAt, className = "" }: TrialTimerBadgeProps) => {
+export const TrialTimerBadge = ({ daysRemaining, className = "" }: TrialTimerBadgeProps) => {
   const getTrialInfo = () => {
-    const now = new Date();
-    const trialEnd = new Date(trialEndsAt);
-    const timeDiff = trialEnd.getTime() - now.getTime();
-    
-    if (timeDiff <= 0) {
+    if (!daysRemaining || daysRemaining <= 0) {
       return { text: '0d', urgency: 'expired', expired: true };
     }
     
-    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
     let urgency: 'low' | 'medium' | 'high' | 'critical' = 'low';
-    if (days <= 1) urgency = 'critical';
-    else if (days <= 3) urgency = 'high';
-    else if (days <= 7) urgency = 'medium';
+    if (daysRemaining <= 1) urgency = 'critical';
+    else if (daysRemaining <= 3) urgency = 'high';
+    else if (daysRemaining <= 7) urgency = 'medium';
     
-    const text = days > 0 ? `${days}d` : `${hours}h`;
+    const text = `${daysRemaining}d`;
     
     return { text, urgency, expired: false };
   };
