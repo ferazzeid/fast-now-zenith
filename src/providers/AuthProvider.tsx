@@ -2,6 +2,7 @@ import { ReactNode, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStateMonitor } from '@/hooks/useAuthStateMonitor';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const initialize = useAuthStore(state => state.initialize);
   const startMonitoring = useConnectionStore(state => state.startMonitoring);
   const stopMonitoring = useConnectionStore(state => state.stopMonitoring);
+  const { startMonitoring: startAuthMonitoring, stopMonitoring: stopAuthMonitoring } = useAuthStateMonitor();
   
   useEffect(() => {
     // Initialize auth and connection monitoring with coordination
@@ -28,6 +30,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         // Then initialize auth
         await initialize();
+        
+        // Start auth state monitoring
+        startAuthMonitoring();
         
         (window as any).__initializingApp = false;
       } catch (error) {
@@ -53,6 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Cleanup on unmount
     return () => {
       stopMonitoring();
+      stopAuthMonitoring();
       
       // Clean up auth subscription
       const subscription = (window as any).__authSubscription;
@@ -61,7 +67,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         delete (window as any).__authSubscription;
       }
     };
-  }, [initialize, startMonitoring, stopMonitoring, toast]);
+  }, [initialize, startMonitoring, stopMonitoring, startAuthMonitoring, stopAuthMonitoring, toast]);
 
   return <>{children}</>;
 };

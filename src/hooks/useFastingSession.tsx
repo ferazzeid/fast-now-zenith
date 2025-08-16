@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useSessionValidator } from '@/hooks/useSessionValidator';
 import { persistFastingSession, getPersistedFastingSession } from '@/utils/timerPersistence';
 
 export interface FastingSession {
@@ -21,6 +22,7 @@ export const useFastingSession = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { withValidSession } = useSessionValidator();
 
   // Load active session on mount with proper user dependency
   const loadActiveSession = useCallback(async () => {
@@ -85,117 +87,121 @@ export const useFastingSession = () => {
   }, [user, loadActiveSession]);
 
   const startFastingSession = useCallback(async (goalDurationSeconds: number, customStartTime?: Date) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to start a fasting session",
-        variant: "destructive",
-      });
-      return null;
-    }
+    return withValidSession(async () => {
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to start a fasting session",
+          variant: "destructive",
+        });
+        return null;
+      }
 
-    setLoading(true);
-    try {
-      // End any existing active sessions first
-      await supabase
-        .from('fasting_sessions')
-        .update({ 
-          status: 'cancelled',
-          end_time: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .eq('status', 'active');
+      setLoading(true);
+      try {
+        // End any existing active sessions first
+        await supabase
+          .from('fasting_sessions')
+          .update({ 
+            status: 'cancelled',
+            end_time: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('status', 'active');
 
-      // Use custom start time or current time
-      const startTime = customStartTime ? customStartTime.toISOString() : new Date().toISOString();
+        // Use custom start time or current time
+        const startTime = customStartTime ? customStartTime.toISOString() : new Date().toISOString();
 
-      // Create new session
-      const { data, error } = await supabase
-        .from('fasting_sessions')
-        .insert([
-          {
-            user_id: user.id,
-            start_time: startTime,
-            goal_duration_seconds: goalDurationSeconds,
-            status: 'active'
-          }
-        ])
-        .select()
-        .single();
+        // Create new session
+        const { data, error } = await supabase
+          .from('fasting_sessions')
+          .insert([
+            {
+              user_id: user.id,
+              start_time: startTime,
+              goal_duration_seconds: goalDurationSeconds,
+              status: 'active'
+            }
+          ])
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const session = data as FastingSession;
-      setCurrentSession(session);
-      
-      // Persist to local storage
-      persistFastingSession({
-        id: session.id,
-        start_time: session.start_time,
-        goal_duration_seconds: session.goal_duration_seconds,
-        status: session.status,
-        user_id: session.user_id,
-      });
-      
-      return session;
-    } catch (error) {
-      console.error('Error starting fasting session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start fasting session",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [user, toast]);
+        const session = data as FastingSession;
+        setCurrentSession(session);
+        
+        // Persist to local storage
+        persistFastingSession({
+          id: session.id,
+          start_time: session.start_time,
+          goal_duration_seconds: session.goal_duration_seconds,
+          status: session.status,
+          user_id: session.user_id,
+        });
+        
+        return session;
+      } catch (error) {
+        console.error('Error starting fasting session:', error);
+        toast({
+          title: "Error",
+          description: "Failed to start fasting session",
+          variant: "destructive",
+        });
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    }, 'Start Fasting Session');
+  }, [user, toast, withValidSession]);
 
   const endFastingSession = useCallback(async (sessionId?: string) => {
-    if (!user) return null;
+    return withValidSession(async () => {
+      if (!user) return null;
 
-    const targetSessionId = sessionId || currentSession?.id;
-    if (!targetSessionId) return null;
+      const targetSessionId = sessionId || currentSession?.id;
+      if (!targetSessionId) return null;
 
-    setLoading(true);
-    try {
-      const endTime = new Date().toISOString();
-      const startTime = currentSession?.start_time || new Date().toISOString();
-      const durationSeconds = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
-      
-      // When manually ending a session, determine status based on whether goal was reached
-      const goalDurationSeconds = currentSession?.goal_duration_seconds || 0;
-      const status = durationSeconds >= goalDurationSeconds ? 'completed' : 'cancelled';
+      setLoading(true);
+      try {
+        const endTime = new Date().toISOString();
+        const startTime = currentSession?.start_time || new Date().toISOString();
+        const durationSeconds = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
+        
+        // When manually ending a session, determine status based on whether goal was reached
+        const goalDurationSeconds = currentSession?.goal_duration_seconds || 0;
+        const status = durationSeconds >= goalDurationSeconds ? 'completed' : 'cancelled';
 
-      const { data, error } = await supabase
-        .from('fasting_sessions')
-        .update({
-          status,
-          end_time: endTime,
-          duration_seconds: durationSeconds
-        })
-        .eq('id', targetSessionId)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        const { data, error } = await supabase
+          .from('fasting_sessions')
+          .update({
+            status,
+            end_time: endTime,
+            duration_seconds: durationSeconds
+          })
+          .eq('id', targetSessionId)
+          .eq('user_id', user.id)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setCurrentSession(null);
-      persistFastingSession(null); // Clear persisted session
-      return data;
-    } catch (error) {
-      console.error('Error ending fasting session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to end fasting session",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession, toast]);
+        setCurrentSession(null);
+        persistFastingSession(null); // Clear persisted session
+        return data;
+      } catch (error) {
+        console.error('Error ending fasting session:', error);
+        toast({
+          title: "Error",
+          description: "Failed to end fasting session",
+          variant: "destructive",
+        });
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    }, 'End Fasting Session');
+  }, [user, currentSession, toast, withValidSession]);
 
   const cancelFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;
