@@ -100,9 +100,9 @@ export const useProfile = () => {
 
       console.log('Profile loaded successfully:', data);
       
-      // Cache the profile data for 24 hours
+      // SYNCHRONIZED: Cache the profile data for 1 hour (aligned with useAccess)
       if (data) {
-        cacheProfile(user.id, data, 24);
+        cacheProfile(user.id, data, 1);
       }
       
       setProfile(data || null);
@@ -182,8 +182,8 @@ export const useProfile = () => {
         localStorage.removeItem(`dedupe_${dedupeKey}`);
       }
       
-      // Update cache with new data immediately
-      cacheProfile(user.id, data, 24);
+      // SYNCHRONIZED: Update cache with new data immediately (1 hour cache)
+      cacheProfile(user.id, data, 1);
 
       return { data, error: null };
     } catch (error: any) {

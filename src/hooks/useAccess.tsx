@@ -20,16 +20,7 @@ export interface AccessData {
 }
 
 const fetchAccessData = async (userId: string): Promise<AccessData> => {
-  // Check admin role first
-  const { data: roleData } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .eq('role', 'admin')
-    .maybeSingle();
-
-  const isAdminInDB = !!roleData;
-
+  // UNIFIED SYSTEM: Only check profiles.access_level (no more user_roles checking)
   const { data, error } = await supabase
     .from('profiles')
     .select('access_level, premium_expires_at')
@@ -38,13 +29,8 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 
   if (error) throw error;
 
-  let access_level = data?.access_level || 'free';
+  const access_level = data?.access_level || 'free';
   const premium_expires_at = data?.premium_expires_at;
-  
-  // Override with admin if found in user_roles
-  if (isAdminInDB) {
-    access_level = 'admin';
-  }
   
   // Check if premium access is expired
   const isExpired = premium_expires_at ? new Date(premium_expires_at) < new Date() : false;
@@ -79,8 +65,8 @@ export const useAccess = () => {
     queryKey: ['access', user?.id],
     queryFn: () => fetchAccessData(user!.id),
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute (synchronized with auth timeout)
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Default data for unauthenticated users

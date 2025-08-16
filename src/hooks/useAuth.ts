@@ -1,11 +1,13 @@
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
 
 export const useAuth = () => {
   const { toast } = useToast();
   const authState = useAuthStore();
   const { isOnline } = useConnectionStore();
+  const { clearAllAuthCaches, refreshAuthData } = useAuthCacheManager();
 
   // Create wrapped auth methods that handle toasts and offline queueing
   const signIn = async (email: string, password: string) => {
@@ -19,6 +21,14 @@ export const useAuth = () => {
           variant: "destructive",
         });
       } else {
+        // Clear old caches and refresh auth data on successful sign in
+        clearAllAuthCaches();
+        setTimeout(() => {
+          if (authState.user?.id) {
+            refreshAuthData(authState.user.id);
+          }
+        }, 100);
+        
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in.",
@@ -153,6 +163,9 @@ export const useAuth = () => {
 
   const signOut = async () => {
     const operation = async () => {
+      // Clear all caches before signing out
+      clearAllAuthCaches();
+      
       const result = await authState.signOut();
       
       if (result?.error) {

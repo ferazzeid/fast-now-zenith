@@ -133,6 +133,19 @@ export const useAuthStore = create<AuthState>()(
         const { error } = await supabase.auth.signOut();
         if (!error) {
           set({ user: null, session: null });
+          
+          // Clear all authentication caches on sign out
+          if (typeof window !== 'undefined') {
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('cache_profile_') || 
+                  key.startsWith('dedupe_profile_') ||
+                  key.startsWith('cache_access_') ||
+                  key.startsWith('dedupe_access_')) {
+                localStorage.removeItem(key);
+              }
+            });
+          }
         }
         return { error };
       },
@@ -143,10 +156,10 @@ export const useAuthStore = create<AuthState>()(
         set({ connectionChecking: true });
         
         try {
-          // Timeout connection check to prevent hanging
+          // REDUCED TIMEOUT: Quick connection check to prevent auth timeouts
           const connectionPromise = supabase.from('profiles').select('id').limit(1);
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Connection timeout')), 5000)
+            setTimeout(() => reject(new Error('Connection timeout')), 2000) // Reduced from 5s to 2s
           );
           
           const { error } = await Promise.race([connectionPromise, timeoutPromise]) as any;
