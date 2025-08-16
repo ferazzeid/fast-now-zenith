@@ -379,7 +379,7 @@ const FoodTracking = () => {
               <Brain className="w-6 h-6 mr-2" />
               Food Tracking
             </h1>
-            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
+            <p className="text-sm text-muted-foreground">Lock your food intake</p>
           </div>
         </div>
 
@@ -1035,7 +1035,7 @@ const FoodTracking = () => {
         title="Food History"
         size="lg"
       >
-        <FoodHistory onClose={() => setShowHistory(false)} />
+        <FoodHistory onClose={() => setShowHistory(false)} onCopySuccess={refreshFoodEntries} />
       </UniversalModal>
 
       <UniversalModal

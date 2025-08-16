@@ -37,9 +37,10 @@ interface DailySummary {
 
 interface FoodHistoryProps {
   onClose: () => void;
+  onCopySuccess?: () => void;
 }
 
-export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
+export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
   const [dailySummaries, setDailySummaries] = useState<DailySummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
@@ -350,6 +351,10 @@ export const FoodHistory = ({ onClose }: FoodHistoryProps) => {
                           e.stopPropagation();
                           const result = await copyDayToToday(summary.date);
                           if (result?.success) {
+                            // Trigger refresh in parent component
+                            if (onCopySuccess) {
+                              onCopySuccess();
+                            }
                             onClose(); // Close the history modal after successful copy
                           }
                         }}
