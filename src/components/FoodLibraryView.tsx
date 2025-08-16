@@ -599,7 +599,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     return (
       <div 
-        className={`p-3 mx-2 rounded-lg transition-all duration-200 cursor-pointer bg-card border border-ceramic-rim hover:bg-ceramic-base ${
+        className={`p-2 mx-2 rounded-lg transition-all duration-200 cursor-pointer bg-card border border-ceramic-rim hover:bg-ceramic-base ${
           isFlashing ? 'animate-success-flash' : ''
         }`}
         onClick={handleCardClick}
