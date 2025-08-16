@@ -5,6 +5,7 @@ import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
+import { PremiumAccessAuditReport } from "@/components/PremiumAccessAuditReport";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConnectionStore } from "@/stores/connectionStore";
@@ -91,6 +92,11 @@ export default function AdminDev() {
           </Alert>
 
           <AdminRoleTester />
+        </section>
+
+        <section aria-label="Premium Access Audit" className="space-y-4">
+          <h2 className="text-xl font-semibold">Premium Access Audit</h2>
+          <PremiumAccessAuditReport />
         </section>
 
         <section aria-label="Animation Settings" className="space-y-4">

@@ -185,9 +185,15 @@ export const Navigation = () => {
                 }
               };
 
-              // Handle Food button click for premium gating
+              // Handle premium gating for Food navigation with role testing support
+              const { access_level: effectiveAccessLevel, hasPremiumFeatures: effectiveHasPremiumFeatures, testRole, isTestingMode } = useAccess();
+              
+              // Use test role if in testing mode, otherwise use actual access level
+              const currentAccessLevel = isTestingMode ? testRole : effectiveAccessLevel;
+              const currentHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : effectiveHasPremiumFeatures;
+              
               const handleFoodClick = (e: React.MouseEvent) => {
-                const hasAccess = access_level !== 'free';
+                const hasAccess = currentAccessLevel !== 'free' || currentHasPremiumFeatures;
                 if (!hasAccess && label === 'Food') {
                   e.preventDefault();
                   e.stopPropagation();
@@ -196,7 +202,7 @@ export const Navigation = () => {
                 }
               };
               
-              const hasAccess = access_level !== 'free';
+              const hasAccess = currentAccessLevel !== 'free' || currentHasPremiumFeatures;
               const isLocked = label === 'Food' && !hasAccess;
               
               const content = (

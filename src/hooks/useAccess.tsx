@@ -9,6 +9,7 @@ export interface AccessData {
   hasAccess: boolean;
   hasPremiumFeatures: boolean;
   isAdmin: boolean;
+  originalIsAdmin?: boolean; // CRITICAL: Preserves original admin status during role testing
   isTrial: boolean;
   isPremium: boolean;
   isFree: boolean;
@@ -138,6 +139,7 @@ export const useAccess = () => {
       hasAccess: testAccessLevel !== 'free',
       hasPremiumFeatures: testAccessLevel !== 'free',
       isAdmin: testAccessLevel === 'admin',
+      originalIsAdmin: actualData.isAdmin, // CRITICAL: Preserve original admin status
       isTrial: false,
       isPremium: testAccessLevel === 'premium',
       isFree: testAccessLevel === 'free',
@@ -165,6 +167,7 @@ export const useAccess = () => {
 
   return {
     ...actualData,
+    originalIsAdmin: actualData.isAdmin, // CRITICAL: Always preserve original admin status
     // Role testing functions
     setTestRole,
     testRole,
