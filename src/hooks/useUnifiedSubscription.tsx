@@ -112,6 +112,16 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
       throw profileError;
     }
 
+    // Check if user is admin first - admin overrides everything
+    const { data: isAdminUser, error: adminError } = await supabase.rpc('has_role', { 
+      _user_id: userId, 
+      _role: 'admin' 
+    });
+
+    if (adminError) {
+      console.warn('Failed to check admin role:', adminError);
+    }
+
     // Get request limits from settings
     const { data: settings } = await supabase
       .from('shared_settings')
@@ -121,28 +131,65 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
 
     const freeLimit = settings?.setting_value ? parseInt(settings.setting_value) : 5;
 
-    // Determine subscription status
-    const now = new Date();
-    const subscriptionEndDate = profile?.subscription_end_date ? new Date(profile.subscription_end_date) : null;
-    const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
-
-    // Check if in trial - be more explicit about trial detection
-    const inTrial = trialEndDate ? trialEndDate > now : false;
-    
-    // Removed noisy trial detection debug logging
-    
-    // Check if subscribed (active subscription or platform-specific)
+    // PRIORITY HIERARCHY: Admin > Active Subscription > Trial > Free
     let subscribed = false;
     let subscription_status = 'free';
-    
-    // Priority: Active subscription > Trial > Free
-    if (profile?.subscription_status === 'active' && subscriptionEndDate && subscriptionEndDate > now) {
+    let userTier = 'free_user';
+    let isPaidUser = false;
+    let hasPremiumFeatures = false;
+    let displayTier = 'free';
+    let inTrial = false;
+    let requestLimit = freeLimit;
+
+    if (isAdminUser) {
+      // Admin users get full premium access, no trial confusion
       subscribed = true;
-      subscription_status = 'active';
-    } else if (inTrial) {
-      subscription_status = 'trial'; // Force trial status when in trial period
+      subscription_status = 'admin';
+      userTier = 'paid_user';
+      isPaidUser = true;
+      hasPremiumFeatures = true;
+      displayTier = 'admin';
+      inTrial = false; // Admins don't need trials
+      requestLimit = 10000; // High limit for admins
+      
+      console.log('🔐 Admin user detected - full premium access granted');
     } else {
-      subscription_status = 'free';
+      // Non-admin users follow normal subscription logic
+      const now = new Date();
+      const subscriptionEndDate = profile?.subscription_end_date ? new Date(profile.subscription_end_date) : null;
+      const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+
+      // Check if in trial
+      inTrial = trialEndDate ? trialEndDate > now : false;
+      
+      // Use user_tier from database as source of truth
+      userTier = profile?.user_tier || 'free_user';
+      
+      // Priority: Active subscription > Trial > Free
+      if (profile?.subscription_status === 'active' && subscriptionEndDate && subscriptionEndDate > now) {
+        subscribed = true;
+        subscription_status = 'active';
+        isPaidUser = true;
+        hasPremiumFeatures = true;
+        displayTier = 'paid';
+        requestLimit = 1000;
+      } else if (inTrial) {
+        subscription_status = 'trial';
+        isPaidUser = false; // Still not paid, just in trial
+        hasPremiumFeatures = true; // Has access during trial
+        displayTier = 'paid';
+        requestLimit = 1000;
+      } else if (userTier === 'paid_user') {
+        // User has paid tier status (e.g., from platform subscription)
+        isPaidUser = true;
+        hasPremiumFeatures = true;
+        displayTier = 'paid';
+        requestLimit = 1000;
+      } else {
+        subscription_status = 'free';
+        displayTier = 'free';
+        requestLimit = freeLimit;
+      }
     }
 
     // Platform-specific subscription check
@@ -150,19 +197,6 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
       (platform === 'android' && profile?.google_play_purchase_token) ||
       (platform === 'ios' && profile?.apple_transaction_id) ||
       (platform === 'web' && profile?.stripe_customer_id && subscribed);
-
-    // Fix: Use user_tier from database as source of truth, not subscription_tier
-    const userTier = profile?.user_tier || 'free_user';
-    const dbSubscriptionTier = profile?.subscription_tier || 'free';
-    
-    // User is paid if they have active subscription OR in trial OR user_tier is paid_user
-    // BUT: When testing roles, trial status should still show (trials are tied to actual account)
-    const isPaidUser = subscribed || inTrial || userTier === 'paid_user';
-    const hasPremiumFeatures = isPaidUser;
-    
-    // Return the database subscription_tier but use user_tier for paid status
-    // For role testing: Keep trial info visible even when testing as free_user
-    const displayTier = isPaidUser ? 'paid' : 'free';
 
     // Get auth provider info
     const { data: { user } } = await supabase.auth.getUser();
@@ -176,7 +210,7 @@ const fetchUnifiedSubscriptionData = async (userId: string, sessionToken?: strin
       inTrial,
       trialEndsAt: profile?.trial_ends_at,
       requests_used: 0, // Will be fetched separately if needed
-      request_limit: isPaidUser ? 1000 : freeLimit,
+      request_limit: requestLimit, // Use the calculated request limit
       isPaidUser,
       hasPremiumFeatures,
       platform,
