@@ -215,10 +215,14 @@ export const AIVoiceButton = () => {
   // Function execution handlers - Actually perform the requested actions
   const handleAddMultipleFoods = async (args: any): Promise<string> => {
     const foods = args?.foods || [];
+    console.log('🍽️ handleAddMultipleFoods called with:', foods);
+    
     if (foods.length === 0) return 'No foods to add.';
 
     try {
       for (const food of foods) {
+        console.log('🍽️ Adding food:', food);
+        
         const { data, error } = await supabase
           .from('food_entries')
           .insert({
@@ -229,10 +233,16 @@ export const AIVoiceButton = () => {
             carbs: food.carbs || 0,
             protein: food.protein || 0,
             fat: food.fat || 0,
-            fiber: food.fiber || 0
+            fiber: food.fiber || 0,
+            source_date: new Date().toISOString().split('T')[0] // Add today's date
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('🍽️ Supabase insertion error:', error);
+          throw error;
+        }
+        
+        console.log('🍽️ Successfully inserted food:', data);
       }
 
       // Refresh food context after adding
@@ -243,8 +253,8 @@ export const AIVoiceButton = () => {
       
       return `Added ${foodList} - ${totalCalories} calories total`;
     } catch (error) {
-      console.error('Error adding foods:', error);
-      return 'Sorry, I had trouble adding those foods. Please try again.';
+      console.error('🍽️ Error adding foods:', error);
+      return `Sorry, I had trouble adding those foods. Error: ${error.message || 'Unknown error'}`;
     }
   };
 
