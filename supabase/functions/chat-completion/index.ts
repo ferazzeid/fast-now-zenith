@@ -243,6 +243,8 @@ When explaining app calculations, use the exact formulas and constants above. He
       ...messages.slice(1)
     ];
 
+    console.log('🤖 Calling OpenAI with messages:', messages.slice(-2)); // Log last 2 messages for debugging
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -835,6 +837,7 @@ When explaining app calculations, use the exact formulas and constants above. He
     } else {
       // Return non-streaming response
       const result = await response.json();
+      console.log('🔍 OpenAI Response:', JSON.stringify(result, null, 2));
       
       // Check if there's a function call in the response
       let functionCall = null;
@@ -850,6 +853,8 @@ When explaining app calculations, use the exact formulas and constants above. He
       
       // Format response to match expected structure
       let completion = result.choices?.[0]?.message?.content || '';
+      console.log('🎯 Extracted completion:', completion);
+      console.log('🔧 Function call detected:', functionCall);
       
       // Round decimal numbers for calories and carbs to whole numbers
       completion = completion.replace(/(\d+)\.(\d+)\s*(calories?|cal|carbs?|grams?)/gi, (match, whole, decimal, unit) => {
@@ -860,6 +865,8 @@ When explaining app calculations, use the exact formulas and constants above. He
         completion: completion,
         functionCall: functionCall
       };
+      
+      console.log('📦 Final formatted result:', formattedResult);
       
       return new Response(
         JSON.stringify(formattedResult),

@@ -264,6 +264,7 @@ const AiChat = () => {
   };
 
   const sendToAI = async (message: string, fromVoice = false) => {
+    console.log('🎯 SendToAI called with:', { message, fromVoice });
     setIsProcessing(true);
 
     try {
@@ -305,6 +306,7 @@ Current context: ${contextString}
 
 Be conversational, supportive, and helpful. When users mention motivators or inspiration, use the create_motivator tool.`;
 
+      console.log('🚀 Calling chat-completion function...');
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { 
           message: `${contextString}${message}`,
@@ -316,9 +318,26 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
         headers: {}
       });
 
-      if (error) throw error;
+      console.log('📦 Response from chat-completion:', { data, error });
 
-      if (data.completion) {
+      if (error) {
+        console.error('❌ Supabase function error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.error('❌ No data returned from function');
+        await addMessage({
+          role: 'assistant',
+          content: "I'm having trouble responding right now. Please try again.",
+          timestamp: new Date(),
+        });
+        return;
+      }
+
+      // Check if we have a completion
+      if (data.completion && data.completion.trim()) {
+        console.log('✅ Adding AI response:', data.completion);
         await addMessage({
           role: 'assistant',
           content: data.completion,
@@ -330,10 +349,13 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
         if (audioEnabled && fromVoice) {
           await playTextAsAudio(data.completion);
         }
+      } else {
+        console.log('⚠️ No completion in response data');
       }
 
       // Handle function call results
       if (data.functionCall) {
+        console.log('🔧 Function call detected:', data.functionCall);
         if (data.functionCall.name === 'create_motivator') {
           const args = data.functionCall.arguments;
           try {
@@ -358,10 +380,22 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
             });
           }
         }
+      } else if (!data.completion || !data.completion.trim()) {
+        console.log('⚠️ No completion and no function call - adding fallback message');
+        await addMessage({
+          role: 'assistant',
+          content: "I received your message but I'm having trouble generating a response. Please try again.",
+          timestamp: new Date(),
+        });
       }
 
     } catch (error) {
-      console.error('Error sending message to AI:', error);
+      console.error('💥 Error in sendToAI:', error);
+      await addMessage({
+        role: 'assistant',
+        content: "I'm experiencing technical difficulties. Please try again in a moment.",
+        timestamp: new Date(),
+      });
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -369,6 +403,7 @@ Be conversational, supportive, and helpful. When users mention motivators or ins
       });
     } finally {
       setIsProcessing(false);
+      console.log('🏁 SendToAI finished processing');
     }
   };
 
