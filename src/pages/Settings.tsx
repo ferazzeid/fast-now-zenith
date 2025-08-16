@@ -344,7 +344,7 @@ const Settings = () => {
           </div>
 
             {/* User Profile */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -487,7 +487,7 @@ const Settings = () => {
             </Button>
 
             {/* Account Section - moved up (2nd priority) */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <User className="w-5 h-5 text-primary" />
@@ -580,7 +580,7 @@ const Settings = () => {
             </Card>
 
             {/* Appearance Section - moved up (3rd priority) */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Palette className="w-5 h-5 text-primary" />
@@ -595,7 +595,7 @@ const Settings = () => {
 
 
             {/* Account Management - moved down (5th priority) */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim border-destructive/20">
+            <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <AlertTriangle className="w-5 h-5 text-destructive" />
@@ -672,7 +672,7 @@ const Settings = () => {
 
 
             {/* About */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Info className="w-5 h-5 text-primary" />
@@ -696,7 +696,7 @@ const Settings = () => {
               </Card>
 
             {/* Legal */}
-            <Card className="p-6 bg-ceramic-plate border-ceramic-rim">
+            <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Shield className="w-5 h-5 text-primary" />
