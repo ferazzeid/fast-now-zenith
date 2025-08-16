@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useAccess } from '@/hooks/useAccess';
 
 interface AIRequestLimitErrorProps {
   error: any;
@@ -60,7 +60,7 @@ export const showFoodTrackingLimitError = (toast: any, createSubscription: () =>
 
 export const AIRequestLimitToast: React.FC<AIRequestLimitErrorProps> = ({ error }) => {
   const { toast } = useToast();
-  const { createSubscription } = useSubscription();
+  const { createSubscription } = useAccess();
 
   React.useEffect(() => {
     showAIRequestLimitError(error, toast, createSubscription);

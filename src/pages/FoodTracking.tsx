@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { useProfile } from '@/hooks/useProfile';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
@@ -57,8 +57,8 @@ const FoodTracking = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { profile, updateProfile } = useProfile();
-  const { subscribed, hasPremiumFeatures } = useSubscription();
-  const isSubscriptionActive = subscribed || hasPremiumFeatures;
+  const { hasAccess, hasPremiumFeatures } = useAccess();
+  const isSubscriptionActive = hasAccess || hasPremiumFeatures;
   const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { 

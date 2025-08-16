@@ -2,7 +2,7 @@ import React from 'react';
 import { Crown, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { useToast } from '@/hooks/use-toast';
 
 interface PremiumUpgradeModalProps {
@@ -12,7 +12,7 @@ interface PremiumUpgradeModalProps {
 }
 
 export const PremiumUpgradeModal = ({ isOpen, onClose, feature }: PremiumUpgradeModalProps) => {
-  const { createSubscription, inTrial } = useSubscription();
+  const { createSubscription, isTrial } = useAccess();
   const { toast } = useToast();
 
   const handleUpgrade = async () => {
@@ -64,7 +64,7 @@ export const PremiumUpgradeModal = ({ isOpen, onClose, feature }: PremiumUpgrade
 
           {/* Content */}
           <p className="text-sm text-muted-foreground text-center">
-            {inTrial 
+            {isTrial 
               ? "This feature requires a premium subscription."
               : "Your trial has expired. Upgrade to premium to access this feature."
             }
