@@ -27,7 +27,21 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
     .eq('user_id', userId)
     .single();
 
-  if (error) throw error;
+  // Handle RLS failures gracefully - return safe defaults instead of throwing
+  if (error) {
+    console.log('🔒 RLS blocked profiles query (likely auth.uid() is null) - returning safe defaults');
+    return {
+      access_level: 'free',
+      premium_expires_at: null,
+      hasAccess: false,
+      hasPremiumFeatures: false,
+      isAdmin: false,
+      isTrial: false,
+      isPremium: false,
+      isFree: true,
+      daysRemaining: null
+    };
+  }
 
   const access_level = data?.access_level || 'free';
   const premium_expires_at = data?.premium_expires_at;
