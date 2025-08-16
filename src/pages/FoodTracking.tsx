@@ -504,9 +504,9 @@ const FoodTracking = () => {
               ) : (
                 <div className="space-y-1">
                   {todayEntries.map((entry) => (
-                     <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-muted/20 border border-ceramic-rim ${
-                       entry.consumed ? 'opacity-60' : ''
-                     }`}>
+                    <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim ${
+                      entry.consumed ? 'opacity-60' : ''
+                    }`}>
                       <div className="flex items-center gap-2">
                         
                         {/* More Options Menu - Moved to beginning */}
@@ -763,7 +763,7 @@ const FoodTracking = () => {
                       {templateFoods.map((food) => {
                         const foodId = food.id;
                         return (
-                          <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-muted/20 border border-ceramic-rim">
+                          <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
                             <div className="flex items-center gap-2">
                               
                               {/* More Options Menu - Moved to beginning */}
