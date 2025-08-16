@@ -40,10 +40,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
       if (!user) return;
       
       try {
-        const { data, error } = await supabase.rpc('has_role', {
-          _user_id: user.id,
-          _role: 'admin'
-        });
+        const { data, error } = await supabase.rpc('is_current_user_admin');
         
         if (error) throw error;
         setIsAdmin(data || false);

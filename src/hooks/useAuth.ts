@@ -9,12 +9,25 @@ export const useAuth = () => {
   const { isOnline } = useConnectionStore();
   const { clearAllAuthCaches, refreshAuthData } = useAuthCacheManager();
 
-  // Create wrapped auth methods that handle toasts and offline queueing
+  // Enhanced auth methods with session recovery and better error handling
   const signIn = async (email: string, password: string) => {
     const operation = async () => {
       const result = await authState.signIn(email, password);
       
       if (result.error) {
+        // Check if it's a session-related error
+        if (result.error.message?.includes('session') || result.error.message?.includes('token')) {
+          // Attempt session recovery
+          const recovered = await authState.recoverSession();
+          if (recovered) {
+            toast({
+              title: "Session Recovered",
+              description: "Your session has been restored.",
+            });
+            return { error: null };
+          }
+        }
+        
         toast({
           title: "Sign In Failed",
           description: result.error.message,
@@ -186,6 +199,21 @@ export const useAuth = () => {
     return await operation();
   };
 
+  // Session health monitoring
+  const checkSessionHealth = async () => {
+    if (!authState.session) return false;
+    
+    const now = Date.now();
+    const lastCheck = authState.lastSessionCheck;
+    
+    // Check session health every 5 minutes
+    if (now - lastCheck > 5 * 60 * 1000) {
+      return await authState.recoverSession();
+    }
+    
+    return true;
+  };
+
   return {
     user: authState.user,
     session: authState.session,
@@ -196,5 +224,9 @@ export const useAuth = () => {
     signInWithGoogle,
     resetPassword,
     updatePassword,
+    checkSessionHealth,
+    recoverSession: authState.recoverSession,
+    forceRefreshSession: authState.forceRefreshSession,
+    isRecoveringSession: authState.isRecoveringSession,
   };
 };

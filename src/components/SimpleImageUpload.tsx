@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { uploadImageToCloud } from '@/utils/imageUtils';
 import { useAccess } from '@/hooks/useAccess';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -19,6 +20,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
   const { toast } = useToast();
   const { user } = useAuth();
   const { hasPremiumFeatures } = useAccess();
+  const { withSessionGuard } = useSessionGuard();
   const isMobile = useIsMobile();
 
   const handleFileSelect = () => {
@@ -37,15 +39,6 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Please sign in to upload images",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -66,42 +59,46 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
       return;
     }
 
-    setIsUploading(true);
+    // Use session guard to protect the upload operation
+    await withSessionGuard(async () => {
+      setIsUploading(true);
 
-    try {
-      // Premium users only - cloud storage
-      if (!hasPremiumFeatures) {
+      try {
+        // Premium users only - cloud storage
+        if (!hasPremiumFeatures) {
+          toast({
+            title: "Premium Required",
+            description: "Image uploads are only available for premium users",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const result = await uploadImageToCloud(file, user!.id, supabase);
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Upload failed');
+        }
+
+        onImageUpload(result.url);
+        
         toast({
-          title: "Premium Required",
-          description: "Image uploads are only available for premium users",
+          title: "Success",
+          description: "Image uploaded successfully",
+        });
+
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to upload image",
           variant: "destructive",
         });
-        return;
+        throw error; // Re-throw to let session guard handle it
+      } finally {
+        setIsUploading(false);
       }
-
-      const result = await uploadImageToCloud(file, user.id, supabase);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Upload failed');
-      }
-
-      onImageUpload(result.url);
-      
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      });
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload image",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+    }, 'Image Upload');
   };
 
   return (

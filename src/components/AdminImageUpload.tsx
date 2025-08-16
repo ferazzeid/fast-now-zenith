@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { deleteImageFromStorage } from '@/utils/imageUtils';
 
 interface AdminImageUploadProps {
@@ -21,18 +22,11 @@ export const AdminImageUpload = ({
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { withSessionGuard } = useSessionGuard();
 
   const handleFileSelect = async (file: File) => {
     if (!file) return;
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Please sign in to upload images",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -53,80 +47,84 @@ export const AdminImageUpload = ({
       return;
     }
 
-    setIsUploading(true);
+    // Use session guard to protect the upload operation
+    await withSessionGuard(async () => {
+      setIsUploading(true);
 
-    try {
-      // Delete old image first (non-blocking)
-      if (currentImageUrl) {
-        const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
-        if (!deleteResult.success) {
-          console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
+      try {
+        // Delete old image first (non-blocking)
+        if (currentImageUrl) {
+          const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
+          if (!deleteResult.success) {
+            console.warn('Failed to delete old image (continuing with upload):', deleteResult.error);
+          }
         }
-      }
-      
-      // Generate unique filename for admin goal ideas
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}-admin-goal.${fileExt}`;
-      
-      console.log('🔄 Uploading admin goal image to:', fileName);
-      console.log('📊 File size:', file.size, 'bytes');
-      console.log('📄 File type:', file.type);
+        
+        // Generate unique filename for admin goal ideas
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user!.id}/${Date.now()}-admin-goal.${fileExt}`;
+        
+        console.log('🔄 Uploading admin goal image to:', fileName);
+        console.log('📊 File size:', file.size, 'bytes');
+        console.log('📄 File type:', file.type);
 
-      // Upload to Supabase Storage (motivator-images bucket)
-      const { data, error } = await supabase.storage
-        .from('motivator-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
+        // Upload to Supabase Storage (motivator-images bucket)
+        const { data, error } = await supabase.storage
+          .from('motivator-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (error) {
+          console.error('❌ Storage upload error:', error);
+          throw new Error(`Upload failed: ${error.message}`);
+        }
+
+        if (!data) {
+          console.error('❌ No data returned from upload');
+          throw new Error('Upload failed: No data returned');
+        }
+
+        console.log('✅ File uploaded successfully:', data);
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('motivator-images')
+          .getPublicUrl(fileName);
+
+        if (!urlData?.publicUrl) {
+          console.error('❌ Failed to get public URL');
+          throw new Error('Failed to get public URL');
+        }
+
+        const publicUrl = urlData.publicUrl;
+        console.log('✅ Public URL generated:', publicUrl);
+
+        onImageUpload(publicUrl);
+        
+        toast({
+          title: "Success",
+          description: "Image uploaded successfully",
         });
 
-      if (error) {
-        console.error('❌ Storage upload error:', error);
-        throw new Error(`Upload failed: ${error.message}`);
-      }
-
-      if (!data) {
-        console.error('❌ No data returned from upload');
-        throw new Error('Upload failed: No data returned');
-      }
-
-      console.log('✅ File uploaded successfully:', data);
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('motivator-images')
-        .getPublicUrl(fileName);
-
-      if (!urlData?.publicUrl) {
-        console.error('❌ Failed to get public URL');
-        throw new Error('Failed to get public URL');
-      }
-
-      const publicUrl = urlData.publicUrl;
-      console.log('✅ Public URL generated:', publicUrl);
-
-      onImageUpload(publicUrl);
+      } catch (error: any) {
+        console.error('❌ Upload error details:', {
+          message: error.message,
+          stack: error.stack,
+          error
+        });
       
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      });
-
-    } catch (error: any) {
-      console.error('❌ Upload error details:', {
-        message: error.message,
-        stack: error.stack,
-        error
-      });
-      
-      toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+        toast({
+          title: "Upload Failed",
+          description: error.message || "Failed to upload image. Please try again.",
+          variant: "destructive",
+        });
+        throw error; // Re-throw to let session guard handle it
+      } finally {
+        setIsUploading(false);
+      }
+    }, 'Image Upload');
   };
 
   const handleRemove = () => {
