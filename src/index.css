@@ -93,59 +93,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Ceramic-inspired color palette */
-    --background: 35 20% 96%;
-    --foreground: 20 15% 25%;
+    /* Clean neutral color palette - Light Mode */
+    --background: 0 0% 96%;
+    --foreground: 0 0% 15%;
 
-    --card: 35 25% 98%;
-    --card-foreground: 20 15% 25%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 15%;
 
-    --popover: 35 25% 98%;
-    --popover-foreground: 20 15% 25%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 15%;
 
     --primary: 140 35% 45%;
-    --primary-foreground: 35 25% 98%;
+    --primary-foreground: 0 0% 98%;
     --primary-glow: 140 45% 55%;
     --primary-hover: 140 35% 40%;
 
-    --secondary: 35 15% 90%;
-    --secondary-foreground: 20 15% 25%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 35 10% 88%;
-    --muted-foreground: 20 10% 55%;
+    --muted: 0 0% 88%;
+    --muted-foreground: 0 0% 45%;
 
     --accent: 140 25% 85%;
-    --accent-foreground: 20 15% 25%;
+    --accent-foreground: 0 0% 15%;
 
     --ai: 48 96% 53%;
     --ai-foreground: 0 0% 100%;
 
     --destructive: 0 65% 55%;
-    --destructive-foreground: 35 25% 98%;
+    --destructive-foreground: 0 0% 98%;
 
     --warning: 45 85% 55%;
-    --warning-foreground: 35 25% 98%;
+    --warning-foreground: 0 0% 98%;
 
     --info: 215 85% 65%;
-    --info-foreground: 35 25% 98%;
+    --info-foreground: 0 0% 98%;
 
-    --border: 35 12% 85%;
-    --input: 35 12% 92%;
+    --border: 0 0% 85%;
+    --input: 0 0% 92%;
     --ring: 140 35% 45%;
 
-    /* Ceramic plate colors - Light Mode */
-    --ceramic-light: 32 20% 95%;
-    --ceramic-base: 32 15% 92%;
-    --ceramic-warm: 32 18% 88%;
-    --ceramic-shadow: 32 12% 85%;
-    --ceramic-deep: 32 8% 80%;
-    --ceramic-plate: 32 18% 94%;
-    --ceramic-rim: 32 10% 82%;
+    /* Ceramic plate colors - Light Mode (neutral with subtle warmth) */
+    --ceramic-light: 220 15% 95%;
+    --ceramic-base: 220 12% 92%;
+    --ceramic-warm: 220 10% 88%;
+    --ceramic-shadow: 220 8% 82%;
+    --ceramic-deep: 220 6% 75%;
+    --ceramic-plate: 220 12% 94%;
+    --ceramic-rim: 220 8% 80%;
 
     /* 3D Effects - Light Mode */
-    --shadow-plate: 0 8px 32px -8px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(32 12% 85% / 0.2);
-    --shadow-rim: inset 0 1px 4px hsl(0 0% 100% / 0.8), inset 0 -1px 2px hsl(32 8% 80% / 0.3);
-    --shadow-well: inset 0 2px 8px hsl(32 8% 80% / 0.4), inset 0 4px 12px hsl(0 0% 0% / 0.1);
+    --shadow-plate: 0 8px 32px -8px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(220 8% 82% / 0.3);
+    --shadow-rim: inset 0 1px 4px hsl(0 0% 100% / 0.9), inset 0 -1px 2px hsl(220 6% 75% / 0.4);
+    --shadow-well: inset 0 2px 8px hsl(220 6% 75% / 0.5), inset 0 4px 12px hsl(0 0% 0% / 0.1);
 
     /* Gradients - Light Mode */
     --gradient-ceramic: radial-gradient(ellipse at 30% 30%, hsl(var(--ceramic-light)), hsl(var(--ceramic-base)) 70%);
@@ -164,8 +164,8 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Frame background colors */
-    --frame-background: 32 8% 75%;
-    --warm-text: 20 15% 25%;
+    --frame-background: 0 0% 75%;
+    --warm-text: 0 0% 15%;
   }
 
   .dark {
@@ -203,14 +203,14 @@ All colors MUST be HSL.
     --input: 0 0% 15%;
     --ring: 140 35% 55%;
 
-    /* Dark ceramic colors */
-    --ceramic-light: 0 0% 20%;
-    --ceramic-base: 0 0% 15%;
-    --ceramic-warm: 0 0% 18%;
-    --ceramic-shadow: 0 0% 8%;
-    --ceramic-deep: 0 0% 5%;
-    --ceramic-plate: 0 0% 12%;
-    --ceramic-rim: 0 0% 25%;
+    /* Dark ceramic colors (brightened for visibility) */
+    --ceramic-light: 220 8% 30%;
+    --ceramic-base: 220 6% 25%;
+    --ceramic-warm: 220 4% 28%;
+    --ceramic-shadow: 220 6% 18%;
+    --ceramic-deep: 220 8% 15%;
+    --ceramic-plate: 220 6% 22%;
+    --ceramic-rim: 220 4% 35%;
 
     /* Dark 3D Effects */
     --shadow-plate: 0 25px 50px -12px hsl(0 0% 0% / 0.8), 0 0 0 1px hsl(0 0% 25% / 0.1), inset 0 1px 0 hsl(0 0% 25% / 0.1);
