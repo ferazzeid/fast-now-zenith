@@ -1,7 +1,7 @@
 import React from 'react';
 import { PremiumGate } from '@/components/PremiumGate';
 import { Lock } from 'lucide-react';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 
 interface PremiumGatedDeficitDisplayProps {
   value: number;
@@ -18,8 +18,8 @@ export const PremiumGatedDeficitDisplay = ({
   loading,
   tdee 
 }: PremiumGatedDeficitDisplayProps) => {
-  const { hasPremiumFeatures, subscription_tier } = useUnifiedSubscription();
-  const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+  const { hasPremiumFeatures, isAdmin } = useAccess();
+  const hasAccess = isAdmin || hasPremiumFeatures;
 
   // For free users, show lock icon instead of actual values
   if (!hasAccess) {

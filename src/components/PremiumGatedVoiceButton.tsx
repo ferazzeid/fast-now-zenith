@@ -2,7 +2,7 @@
 import React from 'react';
 import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
 import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
@@ -14,24 +14,24 @@ interface PremiumGatedVoiceButtonProps {
 }
 
 export const PremiumGatedVoiceButton = (props: PremiumGatedVoiceButtonProps) => {
-  const { subscription_tier, isPaidUser, hasPremiumFeatures, createSubscription } = useUnifiedSubscription();
+  const { access_level, hasPremiumFeatures, createSubscription } = useAccess();
   const { testRole, isTestingMode } = useRoleTestingContext();
   const { toast } = useToast();
   
-  // Use test role if in testing mode, otherwise use actual subscription data
-  const effectiveRole = isTestingMode ? testRole : subscription_tier;
+  // Use test role if in testing mode, otherwise use actual access level
+  const effectiveLevel = isTestingMode ? testRole : access_level;
   const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
 
   // Check if user has access to the feature
-  const hasAccess = effectiveRole === 'admin' || effectiveHasPremiumFeatures;
+  const hasAccess = effectiveLevel === 'admin' || effectiveHasPremiumFeatures;
 
   // If no access and free user, show upgrade prompt instead of functioning
-  const disabledProps = !hasAccess && effectiveRole === 'free_user' 
+  const disabledProps = !hasAccess && effectiveLevel === 'free' 
     ? { 
         ...props, 
         onTranscription: () => {
           showAIRequestLimitError(
-            { current_tier: 'free_user', limit_reached: true }, 
+            { current_tier: 'free', limit_reached: true }, 
             toast, 
             createSubscription
           );

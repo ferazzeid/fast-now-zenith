@@ -11,7 +11,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
@@ -37,8 +37,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const { toast } = useToast();
   const { session } = useAuth();
   const { profile } = useProfile();
-  const { subscribed, hasPremiumFeatures } = useSubscription();
-  const isSubscriptionActive = subscribed || hasPremiumFeatures;
+  const { hasPremiumFeatures } = useAccess();
+  const isSubscriptionActive = hasPremiumFeatures;
   
   // Image and analysis state
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -79,15 +79,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   };
 
   const analyzeImage = async (url: string) => {
-    if (!isSubscriptionActive) {
-      toast({
-        title: "Premium Feature",
-        description: "AI photo analysis requires a premium subscription",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
       setAnalyzing(true);
       setError(null);

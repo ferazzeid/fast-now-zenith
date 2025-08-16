@@ -3,7 +3,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { Utensils, Info, Lock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 
 interface PremiumGatedCaloriesInProps {
   calories: number;
@@ -11,8 +11,8 @@ interface PremiumGatedCaloriesInProps {
 }
 
 export const PremiumGatedCaloriesIn = ({ calories, carbs }: PremiumGatedCaloriesInProps) => {
-  const { subscription_tier, hasPremiumFeatures } = useUnifiedSubscription();
-  const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+  const { isAdmin, hasPremiumFeatures } = useAccess();
+  const hasAccess = isAdmin || hasPremiumFeatures;
   
   return (
     <PremiumGate feature="Food Tracking" grayOutForFree={true} showUpgrade={false}>

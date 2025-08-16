@@ -3,7 +3,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { DeficitDisplay } from '@/components/OptimizedComponents';
 import { Card } from '@/components/ui/card';
 import { Lock, Crown } from 'lucide-react';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 
 interface PremiumGatedDeficitDisplayLargeProps {
   deficit: number;
@@ -22,8 +22,8 @@ export const PremiumGatedDeficitDisplayLarge = ({
   thirtyDayProjection, 
   userUnits 
 }: PremiumGatedDeficitDisplayLargeProps) => {
-  const { hasPremiumFeatures, subscription_tier } = useUnifiedSubscription();
-  const hasAccess = subscription_tier === 'admin' || hasPremiumFeatures;
+  const { hasPremiumFeatures, isAdmin } = useAccess();
+  const hasAccess = isAdmin || hasPremiumFeatures;
 
   // For free users, show locked state with upgrade prompt
   if (!hasAccess) {
