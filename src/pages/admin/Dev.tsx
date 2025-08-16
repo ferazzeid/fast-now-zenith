@@ -15,6 +15,8 @@ import { RealisticAppPreview } from "@/components/RealisticAppPreview";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AuthTokenDebugger } from "@/components/AuthTokenDebugger";
+import { AuthDiagnosticPanel } from "@/components/AuthDiagnosticPanel";
 
 export default function AdminDev() {
   const { isOnline, lastChecked, isTestingConnection, testConnection } = useConnectionStore();
@@ -98,6 +100,14 @@ export default function AdminDev() {
         <section aria-label="Animation Settings" className="space-y-4">
           <h2 className="text-xl font-semibold">Animation Settings</h2>
           <AdminAnimationSettings />
+        </section>
+
+        <section aria-label="Authentication Debug" className="space-y-4">
+          <h2 className="text-xl font-semibold">Authentication Debug</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <AuthTokenDebugger />
+            <AuthDiagnosticPanel />
+          </div>
         </section>
 
         <section aria-label="Connection Debug" className="space-y-4">
