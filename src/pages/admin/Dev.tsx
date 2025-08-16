@@ -11,9 +11,7 @@ import { useConnectionStore } from "@/stores/connectionStore";
 import { Info, Wifi, RefreshCw, Globe, WifiOff, Eye } from "lucide-react";
 import { OfflineScreen } from "@/components/OfflineScreen";
 import { NetworkErrorBoundary } from "@/components/NetworkErrorBoundary";
-import { TestErrorTrigger } from "@/components/TestErrorTrigger";
 import { RealisticAppPreview } from "@/components/RealisticAppPreview";
-import { OfflineTestingPanel } from "@/components/OfflineTestingPanel";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -255,7 +253,9 @@ export default function AdminDev() {
                   )}
                   
                   {previewMode === 'error' && (
-                    <TestErrorTrigger />
+                    <div className="p-4 text-center text-muted-foreground">
+                      Error testing component removed
+                    </div>
                   )}
                   
                   {!previewMode && (
@@ -322,10 +322,6 @@ export default function AdminDev() {
           </Card>
         </section>
 
-        {/* Offline Testing Panel */}
-        <section>
-          <OfflineTestingPanel />
-        </section>
 
       </main>
     </AdminProtectedRoute>
