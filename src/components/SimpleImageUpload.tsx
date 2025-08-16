@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { uploadImageToCloud } from '@/utils/imageUtils';
-import { useUnifiedSubscription } from '@/hooks/useUnifiedSubscription';
+import { useAccess } from '@/hooks/useAccess';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SimpleImageUploadProps {
@@ -18,7 +18,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasPremiumFeatures } = useUnifiedSubscription();
+  const { hasPremiumFeatures } = useAccess();
   const isMobile = useIsMobile();
 
   const handleFileSelect = () => {
