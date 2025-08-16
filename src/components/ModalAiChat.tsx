@@ -92,7 +92,10 @@ export const ModalAiChat = ({
   const goalCalculations = useGoalCalculations();
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Use setTimeout to ensure the DOM has updated before scrolling
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
   }, [messages]);
 
   // Auto-scroll to calorie summary when food suggestions appear
@@ -1700,7 +1703,7 @@ ${updatedContent}`
           </div>
         )}
         
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
       </div>
 
       {/* Voice Input Only - Text input removed per user request */}

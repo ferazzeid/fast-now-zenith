@@ -82,7 +82,10 @@ const AiChat = () => {
   const allMessages = [...profileSystemMessage, ...notificationMessages, ...messages];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Use setTimeout to ensure the DOM has updated before scrolling
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
   }, [allMessages]);
 
   // Auto-show notifications when component mounts
@@ -799,7 +802,7 @@ ${data.description ? `**Notes:** ${data.description}` : ''}
               </div>
             )}
             
-            <div ref={messagesEndRef} data-messages-end />
+            <div ref={messagesEndRef} data-messages-end className="h-4" />
           </div>
         </div>
 
