@@ -45,7 +45,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { FloatingVoiceAssistant } from "@/components/FloatingVoiceAssistant";
+
 
 
 // Using optimized query client from @/lib/query-client
@@ -276,8 +276,6 @@ const AppContent = () => {
             } />
           </Routes>
           {!isAuthRoute && <Navigation />}
-          {/* Global FloatingVoiceAssistant for all authenticated pages */}
-          {user && !isAuthRoute && <FloatingVoiceAssistant />}
         </div>
       </div>
       

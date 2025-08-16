@@ -8,6 +8,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useFastingSession } from '@/hooks/useFastingSession';
+import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useProfile } from '@/hooks/useProfile';
+import { useFoodContext } from '@/hooks/useFoodContext';
 
 interface Message {
   id: string;
@@ -21,6 +25,12 @@ export const AIVoiceButton = () => {
   const [bubbles, setBubbles] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
+  
+  // Import session hooks for function execution
+  const { currentSession: fastingSession, startFastingSession, endFastingSession } = useFastingSession();
+  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
+  const { profile } = useProfile();
+  const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
 
 
   // Close modal on escape key or click outside
@@ -97,7 +107,50 @@ export const AIVoiceButton = () => {
 
       if (error) throw error;
 
-      if (data?.completion) {
+      // Handle function calls first - ACTUALLY EXECUTE THEM
+      if (data?.functionCall) {
+        console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
+        
+        let responseMessage = '';
+        try {
+          switch (data.functionCall.name) {
+            case 'add_multiple_foods':
+              responseMessage = await handleAddMultipleFoods(data.functionCall.arguments);
+              break;
+            case 'create_motivator':
+              responseMessage = await handleCreateMotivator(data.functionCall.arguments);
+              break;
+            case 'create_multiple_motivators':
+              responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
+              break;
+            case 'start_fasting_session':
+              responseMessage = await handleStartFastingSession(data.functionCall.arguments);
+              break;
+            case 'stop_fasting_session':
+              responseMessage = await handleStopFastingSession();
+              break;
+            case 'start_walking_session':
+              responseMessage = await handleStartWalkingSession(data.functionCall.arguments);
+              break;
+            case 'stop_walking_session':
+              responseMessage = await handleStopWalkingSession();
+              break;
+            default:
+              responseMessage = 'I processed your request successfully.';
+          }
+        } catch (error) {
+          console.error('🤖 AI Chat: Function execution error:', error);
+          responseMessage = 'Sorry, I had trouble processing that request. Please try again.';
+        }
+        
+        addBubble('assistant', responseMessage);
+        
+        if (fromVoice) {
+          await playTextAsAudio(responseMessage);
+        }
+      }
+      // Handle regular completion responses
+      else if (data?.completion && data.completion.trim()) {
         addBubble('assistant', data.completion);
         
         if (fromVoice) {
@@ -159,6 +212,138 @@ export const AIVoiceButton = () => {
     }
   };
 
+  // Function execution handlers - Actually perform the requested actions
+  const handleAddMultipleFoods = async (args: any): Promise<string> => {
+    const foods = args?.foods || [];
+    if (foods.length === 0) return 'No foods to add.';
+
+    try {
+      for (const food of foods) {
+        const { data, error } = await supabase
+          .from('food_entries')
+          .insert({
+            user_id: user!.id,
+            name: food.name,
+            serving_size: food.serving_size,
+            calories: food.calories,
+            carbs: food.carbs || 0,
+            protein: food.protein || 0,
+            fat: food.fat || 0,
+            fiber: food.fiber || 0
+          });
+
+        if (error) throw error;
+      }
+
+      // Refresh food context after adding
+      await refreshContext();
+      
+      const totalCalories = foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
+      const foodList = foods.map((food: any) => `${food.name} (${food.serving_size}g)`).join(', ');
+      
+      return `Added ${foodList} - ${totalCalories} calories total`;
+    } catch (error) {
+      console.error('Error adding foods:', error);
+      return 'Sorry, I had trouble adding those foods. Please try again.';
+    }
+  };
+
+  const handleCreateMotivator = async (args: any): Promise<string> => {
+    try {
+      const { data, error } = await supabase
+        .from('motivators')
+        .insert({
+          user_id: user!.id,
+          title: args.title,
+          content: args.content
+        });
+
+      if (error) throw error;
+      return `Created motivator: "${args.title}"`;
+    } catch (error) {
+      console.error('Error creating motivator:', error);
+      return 'Sorry, I had trouble creating that motivator.';
+    }
+  };
+
+  const handleCreateMultipleMotivators = async (args: any): Promise<string> => {
+    const motivators = args?.motivators || [];
+    if (motivators.length === 0) return 'No motivators to create.';
+
+    try {
+      const motivatorData = motivators.map((motivator: any) => ({
+        user_id: user!.id,
+        title: motivator.title,
+        content: motivator.content
+      }));
+
+      const { data, error } = await supabase
+        .from('motivators')
+        .insert(motivatorData);
+
+      if (error) throw error;
+      return `Created ${motivators.length} motivators successfully!`;
+    } catch (error) {
+      console.error('Error creating motivators:', error);
+      return 'Sorry, I had trouble creating those motivators.';
+    }
+  };
+
+  const handleStartFastingSession = async (args: any): Promise<string> => {
+    try {
+      if (fastingSession) {
+        return 'You already have an active fasting session running.';
+      }
+      
+      await startFastingSession(16 * 60 * 60); // 16 hours in seconds
+      return 'Fasting session started! Good luck with your fast.';
+    } catch (error) {
+      console.error('Error starting fasting session:', error);
+      return 'Sorry, I had trouble starting your fasting session.';
+    }
+  };
+
+  const handleStopFastingSession = async (): Promise<string> => {
+    try {
+      if (!fastingSession) {
+        return 'You don\'t have an active fasting session to stop.';
+      }
+      
+      await endFastingSession();
+      return 'Fasting session completed! Great work on your fast.';
+    } catch (error) {
+      console.error('Error stopping fasting session:', error);
+      return 'Sorry, I had trouble stopping your fasting session.';
+    }
+  };
+
+  const handleStartWalkingSession = async (args: any): Promise<string> => {
+    try {
+      if (walkingSession) {
+        return 'You already have an active walking session running.';
+      }
+      
+      await startWalkingSession();
+      return 'Walking session started! Enjoy your walk.';
+    } catch (error) {
+      console.error('Error starting walking session:', error);
+      return 'Sorry, I had trouble starting your walking session.';
+    }
+  };
+
+  const handleStopWalkingSession = async (): Promise<string> => {
+    try {
+      if (!walkingSession) {
+        return 'You don\'t have an active walking session to stop.';
+      }
+      
+      await endWalkingSession();
+      return 'Walking session completed! Well done.';
+    } catch (error) {
+      console.error('Error stopping walking session:', error);
+      return 'Sorry, I had trouble stopping your walking session.';
+    }
+  };
 
   return (
     <>
