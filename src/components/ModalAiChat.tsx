@@ -354,14 +354,57 @@ ${args.content}`,
         }
       }
 
-      // Only add completion text if it exists and doesn't contain food suggestions
-      if (data.completion && data.completion.trim() && !containsFoodSuggestion(data.completion)) {
+      // Only add completion text if it exists, doesn't contain food suggestions, and no function call was processed
+      if (data.completion && data.completion.trim() && !containsFoodSuggestion(data.completion) && !data.functionCall) {
         const aiMessage: Message = {
           role: 'assistant',
           content: data.completion,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, aiMessage]);
+      }
+      // If there was a function call but no completion, add a confirmation message
+      else if (data.functionCall && (!data.completion || !data.completion.trim())) {
+        let confirmationMessage = '';
+        switch (data.functionCall.name) {
+          case 'add_multiple_foods':
+            // Don't add a message for food suggestions as they show the interactive UI
+            break;
+          case 'create_motivator':
+          case 'create_multiple_motivators':
+            // Don't add a message for motivator suggestions as they show the interactive UI
+            break;
+          case 'start_fasting_session':
+            confirmationMessage = 'Fasting session started successfully!';
+            break;
+          case 'stop_fasting_session':
+            confirmationMessage = 'Fasting session stopped. Great work!';
+            break;
+          case 'start_walking_session':
+            confirmationMessage = 'Walking session started!';
+            break;
+          case 'stop_walking_session':
+            confirmationMessage = 'Walking session completed successfully!';
+            break;
+          case 'search_foods_for_edit':
+          case 'edit_food_entry':
+          case 'edit_library_food':
+          case 'delete_food_entry':
+          case 'delete_library_food':
+            confirmationMessage = 'Food operation completed successfully.';
+            break;
+          default:
+            confirmationMessage = 'Request processed successfully.';
+        }
+        
+        if (confirmationMessage) {
+          const aiMessage: Message = {
+            role: 'assistant',
+            content: confirmationMessage,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }
       }
 
     } catch (error) {

@@ -92,9 +92,46 @@ export const FloatingVoiceAssistant = () => {
         throw error;
       }
 
-      console.log('🤖 AI Chat: Checking for completion in response:', data?.completion);
+      console.log('🤖 AI Chat: Processing response - completion:', data?.completion, 'functionCall:', data?.functionCall);
 
-      if (data?.completion) {
+      // Handle function calls first
+      if (data?.functionCall) {
+        console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
+        
+        // Provide appropriate response based on function type
+        let responseMessage = '';
+        switch (data.functionCall.name) {
+          case 'add_multiple_foods':
+            responseMessage = 'I found some food information for you. You can add it from the Food Tracking page.';
+            break;
+          case 'create_motivator':
+          case 'create_multiple_motivators':
+            responseMessage = 'I created some motivational content for you. Check your Motivators page to see it.';
+            break;
+          case 'start_fasting_session':
+            responseMessage = 'Fasting session started! You can track your progress on the Timer page.';
+            break;
+          case 'stop_fasting_session':
+            responseMessage = 'Fasting session stopped. Great job on your fast!';
+            break;
+          case 'start_walking_session':
+            responseMessage = 'Walking session started! Track your activity on the Walking page.';
+            break;
+          case 'stop_walking_session':
+            responseMessage = 'Walking session completed. Well done!';
+            break;
+          default:
+            responseMessage = 'I processed your request successfully.';
+        }
+        
+        addMessage('assistant', responseMessage);
+        
+        if (fromVoice) {
+          await playTextAsAudio(responseMessage);
+        }
+      }
+      // Handle regular completion responses
+      else if (data?.completion && data.completion.trim()) {
         console.log('🤖 AI Chat: Adding assistant message:', data.completion);
         addMessage('assistant', data.completion);
         
@@ -103,12 +140,19 @@ export const FloatingVoiceAssistant = () => {
           console.log('🤖 AI Chat: Playing audio response');
           await playTextAsAudio(data.completion);
         }
-        
-        console.log('🤖 AI Chat: Successfully processed response');
-      } else {
-        console.error('🤖 AI Chat: No completion in response:', data);
-        addMessage('assistant', 'Sorry, I had trouble processing your request. Please try again.');
       }
+      // Handle empty responses gracefully
+      else {
+        console.log('🤖 AI Chat: Empty response received, providing fallback message');
+        const fallbackMessage = 'I heard you, but I\'m not sure how to help with that. Could you try asking differently?';
+        addMessage('assistant', fallbackMessage);
+        
+        if (fromVoice) {
+          await playTextAsAudio(fallbackMessage);
+        }
+      }
+      
+      console.log('🤖 AI Chat: Successfully processed response');
     } catch (error) {
       console.error('🤖 AI Chat: Error occurred:', error);
       toast({
