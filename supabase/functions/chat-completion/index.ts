@@ -787,6 +787,70 @@ When explaining app calculations, use the exact formulas and constants above. He
                 required: []
               }
             }
+          },
+          // === MOTIVATOR FUNCTIONS ===
+          {
+            type: "function",
+            function: {
+              name: "edit_motivator",
+              description: "Edit an existing motivator's title, content, or category",
+              parameters: {
+                type: "object",
+                properties: {
+                  motivator_id: {
+                    type: "string",
+                    description: "ID of the motivator to edit"
+                  },
+                  updates: {
+                    type: "object",
+                    properties: {
+                      title: {
+                        type: "string",
+                        description: "New title for the motivator"
+                      },
+                      content: {
+                        type: "string",
+                        description: "New content for the motivator"
+                      },
+                      category: {
+                        type: "string",
+                        description: "New category for the motivator"
+                      }
+                    }
+                  }
+                },
+                required: ["motivator_id", "updates"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "delete_motivator",
+              description: "Delete a motivator by ID",
+              parameters: {
+                type: "object",
+                properties: {
+                  motivator_id: {
+                    type: "string",
+                    description: "ID of the motivator to delete"
+                  }
+                },
+                required: ["motivator_id"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_user_motivators",
+              description: "Get all motivators for the current user",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
           }
         ],
         tool_choice: "auto"

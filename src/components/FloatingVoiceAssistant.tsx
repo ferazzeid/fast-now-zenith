@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Mic, MessageCircle, X, Send } from 'lucide-react';
+import { Mic, MessageCircle, X, Send, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { ChatBubble } from '@/components/ChatBubble';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -12,6 +14,7 @@ import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
+import { useMotivators } from '@/hooks/useMotivators';
 
 interface Message {
   id: string;
@@ -26,6 +29,10 @@ export const FloatingVoiceAssistant = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showInput, setShowInput] = useState(false);
+  const [pendingFoods, setPendingFoods] = useState<any[]>([]);
+  const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
+  const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
+  const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const { user } = useAuth();
   const messagesRef = useRef<HTMLDivElement>(null);
   
@@ -34,6 +41,7 @@ export const FloatingVoiceAssistant = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
+  const { updateMotivator, deleteMotivator } = useMotivators();
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
@@ -119,6 +127,12 @@ export const FloatingVoiceAssistant = () => {
               break;
             case 'create_multiple_motivators':
               responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
+              break;
+            case 'edit_motivator':
+              responseMessage = await handleEditMotivator(data.functionCall.arguments);
+              break;
+            case 'delete_motivator':
+              responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
               break;
             case 'start_fasting_session':
               responseMessage = await handleStartFastingSession(data.functionCall.arguments);
@@ -243,40 +257,106 @@ export const FloatingVoiceAssistant = () => {
     }
   };
 
-  // Function execution handlers - Actually perform the requested actions
+  // Function execution handlers - Show food preview instead of immediate addition
   const handleAddMultipleFoods = async (args: any): Promise<string> => {
     const foods = args?.foods || [];
+    console.log('🍽️ handleAddMultipleFoods called with:', foods);
+    
     if (foods.length === 0) return 'No foods to add.';
 
+    // Show food preview instead of immediate insertion
+    setPendingFoods(foods);
+    setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
+    
+    return ''; // Return empty to prevent message, we'll show the preview UI
+  };
+
+  const confirmAddFoods = async () => {
+    const selectedFoods = pendingFoods.filter((_, index) => selectedFoodIds.has(index));
+    
+    if (selectedFoods.length === 0) {
+      toast({
+        title: "No foods selected",
+        description: "Please select at least one food to add.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      for (const food of foods) {
-        const { data, error } = await supabase
+      for (const food of selectedFoods) {
+        const { error } = await supabase
           .from('food_entries')
           .insert({
             user_id: user!.id,
             name: food.name,
-            serving_size: food.serving_size,
-            calories: food.calories,
+            serving_size: food.serving_size || 100,
+            calories: food.calories || 0,
             carbs: food.carbs || 0,
-            protein: food.protein || 0,
-            fat: food.fat || 0,
-            fiber: food.fiber || 0
+            source_date: new Date().toISOString().split('T')[0]
           });
 
         if (error) throw error;
       }
 
-      // Refresh food context after adding
       await refreshContext();
       
-      const totalCalories = foods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
-      const foodList = foods.map((food: any) => `${food.name} (${food.serving_size}g)`).join(', ');
+      const totalCalories = selectedFoods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
+      const foodList = selectedFoods.map((food: any) => `${food.name} (${food.serving_size}g)`).join(', ');
       
-      return `Added ${foodList} - ${totalCalories} calories total`;
+      setPendingFoods([]);
+      setSelectedFoodIds(new Set());
+      
+      addMessage('assistant', `Added ${foodList} - ${totalCalories} calories total`);
+      
+      toast({
+        title: "Foods added successfully",
+        description: `Added ${selectedFoods.length} food${selectedFoods.length === 1 ? '' : 's'}`,
+      });
     } catch (error) {
-      console.error('Error adding foods:', error);
-      return 'Sorry, I had trouble adding those foods. Please try again.';
+      console.error('🍽️ Error adding foods:', error);
+      toast({
+        title: "Error adding foods",
+        description: "Please try again.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const removePendingFood = (index: number) => {
+    setPendingFoods(prev => prev.filter((_, i) => i !== index));
+    setSelectedFoodIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      // Re-index remaining items
+      const updatedSet = new Set<number>();
+      Array.from(newSet).forEach(id => {
+        if (id < index) {
+          updatedSet.add(id);
+        } else if (id > index) {
+          updatedSet.add(id - 1);
+        }
+      });
+      return updatedSet;
+    });
+  };
+
+  const updatePendingFood = (index: number, updates: any) => {
+    setPendingFoods(prev => 
+      prev.map((food, i) => i === index ? { ...food, ...updates } : food)
+    );
+  };
+
+  const toggleFoodSelection = (index: number) => {
+    setSelectedFoodIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const handleCreateMotivator = async (args: any): Promise<string> => {
@@ -376,16 +456,42 @@ export const FloatingVoiceAssistant = () => {
     }
   };
 
+  const handleEditMotivator = async (args: any): Promise<string> => {
+    try {
+      const { motivator_id, updates } = args;
+      await updateMotivator(motivator_id, updates);
+      return `Updated motivator: "${updates.title || 'motivator'}"`;
+    } catch (error) {
+      console.error('Error editing motivator:', error);
+      return 'Sorry, I had trouble editing that motivator.';
+    }
+  };
+
+  const handleDeleteMotivator = async (args: any): Promise<string> => {
+    try {
+      const { motivator_id } = args;
+      await deleteMotivator(motivator_id);
+      return 'Motivator deleted successfully.';
+    } catch (error) {
+      console.error('Error deleting motivator:', error);
+      return 'Sorry, I had trouble deleting that motivator.';
+    }
+  };
+
   const clearChat = () => {
     setMessages([]);
     setIsOpen(false);
     setShowInput(false);
+    setPendingFoods([]);
+    setSelectedFoodIds(new Set());
+    setEditingFoodIndex(null);
+    setInlineEditData({});
   };
 
   return (
     <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
       {/* Chat Messages */}
-      {isOpen && messages.length > 0 && (
+      {isOpen && (messages.length > 0 || pendingFoods.length > 0) && (
         <div 
           ref={messagesRef}
           className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 max-h-96 overflow-y-auto space-y-3 pb-4 pr-2"
@@ -400,6 +506,156 @@ export const FloatingVoiceAssistant = () => {
               }}
             />
           ))}
+          
+          {/* Food Preview Section */}
+          {pendingFoods.length > 0 && (
+            <div className="px-2 space-y-4">
+              <Card className="bg-background/95 backdrop-blur-sm border-border/50">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-3 text-sm">Review and Add Foods</h3>
+                  <div className="space-y-3">
+                    {pendingFoods.map((food, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded border border-border/50">
+                        <Checkbox
+                          checked={selectedFoodIds.has(index)}
+                          onCheckedChange={() => toggleFoodSelection(index)}
+                          className="shrink-0"
+                        />
+                        
+                        {editingFoodIndex === index ? (
+                          <div className="flex-1 grid grid-cols-2 gap-2">
+                            <Input
+                              value={inlineEditData[index]?.name ?? food.name}
+                              onChange={(e) => setInlineEditData(prev => ({
+                                ...prev,
+                                [index]: { ...prev[index], name: e.target.value }
+                              }))}
+                              placeholder="Food name"
+                              className="text-xs h-8"
+                            />
+                            <Input
+                              type="number"
+                              value={inlineEditData[index]?.serving_size ?? food.serving_size}
+                              onChange={(e) => setInlineEditData(prev => ({
+                                ...prev,
+                                [index]: { ...prev[index], serving_size: parseFloat(e.target.value) || 0 }
+                              }))}
+                              placeholder="Size (g)"
+                              className="text-xs h-8"
+                            />
+                            <Input
+                              type="number"
+                              value={inlineEditData[index]?.calories ?? food.calories}
+                              onChange={(e) => setInlineEditData(prev => ({
+                                ...prev,
+                                [index]: { ...prev[index], calories: parseFloat(e.target.value) || 0 }
+                              }))}
+                              placeholder="Calories"
+                              className="text-xs h-8"
+                            />
+                            <Input
+                              type="number"
+                              value={inlineEditData[index]?.carbs ?? food.carbs}
+                              onChange={(e) => setInlineEditData(prev => ({
+                                ...prev,
+                                [index]: { ...prev[index], carbs: parseFloat(e.target.value) || 0 }
+                              }))}
+                              placeholder="Carbs (g)"
+                              className="text-xs h-8"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex-1 text-xs">
+                            <div className="font-medium">{food.name}</div>
+                            <div className="text-muted-foreground">
+                              {food.serving_size}g • {food.calories} cal • {food.carbs}g carbs
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-1">
+                          {editingFoodIndex === index ? (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  if (inlineEditData[index]) {
+                                    updatePendingFood(index, inlineEditData[index]);
+                                  }
+                                  setEditingFoodIndex(null);
+                                }}
+                              >
+                                ✓
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setEditingFoodIndex(null);
+                                  setInlineEditData(prev => {
+                                    const updated = { ...prev };
+                                    delete updated[index];
+                                    return updated;
+                                  });
+                                }}
+                              >
+                                ✕
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => setEditingFoodIndex(index)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => removePendingFood(index)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      onClick={confirmAddFoods}
+                      disabled={selectedFoodIds.size === 0}
+                      className="flex-1"
+                    >
+                      Add Selected ({selectedFoodIds.size})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setPendingFoods([]);
+                        setSelectedFoodIds(new Set());
+                        setEditingFoodIndex(null);
+                        setInlineEditData({});
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       )}
 
@@ -429,7 +685,7 @@ export const FloatingVoiceAssistant = () => {
       {/* Main Button */}
       <div className="flex items-center gap-2">
         {/* Clear Chat Button */}
-        {isOpen && messages.length > 0 && (
+        {isOpen && (messages.length > 0 || pendingFoods.length > 0) && (
           <Button
             variant="outline"
             size="sm"

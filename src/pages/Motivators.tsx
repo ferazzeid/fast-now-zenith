@@ -1,6 +1,6 @@
 import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
+
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
@@ -300,19 +300,14 @@ const Motivators = () => {
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
         <div className="max-w-md mx-auto pt-10 pb-20">
           <div className="space-y-6">
-          {/* Header with Onboarding Button */}
-          <div className="mb-4 mt-4 relative">
-            <div className="absolute left-0 top-0">
-              <AIVoiceButton />
-            </div>
-            <div className="pl-12 pr-12">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
-                {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
-              </h1>
-              <p className="text-sm text-muted-foreground text-left">
-                {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
-              </p>
-            </div>
+          {/* Header */}
+          <div className="mb-4 mt-4">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
+              {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
+            </h1>
+            <p className="text-sm text-muted-foreground text-left">
+              {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
+            </p>
           </div>
 
           {/* Action Buttons */}
