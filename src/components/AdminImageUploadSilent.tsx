@@ -132,9 +132,44 @@ export const AdminImageUploadSilent = ({
     }
   };
 
-  const handleRemove = () => {
-    onImageRemove();
-    onSuccess?.("Image removed");
+  const handleRemove = async () => {
+    if (!currentImageUrl) return;
+    
+    setIsUploading(true);
+    
+    try {
+      // Delete the actual file from Supabase Storage
+      const deleteResult = await deleteImageFromStorage(currentImageUrl, 'motivator-images', supabase);
+      
+      if (deleteResult.success) {
+        onImageRemove();
+        onSuccess?.("Image removed successfully");
+        toast({
+          title: "Success",
+          description: "Image removed successfully",
+        });
+      } else {
+        console.warn('Failed to delete image from storage:', deleteResult.error);
+        // Still remove local reference even if storage deletion fails
+        onImageRemove();
+        onSuccess?.("Image reference removed (storage cleanup may be needed)");
+        toast({
+          title: "Warning",
+          description: "Image removed locally, but storage cleanup failed",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('Error during image removal:', error);
+      onError?.(`Failed to remove image: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to remove image: ${error.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
