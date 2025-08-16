@@ -59,11 +59,11 @@ export const Navigation = () => {
     refreshActiveSession();
   }, [refreshActiveSession]);
 
-  // Force refresh subscription data when navigation mounts
+  // Only refresh access data on first mount, not on every navigation
   useEffect(() => {
-    console.log('🧭 Navigation mounted - refreshing access data');
-    refetch();
-  }, [refetch]);
+    console.log('🧭 Navigation mounted - initial access check');
+    // Remove aggressive refetch that was poisoning sessions
+  }, []);
 
   // Memoize fasting badge calculation to prevent unnecessary recalculations
   const getFastingBadge = useMemo(() => {

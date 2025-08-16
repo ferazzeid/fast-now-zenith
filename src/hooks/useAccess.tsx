@@ -67,6 +67,10 @@ export const useAccess = () => {
     enabled: !!user?.id,
     staleTime: 1 * 60 * 1000, // 1 minute (synchronized with auth timeout)
     gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: false, // Don't retry on failures - prevents auth poisoning
+    retryOnMount: false, // Don't retry when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    throwOnError: false, // Never throw errors that could poison auth state
   });
 
   // Default data for unauthenticated users
