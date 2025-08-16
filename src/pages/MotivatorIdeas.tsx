@@ -40,8 +40,8 @@ export default function MotivatorIdeas() {
   const [previousSex, setPreviousSex] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔄 Force refreshing goal ideas on page load...');
-    forceRefresh();
+    console.log('🔄 Refreshing goal ideas on page load...');
+    refreshGoalIdeas();
   }, []); // Empty dependency array to run only once on mount
 
   // Force refresh goals when profile sex actually changes (not on initial load)
@@ -50,7 +50,7 @@ export default function MotivatorIdeas() {
       // Only refresh if the sex has actually changed, not on initial load
       if (previousSex !== null && previousSex !== profile.sex) {
         console.log('MotivatorIdeas: Profile sex changed from', previousSex, 'to', profile.sex, '- refreshing goals');
-        forceRefresh();
+        refreshGoalIdeas();
       }
       setPreviousSex(profile.sex);
     }
@@ -88,7 +88,7 @@ export default function MotivatorIdeas() {
         
         // Clear editing state first, then refresh
         setEditingGoal(null);
-        setTimeout(() => forceRefresh(), 100);
+        setTimeout(() => refreshGoalIdeas(), 200);
       } else {
         throw new Error('Update failed');
       }
@@ -102,7 +102,7 @@ export default function MotivatorIdeas() {
     const ok = await removeFromDefaultGoals(goalId);
     if (ok) {
       toast({ title: 'Removed', description: 'Idea removed from defaults.' });
-      forceRefresh();
+      refreshGoalIdeas();
     }
   };
 

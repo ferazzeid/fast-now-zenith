@@ -73,7 +73,7 @@ export const AdminImageUploadSilent = ({
       console.log('📊 File size:', file.size, 'bytes');
       console.log('📄 File type:', file.type);
 
-      // Upload to Supabase Storage (motivator-images bucket)
+      // Upload to Supabase Storage with explicit authorization
       const { data, error } = await supabase.storage
         .from('motivator-images')
         .upload(fileName, file, {
