@@ -483,7 +483,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add multiple food entries to the user's food log. CRITICAL: When users specify a COUNT of items (e.g., 'two cucumbers', 'three bananas'), create SEPARATE entries for each item. Do NOT aggregate quantities into a single entry. Only create one entry when user specifies total weight without count (e.g., '400g chicken').",
+              description: "Add food entries to the user's food log. Create one entry per food item mentioned. Only create multiple entries when user explicitly mentions multiple items (e.g., 'two apples', 'three bananas'). For singular requests like 'a cucumber' or 'add Greek yogurt', create only ONE entry.",
               parameters: {
                 type: "object",
                 properties: {
