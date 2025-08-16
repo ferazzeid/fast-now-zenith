@@ -32,24 +32,25 @@ serve(async (req) => {
     const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
-    // Use anon key for user authentication
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      { 
+        auth: { 
+          persistSession: false,
+          autoRefreshToken: false 
+        }
+      }
     );
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    // Verify the JWT token and get user info using service role
+    const { data: userData, error: userError } = await supabaseService.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.id || !user?.email) throw new Error("User not authenticated or missing user data");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Check if user has an active subscription

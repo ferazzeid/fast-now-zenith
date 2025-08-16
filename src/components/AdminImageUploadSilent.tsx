@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { deleteImageFromStorage } from '@/utils/imageUtils';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminImageUploadSilentProps {
   onImageUpload: (imageUrl: string) => void;
@@ -22,6 +23,7 @@ export const AdminImageUploadSilent = ({
 }: AdminImageUploadSilentProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const { user, session } = useAuth();
+  const { toast } = useToast();
 
   const handleFileSelect = async (file: File) => {
     if (!file) return;
@@ -106,6 +108,10 @@ export const AdminImageUploadSilent = ({
 
       onImageUpload(publicUrl);
       onSuccess?.("Image uploaded successfully");
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
 
     } catch (error: any) {
       console.error('❌ Upload error details:', {
@@ -114,7 +120,13 @@ export const AdminImageUploadSilent = ({
         error
       });
       
-      onError?.(error.message || "Failed to upload image. Please try again.");
+      const errorMessage = error.message || "Failed to upload image. Please try again.";
+      onError?.(errorMessage);
+      toast({
+        title: "Upload Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsUploading(false);
     }
