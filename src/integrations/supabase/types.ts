@@ -1549,18 +1549,7 @@ export type Database = {
         Args: { _platform: string }
         Returns: string
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_user_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
@@ -1592,9 +1581,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      user_is_admin: {
+      validate_unified_auth_system: {
         Args: Record<PropertyKey, never>
-        Returns: boolean
+        Returns: {
+          details: string
+          status: string
+          test_name: string
+        }[]
       }
     }
     Enums: {
