@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
-import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAccess } from '@/hooks/useAccess';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 
@@ -87,7 +87,7 @@ export const ModalAiChat = ({
     endWalkingSession
   } = useWalkingSession();
   const { profile, updateProfile } = useProfile();
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
   const { deficitData } = useDailyDeficitQuery();
   const goalCalculations = useGoalCalculations();
 

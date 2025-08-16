@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAccess } from '@/hooks/useAccess';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit, Save, X } from 'lucide-react';
@@ -35,7 +35,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   });
   
   const isMobile = useIsMobile();
-  const { isAdmin, loading: adminLoading } = useAdminRole();
+  const { isAdmin, loading: adminLoading } = useAccess();
   const { toast } = useToast();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);

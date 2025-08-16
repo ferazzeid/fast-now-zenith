@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useProfile } from '@/hooks/useProfile';
-import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAccess } from '@/hooks/useAccess';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 
 interface GoalIdeasLibraryProps {
@@ -18,7 +18,7 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const { profile } = useProfile();
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
   
   // Default to male if user sex is not set
   const userGender = profile?.sex || 'male';

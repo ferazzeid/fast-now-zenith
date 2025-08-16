@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAccess } from '@/hooks/useAccess';
-import { useAdminRole } from '@/hooks/useAdminRole';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { RefreshCw, ChevronDown, Bug, CheckCircle } from 'lucide-react';
 
 export const SubscriptionDebugPanel = () => {
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
   const [isOpen, setIsOpen] = useState(false);
   
   const unified = useAccess();

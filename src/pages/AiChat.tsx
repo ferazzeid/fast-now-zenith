@@ -27,7 +27,6 @@ import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 import { GoalSettingNotification } from '@/components/GoalSettingNotification';
 import { useGoalNotification } from '@/hooks/useGoalNotification';
 import { PremiumGate } from '@/components/PremiumGate';
-import { useAdminErrorFilter } from '@/hooks/useAdminErrorFilter';
 
 // Enhanced Message interface to support notifications
 interface EnhancedMessage {
@@ -68,9 +67,8 @@ const AiChat = () => {
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
   const { createMotivator } = useMotivators();
   
-  const { hasPremiumFeatures, access_level } = useAccess();
+  const { hasPremiumFeatures, access_level, isAdmin } = useAccess();
   const { shouldShowGoalSetting, dismissGoalNotification } = useGoalNotification();
-  const { isAdmin } = useAdminErrorFilter();
 
 
   // Combine regular messages with notification messages

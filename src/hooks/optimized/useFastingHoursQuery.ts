@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAdminRole } from "@/hooks/useAdminRole";
+import { useAccess } from "@/hooks/useAccess";
 
 export interface FastingHour {
   id?: string;
@@ -40,7 +40,7 @@ export interface ContentVariant {
 export const fastingHoursKey = ["fasting", "hours"] as const;
 
 export function useFastingHoursQuery() {
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
   
   return useQuery({
     queryKey: fastingHoursKey,

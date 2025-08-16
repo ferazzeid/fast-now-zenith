@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { SimpleVoiceRecorder } from '@/components/SimpleVoiceRecorder';
 import { Mic, Save, Edit3, X, Check } from 'lucide-react';
-import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
@@ -21,7 +21,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   existingLog = '',
   onLogSaved
 }) => {
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
   const { toast } = useToast();
   const { currentSession } = useFastingSession();
   const queryClient = useQueryClient();

@@ -6,7 +6,7 @@ import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useProfile } from '@/hooks/useProfile';
-import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,7 +26,7 @@ export default function MotivatorIdeas() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile } = useProfile();
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
   
   // Default to male if user sex is not set
   const userGender = profile?.sex || 'male';

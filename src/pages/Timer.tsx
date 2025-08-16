@@ -31,7 +31,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 
 import { AdminCelebrationTestMenu } from '@/components/AdminCelebrationTestMenu';
-import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAccess } from '@/hooks/useAccess';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -55,7 +55,7 @@ const Timer = () => {
   const { quotes } = useQuoteSettings();
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
-  const { isAdmin } = useAdminRole();
+  const { isAdmin } = useAccess();
 
 
   const isRunning = !!fastingSession;
