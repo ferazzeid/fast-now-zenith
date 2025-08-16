@@ -1053,6 +1053,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_level: Database["public"]["Enums"]["access_level"] | null
           activity_level: string | null
           age: number | null
           ai_requests_reset_date: string | null
@@ -1080,6 +1081,7 @@ export type Database = {
           payment_method: string | null
           payment_provider: string | null
           platform_subscription_id: string | null
+          premium_expires_at: string | null
           sex: string | null
           speech_model: string | null
           stripe_customer_id: string | null
@@ -1098,6 +1100,7 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          access_level?: Database["public"]["Enums"]["access_level"] | null
           activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
@@ -1125,6 +1128,7 @@ export type Database = {
           payment_method?: string | null
           payment_provider?: string | null
           platform_subscription_id?: string | null
+          premium_expires_at?: string | null
           sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
@@ -1143,6 +1147,7 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          access_level?: Database["public"]["Enums"]["access_level"] | null
           activity_level?: string | null
           age?: number | null
           ai_requests_reset_date?: string | null
@@ -1170,6 +1175,7 @@ export type Database = {
           payment_method?: string | null
           payment_provider?: string | null
           platform_subscription_id?: string | null
+          premium_expires_at?: string | null
           sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
@@ -1579,6 +1585,7 @@ export type Database = {
       }
     }
     Enums: {
+      access_level: "free" | "trial" | "premium" | "admin"
       app_role: "admin" | "user"
       user_tier: "api_user" | "paid_user" | "granted_user" | "free_user"
     }
@@ -1708,6 +1715,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_level: ["free", "trial", "premium", "admin"],
       app_role: ["admin", "user"],
       user_tier: ["api_user", "paid_user", "granted_user", "free_user"],
     },
