@@ -1536,6 +1536,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_all_referenced_images: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          column_name: string
+          image_url: string
+          record_count: number
+          table_name: string
+        }[]
+      }
       get_payment_provider_for_platform: {
         Args: { _platform: string }
         Returns: string
