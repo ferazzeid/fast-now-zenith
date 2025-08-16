@@ -368,6 +368,9 @@ const FoodTracking = () => {
       <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding and History Buttons */}
         <div className="mb-4 mt-4 relative">
+          <div className="absolute left-0 top-0">
+            <AIVoiceButton />
+          </div>
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
           </div>
@@ -376,7 +379,7 @@ const FoodTracking = () => {
               <Brain className="w-6 h-6 mr-2" />
               Food Tracking
             </h1>
-            <p className="text-sm text-muted-foreground text-center">Lock your food intake</p>
+            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
           </div>
         </div>
 
