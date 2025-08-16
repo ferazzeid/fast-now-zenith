@@ -226,7 +226,7 @@ export const Navigation = () => {
                   
                   {/* Calorie badge for food ONLY */}
                   {caloriesBadge && label === 'Food' && (
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-amber-500 text-amber-50 px-1">
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-warning text-warning-foreground px-1">
                       {caloriesBadge}
                     </span>
                   )}

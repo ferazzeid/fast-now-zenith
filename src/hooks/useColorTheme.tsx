@@ -54,6 +54,13 @@ export const useColorTheme = () => {
       // The values from database are already in HSL format (e.g., "220 35% 45%")
       root.style.setProperty('--primary', settings.primary_color);
       root.style.setProperty('--ring', settings.primary_color);
+      
+      // Generate glow and hover variants
+      const hsl = parseHSL(settings.primary_color);
+      if (hsl) {
+        root.style.setProperty('--primary-glow', `${hsl.h} ${Math.min(hsl.s + 10, 100)}% ${Math.min(hsl.l + 10, 100)}%`);
+        root.style.setProperty('--primary-hover', `${hsl.h} ${hsl.s}% ${Math.max(hsl.l - 5, 0)}%`);
+      }
     }
 
     if (settings.secondary_color) {
@@ -76,8 +83,10 @@ export const useColorTheme = () => {
   const applyDefaultColors = () => {
     const root = document.documentElement;
     // Set default primary color to prevent green flash
-    root.style.setProperty('--primary', '220 35% 45%'); // Default blue
-    root.style.setProperty('--ring', '220 35% 45%');
+    root.style.setProperty('--primary', '140 35% 45%'); // Match design system
+    root.style.setProperty('--ring', '140 35% 45%');
+    root.style.setProperty('--primary-glow', '140 45% 55%');
+    root.style.setProperty('--primary-hover', '140 35% 40%');
   };
 
   const hexToHsl = (hex: string) => {
@@ -109,6 +118,18 @@ export const useColorTheme = () => {
       h: Math.round(h * 360),
       s: Math.round(s * 100),
       l: Math.round(l * 100)
+    };
+  };
+
+  const parseHSL = (hslString: string) => {
+    // Parse "220 35% 45%" format
+    const matches = hslString.match(/(\d+)\s+(\d+)%\s+(\d+)%/);
+    if (!matches) return null;
+    
+    return {
+      h: parseInt(matches[1]),
+      s: parseInt(matches[2]),
+      l: parseInt(matches[3])
     };
   };
 

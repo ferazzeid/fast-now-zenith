@@ -330,7 +330,7 @@ const Settings = () => {
             {/* Header */}
             <div className="mb-2 mt-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
                   Settings
                 </h1>
                 {isAdmin && (
@@ -482,7 +482,7 @@ const Settings = () => {
             </Card>
 
             {/* Save Settings Button - under Profile */}
-            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary">
               Save Settings
             </Button>
 
@@ -542,7 +542,7 @@ const Settings = () => {
                           toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
                         }
                       }}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                      className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary"
                     >
                       <Crown className="w-4 h-4 mr-2" />
                       {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}

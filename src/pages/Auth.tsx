@@ -67,7 +67,7 @@ const Auth = () => {
             {/* Primary Google Sign In */}
             <Button
               size="lg"
-              className="w-full h-12 text-base bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 shadow-lg"
+              className="w-full h-12 text-base bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary shadow-lg"
               onClick={handleGoogleSignIn}
               disabled={loading}
             >

@@ -105,6 +105,8 @@ All colors MUST be HSL.
 
     --primary: 140 35% 45%;
     --primary-foreground: 35 25% 98%;
+    --primary-glow: 140 45% 55%;
+    --primary-hover: 140 35% 40%;
 
     --secondary: 35 15% 90%;
     --secondary-foreground: 20 15% 25%;
@@ -167,8 +169,8 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Base dark theme colors */
-    --background: 0 0% 8%;
+    /* Base dark theme colors - Fixed from pure black to dark gray */
+    --background: 0 0% 11%;
     --foreground: 0 0% 88%;
 
     --card: 0 0% 10%;
@@ -179,6 +181,8 @@ All colors MUST be HSL.
 
     --primary: 140 35% 55%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 140 45% 65%;
+    --primary-hover: 140 35% 50%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 88%;

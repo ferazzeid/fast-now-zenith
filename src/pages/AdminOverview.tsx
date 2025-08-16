@@ -224,7 +224,7 @@ const AdminOverview = () => {
   return (
     <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
       <div className="flex items-center justify-center pt-6 pb-4">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent text-center">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent text-center">
           Admin Dashboard
         </h1>
       </div>

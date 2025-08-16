@@ -374,7 +374,7 @@ const Timer = () => {
             </div>
           )}
           <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-1">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
               {currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
             </h1>
             <p className="text-sm text-muted-foreground text-left">

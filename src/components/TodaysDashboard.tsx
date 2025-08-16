@@ -86,7 +86,7 @@ export const TodaysDashboard = () => {
       <DailyStatsPanel />
       
       <div className="text-center">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
           Today's Overview
         </h2>
         <p className="text-muted-foreground">Your daily progress at a glance</p>
