@@ -15,18 +15,6 @@ export const useAuth = () => {
       const result = await authState.signIn(email, password);
       
       if (result.error) {
-        // Check if it's a session-related error
-        if (result.error.message?.includes('session') || result.error.message?.includes('token')) {
-          // Attempt session recovery
-          const recovered = await authState.recoverSession();
-          if (recovered) {
-            toast({
-              title: "Session Recovered",
-              description: "Your session has been restored.",
-            });
-            return { error: null };
-          }
-        }
         
         toast({
           title: "Sign In Failed",
@@ -199,19 +187,13 @@ export const useAuth = () => {
     return await operation();
   };
 
-  // Session health monitoring
+  // Simple session validation
   const checkSessionHealth = async () => {
     if (!authState.session) return false;
     
-    const now = Date.now();
-    const lastCheck = authState.lastSessionCheck;
-    
-    // Check session health every 5 minutes
-    if (now - lastCheck > 5 * 60 * 1000) {
-      return await authState.recoverSession();
-    }
-    
-    return true;
+    // Check if session is still valid using expires_at
+    const isValid = authState.session.expires_at && new Date(authState.session.expires_at * 1000) > new Date();
+    return !!isValid;
   };
 
   return {
@@ -225,8 +207,5 @@ export const useAuth = () => {
     resetPassword,
     updatePassword,
     checkSessionHealth,
-    recoverSession: authState.recoverSession,
-    forceRefreshSession: authState.forceRefreshSession,
-    isRecoveringSession: authState.isRecoveringSession,
   };
 };
