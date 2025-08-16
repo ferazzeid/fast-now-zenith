@@ -162,6 +162,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
           // Don't reset form on close to preserve user changes including image uploads
         }}
         title={`Edit ${food.name}`}
+        description={`Edit the details of ${food.name} including name, calories, carbs, and image`}
         variant="standard"
         size="sm"
         footer={

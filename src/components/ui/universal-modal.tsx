@@ -20,7 +20,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +28,7 @@ interface UniversalModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  description?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   variant?: 'standard' | 'fullscreen';
   showCloseButton?: boolean;
@@ -52,6 +53,7 @@ export const UniversalModal = ({
   isOpen,
   onClose,
   title,
+  description,
   size = 'md',
   variant = 'standard',
   showCloseButton = true,
@@ -118,6 +120,11 @@ export const UniversalModal = ({
                 <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
                   {title}
                 </DialogTitle>
+                {description && (
+                  <DialogDescription className="sr-only">
+                    {description}
+                  </DialogDescription>
+                )}
                 {showCloseButton && (
                   <Button
                     variant="ghost"
@@ -186,6 +193,11 @@ export const UniversalModal = ({
             <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
               {title}
             </DialogTitle>
+            {description && (
+              <DialogDescription className="sr-only">
+                {description}
+              </DialogDescription>
+            )}
             {showCloseButton && (
               <Button
                 variant="ghost"
