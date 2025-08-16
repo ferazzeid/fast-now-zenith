@@ -379,7 +379,9 @@ const FoodTracking = () => {
               <Brain className="w-6 h-6 mr-2" />
               Food Tracking
             </h1>
-            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
+          </div>
+          <div className="px-4">
+            <p className="text-sm text-muted-foreground">Lock your food intake</p>
           </div>
         </div>
 
@@ -458,7 +460,7 @@ const FoodTracking = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive"
+                      className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive mr-1 md:mr-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowClearAllDialog(true);
@@ -721,23 +723,23 @@ const FoodTracking = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setShowClearTemplateDialog(true)}
-                          className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={handleApplyTemplate}
+                          className="h-5 w-5 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                          aria-label="Apply template to today's plan"
+                          title="Apply template to today's plan"
                         >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Clear
+                          <Plus className="w-3 h-3" />
                         </Button>
-                        <ClickableTooltip content="Apply template to today's plan">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleApplyTemplate}
-                            className="h-6 px-2 text-xs text-primary hover:text-primary hover:bg-primary/10"
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                          </Button>
-                        </ClickableTooltip>
-                        <span className="text-xs font-normal text-muted-foreground">Apply today</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowClearTemplateDialog(true)}
+                          className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive mr-1 md:mr-0"
+                          aria-label="Clear template"
+                          title="Clear template"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
                     
