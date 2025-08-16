@@ -38,12 +38,6 @@ import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
 
 const FoodTracking = () => {
-  const [foodName, setFoodName] = useState('');
-  const [calories, setCalories] = useState('');
-  const [carbs, setCarbs] = useState('');
-  const [servingSize, setServingSize] = useState('100');
-  const [imageUrl, setImageUrl] = useState('');
-  const [showForm, setShowForm] = useState(false);
   const [consumedNow, setConsumedNow] = useState(true);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   
