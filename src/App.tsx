@@ -11,7 +11,7 @@ import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
-import JWTObservatory from "./pages/JWTObservatory";
+
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
@@ -266,11 +266,6 @@ const AppContent = () => {
             <Route path="/health" element={
               <PageErrorBoundary>
                 <HealthCheck />
-              </PageErrorBoundary>
-            } />
-            <Route path="/jwt-observatory" element={
-              <PageErrorBoundary>
-                <JWTObservatory />
               </PageErrorBoundary>
             } />
             <Route path="*" element={
