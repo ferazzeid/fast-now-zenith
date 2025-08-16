@@ -1236,7 +1236,7 @@ ${args.content}`,
       showCloseButton={true}
     >
       {/* Messages with better spacing and scrolling */}
-      <div className="space-y-4 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
+      <div className="space-y-6 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
         {messages.map((message, index) => (
           <div
             key={index}

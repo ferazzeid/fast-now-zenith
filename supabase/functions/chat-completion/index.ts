@@ -219,6 +219,12 @@ USER PROFILE:
 
     const enhancedSystemMessage = `You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
 
+CRITICAL FOOD PROCESSING RULES:
+- When users mention specific food items with quantities (like "333 milliliters of Diet Pepsi", "two apples", "100g chicken"), IMMEDIATELY call add_multiple_foods function
+- Do NOT ask for confirmation or engage in discussion about adding food
+- Process the food information directly and call the function right away
+- Only engage in conversation if the user asks questions or needs clarification after processing
+
 ${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
 RESPONSE STYLE: 
