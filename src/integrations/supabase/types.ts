@@ -1557,6 +1557,10 @@ export type Database = {
         Args: { check_user_id: string }
         Returns: boolean
       }
+      test_auth_uid: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       track_usage_event: {
         Args: {
           _event_type: string

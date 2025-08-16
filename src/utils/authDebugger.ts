@@ -15,7 +15,7 @@ export const debugAuthState = async () => {
       error: sessionError
     });
 
-    // 2. Test database context auth.uid()
+    // 2. Test database context auth.uid() using existing function
     const { data: dbAuthData, error: dbError } = await supabase
       .rpc('validate_unified_auth_system');
     
@@ -36,13 +36,14 @@ export const debugAuthState = async () => {
       message: profileError ? 'RLS blocking query - auth.uid() likely NULL' : 'RLS working correctly'
     });
 
-    // 4. Test direct auth.uid() call
-    const { data: authUidData, error: authUidError } = await supabase
-      .rpc('test_auth_uid');
+    // 4. Test if JWT is being passed properly by checking admin status
+    const { data: isAdminData, error: isAdminError } = await supabase
+      .rpc('is_current_user_admin');
       
-    console.log('🎯 Direct auth.uid() test:', {
-      authUidData,
-      authUidError
+    console.log('🎯 Admin status test:', {
+      isAdminData,
+      isAdminError,
+      message: isAdminError ? 'auth.uid() returning NULL in database context' : 'auth.uid() working correctly'
     });
 
     return {
@@ -63,10 +64,22 @@ export const debugAuthState = async () => {
   }
 };
 
-// Helper function to test auth.uid() directly
-export const testAuthUid = async () => {
-  const { data, error } = await supabase
-    .rpc('test_auth_uid');
+// Helper function to test JWT token presence
+export const testJWTToken = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
   
-  return { data, error };
+  if (!session?.access_token) {
+    return { error: 'No access token found in session' };
+  }
+  
+  // Test if the token works with a database call
+  const { data, error } = await supabase
+    .rpc('is_current_user_admin');
+  
+  return { 
+    tokenPresent: !!session.access_token,
+    tokenWorking: !error,
+    data, 
+    error 
+  };
 };
