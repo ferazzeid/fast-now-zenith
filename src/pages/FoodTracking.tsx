@@ -386,33 +386,45 @@ const FoodTracking = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-6">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Large Add Food Button */}
-            <div className="flex flex-col items-center gap-2">
-              <Button 
-                variant="ai"
-                size="start-button"
-                className="w-full h-24 flex flex-col items-center justify-center gap-2"
-                onClick={handleUnifiedEntry}
-              >
-                <Plus className="w-12 h-12" />
-              </Button>
-              <span className="text-sm font-medium text-muted-foreground text-center">Add Food</span>
-            </div>
+        <div className="mb-6 grid grid-cols-2 gap-4">
+          <div className="col-span-1 flex flex-col items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="action-primary"
+                  size="action-tall"
+                  className="w-full flex items-center justify-center"
+                  onClick={handleUnifiedEntry}
+                  aria-label="Add food manually"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add food by typing name, calories, and other details</p>
+              </TooltipContent>
+            </Tooltip>
+            <span className="text-xs text-muted-foreground">Add Food</span>
+          </div>
 
-            {/* Library Button */}
-            <div className="flex flex-col items-center gap-2">
-              <Button 
-                variant="action-primary"
-                size="start-button"
-                className="w-full h-24 flex flex-col items-center justify-center gap-2"
-                onClick={() => setShowLibraryView(true)}
-              >
-                <BookOpen className="w-8 h-8" />
-              </Button>
-              <span className="text-sm font-medium text-muted-foreground text-center">Library</span>
-            </div>
+          <div className="col-span-1 flex flex-col items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="action-secondary"
+                  size="action-tall"
+                  className="w-full flex items-center justify-center"
+                  onClick={() => setShowLibraryView(true)}
+                  aria-label="Browse food library"
+                >
+                  <BookOpen className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Browse and select from your saved food library</p>
+              </TooltipContent>
+            </Tooltip>
+            <span className="text-xs text-muted-foreground">Library</span>
           </div>
         </div>
 
