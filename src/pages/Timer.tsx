@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History, X, CheckCircle } from 'lucide-react';
 import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
@@ -60,12 +60,12 @@ const Timer = () => {
 
   const isRunning = !!fastingSession;
 
-  const formatTimeFasting = (seconds: number) => {
+  const formatTimeFasting = useCallback((seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
   useEffect(() => {
     refreshActiveSession();
@@ -110,6 +110,16 @@ const Timer = () => {
     }
   }, [fastingSession]);
 
+  // Memoize the milestone check function to prevent recreation
+  const stableMilestoneCheck = useCallback((elapsed: number, goalDuration?: number) => {
+    checkForMilestones(elapsed, goalDuration);
+  }, [checkForMilestones]);
+
+  // Memoize the end session function to prevent recreation
+  const stableEndSession = useCallback(async (sessionId: string) => {
+    await endFastingSession(sessionId);
+  }, [endFastingSession]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     let goalTimeout: NodeJS.Timeout;
@@ -122,7 +132,7 @@ const Timer = () => {
         setTimeElapsed(elapsed);
 
         // Check for celebration milestones
-        checkForMilestones(elapsed, fastingSession.goal_duration_seconds);
+        stableMilestoneCheck(elapsed, fastingSession.goal_duration_seconds);
       };
 
       // Update immediately
@@ -165,7 +175,7 @@ const Timer = () => {
                 return;
               }
               
-              await endFastingSession(fastingSession.id);
+              await stableEndSession(fastingSession.id);
               toast({
                 title: "🎉 Goal Achieved!",
                 description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
@@ -177,6 +187,8 @@ const Timer = () => {
           }, timeToGoal);
         } else if (timeToGoal >= MAX_TIMEOUT) {
           console.warn(`⚠️ Skipping goal timeout - duration too long: ${timeToGoal}ms`);
+        } else {
+          console.log('⚠️ Skipping goal timeout - time already passed');
         }
       }
     } else {
@@ -190,7 +202,7 @@ const Timer = () => {
         clearTimeout(goalTimeout);
       }
     };
-  }, [isRunning, fastingSession?.start_time, fastingSession?.id, fastingSession?.goal_duration_seconds, checkForMilestones, endFastingSession, toast, formatTimeFasting]);
+  }, [isRunning, fastingSession?.start_time, fastingSession?.id, fastingSession?.goal_duration_seconds, stableMilestoneCheck, stableEndSession, toast, formatTimeFasting]);
 
   const handleFastingStart = async () => {
     resetMilestones(); // Reset celebration state for new fast
