@@ -3,7 +3,7 @@ import React from 'react';
 import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
-import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+
 import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,8 +14,7 @@ interface PremiumGatedVoiceButtonProps {
 }
 
 export const PremiumGatedVoiceButton = (props: PremiumGatedVoiceButtonProps) => {
-  const { access_level, hasPremiumFeatures, createSubscription } = useAccess();
-  const { testRole, isTestingMode } = useRoleTestingContext();
+  const { access_level, hasPremiumFeatures, createSubscription, testRole, isTestingMode } = useAccess();
   const { toast } = useToast();
   
   // Use test role if in testing mode, otherwise use actual access level

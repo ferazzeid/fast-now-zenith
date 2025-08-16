@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { detectPlatform, getPaymentProviderForPlatform } from '@/utils/platformDetection';
 import { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+import { useAccess } from '@/hooks/useAccess';
 import { useAdminRole } from '@/hooks/useAdminRole';
 
 export interface UnifiedSubscriptionData {
@@ -262,8 +262,7 @@ export const useUnifiedSubscription = () => {
   const [platform] = useState(() => detectPlatform());
   const { isAdmin } = useAdminRole();
   
-  // Import role testing context
-  const { testRole, isTestingMode } = useRoleTestingContext();
+  // Role testing is now handled by useAccess
 
   const {
     data: subscriptionData = DEFAULT_SUBSCRIPTION,
@@ -386,47 +385,7 @@ export const useUnifiedSubscription = () => {
     };
   }
   
-  // Then apply test role overrides if in testing mode
-  if (isTestingMode && testRole) {
-    finalData = {
-      ...finalData,
-      // Override values based on test role
-      ...(testRole === 'trial_user' && {
-        subscription_status: 'trial',
-        subscription_tier: 'paid',
-        inTrial: true,
-        trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        isPaidUser: false, // Still false because it's a trial, not paid
-        hasPremiumFeatures: true, // Has access during trial
-        request_limit: 1000,
-      }),
-      ...(testRole === 'free_user' && {
-        subscription_status: 'free',
-        subscription_tier: 'free',
-        inTrial: false,
-        trialEndsAt: undefined,
-        isPaidUser: false,
-        hasPremiumFeatures: false,
-        request_limit: 5,
-      }),
-      ...(testRole === 'paid_user' && {
-        subscription_status: 'active',
-        subscription_tier: 'paid',
-        inTrial: false,
-        isPaidUser: true,
-        hasPremiumFeatures: true,
-        request_limit: 1000,
-      }),
-      ...(testRole === 'admin' && {
-        subscription_status: 'active',
-        subscription_tier: 'admin',
-        inTrial: false,
-        isPaidUser: true,
-        hasPremiumFeatures: true,
-        request_limit: 10000,
-      })
-    };
-  }
+  // Role testing is now handled by useAccess hook
 
   return {
     ...finalData,

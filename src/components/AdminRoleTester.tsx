@@ -1,40 +1,38 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useRoleTestingContext, UserRole } from '@/contexts/RoleTestingContext';
-import { TestTube, RotateCcw, Crown, User, Users, Key, UserX } from 'lucide-react';
+import { useAccess } from '@/hooks/useAccess';
+import { TestTube, RotateCcw, Crown, User, UserX } from 'lucide-react';
+
+export type UserRole = 'admin' | 'paid_user' | 'free_user';
 
 const roleIcons = {
   admin: Crown,
-  paid_user: Crown,
-  granted_user: Users,
-  trial_user: User,
-  free_user: UserX
+  paid_user: User,
+  free_user: UserX,
 };
 
 const roleDescriptions = {
-  admin: 'Full admin access with all features',
-  paid_user: 'Premium subscriber with all features unlocked',
-  granted_user: 'Basic user with limited requests', // Deprecated - not used
-  trial_user: 'Trial user with temporary premium access',
-  free_user: 'Free user with basic features only'
+  admin: 'Full admin access with unlimited features',
+  paid_user: 'Premium features and high request limits',
+  free_user: 'Basic access with limited features',
 };
 
 export const AdminRoleTester = () => {
-  const { testRole, setTestRole, isTestingMode } = useRoleTestingContext();
+  const { testRole, setTestRole, isTestingMode } = useAccess();
 
   const handleRoleChange = (value: string) => {
     if (value === 'none') {
-      setTestRole(null);
+      setTestRole?.(null);
     } else {
-      setTestRole(value as UserRole);
+      setTestRole?.(value as UserRole);
     }
   };
 
   const resetToAdmin = () => {
-    setTestRole(null);
+    setTestRole?.(null);
   };
 
   const currentRole = (testRole || 'admin') as keyof typeof roleIcons;
@@ -66,7 +64,6 @@ export const AdminRoleTester = () => {
               <SelectContent>
                 <SelectItem value="none">Admin (Default)</SelectItem>
                 <SelectItem value="paid_user">Premium User</SelectItem>
-                <SelectItem value="trial_user">Trial User</SelectItem>
                 <SelectItem value="free_user">Free User</SelectItem>
               </SelectContent>
             </Select>

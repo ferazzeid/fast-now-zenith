@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+import { useState } from 'react';
 
 export interface AccessData {
   access_level: 'free' | 'trial' | 'premium' | 'admin';
@@ -13,6 +13,10 @@ export interface AccessData {
   isPremium: boolean;
   isFree: boolean;
   daysRemaining: number | null;
+  // Role testing properties
+  testRole?: 'admin' | 'paid_user' | 'free_user' | null;
+  setTestRole?: (role: 'admin' | 'paid_user' | 'free_user' | null) => void;
+  isTestingMode?: boolean;
 }
 
 const fetchAccessData = async (userId: string): Promise<AccessData> => {
@@ -66,7 +70,10 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 
 export const useAccess = () => {
   const { user } = useAuth();
-  const { testRole, isTestingMode } = useRoleTestingContext();
+  
+  // Internal role testing state - simplified approach
+  const [testRole, setTestRole] = useState<'admin' | 'paid_user' | 'free_user' | null>(null);
+  const isTestingMode = testRole !== null;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['access', user?.id],
@@ -112,6 +119,10 @@ export const useAccess = () => {
       isTrial: false,
       isPremium: testAccessLevel === 'premium',
       isFree: testAccessLevel === 'free',
+      // Role testing functions
+      setTestRole,
+      testRole,
+      isTestingMode,
       // Helper functions
       createSubscription: async () => {
         const { data, error } = await supabase.functions.invoke('create-subscription');
@@ -132,6 +143,10 @@ export const useAccess = () => {
 
   return {
     ...actualData,
+    // Role testing functions
+    setTestRole,
+    testRole,
+    isTestingMode,
     // Helper functions
     createSubscription: async () => {
       const { data, error } = await supabase.functions.invoke('create-subscription');

@@ -4,7 +4,7 @@ import { Lock, Crown, Utensils, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAccess } from '@/hooks/useAccess';
 import { useToast } from '@/hooks/use-toast';
-import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+
 import { cn } from '@/lib/utils';
 import { PremiumUpgradeModal } from './PremiumUpgradeModal';
 

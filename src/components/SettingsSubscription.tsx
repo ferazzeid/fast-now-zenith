@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Crown, ExternalLink, Calendar, Clock, TestTube, RefreshCw } from 'lucide-react';
 import { TrialIndicator } from './TrialIndicator';
-import { useRoleTestingContext } from '@/contexts/RoleTestingContext';
+import { useAccess } from '@/hooks/useAccess';
 import { useCacheManager } from '@/hooks/useCacheManager';
 import { SubscriptionSystemReset } from './SubscriptionSystemReset';
 
@@ -27,7 +27,7 @@ export const SettingsSubscription = () => {
     invalidate,
   } = useUnifiedSubscription();
 
-  const { testRole, isTestingMode } = useRoleTestingContext();
+  const { testRole, isTestingMode } = useAccess();
   const { clearAllSubscriptionCache } = useCacheManager();
 
   // Force refresh subscription data when Settings page loads
