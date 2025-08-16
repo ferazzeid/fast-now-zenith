@@ -21,4 +21,3 @@ export {
 } from './ConnectionRecovery';
 
 export { OfflineScreen } from '../OfflineScreen';
-export { NetworkErrorBoundary } from '../NetworkErrorBoundary';

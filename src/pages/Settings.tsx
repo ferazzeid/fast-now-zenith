@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
-import { AuthDiagnosticPanel } from '@/components/AuthDiagnosticPanel';
+
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
@@ -603,8 +603,7 @@ const Settings = () => {
                 </div>
                 
                  <div className="space-y-3">
-                   {/* Auth Diagnostic Panel for debugging */}
-                   <AuthDiagnosticPanel />
+                   {/* Cache clear */}
                    
                    {/* Clear Cache */}
                    <ClearCacheButton />

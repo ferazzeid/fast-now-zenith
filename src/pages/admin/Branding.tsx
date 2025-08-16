@@ -5,7 +5,7 @@ import { ColorManagement } from "@/components/ColorManagement";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
 import { AppIdentitySettings } from "@/components/AppIdentitySettings";
 import { PWAManagementCard } from "@/components/PWAManagementCard";
-import { PWATestPanel } from "@/components/PWATestPanel";
+
 
 export default function AdminBranding() {
   usePageSEO({
@@ -33,9 +33,6 @@ export default function AdminBranding() {
         <PWAManagementCard />
       </section>
 
-      <section aria-label="PWA testing">
-      <PWATestPanel />
-      </section>
 
       <section aria-label="Color management">
         <ColorManagement />

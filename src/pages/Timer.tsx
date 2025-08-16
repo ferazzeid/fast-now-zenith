@@ -30,7 +30,7 @@ import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 
-import { AdminCelebrationTestMenu } from '@/components/AdminCelebrationTestMenu';
+
 import { useAccess } from '@/hooks/useAccess';
 
 const Timer = () => {
