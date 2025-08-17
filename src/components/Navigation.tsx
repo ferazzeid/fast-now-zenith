@@ -27,7 +27,7 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, access_level, createSubscription, refetch } = useAccess();
+  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, access_level, createSubscription, refetch, testRole, isTestingMode } = useAccess();
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -185,9 +185,12 @@ export const Navigation = () => {
                 }
               };
 
-              // Handle Food button click for premium gating
+              // Handle premium gating for Food navigation with role testing support
+              const currentAccessLevel = isTestingMode ? testRole : access_level;
+              const currentHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
+              
               const handleFoodClick = (e: React.MouseEvent) => {
-                const hasAccess = access_level !== 'free';
+                const hasAccess = currentAccessLevel === 'admin' || currentHasPremiumFeatures;
                 if (!hasAccess && label === 'Food') {
                   e.preventDefault();
                   e.stopPropagation();
@@ -196,7 +199,7 @@ export const Navigation = () => {
                 }
               };
               
-              const hasAccess = access_level !== 'free';
+              const hasAccess = currentAccessLevel === 'admin' || currentHasPremiumFeatures;
               const isLocked = label === 'Food' && !hasAccess;
               
               const content = (

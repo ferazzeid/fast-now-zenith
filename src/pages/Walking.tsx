@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
+import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -218,7 +218,7 @@ const Walking = () => {
         {/* Header with Onboarding and History Buttons */}
         <div className="mb-4 mt-4 relative">
           <div className="absolute left-0 top-0">
-            <AIVoiceButton />
+            <PremiumGatedAIVoiceButton />
           </div>
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />
@@ -265,16 +265,12 @@ const Walking = () => {
                       description: "Unable to update walking speed. Please try again."
                     });
                   } else {
-                    // Show speed in user's preferred units
-                    const units = profile?.units || 'imperial';
-                    const displaySpeed = units === 'metric' 
-                      ? (newSpeed * 1.60934).toFixed(1) 
-                      : newSpeed.toFixed(1);
-                    const unitLabel = units === 'metric' ? 'km/h' : 'mph';
+                    // Show speed in neutral terms
+                    const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
                     
                     toast({
                       title: "Speed Updated",
-                      description: `Speed updated to ${displaySpeed} ${unitLabel}`
+                      description: `Speed updated to ${speedLabel}`
                     });
                   }
                 } catch (error) {

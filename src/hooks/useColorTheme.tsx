@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getEnvironmentConfig } from '@/config/environment';
 
 interface ColorSettings {
   primary_color?: string;
@@ -40,6 +41,9 @@ export const useColorTheme = () => {
 
       setColorSettings(settings);
       applyColors(settings);
+      
+      // Cache the colors for instant loading on next visit
+      localStorage.setItem('admin_colors', JSON.stringify(settings));
     } catch (error) {
       console.error('Error in loadColors:', error);
     } finally {
@@ -79,14 +83,16 @@ export const useColorTheme = () => {
     }
   };
 
-  // Apply default colors immediately to prevent flash
+  // Apply environment-appropriate default colors to prevent flash while loading admin colors
   const applyDefaultColors = () => {
     const root = document.documentElement;
-    // Set default primary color to prevent green flash
-    root.style.setProperty('--primary', '140 35% 45%'); // Match design system
-    root.style.setProperty('--ring', '140 35% 45%');
-    root.style.setProperty('--primary-glow', '140 45% 55%');
-    root.style.setProperty('--primary-hover', '140 35% 40%');
+    const envConfig = getEnvironmentConfig();
+    
+    // Use production colors as defaults, fallback to neutral in development
+    root.style.setProperty('--primary', envConfig.colors.primary);
+    root.style.setProperty('--ring', envConfig.colors.primary);
+    root.style.setProperty('--primary-glow', envConfig.colors.primaryGlow);
+    root.style.setProperty('--primary-hover', envConfig.colors.primaryHover);
   };
 
   const hexToHsl = (hex: string) => {
@@ -134,10 +140,25 @@ export const useColorTheme = () => {
   };
 
   useEffect(() => {
-    // Apply default colors immediately to prevent flash
-    applyDefaultColors();
+    // Check if colors are cached in localStorage
+    const cachedColors = localStorage.getItem('admin_colors');
+    if (cachedColors) {
+      try {
+        const parsedColors = JSON.parse(cachedColors);
+        applyColors(parsedColors);
+        setColorSettings(parsedColors);
+      } catch (error) {
+        console.error('Error parsing cached colors:', error);
+        applyDefaultColors();
+      }
+    } else {
+      // Apply environment-appropriate default colors while loading
+      applyDefaultColors();
+    }
+    
+    // Load fresh colors from database
     loadColors();
-  }, []); // Remove user dependency since color settings are shared/global
+  }, []);
 
   return { colorSettings, loading, loadColors, applyColors };
 };

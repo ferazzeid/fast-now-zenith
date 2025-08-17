@@ -9,6 +9,7 @@ export interface AccessData {
   hasAccess: boolean;
   hasPremiumFeatures: boolean;
   isAdmin: boolean;
+  originalIsAdmin?: boolean; // CRITICAL: Preserves original admin status during role testing
   isTrial: boolean;
   isPremium: boolean;
   isFree: boolean;
@@ -71,8 +72,26 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 export const useAccess = () => {
   const { user } = useAuth();
   
-  // Internal role testing state - simplified approach
-  const [testRole, setTestRole] = useState<'admin' | 'paid_user' | 'free_user' | null>(null);
+  // Internal role testing state with localStorage persistence
+  const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('admin_role_testing');
+      return stored ? (stored as 'admin' | 'paid_user' | 'free_user') : null;
+    }
+    return null;
+  });
+  
+  const setTestRole = (role: 'admin' | 'paid_user' | 'free_user' | null) => {
+    setTestRoleState(role);
+    if (typeof window !== 'undefined') {
+      if (role) {
+        localStorage.setItem('admin_role_testing', role);
+      } else {
+        localStorage.removeItem('admin_role_testing');
+      }
+    }
+  };
+  
   const isTestingMode = testRole !== null;
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -120,6 +139,7 @@ export const useAccess = () => {
       hasAccess: testAccessLevel !== 'free',
       hasPremiumFeatures: testAccessLevel !== 'free',
       isAdmin: testAccessLevel === 'admin',
+      originalIsAdmin: actualData.isAdmin, // CRITICAL: Preserve original admin status
       isTrial: false,
       isPremium: testAccessLevel === 'premium',
       isFree: testAccessLevel === 'free',
@@ -147,6 +167,7 @@ export const useAccess = () => {
 
   return {
     ...actualData,
+    originalIsAdmin: actualData.isAdmin, // CRITICAL: Always preserve original admin status
     // Role testing functions
     setTestRole,
     testRole,

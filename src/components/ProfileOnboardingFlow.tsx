@@ -145,7 +145,8 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       case 'sex':
         return value.charAt(0).toUpperCase() + value.slice(1);
       case 'activityLevel':
-        return value ? value.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not set';
+        const activityLabels = { sedentary: 'Low', moderately_active: 'Medium', very_active: 'High' };
+        return value ? activityLabels[value as keyof typeof activityLabels] || value : 'Not set';
       default:
         return value;
     }
@@ -281,11 +282,9 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                   <SelectValue placeholder="Select activity level" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border z-50">
-                  <SelectItem value="sedentary">Sedentary</SelectItem>
-                  <SelectItem value="lightly-active">Lightly Active</SelectItem>
-                  <SelectItem value="moderately-active">Moderately Active</SelectItem>
-                  <SelectItem value="very-active">Very Active</SelectItem>
-                  <SelectItem value="extra-active">Extra Active</SelectItem>
+                  <SelectItem value="sedentary">Low</SelectItem>
+                  <SelectItem value="moderately_active">Medium</SelectItem>
+                  <SelectItem value="very_active">High</SelectItem>
                 </SelectContent>
               </Select>
             </div>

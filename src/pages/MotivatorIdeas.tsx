@@ -112,7 +112,7 @@ export default function MotivatorIdeas() {
         <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <h1 className="text-xl font-bold text-warm-text">Goal Ideas ({profile?.sex || 'Loading...'})</h1>
+        <h1 className="text-xl font-bold text-warm-text">Goal Ideas</h1>
       </header>
 
       <main>

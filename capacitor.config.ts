@@ -1,20 +1,70 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { getEnvironmentConfig, isDevelopment } from './src/config/environment';
+
+const envConfig = getEnvironmentConfig();
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.de91d618edcf40eb8e117c45904095be',
-  appName: 'fast-now-zenith',
+  appId: envConfig.appId,
+  appName: envConfig.appName,
   webDir: 'dist',
-  server: {
-    url: 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Only include server config in development mode
+  ...(isDevelopment() && envConfig.serverUrl ? {
+    server: {
+      url: envConfig.serverUrl,
+      cleartext: true
+    }
+  } : {}),
+  // Production-only native app behavior
+  ...(!isDevelopment() ? {
+    allowNavigation: envConfig.nativeApp.allowNavigation,
+    hideLogs: envConfig.nativeApp.hideLogs,
+    loggingBehavior: envConfig.nativeApp.loggingBehavior,
+    server: {
+      androidScheme: 'https'
+    }
+  } : {}),
   plugins: {
     SplashScreen: {
-      launchShowDuration: 0
+      launchShowDuration: 0,
+      launchAutoHide: true,
+      backgroundColor: '#F5F5F5',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true
     },
     StatusBar: {
-      style: 'default'
+      style: 'default',
+      backgroundColor: '#F5F5F5'
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'dark',
+      resizeOnFullScreen: true
     }
+  },
+  android: {
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: isDevelopment(),
+    appendUserAgent: 'FastNowApp/1.0',
+    overrideUserAgent: 'FastNowApp/1.0 Android',
+    backgroundColor: '#F5F5F5',
+    useLegacyBridge: false,
+    flavor: 'main',
+    // Production native behavior
+    fullscreen: envConfig.nativeApp.fullscreen,
+    hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
+    usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic
+  },
+  ios: {
+    backgroundColor: '#F5F5F5',
+    overrideUserAgent: 'FastNowApp/1.0 iOS',
+    preferredContentMode: 'mobile',
+    allowsLinkPreview: false,
+    scrollEnabled: true,
+    limitsNavigationsToAppBoundDomains: true
   }
 };
 

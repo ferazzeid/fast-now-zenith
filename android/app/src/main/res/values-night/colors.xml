@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#E53E3E</color>
+    <color name="colorPrimaryDark">#C53030</color>
+    <color name="colorAccent">#E53E3E</color>
+    <color name="backgroundLight">#1C1C1C</color>
+    <color name="foregroundLight">#E0E0E0</color>
+    <color name="cardLight">#1A1A1A</color>
+    <color name="backgroundDark">#1C1C1C</color>
+    <color name="foregroundDark">#E0E0E0</color>
+    <color name="cardDark">#1A1A1A</color>
+    <color name="ic_launcher_background">#1C1C1C</color>
+    <color name="statusBarLight">#1C1C1C</color>
+    <color name="statusBarDark">#1C1C1C</color>
+</resources>

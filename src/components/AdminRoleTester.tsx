@@ -39,29 +39,35 @@ export const AdminRoleTester = () => {
   const IconComponent = roleIcons[currentRole];
 
   return (
-    <Card className="border-2 border-dashed border-primary/50">
+    <Card className={`border-2 border-dashed ${isTestingMode ? 'border-yellow-500 bg-yellow-50/10' : 'border-primary/50'}`}>
       <CardContent className="pt-6">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            <IconComponent className="w-5 h-5 text-primary flex-shrink-0" />
+            <IconComponent className={`w-5 h-5 flex-shrink-0 ${isTestingMode ? 'text-yellow-600' : 'text-primary'}`} />
             <div className="min-w-0">
               <div className="font-medium truncate">
-                Currently testing as: {currentRole}
+                Currently testing as: <span className={isTestingMode ? 'text-yellow-700 font-bold' : ''}>{currentRole}</span>
               </div>
               {isTestingMode && (
                 <Badge variant="destructive" className="mt-1">
+                  <TestTube className="w-3 h-3 mr-1" />
                   Testing Mode Active
                 </Badge>
+              )}
+              {!isTestingMode && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Default admin view - select a role to test user perspectives
+                </p>
               )}
             </div>
           </div>
           
           <div className="flex gap-2 flex-shrink-0">
             <Select value={testRole || 'none'} onValueChange={handleRoleChange}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className={`w-[140px] ${isTestingMode ? 'border-yellow-500' : ''}`}>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background border border-border shadow-lg z-50">
                 <SelectItem value="none">Admin (Default)</SelectItem>
                 <SelectItem value="paid_user">Premium User</SelectItem>
                 <SelectItem value="free_user">Free User</SelectItem>
@@ -73,7 +79,7 @@ export const AdminRoleTester = () => {
                 onClick={resetToAdmin} 
                 variant="outline" 
                 size="sm"
-                className="flex-shrink-0"
+                className="flex-shrink-0 border-yellow-500 text-yellow-700 hover:bg-yellow-50"
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Reset
@@ -81,6 +87,17 @@ export const AdminRoleTester = () => {
             )}
           </div>
         </div>
+        
+        {isTestingMode && (
+          <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>Testing as {currentRole}:</strong> {roleDescriptions[currentRole]}
+            </p>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+              Navigate to any page to see how features appear for this user role. This setting persists until reset.
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

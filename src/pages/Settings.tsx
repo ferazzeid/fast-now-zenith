@@ -46,7 +46,7 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { isAdmin: accessIsAdmin, hasPremiumFeatures, createSubscription, openCustomerPortal, isTrial, daysRemaining, access_level } = useAccess();
+  const { isAdmin: accessIsAdmin, originalIsAdmin, hasPremiumFeatures, createSubscription, openCustomerPortal, isTrial, daysRemaining, access_level } = useAccess();
   const isWebPlatform = true; // Default to web for now
   const platformName = 'Stripe'; // Default to Stripe for now
   
@@ -333,7 +333,7 @@ const Settings = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
                   Settings
                 </h1>
-                {isAdmin && (
+                {(isAdmin || originalIsAdmin) && (
                   <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
                     Admin Dashboard
                   </Button>

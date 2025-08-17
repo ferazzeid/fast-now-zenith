@@ -1,6 +1,7 @@
 import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AIVoiceButton } from '@/components/AIVoiceButton';
+
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
@@ -33,12 +34,9 @@ const Motivators = () => {
   const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
-  const [showAiChat, setShowAiChat] = useState(false);
   const [showGoalIdeas, setShowGoalIdeas] = useState(false);
   const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  
-  const [aiChatContext, setAiChatContext] = useState('');
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
   // Filter motivators based on active tab
@@ -300,7 +298,7 @@ const Motivators = () => {
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
         <div className="max-w-md mx-auto pt-10 pb-20">
           <div className="space-y-6">
-          {/* Header with Onboarding Button */}
+          {/* Header */}
           <div className="mb-4 mt-4 relative">
             <div className="absolute left-0 top-0">
               <AIVoiceButton />
@@ -316,33 +314,7 @@ const Motivators = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="mb-6 grid grid-cols-3 gap-4">
-            <div className="col-span-1 flex flex-col items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PremiumGate feature="Voice Input" grayOutForFree={true} className="w-full">
-                    <Button
-                      onClick={() => {
-                        setAiChatContext("Help me create a powerful motivator for my fasting journey. I want to record what drives me and why it's important.");
-                        setShowAiChat(true);
-                        trackAIEvent('chat', 'motivator_voice');
-                      }}
-                      variant="ai"
-                      size="action-tall"
-                      className="w-full flex items-center justify-center"
-                      aria-label="Create motivator with voice"
-                    >
-                      <Mic className="w-5 h-5" />
-                    </Button>
-                  </PremiumGate>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Create a motivator by talking about what drives you</p>
-                </TooltipContent>
-              </Tooltip>
-              <span className="text-xs text-muted-foreground">Voice add</span>
-            </div>
-
+          <div className="mb-6 grid grid-cols-2 gap-4">
             <div className="col-span-1 flex flex-col items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -360,7 +332,7 @@ const Motivators = () => {
                   <p>Create a motivator by typing title, description, and adding images</p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-xs text-muted-foreground">Manual add</span>
+              <span className="text-xs text-muted-foreground">Add Goal</span>
             </div>
 
             <div className="col-span-1 flex flex-col items-center gap-1">
@@ -519,19 +491,6 @@ const Motivators = () => {
             </ComponentErrorBoundary>
           )}
 
-          {/* AI Chat Modal */}
-          {showAiChat && (
-            <ComponentErrorBoundary>
-              <ModalAiChat
-                isOpen={showAiChat}
-                context={aiChatContext}
-                onResult={handleAiChatResult}
-                onClose={() => setShowAiChat(false)}
-                title="Motivator Assistant"
-                systemPrompt="You are a motivational coach who helps users create personalized motivational messages and goals. Focus on understanding their specific motivations and creating compelling, actionable content that will inspire them on their journey."
-              />
-            </ComponentErrorBoundary>
-          )}
 
           {/* Motivator Ideas Modal */}
           <MotivatorIdeasModal

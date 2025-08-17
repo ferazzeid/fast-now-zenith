@@ -251,16 +251,12 @@ When explaining app calculations, use the exact formulas and constants above. He
 
     console.log('🤖 Calling OpenAI with messages:', messages.slice(-2)); // Log last 2 messages for debugging
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
-        messages: systemMessages,
-        tools: [
+    // Prepare OpenAI request payload
+    const requestPayload = {
+      model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
+      messages: systemMessages,
+      stream: stream,
+      tools: [
           // === SESSION MANAGEMENT ===
           {
             type: "function",
@@ -487,7 +483,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add multiple food entries to the user's food log. CRITICAL: When users specify a COUNT of items (e.g., 'two cucumbers', 'three bananas'), create SEPARATE entries for each item. Do NOT aggregate quantities into a single entry. Only create one entry when user specifies total weight without count (e.g., '400g chicken').",
+              description: "Add food entries to the user's food log. Create one entry per food item mentioned. Only create multiple entries when user explicitly mentions multiple items (e.g., 'two apples', 'three bananas'). For singular requests like 'a cucumber' or 'add Greek yogurt', create only ONE entry.",
               parameters: {
                 type: "object",
                 properties: {
@@ -791,10 +787,124 @@ When explaining app calculations, use the exact formulas and constants above. He
                 required: []
               }
             }
+          },
+          // === MOTIVATOR FUNCTIONS ===
+          {
+            type: "function",
+            function: {
+              name: "edit_motivator",
+              description: "Edit an existing motivator's title, content, or category",
+              parameters: {
+                type: "object",
+                properties: {
+                  motivator_id: {
+                    type: "string",
+                    description: "ID of the motivator to edit"
+                  },
+                  updates: {
+                    type: "object",
+                    properties: {
+                      title: {
+                        type: "string",
+                        description: "New title for the motivator"
+                      },
+                      content: {
+                        type: "string",
+                        description: "New content for the motivator"
+                      },
+                      category: {
+                        type: "string",
+                        description: "New category for the motivator"
+                      }
+                    }
+                  }
+                },
+                required: ["motivator_id", "updates"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "delete_motivator",
+              description: "Delete a motivator by ID",
+              parameters: {
+                type: "object",
+                properties: {
+                  motivator_id: {
+                    type: "string",
+                    description: "ID of the motivator to delete"
+                  }
+                },
+                required: ["motivator_id"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_user_motivators",
+              description: "Get all motivators for the current user",
+              parameters: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            }
           }
         ],
         tool_choice: "auto"
-      }),
+      };
+
+    // Log request payload for debugging
+    console.log('🚀 OpenAI Request Payload:', JSON.stringify({
+      model: requestPayload.model,
+      messages: requestPayload.messages.map(m => ({ role: m.role, content: m.content.length > 200 ? m.content.substring(0, 200) + '...' : m.content })),
+      stream: requestPayload.stream,
+      tool_count: requestPayload.tools.length,
+      tool_choice: requestPayload.tool_choice
+    }, null, 2));
+
+    // Validate request payload before sending
+    if (!requestPayload.model) {
+      throw new Error('OpenAI model not specified');
+    }
+    if (!requestPayload.messages || requestPayload.messages.length === 0) {
+      throw new Error('No messages provided for OpenAI request');
+    }
+    if (!requestPayload.tools || requestPayload.tools.length === 0) {
+      console.warn('⚠️ No tools provided in request - function calls will not be available');
+    }
+
+    // Validate function schemas
+    for (const tool of requestPayload.tools) {
+      if (tool.type === 'function') {
+        const func = tool.function;
+        if (!func.name || !func.parameters) {
+          console.error('❌ Invalid function schema:', func);
+          throw new Error(`Invalid function schema for ${func.name || 'unnamed function'}`);
+        }
+        
+        // Validate JSON Schema structure
+        if (func.parameters.type !== 'object' || !func.parameters.properties) {
+          console.error('❌ Invalid function parameters schema:', func.parameters);
+          throw new Error(`Invalid parameters schema for function ${func.name}`);
+        }
+      }
+    }
+
+    console.log('✅ Request payload validation passed');
+
+    // Make request to OpenAI
+    console.log('🤖 Calling OpenAI API...');
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestPayload),
     });
 
     if (!response.ok) {
@@ -854,22 +964,106 @@ When explaining app calculations, use the exact formulas and constants above. He
       const result = await response.json();
       console.log('🔍 OpenAI Response:', JSON.stringify(result, null, 2));
       
-      // Check if there's a function call in the response
+      // Enhanced function call detection with multiple parsing methods
       let functionCall = null;
+      let completion = '';
+      
+      // Method 1: Standard tool_calls format (GPT-4+ with tools)
       if (result.choices?.[0]?.message?.tool_calls?.[0]) {
+        console.log('📞 Processing tool_calls format...');
         const toolCall = result.choices[0].message.tool_calls[0];
         if (toolCall.type === 'function') {
-          functionCall = {
-            name: toolCall.function.name,
-            arguments: JSON.parse(toolCall.function.arguments)
-          };
+          try {
+            const parsedArgs = JSON.parse(toolCall.function.arguments);
+            functionCall = {
+              name: toolCall.function.name,
+              arguments: parsedArgs
+            };
+            console.log('✅ Successfully parsed tool_calls function:', functionCall);
+          } catch (parseError) {
+            console.error('❌ Failed to parse tool_calls arguments:', parseError);
+            console.error('❌ Raw arguments string:', toolCall.function.arguments);
+          }
         }
       }
       
-      // Format response to match expected structure
-      let completion = result.choices?.[0]?.message?.content || '';
+      // Method 2: Legacy function_call format (older models)
+      else if (result.choices?.[0]?.message?.function_call) {
+        console.log('📞 Processing legacy function_call format...');
+        const funcCall = result.choices[0].message.function_call;
+        try {
+          const parsedArgs = JSON.parse(funcCall.arguments);
+          functionCall = {
+            name: funcCall.name,
+            arguments: parsedArgs
+          };
+          console.log('✅ Successfully parsed legacy function_call:', functionCall);
+        } catch (parseError) {
+          console.error('❌ Failed to parse legacy function_call arguments:', parseError);
+          console.error('❌ Raw arguments string:', funcCall.arguments);
+        }
+      }
+      
+      // Method 3: Content parsing fallback (if function call is in text)
+      else if (result.choices?.[0]?.message?.content) {
+        const content = result.choices[0].message.content;
+        console.log('📞 Checking content for embedded function calls...');
+        
+        // Look for JSON function call patterns in content
+        const functionPattern = /```json\s*{\s*"name":\s*"([^"]+)"\s*,\s*"arguments":\s*({[^}]+})\s*}\s*```/;
+        const match = content.match(functionPattern);
+        
+        if (match) {
+          try {
+            const parsedArgs = JSON.parse(match[2]);
+            functionCall = {
+              name: match[1],
+              arguments: parsedArgs
+            };
+            console.log('✅ Successfully parsed embedded function call:', functionCall);
+          } catch (parseError) {
+            console.error('❌ Failed to parse embedded function call:', parseError);
+          }
+        }
+      }
+      
+      // Extract completion text
+      completion = result.choices?.[0]?.message?.content || '';
+      
+      // Log results
       console.log('🎯 Extracted completion:', completion);
-      console.log('🔧 Function call detected:', functionCall);
+      console.log('🔧 Function call detected:', functionCall ? JSON.stringify(functionCall, null, 2) : 'None');
+      
+      // Validate function call if detected
+      if (functionCall) {
+        console.log('🔍 Validating function call...');
+        
+        if (!functionCall.name) {
+          console.error('❌ Function call missing name');
+          functionCall = null;
+        } else if (!functionCall.arguments) {
+          console.error('❌ Function call missing arguments');
+          functionCall = null;
+        } else if (typeof functionCall.arguments !== 'object') {
+          console.error('❌ Function call arguments not an object');
+          functionCall = null;
+        } else {
+          console.log('✅ Function call validation passed');
+          
+          // Special validation for add_multiple_foods
+          if (functionCall.name === 'add_multiple_foods') {
+            if (!functionCall.arguments.foods || !Array.isArray(functionCall.arguments.foods)) {
+              console.error('❌ add_multiple_foods missing foods array');
+              functionCall = null;
+            } else if (functionCall.arguments.foods.length === 0) {
+              console.error('❌ add_multiple_foods has empty foods array');
+              functionCall = null;
+            } else {
+              console.log(`✅ add_multiple_foods has ${functionCall.arguments.foods.length} food items`);
+            }
+          }
+        }
+      }
       
       // Round decimal numbers for calories and carbs to whole numbers
       completion = completion.replace(/(\d+)\.(\d+)\s*(calories?|cal|carbs?|grams?)/gi, (match, whole, decimal, unit) => {

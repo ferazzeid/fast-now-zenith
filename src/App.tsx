@@ -47,6 +47,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 
 
+
 // Using optimized query client from @/lib/query-client
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
 const AdminOperations = lazy(() => import("./pages/admin/Operations"));
