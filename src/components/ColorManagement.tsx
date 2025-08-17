@@ -171,24 +171,35 @@ export const ColorManagement: React.FC = () => {
         }
       }
 
-      // Generate Android colors from database colors
-      try {
-        const { data: androidResult, error: androidError } = await supabase.functions.invoke('generate-android-colors');
-        if (androidError) {
-          console.warn('Failed to generate Android colors:', androidError);
-        } else {
-          console.log('Android colors generated:', androidResult);
-        }
-      } catch (error) {
-        console.warn('Error calling generate-android-colors:', error);
+      // Generate Android and iOS colors from database colors
+      const platformResults = await Promise.allSettled([
+        supabase.functions.invoke('generate-android-colors'),
+        supabase.functions.invoke('generate-ios-colors')
+      ]);
+
+      const [androidResult, iosResult] = platformResults;
+      
+      if (androidResult.status === 'fulfilled') {
+        console.log('Android colors generated:', androidResult.value.data);
+      } else {
+        console.warn('Failed to generate Android colors:', androidResult.reason);
+      }
+
+      if (iosResult.status === 'fulfilled') {
+        console.log('iOS colors generated:', iosResult.value.data);
+      } else {
+        console.warn('Failed to generate iOS colors:', iosResult.reason);
       }
 
       // Reload colors to ensure consistency
       await loadColors();
       
+      const platformSuccesses = platformResults.filter(r => r.status === 'fulfilled').length;
+      const totalPlatforms = platformResults.length;
+      
       toast({
         title: "Success",
-        description: "Brand colors saved for web and native apps successfully",
+        description: `Brand colors saved for web and ${platformSuccesses}/${totalPlatforms} native platforms successfully`,
       });
     } catch (error) {
       console.error('Error saving colors:', error);
