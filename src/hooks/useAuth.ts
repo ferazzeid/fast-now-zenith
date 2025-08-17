@@ -11,11 +11,10 @@ export const useAuth = () => {
 
   // Enhanced auth methods with session recovery and better error handling
   const signIn = async (email: string, password: string) => {
-    const operation = async () => {
+    try {
       const result = await authState.signIn(email, password);
       
       if (result.error) {
-        
         toast({
           title: "Sign In Failed",
           description: result.error.message,
@@ -37,22 +36,20 @@ export const useAuth = () => {
       }
       
       return result;
-    };
-
-    if (isOnline) {
-      return await operation();
-    } else {
-      toast({
-        title: "No connection",
-        description: "Please check your internet connection and try again.",
-        variant: "destructive",
-      });
-      return { error: new Error("No connection") };
+    } catch (error) {
+      if (!isOnline || (error as any)?.message?.includes('fetch')) {
+        toast({
+          title: "Connection issue",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
+      return { error };
     }
   };
 
   const signUp = async (email: string, password: string) => {
-    const operation = async () => {
+    try {
       const result = await authState.signUp(email, password);
       
       if (result.error) {
@@ -69,17 +66,15 @@ export const useAuth = () => {
       }
       
       return result;
-    };
-
-    if (isOnline) {
-      return await operation();
-    } else {
-      toast({
-        title: "No connection",
-        description: "Please check your internet connection and try again.",
-        variant: "destructive",
-      });
-      return { error: new Error("No connection") };
+    } catch (error) {
+      if (!isOnline || (error as any)?.message?.includes('fetch')) {
+        toast({
+          title: "Connection issue",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
+      return { error };
     }
   };
 
@@ -99,7 +94,7 @@ export const useAuth = () => {
   };
 
   const resetPassword = async (email: string) => {
-    const operation = async () => {
+    try {
       const result = await authState.resetPassword(email);
       
       if (result.error) {
@@ -116,22 +111,20 @@ export const useAuth = () => {
       }
       
       return result;
-    };
-
-    if (isOnline) {
-      return await operation();
-    } else {
-      toast({
-        title: "No connection",
-        description: "Please check your internet connection and try again.",
-        variant: "destructive",
-      });
-      return { error: new Error("No connection") };
+    } catch (error) {
+      if (!isOnline || (error as any)?.message?.includes('fetch')) {
+        toast({
+          title: "Connection issue",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
+      return { error };
     }
   };
 
   const updatePassword = async (password: string) => {
-    const operation = async () => {
+    try {
       const result = await authState.updatePassword(password);
       
       if (result.error) {
@@ -148,17 +141,15 @@ export const useAuth = () => {
       }
       
       return result;
-    };
-
-    if (isOnline) {
-      return await operation();
-    } else {
-      toast({
-        title: "No connection",
-        description: "Please check your internet connection and try again.",
-        variant: "destructive",
-      });
-      return { error: new Error("No connection") };
+    } catch (error) {
+      if (!isOnline || (error as any)?.message?.includes('fetch')) {
+        toast({
+          title: "Connection issue",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
+      return { error };
     }
   };
 
