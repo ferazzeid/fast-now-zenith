@@ -7,9 +7,7 @@ const config: CapacitorConfig = {
   appId: envConfig.appId,
   appName: envConfig.appName,
   webDir: 'dist',
-  server: {
-    androidScheme: 'https'
-  },
+  // Removed server config to make this a native app with local assets
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,

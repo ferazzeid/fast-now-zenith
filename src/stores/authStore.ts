@@ -120,7 +120,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        const redirectUrl = `${window.location.origin}/`;
+        const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
+        const redirectUrl = isCapacitor
+          ? 'com.fastnow.zenith://oauth/callback'
+          : `${window.location.origin}/`;
         
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
