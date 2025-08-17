@@ -100,6 +100,11 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
         android:anyDensity="true"
         android:resizeable="true" />
 
+    <!-- Essential features -->
+    <uses-feature
+        android:name="android.software.webview"
+        android:required="true" />
+    
     <!-- Optional features for maximum device compatibility -->
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -129,26 +134,21 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
         android:usesCleartextTraffic="${envConfig.nativeApp.usesCleartextTraffic}"
         android:banner="@mipmap/ic_launcher">
 
-        <!-- Main Activity with TV and tablet support -->
+        <!-- Main Activity with comprehensive device support -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
+            android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:screenOrientation="unspecified">
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density|layoutDirection|colorMode">
 
-            <!-- Primary launcher intent -->
+            <!-- Combined launcher intent for all device types -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <!-- Android TV launcher intent -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
 
