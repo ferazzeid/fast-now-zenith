@@ -8,6 +8,8 @@ const { getEnvironmentConfig, isProduction } = require('../src/config/environmen
 
 const envConfig = getEnvironmentConfig();
 
+console.log('Using neutral colors for native builds - colors will be generated from database at runtime');
+
 // Only generate native files for production builds
 if (!isProduction()) {
   console.log('Development mode: Skipping native file generation');

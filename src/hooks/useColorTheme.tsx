@@ -83,16 +83,18 @@ export const useColorTheme = () => {
     }
   };
 
-  // Apply environment-appropriate default colors to prevent flash while loading admin colors
-  const applyDefaultColors = () => {
+  // Apply neutral default colors while loading database colors
+  const applyNeutralDefaults = () => {
     const root = document.documentElement;
-    const envConfig = getEnvironmentConfig();
     
-    // Use production colors as defaults, fallback to neutral in development
-    root.style.setProperty('--primary', envConfig.colors.primary);
-    root.style.setProperty('--ring', envConfig.colors.primary);
-    root.style.setProperty('--primary-glow', envConfig.colors.primaryGlow);
-    root.style.setProperty('--primary-hover', envConfig.colors.primaryHover);
+    // Use neutral colors as emergency fallbacks only
+    root.style.setProperty('--primary', '220 13% 45%');
+    root.style.setProperty('--ring', '220 13% 45%');
+    root.style.setProperty('--primary-glow', '220 13% 55%');
+    root.style.setProperty('--primary-hover', '220 13% 40%');
+    root.style.setProperty('--secondary', '220 13% 40%');
+    root.style.setProperty('--accent', '220 13% 50%');
+    root.style.setProperty('--ai', '220 13% 50%');
   };
 
   const hexToHsl = (hex: string) => {
@@ -149,11 +151,11 @@ export const useColorTheme = () => {
         setColorSettings(parsedColors);
       } catch (error) {
         console.error('Error parsing cached colors:', error);
-        applyDefaultColors();
+        applyNeutralDefaults();
       }
     } else {
-      // Apply environment-appropriate default colors while loading
-      applyDefaultColors();
+      // Apply neutral defaults while loading database colors
+      applyNeutralDefaults();
     }
     
     // Load fresh colors from database
