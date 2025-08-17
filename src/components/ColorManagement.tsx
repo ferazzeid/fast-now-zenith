@@ -171,12 +171,24 @@ export const ColorManagement: React.FC = () => {
         }
       }
 
+      // Generate Android colors from database colors
+      try {
+        const { data: androidResult, error: androidError } = await supabase.functions.invoke('generate-android-colors');
+        if (androidError) {
+          console.warn('Failed to generate Android colors:', androidError);
+        } else {
+          console.log('Android colors generated:', androidResult);
+        }
+      } catch (error) {
+        console.warn('Error calling generate-android-colors:', error);
+      }
+
       // Reload colors to ensure consistency
       await loadColors();
       
       toast({
         title: "Success",
-        description: "Brand colors saved successfully",
+        description: "Brand colors saved for web and native apps successfully",
       });
     } catch (error) {
       console.error('Error saving colors:', error);

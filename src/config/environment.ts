@@ -78,19 +78,19 @@ export const DEVELOPMENT_CONFIG: EnvironmentConfig = {
     usesCleartextTraffic: true,
   },
   colors: {
-    primary: '220 15% 50%', // Neutral for development
-    primaryHover: '220 15% 45%',
-    primaryGlow: '220 15% 60%',
-    accent: '140 25% 85%',
-    aiColor: '48 96% 53%',
-    secondary: '220 15% 45%',
+    primary: '220 13% 45%', // Neutral gray - emergency fallback only
+    primaryHover: '220 13% 40%',
+    primaryGlow: '220 13% 55%',
+    accent: '220 13% 50%',
+    aiColor: '220 13% 50%',
+    secondary: '220 13% 40%',
     backgroundLight: '0 0% 96%',
     backgroundDark: '0 0% 11%',
     cardLight: '0 0% 98%',
     cardDark: '0 0% 10%',
   },
   android: {
-    colorPrimary: '#6B7280',
+    colorPrimary: '#6B7280', // Neutral - will be replaced by database colors
     colorPrimaryDark: '#4B5563',
     colorAccent: '#6B7280',
     backgroundLight: '#F5F5F5',
@@ -119,21 +119,21 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
     usesCleartextTraffic: false,
   },
   colors: {
-    primary: '0 72% 56%', // Production red colors
-    primaryHover: '0 72% 46%',
-    primaryGlow: '0 82% 66%',
-    accent: '140 25% 85%',
-    aiColor: '48 96% 53%',
-    secondary: '0 72% 46%',
+    primary: '220 13% 45%', // Neutral gray - emergency fallback only
+    primaryHover: '220 13% 40%',
+    primaryGlow: '220 13% 55%',
+    accent: '220 13% 50%',
+    aiColor: '220 13% 50%',
+    secondary: '220 13% 40%',
     backgroundLight: '0 0% 96%',
     backgroundDark: '0 0% 11%',
     cardLight: '0 0% 98%',
     cardDark: '0 0% 10%',
   },
   android: {
-    colorPrimary: '#E53E3E',
-    colorPrimaryDark: '#C53030',
-    colorAccent: '#E53E3E',
+    colorPrimary: '#6B7280', // Neutral - will be replaced by database colors
+    colorPrimaryDark: '#4B5563',
+    colorAccent: '#6B7280',
     backgroundLight: '#F5F5F5',
     backgroundDark: '#1C1C1C',
   }
