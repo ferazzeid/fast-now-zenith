@@ -1,28 +1,12 @@
 import type { CapacitorConfig } from '@capacitor/cli';
-import { getEnvironmentConfig, isDevelopment } from './src/config/environment';
-
-const envConfig = getEnvironmentConfig();
 
 const config: CapacitorConfig = {
-  appId: envConfig.appId,
-  appName: envConfig.appName,
+  appId: 'com.fastnow.zenith',
+  appName: 'fast-now-zenith',
   webDir: 'dist',
-  // Only include server config in development mode
-  ...(isDevelopment() && envConfig.serverUrl ? {
-    server: {
-      url: envConfig.serverUrl,
-      cleartext: true
-    }
-  } : {}),
-  // Production-only native app behavior
-  ...(!isDevelopment() ? {
-    allowNavigation: envConfig.nativeApp.allowNavigation,
-    hideLogs: envConfig.nativeApp.hideLogs,
-    loggingBehavior: envConfig.nativeApp.loggingBehavior,
-    server: {
-      androidScheme: 'https'
-    }
-  } : {}),
+  server: {
+    androidScheme: 'https'
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
@@ -47,19 +31,19 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: isDevelopment(),
+    webContentsDebuggingEnabled: false,
     appendUserAgent: 'FastNowApp/1.0',
     overrideUserAgent: 'FastNowApp/1.0 Native Android',
     backgroundColor: '#F5F5F5',
     useLegacyBridge: false,
     flavor: 'main',
-    // CRITICAL: Complete browser chrome removal
-    allowNavigation: envConfig.nativeApp.allowNavigation,
+    allowNavigation: [],
     mixedContentMode: 'never',
-    // Production native behavior
-    fullscreen: envConfig.nativeApp.fullscreen,
-    hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
-    usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic
+    fullscreen: true,
+    hardwareAccelerated: true,
+    usesCleartextTraffic: false,
+    versionCode: 20,
+    versionName: '1.19'
   },
   ios: {
     backgroundColor: '#F5F5F5',
