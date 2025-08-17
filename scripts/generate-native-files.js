@@ -58,6 +58,11 @@ public class MainActivity extends BridgeActivity {
     private void configureWebView() {
         WebView webView = getBridge().getWebView();
         if (webView != null) {
+            // Enable local asset access - CRITICAL for app functionality
+            webView.getSettings().setAllowFileAccess(true);
+            webView.getSettings().setAllowContentAccess(true);
+            
+            // UI hardening while preserving functionality
             webView.getSettings().setBuiltInZoomControls(false);
             webView.getSettings().setDisplayZoomControls(false);
             webView.setOnLongClickListener(v -> true);

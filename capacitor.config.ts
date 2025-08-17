@@ -19,6 +19,9 @@ const config: CapacitorConfig = {
     allowNavigation: envConfig.nativeApp.allowNavigation,
     hideLogs: envConfig.nativeApp.hideLogs,
     loggingBehavior: envConfig.nativeApp.loggingBehavior,
+    server: {
+      androidScheme: 'https'
+    }
   } : {}),
   plugins: {
     SplashScreen: {
