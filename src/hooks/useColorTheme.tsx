@@ -40,6 +40,9 @@ export const useColorTheme = () => {
 
       setColorSettings(settings);
       applyColors(settings);
+      
+      // Cache the colors for instant loading on next visit
+      localStorage.setItem('admin_colors', JSON.stringify(settings));
     } catch (error) {
       console.error('Error in loadColors:', error);
     } finally {
@@ -79,14 +82,14 @@ export const useColorTheme = () => {
     }
   };
 
-  // Apply default colors immediately to prevent flash
-  const applyDefaultColors = () => {
+  // Apply neutral colors to prevent flash while loading admin colors
+  const applyNeutralColors = () => {
     const root = document.documentElement;
-    // Set default primary color to prevent green flash
-    root.style.setProperty('--primary', '140 35% 45%'); // Match design system
-    root.style.setProperty('--ring', '140 35% 45%');
-    root.style.setProperty('--primary-glow', '140 45% 55%');
-    root.style.setProperty('--primary-hover', '140 35% 40%');
+    // Use neutral colors while loading admin colors
+    root.style.setProperty('--primary', '220 15% 50%'); // Neutral gray
+    root.style.setProperty('--ring', '220 15% 50%');
+    root.style.setProperty('--primary-glow', '220 15% 60%');
+    root.style.setProperty('--primary-hover', '220 15% 45%');
   };
 
   const hexToHsl = (hex: string) => {
@@ -134,10 +137,25 @@ export const useColorTheme = () => {
   };
 
   useEffect(() => {
-    // Apply default colors immediately to prevent flash
-    applyDefaultColors();
+    // Check if colors are cached in localStorage
+    const cachedColors = localStorage.getItem('admin_colors');
+    if (cachedColors) {
+      try {
+        const parsedColors = JSON.parse(cachedColors);
+        applyColors(parsedColors);
+        setColorSettings(parsedColors);
+      } catch (error) {
+        console.error('Error parsing cached colors:', error);
+        applyNeutralColors();
+      }
+    } else {
+      // Apply neutral colors while loading
+      applyNeutralColors();
+    }
+    
+    // Load fresh colors from database
     loadColors();
-  }, []); // Remove user dependency since color settings are shared/global
+  }, []);
 
   return { colorSettings, loading, loadColors, applyColors };
 };

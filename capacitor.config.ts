@@ -34,6 +34,14 @@ const config: CapacitorConfig = {
     backgroundColor: '#F5F5F5',
     useLegacyBridge: false,
     flavor: 'main'
+  },
+  ios: {
+    backgroundColor: '#F5F5F5',
+    overrideUserAgent: 'FastNowApp/1.0 iOS',
+    preferredContentMode: 'mobile',
+    allowsLinkPreview: false,
+    scrollEnabled: true,
+    limitsNavigationsToAppBoundDomains: true
   }
 };
 
