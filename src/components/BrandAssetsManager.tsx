@@ -22,7 +22,7 @@ const BrandAssetsManager = () => {
   
   // Author tooltip state
   const [authorData, setAuthorData] = useState({
-    image: '/lovable-uploads/default-author.png',
+    image: '/src/assets/motivator-placeholder.jpg',
     name: 'Admin',
     title: 'Personal Insight'
   });
@@ -79,7 +79,7 @@ const BrandAssetsManager = () => {
         }, {} as Record<string, string>);
 
         setAuthorData({
-          image: settingsMap.author_tooltip_image || '/lovable-uploads/default-author.png',
+          image: settingsMap.author_tooltip_image || '/src/assets/motivator-placeholder.jpg',
           name: settingsMap.author_tooltip_name || 'Admin',
           title: settingsMap.author_tooltip_title || 'Personal Insight'
         });
@@ -188,7 +188,7 @@ const BrandAssetsManager = () => {
     setUploading(true);
     try {
       // Delete old author image first (non-blocking)
-      if (authorData.image && authorData.image !== '/lovable-uploads/default-author.png') {
+      if (authorData.image && authorData.image !== '/src/assets/motivator-placeholder.jpg') {
         const deleteResult = await deleteImageFromStorage(authorData.image, 'website-images', supabase);
         if (!deleteResult.success) {
           console.warn('Failed to delete old author image (continuing with upload):', deleteResult.error);

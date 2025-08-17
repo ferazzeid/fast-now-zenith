@@ -86,9 +86,9 @@ serve(async (req) => {
         finalImageUrl = imageUrl;
         console.log('HTTP URL detected:', imageUrl);
       } else {
-        // Relative path - make it absolute
-        finalImageUrl = `https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com${imageUrl}`;
-        console.log('Relative path converted to absolute URL:', finalImageUrl);
+        // Relative path - make it absolute using Supabase storage
+        finalImageUrl = `https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images${imageUrl}`;
+        console.log('Relative path converted to Supabase storage URL:', finalImageUrl);
       }
       
       imageContent = { type: "image_url", image_url: { url: finalImageUrl } };

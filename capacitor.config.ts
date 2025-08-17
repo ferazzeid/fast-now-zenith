@@ -7,22 +7,9 @@ const config: CapacitorConfig = {
   appId: envConfig.appId,
   appName: envConfig.appName,
   webDir: 'dist',
-  // Only include server config in development mode
-  ...(isDevelopment() && envConfig.serverUrl ? {
-    server: {
-      url: envConfig.serverUrl,
-      cleartext: true
-    }
-  } : {}),
-  // Production-only native app behavior
-  ...(!isDevelopment() ? {
-    allowNavigation: envConfig.nativeApp.allowNavigation,
-    hideLogs: envConfig.nativeApp.hideLogs,
-    loggingBehavior: envConfig.nativeApp.loggingBehavior,
-    server: {
-      androidScheme: 'https'
-    }
-  } : {}),
+  server: {
+    androidScheme: 'https'
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
@@ -49,22 +36,27 @@ const config: CapacitorConfig = {
     captureInput: true,
     webContentsDebuggingEnabled: isDevelopment(),
     appendUserAgent: 'FastNowApp/1.0',
-    overrideUserAgent: 'FastNowApp/1.0 Android',
-    backgroundColor: '#F5F5F5',
+    overrideUserAgent: 'FastNowApp/1.0 Native Android',
+    backgroundColor: envConfig.android.backgroundLight,
     useLegacyBridge: false,
     flavor: 'main',
-    // Production native behavior
+    allowNavigation: envConfig.nativeApp.allowNavigation,
+    mixedContentMode: 'never',
     fullscreen: envConfig.nativeApp.fullscreen,
     hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
-    usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic
+    usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic,
+    versionCode: envConfig.version.code,
+    versionName: envConfig.version.name
   },
   ios: {
-    backgroundColor: '#F5F5F5',
-    overrideUserAgent: 'FastNowApp/1.0 iOS',
+    backgroundColor: envConfig.android.backgroundLight,
+    overrideUserAgent: 'FastNowApp/1.0 Native iOS',
     preferredContentMode: 'mobile',
     allowsLinkPreview: false,
     scrollEnabled: true,
-    limitsNavigationsToAppBoundDomains: true
+    limitsNavigationsToAppBoundDomains: true,
+    allowsInlineMediaPlayback: true,
+    suppressesIncrementalRendering: false
   }
 };
 

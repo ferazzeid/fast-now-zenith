@@ -135,7 +135,7 @@ async function handleCreateSubscription(
       return new Response(JSON.stringify({
         provider: 'google_play',
         product_id: 'premium_subscription_monthly',
-        package_name: 'app.lovable.de91d618edcf40eb8e117c45904095be',
+        package_name: 'com.fastnow.zenith',
         instruction: 'Use Google Play Billing API to purchase this product'
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -147,7 +147,7 @@ async function handleCreateSubscription(
       return new Response(JSON.stringify({
         provider: 'apple_app_store',
         product_id: 'premium_subscription_monthly',
-        bundle_id: 'app.lovable.de91d618edcf40eb8e117c45904095be',
+        bundle_id: 'com.fastnow.zenith',
         instruction: 'Use StoreKit to purchase this product'
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
