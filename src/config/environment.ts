@@ -8,6 +8,10 @@ export interface EnvironmentConfig {
   bundleId: string;
   webUrl: string;
   serverUrl?: string;
+  version: {
+    code: number;
+    name: string;
+  };
   nativeApp: {
     allowNavigation: string[];
     fullscreen: boolean;
@@ -60,6 +64,10 @@ export const DEVELOPMENT_CONFIG: EnvironmentConfig = {
   bundleId: 'app.lovable.de91d618edcf40eb8e117c45904095be',
   webUrl: '',
   serverUrl: 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true',
+  version: {
+    code: 1,
+    name: '1.0.0',
+  },
   nativeApp: {
     allowNavigation: ['*'],
     fullscreen: false,
@@ -97,6 +105,10 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
   packageName: 'com.fastnow.zenith',
   bundleId: 'com.fastnow.zenith',
   webUrl: '',
+  version: {
+    code: 9,
+    name: '1.8',
+  },
   nativeApp: {
     allowNavigation: [],
     fullscreen: true,

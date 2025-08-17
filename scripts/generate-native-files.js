@@ -83,7 +83,27 @@ console.log('✓ Generated MainActivity.java with native app behavior');
 
 // Generate enhanced AndroidManifest.xml template
 const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="${envConfig.packageName}">
+
+    <!-- Support for different form factors -->
+    <supports-screens 
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:xlargeScreens="true"
+        android:anyDensity="true" />
+
+    <!-- Declare support for different device types -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.type.automotive"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -101,6 +121,7 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
             <intent-filter android:autoVerify="true">
@@ -112,7 +133,7 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.fastnow.zenith.fileprovider"
+            android:authorities="${envConfig.packageName}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
