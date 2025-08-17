@@ -91,15 +91,16 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${envConfig.packageName}">
 
-    <!-- Support for different form factors -->
+    <!-- Support for all device form factors -->
     <supports-screens 
         android:smallScreens="true"
         android:normalScreens="true"
         android:largeScreens="true"
         android:xlargeScreens="true"
-        android:anyDensity="true" />
+        android:anyDensity="true"
+        android:resizeable="true" />
 
-    <!-- Declare support for different device types -->
+    <!-- Optional features for maximum device compatibility -->
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
@@ -108,6 +109,12 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
         android:required="false" />
     <uses-feature
         android:name="android.hardware.type.automotive"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.type.television"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.app_widgets"
         android:required="false" />
 
     <application
@@ -119,19 +126,30 @@ const manifestContent = `<?xml version="1.0" encoding="utf-8"?>
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="${envConfig.nativeApp.hardwareAccelerated}"
         android:largeHeap="true"
-        android:usesCleartextTraffic="${envConfig.nativeApp.usesCleartextTraffic}">
+        android:usesCleartextTraffic="${envConfig.nativeApp.usesCleartextTraffic}"
+        android:banner="@mipmap/ic_launcher">
 
+        <!-- Main Activity with TV and tablet support -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:screenOrientation="unspecified">
 
-            <intent-filter android:autoVerify="true">
+            <!-- Primary launcher intent -->
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Android TV launcher intent -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
 
         </activity>
