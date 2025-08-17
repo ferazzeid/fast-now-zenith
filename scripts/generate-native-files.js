@@ -62,14 +62,25 @@ public class MainActivity extends BridgeActivity {
             webView.getSettings().setAllowFileAccess(true);
             webView.getSettings().setAllowContentAccess(true);
             
-            // UI hardening while preserving functionality
+            // CRITICAL: Remove ALL browser behavior and chrome
+            webView.getSettings().setUserAgentString("FastNowApp/1.0 Native");
             webView.getSettings().setBuiltInZoomControls(false);
             webView.getSettings().setDisplayZoomControls(false);
+            webView.getSettings().setSupportZoom(false);
+            webView.getSettings().setLoadWithOverviewMode(false);
+            webView.getSettings().setUseWideViewPort(false);
+            
+            // Remove browser interactions completely
             webView.setOnLongClickListener(v -> true);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
             webView.setLongClickable(false);
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+            
+            // Disable context menu and selection
+            webView.setOnCreateContextMenuListener(null);
+            webView.setTextClassifier(null);
         }
     }
 

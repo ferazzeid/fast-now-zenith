@@ -49,10 +49,13 @@ const config: CapacitorConfig = {
     captureInput: true,
     webContentsDebuggingEnabled: isDevelopment(),
     appendUserAgent: 'FastNowApp/1.0',
-    overrideUserAgent: 'FastNowApp/1.0 Android',
+    overrideUserAgent: 'FastNowApp/1.0 Native Android',
     backgroundColor: '#F5F5F5',
     useLegacyBridge: false,
     flavor: 'main',
+    // CRITICAL: Complete browser chrome removal
+    allowNavigation: envConfig.nativeApp.allowNavigation,
+    mixedContentMode: 'never',
     // Production native behavior
     fullscreen: envConfig.nativeApp.fullscreen,
     hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
@@ -60,11 +63,14 @@ const config: CapacitorConfig = {
   },
   ios: {
     backgroundColor: '#F5F5F5',
-    overrideUserAgent: 'FastNowApp/1.0 iOS',
+    overrideUserAgent: 'FastNowApp/1.0 Native iOS',
     preferredContentMode: 'mobile',
     allowsLinkPreview: false,
     scrollEnabled: true,
-    limitsNavigationsToAppBoundDomains: true
+    limitsNavigationsToAppBoundDomains: true,
+    // CRITICAL: Remove browser behavior on iOS
+    allowsInlineMediaPlayback: true,
+    suppressesIncrementalRendering: false
   }
 };
 
