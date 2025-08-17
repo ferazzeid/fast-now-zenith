@@ -11,7 +11,7 @@ export const useAuth = () => {
 
   // Enhanced auth methods with session recovery and better error handling
   const signIn = async (email: string, password: string) => {
-    try {
+    const operation = async () => {
       const result = await authState.signIn(email, password);
       
       if (result.error) {
@@ -36,6 +36,10 @@ export const useAuth = () => {
       }
       
       return result;
+    };
+
+    try {
+      return await operation();
     } catch (error) {
       if (!isOnline || (error as any)?.message?.includes('fetch')) {
         toast({
@@ -49,7 +53,7 @@ export const useAuth = () => {
   };
 
   const signUp = async (email: string, password: string) => {
-    try {
+    const operation = async () => {
       const result = await authState.signUp(email, password);
       
       if (result.error) {
@@ -66,6 +70,10 @@ export const useAuth = () => {
       }
       
       return result;
+    };
+
+    try {
+      return await operation();
     } catch (error) {
       if (!isOnline || (error as any)?.message?.includes('fetch')) {
         toast({
@@ -94,7 +102,7 @@ export const useAuth = () => {
   };
 
   const resetPassword = async (email: string) => {
-    try {
+    const operation = async () => {
       const result = await authState.resetPassword(email);
       
       if (result.error) {
@@ -111,6 +119,10 @@ export const useAuth = () => {
       }
       
       return result;
+    };
+
+    try {
+      return await operation();
     } catch (error) {
       if (!isOnline || (error as any)?.message?.includes('fetch')) {
         toast({
@@ -124,7 +136,7 @@ export const useAuth = () => {
   };
 
   const updatePassword = async (password: string) => {
-    try {
+    const operation = async () => {
       const result = await authState.updatePassword(password);
       
       if (result.error) {
@@ -141,6 +153,10 @@ export const useAuth = () => {
       }
       
       return result;
+    };
+
+    try {
+      return await operation();
     } catch (error) {
       if (!isOnline || (error as any)?.message?.includes('fetch')) {
         toast({
