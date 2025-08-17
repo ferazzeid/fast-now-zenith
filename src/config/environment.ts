@@ -57,13 +57,13 @@ export const getEnvironment = (): AppEnvironment => {
 };
 
 export const DEVELOPMENT_CONFIG: EnvironmentConfig = {
-  appId: 'app.lovable.de91d618edcf40eb8e117c45904095be',
+  appId: 'com.fastnow.zenith.dev',
   appName: 'fast-now-zenith',
   displayName: 'fast now - The No-BS Fat Loss Protocol',
-  packageName: 'app.lovable.de91d618edcf40eb8e117c45904095be',
-  bundleId: 'app.lovable.de91d618edcf40eb8e117c45904095be',
+  packageName: 'com.fastnow.zenith.dev',
+  bundleId: 'com.fastnow.zenith.dev',
   webUrl: '',
-  serverUrl: 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true',
+  serverUrl: '',
   version: {
     code: 1,
     name: '1.0.0',

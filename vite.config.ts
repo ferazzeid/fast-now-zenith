@@ -13,17 +13,6 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
-      // Only include lovable-tagger in development mode
-      !isProduction && (async () => {
-        try {
-          const { componentTagger } = await import("lovable-tagger");
-          return componentTagger();
-        } catch (error) {
-          // Gracefully handle if lovable-tagger is not available in production
-          console.warn('lovable-tagger not available:', error);
-          return null;
-        }
-      })(),
     ].filter(Boolean),
     resolve: {
       alias: {
