@@ -1,9 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { getEnvironmentConfig, isDevelopment } from './src/config/environment';
+
+const envConfig = getEnvironmentConfig();
 
 const config: CapacitorConfig = {
-  appId: 'com.fastnow.zenith',
-  appName: 'fast-now-zenith',
+  appId: envConfig.appId,
+  appName: envConfig.appName,
   webDir: 'dist',
+  // Only include server config in development mode
+  ...(isDevelopment() && envConfig.serverUrl ? {
+    server: {
+      url: envConfig.serverUrl,
+      cleartext: true
+    }
+  } : {}),
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
@@ -28,7 +38,7 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
+    webContentsDebuggingEnabled: isDevelopment(),
     appendUserAgent: 'FastNowApp/1.0',
     overrideUserAgent: 'FastNowApp/1.0 Android',
     backgroundColor: '#F5F5F5',

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Settings, Smartphone, Globe, Code, Palette } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/ImageUpload";
+import { getEnvironmentConfig, isDevelopment } from "@/config/environment";
 
 interface AppSettings {
   // App Identity
@@ -96,10 +97,10 @@ export const AppIdentitySettings: React.FC = () => {
             newSettings.description = setting.setting_value || 'Your mindful app with AI-powered motivation';
             break;
           case 'app_id':
-            newSettings.appId = setting.setting_value || 'app.lovable.de91d618edcf40eb8e117c45904095be';
+            newSettings.appId = setting.setting_value || getEnvironmentConfig().appId;
             break;
           case 'app_internal_name':
-            newSettings.internalName = setting.setting_value || 'fast-now-zenith';
+            newSettings.internalName = setting.setting_value || getEnvironmentConfig().appName;
             break;
           case 'app_icon_url':
             newSettings.appIcon = setting.setting_value || '';
@@ -111,13 +112,13 @@ export const AppIdentitySettings: React.FC = () => {
             newSettings.logo = setting.setting_value || '';
             break;
           case 'pwa_theme_color':
-            newSettings.themeColor = setting.setting_value || '#8B7355';
+            newSettings.themeColor = setting.setting_value || getEnvironmentConfig().android.colorPrimary;
             break;
           case 'pwa_background_color':
-            newSettings.backgroundColor = setting.setting_value || '#F5F2EA';
+            newSettings.backgroundColor = setting.setting_value || getEnvironmentConfig().android.backgroundLight;
             break;
           case 'app_web_url':
-            newSettings.webUrl = setting.setting_value || 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true';
+            newSettings.webUrl = setting.setting_value || (getEnvironmentConfig().serverUrl || '');
             break;
         }
       });
@@ -132,18 +133,19 @@ export const AppIdentitySettings: React.FC = () => {
   };
 
   const setDefaults = () => {
+    const envConfig = getEnvironmentConfig();
     setSettings({
-      appName: 'FastNow - Mindful App',
+      appName: envConfig.displayName,
       shortName: 'FastNow',
       description: 'Your mindful app with AI-powered motivation',
-      appId: 'app.lovable.de91d618edcf40eb8e117c45904095be',
-      internalName: 'fast-now-zenith',
+      appId: envConfig.appId,
+      internalName: envConfig.appName,
       appIcon: '',
       favicon: '',
       logo: '',
-      themeColor: '#8B7355',
-      backgroundColor: '#F5F2EA',
-      webUrl: 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true'
+      themeColor: envConfig.android.colorPrimary,
+      backgroundColor: envConfig.android.backgroundLight,
+      webUrl: envConfig.serverUrl || ''
     });
   };
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getEnvironmentConfig } from '@/config/environment';
 
 interface ColorSettings {
   primary_color?: string;
@@ -82,14 +83,16 @@ export const useColorTheme = () => {
     }
   };
 
-  // Apply neutral colors to prevent flash while loading admin colors
-  const applyNeutralColors = () => {
+  // Apply environment-appropriate default colors to prevent flash while loading admin colors
+  const applyDefaultColors = () => {
     const root = document.documentElement;
-    // Use neutral colors while loading admin colors
-    root.style.setProperty('--primary', '220 15% 50%'); // Neutral gray
-    root.style.setProperty('--ring', '220 15% 50%');
-    root.style.setProperty('--primary-glow', '220 15% 60%');
-    root.style.setProperty('--primary-hover', '220 15% 45%');
+    const envConfig = getEnvironmentConfig();
+    
+    // Use production colors as defaults, fallback to neutral in development
+    root.style.setProperty('--primary', envConfig.colors.primary);
+    root.style.setProperty('--ring', envConfig.colors.primary);
+    root.style.setProperty('--primary-glow', envConfig.colors.primaryGlow);
+    root.style.setProperty('--primary-hover', envConfig.colors.primaryHover);
   };
 
   const hexToHsl = (hex: string) => {
@@ -146,11 +149,11 @@ export const useColorTheme = () => {
         setColorSettings(parsedColors);
       } catch (error) {
         console.error('Error parsing cached colors:', error);
-        applyNeutralColors();
+        applyDefaultColors();
       }
     } else {
-      // Apply neutral colors while loading
-      applyNeutralColors();
+      // Apply environment-appropriate default colors while loading
+      applyDefaultColors();
     }
     
     // Load fresh colors from database
