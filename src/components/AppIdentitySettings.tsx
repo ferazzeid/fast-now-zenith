@@ -407,7 +407,7 @@ export default config;`;
                 id="appId"
                 value={settings.appId}
                 onChange={(e) => updateSetting('appId', e.target.value)}
-                placeholder="app.lovable.de91d618edcf40eb8e117c45904095be"
+                placeholder="com.fastnow.zenith"
               />
               <p className="text-xs text-muted-foreground">
                 Unique identifier for app stores (reverse domain format)
@@ -436,7 +436,7 @@ export default config;`;
                 placeholder="https://..."
               />
               <p className="text-xs text-muted-foreground">
-                Live reload URL for development (from Lovable)
+                Live reload URL for development
               </p>
             </div>
 
