@@ -1,8 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { getEnvironmentConfig, isDevelopment } from './src/config/environment';
+
+const envConfig = getEnvironmentConfig();
 
 const config: CapacitorConfig = {
-  appId: 'com.fastnow.zenith',
-  appName: 'fast-now-zenith',
+  appId: envConfig.appId,
+  appName: envConfig.appName,
   webDir: 'dist',
   server: {
     androidScheme: 'https'
@@ -31,28 +34,27 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
+    webContentsDebuggingEnabled: isDevelopment(),
     appendUserAgent: 'FastNowApp/1.0',
     overrideUserAgent: 'FastNowApp/1.0 Native Android',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: envConfig.android.backgroundLight,
     useLegacyBridge: false,
     flavor: 'main',
-    allowNavigation: [],
+    allowNavigation: envConfig.nativeApp.allowNavigation,
     mixedContentMode: 'never',
-    fullscreen: true,
-    hardwareAccelerated: true,
-    usesCleartextTraffic: false,
-    versionCode: 20,
-    versionName: '1.19'
+    fullscreen: envConfig.nativeApp.fullscreen,
+    hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
+    usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic,
+    versionCode: envConfig.version.code,
+    versionName: envConfig.version.name
   },
   ios: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: envConfig.android.backgroundLight,
     overrideUserAgent: 'FastNowApp/1.0 Native iOS',
     preferredContentMode: 'mobile',
     allowsLinkPreview: false,
     scrollEnabled: true,
     limitsNavigationsToAppBoundDomains: true,
-    // CRITICAL: Remove browser behavior on iOS
     allowsInlineMediaPlayback: true,
     suppressesIncrementalRendering: false
   }

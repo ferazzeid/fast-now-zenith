@@ -106,8 +106,8 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
   bundleId: 'com.fastnow.zenith',
   webUrl: '',
   version: {
-    code: 9,
-    name: '1.8',
+    code: 20,
+    name: '1.19',
   },
   nativeApp: {
     allowNavigation: [],
