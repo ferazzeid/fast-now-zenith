@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getEnvironmentConfig } from '@/config/environment';
+import { parseHSL } from '@/utils/colorUtils';
 
 interface ColorSettings {
   primary_color?: string;
@@ -97,69 +97,26 @@ export const useColorTheme = () => {
     root.style.setProperty('--ai', '220 13% 50%');
   };
 
-  const hexToHsl = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return null;
-
-    let r = parseInt(result[1], 16) / 255;
-    let g = parseInt(result[2], 16) / 255;
-    let b = parseInt(result[3], 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max === min) {
-      h = s = 0;
-    } else {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
-    }
-
-    return {
-      h: Math.round(h * 360),
-      s: Math.round(s * 100),
-      l: Math.round(l * 100)
-    };
-  };
-
-  const parseHSL = (hslString: string) => {
-    // Parse "220 35% 45%" format
-    const matches = hslString.match(/(\d+)\s+(\d+)%\s+(\d+)%/);
-    if (!matches) return null;
-    
-    return {
-      h: parseInt(matches[1]),
-      s: parseInt(matches[2]),
-      l: parseInt(matches[3])
-    };
-  };
 
   useEffect(() => {
-    // Check if colors are cached in localStorage
-    const cachedColors = localStorage.getItem('admin_colors');
-    if (cachedColors) {
-      try {
-        const parsedColors = JSON.parse(cachedColors);
-        applyColors(parsedColors);
-        setColorSettings(parsedColors);
-      } catch (error) {
-        console.error('Error parsing cached colors:', error);
-        applyNeutralDefaults();
-      }
-    } else {
-      // Apply neutral defaults while loading database colors
-      applyNeutralDefaults();
-    }
+    // Always start with neutral defaults to prevent flashing
+    applyNeutralDefaults();
     
-    // Load fresh colors from database
-    loadColors();
+    // Load fresh colors from database first
+    loadColors().then(() => {
+      // Only apply cached colors if database load fails
+      const cachedColors = localStorage.getItem('admin_colors');
+      if (cachedColors && Object.keys(colorSettings).length === 0) {
+        try {
+          const parsedColors = JSON.parse(cachedColors);
+          console.log('Applying cached colors as fallback');
+          applyColors(parsedColors);
+          setColorSettings(parsedColors);
+        } catch (error) {
+          console.error('Error parsing cached colors:', error);
+        }
+      }
+    });
   }, []);
 
   return { colorSettings, loading, loadColors, applyColors };

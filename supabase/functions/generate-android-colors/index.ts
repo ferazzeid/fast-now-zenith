@@ -5,6 +5,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface AndroidColorsResponse {
+  success: boolean;
+  colors?: {
+    primary: string;
+    primaryDark: string;
+    accent: string;
+  };
+  colorsXml?: string;
+  colorsXmlPath?: string;
+  message: string;
+  error?: string;
+}
+
 interface ColorSettings {
   primary_color?: string;
   secondary_color?: string;
@@ -60,17 +73,22 @@ function generateDarkerVariant(hexColor: string): string {
   return `#${darkenedR.toString(16).padStart(2, '0')}${darkenedG.toString(16).padStart(2, '0')}${darkenedB.toString(16).padStart(2, '0')}`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Create Supabase client with validation
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch color settings from database
     const { data, error } = await supabase
@@ -119,23 +137,40 @@ Deno.serve(async (req) => {
     <color name="statusBarDark">#1C1C1C</color>
 </resources>`;
 
+    // Write the colors.xml file to the expected Android path
+    const androidColorsPath = './android/app/src/main/res/values/colors.xml';
+    
+    try {
+      // Ensure directory exists
+      await Deno.mkdir('./android/app/src/main/res/values', { recursive: true });
+      // Write colors.xml file
+      await Deno.writeTextFile(androidColorsPath, colorsXmlContent);
+      console.log('✅ colors.xml written to:', androidColorsPath);
+    } catch (fileError) {
+      console.warn('⚠️ Could not write colors.xml file:', fileError.message);
+      // Continue anyway - file writing is not critical
+    }
+
     console.log('Generated Android colors:', {
       primary: primaryHex,
       primaryDark: primaryDarkHex,
       accent: accentHex
     });
 
+    const response: AndroidColorsResponse = {
+      success: true,
+      colors: {
+        primary: primaryHex,
+        primaryDark: primaryDarkHex,
+        accent: accentHex
+      },
+      colorsXml: colorsXmlContent,
+      colorsXmlPath: androidColorsPath,
+      message: 'Android colors generated successfully'
+    };
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        colors: {
-          primary: primaryHex,
-          primaryDark: primaryDarkHex,
-          accent: accentHex
-        },
-        colorsXml: colorsXmlContent,
-        message: 'Android colors generated successfully'
-      }),
+      JSON.stringify(response),
       {
         headers: { 
           ...corsHeaders,
@@ -147,14 +182,49 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error generating Android colors:', error);
     
+    // Determine error type and provide appropriate fallback
+    let errorMessage = 'Failed to generate Android colors';
+    let statusCode = 500;
+    
+    if (error.message?.includes('environment variables')) {
+      errorMessage = 'Server configuration error';
+      statusCode = 503;
+    } else if (error.message?.includes('shared_settings')) {
+      errorMessage = 'Database connection error';
+      statusCode = 503;
+    }
+    
+    const errorResponse: AndroidColorsResponse = {
+      success: false,
+      error: error.message,
+      message: errorMessage,
+      // Provide fallback colors even on error
+      colors: {
+        primary: '#6B7280',
+        primaryDark: '#4B5563', 
+        accent: '#6B7280'
+      },
+      colorsXml: `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6B7280</color>
+    <color name="colorPrimaryDark">#4B5563</color>
+    <color name="colorAccent">#6B7280</color>
+    <color name="backgroundLight">#F5F5F5</color>
+    <color name="foregroundLight">#262626</color>
+    <color name="cardLight">#FAFAFA</color>
+    <color name="backgroundDark">#1C1C1C</color>
+    <color name="foregroundDark">#E0E0E0</color>
+    <color name="cardDark">#1A1A1A</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="statusBarLight">#F5F5F5</color>
+    <color name="statusBarDark">#1C1C1C</color>
+</resources>`
+    };
+    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-        message: 'Failed to generate Android colors'
-      }),
+      JSON.stringify(errorResponse),
       {
-        status: 500,
+        status: statusCode,
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
