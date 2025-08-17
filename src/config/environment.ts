@@ -44,7 +44,7 @@ export interface EnvironmentConfig {
 
 export const getEnvironment = (): AppEnvironment => {
   // Check build environment
-  if (import.meta.env.MODE === 'production' || import.meta.env.PROD) {
+  if (process.env.NODE_ENV === 'production' || process.env.PROD === 'true') {
     return 'production';
   }
   
