@@ -14,6 +14,12 @@ const config: CapacitorConfig = {
       cleartext: true
     }
   } : {}),
+  // Production-only native app behavior
+  ...(!isDevelopment() ? {
+    allowNavigation: envConfig.nativeApp.allowNavigation,
+    hideLogs: envConfig.nativeApp.hideLogs,
+    loggingBehavior: envConfig.nativeApp.loggingBehavior,
+  } : {}),
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
@@ -43,7 +49,11 @@ const config: CapacitorConfig = {
     overrideUserAgent: 'FastNowApp/1.0 Android',
     backgroundColor: '#F5F5F5',
     useLegacyBridge: false,
-    flavor: 'main'
+    flavor: 'main',
+    // Production native behavior
+    fullscreen: envConfig.nativeApp.fullscreen,
+    hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
+    usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic
   },
   ios: {
     backgroundColor: '#F5F5F5',

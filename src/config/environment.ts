@@ -8,6 +8,15 @@ export interface EnvironmentConfig {
   bundleId: string;
   webUrl: string;
   serverUrl?: string;
+  nativeApp: {
+    allowNavigation: string[];
+    fullscreen: boolean;
+    hideLogs: boolean;
+    loggingBehavior: string;
+    immersiveMode: boolean;
+    hardwareAccelerated: boolean;
+    usesCleartextTraffic: boolean;
+  };
   colors: {
     primary: string;
     primaryHover: string;
@@ -51,6 +60,15 @@ export const DEVELOPMENT_CONFIG: EnvironmentConfig = {
   bundleId: 'app.lovable.de91d618edcf40eb8e117c45904095be',
   webUrl: '',
   serverUrl: 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true',
+  nativeApp: {
+    allowNavigation: ['*'],
+    fullscreen: false,
+    hideLogs: false,
+    loggingBehavior: 'debug',
+    immersiveMode: false,
+    hardwareAccelerated: true,
+    usesCleartextTraffic: true,
+  },
   colors: {
     primary: '220 15% 50%', // Neutral for development
     primaryHover: '220 15% 45%',
@@ -79,6 +97,15 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
   packageName: 'com.fastnow.zenith',
   bundleId: 'com.fastnow.zenith',
   webUrl: '',
+  nativeApp: {
+    allowNavigation: [],
+    fullscreen: true,
+    hideLogs: true,
+    loggingBehavior: 'none',
+    immersiveMode: true,
+    hardwareAccelerated: true,
+    usesCleartextTraffic: false,
+  },
   colors: {
     primary: '0 72% 56%', // Production red colors
     primaryHover: '0 72% 46%',
