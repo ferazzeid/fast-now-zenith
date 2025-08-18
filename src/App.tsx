@@ -30,7 +30,6 @@ import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./providers/AuthProvider";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { ThemeStabilityFix } from "./components/ThemeStabilityFix";
 import { SimplifiedStartup } from "./components/SimplifiedStartup";
 import { useSimplifiedStartup } from "./hooks/useSimplifiedStartup";
 import { useDeferredAssets } from "./hooks/useDeferredAssets";
@@ -330,7 +329,6 @@ const App = () => {
           <Router>
             <AsyncErrorBoundary>
               <ThemeProvider>
-                <ThemeStabilityFix />
                 <AuthProvider>
                   <SimpleWalkingStatsProvider>
                     <AppContent />

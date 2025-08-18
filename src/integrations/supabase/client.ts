@@ -16,8 +16,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    // Disable URL detection entirely - rely on localStorage persistence
-    detectSessionInUrl: false,
+    // Enable URL detection for proper OAuth flows
+    detectSessionInUrl: true,
     flowType: 'pkce'
   },
   global: {
