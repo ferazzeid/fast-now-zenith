@@ -1,5 +1,7 @@
 package com.fastnow.zenith;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebView;
 import android.view.View;
@@ -13,6 +15,39 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         hideSystemUI();
         configureWebView();
+        handleOAuthIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleOAuthIntent(intent);
+    }
+
+    private void handleOAuthIntent(Intent intent) {
+        if (intent != null && intent.getData() != null) {
+            Uri data = intent.getData();
+            String scheme = data.getScheme();
+            String host = data.getHost();
+            
+            // Handle OAuth callback deep link
+            if ("com.fastnow.zenith".equals(scheme) && "oauth".equals(host)) {
+                // Force app back to fullscreen after OAuth
+                hideSystemUI();
+                
+                // The Capacitor bridge will handle the OAuth callback
+                // Just ensure we stay in native fullscreen mode
+                if (getBridge() != null && getBridge().getWebView() != null) {
+                    WebView webView = getBridge().getWebView();
+                    webView.post(() -> {
+                        // Re-apply native WebView settings
+                        configureWebView();
+                        hideSystemUI();
+                    });
+                }
+            }
+        }
     }
 
     private void hideSystemUI() {

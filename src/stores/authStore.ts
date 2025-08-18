@@ -120,18 +120,29 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
-        const redirectUrl = isCapacitor
-          ? 'com.fastnow.zenith://oauth/callback'
-          : `${window.location.origin}/`;
+        const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
         
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectUrl
-          }
-        });
-        return { error };
+        if (isCapacitor) {
+          // Native app: Use deep link redirect
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: 'com.fastnow.zenith://oauth/callback',
+              // Skip URL detection to prevent browser mode
+              skipBrowserRedirect: false
+            }
+          });
+          return { error };
+        } else {
+          // Web app: Use normal redirect
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/`
+            }
+          });
+          return { error };
+        }
       },
 
       resetPassword: async (email: string) => {
