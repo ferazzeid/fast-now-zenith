@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 include ':app'
 include ':capacitor-cordova-android-plugins'
+include ':capacitor-android'
