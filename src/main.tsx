@@ -5,6 +5,7 @@ import './index.css';
 import { AnimationProvider } from './components/AnimationController';
 import { initOfflineStorage } from './utils/offlineStorage';
 import { useNativeApp } from './hooks/useNativeApp';
+import { conditionalPWAInit } from './utils/conditionalPWA';
 
 // Production logging guard - reduce noise in prod
 if (process.env.NODE_ENV === 'production') {
@@ -14,6 +15,9 @@ if (process.env.NODE_ENV === 'production') {
 
 // Initialize offline storage only (no dynamic assets during startup)
 initOfflineStorage();
+
+// Initialize PWA features conditionally (web only)
+conditionalPWAInit();
 
 // Simplified App wrapper - no dynamic loading during startup
 const SimplifiedApp = () => {
