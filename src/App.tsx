@@ -45,6 +45,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { useNativeApp } from './hooks/useNativeApp';
 
 
 
@@ -69,6 +70,8 @@ if (typeof window !== 'undefined') {
 }
 
 const AppContent = () => {
+  const { isNativeApp, platform } = useNativeApp();
+  
   // Load color theme on app startup
   useColorTheme();
   // Load dynamic favicon from admin settings
@@ -82,6 +85,27 @@ const AppContent = () => {
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { isOnline } = useConnectionStore();
+
+  // Native app setup
+  useEffect(() => {
+    // Hide browser UI for native apps
+    if (isNativeApp) {
+      // Hide address bar and browser chrome
+      const metaViewport = document.querySelector('meta[name="viewport"]');
+      if (metaViewport) {
+        metaViewport.setAttribute('content', 
+          'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
+        );
+      }
+      
+      // Add native app class to body
+      document.body.classList.add('native-app', `platform-${platform}`);
+      
+      // Remove any browser-specific styling
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
+  }, [isNativeApp, platform]);
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
