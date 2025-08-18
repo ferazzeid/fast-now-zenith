@@ -145,7 +145,11 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
     name: '1.22',
   },
   nativeApp: {
-    allowNavigation: [],
+    allowNavigation: [
+      'https://accounts.google.com/*',
+      'https://*.googleusercontent.com/*',
+      'https://oauth.googleusercontent.com/*'
+    ],
     fullscreen: true,
     hideLogs: true,
     loggingBehavior: 'none',

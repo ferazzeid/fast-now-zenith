@@ -120,18 +120,33 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
+        // Enhanced Capacitor detection with logging
+        const isCapacitor = typeof window !== 'undefined' && (
+          (window as any).Capacitor?.isNativePlatform?.() ||
+          window.location.protocol === 'capacitor:' ||
+          window.navigator.userAgent.includes('FastNowApp')
+        );
+        
+        authLogger.info('Google OAuth flow starting', { 
+          isCapacitor, 
+          protocol: window.location.protocol,
+          userAgent: window.navigator.userAgent.substring(0, 50) + '...'
+        });
         
         if (isCapacitor) {
-          // Native app: Keep OAuth flow within WebView
+          // Native app: Use app URL for redirect, no browser redirect
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: 'com.fastnow.zenith://oauth/callback',
-              // Prevent external browser launch - keep within WebView
-              skipBrowserRedirect: true
+              redirectTo: `${window.location.origin}/`,
+              // Remove skipBrowserRedirect - let Supabase handle it properly
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
             }
           });
+          authLogger.info('Native Google OAuth result', { error: !!error });
           return { error };
         } else {
           // Web app: Use normal redirect
@@ -141,6 +156,7 @@ export const useAuthStore = create<AuthState>()(
               redirectTo: `${window.location.origin}/`
             }
           });
+          authLogger.info('Web Google OAuth result', { error: !!error });
           return { error };
         }
       },
