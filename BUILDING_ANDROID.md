@@ -26,10 +26,10 @@ npm install
 npx cap add android
 ```
 
-### 4. Configure Keystore
-- Ensure you have a valid `android/keystore.properties` file
-- The keystore file should be accessible at the path specified in `storeFile`
-- Use `android/keystore.properties.example` as a template
+### 4. Google Play App Signing (Recommended)
+- This project uses Google Play App Signing for production builds
+- No local keystore configuration required
+- Google handles signing automatically when you upload to Play Console
 
 ### 5. Update Version (Before Each Release)
 Edit `android/app/build.gradle`:
