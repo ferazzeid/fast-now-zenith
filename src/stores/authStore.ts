@@ -123,13 +123,13 @@ export const useAuthStore = create<AuthState>()(
         const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
         
         if (isCapacitor) {
-          // Native app: Use deep link redirect
+          // Native app: Keep OAuth flow within WebView
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
               redirectTo: 'com.fastnow.zenith://oauth/callback',
-              // Skip URL detection to prevent browser mode
-              skipBrowserRedirect: false
+              // Prevent external browser launch - keep within WebView
+              skipBrowserRedirect: true
             }
           });
           return { error };

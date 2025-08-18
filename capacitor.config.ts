@@ -35,6 +35,10 @@ const config: CapacitorConfig = {
       enabled: true
     }
   },
+  // Configure deep linking for OAuth callbacks
+  server: {
+    androidScheme: 'https'
+  },
   android: {
     allowMixedContent: false,
     captureInput: true,
