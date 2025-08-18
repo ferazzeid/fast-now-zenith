@@ -50,7 +50,12 @@ const config: CapacitorConfig = {
     hardwareAccelerated: envConfig.nativeApp.hardwareAccelerated,
     usesCleartextTraffic: envConfig.nativeApp.usesCleartextTraffic,
     versionCode: envConfig.version.code,
-    versionName: envConfig.version.name
+    versionName: envConfig.version.name,
+    minWebViewVersion: 70,
+    loggingBehavior: isDevelopment() ? 'debug' : 'none',
+    hideLogs: !isDevelopment(),
+    webContentsDebuggingEnabled: isDevelopment(),
+    enableBridgeLogging: isDevelopment()
   },
   ios: {
     backgroundColor: envConfig.android.backgroundLight,

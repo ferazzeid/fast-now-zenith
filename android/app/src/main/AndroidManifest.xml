@@ -44,7 +44,17 @@
         android:largeHeap="true"
         android:usesCleartextTraffic="false"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:banner="@mipmap/ic_launcher">
+        android:banner="@mipmap/ic_launcher"
+        android:extractNativeLibs="false"
+        android:requestLegacyExternalStorage="false">
+
+        <!-- App Bundle Metadata -->
+        <meta-data
+            android:name="com.google.android.play.billingclient.version"
+            android:value="5.0.0" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <!-- Main Activity with comprehensive device support -->
         <activity
