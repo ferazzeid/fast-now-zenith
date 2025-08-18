@@ -16,8 +16,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    // Disable detectSessionInUrl for native apps to prevent browser-mode issues
-    detectSessionInUrl: !isNativePlatform,
+    // Disable URL detection entirely - rely on localStorage persistence
+    detectSessionInUrl: false,
     flowType: 'pkce'
   },
   global: {
