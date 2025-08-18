@@ -12,7 +12,7 @@ if (process.env.NODE_ENV === 'production') {
   console.info = () => {};
 }
 
-// Initialize offline storage only (no dynamic assets during startup)
+// Initialize offline storage only (no dynamic assets)
 initOfflineStorage();
 
 // Simplified App wrapper - no dynamic loading during startup

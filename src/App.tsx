@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CriticalErrorBoundary, PageErrorBoundary } from "@/components/enhanced/ComprehensiveErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
@@ -31,10 +31,9 @@ import { AuthProvider } from "./providers/AuthProvider";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ThemeStabilityFix } from "./components/ThemeStabilityFix";
-import { useColorTheme } from "./hooks/useColorTheme";
-import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
-import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
-import { useDynamicHTMLMeta } from "./hooks/useDynamicHTMLMeta";
+import { SimplifiedStartup } from "./components/SimplifiedStartup";
+import { useSimplifiedStartup } from "./hooks/useSimplifiedStartup";
+import { useDeferredAssets } from "./hooks/useDeferredAssets";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -71,20 +70,16 @@ if (typeof window !== 'undefined') {
 
 const AppContent = () => {
   const { isNativeApp, platform } = useNativeApp();
-  
-  // Load color theme on app startup
-  useColorTheme();
-  // Load dynamic favicon from admin settings
-  useDynamicFavicon();
-  // Load dynamic PWA assets (logo, icons)
-  useDynamicPWAAssets();
-  // Load dynamic HTML meta tags
-  useDynamicHTMLMeta();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { isOnline } = useConnectionStore();
+  
+  // Simplified startup with clear states
+  const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
+  
+  // Load dynamic assets AFTER startup is complete (deferred, non-blocking)
+  useDeferredAssets();
 
   // Native app setup
   useEffect(() => {
@@ -164,10 +159,15 @@ const AppContent = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [isOnline]);
   
+  // Wrap everything in SimplifiedStartup
   return (
-    <>
-      
-      
+    <SimplifiedStartup 
+      state={state} 
+      error={error}
+      isOnline={isOnline}
+      onRetry={retry}
+      onForceRefresh={forceRefresh}
+    >
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
@@ -304,41 +304,45 @@ const AppContent = () => {
       </div>
       
       {/* Global Profile Onboarding */}
-      
       <GlobalProfileOnboarding
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
       />
-    </>
+    </SimplifiedStartup>
   );
 };
 
-const App = () => (
-  <CriticalErrorBoundary 
-    onError={(error, errorInfo) => {
-      console.error('App-level error:', error, errorInfo);
-      // Could send to error tracking service here
-    }}
-  >
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AsyncErrorBoundary>
-            <ThemeProvider>
-              <ThemeStabilityFix />
-              <AuthProvider>
-                <SimpleWalkingStatsProvider>
-                  <AppContent />
-                </SimpleWalkingStatsProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </AsyncErrorBoundary>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </CriticalErrorBoundary>
-);
+const App = () => {
+  const { isNativeApp } = useNativeApp();
+  const Router = isNativeApp ? MemoryRouter : BrowserRouter;
+  
+  return (
+    <CriticalErrorBoundary 
+      onError={(error, errorInfo) => {
+        console.error('App-level error:', error, errorInfo);
+        // Could send to error tracking service here
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Router>
+            <AsyncErrorBoundary>
+              <ThemeProvider>
+                <ThemeStabilityFix />
+                <AuthProvider>
+                  <SimpleWalkingStatsProvider>
+                    <AppContent />
+                  </SimpleWalkingStatsProvider>
+                </AuthProvider>
+              </ThemeProvider>
+            </AsyncErrorBoundary>
+          </Router>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </CriticalErrorBoundary>
+  );
+};
 
 export default App;

@@ -16,15 +16,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { startMonitoring: startAuthMonitoring, stopMonitoring: stopAuthMonitoring } = useAuthStateMonitor();
   
   useEffect(() => {
-    // Simplified initialization to prevent race conditions
+    // Ultra-simplified initialization for startup performance
     const initializeApp = async () => {
       try {
+        // Start connection monitoring immediately (non-blocking)
         startMonitoring();
+        
+        // Initialize auth (this is now handled by useSimplifiedStartup)
         await initialize();
+        
+        // Start auth monitoring after initialization
         startAuthMonitoring();
+        
+        console.log('✅ Auth provider initialized successfully');
       } catch (error) {
-        console.error('App initialization failed:', error);
-        // Graceful degradation - don't block app
+        console.error('❌ Auth initialization failed (graceful degradation):', error);
+        // Don't block app startup - let it continue with limited functionality
       }
     };
     
@@ -42,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         delete (window as any).__authSubscription;
       }
     };
-  }, [initialize, startMonitoring, stopMonitoring, startAuthMonitoring, stopAuthMonitoring, toast]);
+  }, [initialize, startMonitoring, stopMonitoring, startAuthMonitoring, stopAuthMonitoring]);
 
   return <>{children}</>;
 };
