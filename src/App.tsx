@@ -12,7 +12,6 @@ import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
 
-
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 import { useProfile } from '@/hooks/useProfile';
@@ -44,6 +43,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
+import { useOAuthDeepLink } from './hooks/useOAuthDeepLink';
 
 
 
@@ -73,6 +73,9 @@ const AppContent = () => {
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Set up OAuth deep link handling for native app
+  useOAuthDeepLink();
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
