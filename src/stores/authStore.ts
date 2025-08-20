@@ -120,10 +120,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
-        const redirectToUrl = isCapacitor
+        // Check if actually running in native environment (not just if Capacitor exists)
+        const isNative = typeof window !== 'undefined' && 
+          (window as any).Capacitor?.isNativePlatform?.() === true;
+        
+        const redirectToUrl = isNative
           ? 'com.fastnow.zenith://oauth/callback'
           : `${window.location.origin}/`;
+
+        authLogger.info('Google OAuth starting', { isNative, redirectToUrl });
 
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -144,7 +149,7 @@ export const useAuthStore = create<AuthState>()(
 
         if (data?.url) {
           authLogger.info('Opening browser for Google OAuth:', data.url);
-          if (isCapacitor) {
+          if (isNative) {
             const { Browser } = await import('@capacitor/browser');
             await Browser.open({ url: data.url });
           } else {
