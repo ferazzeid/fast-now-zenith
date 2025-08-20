@@ -43,7 +43,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
-import { useOAuthDeepLink } from './hooks/useOAuthDeepLink';
+import { useSupabaseOAuthDeepLink } from './hooks/useSupabaseOAuthDeepLink';
 
 
 
@@ -74,8 +74,8 @@ const AppContent = () => {
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Set up OAuth deep link handling for native app
-  useOAuthDeepLink();
+  // Set up OAuth deep link handling for native app (crash-proof)
+  useSupabaseOAuthDeepLink();
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();

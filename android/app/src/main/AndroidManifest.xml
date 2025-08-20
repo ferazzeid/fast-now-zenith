@@ -73,12 +73,12 @@
             </intent-filter>
 
             <!-- OAuth redirect intent filter -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.fastnow.zenith" android:host="auth-callback" />
-            </intent-filter>
+        <intent-filter android:autoVerify="true">
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="com.fastnow.zenith" android:host="oauth" android:path="/callback" />
+        </intent-filter>
 
         </activity>
 
