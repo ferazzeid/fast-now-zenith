@@ -124,39 +124,51 @@ export const useAuthStore = create<AuthState>()(
         const isNative = typeof window !== 'undefined' && 
           (window as any).Capacitor?.isNativePlatform?.() === true;
         
-        const redirectToUrl = isNative
-          ? 'com.fastnow.zenith://oauth/callback'
-          : `${window.location.origin}/`;
+        authLogger.info('Google OAuth starting', { isNative });
 
-        authLogger.info('Google OAuth starting', { isNative, redirectToUrl });
-
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectToUrl,
-            skipBrowserRedirect: true,
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'consent'
+        if (isNative) {
+          // Mobile: Use skipBrowserRedirect and open external browser
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: 'com.fastnow.zenith://oauth/callback',
+              skipBrowserRedirect: true,
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
             }
+          });
+
+          if (error) {
+            authLogger.error('Google OAuth initiation failed:', error);
+            return { error };
           }
-        });
 
-        if (error) {
-          authLogger.error('Google OAuth initiation failed:', error);
-          return { error };
-        }
-
-        if (data?.url) {
-          authLogger.info('Opening browser for Google OAuth:', data.url);
-          if (isNative) {
+          if (data?.url) {
+            authLogger.info('Opening browser for Google OAuth:', data.url);
             const { Browser } = await import('@capacitor/browser');
             await Browser.open({ url: data.url });
-          } else {
-            window.location.assign(data.url);
           }
+          return { error: null };
+        } else {
+          // Web: Let Supabase handle the redirect naturally in same window
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/`,
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
+            }
+          });
+
+          if (error) {
+            authLogger.error('Google OAuth initiation failed:', error);
+          }
+          return { error };
         }
-        return { error: null };
       },
 
       resetPassword: async (email: string) => {
