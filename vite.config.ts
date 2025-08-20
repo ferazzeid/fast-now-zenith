@@ -40,7 +40,7 @@ export default defineConfig(async ({ mode }) => {
           },
         },
       },
-      sourcemap: !isProduction, // Only generate sourcemaps in development
+      sourcemap: true, // Always generate sourcemaps for better error tracing
     },
     define: {
       // Ensure environment detection works
