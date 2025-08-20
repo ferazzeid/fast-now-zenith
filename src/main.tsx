@@ -20,9 +20,7 @@ if (process.env.NODE_ENV === 'production') {
 initOfflineStorage();
 
 // Initialize PWA features conditionally (web only, never in native)
-if (typeof window !== 'undefined' && !(window as any).Capacitor) {
-  conditionalPWAInit();
-}
+conditionalPWAInit();
 
 // Simplified App wrapper - no dynamic loading during startup
 const SimplifiedApp = () => {
