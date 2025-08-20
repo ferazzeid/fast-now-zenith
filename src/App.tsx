@@ -75,7 +75,38 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Set up OAuth deep link handling for native app
-  useOAuthDeepLink();
+  useOAuthDeepLink(async (url: string) => {
+    console.log('🔗 Deep link received:', url);
+    
+    // Check if this is our OAuth callback
+    if (url.startsWith('com.fastnow.zenith://auth-callback')) {
+      try {
+        console.log('🔐 Processing OAuth callback...');
+        
+        // Extract tokens from the URL
+        const urlParams = new URLSearchParams(url.split('?')[1] || url.split('#')[1] || '');
+        const accessToken = urlParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token');
+        
+        if (accessToken && refreshToken) {
+          // Set the session with the extracted tokens
+          const { supabase } = await import('@/integrations/supabase/client');
+          const { data: sessionData, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (error) {
+            console.error('❌ OAuth session setup error:', error);
+          } else if (sessionData?.session) {
+            console.log('✅ OAuth callback successful, user signed in');
+          }
+        }
+      } catch (error) {
+        console.error('❌ OAuth deep link processing error:', error);
+      }
+    }
+  });
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
