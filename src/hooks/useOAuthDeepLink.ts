@@ -11,12 +11,23 @@ export const useOAuthDeepLink = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Only run in Capacitor environment
-    const isCapacitor = typeof window !== 'undefined' && (
-      (window as any).Capacitor?.isNativePlatform?.() ||
-      window.location.protocol === 'capacitor:' ||
-      window.navigator.userAgent.includes('FastNowApp')
-    );
+    // Only run in Capacitor environment with safe checks
+    let isCapacitor = false;
+    
+    try {
+      if (typeof window !== 'undefined') {
+        // Safe Capacitor detection
+        const capacitor = (window as any).Capacitor;
+        isCapacitor = !!(
+          (capacitor && typeof capacitor.isNativePlatform === 'function' && capacitor.isNativePlatform()) ||
+          window.location.protocol === 'capacitor:' ||
+          (window.navigator?.userAgent && window.navigator.userAgent.includes('FastNowApp'))
+        );
+      }
+    } catch (error) {
+      console.log('🔗 Capacitor detection failed, assuming web environment:', error);
+      isCapacitor = false;
+    }
 
     if (!isCapacitor) {
       return;
@@ -123,8 +134,13 @@ export const useOAuthDeepLink = () => {
     
     const setupListener = async () => {
       try {
-        listenerHandle = await App.addListener('appUrlOpen', handleDeepLink);
-        console.log('🔗 OAuth deep link listener registered');
+        // Check if App is available before using it
+        if (typeof App?.addListener === 'function') {
+          listenerHandle = await App.addListener('appUrlOpen', handleDeepLink);
+          console.log('🔗 OAuth deep link listener registered');
+        } else {
+          console.log('🔗 Capacitor App plugin not available, skipping deep link setup');
+        }
       } catch (error) {
         console.error('❌ Failed to register deep link listener:', error);
       }
