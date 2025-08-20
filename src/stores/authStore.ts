@@ -120,44 +120,38 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        // Enhanced Capacitor detection with logging
-        const isCapacitor = typeof window !== 'undefined' && (
-          (window as any).Capacitor?.isNativePlatform?.() ||
-          window.location.protocol === 'capacitor:' ||
-          window.navigator.userAgent.includes('FastNowApp')
-        );
-        
-        authLogger.info('Google OAuth flow starting', { 
-          isCapacitor, 
-          protocol: window.location.protocol,
-          userAgent: window.navigator.userAgent.substring(0, 50) + '...'
+        const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
+        const redirectToUrl = isCapacitor
+          ? 'com.fastnow.zenith://oauth/callback'
+          : `${window.location.origin}/`;
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectToUrl,
+            skipBrowserRedirect: true,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent'
+            }
+          }
         });
-        
-        if (isCapacitor) {
-          // Native app: Use custom scheme for deep link
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: 'com.fastnow.zenith://auth-callback',
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent'
-              }
-            }
-          });
-          authLogger.info('Native Google OAuth result', { error: !!error });
-          return { error };
-        } else {
-          // Web app: Use normal redirect
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: `${window.location.origin}/`
-            }
-          });
-          authLogger.info('Web Google OAuth result', { error: !!error });
+
+        if (error) {
+          authLogger.error('Google OAuth initiation failed:', error);
           return { error };
         }
+
+        if (data?.url) {
+          authLogger.info('Opening browser for Google OAuth:', data.url);
+          if (isCapacitor) {
+            const { Browser } = await import('@capacitor/browser');
+            await Browser.open({ url: data.url });
+          } else {
+            window.location.assign(data.url);
+          }
+        }
+        return { error: null };
       },
 
       resetPassword: async (email: string) => {
