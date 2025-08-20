@@ -19,6 +19,7 @@ export default defineConfig(async ({ mode }) => {
   }
   
   return {
+    base: './', // Use relative paths for Capacitor WebView compatibility
     server: {
       host: "::",
       port: 8080,
