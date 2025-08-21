@@ -21,7 +21,6 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  initializeOAuth?: () => void;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
   setLoading: (loading: boolean) => void;
@@ -129,9 +128,6 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Google OAuth starting', { isNative });
 
         if (isNative) {
-          // Initialize OAuth timeout and session polling for mobile
-          get().initializeOAuth?.();
-          
           // Mobile: Use skipBrowserRedirect and open external browser
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
@@ -175,8 +171,6 @@ export const useAuthStore = create<AuthState>()(
           return { error };
         }
       },
-
-      initializeOAuth: undefined, // Set by useAuth hook
 
       resetPassword: async (email: string) => {
         const redirectUrl = `${window.location.origin}/update-password`;
