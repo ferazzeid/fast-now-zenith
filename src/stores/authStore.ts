@@ -170,38 +170,50 @@ export const useAuthStore = create<AuthState>()(
               
               authLogger.info('Browser opened successfully for OAuth');
               
-              // Start session polling as backup mechanism
-              setTimeout(() => {
-                authLogger.info('Starting OAuth session polling backup');
-                let pollCount = 0;
-                const maxPolls = 30; // Poll for 30 seconds
+              // Enhanced session polling with faster detection
+              let sessionPollingInterval: NodeJS.Timeout;
+              let pollCount = 0;
+              const maxPolls = 60; // Poll for 60 seconds
+              const pollFrequency = 500; // Poll every 500ms for faster detection
+              
+              const startPolling = () => {
+                authLogger.info('Starting enhanced OAuth session polling');
                 
-                const pollInterval = setInterval(async () => {
+                sessionPollingInterval = setInterval(async () => {
                   pollCount++;
                   
                   try {
                     const { data: sessionData } = await supabase.auth.getSession();
                     if (sessionData?.session) {
-                      authLogger.info('Session detected via polling - OAuth successful!');
-                      clearInterval(pollInterval);
+                      authLogger.info('✅ Session detected via polling - OAuth successful!');
+                      clearInterval(sessionPollingInterval);
                       
-                      // Close browser if still open
+                      // Close browser immediately
                       try {
                         await Browser.close();
+                        authLogger.info('Browser closed after successful OAuth');
                       } catch (e) {
                         // Browser might already be closed
                       }
+                      
+                      // Clear OAuth timing
+                      delete (window as any).__oauthStartTime;
+                      return;
                     }
                   } catch (e) {
-                    authLogger.warn('Session poll failed:', e);
+                    // Silent polling - only log critical errors
                   }
                   
                   if (pollCount >= maxPolls) {
-                    authLogger.warn('OAuth session polling timeout reached');
-                    clearInterval(pollInterval);
+                    authLogger.warn('OAuth session polling timeout - cleaning up');
+                    clearInterval(sessionPollingInterval);
+                    delete (window as any).__oauthStartTime;
                   }
-                }, 1000);
-              }, 2000); // Wait 2 seconds before starting to poll
+                }, pollFrequency);
+              };
+              
+              // Start polling immediately for faster detection
+              setTimeout(startPolling, 1000);
               
             } else {
               authLogger.error('No OAuth URL returned from Supabase');
