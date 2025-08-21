@@ -31,6 +31,12 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const signInWithGoogle = useAuthStore(state => state.signInWithGoogle);
   const resetPassword = useAuthStore(state => state.resetPassword);
   const updatePassword = useAuthStore(state => state.updatePassword);
+  const initialize = useAuthStore(state => state.initialize);
+
+  // Initialize auth store on mount
+  React.useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   const value: AuthContextValue = {
     user,
