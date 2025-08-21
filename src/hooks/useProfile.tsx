@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 import { cacheProfile, getCachedProfile, deduplicateRequest } from '@/utils/offlineStorage';
@@ -29,7 +29,7 @@ interface UserProfile {
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const { toast } = useToast();
   const { executeWithRetry } = useRetryableSupabase();
 

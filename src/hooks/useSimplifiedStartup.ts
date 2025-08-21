@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useProfile } from '@/hooks/useProfile';
@@ -11,9 +12,7 @@ export const useSimplifiedStartup = (isNativeApp: boolean) => {
   const [error, setError] = useState<string>('');
   const [retryCount, setRetryCount] = useState(0);
 
-  const user = useAuthStore(state => state.user);
-  const session = useAuthStore(state => state.session);
-  const loading = useAuthStore(state => state.loading);
+  const { user, session, loading } = useAuthContext();
   const initialize = useAuthStore(state => state.initialize);
   const { isOnline } = useConnectionStore();
   const { profile, loading: profileLoading, loadProfile } = useProfile();

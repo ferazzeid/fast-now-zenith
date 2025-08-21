@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthCacheManager } from '@/hooks/useAuthCacheManager.tsx';
@@ -7,7 +7,7 @@ import { useAuthCacheManager } from '@/hooks/useAuthCacheManager.tsx';
 export const useAuth = () => {
   // All hooks must be called consistently - no conditional hooks!
   const { toast } = useToast();
-  const authState = useAuthStore();
+  const authState = useAuthContext();
   const { isOnline } = useConnectionStore();
   const { clearAllAuthCaches, refreshAuthData } = useAuthCacheManager();
 

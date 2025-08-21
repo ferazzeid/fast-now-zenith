@@ -3,7 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthContext } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -43,7 +43,7 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const user = useAuthStore(state => state.user);
+  const { user } = useAuthContext();
 
   // Convert UTC times to local datetime-local format
   const formatForInput = (isoString: string) => {
