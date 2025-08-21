@@ -6,10 +6,11 @@ import { AnimationProvider } from './components/AnimationController';
 import { initOfflineStorage } from './utils/offlineStorage';
 import { useNativeApp } from './hooks/useNativeApp';
 
-// Production logging guard - reduce noise in prod
+// Production logging guard - reduce noise in prod but keep errors
 if (process.env.NODE_ENV === 'production') {
   console.debug = () => {};
   console.info = () => {};
+  // Keep console.error and console.warn for debugging critical issues
 }
 
 // Initialize offline storage only (no dynamic assets)

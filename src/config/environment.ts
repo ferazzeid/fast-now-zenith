@@ -43,52 +43,39 @@ export interface EnvironmentConfig {
 }
 
 export const getEnvironment = (): AppEnvironment => {
-  // CRITICAL: Multiple fallbacks for native app detection
-  
-  // Method 1: Check for capacitor protocol
-  if (typeof window !== 'undefined' && window.location.protocol === 'capacitor:') {
-    console.log('🔥 NATIVE APP DETECTED: capacitor protocol');
-    return 'production';
+  try {
+    // CRITICAL: Simplified detection - too complex detection was causing issues
+    
+    // Method 1: Check build environment first (most reliable)
+    if (process.env.NODE_ENV === 'production' || process.env.PROD === 'true') {
+      console.log('🔥 PRODUCTION MODE: NODE_ENV detected');
+      return 'production';
+    }
+    
+    // Method 2: Check for Capacitor object (native app)
+    if (typeof window !== 'undefined' && (window as any).Capacitor) {
+      console.log('🔥 NATIVE APP DETECTED: Capacitor object');
+      return 'production';
+    }
+    
+    // Method 3: Check for force production flag
+    if (typeof window !== 'undefined' && (window as any).__FORCE_PRODUCTION__) {
+      console.log('🔥 PRODUCTION MODE: force flag');
+      return 'production';
+    }
+    
+    // Method 4: Check for capacitor protocol
+    if (typeof window !== 'undefined' && window.location.protocol === 'capacitor:') {
+      console.log('🔥 NATIVE APP DETECTED: capacitor protocol');
+      return 'production';
+    }
+    
+    console.log('🔥 DEVELOPMENT MODE: No production indicators found');
+    return 'development';
+  } catch (error) {
+    console.error('Environment detection failed, defaulting to production:', error);
+    return 'production'; // Safer default
   }
-  
-  // Method 2: Check if Capacitor object exists
-  if (typeof window !== 'undefined' && (window as any).Capacitor) {
-    console.log('🔥 NATIVE APP DETECTED: Capacitor object');
-    return 'production';
-  }
-  
-  // Method 3: Check for native app user agent
-  if (typeof window !== 'undefined' && window.navigator.userAgent.includes('FastNowApp')) {
-    console.log('🔥 NATIVE APP DETECTED: user agent');
-    return 'production';
-  }
-  
-  // Method 4: Check for Android WebView indicators
-  if (typeof window !== 'undefined' && 
-      (window.navigator.userAgent.includes('wv') || 
-       window.navigator.userAgent.includes('Version/') && window.navigator.userAgent.includes('Mobile'))) {
-    console.log('🔥 NATIVE APP DETECTED: WebView indicators');
-    return 'production';
-  }
-  
-  // Method 5: Force production flag
-  if (typeof window !== 'undefined' && (window as any).__FORCE_PRODUCTION__) {
-    console.log('🔥 NATIVE APP DETECTED: force production flag');
-    return 'production';
-  }
-  
-  // Check build environment
-  if (process.env.NODE_ENV === 'production' || process.env.PROD === 'true') {
-    return 'production';
-  }
-  
-  // Check for NODE_ENV override
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
-    return 'production';
-  }
-  
-  console.log('🔥 DEVELOPMENT MODE: No native app indicators found');
-  return 'development';
 };
 
 export const DEVELOPMENT_CONFIG: EnvironmentConfig = {

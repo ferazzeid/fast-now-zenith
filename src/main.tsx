@@ -10,10 +10,11 @@ import './debug/prodErrorBridge'; // Import error bridge at startup
 import './env'; // Import build info logging
 import { RootErrorBoundary } from './components/RootErrorBoundary';
 
-// Production logging guard - reduce noise in prod
+// Production logging guard - reduce noise in prod but keep errors
 if (process.env.NODE_ENV === 'production') {
   console.debug = () => {};
   console.info = () => {};
+  // Keep console.error and console.warn for debugging critical issues
 }
 
 // Initialize offline storage only (no dynamic assets during startup)

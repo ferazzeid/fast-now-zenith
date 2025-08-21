@@ -123,12 +123,14 @@ export const SimplifiedStartup = ({
               </Button>
             </div>
 
-            {/* Debug info for non-production */}
-            {process.env.NODE_ENV !== 'production' && (
+            {/* Debug info - always show when there's an error to help diagnose APK issues */}
+            {(error || showTimeoutActions) && (
               <div className="text-xs text-muted-foreground border rounded p-2 bg-muted/50">
                 <div>State: {state}</div>
                 <div>Online: {isOnline ? 'Yes' : 'No'}</div>
                 <div>Timeout: {timeoutReached ? 'Yes' : 'No'}</div>
+                <div>Env: {process.env.NODE_ENV || 'unknown'}</div>
+                <div>Native: {(window as any).__IS_NATIVE_APP__ ? 'Yes' : 'No'}</div>
                 {error && <div>Error: {error}</div>}
               </div>
             )}
