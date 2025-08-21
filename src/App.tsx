@@ -44,8 +44,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
 import { useSupabaseOAuthDeepLink } from './hooks/useSupabaseOAuthDeepLink';
-import { useHookCallDebugger } from './hooks/useHookCallDebugger';
-import { HookConsistencyChecker } from './components/HookConsistencyChecker';
+import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 
 
 
@@ -70,9 +69,6 @@ if (typeof window !== 'undefined') {
 }
 
 const AppContent = () => {
-  // Debug hook calls to catch inconsistencies 
-  useHookCallDebugger('AppContent', 'all-hooks');
-  
   // All hooks must be called consistently - no conditional hooks!
   const { isNativeApp, platform } = useNativeApp();
   const location = useLocation();
@@ -332,22 +328,24 @@ const App = () => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <HookConsistencyChecker />
-          <Router>
-            <AsyncErrorBoundary>
-              <ThemeProvider>
-                <AuthProvider>
-                  <SimpleWalkingStatsProvider>
-                    <AppContent />
-                  </SimpleWalkingStatsProvider>
-                </AuthProvider>
-              </ThemeProvider>
-            </AsyncErrorBoundary>
-          </Router>
-        </TooltipProvider>
+        <HookConsistencyBoundary>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            
+            <Router>
+              <AsyncErrorBoundary>
+                <ThemeProvider>
+                  <AuthProvider>
+                    <SimpleWalkingStatsProvider>
+                      <AppContent />
+                    </SimpleWalkingStatsProvider>
+                  </AuthProvider>
+                </ThemeProvider>
+              </AsyncErrorBoundary>
+            </Router>
+          </TooltipProvider>
+        </HookConsistencyBoundary>
       </QueryClientProvider>
     </CriticalErrorBoundary>
   );

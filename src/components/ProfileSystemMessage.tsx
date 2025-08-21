@@ -20,8 +20,10 @@ export const ProfileSystemMessage = ({ onProfileUpdate }: ProfileSystemMessagePr
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Don't show if profile is complete
-  if (isProfileComplete()) return null;
+  // Don't show if profile is complete - use conditional rendering instead of early return
+  if (isProfileComplete()) {
+    return null;
+  }
 
   const missingFields = [];
   if (!profile?.weight) missingFields.push({ icon: Scale, label: 'Weight', key: 'weight' });

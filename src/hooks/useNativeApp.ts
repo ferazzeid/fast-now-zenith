@@ -1,16 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-// Hook call debugging in development
-const DEBUG_HOOKS = process.env.NODE_ENV === 'development';
-let hookCallCount = 0;
-
 export const useNativeApp = () => {
-  // Debug hook calls to catch inconsistencies
-  if (DEBUG_HOOKS) {
-    hookCallCount++;
-    console.log(`🔧 useNativeApp called (count: ${hookCallCount})`);
-  }
 
   const [isNativeApp, setIsNativeApp] = useState(false);
   const [platform, setPlatform] = useState<string>('web');
@@ -24,10 +15,6 @@ export const useNativeApp = () => {
       try {
         const isNative = Capacitor.isNativePlatform();
         const currentPlatform = Capacitor.getPlatform();
-        
-        if (DEBUG_HOOKS) {
-          console.log(`🔧 Native detection: isNative=${isNative}, platform=${currentPlatform}`);
-        }
         
         setIsNativeApp(isNative);
         setPlatform(currentPlatform);
