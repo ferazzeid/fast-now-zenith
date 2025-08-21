@@ -32,7 +32,8 @@ export const useProfileQuery = () => {
   const profileQuery = useQuery({
     queryKey: profileQueryKey(user?.id || null),
     queryFn: async (): Promise<UserProfile | null> => {
-      if (!user) return null;
+      // Never return conditionally - always execute query function consistently
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('profiles')

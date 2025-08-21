@@ -45,6 +45,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
 import { useSupabaseOAuthDeepLink } from './hooks/useSupabaseOAuthDeepLink';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
+import { ReactErrorRecovery } from './components/ReactErrorRecovery';
 
 
 
@@ -346,17 +347,19 @@ const App = () => {
             <Toaster />
             <Sonner />
             
-            <Router>
-              <AsyncErrorBoundary>
-                <ThemeProvider>
-                  <AuthProvider>
-                    <SimpleWalkingStatsProvider>
-                      <AppContent isNativeApp={isNativeApp} platform={platform} />
-                    </SimpleWalkingStatsProvider>
-                  </AuthProvider>
-                </ThemeProvider>
-              </AsyncErrorBoundary>
-            </Router>
+              <Router>
+                <AsyncErrorBoundary>
+                  <ThemeProvider>
+                    <AuthProvider>
+                      <SimpleWalkingStatsProvider>
+                        <ReactErrorRecovery>
+                          <AppContent isNativeApp={isNativeApp} platform={platform} />
+                        </ReactErrorRecovery>
+                      </SimpleWalkingStatsProvider>
+                    </AuthProvider>
+                  </ThemeProvider>
+                </AsyncErrorBoundary>
+              </Router>
           </TooltipProvider>
         </HookConsistencyBoundary>
       </QueryClientProvider>
