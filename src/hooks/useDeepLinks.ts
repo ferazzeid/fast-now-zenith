@@ -9,6 +9,7 @@ type DeepLinkHandler = (url: string) => void;
  * - Never throws on startup.
  * - Only runs on native platforms.
  * - Passes the full URL to caller via onUrl.
+ * - Uses cached platform detection for consistency.
  */
 export function useDeepLinks(onUrl: DeepLinkHandler | null) {
   useEffect(() => {
@@ -17,7 +18,10 @@ export function useDeepLinks(onUrl: DeepLinkHandler | null) {
     const setup = async () => {
       if (typeof window === 'undefined') return;
       if (!onUrl) return;
-      if (!Capacitor.isNativePlatform()) return;
+      
+      // Use cached platform detection first, fallback to direct check
+      const isNative = (window as any).__IS_NATIVE_APP__ || Capacitor.isNativePlatform();
+      if (!isNative) return;
 
       try {
         // Dynamic import so it loads only on device; but package MUST exist.

@@ -2,8 +2,13 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
+import { useHookCallDebugger } from '@/hooks/useHookCallDebugger';
 
 export const useAuth = () => {
+  // Debug hook calls to catch inconsistencies
+  useHookCallDebugger('useAuth', 'all-hooks');
+  
+  // All hooks must be called consistently - no conditional hooks!
   const { toast } = useToast();
   const authState = useAuthStore();
   const { isOnline } = useConnectionStore();

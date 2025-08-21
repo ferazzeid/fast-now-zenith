@@ -44,6 +44,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
 import { useSupabaseOAuthDeepLink } from './hooks/useSupabaseOAuthDeepLink';
+import { useHookCallDebugger } from './hooks/useHookCallDebugger';
+import { HookConsistencyChecker } from './components/HookConsistencyChecker';
 
 
 
@@ -68,6 +70,10 @@ if (typeof window !== 'undefined') {
 }
 
 const AppContent = () => {
+  // Debug hook calls to catch inconsistencies 
+  useHookCallDebugger('AppContent', 'all-hooks');
+  
+  // All hooks must be called consistently - no conditional hooks!
   const { isNativeApp, platform } = useNativeApp();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
@@ -329,6 +335,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <HookConsistencyChecker />
           <Router>
             <AsyncErrorBoundary>
               <ThemeProvider>

@@ -120,9 +120,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        // Check if actually running in native environment (not just if Capacitor exists)
+        // Use cached native detection to ensure consistency
         const isNative = typeof window !== 'undefined' && 
-          (window as any).Capacitor?.isNativePlatform?.() === true;
+          ((window as any).__IS_NATIVE_APP__ || 
+           (window as any).Capacitor?.isNativePlatform?.() === true);
         
         authLogger.info('Google OAuth starting', { isNative });
 
