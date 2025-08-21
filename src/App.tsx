@@ -26,7 +26,7 @@ import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
-import { AuthProvider } from "./providers/AuthProvider";
+
 
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { SimplifiedStartup } from "./components/SimplifiedStartup";
@@ -349,13 +349,11 @@ const App = () => {
             <Router>
               <AsyncErrorBoundary>
                 <ThemeProvider>
-                  <AuthProvider>
-                    <AuthContextProvider>
-                      <SimpleWalkingStatsProvider>
-                        <AppContent isNativeApp={isNativeApp} platform={platform} />
-                      </SimpleWalkingStatsProvider>
-                    </AuthContextProvider>
-                  </AuthProvider>
+                  <AuthContextProvider>
+                    <SimpleWalkingStatsProvider>
+                      <AppContent isNativeApp={isNativeApp} platform={platform} />
+                    </SimpleWalkingStatsProvider>
+                  </AuthContextProvider>
                 </ThemeProvider>
               </AsyncErrorBoundary>
             </Router>

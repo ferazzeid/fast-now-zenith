@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { useAuthStore } from '@/stores/authStore';
+
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useProfile } from '@/hooks/useProfile';
 import { recordStartupMetric } from '@/utils/startupPerformance';
@@ -13,7 +13,7 @@ export const useSimplifiedStartup = (isNativeApp: boolean) => {
   const [retryCount, setRetryCount] = useState(0);
 
   const { user, session, loading } = useAuthContext();
-  const initialize = useAuthStore(state => state.initialize);
+  
   const { isOnline } = useConnectionStore();
   const { profile, loading: profileLoading, loadProfile } = useProfile();
 
@@ -44,16 +44,7 @@ export const useSimplifiedStartup = (isNativeApp: boolean) => {
     setRetryCount(prev => prev + 1);
     setError('');
     setState('loading');
-
-    try {
-      // Re-initialize auth
-      await initialize();
-    } catch (error) {
-      console.error('Retry failed:', error);
-      setError(error instanceof Error ? error.message : 'Retry failed');
-      setState('error');
-    }
-  }, [initialize]);
+  }, []);
 
   // Main startup flow
   useEffect(() => {
