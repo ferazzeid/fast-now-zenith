@@ -125,35 +125,99 @@ export const useAuthStore = create<AuthState>()(
           ((window as any).__IS_NATIVE_APP__ || 
            (window as any).Capacitor?.isNativePlatform?.() === true);
         
-        authLogger.info('Google OAuth starting', { isNative });
+        authLogger.info('Google OAuth starting', { 
+          isNative, 
+          timestamp: new Date().toISOString(),
+          currentSession: !!get().session
+        });
 
         if (isNative) {
-          // Mobile: Use skipBrowserRedirect and open external browser
-          const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: 'com.fastnow.zenith://oauth/callback',
-              skipBrowserRedirect: true,
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent'
+          try {
+            // Mobile: Use skipBrowserRedirect and open external browser
+            authLogger.info('Initiating mobile OAuth flow');
+            
+            const { data, error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: 'com.fastnow.zenith://oauth/callback',
+                skipBrowserRedirect: true,
+                queryParams: {
+                  access_type: 'offline',
+                  prompt: 'consent'
+                }
               }
+            });
+
+            if (error) {
+              authLogger.error('Google OAuth initiation failed:', error);
+              return { error };
             }
-          });
 
-          if (error) {
-            authLogger.error('Google OAuth initiation failed:', error);
-            return { error };
+            if (data?.url) {
+              authLogger.info('Opening browser for Google OAuth', { 
+                url: data.url,
+                timestamp: new Date().toISOString()
+              });
+              
+              // Store OAuth start time for timeout tracking
+              (window as any).__oauthStartTime = Date.now();
+              
+              const { Browser } = await import('@capacitor/browser');
+              await Browser.open({ 
+                url: data.url,
+                windowName: '_system'
+              });
+              
+              authLogger.info('Browser opened successfully for OAuth');
+              
+              // Start session polling as backup mechanism
+              setTimeout(() => {
+                authLogger.info('Starting OAuth session polling backup');
+                let pollCount = 0;
+                const maxPolls = 30; // Poll for 30 seconds
+                
+                const pollInterval = setInterval(async () => {
+                  pollCount++;
+                  
+                  try {
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    if (sessionData?.session) {
+                      authLogger.info('Session detected via polling - OAuth successful!');
+                      clearInterval(pollInterval);
+                      
+                      // Close browser if still open
+                      try {
+                        await Browser.close();
+                      } catch (e) {
+                        // Browser might already be closed
+                      }
+                    }
+                  } catch (e) {
+                    authLogger.warn('Session poll failed:', e);
+                  }
+                  
+                  if (pollCount >= maxPolls) {
+                    authLogger.warn('OAuth session polling timeout reached');
+                    clearInterval(pollInterval);
+                  }
+                }, 1000);
+              }, 2000); // Wait 2 seconds before starting to poll
+              
+            } else {
+              authLogger.error('No OAuth URL returned from Supabase');
+              return { error: new Error('No OAuth URL returned') };
+            }
+            
+            return { error: null };
+            
+          } catch (browserError) {
+            authLogger.error('Browser opening failed:', browserError);
+            return { error: browserError };
           }
-
-          if (data?.url) {
-            authLogger.info('Opening browser for Google OAuth:', data.url);
-            const { Browser } = await import('@capacitor/browser');
-            await Browser.open({ url: data.url });
-          }
-          return { error: null };
         } else {
           // Web: Let Supabase handle the redirect naturally in same window
+          authLogger.info('Initiating web OAuth flow');
+          
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -167,6 +231,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (error) {
             authLogger.error('Google OAuth initiation failed:', error);
+          } else {
+            authLogger.info('Web OAuth redirect initiated');
           }
           return { error };
         }
