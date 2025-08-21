@@ -10,8 +10,8 @@ android {
         applicationId "com.fastnow.zenith"
         minSdk 23
         targetSdk 35
-        versionCode 62
-        versionName "62"
+        versionCode 104
+        versionName "104"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged APK/AAB
