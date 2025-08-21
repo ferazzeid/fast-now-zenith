@@ -68,9 +68,13 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const AppContent = () => {
+interface AppContentProps {
+  isNativeApp: boolean;
+  platform: string;
+}
+
+const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
   // All hooks must be called consistently - no conditional hooks!
-  const { isNativeApp, platform } = useNativeApp();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
   const { profile, isProfileComplete } = useProfile();
@@ -80,10 +84,10 @@ const AppContent = () => {
   useSupabaseOAuthDeepLink();
   
   // Simplified startup with clear states
-  const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
+  const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup(isNativeApp);
   
   // Load dynamic assets AFTER startup is complete (deferred, non-blocking)
-  useDeferredAssets();
+  useDeferredAssets(isNativeApp);
 
   // Native app setup
   useEffect(() => {
@@ -317,8 +321,17 @@ const AppContent = () => {
 };
 
 const App = () => {
-  const { isNativeApp } = useNativeApp();
+  const { isNativeApp, platform } = useNativeApp();
   const Router = isNativeApp ? MemoryRouter : BrowserRouter;
+  
+  // For native apps, apply minimal styling immediately
+  useEffect(() => {
+    if (isNativeApp && typeof window !== 'undefined') {
+      document.body.classList.add('native-app', `platform-${platform}`);
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
+  }, [isNativeApp, platform]);
   
   return (
     <CriticalErrorBoundary 
@@ -338,7 +351,7 @@ const App = () => {
                 <ThemeProvider>
                   <AuthProvider>
                     <SimpleWalkingStatsProvider>
-                      <AppContent />
+                      <AppContent isNativeApp={isNativeApp} platform={platform} />
                     </SimpleWalkingStatsProvider>
                   </AuthProvider>
                 </ThemeProvider>

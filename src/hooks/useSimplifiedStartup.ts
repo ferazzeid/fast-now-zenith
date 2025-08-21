@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useProfile } from '@/hooks/useProfile';
-import { useNativeApp } from '@/hooks/useNativeApp';
 import { recordStartupMetric } from '@/utils/startupPerformance';
 
 export type StartupState = 'loading' | 'auth' | 'profile' | 'ready' | 'error';
 
-export const useSimplifiedStartup = () => {
+export const useSimplifiedStartup = (isNativeApp: boolean) => {
   const [state, setState] = useState<StartupState>('loading');
   const [error, setError] = useState<string>('');
   const [retryCount, setRetryCount] = useState(0);
@@ -17,7 +16,6 @@ export const useSimplifiedStartup = () => {
   const loading = useAuthStore(state => state.loading);
   const initialize = useAuthStore(state => state.initialize);
   const { isOnline } = useConnectionStore();
-  const { isNativeApp } = useNativeApp();
   const { profile, loading: profileLoading, loadProfile } = useProfile();
 
   // Force refresh that clears everything

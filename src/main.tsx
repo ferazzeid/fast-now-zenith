@@ -4,7 +4,6 @@ import App from './App.tsx';
 import './index.css';
 import { AnimationProvider } from './components/AnimationController';
 import { initOfflineStorage } from './utils/offlineStorage';
-import { useNativeApp } from './hooks/useNativeApp';
 import { conditionalPWAInit } from './utils/conditionalPWA';
 import './debug/prodErrorBridge'; // Import error bridge at startup
 import './env'; // Import build info logging
@@ -25,15 +24,6 @@ conditionalPWAInit();
 
 // Simplified App wrapper - no dynamic loading during startup
 const SimplifiedApp = () => {
-  const { isNativeApp } = useNativeApp();
-  
-  // For native apps, apply minimal styling immediately
-  if (isNativeApp && typeof window !== 'undefined') {
-    document.body.classList.add('native-app');
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-  }
-  
   return <App />;
 };
 
