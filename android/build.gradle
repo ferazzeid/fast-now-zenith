@@ -1,6 +1,19 @@
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
     }
 }
 
@@ -11,4 +24,8 @@ ext {
     junitVersion = '4.13.2'
     androidxJunitVersion = '1.1.5'
     androidxEspressoCoreVersion = '1.5.1'
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
