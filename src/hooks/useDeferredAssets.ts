@@ -7,19 +7,17 @@ import { useDynamicHTMLMeta } from './useDynamicHTMLMeta';
 /**
  * Deferred asset loading hook - loads dynamic assets AFTER app is ready
  * This prevents blocking startup with non-critical asset loading
- * Conditionally loads PWA features only for web builds
+ * Hooks are called unconditionally to obey Rules of Hooks - platform detection handled inside each hook
  */
 export const useDeferredAssets = (isNativeApp: boolean) => {
   
   // Load color theme (deferred)
   useColorTheme();
   
-  // Load dynamic assets after app is ready - WEB ONLY
-  if (!isNativeApp) {
-    useDynamicFavicon();
-    useDynamicPWAAssets();
-    useDynamicHTMLMeta();
-  }
+  // Always call hooks unconditionally - they handle native app detection internally
+  useDynamicFavicon(isNativeApp);
+  useDynamicPWAAssets(isNativeApp);
+  useDynamicHTMLMeta(isNativeApp);
 
   useEffect(() => {
     if (isNativeApp) {

@@ -1,8 +1,12 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useDynamicFavicon = () => {
+export const useDynamicFavicon = (isNativeApp?: boolean) => {
   useEffect(() => {
+    // Skip PWA features in native apps
+    if (isNativeApp) {
+      return;
+    }
     const updateFavicon = async () => {
       try {
         // Get the favicon from shared_settings

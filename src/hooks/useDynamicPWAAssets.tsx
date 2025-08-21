@@ -1,8 +1,12 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useDynamicPWAAssets = () => {
+export const useDynamicPWAAssets = (isNativeApp?: boolean) => {
   useEffect(() => {
+    // Skip PWA features in native apps
+    if (isNativeApp) {
+      return;
+    }
     const updatePWAAssets = async () => {
       try {
         // Fetch current brand assets from database
