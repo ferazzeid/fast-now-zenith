@@ -44,8 +44,14 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    console.log('🚀 Google Sign In button clicked');
     setLoading(true);
-    await signInWithGoogle();
+    try {
+      const result = await signInWithGoogle();
+      console.log('🚀 Google Sign In result:', result);
+    } catch (error) {
+      console.error('🚀 Google Sign In error:', error);
+    }
     setLoading(false);
   };
 
