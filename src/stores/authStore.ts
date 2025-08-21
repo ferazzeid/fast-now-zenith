@@ -120,10 +120,16 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        // Use cached native detection to ensure consistency
-        const isNative = typeof window !== 'undefined' && 
-          ((window as any).__IS_NATIVE_APP__ || 
-           (window as any).Capacitor?.isNativePlatform?.() === true);
+        // Enhanced native detection - force native mode in production
+        const isNative = typeof window !== 'undefined' && (
+          (window as any).__IS_NATIVE_APP__ || 
+          (window as any).Capacitor?.isNativePlatform?.() === true ||
+          window.location.protocol === 'capacitor:' ||
+          window.location.protocol === 'file:' ||
+          document.documentElement.getAttribute('data-build-type') === 'aab' ||
+          navigator.userAgent.includes('wv') ||
+          process.env.NODE_ENV === 'production'
+        );
         
         authLogger.info('Google OAuth starting', { 
           isNative, 
@@ -230,10 +236,15 @@ export const useAuthStore = create<AuthState>()(
           // Web: Let Supabase handle the redirect naturally in same window
           authLogger.info('Initiating web OAuth flow');
           
+          // Force HTTPS redirect URL for production
+          const redirectOrigin = window.location.protocol === 'https:' 
+            ? window.location.origin 
+            : 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com';
+          
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/`,
+              redirectTo: `${redirectOrigin}/`,
               queryParams: {
                 access_type: 'offline',
                 prompt: 'consent'
