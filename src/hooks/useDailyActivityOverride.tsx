@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useHookConsistencyValidator } from '@/hooks/useHookConsistencyValidator';
 
 interface DailyActivityOverride {
   id: string;
@@ -14,7 +13,6 @@ interface DailyActivityOverride {
 }
 
 export const useDailyActivityOverride = () => {
-  useHookConsistencyValidator('useDailyActivityOverride');
   const [todayOverride, setTodayOverride] = useState<DailyActivityOverride | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
