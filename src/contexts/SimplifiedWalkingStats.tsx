@@ -25,7 +25,10 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     fatBurned: 0
   });
 
-  const { currentSession, selectedSpeed } = useWalkingSession();
+  // Always call useWalkingSession hook consistently
+  const walkingSession = useWalkingSession();
+  const currentSession = walkingSession?.currentSession || null;
+  const selectedSpeed = walkingSession?.selectedSpeed || 3;
 
   // Update stats every 2 minutes when active (reduced frequency)
   useEffect(() => {

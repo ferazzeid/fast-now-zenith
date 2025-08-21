@@ -34,6 +34,7 @@ export const useProfile = () => {
   const { executeWithRetry } = useRetryableSupabase();
 
   const loadProfile = useCallback(async (forceRefresh: boolean = false) => {
+    // Always set loading to false if no user, but don't return early
     if (!user) {
       setProfile(null);
       setLoading(false);
@@ -266,12 +267,8 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
-    if (user?.id) {
-      loadProfile();
-    } else {
-      setProfile(null);
-      setLoading(false);
-    }
+    // Always call loadProfile, it handles the user check internally
+    loadProfile();
   }, [user?.id, loadProfile]);
 
   return {
