@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { useHookConsistencyValidator } from './useHookConsistencyValidator';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -12,6 +13,7 @@ export interface Message {
 }
 
 export const useSingleConversation = () => {
+  useHookConsistencyValidator('useSingleConversation');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [isProcessingMessage, setIsProcessingMessage] = useState(false);

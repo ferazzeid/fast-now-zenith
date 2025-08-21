@@ -5,6 +5,7 @@ import { useProfileQuery } from '@/hooks/useProfileQuery';
 import { estimateSteps } from '@/utils/stepEstimation';
 import { enqueueOperation } from '@/utils/outbox';
 import { persistWalkingSession, getPersistedWalkingSession } from '@/utils/timerPersistence';
+import { useHookConsistencyValidator } from '@/hooks/useHookConsistencyValidator';
 
 interface WalkingSession {
   id: string;
@@ -22,6 +23,7 @@ interface WalkingSession {
 }
 
 export const useWalkingSession = () => {
+  useHookConsistencyValidator('useWalkingSession');
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedSpeed, setSelectedSpeed] = useState<number>(3); // Default to average speed

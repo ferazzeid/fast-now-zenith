@@ -1,11 +1,13 @@
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
-import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
+import { useAuthCacheManager } from '@/hooks/useAuthCacheManager.tsx';
+import { useHookConsistencyValidator } from '@/hooks/useHookConsistencyValidator';
 
 
 export const useAuth = () => {
   // All hooks must be called consistently - no conditional hooks!
+  useHookConsistencyValidator('useAuth');
   const { toast } = useToast();
   const authState = useAuthStore();
   const { isOnline } = useConnectionStore();
