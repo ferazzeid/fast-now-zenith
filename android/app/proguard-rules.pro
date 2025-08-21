@@ -37,6 +37,37 @@
     @com.facebook.react.uimanager.annotations.ReactPropGroup <methods>;
 }
 
+# Critical: React hooks and state management preservation
+-keep class * extends java.lang.Object {
+    *** useState(...);
+    *** useEffect(...);
+    *** useCallback(...);
+    *** useMemo(...);
+    *** useRef(...);
+    *** useContext(...);
+}
+
+# Zustand store preservation (critical for state management)
+-keepclassmembers class * {
+    *** create(...);
+    *** persist(...);
+    *** subscribeWithSelector(...);
+}
+
+# Keep all function names for React hooks tracking
+-keepattributes MethodParameters
+-keepparameternames
+
+# Preserve React's internal hook tracking
+-keep class * {
+    *** __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+}
+
+# Critical: Keep all method names that might be React hooks
+-keepclassmembers class * {
+    *** use*(...);
+}
+
 # WebView and JavaScript engine
 -keep class * extends android.webkit.WebViewClient
 -keep class * extends android.webkit.WebChromeClient

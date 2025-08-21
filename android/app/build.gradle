@@ -29,6 +29,7 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
+            buildConfigField "String", "BUILD_TYPE", '"debug"'
         }
         release {
             minifyEnabled true
@@ -37,6 +38,11 @@ android {
             // Google Play App Signing will handle signing automatically
             zipAlignEnabled true
             crunchPngs false
+            buildConfigField "String", "BUILD_TYPE", '"release"'
+            // Preserve some debugging for OAuth flows
+            debuggable false
+            // Keep line numbers for crash reports
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 

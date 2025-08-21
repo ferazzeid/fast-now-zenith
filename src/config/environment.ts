@@ -44,7 +44,7 @@ export interface EnvironmentConfig {
 
 export const getEnvironment = (): AppEnvironment => {
   try {
-    // CRITICAL: Simplified detection - too complex detection was causing issues
+    // CRITICAL: Enhanced detection for AAB builds
     
     // Method 1: Check build environment first (most reliable)
     if (process.env.NODE_ENV === 'production' || process.env.PROD === 'true') {
@@ -56,6 +56,21 @@ export const getEnvironment = (): AppEnvironment => {
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
       console.log('🔥 NATIVE APP DETECTED: Capacitor object');
       return 'production';
+    }
+    
+    // Method 2b: AAB build detection (critical for production builds)
+    if (typeof window !== 'undefined') {
+      const isAABBuild = 
+        document.documentElement.getAttribute('data-build-type') === 'aab' ||
+        window.location.origin.includes('android_asset') ||
+        (window as any).AndroidInterface ||
+        navigator.userAgent.includes('wv') ||
+        window.location.href.includes('android_asset');
+      
+      if (isAABBuild) {
+        console.log('🔥 AAB BUILD DETECTED: Production mode forced');
+        return 'production';
+      }
     }
     
     // Method 3: Check for force production flag
@@ -70,11 +85,20 @@ export const getEnvironment = (): AppEnvironment => {
       return 'production';
     }
     
+    // Method 5: Check for HTTPS in non-localhost (usually production)
+    if (typeof window !== 'undefined' && 
+        window.location.protocol === 'https:' && 
+        !window.location.hostname.includes('localhost') && 
+        !window.location.hostname.includes('127.0.0.1')) {
+      console.log('🔥 PRODUCTION MODE: HTTPS non-localhost');
+      return 'production';
+    }
+    
     console.log('🔥 DEVELOPMENT MODE: No production indicators found');
     return 'development';
   } catch (error) {
     console.error('Environment detection failed, defaulting to production:', error);
-    return 'production'; // Safer default
+    return 'production'; // Safer default for AAB builds
   }
 };
 
@@ -134,12 +158,17 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
   nativeApp: {
     allowNavigation: [
       'https://accounts.google.com/*',
+      'https://*.google.com/*',
+      'https://oauth2.googleapis.com/*',
       'https://*.googleusercontent.com/*',
-      'https://oauth.googleusercontent.com/*'
+      'https://oauth.googleusercontent.com/*',
+      'https://appleid.apple.com/*',
+      'https://*.supabase.co/*',
+      'com.fastnow.zenith://*'
     ],
-    fullscreen: true,
-    hideLogs: true,
-    loggingBehavior: 'none',
+    fullscreen: false, // Allow navigation bars for OAuth
+    hideLogs: false, // Keep logs for OAuth debugging
+    loggingBehavior: 'production', // Limited but present
     immersiveMode: true,
     hardwareAccelerated: true,
     usesCleartextTraffic: false,
