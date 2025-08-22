@@ -43,7 +43,6 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { AuthContextProvider, useAuthContext } from '@/contexts/AuthContext';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
-import { useSupabaseOAuthDeepLink } from './hooks/useSupabaseOAuthDeepLink';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -86,27 +85,8 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
   const setOAuthCompleting = useAuthStore(state => state.setOAuthCompleting);
   const forceAuthRefresh = useAuthStore(state => state.forceRefresh);
   
-  // Set up OAuth deep link handling for native app with callback
-  useSupabaseOAuthDeepLink(async (success, error) => {
-    console.log('🔐 OAuth callback in App:', { success, error });
-    if (success) {
-      console.log('✅ OAuth successful, setting completion flag...');
-      setOAuthCompleting(true);
-      
-      // Force immediate auth state refresh
-      await forceAuthRefresh();
-      
-      // Clear OAuth completing flag after a short delay
-      setTimeout(() => {
-        console.log('🔄 Clearing OAuth completing flag');
-        setOAuthCompleting(false);
-      }, 1000);
-    } else {
-      console.error('❌ OAuth failed in App:', error);
-      setOAuthCompleting(false);
-    }
-  });
-
+  // OAuth is now handled by the MobileOAuthHandler in the Auth page
+  // No need for App-level deep link handling
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup(isNativeApp);

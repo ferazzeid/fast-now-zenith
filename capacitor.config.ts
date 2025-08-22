@@ -9,6 +9,12 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   // Removed server config to make this a native app with local assets
   plugins: {
+    App: {
+      appUrlOpen: {
+        iosCustomScheme: 'com.fastnow.zenith',
+        androidCustomScheme: 'com.fastnow.zenith'
+      }
+    },
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
+import { useMobileOAuth } from '@/hooks/useMobileOAuth';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Loader2, ChevronDown, Mail } from 'lucide-react';
 
@@ -16,7 +18,10 @@ const Auth = () => {
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
+  const { signInWithGoogle: signInWithGoogleMobile, isLoading: mobileOAuthLoading } = useMobileOAuth();
   const navigate = useNavigate();
+
+  const isNativePlatform = Capacitor.isNativePlatform();
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -44,15 +49,23 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    console.log('🚀 Google Sign In button clicked');
+    console.log('🚀 Google Sign In button clicked', { isNativePlatform });
     setLoading(true);
+    
     try {
-      const result = await signInWithGoogle();
-      console.log('🚀 Google Sign In result:', result);
+      if (isNativePlatform) {
+        console.log('📱 Using mobile OAuth flow');
+        await signInWithGoogleMobile();
+      } else {
+        console.log('🌐 Using web OAuth flow');
+        const result = await signInWithGoogle();
+        console.log('🚀 Web Google Sign In result:', result);
+      }
     } catch (error) {
       console.error('🚀 Google Sign In error:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -75,9 +88,9 @@ const Auth = () => {
               size="lg"
               className="w-full h-12 text-base bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary shadow-lg"
               onClick={handleGoogleSignIn}
-              disabled={loading}
+              disabled={loading || mobileOAuthLoading}
             >
-              {loading ? (
+              {loading || mobileOAuthLoading ? (
                 <Loader2 className="mr-3 h-5 w-5 animate-spin" />
               ) : (
                 <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">

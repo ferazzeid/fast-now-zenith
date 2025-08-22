@@ -22,6 +22,7 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithGoogleMobile: () => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
   setLoading: (loading: boolean) => void;
@@ -132,59 +133,41 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        // Enhanced native detection - fixed to avoid treating web builds as native
-        const isNative = typeof window !== 'undefined' && (
-          (window as any).__IS_NATIVE_APP__ ||
-          (window as any).Capacitor?.isNativePlatform?.() === true ||
-          window.location.protocol === 'capacitor:' ||
-          window.location.protocol === 'file:' ||
-          document.documentElement.getAttribute('data-build-type') === 'aab' ||
-          navigator.userAgent.includes('wv')
-        );
-        
-        authLogger.info('Google OAuth starting', { 
-          isNative, 
-          timestamp: new Date().toISOString(),
-          currentSession: !!get().session
+        // Web: let Supabase handle the redirect in the same window
+        authLogger.info('Initiating web OAuth flow');
+
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin }
         });
 
-        if (isNative) {
-          // Native Android: Use App Links for OAuth callback
-          authLogger.info('Initiating native Android OAuth flow');
-          
-            const { error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: 'https://go.fastnow.app/oauth/callback.html',
-                queryParams: {
-                  access_type: 'offline',
-                  prompt: 'consent'
-                }
-              }
-            });
-
-          if (error) {
-            authLogger.error('Native Google OAuth failed:', error);
-          } else {
-            authLogger.info('Native OAuth initiated successfully');
-          }
-          
-          return { error };
+        if (error) {
+          authLogger.error('Google OAuth initiation failed:', error);
         } else {
-          // Web: let Supabase handle the redirect in the same window
-          authLogger.info('Initiating web OAuth flow');
+          authLogger.info('Web OAuth redirect initiated');
+        }
+        return { error };
+      },
 
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.origin }
-          });
-
-          if (error) {
-            authLogger.error('Google OAuth initiation failed:', error);
+      signInWithGoogleMobile: async () => {
+        authLogger.info('Mobile Google OAuth - using MobileOAuthHandler');
+        
+        try {
+          const { MobileOAuthHandler } = await import('@/utils/MobileOAuthHandler');
+          const handler = new MobileOAuthHandler();
+          
+          const result = await handler.signInWithGoogle();
+          
+          if (result.success) {
+            authLogger.info('Mobile OAuth successful');
+            return { error: null };
           } else {
-            authLogger.info('Web OAuth redirect initiated');
+            authLogger.error('Mobile OAuth failed:', result.error);
+            return { error: { message: result.error } };
           }
-          return { error };
+        } catch (error) {
+          authLogger.error('Mobile OAuth handler error:', error);
+          return { error: { message: error instanceof Error ? error.message : 'Unknown error' } };
         }
       },
 
