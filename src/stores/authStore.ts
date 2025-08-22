@@ -83,19 +83,6 @@ export const useAuthStore = create<AuthState>()(
               // Additional logging for OAuth success detection
               if (event === 'SIGNED_IN' && session) {
                 authLogger.info('✅ Sign in detected via auth state change');
-                // Validate session is actually working
-                try {
-                  const { data: { user }, error } = await supabase.auth.getUser();
-                  if (error || !user) {
-                    authLogger.error('❌ Session validation failed after sign in:', error);
-                    // Clear invalid session
-                    await supabase.auth.signOut();
-                    return;
-                  }
-                  authLogger.info('✅ Session validated successfully');
-                } catch (error) {
-                  authLogger.error('❌ Session validation error:', error);
-                }
                 
                 // Clear OAuth completing flag on successful sign in
                 set({ oauthCompleting: false });
