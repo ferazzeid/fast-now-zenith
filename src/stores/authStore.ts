@@ -152,16 +152,16 @@ export const useAuthStore = create<AuthState>()(
           // Native Android: Use App Links for OAuth callback
           authLogger.info('Initiating native Android OAuth flow');
           
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: 'https://go.fastnow.app/oauth/callback',
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent'
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: 'https://go.fastnow.app/oauth/callback.html',
+                queryParams: {
+                  access_type: 'offline',
+                  prompt: 'consent'
+                }
               }
-            }
-          });
+            });
 
           if (error) {
             authLogger.error('Native Google OAuth failed:', error);
