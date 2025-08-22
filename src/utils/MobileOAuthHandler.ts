@@ -85,21 +85,36 @@ export class MobileOAuthHandler {
    */
   private async checkForNewSession(): Promise<void> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('🔍 Checking for new session after app resume...');
       
-      if (error) {
-        console.error('❌ Session check failed:', error.message);
-        return;
-      }
+      // Give a small delay to ensure auth state change has time to fire
+      setTimeout(async () => {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Session check failed:', error.message);
+          // Handle invalid refresh token errors
+          if (error.message.includes('Invalid Refresh Token') || error.message.includes('refresh_token_not_found')) {
+            console.log('🧹 Clearing invalid session state');
+            await supabase.auth.signOut();
+          }
+          await this.handleAuthError(`Session validation failed: ${error.message}`);
+          return;
+        }
 
-      if (session) {
-        console.log('✅ New session found after app resume');
-        await this.handleAuthSuccess(session);
-      } else {
-        console.log('🔍 No new session found, continuing to wait...');
-      }
+        if (session?.user?.id) {
+          console.log('✅ Valid session found after app resume:', {
+            userId: session.user.id,
+            email: session.user.email
+          });
+          await this.handleAuthSuccess();
+        } else {
+          console.log('🔍 No valid session found, continuing to wait...');
+        }
+      }, 1000); // 1 second delay to allow auth state to settle
     } catch (error) {
       console.error('❌ Session check error:', error);
+      await this.handleAuthError('Session validation failed');
     }
   }
 
@@ -126,9 +141,17 @@ export class MobileOAuthHandler {
         return;
       }
 
-      if (data.session) {
-        console.log('✅ OAuth session exchanged successfully');
-        await this.handleAuthSuccess(data.session);
+      if (data.session?.user?.id) {
+        console.log('✅ OAuth session exchanged successfully:', {
+          userId: data.session.user.id,
+          email: data.session.user.email
+        });
+        // Let the auth state change listener handle the session
+        // We just need to signal success
+        await this.handleAuthSuccess();
+      } else {
+        console.error('❌ Session exchange returned no valid session');
+        await this.handleAuthError('Session exchange returned invalid session');
       }
     } catch (error) {
       console.error('❌ OAuth callback processing error:', error);
@@ -139,7 +162,8 @@ export class MobileOAuthHandler {
   /**
    * Handle successful authentication
    */
-  private async handleAuthSuccess(session: any): Promise<void> {
+  private async handleAuthSuccess(): Promise<void> {
+    console.log('✅ OAuth flow completed successfully');
     this.cleanup();
     
     // Close browser if still open
@@ -149,9 +173,9 @@ export class MobileOAuthHandler {
       // Browser might already be closed
     }
 
-    // Trigger auth success callback
+    // Trigger auth success callback - let auth store handle session
     if (this.onAuthComplete) {
-      this.onAuthComplete({ success: true, session });
+      this.onAuthComplete({ success: true });
     }
   }
 

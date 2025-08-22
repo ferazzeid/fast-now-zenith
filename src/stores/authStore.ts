@@ -50,12 +50,24 @@ export const useAuthStore = create<AuthState>()(
         try {
           // Set up auth state listener - simple and reliable
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
+            async (event, session) => {
               authLogger.info(`🔔 Auth state changed: ${event}`, { 
                 hasSession: !!session, 
                 userId: session?.user?.id,
                 email: session?.user?.email 
               });
+              
+              // Handle session refresh errors
+              if (event === 'TOKEN_REFRESHED' && !session) {
+                authLogger.warn('🔄 Token refresh failed - clearing session');
+                set({
+                  session: null,
+                  user: null,
+                  loading: false,
+                  oauthCompleting: false
+                });
+                return;
+              }
               
               // Always update state on auth changes
               set({
@@ -67,6 +79,20 @@ export const useAuthStore = create<AuthState>()(
               // Additional logging for OAuth success detection
               if (event === 'SIGNED_IN' && session) {
                 authLogger.info('✅ Sign in detected via auth state change');
+                // Validate session is actually working
+                try {
+                  const { data: { user }, error } = await supabase.auth.getUser();
+                  if (error || !user) {
+                    authLogger.error('❌ Session validation failed after sign in:', error);
+                    // Clear invalid session
+                    await supabase.auth.signOut();
+                    return;
+                  }
+                  authLogger.info('✅ Session validated successfully');
+                } catch (error) {
+                  authLogger.error('❌ Session validation error:', error);
+                }
+                
                 // Clear OAuth completing flag on successful sign in
                 set({ oauthCompleting: false });
               }
