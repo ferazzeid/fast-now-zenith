@@ -19,27 +19,27 @@ export function useSupabaseOAuthDeepLink(onDone?: (ok: boolean, error?: unknown)
       return;
     }
     
-    console.log('🔐 OAuth callback received:', url);
+    console.log('🔐 Mobile OAuth callback received:', url);
     
     try {
       // Let Supabase handle the OAuth callback
       const { data, error } = await supabase.auth.exchangeCodeForSession(url);
       
       if (error) {
-        console.error('❌ OAuth session exchange failed:', error.message);
+        console.error('❌ Mobile OAuth session exchange failed:', error.message);
         onDone?.(false, error);
         return;
       }
       
-      console.log('✅ OAuth session exchange successful, user:', data.user?.email);
-      console.log('🔍 Session details:', {
+      console.log('✅ Mobile OAuth session exchange successful, user:', data.user?.email);
+      console.log('🔍 Mobile session details:', {
         hasSession: !!data.session,
         hasUser: !!data.user,
         accessToken: data.session?.access_token?.substring(0, 20) + '...'
       });
       onDone?.(true);
     } catch (e) {
-      console.error('❌ OAuth processing error:', e instanceof Error ? e.message : 'Unknown error');
+      console.error('❌ Mobile OAuth processing error:', e instanceof Error ? e.message : 'Unknown error');
       onDone?.(false, e);
     }
   }, [onDone]);

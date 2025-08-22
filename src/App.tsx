@@ -107,33 +107,6 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
     }
   });
 
-  // Handle web OAuth callback (when URL contains OAuth tokens)
-  useEffect(() => {
-    const handleWebOAuth = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      
-      // Check if this is an OAuth callback (has code or access_token)
-      const hasOAuthCode = urlParams.has('code') || hashParams.has('access_token');
-      
-      if (hasOAuthCode) {
-        console.log('🔐 Web OAuth callback detected in URL');
-        setOAuthCompleting(true);
-        
-        // Let Supabase handle the session automatically through onAuthStateChange  
-        // Force refresh after a delay to ensure session is detected
-        setTimeout(async () => {
-          await forceAuthRefresh();
-          setTimeout(() => {
-            console.log('🔄 Clearing OAuth completing flag after web callback');
-            setOAuthCompleting(false);
-          }, 500);
-        }, 500);
-      }
-    };
-    
-    handleWebOAuth();
-  }, [setOAuthCompleting, forceAuthRefresh]);
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup(isNativeApp);
