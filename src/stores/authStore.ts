@@ -120,15 +120,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        // Enhanced native detection - force native mode in production
+        // Enhanced native detection - fixed to avoid treating web builds as native
         const isNative = typeof window !== 'undefined' && (
-          (window as any).__IS_NATIVE_APP__ || 
+          (window as any).__IS_NATIVE_APP__ ||
           (window as any).Capacitor?.isNativePlatform?.() === true ||
           window.location.protocol === 'capacitor:' ||
           window.location.protocol === 'file:' ||
           document.documentElement.getAttribute('data-build-type') === 'aab' ||
-          navigator.userAgent.includes('wv') ||
-          process.env.NODE_ENV === 'production'
+          navigator.userAgent.includes('wv')
         );
         
         authLogger.info('Google OAuth starting', { 
@@ -233,23 +232,12 @@ export const useAuthStore = create<AuthState>()(
             return { error: browserError };
           }
         } else {
-          // Web: Let Supabase handle the redirect naturally in same window
+          // Web: let Supabase handle the redirect in the same window
           authLogger.info('Initiating web OAuth flow');
-          
-          // Force HTTPS redirect URL for production
-          const redirectOrigin = window.location.protocol === 'https:' 
-            ? window.location.origin 
-            : 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com';
-          
+
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: {
-              redirectTo: `${redirectOrigin}/`,
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent'
-              }
-            }
+            options: { redirectTo: window.location.origin }
           });
 
           if (error) {
