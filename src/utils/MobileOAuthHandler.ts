@@ -13,6 +13,7 @@ export class MobileOAuthHandler {
   private listeners: Array<() => void> = [];
   private isAuthInProgress = false;
   private authTimeout?: NodeJS.Timeout;
+  private authStartTime = 0;
   private readonly TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
@@ -81,40 +82,118 @@ export class MobileOAuthHandler {
   }
 
   /**
-   * Check for new session after app resume
+   * Check for new session after app resume with retry logic
    */
   private async checkForNewSession(): Promise<void> {
-    try {
-      console.log(`🔍 [${new Date().toISOString()}] Checking for new session after app resume...`);
-      
-      // Give a small delay to ensure auth state change has time to fire
-      setTimeout(async () => {
-        const { data: { session }, error } = await supabase.auth.getSession();
+    const maxRetries = 5;
+    const initialDelay = 2000; // Start with 2 seconds
+    
+    console.log(`🔍 [${new Date().toISOString()}] Starting session check with retry logic (${maxRetries} attempts)`);
+    
+    const attemptSessionCheck = async (attempt: number): Promise<void> => {
+      try {
+        const delay = initialDelay * Math.pow(1.5, attempt - 1); // Exponential backoff
+        console.log(`🔍 [${new Date().toISOString()}] Attempt ${attempt}/${maxRetries} - waiting ${delay}ms before checking session`);
         
-        if (error) {
-          console.error(`❌ [${new Date().toISOString()}] Session check failed:`, error.message);
-          // Handle invalid refresh token errors
-          if (error.message.includes('Invalid Refresh Token') || error.message.includes('refresh_token_not_found')) {
-            console.log(`🧹 [${new Date().toISOString()}] Clearing invalid session state`);
-            await supabase.auth.signOut();
-          }
-          await this.handleAuthError(`Session validation failed: ${error.message}`);
-          return;
-        }
+        setTimeout(async () => {
+          try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error) {
+              console.error(`❌ [${new Date().toISOString()}] Session check failed on attempt ${attempt}:`, error.message);
+              
+              // Handle invalid refresh token errors
+              if (error.message.includes('Invalid Refresh Token') || error.message.includes('refresh_token_not_found')) {
+                console.log(`🧹 [${new Date().toISOString()}] Clearing invalid session state`);
+                await supabase.auth.signOut();
+              }
+              
+              // Only fail if it's the last attempt
+              if (attempt >= maxRetries) {
+                await this.handleAuthError(`Session validation failed after ${maxRetries} attempts: ${error.message}`);
+              } else {
+                console.log(`🔄 [${new Date().toISOString()}] Retrying session check (attempt ${attempt + 1})`);
+                await attemptSessionCheck(attempt + 1);
+              }
+              return;
+            }
 
-        if (session?.user?.id) {
-          console.log(`✅ [${new Date().toISOString()}] Valid session found after app resume:`, {
-            userId: session.user.id,
-            email: session.user.email
-          });
-          await this.handleAuthSuccess();
-        } else {
-          console.log(`🔍 [${new Date().toISOString()}] No valid session found, continuing to wait...`);
+            if (session?.user?.id) {
+              console.log(`✅ [${new Date().toISOString()}] Valid session found on attempt ${attempt}:`, {
+                userId: session.user.id,
+                email: session.user.email,
+                totalTime: `${(Date.now() - this.authStartTime)}ms`
+              });
+              
+              // Clear the timeout since we found a session
+              if (this.authTimeout) {
+                clearTimeout(this.authTimeout);
+                this.authTimeout = undefined;
+              }
+              
+              await this.handleAuthSuccess();
+            } else {
+              console.log(`🔍 [${new Date().toISOString()}] No session found on attempt ${attempt}/${maxRetries}`);
+              
+              if (attempt >= maxRetries) {
+                console.log(`⚠️ [${new Date().toISOString()}] No session found after ${maxRetries} attempts, trying fallback`);
+                await this.attemptSessionFallback();
+              } else {
+                console.log(`🔄 [${new Date().toISOString()}] Retrying session check (attempt ${attempt + 1})`);
+                await attemptSessionCheck(attempt + 1);
+              }
+            }
+          } catch (sessionError) {
+            console.error(`❌ [${new Date().toISOString()}] Session check error on attempt ${attempt}:`, sessionError);
+            
+            if (attempt >= maxRetries) {
+              await this.handleAuthError('Session validation failed');
+            } else {
+              console.log(`🔄 [${new Date().toISOString()}] Retrying after error (attempt ${attempt + 1})`);
+              await attemptSessionCheck(attempt + 1);
+            }
+          }
+        }, delay);
+      } catch (error) {
+        console.error(`❌ [${new Date().toISOString()}] Retry logic error:`, error);
+        if (attempt >= maxRetries) {
+          await this.handleAuthError('Session check retry logic failed');
         }
-      }, 1000); // 1 second delay to allow auth state to settle
+      }
+    };
+
+    await attemptSessionCheck(1);
+  }
+
+  /**
+   * Fallback mechanism to try refreshing session manually
+   */
+  private async attemptSessionFallback(): Promise<void> {
+    try {
+      console.log(`🔄 [${new Date().toISOString()}] Attempting session fallback - manual refresh`);
+      
+      // Try to refresh the session
+      const { data, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        console.error(`❌ [${new Date().toISOString()}] Session refresh failed:`, error.message);
+        await this.handleAuthError('Session refresh failed - please try signing in again');
+        return;
+      }
+      
+      if (data.session?.user?.id) {
+        console.log(`✅ [${new Date().toISOString()}] Session recovered via fallback refresh:`, {
+          userId: data.session.user.id,
+          email: data.session.user.email
+        });
+        await this.handleAuthSuccess();
+      } else {
+        console.log(`❌ [${new Date().toISOString()}] Fallback refresh returned no session`);
+        await this.handleAuthError('Unable to establish session - please try signing in again');
+      }
     } catch (error) {
-      console.error(`❌ [${new Date().toISOString()}] Session check error:`, error);
-      await this.handleAuthError('Session validation failed');
+      console.error(`❌ [${new Date().toISOString()}] Session fallback failed:`, error);
+      await this.handleAuthError('Session recovery failed - please try signing in again');
     }
   }
 
@@ -262,6 +341,7 @@ export class MobileOAuthHandler {
     return new Promise(async (resolve) => {
       this.onAuthComplete = resolve;
       this.isAuthInProgress = true;
+      this.authStartTime = Date.now(); // Record start time for performance tracking
 
       try {
         console.log(`🚀 [${new Date().toISOString()}] Starting Google OAuth flow`);
