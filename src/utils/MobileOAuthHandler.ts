@@ -59,10 +59,10 @@ export class MobileOAuthHandler {
   private async handleAppStateChange(state: { isActive: boolean }) {
     if (!this.isAuthInProgress) return;
     
-    console.log('🔄 App state changed:', state.isActive);
+    console.log(`🔄 [${new Date().toISOString()}] App state changed:`, state.isActive);
     
     if (state.isActive) {
-      console.log('📱 App resumed - checking for new session');
+      console.log(`📱 [${new Date().toISOString()}] App resumed - checking for new session`);
       await this.checkForNewSession();
     }
   }
@@ -73,7 +73,7 @@ export class MobileOAuthHandler {
   private async handleDeepLink(data: { url: string }) {
     if (!this.isAuthInProgress) return;
     
-    console.log('🔗 Deep link received:', data.url);
+    console.log(`🔗 [${new Date().toISOString()}] Deep link received:`, data.url);
     
     if (data.url.includes('oauth/callback')) {
       await this.handleOAuthCallback(data.url);
@@ -85,17 +85,17 @@ export class MobileOAuthHandler {
    */
   private async checkForNewSession(): Promise<void> {
     try {
-      console.log('🔍 Checking for new session after app resume...');
+      console.log(`🔍 [${new Date().toISOString()}] Checking for new session after app resume...`);
       
       // Give a small delay to ensure auth state change has time to fire
       setTimeout(async () => {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('❌ Session check failed:', error.message);
+          console.error(`❌ [${new Date().toISOString()}] Session check failed:`, error.message);
           // Handle invalid refresh token errors
           if (error.message.includes('Invalid Refresh Token') || error.message.includes('refresh_token_not_found')) {
-            console.log('🧹 Clearing invalid session state');
+            console.log(`🧹 [${new Date().toISOString()}] Clearing invalid session state`);
             await supabase.auth.signOut();
           }
           await this.handleAuthError(`Session validation failed: ${error.message}`);
@@ -103,17 +103,17 @@ export class MobileOAuthHandler {
         }
 
         if (session?.user?.id) {
-          console.log('✅ Valid session found after app resume:', {
+          console.log(`✅ [${new Date().toISOString()}] Valid session found after app resume:`, {
             userId: session.user.id,
             email: session.user.email
           });
           await this.handleAuthSuccess();
         } else {
-          console.log('🔍 No valid session found, continuing to wait...');
+          console.log(`🔍 [${new Date().toISOString()}] No valid session found, continuing to wait...`);
         }
       }, 1000); // 1 second delay to allow auth state to settle
     } catch (error) {
-      console.error('❌ Session check error:', error);
+      console.error(`❌ [${new Date().toISOString()}] Session check error:`, error);
       await this.handleAuthError('Session validation failed');
     }
   }
@@ -163,7 +163,7 @@ export class MobileOAuthHandler {
    * Handle successful authentication
    */
   private async handleAuthSuccess(): Promise<void> {
-    console.log('✅ OAuth flow completed successfully');
+    console.log(`✅ [${new Date().toISOString()}] OAuth flow completed successfully`);
     this.cleanup();
     
     // Close browser if still open
@@ -183,6 +183,7 @@ export class MobileOAuthHandler {
    * Handle authentication error
    */
   private async handleAuthError(error: string): Promise<void> {
+    console.error(`❌ [${new Date().toISOString()}] OAuth authentication failed:`, error);
     this.cleanup();
     
     // Close browser if still open
@@ -254,6 +255,7 @@ export class MobileOAuthHandler {
    */
   public async signInWithGoogle(): Promise<OAuthResult> {
     if (this.isAuthInProgress) {
+      console.log(`🔄 [${new Date().toISOString()}] OAuth already in progress, skipping new request`);
       return { success: false, error: 'OAuth already in progress' };
     }
 
@@ -262,38 +264,38 @@ export class MobileOAuthHandler {
       this.isAuthInProgress = true;
 
       try {
-        console.log('🚀 Starting Google OAuth flow');
+        console.log(`🚀 [${new Date().toISOString()}] Starting Google OAuth flow`);
 
         // Setup listeners first
         await this.setupListeners();
 
         // Set timeout for auth process  
         this.authTimeout = setTimeout(() => {
-          console.log('⏰ OAuth timeout reached');
+          console.log(`⏰ [${new Date().toISOString()}] OAuth timeout reached`);
           this.handleAuthError('Authentication timeout - please try again');
         }, this.TIMEOUT_MS);
 
         // Generate OAuth URL
         const oauthUrl = await this.generateOAuthUrl();
-        console.log('🔗 Generated OAuth URL');
+        console.log(`🔗 [${new Date().toISOString()}] Generated OAuth URL`);
 
         if (this.isNativePlatform()) {
           // Open system browser on mobile
-          console.log('📱 Opening system browser for OAuth');
+          console.log(`📱 [${new Date().toISOString()}] Opening system browser for OAuth`);
           await Browser.open({
             url: oauthUrl,
             windowName: '_system',
           });
           
-          console.log('🎯 Waiting for user to complete OAuth and return to app...');
+          console.log(`🎯 [${new Date().toISOString()}] Waiting for user to complete OAuth and return to app...`);
         } else {
           // Fallback to web flow
-          console.log('🌐 Redirecting to OAuth in web browser');
+          console.log(`🌐 [${new Date().toISOString()}] Redirecting to OAuth in web browser`);
           window.location.href = oauthUrl;
         }
 
       } catch (error) {
-        console.error('❌ OAuth initialization failed:', error);
+        console.error(`❌ [${new Date().toISOString()}] OAuth initialization failed:`, error);
         await this.handleAuthError(
           error instanceof Error ? error.message : 'OAuth initialization failed'
         );

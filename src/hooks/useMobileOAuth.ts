@@ -30,7 +30,7 @@ export const useMobileOAuth = (): UseMobileOAuthReturn => {
 
   const signInWithGoogle = useCallback(async () => {
     if (!oauthHandlerRef.current) {
-      console.error('❌ OAuth handler not initialized');
+      console.error(`❌ [${new Date().toISOString()}] OAuth handler not initialized`);
       return;
     }
 
@@ -38,44 +38,21 @@ export const useMobileOAuth = (): UseMobileOAuthReturn => {
     setError(null);
 
     try {
-      console.log('🔐 Starting Google OAuth with mobile handler');
+      console.log(`🔐 [${new Date().toISOString()}] Starting Google OAuth with mobile handler`);
       
       const result = await oauthHandlerRef.current.signInWithGoogle();
 
       if (result.success) {
-        console.log('✅ Google OAuth flow completed');
+        console.log(`✅ [${new Date().toISOString()}] Google OAuth flow completed successfully`);
         
-        // Wait a moment for auth state to settle, then validate session
-        setTimeout(async () => {
-          try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session?.user?.id) {
-              console.error('❌ Session validation failed after OAuth:', error);
-              setError('Authentication failed - please try again');
-              toast({
-                title: "Authentication Error",
-                description: "Session could not be established. Please try again.",
-                variant: "destructive",
-              });
-            } else {
-              console.log('✅ OAuth session validated successfully');
-              toast({
-                title: "Welcome!",
-                description: "Successfully signed in with Google.",
-              });
-            }
-          } catch (error) {
-            console.error('❌ Session validation error:', error);
-            setError('Session validation failed');
-            toast({
-              title: "Authentication Error", 
-              description: "Please try signing in again.",
-              variant: "destructive",
-            });
-          }
-        }, 2000); // 2 second delay for session to settle
+        // Trust that the authStore's onAuthStateChange listener will handle session updates
+        // No manual session validation needed - removes race condition
+        toast({
+          title: "Welcome!",
+          description: "Successfully signed in with Google.",
+        });
       } else {
-        console.error('❌ Google OAuth failed:', result.error);
+        console.error(`❌ [${new Date().toISOString()}] Google OAuth failed:`, result.error);
         setError(result.error || 'OAuth failed');
         toast({
           title: "Sign in failed",
@@ -85,7 +62,7 @@ export const useMobileOAuth = (): UseMobileOAuthReturn => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error('❌ OAuth error:', errorMessage);
+      console.error(`❌ [${new Date().toISOString()}] OAuth error:`, errorMessage);
       setError(errorMessage);
       toast({
         title: "Sign in error",
