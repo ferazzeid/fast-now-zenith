@@ -45,6 +45,8 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
 import { useSupabaseOAuthDeepLink } from './hooks/useSupabaseOAuthDeepLink';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/stores/authStore';
 
 
 
@@ -80,8 +82,23 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Set up OAuth deep link handling for native app (crash-proof)
-  useSupabaseOAuthDeepLink();
+  // Set up OAuth deep link handling for native app with callback
+  useSupabaseOAuthDeepLink(async (success, error) => {
+    console.log('🔐 OAuth callback in App:', { success, error });
+    if (success) {
+      console.log('✅ OAuth successful, checking for session...');
+      // Force check for new session after OAuth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log('🔄 Found session after OAuth, user:', session.user?.email);
+        console.log('✅ OAuth flow completed successfully');
+      } else {
+        console.log('⚠️ No session found after OAuth success');
+      }
+    } else {
+      console.error('❌ OAuth failed in App:', error);
+    }
+  });
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup(isNativeApp);

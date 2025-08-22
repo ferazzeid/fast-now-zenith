@@ -31,7 +31,12 @@ export function useSupabaseOAuthDeepLink(onDone?: (ok: boolean, error?: unknown)
         return;
       }
       
-      console.log('✅ OAuth session exchange successful');
+      console.log('✅ OAuth session exchange successful, user:', data.user?.email);
+      console.log('🔍 Session details:', {
+        hasSession: !!data.session,
+        hasUser: !!data.user,
+        accessToken: data.session?.access_token?.substring(0, 20) + '...'
+      });
       onDone?.(true);
     } catch (e) {
       console.error('❌ OAuth processing error:', e instanceof Error ? e.message : 'Unknown error');

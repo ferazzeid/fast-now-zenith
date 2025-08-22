@@ -46,17 +46,23 @@ export const useAuthStore = create<AuthState>()(
           // Set up auth state listener - simple and reliable
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (event, session) => {
-              authLogger.info(`Auth state changed: ${event}`, { 
+              authLogger.info(`🔔 Auth state changed: ${event}`, { 
                 hasSession: !!session, 
                 userId: session?.user?.id,
                 email: session?.user?.email 
               });
               
+              // Always update state on auth changes
               set({
                 session,
                 user: session?.user ?? null,
                 loading: false,
               });
+
+              // Additional logging for OAuth success detection
+              if (event === 'SIGNED_IN' && session) {
+                authLogger.info('✅ Sign in detected via auth state change');
+              }
             }
           );
 
