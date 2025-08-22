@@ -84,6 +84,7 @@ export const useAuthStore = create<AuthState>()(
             userId: session?.user?.id 
           });
           
+          // Always set loading to false after initialization, regardless of session state
           set({
             session,
             user: session?.user ?? null,
