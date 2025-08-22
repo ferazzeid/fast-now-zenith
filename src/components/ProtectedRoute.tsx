@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LoadingRecovery } from '@/components/LoadingRecovery';
 
@@ -12,6 +13,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // All hooks must be called consistently - no conditional hooks!
   const { user, loading } = useAuth();
+  const oauthCompleting = useAuthStore(state => state.oauthCompleting);
   const navigate = useNavigate();
   const [showLoading, setShowLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
@@ -56,17 +58,25 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, [loading]);
 
   useEffect(() => {
-    // Enhanced redirect logic with timeout protection
+    // Enhanced redirect logic with timeout protection and OAuth awareness
     const checkRedirect = () => {
-      if (!loading && !user && !(window as any).__initializingApp) {
+      // Don't redirect if OAuth is completing or app is initializing
+      if (oauthCompleting || (window as any).__initializingApp) {
+        console.log('🛡️ ProtectedRoute: Delaying redirect - OAuth completing or app initializing');
+        return;
+      }
+      
+      if (!loading && !user) {
+        console.log('🔄 ProtectedRoute: Redirecting to auth - no user found');
         navigate('/auth');
       }
     };
 
-    // Shorter delay for better UX
-    const timer = setTimeout(checkRedirect, 50);
+    // Longer delay when OAuth is completing to allow auth state to update
+    const delay = oauthCompleting ? 500 : 50;
+    const timer = setTimeout(checkRedirect, delay);
     return () => clearTimeout(timer);
-  }, [user, loading, navigate]);
+  }, [user, loading, oauthCompleting, navigate]);
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);

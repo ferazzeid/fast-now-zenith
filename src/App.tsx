@@ -82,21 +82,28 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
+  // Get auth store methods
+  const setOAuthCompleting = useAuthStore(state => state.setOAuthCompleting);
+  const forceAuthRefresh = useAuthStore(state => state.forceRefresh);
+  
   // Set up OAuth deep link handling for native app with callback
   useSupabaseOAuthDeepLink(async (success, error) => {
     console.log('🔐 OAuth callback in App:', { success, error });
     if (success) {
-      console.log('✅ OAuth successful, checking for session...');
-      // Force check for new session after OAuth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log('🔄 Found session after OAuth, user:', session.user?.email);
-        console.log('✅ OAuth flow completed successfully');
-      } else {
-        console.log('⚠️ No session found after OAuth success');
-      }
+      console.log('✅ OAuth successful, setting completion flag...');
+      setOAuthCompleting(true);
+      
+      // Force immediate auth state refresh
+      await forceAuthRefresh();
+      
+      // Clear OAuth completing flag after a short delay
+      setTimeout(() => {
+        console.log('🔄 Clearing OAuth completing flag');
+        setOAuthCompleting(false);
+      }, 1000);
     } else {
       console.error('❌ OAuth failed in App:', error);
+      setOAuthCompleting(false);
     }
   });
   

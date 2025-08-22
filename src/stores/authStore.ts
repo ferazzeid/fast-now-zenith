@@ -14,6 +14,7 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  oauthCompleting: boolean;
   
   // Actions
   initialize: () => Promise<void>;
@@ -24,6 +25,8 @@ interface AuthState {
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
   setLoading: (loading: boolean) => void;
+  setOAuthCompleting: (completing: boolean) => void;
+  forceRefresh: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -32,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       session: null,
       loading: true,
+      oauthCompleting: false,
 
       initialize: async () => {
         const state = get();
@@ -62,6 +66,8 @@ export const useAuthStore = create<AuthState>()(
               // Additional logging for OAuth success detection
               if (event === 'SIGNED_IN' && session) {
                 authLogger.info('✅ Sign in detected via auth state change');
+                // Clear OAuth completing flag on successful sign in
+                set({ oauthCompleting: false });
               }
             }
           );
@@ -231,6 +237,37 @@ export const useAuthStore = create<AuthState>()(
 
 
       setLoading: (loading: boolean) => set({ loading }),
+      
+      setOAuthCompleting: (completing: boolean) => {
+        console.log('🔄 Setting OAuth completing:', completing);
+        set({ oauthCompleting: completing });
+      },
+      
+      forceRefresh: async () => {
+        console.log('🔄 Force refreshing auth state...');
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) {
+            console.error('❌ Error getting session during force refresh:', error);
+            return;
+          }
+          
+          console.log('✅ Force refresh session result:', {
+            hasSession: !!session,
+            userId: session?.user?.id,
+            email: session?.user?.email
+          });
+          
+          set({
+            session,
+            user: session?.user ?? null,
+            loading: false,
+            oauthCompleting: false
+          });
+        } catch (error) {
+          console.error('❌ Force refresh error:', error);
+        }
+      },
     }),
     {
       name: 'auth-storage',
