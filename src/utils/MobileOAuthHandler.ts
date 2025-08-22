@@ -119,15 +119,8 @@ export class MobileOAuthHandler {
           email: data.session.user.email
         });
         
-        // Validate session with retries before success
-        const isValid = await this.validateSessionWithRetries(data.session);
-        if (isValid) {
-          console.log('✅ Session validated successfully');
-          await this.handleAuthSuccess();
-        } else {
-          console.error('❌ Session validation failed');
-          await this.handleAuthError('Session validation failed');
-        }
+        // Session exchange was successful, trust Supabase and let authStore handle session detection
+        await this.handleAuthSuccess();
       } else {
         console.error('❌ Session exchange returned no valid session');
         await this.handleAuthError('Session exchange returned invalid session');
@@ -343,50 +336,4 @@ export class MobileOAuthHandler {
     }
   }
 
-  private async validateSessionWithRetries(session: any, maxRetries: number = 3): Promise<boolean> {
-    let retries = maxRetries;
-    
-    while (retries > 0) {
-      try {
-        console.log(`[MobileOAuth] Validating session (attempt ${maxRetries - retries + 1}/${maxRetries})`);
-        
-        // Try to use the session by making a simple authenticated request
-        const { data, error } = await supabase.auth.getUser();
-        
-        if (error) {
-          console.warn('[MobileOAuth] Session validation failed:', error.message);
-          retries--;
-          if (retries > 0) {
-            const delay = (maxRetries - retries) * 1000; // Exponential backoff
-            console.log(`[MobileOAuth] Retrying session validation in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue;
-          }
-          return false;
-        }
-
-        if (data?.user) {
-          console.log('[MobileOAuth] Session validation successful:', {
-            userId: data.user.id,
-            email: data.user.email,
-            provider: data.user.app_metadata?.provider
-          });
-          return true;
-        } else {
-          console.warn('[MobileOAuth] No user in session validation response');
-          retries--;
-        }
-      } catch (error) {
-        console.error('[MobileOAuth] Session validation attempt failed:', error);
-        retries--;
-        if (retries > 0) {
-          const delay = (maxRetries - retries) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-    }
-    
-    console.error('[MobileOAuth] Session validation failed after all retries');
-    return false;
-  }
 }
