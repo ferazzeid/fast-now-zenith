@@ -137,100 +137,27 @@ export const useAuthStore = create<AuthState>()(
         });
 
         if (isNative) {
-          try {
-            // Mobile: Use skipBrowserRedirect and open external browser
-            authLogger.info('Initiating mobile OAuth flow');
-            
-            const { data, error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: 'com.fastnow.zenith://oauth/callback',
-                skipBrowserRedirect: true,
-                queryParams: {
-                  access_type: 'offline',
-                  prompt: 'consent'
-                }
+          // Native Android: Use App Links for OAuth callback
+          authLogger.info('Initiating native Android OAuth flow');
+          
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: 'https://go.fastnow.app/oauth/callback',
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
               }
-            });
-
-            if (error) {
-              authLogger.error('Google OAuth initiation failed:', error);
-              return { error };
             }
+          });
 
-            if (data?.url) {
-              authLogger.info('Opening browser for Google OAuth', { 
-                url: data.url,
-                timestamp: new Date().toISOString()
-              });
-              
-              // Store OAuth start time for timeout tracking
-              (window as any).__oauthStartTime = Date.now();
-              
-              const { Browser } = await import('@capacitor/browser');
-              await Browser.open({ 
-                url: data.url,
-                windowName: '_system'
-              });
-              
-              authLogger.info('Browser opened successfully for OAuth');
-              
-              // Enhanced session polling with faster detection
-              let sessionPollingInterval: NodeJS.Timeout;
-              let pollCount = 0;
-              const maxPolls = 60; // Poll for 60 seconds
-              const pollFrequency = 500; // Poll every 500ms for faster detection
-              
-              const startPolling = () => {
-                authLogger.info('Starting enhanced OAuth session polling');
-                
-                sessionPollingInterval = setInterval(async () => {
-                  pollCount++;
-                  
-                  try {
-                    const { data: sessionData } = await supabase.auth.getSession();
-                    if (sessionData?.session) {
-                      authLogger.info('✅ Session detected via polling - OAuth successful!');
-                      clearInterval(sessionPollingInterval);
-                      
-                      // Close browser immediately
-                      try {
-                        await Browser.close();
-                        authLogger.info('Browser closed after successful OAuth');
-                      } catch (e) {
-                        // Browser might already be closed
-                      }
-                      
-                      // Clear OAuth timing
-                      delete (window as any).__oauthStartTime;
-                      return;
-                    }
-                  } catch (e) {
-                    // Silent polling - only log critical errors
-                  }
-                  
-                  if (pollCount >= maxPolls) {
-                    authLogger.warn('OAuth session polling timeout - cleaning up');
-                    clearInterval(sessionPollingInterval);
-                    delete (window as any).__oauthStartTime;
-                  }
-                }, pollFrequency);
-              };
-              
-              // Start polling immediately for faster detection
-              setTimeout(startPolling, 1000);
-              
-            } else {
-              authLogger.error('No OAuth URL returned from Supabase');
-              return { error: new Error('No OAuth URL returned') };
-            }
-            
-            return { error: null };
-            
-          } catch (browserError) {
-            authLogger.error('Browser opening failed:', browserError);
-            return { error: browserError };
+          if (error) {
+            authLogger.error('Native Google OAuth failed:', error);
+          } else {
+            authLogger.info('Native OAuth initiated successfully');
           }
+          
+          return { error };
         } else {
           // Web: let Supabase handle the redirect in the same window
           authLogger.info('Initiating web OAuth flow');
