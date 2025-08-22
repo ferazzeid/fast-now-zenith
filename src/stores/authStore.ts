@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { checkOAuthRecovery } from '@/utils/oauthRecovery';
 
 // Auth debugging logger
 const authLogger = {
@@ -48,6 +49,9 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Starting auth initialization');
         
         try {
+          // Check for OAuth recovery before setting up listeners
+          await checkOAuthRecovery();
+          
           // Set up auth state listener - simple and reliable
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {

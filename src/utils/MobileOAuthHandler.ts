@@ -9,15 +9,23 @@ interface OAuthResult {
   session?: any;
 }
 
+interface OAuthState {
+  timestamp: number;
+  inProgress: boolean;
+  provider: string;
+}
+
 export class MobileOAuthHandler {
   private listeners: Array<() => void> = [];
   private isAuthInProgress = false;
   private authTimeout?: NodeJS.Timeout;
   private authStartTime = 0;
   private readonly TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+  private static readonly OAUTH_STATE_KEY = 'oauth_recovery_state';
 
   constructor() {
     this.cleanup = this.cleanup.bind(this);
+    this.loadOAuthState();
   }
 
   /**
@@ -110,9 +118,16 @@ export class MobileOAuthHandler {
           userId: data.session.user.id,
           email: data.session.user.email
         });
-        // Let the auth state change listener handle the session
-        // We just need to signal success
-        await this.handleAuthSuccess();
+        
+        // Validate session with retries before success
+        const isValid = await this.validateSessionWithRetries(data.session);
+        if (isValid) {
+          console.log('✅ Session validated successfully');
+          await this.handleAuthSuccess();
+        } else {
+          console.error('❌ Session validation failed');
+          await this.handleAuthError('Session validation failed');
+        }
       } else {
         console.error('❌ Session exchange returned no valid session');
         await this.handleAuthError('Session exchange returned invalid session');
@@ -128,6 +143,8 @@ export class MobileOAuthHandler {
    */
   private async handleAuthSuccess(): Promise<void> {
     console.log(`✅ [${new Date().toISOString()}] OAuth flow completed successfully`);
+    
+    this.clearOAuthState();
     this.cleanup();
     
     // Close browser if still open
@@ -148,6 +165,8 @@ export class MobileOAuthHandler {
    */
   private async handleAuthError(error: string): Promise<void> {
     console.error(`❌ [${new Date().toISOString()}] OAuth authentication failed:`, error);
+    
+    this.clearOAuthState();
     this.cleanup();
     
     // Close browser if still open
@@ -231,6 +250,9 @@ export class MobileOAuthHandler {
       try {
         console.log(`🚀 [${new Date().toISOString()}] Starting Google OAuth flow`);
 
+        // Save OAuth state for recovery
+        this.saveOAuthState('google');
+
         // Setup listeners first
         await this.setupListeners();
 
@@ -276,5 +298,95 @@ export class MobileOAuthHandler {
       console.log('🚫 Cancelling OAuth process');
       this.handleAuthError('Authentication cancelled by user');
     }
+  }
+
+  private saveOAuthState(provider: string): void {
+    try {
+      const state: OAuthState = {
+        timestamp: Date.now(),
+        inProgress: true,
+        provider
+      };
+      localStorage.setItem(MobileOAuthHandler.OAUTH_STATE_KEY, JSON.stringify(state));
+      console.log('[MobileOAuth] OAuth state saved:', state);
+    } catch (error) {
+      console.error('[MobileOAuth] Failed to save OAuth state:', error);
+    }
+  }
+
+  private loadOAuthState(): void {
+    try {
+      const stateJson = localStorage.getItem(MobileOAuthHandler.OAUTH_STATE_KEY);
+      if (stateJson) {
+        const state: OAuthState = JSON.parse(stateJson);
+        console.log('[MobileOAuth] Loaded OAuth state:', state);
+        
+        // Check if state is recent and valid
+        const elapsed = Date.now() - state.timestamp;
+        if (elapsed > 5 * 60 * 1000) { // 5 minutes
+          console.log('[MobileOAuth] OAuth state expired, clearing');
+          this.clearOAuthState();
+        }
+      }
+    } catch (error) {
+      console.error('[MobileOAuth] Failed to load OAuth state:', error);
+      this.clearOAuthState();
+    }
+  }
+
+  private clearOAuthState(): void {
+    try {
+      localStorage.removeItem(MobileOAuthHandler.OAUTH_STATE_KEY);
+      console.log('[MobileOAuth] OAuth state cleared');
+    } catch (error) {
+      console.error('[MobileOAuth] Failed to clear OAuth state:', error);
+    }
+  }
+
+  private async validateSessionWithRetries(session: any, maxRetries: number = 3): Promise<boolean> {
+    let retries = maxRetries;
+    
+    while (retries > 0) {
+      try {
+        console.log(`[MobileOAuth] Validating session (attempt ${maxRetries - retries + 1}/${maxRetries})`);
+        
+        // Try to use the session by making a simple authenticated request
+        const { data, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.warn('[MobileOAuth] Session validation failed:', error.message);
+          retries--;
+          if (retries > 0) {
+            const delay = (maxRetries - retries) * 1000; // Exponential backoff
+            console.log(`[MobileOAuth] Retrying session validation in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          return false;
+        }
+
+        if (data?.user) {
+          console.log('[MobileOAuth] Session validation successful:', {
+            userId: data.user.id,
+            email: data.user.email,
+            provider: data.user.app_metadata?.provider
+          });
+          return true;
+        } else {
+          console.warn('[MobileOAuth] No user in session validation response');
+          retries--;
+        }
+      } catch (error) {
+        console.error('[MobileOAuth] Session validation attempt failed:', error);
+        retries--;
+        if (retries > 0) {
+          const delay = (maxRetries - retries) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    console.error('[MobileOAuth] Session validation failed after all retries');
+    return false;
   }
 }
