@@ -92,23 +92,30 @@ export const useWalkingSession = () => {
   const startWalkingSession = useCallback(async (speedMph: number = selectedSpeed): Promise<{data: any, error: any}> => {
     if (!user) return { error: { message: 'User not authenticated' }, data: null };
 
-    const offlineStart = async () => {
-      const localId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const startIso = new Date().toISOString();
-      const localSession: WalkingSession = {
-        id: localId,
-        user_id: user.id,
-        start_time: startIso,
-        status: 'active',
-        session_state: 'active',
-        total_pause_duration: 0,
-        speed_mph: speedMph,
-      } as any;
+    const speed = speedMph || selectedSpeed;
+    const startTimeIso = new Date().toISOString();
+    
+    // Create optimistic session immediately for instant UI feedback
+    const optimisticSession: WalkingSession = {
+      id: `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      user_id: user.id,
+      start_time: startTimeIso,
+      status: 'active',
+      session_state: 'active',
+      total_pause_duration: 0,
+      speed_mph: speed,
+    };
 
-      // Optimistic local state
+    // Set optimistic state immediately
+    setCurrentSession(optimisticSession);
+    setSelectedSpeed(speed);
+    setIsPaused(false);
+
+    const offlineStart = async () => {
+      // Update optimistic session with proper offline ID
+      const localId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const localSession = { ...optimisticSession, id: localId };
       setCurrentSession(localSession);
-      setSelectedSpeed(speedMph);
-      setIsPaused(false);
 
       // Enqueue start op
       await enqueueOperation({
@@ -117,8 +124,8 @@ export const useWalkingSession = () => {
         user_id: user.id,
         payload: {
           local_id: localId,
-          start_time: startIso,
-          speed_mph: speedMph,
+          start_time: startTimeIso,
+          speed_mph: speed,
           status: 'active',
           session_state: 'active',
           total_pause_duration: 0,
@@ -129,29 +136,32 @@ export const useWalkingSession = () => {
 
     setLoading(true);
     try {
-      // If offline, immediately create a local session and queue
+      // If offline, handle offline flow
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         const res = await offlineStart();
         return res;
       }
 
+      // Online flow - but we already have optimistic UI
       const { data, error } = await supabase
         .from('walking_sessions')
         .insert({
           user_id: user.id,
-          start_time: new Date().toISOString(),
+          start_time: startTimeIso,
           status: 'active',
-          speed_mph: speedMph,
+          speed_mph: speed,
           session_state: 'active',
           total_pause_duration: 0,
         })
         .select()
         .single();
 
+      if (error) throw error;
+
       console.log('Walking session started successfully:', data);
+      
+      // Update with real session data from database
       setCurrentSession(data);
-      setSelectedSpeed(speedMph);
-      setIsPaused(false);
       
       // Persist to local storage
       persistWalkingSession({
@@ -169,11 +179,6 @@ export const useWalkingSession = () => {
       console.log('Triggering refresh after session start');
       triggerRefresh();
 
-      // Additional immediate load to ensure state is fresh
-      setTimeout(() => {
-        loadActiveSession();
-      }, 100);
-
       return { data, error: null };
     } catch (error: any) {
       console.error('Error starting walking session:', error);
@@ -182,11 +187,14 @@ export const useWalkingSession = () => {
         const res = await offlineStart();
         return res;
       }
+      // Revert optimistic update on error
+      setCurrentSession(null);
+      setIsPaused(false);
       return { error, data: null };
     } finally {
       setLoading(false);
     }
-  }, [user, selectedSpeed, loadActiveSession, triggerRefresh]);
+  }, [user, selectedSpeed, triggerRefresh]);
 
   const pauseWalkingSession = useCallback(async (): Promise<{data: any, error: any}> => {
     if (!user || !currentSession) return { error: { message: 'No active session' }, data: null };

@@ -50,7 +50,7 @@ const Walking = () => {
 
   const isRunning = !!currentSession;
 
-  // Local timer logic - similar to fasting timer
+  // Local timer logic - immediate start like fasting timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -58,14 +58,14 @@ const Walking = () => {
       const updateLocalTime = () => {
         const now = Date.now();
         const startTime = new Date(currentSession.start_time).getTime();
-        const pausedDuration = currentSession.total_pause_duration || 0;
+        const pausedDuration = (currentSession.total_pause_duration || 0) * 1000; // Convert to ms
         const elapsed = Math.floor((now - startTime - pausedDuration) / 1000);
         setLocalTimeElapsed(Math.max(0, elapsed));
       };
 
-      // Update immediately
+      // Update immediately for instant feedback
       updateLocalTime();
-      // Then set interval
+      // Then set interval for continuous updates
       interval = setInterval(updateLocalTime, 1000);
     } else if (!currentSession) {
       // Reset when no session
