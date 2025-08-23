@@ -16,7 +16,7 @@ import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
-import { InlineVoiceButton } from '@/components/InlineVoiceButton';
+import { DirectInlineVoiceButton } from '@/components/DirectInlineVoiceButton';
 
 interface AnalysisResult {
   name?: string;
@@ -367,7 +367,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               className="h-9 pr-8"
               required
             />
-            <InlineVoiceButton
+            <DirectInlineVoiceButton
               onTranscription={setName}
               parseNumbers={false}
             />
@@ -393,7 +393,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   step="0.1"
                   required
                 />
-                <InlineVoiceButton
+                <DirectInlineVoiceButton
                   onTranscription={setServingAmount}
                   parseNumbers={true}
                 />
@@ -482,7 +482,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   }`}
                   required
                 />
-                <InlineVoiceButton
+                <DirectInlineVoiceButton
                   onTranscription={setCalories}
                   parseNumbers={true}
                 />
@@ -505,7 +505,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   onChange={(e) => setCarbs(e.target.value)}
                   className="text-sm h-9 pr-8"
                 />
-                <InlineVoiceButton
+                <DirectInlineVoiceButton
                   onTranscription={setCarbs}
                   parseNumbers={true}
                 />
