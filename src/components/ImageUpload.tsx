@@ -190,29 +190,17 @@ export const ImageUpload = ({
           
           {showUploadOptionsWhenImageExists && (
             <div className="space-y-3">
-              {/* Mobile: Separate buttons */}
+              {/* Mobile: Single camera button */}
               {isMobile && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleFileSelect}
-                    disabled={isUploading}
-                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
-                  >
-                    <Image className="w-4 h-4" />
-                    <span className="text-xs">Upload photo</span>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={handleCameraCapture}
-                    disabled={isUploading}
-                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <span className="text-xs">Use camera</span>
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleCameraCapture}
+                  disabled={isUploading}
+                  className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span className="text-xs">Use camera</span>
+                </Button>
               )}
 
               {/* Desktop: Single upload button */}
@@ -264,29 +252,17 @@ export const ImageUpload = ({
             </div>
           )}
 
-          {/* Mobile: Separate buttons */}
+          {/* Mobile: Single camera button */}
           {isMobile && (
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={handleFileSelect}
-                disabled={isUploading}
-                className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-                >
-                  <Image className="w-6 h-6" />
-                  <span className="text-sm">Upload photo</span>
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={handleCameraCapture}
-                  disabled={isUploading}
-                  className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-                >
-                  <Camera className="w-6 h-6" />
-                  <span className="text-sm">Use camera</span>
-                </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={handleCameraCapture}
+              disabled={isUploading}
+              className="w-full h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+            >
+              <Camera className="w-6 h-6" />
+              <span className="text-sm">Use camera</span>
+            </Button>
           )}
 
 
