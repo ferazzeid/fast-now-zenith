@@ -28,7 +28,7 @@ export const FastingSliderHeader: React.FC<FastingSliderHeaderProps> = ({
           type="button"
           className={`transition-colors ${
             canGoBack 
-              ? 'text-muted-foreground hover:text-primary' 
+              ? 'text-muted-foreground hover:text-foreground' 
               : 'text-muted-foreground/50 cursor-not-allowed'
           }`}
           onClick={() => canGoBack && onHourChange?.(prev)}
@@ -37,12 +37,12 @@ export const FastingSliderHeader: React.FC<FastingSliderHeaderProps> = ({
         >
           Hour {prev}
         </button>
-        <span className="font-medium text-primary">Hour {clamp(currentHour)}</span>
+        <span className="font-medium text-foreground">Hour {clamp(currentHour)}</span>
         <button
           type="button"
           className={`transition-colors ${
             canGoForward 
-              ? 'text-muted-foreground hover:text-primary' 
+              ? 'text-muted-foreground hover:text-foreground' 
               : 'text-muted-foreground/50 cursor-not-allowed'
           }`}
           onClick={() => canGoForward && onHourChange?.(next)}

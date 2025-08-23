@@ -592,7 +592,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   aria-label="More options"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical className="w-4 h-4 text-primary" />
+                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
                <DropdownMenuContent 

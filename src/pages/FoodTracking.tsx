@@ -512,7 +512,7 @@ const FoodTracking = () => {
                               className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
                               aria-label="More options"
                             >
-                              <MoreVertical className="w-5 h-5 text-primary" />
+                              <MoreVertical className="w-5 h-5 text-muted-foreground" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent 
@@ -749,7 +749,7 @@ const FoodTracking = () => {
                                     className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
                                     aria-label="More options"
                                   >
-                                    <MoreVertical className="w-5 h-5 text-primary" />
+                                    <MoreVertical className="w-5 h-5 text-muted-foreground" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent 

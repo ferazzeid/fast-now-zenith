@@ -200,7 +200,7 @@ const Auth = () => {
                 href="https://fastnow.app/terms"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-foreground hover:text-primary"
+                className="underline text-foreground hover:text-foreground"
               >
                 Terms of Service
               </a>{' '}and{' '}
@@ -208,7 +208,7 @@ const Auth = () => {
                 href="https://fastnow.app/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-foreground hover:text-primary"
+                className="underline text-foreground hover:text-foreground"
               >
                 Privacy Policy
               </a>.

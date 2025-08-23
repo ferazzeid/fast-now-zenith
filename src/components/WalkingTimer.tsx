@@ -118,8 +118,8 @@ const WalkingTimerComponent = ({
             </div>
             <div className={cn(
               "text-lg font-medium transition-colors duration-300",
-              isActive && !isPaused ? 'text-primary' : 
-              isPaused ? 'text-primary/70' : 'text-muted-foreground'
+              isActive && !isPaused ? 'text-foreground' : 
+              isPaused ? 'text-muted-foreground' : 'text-muted-foreground'
             )}>
               {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
@@ -266,7 +266,7 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <Zap className="w-4 h-4 text-primary" />
+                    <Zap className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
                     <ClickableTooltip content="Normal walking: Comfortable sustainable pace - Default. Fast walking: More intense pace for higher calorie burn. Adjust during your walk if needed.">
                       <Info className="w-4 h-4 text-muted-foreground" />
@@ -300,7 +300,7 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-primary" />
+                    <Activity className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Distance</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
@@ -324,7 +324,7 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-primary" />
+                    <Activity className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Calories</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
@@ -343,7 +343,7 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Fat</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />

@@ -482,7 +482,7 @@ const Settings = () => {
             </Card>
 
             {/* Save Settings Button - under Profile */}
-            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary">
+            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full">
               Save Settings
             </Button>
 
@@ -707,7 +707,7 @@ const Settings = () => {
                     href="https://fastnow.app/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full text-left text-sm text-primary hover:underline"
+                    className="block w-full text-left text-sm text-foreground hover:underline"
                   >
                     <div className="flex items-center">
                       <Shield className="w-4 h-4 mr-2" />
@@ -718,7 +718,7 @@ const Settings = () => {
                     href="https://fastnow.app/terms"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full text-left text-sm text-primary hover:underline"
+                    className="block w-full text-left text-sm text-foreground hover:underline"
                   >
                     <div className="flex items-center">
                       <Info className="w-4 h-4 mr-2" />
