@@ -502,18 +502,13 @@ export const useWalkingSession = () => {
     };
   }, [loadActiveSession]);
 
-  // Initialize selectedSpeed from profile - stable dependency with debouncing
+  // Initialize selectedSpeed from profile ONLY on initial load
   useEffect(() => {
-    console.log('Profile effect - checking speed initialization:', { 
-      profileSpeed: profile?.default_walking_speed, 
-      currentSelectedSpeed: selectedSpeed,
-      shouldUpdate: profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed
-    });
-    if (profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed) {
-      console.log('Setting speed from profile:', profile.default_walking_speed);
+    // Only initialize from profile if we haven't set a speed yet (initial load)
+    if (profile?.default_walking_speed && selectedSpeed === 3) {
       setSelectedSpeed(profile.default_walking_speed);
     }
-  }, [profile?.default_walking_speed]); // Removed selectedSpeed to prevent infinite loops
+  }, [profile?.default_walking_speed]); // Only dependency is profile speed
 
   const updateSessionSpeed = useCallback(async (newSpeed: number): Promise<{data: any, error: any}> => {
     if (!currentSession || !user) return { error: null, data: null };
@@ -565,40 +560,47 @@ export const useWalkingSession = () => {
   }, [user, currentSession]);
 
   // Save selected speed to profile
-  const saveSpeedToProfile = useCallback(async (newSpeed: number) => {
-    if (!user) return;
+  const saveSpeedToProfile = useCallback(async (newSpeed: number): Promise<boolean> => {
+    if (!user) return false;
     
-    console.log('Saving speed to profile:', { newSpeed, userId: user.id });
     try {
+      // Use upsert pattern like activity override for reliability
       const { data, error } = await supabase
         .from('profiles')
         .update({ default_walking_speed: newSpeed })
         .eq('user_id', user.id);
       
-      console.log('Speed save result:', { data, error, newSpeed });
       if (error) {
         console.error('Database error saving walking speed:', error);
         throw error;
       }
-      console.log('Successfully saved walking speed to profile:', newSpeed);
+      
+      return true;
     } catch (error) {
       console.error('Error saving walking speed to profile:', error);
+      return false;
     }
   }, [user]);
 
-  // Enhanced setSelectedSpeed that also saves to profile with immediate feedback
+  // Enhanced setSelectedSpeed with immediate optimistic updates like activity override
   const updateSelectedSpeed = useCallback(async (newSpeed: number) => {
-    console.log('updateSelectedSpeed called with:', newSpeed);
-    // Immediate UI update for optimistic behavior
+    // Immediate UI update for optimistic behavior (like activity override)
     setSelectedSpeed(newSpeed);
     
     try {
       // Save to user's profile in background
-      await saveSpeedToProfile(newSpeed);
-      console.log('Speed update completed successfully');
+      const success = await saveSpeedToProfile(newSpeed);
+      
+      if (success) {
+        // Keep the optimistic update - success!
+        console.log('Walking speed saved successfully:', newSpeed);
+      } else {
+        // Could show error toast here like activity override does
+        console.error('Failed to save walking speed, keeping optimistic update');
+      }
     } catch (error) {
       console.error('Error saving walking speed:', error);
-      // Note: We keep the optimistic UI update even on error for better UX
+      // Keep optimistic UI update for better UX (like activity override pattern)
     }
   }, [saveSpeedToProfile]);
 
