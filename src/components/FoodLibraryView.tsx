@@ -615,7 +615,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           target.closest('[data-radix-dropdown-menu-content]') ||
           target.closest('[data-radix-popper-content-wrapper]') ||
           target.closest('.dropdown-menu') ||
+          target.closest('.flex-shrink-0') || // Prevent clicks on button containers
           showEditModal) {
+        e.preventDefault();
         e.stopPropagation();
         return;
       }
@@ -837,7 +839,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               variant="default"
               size="sm"
               onClick={async (e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                
+                // Prevent double-clicks
+                if (isAdding) return;
+                
                 await handleQuickSelect(food as UserFood, false);
               }}
               disabled={isAdding}
