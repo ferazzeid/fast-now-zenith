@@ -49,10 +49,10 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   
   // Form state
   const [name, setName] = useState('');
-  const [servingAmount, setServingAmount] = useState('');
+  const [servingAmount, setServingAmount] = useState('100');
   const [servingUnit, setServingUnit] = useState('');
   const [calories, setCalories] = useState('');
-  const [carbs, setCarbs] = useState('');
+  const [carbs, setCarbs] = useState('0');
   const [quantity, setQuantity] = useState(1);
   const [saving, setSaving] = useState(false);
   const [caloriesContext, setCaloriesContext] = useState<'per100g' | 'total'>('per100g');
@@ -267,10 +267,10 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
     setAnalysisResult(null);
     setError(null);
     setName('');
-    setServingAmount('');
+    setServingAmount('100');
     setServingUnit(getDefaultServingSizeUnit());
     setCalories('');
-    setCarbs('');
+    setCarbs('0');
     setQuantity(1);
   };
 
@@ -380,7 +380,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                 type="number"
                 value={servingAmount}
                 onChange={(e) => setServingAmount(e.target.value)}
-                placeholder="100"
                 className="text-sm h-9 rounded-r-none border-r-0 focus-within:z-10"
                 min="0.1"
                 step="0.1"
@@ -482,7 +481,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                 type="number"
                 value={carbs}
                 onChange={(e) => setCarbs(e.target.value)}
-                placeholder="0"
                 className="text-sm h-9"
               />
             </div>
@@ -534,7 +532,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
         {/* Add Button */}
         <Button 
           onClick={handleSave} 
-          disabled={saving || !name || !calories || !carbs || !servingAmount}
+          disabled={saving || !name || !calories || !servingAmount}
           className="flex-1"
         >
           {saving ? (
