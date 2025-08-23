@@ -11,10 +11,16 @@ interface GlobalProfileOnboardingProps {
 export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboardingProps) => {
   const content = onboardingContent.profile;
 
+  // Make modal non-dismissible during onboarding
+  const handleClose = () => {
+    // Prevent closing until onboarding is complete
+    // Only ProfileOnboardingFlow can call onClose when profile is completed
+  };
+
   return (
     <PageOnboardingModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={content.title}
       subtitle={content.subtitle}
     >

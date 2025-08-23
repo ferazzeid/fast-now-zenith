@@ -24,6 +24,7 @@ interface UserProfile {
   enable_daily_reset?: boolean;
   enable_ceramic_animations?: boolean;
   sex?: 'male' | 'female';
+  onboarding_completed?: boolean;
 }
 
 export const useProfile = () => {
@@ -205,7 +206,8 @@ export const useProfile = () => {
       profile.weight && 
       profile.height && 
       profile.age && 
-      (profile.activity_level || profile['activity-level'])); // Handle both formats, removed sex requirement
+      (profile.activity_level || profile['activity-level']) &&
+      profile.onboarding_completed); // Must have onboarding completed flag
     
     console.log('Profile completion check:', { 
       complete, 
@@ -213,11 +215,12 @@ export const useProfile = () => {
       height: profile?.height,
       age: profile?.age,
       activity_level: profile?.activity_level,
+      onboarding_completed: profile?.onboarding_completed,
       profile: profile
     });
     
     return complete;
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, profile?.onboarding_completed]);
 
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;

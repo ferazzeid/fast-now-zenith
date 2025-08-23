@@ -49,50 +49,51 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   const [tempValue, setTempValue] = useState('');
   
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleComplete = async () => {
-    try {
-      const profileData = {
-        weight: parseFloat(formData.weight),
-        height: parseInt(formData.height),
-        age: parseInt(formData.age),
-        activity_level: formData.activityLevel,
-        sex: formData.sex as 'male' | 'female',
-      };
-
-      console.log('About to save profile data:', profileData);
-
-      const result = await updateProfile(profileData);
-
-      console.log('Profile update result:', result);
-
-      if (result?.error) {
-        console.error('Profile update failed:', result.error);
-        throw new Error(result.error.message || 'Failed to update profile');
-      }
-
-      if (!result?.data) {
-        console.error('No data returned from profile update');
-        throw new Error('No data returned from profile update');
-      }
-
-      console.log('Profile successfully saved:', result.data);
-
+    if (!isFormValid()) {
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated!",
+        title: "Missing Information",
+        description: "Please fill in all required fields to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const { error } = await updateProfile({
+        weight: Number(formData.weight),
+        height: Number(formData.height),
+        age: Number(formData.age),
+        sex: formData.sex as 'male' | 'female',
+        activity_level: formData.activityLevel,
+        onboarding_completed: true
       });
 
-      // Wait a moment to ensure the data is saved before completing
-      setTimeout(() => {
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save profile information.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Profile Complete",
+          description: "Your profile has been set up successfully!"
+        });
         onComplete();
-      }, 500);
+      }
     } catch (error) {
-      console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: `Failed to update profile: ${error instanceof Error ? error.message : 'Please try again.'}`,
-        variant: "destructive",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -342,22 +343,19 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center pt-6">
-        <Button
-          variant="ghost"
-          onClick={onSkip}
-          className="text-muted-foreground hover:text-foreground"
-          disabled={isUpdating}
-        >
-          Skip for now
-        </Button>
-
-        <Button
+      <div className="mt-8">
+        <Button 
           onClick={handleComplete}
-          disabled={!isFormValid() || isUpdating}
+          className="w-full"
+          disabled={isLoading || !isFormValid()}
         >
-          {isUpdating ? 'Completing...' : 'Complete Profile'}
+          {isLoading ? "Saving..." : "Complete Profile"}
         </Button>
+        {!isFormValid() && (
+          <p className="text-sm text-muted-foreground mt-2 text-center">
+            Please fill in all required fields to continue
+          </p>
+        )}
       </div>
 
       {/* Modal */}
