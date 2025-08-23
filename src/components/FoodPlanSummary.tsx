@@ -31,7 +31,7 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
     const percentage = (current / goal) * 100;
     if (percentage > 100) return 'text-red-600 dark:text-red-400';
     if (percentage > 80) return 'text-amber-600 dark:text-amber-400';
-    return 'text-green-600 dark:text-green-400';
+    return 'text-accent-foreground';
   };
 
   return (

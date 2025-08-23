@@ -422,7 +422,7 @@ const FoodTracking = () => {
                 <p>Browse and select from your saved food library</p>
               </TooltipContent>
             </Tooltip>
-            <span className="text-xs text-muted-foreground">Library</span>
+            <span className="text-xs text-muted-foreground">My Foods</span>
           </div>
         </div>
 
@@ -470,7 +470,7 @@ const FoodTracking = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive mr-1 md:mr-0"
+                       className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive mr-3 md:mr-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowClearAllDialog(true);

@@ -816,7 +816,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       {/* Header */}
       <div className="px-6 py-6 border-b border-border">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Food Library</h1>
+          <h1 className="text-2xl font-bold">My Foods</h1>
           <Button
             variant="ghost"
             size="sm"
