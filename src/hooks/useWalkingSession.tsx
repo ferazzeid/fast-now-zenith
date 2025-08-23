@@ -504,7 +504,13 @@ export const useWalkingSession = () => {
 
   // Initialize selectedSpeed from profile - stable dependency with debouncing
   useEffect(() => {
+    console.log('Profile effect - checking speed initialization:', { 
+      profileSpeed: profile?.default_walking_speed, 
+      currentSelectedSpeed: selectedSpeed,
+      shouldUpdate: profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed
+    });
     if (profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed) {
+      console.log('Setting speed from profile:', profile.default_walking_speed);
       setSelectedSpeed(profile.default_walking_speed);
     }
   }, [profile?.default_walking_speed]); // Removed selectedSpeed to prevent infinite loops
@@ -562,11 +568,19 @@ export const useWalkingSession = () => {
   const saveSpeedToProfile = useCallback(async (newSpeed: number) => {
     if (!user) return;
     
+    console.log('Saving speed to profile:', { newSpeed, userId: user.id });
     try {
-      await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({ default_walking_speed: newSpeed })
         .eq('user_id', user.id);
+      
+      console.log('Speed save result:', { data, error, newSpeed });
+      if (error) {
+        console.error('Database error saving walking speed:', error);
+        throw error;
+      }
+      console.log('Successfully saved walking speed to profile:', newSpeed);
     } catch (error) {
       console.error('Error saving walking speed to profile:', error);
     }
@@ -574,12 +588,14 @@ export const useWalkingSession = () => {
 
   // Enhanced setSelectedSpeed that also saves to profile with immediate feedback
   const updateSelectedSpeed = useCallback(async (newSpeed: number) => {
+    console.log('updateSelectedSpeed called with:', newSpeed);
     // Immediate UI update for optimistic behavior
     setSelectedSpeed(newSpeed);
     
     try {
       // Save to user's profile in background
       await saveSpeedToProfile(newSpeed);
+      console.log('Speed update completed successfully');
     } catch (error) {
       console.error('Error saving walking speed:', error);
       // Note: We keep the optimistic UI update even on error for better UX
