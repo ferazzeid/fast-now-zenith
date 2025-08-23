@@ -16,6 +16,7 @@ import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
+import { InlineVoiceButton } from '@/components/InlineVoiceButton';
 
 interface AnalysisResult {
   name?: string;
@@ -357,14 +358,20 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
           <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
             Food Name <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="food-name"
-            value={name}
-            onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="e.g., Grilled Chicken Breast"
-            className="h-9"
-            required
-          />
+          <div className="relative">
+            <Input
+              id="food-name"
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="e.g., Grilled Chicken Breast"
+              className="h-9 pr-8"
+              required
+            />
+            <InlineVoiceButton
+              onTranscription={setName}
+              parseNumbers={false}
+            />
+          </div>
         </div>
 
         {/* Amount/Unit fields connected + Calories + Carbs */}
@@ -375,16 +382,22 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               Amount <span className="text-red-500">*</span>
             </Label>
             <div className="flex">
-              <Input
-                id="serving-amount"
-                type="number"
-                value={servingAmount}
-                onChange={(e) => setServingAmount(e.target.value)}
-                className="text-sm h-9 rounded-r-none border-r-0 focus-within:z-10"
-                min="0.1"
-                step="0.1"
-                required
-              />
+              <div className="relative flex-1">
+                <Input
+                  id="serving-amount"
+                  type="number"
+                  value={servingAmount}
+                  onChange={(e) => setServingAmount(e.target.value)}
+                  className="text-sm h-9 rounded-r-none border-r-0 focus-within:z-10 pr-8"
+                  min="0.1"
+                  step="0.1"
+                  required
+                />
+                <InlineVoiceButton
+                  onTranscription={setServingAmount}
+                  parseNumbers={true}
+                />
+              </div>
               <Select value={servingUnit} onValueChange={setServingUnit}>
                 <SelectTrigger className="text-sm h-9 rounded-l-none w-24 border-l-0 focus-within:z-10">
                   <SelectValue />
@@ -423,49 +436,57 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
           {/* AI Button + Calories + Carbs row */}
           <div className="flex gap-2 items-end">
-            {/* AI Estimation Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAiEstimate}
-                      disabled={isAiEstimating || !name.trim() || !servingAmount.trim()}
-                      className="h-9 w-9 p-0 bg-ai hover:bg-ai/90 text-ai-foreground border-ai flex-shrink-0"
-                    >
-                      {isAiEstimating ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </PremiumGate>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>AI will estimate both calories and carbs for you</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {/* AI Estimation Button - Only show when food name is provided */}
+            {name.trim() && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAiEstimate}
+                        disabled={isAiEstimating || !name.trim() || !servingAmount.trim()}
+                        className="h-9 w-9 p-0 bg-ai hover:bg-ai/90 text-ai-foreground border-ai flex-shrink-0"
+                      >
+                        {isAiEstimating ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </PremiumGate>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>AI will estimate both calories and carbs for you</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
 
             {/* Calories */}
             <div className="flex-1">
               <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
                 Calories <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="calories"
-                type="number"
-                value={calories}
-                onChange={(e) => setCalories(e.target.value)}
-                placeholder="0"
-                className={`text-sm h-9 ${
-                  parseFloat(calories) === 0 && calories !== '' ? 'border-destructive text-destructive' : ''
-                }`}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="calories"
+                  type="number"
+                  value={calories}
+                  onChange={(e) => setCalories(e.target.value)}
+                  placeholder="0"
+                  className={`text-sm h-9 pr-8 ${
+                    parseFloat(calories) === 0 && calories !== '' ? 'border-destructive text-destructive' : ''
+                  }`}
+                  required
+                />
+                <InlineVoiceButton
+                  onTranscription={setCalories}
+                  parseNumbers={true}
+                />
+              </div>
               {parseFloat(calories) === 0 && calories !== '' && (
                 <p className="text-xs text-destructive mt-1">Unlikely to be zero calories</p>
               )}
@@ -476,13 +497,19 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
                 Carbs (g)
               </Label>
-              <Input
-                id="carbs"
-                type="number"
-                value={carbs}
-                onChange={(e) => setCarbs(e.target.value)}
-                className="text-sm h-9"
-              />
+              <div className="relative">
+                <Input
+                  id="carbs"
+                  type="number"
+                  value={carbs}
+                  onChange={(e) => setCarbs(e.target.value)}
+                  className="text-sm h-9 pr-8"
+                />
+                <InlineVoiceButton
+                  onTranscription={setCarbs}
+                  parseNumbers={true}
+                />
+              </div>
             </div>
           </div>
         </div>
