@@ -10,6 +10,7 @@ import { ClickableTooltip } from './ClickableTooltip';
 import { AuthorTooltip } from './AuthorTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistance } from '@/utils/unitConversions';
 
 
 interface WalkingTimerProps {
@@ -314,10 +315,7 @@ const WalkingTimerComponent = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-xl font-bold text-foreground">
-                    {realTimeStats.distance}
-                    <span className="text-sm font-normal text-muted-foreground ml-1">
-                      {units === 'metric' ? 'km' : 'mi'}
-                    </span>
+                    {formatDistance(realTimeStats.distance, units)}
                   </div>
                   <ClickableTooltip content="Distance is estimated based on your walking speed and elapsed time.">
                     <Info className="w-4 h-4 text-muted-foreground" />

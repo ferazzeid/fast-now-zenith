@@ -151,22 +151,51 @@ const Settings = () => {
 
   const handleSaveSettings = async () => {
     try {
-      // Validate required fields (metric only now)
-      if (weight && (parseFloat(weight) < 30 || parseFloat(weight) > 300)) {
-        toast({
-          title: "Invalid Weight",
-          description: "Weight must be between 30-300 kg",
-          variant: "destructive"
-        });
-        return;
+      // Validate required fields - now supports both metric and imperial
+      if (weight) {
+        const weightNum = parseFloat(weight);
+        if (profile?.units === 'metric') {
+          if (weightNum < 30 || weightNum > 300) {
+            toast({
+              title: "Invalid Weight",
+              description: "Weight must be between 30-300 kg",
+              variant: "destructive"
+            });
+            return;
+          }
+        } else {
+          if (weightNum < 66 || weightNum > 660) {
+            toast({
+              title: "Invalid Weight", 
+              description: "Weight must be between 66-660 lbs",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
       }
-      if (height && (parseInt(height) < 100 || parseInt(height) > 250)) {
-        toast({
-          title: "Invalid Height", 
-          description: "Height must be between 100-250 cm",
-          variant: "destructive"
-        });
-        return;
+      
+      if (height) {
+        const heightNum = parseInt(height);
+        if (profile?.units === 'metric') {
+          if (heightNum < 100 || heightNum > 250) {
+            toast({
+              title: "Invalid Height",
+              description: "Height must be between 100-250 cm", 
+              variant: "destructive"
+            });
+            return;
+          }
+        } else {
+          if (heightNum < 39 || heightNum > 98) {
+            toast({
+              title: "Invalid Height",
+              description: "Height must be between 39-98 inches",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
       }
 
 
@@ -403,30 +432,34 @@ const Settings = () => {
                     <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="weight" className="text-warm-text">Weight (kg)</Label>
+                        <Label htmlFor="weight" className="text-warm-text">
+                          Weight ({profile?.units === 'metric' ? 'kg' : 'lbs'})
+                        </Label>
                         <Input
                           id="weight"
                           type="number"
-                          placeholder="70"
+                          placeholder={profile?.units === 'metric' ? '70' : '154'}
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
-                          min="30"
-                          max="300"
+                          min={profile?.units === 'metric' ? '30' : '66'}
+                          max={profile?.units === 'metric' ? '300' : '660'}
                           step="0.1"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="height" className="text-warm-text">Height (cm)</Label>
+                        <Label htmlFor="height" className="text-warm-text">
+                          Height ({profile?.units === 'metric' ? 'cm' : 'in'})
+                        </Label>
                         <Input
                           id="height"
                           type="number"
-                          placeholder="175"
+                          placeholder={profile?.units === 'metric' ? '175' : '69'}
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
-                          min="100"
-                          max="250"
+                          min={profile?.units === 'metric' ? '100' : '39'}
+                          max={profile?.units === 'metric' ? '250' : '98'}
                           step="1"
                         />
                       </div>
@@ -654,6 +687,50 @@ const Settings = () => {
                 </div>
                 <div className="flex justify-center">
                   <ThemeToggle />
+                </div>
+              </div>
+            </Card>
+
+            {/* Distance & Speed Units Section */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Distance & Speed Units</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-warm-text">Measurement System</Label>
+                      <p className="text-xs text-muted-foreground">Choose how distances and speeds are displayed</p>
+                    </div>
+                    <Select 
+                      value={profile?.units || 'imperial'} 
+                      onValueChange={async (value: 'metric' | 'imperial') => {
+                        await updateProfile({ units: value });
+                        toast({
+                          title: "Units Updated",
+                          description: `Switched to ${value === 'metric' ? 'metric (km, km/h)' : 'imperial (miles, mph)'} system`,
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="w-32 bg-ceramic-base border-ceramic-rim">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border z-50">
+                        <SelectItem value="imperial">Imperial</SelectItem>
+                        <SelectItem value="metric">Metric</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-rim">
+                    <div className="space-y-1">
+                      <div><strong>Imperial:</strong> miles, mph, lbs</div>
+                      <div><strong>Metric:</strong> kilometers, km/h, kg</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
