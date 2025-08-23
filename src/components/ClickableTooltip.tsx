@@ -27,16 +27,26 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
     const tooltipHeight = 120;
     const margin = 16;
     
-    const spaceAbove = rect.top - margin;
-    const spaceBelow = window.innerHeight - rect.bottom - margin;
-    const spaceLeft = rect.left - margin;
-    const spaceRight = window.innerWidth - rect.right - margin;
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceLeft = rect.left;
+    const spaceRight = window.innerWidth - rect.right;
     
     // Prefer showing above if there's enough space, otherwise below
     const showBelow = spaceAbove < tooltipHeight && spaceBelow >= tooltipHeight;
     
-    // Prefer right alignment, but use left if there's more space or not enough space on right
-    const alignLeft = spaceRight < tooltipWidth && spaceLeft >= tooltipWidth;
+    // Better horizontal alignment to stay within viewport
+    let alignLeft = false;
+    if (rect.right + tooltipWidth > window.innerWidth - margin) {
+      // If tooltip would overflow right edge, align left (tooltip extends leftward)
+      alignLeft = true;
+    } else if (rect.left - tooltipWidth < margin) {
+      // If tooltip would overflow left edge, align right (tooltip extends rightward)
+      alignLeft = false;
+    } else {
+      // If there's space on both sides, prefer right alignment
+      alignLeft = spaceRight < spaceLeft;
+    }
     
     setShowBelow(showBelow);
     setAlignLeft(alignLeft);
@@ -104,12 +114,12 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
           <div
             ref={tooltipRef}
             className={cn(
-              "absolute z-50 px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
+              "absolute z-[60] px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
               "w-[180px] max-w-[calc(100vw-32px)] text-left leading-relaxed",
               "animate-in fade-in-0 zoom-in-95 duration-200",
               showBelow 
-                ? (alignLeft ? "top-full left-0 mt-2" : "top-full right-0 mt-2")
-                : (alignLeft ? "bottom-full left-0 mb-2" : "bottom-full right-0 mb-2")
+                ? (alignLeft ? "top-full right-0 mt-2" : "top-full left-0 mt-2")
+                : (alignLeft ? "bottom-full right-0 mb-2" : "bottom-full left-0 mb-2")
             )}
           >
             {content}

@@ -88,8 +88,9 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     if (!triggerRef.current || !tooltipRef.current) return;
     
     const triggerRect = triggerRef.current.getBoundingClientRect();
-    const tooltipWidth = 280; // Known width from tooltip
-    const tooltipHeight = 160; // Estimated height for calculation
+    const tooltipWidth = 280; // Reduced from 320px for better fit
+    const tooltipHeight = 160;
+    const margin = 16;
     
     const spaceAbove = triggerRect.top;
     const spaceBelow = window.innerHeight - triggerRect.bottom;
@@ -99,10 +100,20 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     // Determine vertical position (prefer top unless insufficient space)
     setPosition(spaceAbove >= tooltipHeight ? 'top' : 'bottom');
     
-    // Determine horizontal alignment (prefer right-aligned, only use left if insufficient space)
-    // For right-aligned: tooltip appears to the right of trigger, extending rightward
-    // For left-aligned: tooltip appears to the left of trigger, extending leftward
-    setAlignLeft(spaceRight < tooltipWidth);
+    // Better horizontal positioning to prevent overflow
+    let shouldAlignLeft = false;
+    if (triggerRect.right + tooltipWidth > window.innerWidth - margin) {
+      // Would overflow right edge - align to left side of trigger
+      shouldAlignLeft = true;
+    } else if (triggerRect.left - tooltipWidth < margin) {
+      // Would overflow left edge - align to right side of trigger  
+      shouldAlignLeft = false;
+    } else {
+      // Plenty of space - choose based on available space
+      shouldAlignLeft = spaceRight < spaceLeft;
+    }
+    
+    setAlignLeft(shouldAlignLeft);
   };
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -262,12 +273,12 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             ref={tooltipRef}
             onMouseLeave={handleTooltipMouseLeave}
             className={cn(
-              "absolute z-50 px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
-              "w-[320px] max-w-[calc(100vw-32px)] text-left",
+              "absolute z-[60] px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
+              "w-[280px] max-w-[calc(100vw-32px)] text-left",
               "animate-fade-in",
               position === 'bottom' 
-                ? (alignLeft ? "top-full left-0 mt-3" : "top-full left-0 mt-3")
-                : (alignLeft ? "bottom-full left-0 mb-3" : "bottom-full left-0 mb-3")
+                ? (alignLeft ? "top-full right-0 mt-3" : "top-full left-0 mt-3")
+                : (alignLeft ? "bottom-full right-0 mb-3" : "bottom-full left-0 mb-3")
             )}
           >
             {/* Header */}
@@ -338,7 +349,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             {/* Speech bubble arrow */}
             <div className={cn(
               "absolute w-3 h-3 bg-popover border-border rotate-45",
-              "left-6", // Always position arrow consistently on left side
+              alignLeft ? "right-6" : "left-6", // Position arrow based on alignment
               position === 'bottom' 
                 ? "top-0 -mt-1.5 border-l border-t"
                 : "bottom-0 -mb-1.5 border-r border-b"
