@@ -62,21 +62,28 @@ const WalkingTimerComponent = ({
     { displaySpeed: 'fast', storageSpeed: 4.3, label: 'Fast', description: 'Intense pace, higher calorie burn' }
   ], []);
 
-  // Find current speed option
+  // Find current speed option with improved matching
   const getCurrentSpeedOption = useCallback((speedMph: number) => {
-    return SPEED_OPTIONS.find(option => 
-      Math.abs(option.storageSpeed - speedMph) < 0.2
-    ) || SPEED_OPTIONS[0]; // Default to normal if no match
+    const match = SPEED_OPTIONS.find(option => 
+      Math.abs(option.storageSpeed - speedMph) < 0.3
+    );
+    console.log('Speed matching:', { speedMph, match: match?.displaySpeed, options: SPEED_OPTIONS.map(o => ({ speed: o.storageSpeed, display: o.displaySpeed })) });
+    return match || SPEED_OPTIONS[0]; // Default to normal if no match
   }, [SPEED_OPTIONS]);
 
   const handleSpeedChange = useCallback((value: string) => {
+    console.log('Speed change requested:', value);
     const option = SPEED_OPTIONS.find(opt => opt.displaySpeed === value);
     if (option) {
+      console.log('Changing speed to:', option.storageSpeed);
       onSpeedChange(option.storageSpeed);
     }
   }, [SPEED_OPTIONS, onSpeedChange]);
 
   const currentSpeedOption = getCurrentSpeedOption(selectedSpeed);
+  
+  // Use the selected speed to determine the current display value more reliably
+  const currentDisplayValue = currentSpeedOption.displaySpeed;
 
 
   return (
@@ -276,7 +283,7 @@ const WalkingTimerComponent = ({
                 </div>
                 <div className="flex items-center justify-start">
                   <Select 
-                    value={currentSpeedOption.displaySpeed}
+                    value={currentDisplayValue}
                     onValueChange={handleSpeedChange}
                   >
                     <SelectTrigger className="h-7 w-24 text-sm bg-ceramic-base border-ceramic-rim">
