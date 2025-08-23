@@ -62,8 +62,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
-  // Visual feedback state
+  // Visual feedback and loading states
   const [flashingItems, setFlashingItems] = useState<Set<string>>(new Set());
+  const [addingItems, setAddingItems] = useState<Set<string>>(new Set());
+  const [pendingActions, setPendingActions] = useState<Map<string, number>>(new Map());
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -163,24 +165,73 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const handleQuickSelect = (food: UserFood | DefaultFood, consumed: boolean = false) => {
+  const handleQuickSelect = async (food: UserFood | DefaultFood, consumed: boolean = false) => {
+    // Debounce: prevent multiple rapid clicks on same item
+    const now = Date.now();
+    const lastAction = pendingActions.get(food.id);
+    if (lastAction && now - lastAction < 1000) {
+      console.log('🔄 FoodLibrary: Debounced duplicate click for:', food.name);
+      return;
+    }
+    
+    // Check if already adding this item
+    if (addingItems.has(food.id)) {
+      console.log('🔄 FoodLibrary: Already adding:', food.name);
+      return;
+    }
+
+    console.log('🔄 FoodLibrary: Adding food to today:', food.name);
+    
+    // Update pending actions and loading state
+    setPendingActions(prev => new Map(prev.set(food.id, now)));
+    setAddingItems(prev => new Set([...prev, food.id]));
+    
     const userFood = 'variations' in food ? food : {
       ...food,
       is_favorite: false,
       variations: []
     } as UserFood;
     
-    // Add visual feedback
-    setFlashingItems(prev => new Set([...prev, food.id]));
-    setTimeout(() => {
+    try {
+      // Add visual feedback
+      setFlashingItems(prev => new Set([...prev, food.id]));
+      
+      await onSelectFood(userFood, consumed);
+      
+      console.log('🔄 FoodLibrary: Successfully added:', food.name);
+      
+      // Success feedback
+      setTimeout(() => {
+        setFlashingItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(food.id);
+          return newSet;
+        });
+      }, 600);
+      
+    } catch (error) {
+      console.error('🔄 FoodLibrary: Failed to add food:', error);
+      
+      // Remove flash on error
       setFlashingItems(prev => {
         const newSet = new Set(prev);
         newSet.delete(food.id);
         return newSet;
       });
-    }, 600);
-    
-    onSelectFood(userFood, consumed);
+      
+      toast({
+        variant: "destructive",
+        title: "Error adding food",
+        description: `Failed to add ${food.name} to your plan. Please try again.`
+      });
+    } finally {
+      // Clear loading state
+      setAddingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(food.id);
+        return newSet;
+      });
+    }
   };
 
   const handleAddToTemplate = async (food: UserFood | DefaultFood) => {
@@ -553,6 +604,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
     const isFlashing = flashingItems.has(food.id);
+    const isAdding = addingItems.has(food.id);
     const [showEditModal, setShowEditModal] = useState(false);
     
     const handleCardClick = (e: React.MouseEvent) => {
@@ -576,7 +628,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       <div 
         className={`p-2 mx-2 rounded-lg transition-all duration-200 cursor-pointer bg-card border border-ceramic-rim hover:bg-ceramic-base ${
           isFlashing ? 'animate-success-flash' : ''
-        }`}
+        } ${isAdding ? 'opacity-75' : ''}`}
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
@@ -618,16 +670,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                Edit Food
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickSelect(food as UserFood, false);
-                            }}
-                             className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                           >
-                             <Plus className="w-4 h-4 mr-3" />
-                             Add to Today
-                          </DropdownMenuItem>
+                           <DropdownMenuItem
+                             onClick={async (e) => {
+                               e.stopPropagation();
+                               await handleQuickSelect(food as UserFood, false);
+                             }}
+                             disabled={isAdding}
+                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Plus className="w-4 h-4 mr-3" />
+                              {isAdding ? 'Adding...' : 'Add to Today'}
+                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
@@ -664,16 +717,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                Edit Food
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickSelect(food as UserFood, false);
-                            }}
-                             className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                           >
-                             <Plus className="w-4 h-4 mr-3" />
-                             Add to Today
-                          </DropdownMenuItem>
+                           <DropdownMenuItem
+                             onClick={async (e) => {
+                               e.stopPropagation();
+                               await handleQuickSelect(food as UserFood, false);
+                             }}
+                             disabled={isAdding}
+                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Plus className="w-4 h-4 mr-3" />
+                              {isAdding ? 'Adding...' : 'Add to Today'}
+                           </DropdownMenuItem>
                            <DropdownMenuItem
                              onClick={(e) => {
                                e.stopPropagation();
@@ -782,17 +836,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             <Button
               variant="default"
               size="sm"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                handleQuickSelect(food as UserFood, false);
+                await handleQuickSelect(food as UserFood, false);
               }}
-              className={`min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors ${
-                isFlashing ? 'animate-button-success' : ''
-              }`}
-              title="Add to today's plan"
-              aria-label="Add to today's plan"
+              disabled={isAdding}
+              className="min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isAdding ? "Adding to plan..." : "Add to today's plan"}
+              aria-label={isAdding ? "Adding to plan..." : "Add to today's plan"}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className={`w-4 h-4 ${isAdding ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>

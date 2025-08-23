@@ -165,6 +165,9 @@ export const useFoodEntriesQuery = () => {
       return { previousEntries };
     },
     onError: (err, newEntry, context) => {
+      console.error('🔄 useFoodEntriesQuery: addFoodEntryMutation error:', err);
+      console.error('🔄 useFoodEntriesQuery: Failed entry:', newEntry);
+      
       // Rollback on error
       if (context?.previousEntries) {
         queryClient.setQueryData(
@@ -172,9 +175,24 @@ export const useFoodEntriesQuery = () => {
           context.previousEntries
         );
       }
+      
+      // Extract error message for better user feedback
+      let errorMessage = "Please try again.";
+      if (err instanceof Error) {
+        if (err.message.includes('duplicate')) {
+          errorMessage = "This food entry already exists.";
+        } else if (err.message.includes('network')) {
+          errorMessage = "Network error. Check your connection.";
+        } else if (err.message.includes('permission')) {
+          errorMessage = "Permission denied. Please log in again.";
+        } else {
+          errorMessage = err.message || "Unknown error occurred.";
+        }
+      }
+      
       toast({
         title: "Error adding food entry",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
