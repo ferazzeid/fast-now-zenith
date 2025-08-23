@@ -18,7 +18,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
-import { MetabolismActivitySection } from '@/components/MetabolismActivitySection';
 
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
@@ -43,6 +42,7 @@ const Settings = () => {
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
+  const [manualTdeeOverride, setManualTdeeOverride] = useState('');
   
   const { toast } = useToast();
   const { user, signOut } = useAuth();
@@ -68,7 +68,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, enable_fasting_slideshow, enable_walking_slideshow')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, manual_tdee_override, enable_fasting_slideshow, enable_walking_slideshow')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -90,6 +90,7 @@ const Settings = () => {
           setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
           setActivityLevel(profileData.activity_level || 'sedentary');
+          setManualTdeeOverride(profileData.manual_tdee_override?.toString() || '');
 
           // Check if profile is incomplete and show onboarding
           const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
@@ -116,6 +117,36 @@ const Settings = () => {
 
     fetchUserSettings();
   }, [user, accessIsAdmin]);
+
+  // BMR calculation function
+  const calculateBMR = () => {
+    if (!weight || !height || !age || !sex) return 0;
+    
+    const weightKg = parseFloat(weight);
+    const heightCm = parseInt(height);
+    const ageNum = parseInt(age);
+    
+    // Mifflin-St Jeor equation
+    let bmr: number;
+    if (sex === 'female') {
+      bmr = 10 * weightKg + 6.25 * heightCm - 5 * ageNum - 161;
+    } else {
+      bmr = 10 * weightKg + 6.25 * heightCm - 5 * ageNum + 5;
+    }
+    return Math.round(bmr);
+  };
+
+  // Calculate calorie addition for activity levels
+  const getCalorieAddition = (level: string) => {
+    const bmr = calculateBMR();
+    const multipliers = {
+      sedentary: 1.2,
+      moderately_active: 1.55,
+      very_active: 1.725
+    };
+    const multiplier = multipliers[level as keyof typeof multipliers] || 1.2;
+    return Math.round(bmr * (multiplier - 1.2));
+  };
 
   const handleSaveSettings = async () => {
     try {
@@ -151,7 +182,8 @@ const Settings = () => {
           sex: (sex as 'male' | 'female') || null,
           daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
           daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-          activity_level: activityLevel
+          activity_level: activityLevel,
+          manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null
         };
         
         console.log('Settings: User ID:', user?.id);
@@ -467,20 +499,52 @@ const Settings = () => {
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>
                     </div>
-                    <Select value={activityLevel} onValueChange={setActivityLevel}>
-                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                       <SelectContent>
-                          <SelectItem value="sedentary">Low</SelectItem>
-                          <SelectItem value="moderately_active">Medium</SelectItem>
-                          <SelectItem value="very_active">High</SelectItem>
-                       </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </Card>
+                     <Select value={activityLevel} onValueChange={setActivityLevel}>
+                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
+                         <SelectValue placeholder="Select" />
+                       </SelectTrigger>
+                        <SelectContent>
+                           <SelectItem value="sedentary">Low (Sedentary) {getCalorieAddition('sedentary') > 0 ? `(+${getCalorieAddition('sedentary')} cal)` : ''}</SelectItem>
+                           <SelectItem value="moderately_active">Medium (Moderately Active) (+{getCalorieAddition('moderately_active')} cal)</SelectItem>
+                           <SelectItem value="very_active">High (Very Active) (+{getCalorieAddition('very_active')} cal)</SelectItem>
+                        </SelectContent>
+                     </Select>
+                   </div>
+                   
+                   {/* Manual TDEE Override */}
+                   {calculateBMR() > 0 && (
+                     <div className="space-y-2">
+                       <div className="flex items-center gap-2">
+                         <Label htmlFor="manual-tdee" className="text-warm-text">Manual Daily Burn Override (optional)</Label>
+                         <ClickableTooltip content="Override the calculated daily burn if you know your actual TDEE from metabolic testing.">
+                           <Info className="w-4 h-4 text-muted-foreground" />
+                         </ClickableTooltip>
+                       </div>
+                       <div className="flex gap-2">
+                         <Input
+                           id="manual-tdee"
+                           type="number"
+                           placeholder={`${Math.round(calculateBMR() * (activityLevel === 'sedentary' ? 1.2 : activityLevel === 'moderately_active' ? 1.55 : 1.725))} (calculated)`}
+                           value={manualTdeeOverride}
+                           onChange={(e) => setManualTdeeOverride(e.target.value)}
+                           className="bg-ceramic-base border-ceramic-rim flex-1"
+                         />
+                         {manualTdeeOverride && (
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => setManualTdeeOverride('')}
+                             className="bg-ceramic-base border-ceramic-rim"
+                           >
+                             Clear
+                           </Button>
+                         )}
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             </Card>
 
             {/* Save Settings Button - under Profile */}
             <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full">
@@ -592,8 +656,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Metabolism & Activity Section */}
-            <MetabolismActivitySection />
 
             {/* Account Management - moved down (5th priority) */}
             <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">
