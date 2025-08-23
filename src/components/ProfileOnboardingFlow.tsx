@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EnhancedWeightSelector } from '@/components/EnhancedWeightSelector';
+import { EnhancedHeightSelector } from '@/components/EnhancedHeightSelector';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,7 +35,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   });
 
   // Update form data when profile loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile) {
       setFormData({
         weight: profile.weight ? profile.weight.toString() : '',
@@ -138,8 +140,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     
     switch (field) {
       case 'weight':
-        return `${value} kg`;
+        // Always display in user's preferred unit (default kg)
+        return `${Number(value).toFixed(1)} kg`;
       case 'height':
+        // Always display in user's preferred unit (default cm)
         return `${value} cm`;
       case 'age':
         return `${value} years`;
@@ -159,68 +163,20 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     switch (activeModal) {
       case 'weight':
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Weight (kg)</label>
-              <Input
-                type="number"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Enter weight in kg"
-                min="30"
-                max="300"
-                step="0.1"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Or select from list</label>
-              <Select value={tempValue} onValueChange={setTempValue}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select weight" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50 max-h-60">
-                  {Array.from({ length: 271 }, (_, i) => (
-                    <SelectItem key={30 + i} value={(30 + i).toString()}>
-                      {30 + i} kg
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <EnhancedWeightSelector
+            value={tempValue}
+            onChange={setTempValue}
+            className="space-y-2"
+          />
         );
 
       case 'height':
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Height (cm)</label>
-              <Input
-                type="number"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Enter height in cm"
-                min="100"
-                max="250"
-                step="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Or select from list</label>
-              <Select value={tempValue} onValueChange={setTempValue}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select height" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50 max-h-60">
-                  {Array.from({ length: 151 }, (_, i) => (
-                    <SelectItem key={100 + i} value={(100 + i).toString()}>
-                      {100 + i} cm
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <EnhancedHeightSelector
+            value={tempValue}
+            onChange={setTempValue}
+            className="space-y-2"
+          />
         );
 
       case 'age':
