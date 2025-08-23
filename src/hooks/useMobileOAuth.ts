@@ -7,7 +7,7 @@ interface UseMobileOAuthReturn {
   signInWithGoogle: () => Promise<void>;
   isLoading: boolean;
   error: string | null;
-  cancelAuth: () => void;
+  cancelAuth: () => Promise<void>;
 }
 
 export const useMobileOAuth = (): UseMobileOAuthReturn => {
@@ -23,7 +23,9 @@ export const useMobileOAuth = (): UseMobileOAuthReturn => {
     return () => {
       // Cleanup on unmount
       if (oauthHandlerRef.current) {
-        oauthHandlerRef.current.cancelAuth();
+        oauthHandlerRef.current.cancelAuth().catch(error => {
+          console.error('Error during cleanup:', error);
+        });
       }
     };
   }, []);
@@ -74,9 +76,13 @@ export const useMobileOAuth = (): UseMobileOAuthReturn => {
     }
   }, [toast]);
 
-  const cancelAuth = useCallback(() => {
+  const cancelAuth = useCallback(async () => {
     if (oauthHandlerRef.current) {
-      oauthHandlerRef.current.cancelAuth();
+      try {
+        await oauthHandlerRef.current.cancelAuth();
+      } catch (error) {
+        console.error('Error cancelling auth:', error);
+      }
       setIsLoading(false);
       setError(null);
     }

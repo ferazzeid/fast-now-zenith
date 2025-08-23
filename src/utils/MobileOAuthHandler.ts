@@ -252,7 +252,10 @@ export class MobileOAuthHandler {
         // Set timeout for user interaction (5 minutes)
         this.authTimeout = setTimeout(() => {
           console.log(`⏰ [${new Date().toISOString()}] OAuth timeout - user took too long to complete authentication`);
-          this.handleAuthError('Authentication timeout - please try again');
+          // Handle async error properly to prevent unhandled promise rejection
+          this.handleAuthError('Authentication timeout - please try again').catch(error => {
+            console.error('Error handling auth timeout:', error);
+          });
         }, this.TIMEOUT_MS);
 
         // Generate OAuth URL
@@ -286,10 +289,14 @@ export class MobileOAuthHandler {
   /**
    * Cancel ongoing OAuth process
    */
-  public cancelAuth(): void {
+  public async cancelAuth(): Promise<void> {
     if (this.isAuthInProgress) {
       console.log('🚫 Cancelling OAuth process');
-      this.handleAuthError('Authentication cancelled by user');
+      try {
+        await this.handleAuthError('Authentication cancelled by user');
+      } catch (error) {
+        console.error('Error cancelling auth:', error);
+      }
     }
   }
 
