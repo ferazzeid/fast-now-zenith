@@ -18,6 +18,7 @@ interface UserProfile {
   goal_weight?: number;
   activity_level?: string;
   default_walking_speed?: number;
+  manual_tdee_override?: number;
   enable_fasting_slideshow?: boolean;
   enable_walking_slideshow?: boolean;
   enable_food_image_generation?: boolean;

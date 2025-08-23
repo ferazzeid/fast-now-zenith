@@ -15,6 +15,7 @@ export interface UserProfile {
   deficit_goal?: number;
   activity_level?: string;
   default_walking_speed?: number;
+  manual_tdee_override?: number;
   
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;

@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
+import { MetabolismActivitySection } from '@/components/MetabolismActivitySection';
 
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
@@ -591,7 +592,8 @@ const Settings = () => {
               </div>
             </Card>
 
-
+            {/* Metabolism & Activity Section */}
+            <MetabolismActivitySection />
 
             {/* Account Management - moved down (5th priority) */}
             <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">

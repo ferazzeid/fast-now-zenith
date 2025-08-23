@@ -24,6 +24,7 @@ import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
 import { useProfile } from '@/hooks/useProfile';
+import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
 import { useCallback } from 'react';
 
 interface DailyDeficitData {
@@ -56,13 +57,15 @@ export const useDailyDeficitQuery = () => {
   const { profile } = useProfile();
   const { todayTotals } = useFoodEntriesQuery();
   const { sessions: walkingSessions } = useWalkingSessionQuery();
+  const { todayOverride } = useDailyActivityOverride();
   
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
   // Create a profile hash for cache invalidation when profile changes
+  const effectiveActivityLevel = todayOverride?.activity_level || profile?.activity_level || 'sedentary';
   const profileHash = profile ? 
-    `${profile.weight}-${profile.height}-${profile.age}-${profile.activity_level}` : 
+    `${profile.weight}-${profile.height}-${profile.age}-${effectiveActivityLevel}-${profile.manual_tdee_override || 'auto'}` : 
     'no-profile';
 
   // Get manual calorie burns for today
@@ -85,7 +88,13 @@ export const useDailyDeficitQuery = () => {
       // BMR calculation using Mifflin-St Jeor Equation (using male formula as default)
       const bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5;
 
-      // TDEE calculation based on activity level
+      // Check for manual TDEE override first
+      if (profile.manual_tdee_override && profile.manual_tdee_override > 0) {
+        const tdee = profile.manual_tdee_override;
+        return { bmr: Math.round(bmr), tdee: Math.round(tdee) };
+      }
+
+      // TDEE calculation based on activity level (with daily override support)
       const activityMultipliers = {
         sedentary: 1.2,
         'lightly-active': 1.375,
@@ -98,8 +107,9 @@ export const useDailyDeficitQuery = () => {
         extremely_active: 1.9,
       };
 
-      const activityLevel = profile.activity_level || 'sedentary';
-      const multiplier = activityMultipliers[activityLevel as keyof typeof activityMultipliers] || 1.2;
+      // Use daily override if available, otherwise use profile activity level
+      const effectiveActivityLevel = todayOverride?.activity_level || profile.activity_level || 'sedentary';
+      const multiplier = activityMultipliers[effectiveActivityLevel as keyof typeof activityMultipliers] || 1.2;
       const tdee = bmr * multiplier;
 
       return { bmr: Math.round(bmr), tdee: Math.round(tdee) };
@@ -176,7 +186,7 @@ export const useDailyDeficitQuery = () => {
         caloriesConsumed,
         walkingCalories,
         manualCalories,
-        activityLevel: profile?.activity_level || 'sedentary',
+        activityLevel: effectiveActivityLevel,
       };
     },
     enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 

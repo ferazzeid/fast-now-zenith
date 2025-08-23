@@ -1076,6 +1076,7 @@ export type Database = {
           id: string
           is_paid_user: boolean | null
           last_activity_at: string | null
+          manual_tdee_override: number | null
           monthly_ai_requests: number | null
           onboarding_completed: boolean | null
           payment_method: string | null
@@ -1123,6 +1124,7 @@ export type Database = {
           id?: string
           is_paid_user?: boolean | null
           last_activity_at?: string | null
+          manual_tdee_override?: number | null
           monthly_ai_requests?: number | null
           onboarding_completed?: boolean | null
           payment_method?: string | null
@@ -1170,6 +1172,7 @@ export type Database = {
           id?: string
           is_paid_user?: boolean | null
           last_activity_at?: string | null
+          manual_tdee_override?: number | null
           monthly_ai_requests?: number | null
           onboarding_completed?: boolean | null
           payment_method?: string | null

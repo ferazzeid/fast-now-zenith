@@ -17,6 +17,12 @@ const ACTIVITY_LEVELS = {
   very_active: 'High'
 };
 
+const ACTIVITY_CALORIE_ADDITIONS = {
+  sedentary: 0, // Base BMR * 1.2, so ~20% increase
+  moderately_active: 400, // Roughly the difference between 1.55 and 1.2 multipliers for average person
+  very_active: 800, // Roughly the difference between 1.725 and 1.2 multipliers for average person
+};
+
 export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({ 
   currentDisplayLevel 
 }) => {
@@ -50,8 +56,13 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   };
 
   const getDisplayLabel = (level: string) => {
-    // Just show the activity level name, no "(Override)" text
-    return ACTIVITY_LEVELS[level as keyof typeof ACTIVITY_LEVELS] || level;
+    const baseName = ACTIVITY_LEVELS[level as keyof typeof ACTIVITY_LEVELS] || level;
+    const calorieAddition = ACTIVITY_CALORIE_ADDITIONS[level as keyof typeof ACTIVITY_CALORIE_ADDITIONS];
+    
+    if (calorieAddition !== undefined && calorieAddition > 0) {
+      return `${baseName} (+${calorieAddition} cal)`;
+    }
+    return `${baseName} (Base Rate)`;
   };
 
   return (
@@ -81,7 +92,15 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
               className="text-xs hover:bg-ceramic-base focus:bg-ceramic-base"
             >
               <div className="flex items-center justify-between w-full">
-                <span>{label}</span>
+                <div className="flex flex-col">
+                  <span>{label}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {ACTIVITY_CALORIE_ADDITIONS[key as keyof typeof ACTIVITY_CALORIE_ADDITIONS] > 0 
+                      ? `+${ACTIVITY_CALORIE_ADDITIONS[key as keyof typeof ACTIVITY_CALORIE_ADDITIONS]} cal/day`
+                      : 'Base metabolic rate'
+                    }
+                  </span>
+                </div>
                 {key === profile?.activity_level && !todayOverride && (
                   <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 ml-2">
                     Default
