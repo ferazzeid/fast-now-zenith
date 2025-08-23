@@ -401,8 +401,30 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
             </div>
           </div>
 
-          {/* AI Estimation Button */}
+          {/* Per 100g toggle - above the nutrition row */}
           <div className="flex justify-center mb-2">
+            <button
+              type="button"
+              onClick={() => setCaloriesContext(caloriesContext === 'per100g' ? 'total' : 'per100g')}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
+            >
+              {caloriesContext === 'per100g' ? (
+                <>
+                  <ToggleLeft className="w-3 h-3" />
+                  Per 100g
+                </>
+              ) : (
+                <>
+                  <ToggleRight className="w-3 h-3" />
+                  Total
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* AI Button + Calories + Carbs row */}
+          <div className="flex gap-2 items-end">
+            {/* AI Estimation Button */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -413,14 +435,13 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                       size="sm"
                       onClick={handleAiEstimate}
                       disabled={isAiEstimating || !name.trim() || !servingAmount.trim()}
-                      className="h-8 px-3 bg-ai hover:bg-ai/90 text-ai-foreground border-ai"
+                      className="h-9 w-9 p-0 bg-ai hover:bg-ai/90 text-ai-foreground border-ai flex-shrink-0"
                     >
                       {isAiEstimating ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="w-4 h-4" />
                       )}
-                      Estimate with AI
                     </Button>
                   </PremiumGate>
                 </TooltipTrigger>
@@ -429,34 +450,12 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
 
-          {/* Calories and Carbs row */}
-          <div className="grid grid-cols-2 gap-3">
             {/* Calories */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Label htmlFor="calories" className="text-xs font-medium">
-                  Calories <span className="text-red-500">*</span>
-                </Label>
-                <button
-                  type="button"
-                  onClick={() => setCaloriesContext(caloriesContext === 'per100g' ? 'total' : 'per100g')}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {caloriesContext === 'per100g' ? (
-                    <>
-                      <ToggleLeft className="w-3 h-3" />
-                      Per 100g
-                    </>
-                  ) : (
-                    <>
-                      <ToggleRight className="w-3 h-3" />
-                      Total
-                    </>
-                  )}
-                </button>
-              </div>
+            <div className="flex-1">
+              <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
+                Calories <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="calories"
                 type="number"
@@ -474,7 +473,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
             </div>
 
             {/* Carbs */}
-            <div>
+            <div className="flex-1">
               <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
                 Carbs (g)
               </Label>

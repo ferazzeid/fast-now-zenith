@@ -220,11 +220,11 @@ export const ImageUpload = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Desktop: Drag & drop area */}
+          {/* Desktop: Drag & drop area - Big camera */}
           {!isMobile && (
             <div
               className={`
-                border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                 ${isDragOver ? 'border-primary bg-primary/5' : 'border-ceramic-rim'}
                 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
               `}
@@ -234,34 +234,26 @@ export const ImageUpload = ({
               onClick={!isUploading ? handleFileSelect : undefined}
             >
               {isUploading ? (
-                <div className="flex flex-col items-center space-y-2">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Uploading...</p>
+                <div className="flex flex-col items-center">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin" />
                 </div>
               ) : (
-                 <div className="flex flex-col items-center space-y-2">
-                   <Upload className="w-8 h-8 text-muted-foreground" />
-                   <p className="text-sm font-medium text-warm-text">
-                     Upload for AI analysis
-                   </p>
-                   <p className="text-xs text-muted-foreground">
-                     Drag & drop or click to browse
-                   </p>
-                 </div>
+                <div className="flex flex-col items-center">
+                  <Camera className="w-16 h-16 text-muted-foreground" />
+                </div>
               )}
             </div>
           )}
 
-          {/* Mobile: Single camera button */}
+          {/* Mobile: Big camera button */}
           {isMobile && (
             <Button
               variant="outline"
               onClick={handleCameraCapture}
               disabled={isUploading}
-              className="w-full h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+              className="w-full h-32 flex-col bg-ceramic-base border-ceramic-rim"
             >
-               <Camera className="w-6 h-6" />
-               <span className="text-sm">Use camera for AI analysis</span>
+              <Camera className="w-12 h-12" />
             </Button>
           )}
 
