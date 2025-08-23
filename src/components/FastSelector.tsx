@@ -22,13 +22,17 @@ export const FastSelector = ({
     return Math.floor(currentDuration / 3600) || 60;
   });
   const [startInPast, setStartInPast] = useState(false);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState('12:00');
+  const [hoursAgo, setHoursAgo] = useState(6);
 
   const handleConfirm = () => {
     if (startInPast) {
-      const startDateTime = new Date(`${startDate}T${startTime}`);
-      onSelect(duration * 3600, startDateTime, startTime);
+      const startDateTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+      const displayTime = startDateTime.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+      });
+      onSelect(duration * 3600, startDateTime, displayTime);
     } else {
       onSelect(duration * 3600);
     }
@@ -36,9 +40,40 @@ export const FastSelector = ({
 
   const isValidDateTime = () => {
     if (!startInPast) return true;
-    const selectedDateTime = new Date(`${startDate}T${startTime}`);
-    return selectedDateTime < new Date();
+    return hoursAgo >= 1 && hoursAgo <= 72;
   };
+
+  const getPreviewDateTime = () => {
+    if (!startInPast) return '';
+    const startDateTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+    const now = new Date();
+    const isToday = startDateTime.toDateString() === now.toDateString();
+    const isYesterday = startDateTime.toDateString() === new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString();
+    
+    let dayText = '';
+    if (isToday) {
+      dayText = 'Today';
+    } else if (isYesterday) {
+      dayText = 'Yesterday';
+    } else {
+      dayText = startDateTime.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+    
+    const timeText = startDateTime.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      hour12: true 
+    });
+    
+    return `Started on ${dayText} at ${timeText}`;
+  };
+
+  const hoursAgoPresets = [
+    { label: '2 hours ago', hours: 2 },
+    { label: '6 hours ago', hours: 6 },
+    { label: '12 hours ago', hours: 12 },
+    { label: '24 hours ago', hours: 24 },
+  ];
 
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration);
@@ -142,29 +177,62 @@ export const FastSelector = ({
           </div>
           
           {startInPast && (
-            <div className="space-y-3 pt-2">
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <div className="space-y-2">
-                  <Label className="text-warm-text text-xs sm:text-sm">Date</Label>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="bg-ceramic-base border-ceramic-rim text-xs sm:text-sm h-8 sm:h-10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-warm-text text-xs sm:text-sm">Time</Label>
-                  <Input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="bg-ceramic-base border-ceramic-rim text-xs sm:text-sm h-8 sm:h-10"
-                  />
+            <div className="space-y-4 pt-2">
+              {/* Quick Preset Buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                {hoursAgoPresets.map((preset) => (
+                  <Button
+                    key={preset.hours}
+                    variant={hoursAgo === preset.hours ? "default" : "outline"}
+                    onClick={() => setHoursAgo(preset.hours)}
+                    className="text-xs h-8"
+                    size="sm"
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Hours Ago Slider */}
+              <div className="space-y-3">
+                <Label className="text-warm-text text-xs sm:text-sm">
+                  Hours Ago: {hoursAgo}h
+                </Label>
+                <Slider
+                  value={[hoursAgo]}
+                  onValueChange={(value) => setHoursAgo(value[0])}
+                  max={72}
+                  min={1}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Hours Ago Input */}
+              <div className="space-y-2">
+                <Label className="text-warm-text text-xs sm:text-sm">Or enter exact hours</Label>
+                <Input
+                  type="number"
+                  value={hoursAgo}
+                  onChange={(e) => setHoursAgo(Math.max(1, Math.min(72, parseInt(e.target.value) || 1)))}
+                  min={1}
+                  max={72}
+                  className="bg-ceramic-base border-ceramic-rim text-xs sm:text-sm h-8 sm:h-10"
+                />
+              </div>
+
+              {/* Preview */}
+              <div className="p-3 bg-primary/10 rounded-md border border-primary/20">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="text-xs sm:text-sm font-medium text-primary">
+                    {getPreviewDateTime()}
+                  </span>
                 </div>
               </div>
+
               {!isValidDateTime() && (
-                <p className="text-red-500 text-xs">Please select a date and time in the past</p>
+                <p className="text-red-500 text-xs">Please enter a valid number of hours (1-72)</p>
               )}
             </div>
           )}
