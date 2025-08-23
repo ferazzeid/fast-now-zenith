@@ -562,9 +562,8 @@ const Settings = () => {
                         }
                       }}
                       variant="outline"
-                      className="w-full bg-ceramic-base border-ceramic-rim"
+                      className="w-full bg-ceramic-base border-ceramic-rim justify-start"
                     >
-                      <CreditCard className="w-4 h-4 mr-2" />
                       Manage Subscription
                     </Button>
                   )}
