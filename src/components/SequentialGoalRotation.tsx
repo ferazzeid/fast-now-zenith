@@ -103,7 +103,7 @@ export const SequentialGoalRotation = ({
           
           {/* Goal Text */}
           <div 
-            className="text-primary font-bold text-xl tracking-wide text-center px-6 py-3 rounded-full bg-background/90 backdrop-blur-sm border-2 border-primary/30 max-w-[85%] shadow-lg animate-scale-in"
+            className="text-foreground font-bold text-xl tracking-wide text-center px-6 py-3 rounded-full bg-background/90 backdrop-blur-sm border-2 border-primary/30 max-w-[85%] shadow-lg animate-scale-in"
             style={{ textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
           >
             {currentMotivator.title.toUpperCase()}

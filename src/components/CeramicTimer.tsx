@@ -168,7 +168,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               
               {/* Progress Percentage - Show fasting progress during fast, eating progress during eating */}
               {isActive && progress > 0 && (
-                <div className="text-xs text-primary/70 font-medium">
+                <div className="text-xs text-muted-foreground font-medium">
                   {Math.max(1, Math.round(progress))}%
                 </div>
               )}

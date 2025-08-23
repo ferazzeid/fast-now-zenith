@@ -33,7 +33,7 @@ export const GoalMetrics = () => {
           </div>
         </div>
         <div className="space-y-1">
-          <div className="text-lg font-bold text-primary">
+          <div className="text-lg font-bold text-foreground">
             {weightToLose?.toFixed(1) || 0} {units}
           </div>
           <div className="text-xs text-muted-foreground">
@@ -51,7 +51,7 @@ export const GoalMetrics = () => {
           </div>
         </div>
         <div className="space-y-1">
-          <div className="text-lg font-bold text-primary">
+          <div className="text-lg font-bold text-foreground">
             {weeksToGoal ? `${weeksToGoal}w` : 'N/A'}
           </div>
           <div className="text-xs text-muted-foreground">
@@ -69,7 +69,7 @@ export const GoalMetrics = () => {
           </div>
         </div>
         <div className="space-y-1">
-          <div className="text-lg font-bold text-primary">
+          <div className="text-lg font-bold text-foreground">
             {fatInGrams}g
           </div>
           <div className="text-xs text-muted-foreground">
@@ -87,7 +87,7 @@ export const GoalMetrics = () => {
           </div>
         </div>
         <div className="space-y-1">
-          <div className="text-lg font-bold text-primary">
+          <div className="text-lg font-bold text-foreground">
             {thirtyDayProjection}g
           </div>
           <div className="text-xs text-muted-foreground">

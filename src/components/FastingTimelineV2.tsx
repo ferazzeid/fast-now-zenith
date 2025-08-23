@@ -121,7 +121,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
 
             <div className="min-h-[80px] relative">
               {/* Hour Number Indicator */}
-              <div className="absolute bottom-2 right-2 bg-primary/10 text-primary border border-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
+              <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
                 {selectedHour}
               </div>
 

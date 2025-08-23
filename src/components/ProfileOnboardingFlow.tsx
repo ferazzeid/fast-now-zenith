@@ -188,25 +188,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                 type="number"
                 value={tempValue}
                 onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Enter age"
+                placeholder="Enter age (13-120)"
                 min="13"
                 max="120"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Or select from list</label>
-              <Select value={tempValue} onValueChange={setTempValue}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select age" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50 max-h-60">
-                  {Array.from({ length: 108 }, (_, i) => (
-                    <SelectItem key={13 + i} value={(13 + i).toString()}>
-                      {13 + i}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
         );
