@@ -490,10 +490,10 @@ const FoodTracking = () => {
             
             <TabsContent value="today" className="mt-4">
               {todayEntries.length === 0 ? (
-                <div className="text-center py-6">
-                  <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No foods added yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Add foods using the buttons above</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p>No foods added yet</p>
+                  <p className="text-sm mt-2">Add foods using the buttons above</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -971,7 +971,7 @@ const FoodTracking = () => {
                   </>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    <Save className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <Save className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p>No daily template saved</p>
                     <p className="text-sm mt-2">Add foods to today's plan and save as template</p>
                   </div>
