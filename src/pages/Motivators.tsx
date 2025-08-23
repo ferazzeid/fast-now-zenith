@@ -352,7 +352,7 @@ const Motivators = () => {
                   <p>Browse professionally designed motivators and add them to your collection</p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-xs text-muted-foreground">Library</span>
+              <span className="text-xs text-muted-foreground">Goal ideas</span>
             </div>
           </div>
 

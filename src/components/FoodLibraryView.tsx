@@ -59,7 +59,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'recent' | 'my-foods' | 'suggested'>('recent');
+  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   
   // Visual feedback state
@@ -544,7 +544,35 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
 
-  const filteredUserFoods = foods.filter(food =>
+  // Merge recent foods and user foods for MyFoods tab
+  const mergeRecentAndUserFoods = () => {
+    const recentFoodMap = new Map();
+    const userFoodMap = new Map();
+    
+    // Add recent foods to map
+    recentFoods.forEach(food => {
+      recentFoodMap.set(food.name.toLowerCase(), {
+        ...food,
+        is_favorite: false,
+        variations: []
+      });
+    });
+    
+    // Add user foods to map, overriding recent foods if same name
+    foods.forEach(food => {
+      userFoodMap.set(food.name.toLowerCase(), food);
+    });
+    
+    // Combine both, giving priority to user foods
+    const combinedFoods = Array.from(new Map([
+      ...recentFoodMap,
+      ...userFoodMap
+    ]).values());
+    
+    return combinedFoods;
+  };
+
+  const filteredUserFoods = mergeRecentAndUserFoods().filter(food =>
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
   ).sort((a, b) => {
     // Favorites first, then alphabetical
@@ -588,8 +616,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       if (isUserFood) {
         handleQuickSelect(food as UserFood, false);
       } else {
-        // For Recent and Suggested foods, add them directly to today's plan
-        if (activeTab === 'recent' || activeTab === 'suggested') {
+        // For Suggested foods, add them directly to today's plan
+        if (activeTab === 'suggested') {
           handleQuickSelect(food as UserFood, false);
         } else {
           importToMyLibrary(food as DefaultFood);
@@ -787,6 +815,31 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           </div>
            
+            {/* Heart Icon for MyFoods tab */}
+            {activeTab === 'my-foods' && 'is_favorite' in food && (
+              <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(food.id, food.is_favorite || false);
+                  }}
+                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                  title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                  aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart 
+                    className={`w-4 h-4 transition-colors ${
+                      food.is_favorite 
+                        ? 'fill-red-500 text-red-500' 
+                        : 'text-muted-foreground hover:text-red-400'
+                    }`} 
+                  />
+                </Button>
+              </div>
+            )}
+
             {/* Primary Action Button */}
           <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <Button
@@ -796,7 +849,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 e.stopPropagation();
                 if (isUserFood) {
                   handleQuickSelect(food as UserFood, false);
-                } else if (activeTab === 'recent' || activeTab === 'suggested') {
+                } else if (activeTab === 'suggested') {
                   handleQuickSelect(food as UserFood, false);
                 } else {
                   importToMyLibrary(food as DefaultFood);
@@ -805,10 +858,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               className={`min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors ${
                 isFlashing ? 'animate-button-success' : ''
               }`}
-              title={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
-              aria-label={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+              title={isUserFood || activeTab === 'my-foods' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+              aria-label={isUserFood || activeTab === 'my-foods' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
             >
-              {isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? (
+              {isUserFood || activeTab === 'my-foods' || activeTab === 'suggested' ? (
                 <Plus className="w-4 h-4" />
               ) : (
                 <Download className="w-4 h-4" />
@@ -847,16 +900,26 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             Back
           </Button>
         </div>
+        
+        {/* Search Bar */}
+        <div className="relative mt-4">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
+          <Input
+            placeholder="Search foods..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 px-2 py-4 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'recent' | 'my-foods' | 'suggested')} className="h-full flex flex-col">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
           <div className="mb-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="recent">Recent</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="my-foods" className="flex items-center gap-2">
-                My Food
+                MyFoods
                 {filteredUserFoods.length > 0 && (
                   <Trash2 
                     className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
@@ -956,45 +1019,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
          </TabsContent>
 
-          {/* Recent Foods Tab */}
-          <TabsContent value="recent" className="flex-1 overflow-y-auto mt-0">
-            <div className="space-y-2 mt-1">
-              {recentLoading ? (
-                <div className="space-y-1">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-muted" />
-                        <div className="flex-1 space-y-1">
-                          <div className="h-3 bg-muted rounded w-3/4" />
-                          <div className="h-2 bg-muted rounded w-1/2" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-muted rounded" />
-                          <div className="w-5 h-5 bg-muted rounded" />
-                          <div className="w-5 h-5 bg-muted rounded" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : recentFoods.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">⏰</div>
-                  <h3 className="text-lg font-medium mb-2">No recent foods</h3>
-                  <p className="text-muted-foreground">
-                    Foods you've logged recently will appear here for quick access
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-1 overflow-x-hidden">
-                  {recentFoods.map((food) => (
-                    <FoodCard key={`recent-${food.id}`} food={food} isUserFood={false} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 
