@@ -142,8 +142,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
-            { role: 'system', content: 'You are a nutrition expert. Respond with JSON format: {"calories": number, "carbs": number}' },
-            { role: 'user', content: `For ${servingAmount} ${servingUnit} of ${name}, provide calories and carbs in grams. Return only valid JSON.` }
+            { role: 'system', content: 'You are a nutrition expert. Respond with JSON format: {"calories": number, "carbs": number}. Always provide precise nutritional values for the EXACT amount requested.' },
+            { role: 'user', content: `For exactly ${servingAmount} ${servingUnit} of ${name}, provide the total calories and carbs in grams for that specific amount. Return only valid JSON.` }
           ]
         }
       });
@@ -156,12 +156,12 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
       // Try to parse JSON first, fallback to regex
       try {
         const parsed = JSON.parse(response);
-        if (parsed.calories && parsed.carbs) {
+        if (typeof parsed.calories === 'number' && typeof parsed.carbs === 'number') {
           setCalories(parsed.calories.toString());
           setCarbs(parsed.carbs.toString());
           toast({
             title: "Nutrition estimated",
-            description: "AI estimates applied successfully"
+            description: `AI estimated ${parsed.calories} calories and ${parsed.carbs}g carbs for ${servingAmount} ${servingUnit}`
           });
           return;
         }
