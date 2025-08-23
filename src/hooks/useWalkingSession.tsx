@@ -24,7 +24,7 @@ interface WalkingSession {
 export const useWalkingSession = () => {
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedSpeed, setSelectedSpeed] = useState<number>(3); // Default to average speed
+  const [selectedSpeed, setSelectedSpeed] = useState<number | null>(null); // Initialize as null to avoid race condition
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
@@ -89,11 +89,14 @@ export const useWalkingSession = () => {
     }
   }, [user]);
 
-  const startWalkingSession = useCallback(async (speedMph: number = selectedSpeed): Promise<{data: any, error: any}> => {
+  const startWalkingSession = useCallback(async (speedMph?: number): Promise<{data: any, error: any}> => {
     if (!user) return { error: { message: 'User not authenticated' }, data: null };
 
-    const speed = speedMph || selectedSpeed;
+    // Use provided speed, or selectedSpeed, or fall back to 3
+    const speed = speedMph || selectedSpeed || 3;
     const startTimeIso = new Date().toISOString();
+    
+    console.log('Starting walking session with speed:', { speedMph, selectedSpeed, finalSpeed: speed });
     
     // Create optimistic session immediately for instant UI feedback
     const optimisticSession: WalkingSession = {
@@ -108,7 +111,9 @@ export const useWalkingSession = () => {
 
     // Set optimistic state immediately
     setCurrentSession(optimisticSession);
-    setSelectedSpeed(speed);
+    if (selectedSpeed === null) {
+      setSelectedSpeed(speed); // Initialize selectedSpeed if it's null
+    }
     setIsPaused(false);
 
     const offlineStart = async () => {
@@ -502,13 +507,24 @@ export const useWalkingSession = () => {
     };
   }, [loadActiveSession]);
 
-  // Initialize selectedSpeed from profile ONLY on initial load
+  // Initialize selectedSpeed from profile - always prioritize profile data when available
   useEffect(() => {
-    // Only initialize from profile if we haven't set a speed yet (initial load)
-    if (profile?.default_walking_speed && selectedSpeed === 3) {
+    console.log('Speed initialization effect triggered:', { 
+      profileSpeed: profile?.default_walking_speed, 
+      currentSelectedSpeed: selectedSpeed,
+      user: user?.id 
+    });
+
+    if (profile?.default_walking_speed != null) {
+      // Always use profile speed when available, regardless of current selectedSpeed
+      console.log('Setting selectedSpeed from profile:', profile.default_walking_speed);
       setSelectedSpeed(profile.default_walking_speed);
+    } else if (selectedSpeed === null) {
+      // Only set default if no profile speed and no current speed
+      console.log('Setting default selectedSpeed to 3 (no profile speed available)');
+      setSelectedSpeed(3);
     }
-  }, [profile?.default_walking_speed]); // Only dependency is profile speed
+  }, [profile?.default_walking_speed, user]); // Add user as dependency to re-run when user changes
 
   const updateSessionSpeed = useCallback(async (newSpeed: number): Promise<{data: any, error: any}> => {
     if (!currentSession || !user) return { error: null, data: null };
@@ -609,7 +625,7 @@ export const useWalkingSession = () => {
   return {
     currentSession,
     loading,
-    selectedSpeed,
+    selectedSpeed: selectedSpeed || 3, // Ensure we never return null to components
     setSelectedSpeed: updateSelectedSpeed, // Use the enhanced version
     updateSelectedSpeed, // Also export directly for explicit use
     isPaused,
