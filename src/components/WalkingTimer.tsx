@@ -177,7 +177,7 @@ const WalkingTimerComponent = ({
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent collisionPadding={16}>
                   <p>{isPaused ? 'Resume' : 'Pause'}</p>
                 </TooltipContent>
               </Tooltip>
@@ -212,7 +212,7 @@ const WalkingTimerComponent = ({
                       <X className="w-6 h-6" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent collisionPadding={16}>
                     <p>Cancel</p>
                   </TooltipContent>
                 </Tooltip>
@@ -250,7 +250,7 @@ const WalkingTimerComponent = ({
                     Finish
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent collisionPadding={16}>
                   <p>Complete</p>
                 </TooltipContent>
               </Tooltip>
@@ -306,7 +306,7 @@ const WalkingTimerComponent = ({
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
+                  <div className="text-xl font-bold text-foreground">
                     {realTimeStats.distance}
                     <span className="text-sm font-normal text-muted-foreground ml-1">
                       {units === 'metric' ? 'km' : 'mi'}
@@ -330,7 +330,7 @@ const WalkingTimerComponent = ({
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
+                  <div className="text-xl font-bold text-foreground">
                     {realTimeStats.calories}
                     <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                   </div>
@@ -349,7 +349,7 @@ const WalkingTimerComponent = ({
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
+                  <div className="text-xl font-bold text-foreground">
                     {(realTimeStats.calories / 9).toFixed(1)}
                     <span className="text-sm font-normal text-muted-foreground ml-1">g</span>
                   </div>

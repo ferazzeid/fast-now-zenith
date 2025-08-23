@@ -20,12 +20,12 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
-  const recomputePosition = () => {
+    const recomputePosition = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     const tooltipWidth = 180;
     const tooltipHeight = 120;
-    const margin = 16;
+    const margin = 24; // Increased margin for better boundary detection
     
     const spaceAbove = rect.top;
     const spaceBelow = window.innerHeight - rect.bottom;
@@ -115,7 +115,7 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
             ref={tooltipRef}
             className={cn(
               "absolute z-[60] px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
-              "w-[180px] max-w-[calc(100vw-32px)] text-left leading-relaxed",
+              "w-[180px] max-w-[calc(100vw-48px)] text-left leading-relaxed", // Increased padding for better boundary respect
               "animate-in fade-in-0 zoom-in-95 duration-200",
               showBelow 
                 ? (alignLeft ? "top-full right-0 mt-2" : "top-full left-0 mt-2")
