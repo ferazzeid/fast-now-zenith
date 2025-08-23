@@ -141,10 +141,14 @@ export class MobileOAuthHandler {
     this.cleanup();
     
     // Close browser if still open
-    try {
-      await Browser.close();
-    } catch {
-      // Browser might already be closed
+    if (this.isNativePlatform()) {
+      try {
+        await Browser.close();
+        console.log('✅ Browser closed successfully');
+      } catch (error) {
+        console.log('ℹ️ Browser already closed or close failed:', error);
+        // Browser might already be closed, this is normal
+      }
     }
 
     // Trigger auth success callback - let auth store handle session
@@ -163,10 +167,14 @@ export class MobileOAuthHandler {
     this.cleanup();
     
     // Close browser if still open
-    try {
-      await Browser.close();
-    } catch {
-      // Browser might already be closed
+    if (this.isNativePlatform()) {
+      try {
+        await Browser.close();
+        console.log('✅ Browser closed after error');
+      } catch (error) {
+        console.log('ℹ️ Browser already closed or close failed:', error);
+        // Browser might already be closed, this is normal
+      }
     }
 
     // Trigger auth error callback

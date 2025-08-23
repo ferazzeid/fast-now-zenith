@@ -26,6 +26,18 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
         return;
       }
       
+      // Ignore OAuth-related legitimate errors that are handled elsewhere
+      if (reason.includes('Authentication timeout') ||
+          reason.includes('Authentication cancelled') ||
+          reason.includes('OAuth') ||
+          reason.includes('Browser already closed') ||
+          reason.includes('Error handling auth timeout') ||
+          reason.includes('Error cancelling auth')) {
+        console.log('Ignoring OAuth-related error (handled elsewhere):', reason);
+        event.preventDefault();
+        return;
+      }
+      
       // Handle IndexedDB VersionError automatically
       if (event.reason?.name === 'VersionError' || reason.includes('VersionError')) {
         console.log('VersionError detected - clearing IndexedDB');
