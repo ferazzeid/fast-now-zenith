@@ -594,26 +594,6 @@ const FoodTracking = () => {
                               <Plus className="w-4 h-4 mr-2" />
                               Add to Template
                             </DropdownMenuItem>
-                             <DropdownMenuItem
-                               onClick={async () => {
-                                if (isInLibrary(entry.name)) {
-                                  toast({ title: 'Already in My Food', description: `${entry.name} is already in your food library` });
-                                  return;
-                                }
-                                await saveToLibrary({
-                                  name: entry.name,
-                                  calories: entry.calories,
-                                  carbs: entry.carbs,
-                                  serving_size: entry.serving_size,
-                                });
-                                addLibraryLocal(entry.name);
-                                toast({ title: 'Added to My Food', description: `${entry.name} added to your food library` });
-                              }}
-                              className={`py-2.5 px-3 ${isInLibrary(entry.name) ? "text-muted-foreground cursor-default" : ""}`}
-                            >
-                              <Save className="w-4 h-4 mr-2" />
-                              {isInLibrary(entry.name) ? 'Already in My Food' : 'Add to My Food'}
-                            </DropdownMenuItem>
                              <DropdownMenuItem 
                                onClick={() => handleDeleteFoodEntry(entry.id)}
                                className="py-2.5 px-3 text-destructive focus:text-destructive"
@@ -897,37 +877,6 @@ const FoodTracking = () => {
                                  >
                                    <Plus className="w-4 h-4 mr-2" />
                                    Add to Today
-                                 </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={async () => {
-                                     const currentFood = templateFoods.find(f => f.id === foodId);
-                                     if (!currentFood) {
-                                       toast({
-                                         variant: "destructive",
-                                         title: "Error",
-                                         description: "Food item not found"
-                                       });
-                                       return;
-                                     }
-                                     
-                                     if (isInLibrary(currentFood.name)) {
-                                       toast({ title: 'Already in My Food', description: `${currentFood.name} is already in your food library` });
-                                       return;
-                                     }
-                                     
-                                     await saveToLibrary({
-                                       name: currentFood.name,
-                                       calories: currentFood.calories,
-                                       carbs: currentFood.carbs,
-                                       serving_size: currentFood.serving_size,
-                                     });
-                                     addLibraryLocal(currentFood.name);
-                                     toast({ title: 'Added to My Food', description: `${currentFood.name} added to your food library` });
-                                   }}
-                                   className={`py-2.5 px-3 ${isInLibrary(food.name) ? "text-muted-foreground cursor-default" : ""}`}
-                                 >
-                                   <Save className="w-4 h-4 mr-2" />
-                                   {isInLibrary(food.name) ? 'Already in My Food' : 'Add to My Food'}
                                  </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     onClick={async () => {

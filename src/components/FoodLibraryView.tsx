@@ -233,51 +233,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const importToMyLibrary = async (defaultFood: DefaultFood) => {
-    if (!user) return;
-    
-    // Add visual feedback
-    setFlashingItems(prev => new Set([...prev, defaultFood.id]));
-    setTimeout(() => {
-      setFlashingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(defaultFood.id);
-        return newSet;
-      });
-    }, 600);
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_foods')
-        .insert({
-          user_id: user.id,
-          name: defaultFood.name,
-          calories_per_100g: defaultFood.calories_per_100g,
-          carbs_per_100g: defaultFood.carbs_per_100g,
-          image_url: defaultFood.image_url,
-          is_favorite: false,
-          variations: []
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setFoods(prev => [...prev, data]);
-      
-      toast({
-        title: "Food imported",
-        description: `${defaultFood.name} has been added to your personal library`,
-      });
-    } catch (error) {
-      console.error('Error importing food:', error);
-      toast({
-        title: "Error",
-        description: "Failed to import food to your library",
-        variant: "destructive"
-      });
-    }
-  };
 
   const toggleFavorite = async (foodId: string, currentFavorite: boolean) => {
     console.log('🍽️ FoodLibrary - toggleFavorite called with:', { foodId, currentFavorite });
@@ -613,16 +568,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         return;
       }
 
-      if (isUserFood) {
-        handleQuickSelect(food as UserFood, false);
-      } else {
-        // For Suggested foods, add them directly to today's plan
-        if (activeTab === 'suggested') {
-          handleQuickSelect(food as UserFood, false);
-        } else {
-          importToMyLibrary(food as DefaultFood);
-        }
-      }
+      // Always add to today's plan for both user foods and suggested foods
+      handleQuickSelect(food as UserFood, false);
     };
 
     return (
@@ -737,16 +684,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                               <Save className="w-4 h-4 mr-3" />
                               Add to Template
                            </DropdownMenuItem>
-                           <DropdownMenuItem
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               importToMyLibrary(food as DefaultFood);
-                             }}
-                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                            >
-                              <Download className="w-4 h-4 mr-3" />
-                              Add to My Food
-                           </DropdownMenuItem>
                            {food.id.startsWith('recent-') ? (
                              <DropdownMenuItem
                                onClick={(e) => {
@@ -847,25 +784,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                if (isUserFood) {
-                  handleQuickSelect(food as UserFood, false);
-                } else if (activeTab === 'suggested') {
-                  handleQuickSelect(food as UserFood, false);
-                } else {
-                  importToMyLibrary(food as DefaultFood);
-                }
+                handleQuickSelect(food as UserFood, false);
               }}
               className={`min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors ${
                 isFlashing ? 'animate-button-success' : ''
               }`}
-              title={isUserFood || activeTab === 'my-foods' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
-              aria-label={isUserFood || activeTab === 'my-foods' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+              title="Add to today's plan"
+              aria-label="Add to today's plan"
             >
-              {isUserFood || activeTab === 'my-foods' || activeTab === 'suggested' ? (
-                <Plus className="w-4 h-4" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
+              <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
