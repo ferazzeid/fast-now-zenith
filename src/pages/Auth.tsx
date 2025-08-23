@@ -79,6 +79,14 @@ const Auth = () => {
           <p className="text-muted-foreground">
             Your no-BS weight loss program
           </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/oauth-test')}
+            className="mt-2"
+          >
+            Debug OAuth Issues
+          </Button>
         </div>
 
         <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
