@@ -17,18 +17,21 @@ const ACTIVITY_LEVELS = {
   very_active: 'High'
 };
 
-// Conservative BMR-based calorie additions for daily activities
+// Calculate calorie additions above sedentary level (BMR × 1.2)
 const getCalorieAddition = (level: string, bmr: number) => {
   if (bmr === 0) return 0;
   
-  const multipliers = {
-    sedentary: 0.1, // Basic daily activities (bathroom, kitchen, etc.)
-    moderately_active: 0.3, // Light exercise/moderate activity 
-    very_active: 0.45, // Regular vigorous exercise
+  const activityMultipliers = {
+    sedentary: 1.2,        // Sedentary baseline
+    moderately_active: 1.55, // Light to moderate exercise
+    very_active: 1.725,    // Regular vigorous exercise
   };
   
-  const multiplier = multipliers[level as keyof typeof multipliers] || 0.1;
-  return Math.round(bmr * multiplier);
+  const sedentaryTdee = bmr * 1.2;
+  const levelTdee = bmr * (activityMultipliers[level as keyof typeof activityMultipliers] || 1.2);
+  
+  // Show additional calories above sedentary level
+  return Math.round(levelTdee - sedentaryTdee);
 };
 
 export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({ 
