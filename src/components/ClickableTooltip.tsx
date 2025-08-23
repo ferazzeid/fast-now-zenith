@@ -23,10 +23,23 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
   const recomputePosition = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const spaceAbove = rect.top;
-    const spaceRight = window.innerWidth - rect.right;
-    setShowBelow(spaceAbove < 120);
-    setAlignLeft(spaceRight < 180);
+    const tooltipWidth = 180;
+    const tooltipHeight = 120;
+    const margin = 16;
+    
+    const spaceAbove = rect.top - margin;
+    const spaceBelow = window.innerHeight - rect.bottom - margin;
+    const spaceLeft = rect.left - margin;
+    const spaceRight = window.innerWidth - rect.right - margin;
+    
+    // Prefer showing above if there's enough space, otherwise below
+    const showBelow = spaceAbove < tooltipHeight && spaceBelow >= tooltipHeight;
+    
+    // Prefer right alignment, but use left if there's more space or not enough space on right
+    const alignLeft = spaceRight < tooltipWidth && spaceLeft >= tooltipWidth;
+    
+    setShowBelow(showBelow);
+    setAlignLeft(alignLeft);
   };
 
   const handleToggle = (e: React.MouseEvent) => {

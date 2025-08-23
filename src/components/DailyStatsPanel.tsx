@@ -42,7 +42,7 @@ export const DailyStatsPanel = memo(() => {
   };
 
   const getDeficitColor = useMemo(() => (deficit: number) => {
-    if (deficit > 0) return 'text-green-600 dark:text-green-400';
+    if (deficit > 0) return 'text-primary';
     if (deficit < 0) return 'text-red-600 dark:text-red-400';
     return 'text-muted-foreground';
   }, []);
