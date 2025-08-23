@@ -34,7 +34,7 @@ const Walking = () => {
     currentSession, 
     loading, 
     selectedSpeed, 
-    setSelectedSpeed, 
+    updateSelectedSpeed,
     isPaused,
     startWalkingSession, 
     pauseWalkingSession,
@@ -252,38 +252,34 @@ const Walking = () => {
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}
             onSpeedChange={async (newSpeed) => {
-              setSelectedSpeed(newSpeed);
-              
-              // Force immediate stats update by triggering context refresh
-              if (isRunning) {
-                try {
+              try {
+                // Use the hook's updateSelectedSpeed for immediate saving and UI feedback
+                updateSelectedSpeed(newSpeed);
+                
+                // Also update the current session if one is active
+                if (isRunning) {
                   const result = await updateSessionSpeed(newSpeed);
                   if (result.error) {
                     toast({
                       variant: "destructive",
-                      title: "Speed Update Failed",
-                      description: "Unable to update walking speed. Please try again."
-                    });
-                  } else {
-                    // Show speed in neutral terms
-                    const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
-                    
-                    toast({
-                      title: "Speed Updated",
-                      description: `Speed updated to ${speedLabel}`
+                      title: "Session Update Failed",
+                      description: "Speed saved but session update failed. Will sync when online."
                     });
                   }
-                } catch (error) {
-                  toast({
-                    variant: "destructive",
-                    title: "Network Error",
-                    description: "Failed to update speed. Check your connection."
-                  });
                 }
-              } else {
+                
+                // Show immediate confirmation
+                const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
                 toast({
-                  title: "Speed Set", 
-                  description: `Speed set for next session`
+                  title: "Speed Updated",
+                  description: `Speed set to ${speedLabel}`
+                });
+              } catch (error) {
+                console.error('Error updating speed:', error);
+                toast({ 
+                  title: "Network Error", 
+                  description: "Speed will be synced when connection is restored",
+                  variant: "destructive" 
                 });
               }
             }}

@@ -31,6 +31,25 @@ export const UnifiedMotivatorRotation = ({
   const runIdRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const modeRef = useRef<'timer-focused' | 'motivator-focused'>('timer-focused');
+  const wasHiddenRef = useRef(false);
+
+  // Reset rotation to timer when page becomes visible after being hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && wasHiddenRef.current) {
+        // Page became visible after being hidden - reset to timer phase
+        setPhase('timer');
+        setIndex(0);
+        wasHiddenRef.current = false;
+        runIdRef.current += 1; // Force restart of the rotation
+      } else if (document.visibilityState === 'hidden') {
+        wasHiddenRef.current = true;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     if (!isActive || items.length === 0) {

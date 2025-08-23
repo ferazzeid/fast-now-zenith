@@ -572,10 +572,18 @@ export const useWalkingSession = () => {
     }
   }, [user]);
 
-  // Enhanced setSelectedSpeed that also saves to profile
-  const updateSelectedSpeed = useCallback((newSpeed: number) => {
+  // Enhanced setSelectedSpeed that also saves to profile with immediate feedback
+  const updateSelectedSpeed = useCallback(async (newSpeed: number) => {
+    // Immediate UI update for optimistic behavior
     setSelectedSpeed(newSpeed);
-    saveSpeedToProfile(newSpeed);
+    
+    try {
+      // Save to user's profile in background
+      await saveSpeedToProfile(newSpeed);
+    } catch (error) {
+      console.error('Error saving walking speed:', error);
+      // Note: We keep the optimistic UI update even on error for better UX
+    }
   }, [saveSpeedToProfile]);
 
   // triggerRefresh defined earlier
@@ -585,6 +593,7 @@ export const useWalkingSession = () => {
     loading,
     selectedSpeed,
     setSelectedSpeed: updateSelectedSpeed, // Use the enhanced version
+    updateSelectedSpeed, // Also export directly for explicit use
     isPaused,
     startWalkingSession,
     pauseWalkingSession,
