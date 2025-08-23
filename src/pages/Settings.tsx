@@ -136,16 +136,17 @@ const Settings = () => {
     return Math.round(bmr);
   };
 
-  // Calculate calorie addition for activity levels
+  // Calculate calorie addition for activity levels (matches InlineActivitySelector)
   const getCalorieAddition = (level: string) => {
     const bmr = calculateBMR();
     const multipliers = {
-      sedentary: 1.2,
-      moderately_active: 1.55,
-      very_active: 1.725
+      sedentary: 0.0,
+      lightly_active: 0.1,
+      moderately_active: 0.3,
+      very_active: 0.45
     };
-    const multiplier = multipliers[level as keyof typeof multipliers] || 1.2;
-    return Math.round(bmr * (multiplier - 1.2));
+    const multiplier = multipliers[level as keyof typeof multipliers] || 0.0;
+    return Math.round(bmr * multiplier);
   };
 
   const handleSaveSettings = async () => {
@@ -503,11 +504,12 @@ const Settings = () => {
                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
                          <SelectValue placeholder="Select" />
                        </SelectTrigger>
-                        <SelectContent>
-                           <SelectItem value="sedentary">Low (Sedentary) {getCalorieAddition('sedentary') > 0 ? `(+${getCalorieAddition('sedentary')} cal)` : ''}</SelectItem>
-                           <SelectItem value="moderately_active">Medium (Moderately Active) (+{getCalorieAddition('moderately_active')} cal)</SelectItem>
-                           <SelectItem value="very_active">High (Very Active) (+{getCalorieAddition('very_active')} cal)</SelectItem>
-                        </SelectContent>
+                         <SelectContent>
+                            <SelectItem value="sedentary">Sedentary {getCalorieAddition('sedentary') > 0 ? `(+${getCalorieAddition('sedentary')} cal)` : ''}</SelectItem>
+                            <SelectItem value="lightly_active">Lightly Active (+{getCalorieAddition('lightly_active')} cal)</SelectItem>
+                            <SelectItem value="moderately_active">Moderately Active (+{getCalorieAddition('moderately_active')} cal)</SelectItem>
+                            <SelectItem value="very_active">Very Active (+{getCalorieAddition('very_active')} cal)</SelectItem>
+                         </SelectContent>
                      </Select>
                    </div>
                    
@@ -524,7 +526,7 @@ const Settings = () => {
                          <Input
                            id="manual-tdee"
                            type="number"
-                           placeholder={`${Math.round(calculateBMR() * (activityLevel === 'sedentary' ? 1.2 : activityLevel === 'moderately_active' ? 1.55 : 1.725))} (calculated)`}
+                           placeholder={`${Math.round(calculateBMR() * (1.2 + (getCalorieAddition(activityLevel) / calculateBMR())))} (calculated)`}
                            value={manualTdeeOverride}
                            onChange={(e) => setManualTdeeOverride(e.target.value)}
                            className="bg-ceramic-base border-ceramic-rim flex-1"
