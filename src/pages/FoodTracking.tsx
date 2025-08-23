@@ -1019,21 +1019,9 @@ const FoodTracking = () => {
               image_url: food.image_url
             };
             
-            const result = await addFoodEntry(foodEntry);
-            
-            if (!result || 'error' in result) {
-              toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to add food to your plan"
-              });
-            } else {
-              toast({
-                title: "Food Added",
-                description: `${food.name} has been added to your plan`
-              });
-            }
-          }} 
+            // React Query handles errors and success automatically
+            await addFoodEntry(foodEntry);
+          }}
           onBack={() => setShowLibraryView(false)} 
         />
       </UniversalModal>
