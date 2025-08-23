@@ -48,9 +48,8 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   }, [profile]);
 
   const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | 'activityLevel' | null>(null);
-  const [tempValue, setTempValue] = useState('');
+  const [tempValue, setTempValue] = useState<{weight?: string, height?: string} | string>('');
   
-
   const [isLoading, setIsLoading] = useState(false);
 
   const handleComplete = async () => {
@@ -66,13 +65,40 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     try {
       setIsLoading(true);
       
+      // Detect unit preference from user selections
+      let detectedUnits: 'metric' | 'imperial' = 'imperial'; // default
+      
+      // Check if user's selections suggest metric preference
+      if (typeof tempValue === 'object' && tempValue) {
+        // If user has weight that suggests kg (30-300 range typically indicates kg)
+        const weightVal = tempValue.weight ? parseFloat(tempValue.weight) : parseFloat(formData.weight);
+        if (weightVal && weightVal <= 300) {
+          detectedUnits = 'metric';
+        }
+        
+        // If user has height that suggests cm (120-250 range indicates cm)
+        const heightVal = tempValue.height ? parseInt(tempValue.height) : parseInt(formData.height);
+        if (heightVal && heightVal >= 120 && heightVal <= 250) {
+          detectedUnits = 'metric';
+        }
+      } else {
+        // Fallback to form data analysis
+        const weightVal = parseFloat(formData.weight);
+        const heightVal = parseInt(formData.height);
+        
+        if ((weightVal && weightVal <= 300) || (heightVal && heightVal >= 120 && heightVal <= 250)) {
+          detectedUnits = 'metric';
+        }
+      }
+
       const { error } = await updateProfile({
         weight: Number(formData.weight),
         height: Number(formData.height),
         age: Number(formData.age),
         sex: formData.sex as 'male' | 'female',
         activity_level: formData.activityLevel,
-        onboarding_completed: true
+        onboarding_completed: true,
+        units: detectedUnits
       });
 
       if (error) {
@@ -107,9 +133,9 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
   const openModal = (field: 'weight' | 'height' | 'age' | 'sex' | 'activityLevel') => {
     setActiveModal(field);
     if (field === 'weight') {
-      setTempValue(formData.weight);
+      setTempValue({ weight: formData.weight });
     } else if (field === 'height') {
-      setTempValue(formData.height);
+      setTempValue({ height: formData.height });
     } else if (field === 'age') {
       setTempValue(formData.age);
     } else if (field === 'sex') {
@@ -121,15 +147,17 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
 
   const saveModal = () => {
     if (activeModal === 'weight') {
-      setFormData(prev => ({ ...prev, weight: tempValue }));
+      const weightValue = typeof tempValue === 'object' && tempValue?.weight ? tempValue.weight : '';
+      setFormData(prev => ({ ...prev, weight: weightValue }));
     } else if (activeModal === 'height') {
-      setFormData(prev => ({ ...prev, height: tempValue }));
+      const heightValue = typeof tempValue === 'object' && tempValue?.height ? tempValue.height : '';
+      setFormData(prev => ({ ...prev, height: heightValue }));
     } else if (activeModal === 'age') {
-      setFormData(prev => ({ ...prev, age: tempValue }));
+      setFormData(prev => ({ ...prev, age: typeof tempValue === 'string' ? tempValue : '' }));
     } else if (activeModal === 'sex') {
-      setFormData(prev => ({ ...prev, sex: tempValue }));
+      setFormData(prev => ({ ...prev, sex: typeof tempValue === 'string' ? tempValue : '' }));
     } else if (activeModal === 'activityLevel') {
-      setFormData(prev => ({ ...prev, activityLevel: tempValue }));
+      setFormData(prev => ({ ...prev, activityLevel: typeof tempValue === 'string' ? tempValue : '' }));
     }
     setActiveModal(null);
   };
@@ -164,8 +192,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       case 'weight':
         return (
           <EnhancedWeightSelector
-            value={tempValue}
-            onChange={setTempValue}
+            value={typeof tempValue === 'object' && tempValue?.weight ? tempValue.weight : ''}
+            onChange={(val) => setTempValue(prev => 
+              typeof prev === 'object' ? { ...prev, weight: val } : { weight: val }
+            )}
             className="space-y-2"
           />
         );
@@ -173,8 +203,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       case 'height':
         return (
           <EnhancedHeightSelector
-            value={tempValue}
-            onChange={setTempValue}
+            value={typeof tempValue === 'object' && tempValue?.height ? tempValue.height : ''}
+            onChange={(val) => setTempValue(prev => 
+              typeof prev === 'object' ? { ...prev, height: val } : { height: val }
+            )}
             className="space-y-2"
           />
         );
@@ -186,7 +218,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
               <label className="text-sm font-medium">Age</label>
               <Input
                 type="number"
-                value={tempValue}
+                value={typeof tempValue === 'string' ? tempValue : ''}
                 onChange={(e) => setTempValue(e.target.value)}
                 placeholder="Enter age (13-120)"
                 min="13"
@@ -201,7 +233,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Biological Sex</label>
-              <Select value={tempValue} onValueChange={setTempValue}>
+              <Select 
+                value={typeof tempValue === 'string' ? tempValue : ''} 
+                onValueChange={setTempValue}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select sex" />
                 </SelectTrigger>
@@ -219,7 +254,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Activity Level</label>
-              <Select value={tempValue} onValueChange={setTempValue}>
+              <Select 
+                value={typeof tempValue === 'string' ? tempValue : ''} 
+                onValueChange={setTempValue}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select activity level" />
                 </SelectTrigger>
@@ -314,7 +352,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
             </Button>
             <Button 
               onClick={saveModal}
-              disabled={!tempValue}
+              disabled={
+                (typeof tempValue === 'object' && !tempValue?.weight && !tempValue?.height) ||
+                (typeof tempValue === 'string' && !tempValue)
+              }
             >
               Save
             </Button>

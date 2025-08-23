@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
+import { formatDistance } from '@/utils/unitConversions';
 
 interface StopWalkingConfirmDialogProps {
   open: boolean;
@@ -165,7 +166,7 @@ export const StopWalkingConfirmDialog = ({
                 </div>
                 <div className="flex justify-between">
                   <span>Distance:</span>
-                  <span className="font-medium">{distance} {units === 'metric' ? 'km' : 'miles'}</span>
+                  <span className="font-medium">{formatDistance(distance, units)}</span>
                 </div>
               </div>
             )}

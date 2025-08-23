@@ -159,8 +159,8 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
       }
       
-      // Distance in km (always metric now)
-      let distance = (activeDurationMinutes / 60) * speedMph * 1.60934;
+      // Distance calculation - store in km but display according to user preference
+      let distanceKm = (activeDurationMinutes / 60) * speedMph * 1.60934;
 
       // Step calculation using metric system (height in cm)
       const heightCm = profile?.height || 175; // Default 175cm
@@ -175,13 +175,13 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       else speedFactor = 1.3;                        // Fast pace
       
       const strideInches = baseStride * speedFactor;
-      const distanceInches = distance * 39370.1; // Convert km to inches
+      const distanceInches = distanceKm * 39370.1; // Convert km to inches
       const totalSteps = Math.round(distanceInches / strideInches);
 
       setWalkingStats(prev => {
         const newStats = {
           realTimeCalories: calories,
-          realTimeDistance: Math.round(distance * 100) / 100,
+          realTimeDistance: Math.round(distanceKm * 100) / 100,
           realTimeSteps: totalSteps,
           timeElapsed: activeElapsed,
           isActive: true,

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProfile } from '@/hooks/useProfile';
 
 interface HeightSelectorProps {
   value: string;
@@ -12,8 +13,9 @@ interface HeightSelectorProps {
 type HeightUnit = 'cm' | 'ft' | 'in';
 
 export const EnhancedHeightSelector = ({ value, onChange, className }: HeightSelectorProps) => {
+  const { profile, updateProfile } = useProfile();
   const [inputValue, setInputValue] = useState(value);
-  const [unit, setUnit] = useState<HeightUnit>('cm');
+  const [unit, setUnit] = useState<HeightUnit>(profile?.units === 'metric' ? 'cm' : 'ft');
 
   useEffect(() => {
     setInputValue(value);
@@ -40,7 +42,7 @@ export const EnhancedHeightSelector = ({ value, onChange, className }: HeightSel
     return Math.round(inches * 2.54);
   };
 
-  const handleUnitChange = (newUnit: HeightUnit) => {
+  const handleUnitChange = async (newUnit: HeightUnit) => {
     if (inputValue && !isNaN(Number(inputValue.replace('.', '')))) {
       let convertedValue: string;
       const currentCmValue = unit === 'cm' 
@@ -61,6 +63,13 @@ export const EnhancedHeightSelector = ({ value, onChange, className }: HeightSel
       // Always store in cm
       onChange(currentCmValue.toString());
     }
+    
+    // Update profile units preference
+    if (profile) {
+      const newUnits = newUnit === 'cm' ? 'metric' : 'imperial';
+      await updateProfile({ units: newUnits });
+    }
+    
     setUnit(newUnit);
   };
 

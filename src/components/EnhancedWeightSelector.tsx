@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProfile } from '@/hooks/useProfile';
 
 interface WeightSelectorProps {
   value: string;
@@ -12,8 +13,9 @@ interface WeightSelectorProps {
 type WeightUnit = 'kg' | 'lb';
 
 export const EnhancedWeightSelector = ({ value, onChange, className }: WeightSelectorProps) => {
+  const { profile, updateProfile } = useProfile();
   const [inputValue, setInputValue] = useState(value);
-  const [unit, setUnit] = useState<WeightUnit>('kg');
+  const [unit, setUnit] = useState<WeightUnit>(profile?.units === 'metric' ? 'kg' : 'lb');
 
   useEffect(() => {
     setInputValue(value);
@@ -27,7 +29,7 @@ export const EnhancedWeightSelector = ({ value, onChange, className }: WeightSel
     return Math.round(lb / 2.20462 * 10) / 10;
   };
 
-  const handleUnitChange = (newUnit: WeightUnit) => {
+  const handleUnitChange = async (newUnit: WeightUnit) => {
     if (inputValue && !isNaN(Number(inputValue))) {
       const currentValue = Number(inputValue);
       let convertedValue: number;
@@ -47,6 +49,13 @@ export const EnhancedWeightSelector = ({ value, onChange, className }: WeightSel
       const kgValue = newUnit === 'kg' ? convertedValue : convertLbToKg(convertedValue);
       onChange(kgValue.toString());
     }
+    
+    // Update profile units preference
+    if (profile) {
+      const newUnits = newUnit === 'kg' ? 'metric' : 'imperial';
+      await updateProfile({ units: newUnits });
+    }
+    
     setUnit(newUnit);
   };
 

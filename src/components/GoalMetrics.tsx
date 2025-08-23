@@ -20,7 +20,18 @@ export const GoalMetrics = () => {
     return null;
   }
 
-  const units = profile?.units === 'metric' ? 'kg' : 'lbs';
+  const weightUnits = profile?.units === 'metric' ? 'kg' : 'lbs';
+  
+  // Convert weights to display units
+  const displayCurrentWeight = profile?.units === 'metric' 
+    ? currentWeight 
+    : currentWeight ? (currentWeight * 2.20462).toFixed(1) : currentWeight;
+  const displayGoalWeight = profile?.units === 'metric'
+    ? goalWeight
+    : goalWeight ? (goalWeight * 2.20462).toFixed(1) : goalWeight;
+  const displayWeightToLose = profile?.units === 'metric'
+    ? weightToLose?.toFixed(1)
+    : weightToLose ? (weightToLose * 2.20462).toFixed(1) : 0;
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -34,10 +45,10 @@ export const GoalMetrics = () => {
         </div>
         <div className="space-y-1">
           <div className="text-lg font-bold text-foreground">
-            {weightToLose?.toFixed(1) || 0} {units}
+            {displayWeightToLose || 0} {weightUnits}
           </div>
           <div className="text-xs text-muted-foreground">
-            {currentWeight} → {goalWeight} {units}
+            {displayCurrentWeight} → {displayGoalWeight} {weightUnits}
           </div>
         </div>
       </Card>

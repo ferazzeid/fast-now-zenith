@@ -1095,6 +1095,7 @@ export type Database = {
           trial_started_at: string | null
           tts_model: string | null
           tts_voice: string | null
+          units: string | null
           updated_at: string
           user_id: string
           user_tier: Database["public"]["Enums"]["user_tier"] | null
@@ -1143,6 +1144,7 @@ export type Database = {
           trial_started_at?: string | null
           tts_model?: string | null
           tts_voice?: string | null
+          units?: string | null
           updated_at?: string
           user_id: string
           user_tier?: Database["public"]["Enums"]["user_tier"] | null
@@ -1191,6 +1193,7 @@ export type Database = {
           trial_started_at?: string | null
           tts_model?: string | null
           tts_voice?: string | null
+          units?: string | null
           updated_at?: string
           user_id?: string
           user_tier?: Database["public"]["Enums"]["user_tier"] | null

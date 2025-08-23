@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 import { useProfile } from '@/hooks/useProfile';
+import { formatDistance } from '@/utils/unitConversions';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 import { EditWalkingSessionTimeModal } from '@/components/EditWalkingSessionTimeModal';
 
@@ -100,10 +101,8 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
     return Math.floor(durationMs / 1000 / 60); // Duration in minutes
   };
 
-  const formatDistance = (distance: number | null) => {
-    if (!distance) return '0';
-    const unit = profile?.units === 'metric' ? 'km' : 'mi';
-    return `${distance.toFixed(2)} ${unit}`;
+  const formatDistanceForSession = (distance: number | null) => {
+    return formatDistance(distance, profile?.units || 'imperial');
   };
 
   const hasAnySessions = completedSessions.length > 0 || walkingStats.isActive || manualBurns.length > 0;
@@ -212,7 +211,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                 </div>
               </div>
               <div className="text-xs text-green-600 dark:text-green-400 mt-1">
-                {walkingStats.realTimeDistance.toFixed(2)} {profile?.units === 'metric' ? 'km' : 'mi'} • 
+                {formatDistance(walkingStats.realTimeDistance, profile?.units || 'imperial')} • 
                 {walkingStats.realTimeSteps.toLocaleString()} steps
               </div>
             </Card>
@@ -259,7 +258,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                 </div>
               ) : session.distance ? (
                 <div className="text-xs text-muted-foreground mt-1">
-                  {formatDistance(session.distance)} • {session.estimated_steps?.toLocaleString() || 0} steps
+                  {formatDistanceForSession(session.distance)} • {session.estimated_steps?.toLocaleString() || 0} steps
                 </div>
               ) : null}
             </Card>
