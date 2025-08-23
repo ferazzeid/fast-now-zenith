@@ -351,17 +351,17 @@ const App = () => {
             <Toaster />
             <Sonner />
             
-            <Router>
-              <AsyncErrorBoundary>
-                <ThemeProvider>
-                  <AuthContextProvider>
-                    <SimpleWalkingStatsProvider>
+            <ThemeProvider>
+              <AuthContextProvider>
+                <SimpleWalkingStatsProvider>
+                  <Router>
+                    <AsyncErrorBoundary>
                       <AppContent isNativeApp={isNativeApp} platform={platform} />
-                    </SimpleWalkingStatsProvider>
-                  </AuthContextProvider>
-                </ThemeProvider>
-              </AsyncErrorBoundary>
-            </Router>
+                    </AsyncErrorBoundary>
+                  </Router>
+                </SimpleWalkingStatsProvider>
+              </AuthContextProvider>
+            </ThemeProvider>
           </TooltipProvider>
         </HookConsistencyBoundary>
       </QueryClientProvider>
