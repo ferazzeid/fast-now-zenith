@@ -23,6 +23,7 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
       onClose={handleClose}
       title={content.title}
       subtitle={content.subtitle}
+      showCloseButton={false}
     >
       {/* Profile setup flow */}
       <div className="mt-6 bg-muted/20 rounded-xl border border-border/50 p-6">
