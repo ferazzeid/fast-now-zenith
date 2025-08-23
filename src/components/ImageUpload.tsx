@@ -239,15 +239,15 @@ export const ImageUpload = ({
                   <p className="text-sm text-muted-foreground">Uploading...</p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center space-y-2">
-                  <Upload className="w-8 h-8 text-muted-foreground" />
-                  <p className="text-sm font-medium text-warm-text">
-                    Upload photo
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Drag & drop or click to browse
-                  </p>
-                </div>
+                 <div className="flex flex-col items-center space-y-2">
+                   <Upload className="w-8 h-8 text-muted-foreground" />
+                   <p className="text-sm font-medium text-warm-text">
+                     Upload for AI analysis
+                   </p>
+                   <p className="text-xs text-muted-foreground">
+                     Drag & drop or click to browse
+                   </p>
+                 </div>
               )}
             </div>
           )}
@@ -260,24 +260,11 @@ export const ImageUpload = ({
               disabled={isUploading}
               className="w-full h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
             >
-              <Camera className="w-6 h-6" />
-              <span className="text-sm">Use camera</span>
+               <Camera className="w-6 h-6" />
+               <span className="text-sm">Use camera for AI analysis</span>
             </Button>
           )}
 
-
-          {/* Desktop: Additional button if no drag & drop used */}
-          {!isMobile && (
-            <Button
-              variant="outline"
-              onClick={handleFileSelect}
-              disabled={isUploading}
-              className="w-full bg-ceramic-base border-ceramic-rim"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload photo
-            </Button>
-          )}
         </div>
       )}
 

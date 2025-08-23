@@ -296,15 +296,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
     >
       {/* Image section - camera upload or display */}
       {!imageUrl ? (
-        <div className="space-y-4 mb-4">
-          <div className="text-center py-2">
-            <div className="w-10 h-10 mx-auto mb-2 bg-muted rounded-full flex items-center justify-center">
-              <Camera className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {isSubscriptionActive ? "Use camera for AI analysis (optional)" : "Use camera (optional)"}
-            </p>
-          </div>
+        <div className="mb-4">
           <PremiumGate feature="Image Upload" grayOutForFree={true}>
             <ImageUpload onImageUpload={handleImageUpload} currentImageUrl={imageUrl} bucket="food-images" />
           </PremiumGate>
