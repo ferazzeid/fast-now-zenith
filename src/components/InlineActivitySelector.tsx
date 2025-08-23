@@ -17,10 +17,18 @@ const ACTIVITY_LEVELS = {
   very_active: 'High'
 };
 
-const ACTIVITY_CALORIE_ADDITIONS = {
-  sedentary: 0, // Base BMR * 1.2, so ~20% increase
-  moderately_active: 400, // Roughly the difference between 1.55 and 1.2 multipliers for average person
-  very_active: 800, // Roughly the difference between 1.725 and 1.2 multipliers for average person
+// Conservative BMR-based calorie additions for daily activities
+const getCalorieAddition = (level: string, bmr: number) => {
+  if (bmr === 0) return 0;
+  
+  const multipliers = {
+    sedentary: 0.1, // Basic daily activities (bathroom, kitchen, etc.)
+    moderately_active: 0.3, // Light exercise/moderate activity 
+    very_active: 0.45, // Regular vigorous exercise
+  };
+  
+  const multiplier = multipliers[level as keyof typeof multipliers] || 0.1;
+  return Math.round(bmr * multiplier);
 };
 
 export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({ 
@@ -28,7 +36,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { todayOverride, loading, setActivityOverride, clearTodayOverride } = useDailyActivityOverride();
-  const { profile } = useProfile();
+  const { profile, calculateBMR } = useProfile();
   const { refreshDeficit } = useDailyDeficitQuery();
 
   const handleValueChange = async (value: string) => {
@@ -57,9 +65,10 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
 
   const getDisplayLabel = (level: string) => {
     const baseName = ACTIVITY_LEVELS[level as keyof typeof ACTIVITY_LEVELS] || level;
-    const calorieAddition = ACTIVITY_CALORIE_ADDITIONS[level as keyof typeof ACTIVITY_CALORIE_ADDITIONS];
+    const bmr = calculateBMR();
+    const calorieAddition = getCalorieAddition(level, bmr);
     
-    if (calorieAddition !== undefined && calorieAddition > 0) {
+    if (calorieAddition > 0) {
       return `${baseName} (+${calorieAddition} cal)`;
     }
     return `${baseName} (Base Rate)`;
@@ -95,10 +104,11 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
                 <div className="flex flex-col">
                   <span>{label}</span>
                   <span className="text-[10px] text-muted-foreground">
-                    {ACTIVITY_CALORIE_ADDITIONS[key as keyof typeof ACTIVITY_CALORIE_ADDITIONS] > 0 
-                      ? `+${ACTIVITY_CALORIE_ADDITIONS[key as keyof typeof ACTIVITY_CALORIE_ADDITIONS]} cal/day`
-                      : 'Base metabolic rate'
-                    }
+                    {(() => {
+                      const bmr = calculateBMR();
+                      const addition = getCalorieAddition(key, bmr);
+                      return addition > 0 ? `+${addition} cal/day` : 'Base metabolic rate';
+                    })()}
                   </span>
                 </div>
                 {key === profile?.activity_level && !todayOverride && (
