@@ -68,13 +68,6 @@ export const FastSelector = ({
     return `Started on ${dayText} at ${timeText}`;
   };
 
-  const hoursAgoPresets = [
-    { label: '2 hours ago', hours: 2 },
-    { label: '6 hours ago', hours: 6 },
-    { label: '12 hours ago', hours: 12 },
-    { label: '24 hours ago', hours: 24 },
-  ];
-
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration);
   };
@@ -178,21 +171,6 @@ export const FastSelector = ({
           
           {startInPast && (
             <div className="space-y-4 pt-2">
-              {/* Quick Preset Buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                {hoursAgoPresets.map((preset) => (
-                  <Button
-                    key={preset.hours}
-                    variant={hoursAgo === preset.hours ? "default" : "outline"}
-                    onClick={() => setHoursAgo(preset.hours)}
-                    className="text-xs h-8"
-                    size="sm"
-                  >
-                    {preset.label}
-                  </Button>
-                ))}
-              </div>
-
               {/* Hours Ago Slider */}
               <div className="space-y-3">
                 <Label className="text-warm-text text-xs sm:text-sm">
@@ -208,24 +186,11 @@ export const FastSelector = ({
                 />
               </div>
 
-              {/* Hours Ago Input */}
-              <div className="space-y-2">
-                <Label className="text-warm-text text-xs sm:text-sm">Or enter exact hours</Label>
-                <Input
-                  type="number"
-                  value={hoursAgo}
-                  onChange={(e) => setHoursAgo(Math.max(1, Math.min(72, parseInt(e.target.value) || 1)))}
-                  min={1}
-                  max={72}
-                  className="bg-ceramic-base border-ceramic-rim text-xs sm:text-sm h-8 sm:h-10"
-                />
-              </div>
-
               {/* Preview */}
               <div className="p-3 bg-primary/10 rounded-md border border-primary/20">
                 <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span className="text-xs sm:text-sm font-medium text-primary">
+                  <Clock className="w-4 h-4 text-white" />
+                  <span className="text-xs sm:text-sm font-medium text-white">
                     {getPreviewDateTime()}
                   </span>
                 </div>
