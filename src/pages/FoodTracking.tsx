@@ -451,7 +451,7 @@ const FoodTracking = () => {
           >
             <TabsList className="grid w-full grid-cols-2 p-1">
               <TabsTrigger value="today" className="text-sm font-medium flex items-center justify-between px-3">
-                <span>Today's Plan</span>
+                <span>Today</span>
                 {todayEntries.length > 0 && activeTab === 'today' && (
                   <div className="flex items-center gap-4 ml-2">
                     <Button
