@@ -139,9 +139,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 "text-sm font-medium transition-colors duration-300",
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}>
-                {isActive && fastType ? 
-                   `${Math.round((goalDuration || 0))}h goal` : 
-                   isActive ? 'Fasting' : 'Ready to Fast'}
+                {isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
               
               {/* Main Timer - Centered - Fixed font size for consistency */}
@@ -171,7 +169,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               {/* Progress Percentage - Show fasting progress during fast, eating progress during eating */}
               {isActive && progress > 0 && (
                 <div className="text-xs text-primary/70 font-medium">
-                  {Math.max(1, Math.round(progress))}% fasted
+                  {Math.max(1, Math.round(progress))}%
                 </div>
               )}
               
