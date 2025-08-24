@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { supabase } from '@/integrations/supabase/client';
 
 // Generate a cryptographically secure nonce for Google Sign-In
@@ -34,28 +35,8 @@ export class GoogleSignInHandler {
   private isAuthInProgress = false;
 
   constructor() {
-    this.initializeGoogleAuth();
-  }
-
-  /**
-   * Initialize Google Auth plugin with configuration
-   */
-  private async initializeGoogleAuth(): Promise<void> {
-    if (!Capacitor.isNativePlatform()) {
-      console.log('🌐 Web platform - Google Auth will use web flow');
-      return;
-    }
-
-    try {
-      await GoogleAuth.initialize({
-        clientId: '1037732404902-adkv5gfn2e03vnr5ml3974jpcin776c6.apps.googleusercontent.com',
-        scopes: ['profile', 'email'],
-        grantOfflineAccess: true,
-      });
-      console.log('✅ Google Auth initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize Google Auth:', error);
-    }
+    // No initialization needed for Firebase Authentication plugin
+    console.log('✅ Firebase Authentication handler initialized');
   }
 
   /**
@@ -66,7 +47,7 @@ export class GoogleSignInHandler {
   }
 
   /**
-   * Start Google Sign-In flow using native SDK
+   * Start Google Sign-In flow using Firebase Authentication
    */
   public async signInWithGoogle(): Promise<OAuthResult> {
     if (this.isAuthInProgress) {
@@ -77,7 +58,7 @@ export class GoogleSignInHandler {
     this.isAuthInProgress = true;
 
     try {
-      console.log('🚀 Starting native Google Sign-In flow');
+      console.log('🚀 Starting Firebase Google Sign-In flow');
 
       if (!this.isNativePlatform()) {
         // Fallback to web OAuth for web platform
@@ -88,19 +69,19 @@ export class GoogleSignInHandler {
       const nonce = generateNonce();
       console.log('🔐 Generated nonce for secure authentication');
 
-      // Native platform - use Google Auth plugin
-      const googleUser = await GoogleAuth.signIn();
+      // Native platform - use Firebase Authentication plugin
+      const result = await FirebaseAuthentication.signInWithGoogle();
       
-      if (!googleUser.authentication?.idToken) {
-        throw new Error('No ID token received from Google');
+      if (!result.credential?.idToken) {
+        throw new Error('No ID token received from Firebase Authentication');
       }
 
-      console.log('✅ Google Sign-In successful, exchanging token with Supabase');
+      console.log('✅ Firebase Google Sign-In successful, exchanging token with Supabase');
 
-      // Exchange Google ID token with Supabase using nonce
+      // Exchange Firebase ID token with Supabase using nonce
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
-        token: googleUser.authentication.idToken,
+        token: result.credential.idToken,
         nonce: nonce,
       });
 
@@ -121,7 +102,7 @@ export class GoogleSignInHandler {
       return { success: true, session: data.session };
 
     } catch (error) {
-      console.error('❌ Google Sign-In failed:', error);
+      console.error('❌ Firebase Google Sign-In failed:', error);
       this.isAuthInProgress = false;
       
       const errorMessage = error instanceof Error ? error.message : 'Google Sign-In failed';
@@ -160,16 +141,16 @@ export class GoogleSignInHandler {
   }
 
   /**
-   * Sign out from Google
+   * Sign out from Firebase Authentication
    */
   public async signOut(): Promise<void> {
     try {
       if (this.isNativePlatform()) {
-        await GoogleAuth.signOut();
+        await FirebaseAuthentication.signOut();
       }
-      console.log('✅ Google Sign-Out completed');
+      console.log('✅ Firebase Sign-Out completed');
     } catch (error) {
-      console.error('❌ Google Sign-Out failed:', error);
+      console.error('❌ Firebase Sign-Out failed:', error);
     }
   }
 
@@ -178,7 +159,7 @@ export class GoogleSignInHandler {
    */
   public async cancelAuth(): Promise<void> {
     if (this.isAuthInProgress) {
-      console.log('🚫 Cancelling Google Sign-In process');
+      console.log('🚫 Cancelling Firebase Sign-In process');
       this.isAuthInProgress = false;
     }
   }

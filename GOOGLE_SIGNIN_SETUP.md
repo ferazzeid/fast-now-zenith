@@ -1,18 +1,21 @@
-# Google Sign-In Setup Instructions (Dual-Flow Implementation)
+# Firebase Google Sign-In Setup Guide
 
-This guide configures Google Sign-In for both **native Android app** and **web/PWA** platforms using a dual-flow approach.
+This guide configures Google Sign-In using Firebase Authentication for **native Android** and **web/PWA** platforms.
 
 ## Overview
 
-Your app now supports two authentication flows:
-- **Native Android**: Google Sign-In SDK → Direct token exchange with Supabase (no browser)
-- **Web/PWA**: Standard OAuth flow → Supabase → Redirect back to app
+The app uses Firebase Authentication as a client-side helper for Google Sign-In:
+- **Native Android**: Firebase Auth SDK → Google ID Token → Supabase `signInWithIdToken()`
+- **Web/PWA**: Standard OAuth redirect flow through Supabase (no Firebase needed)
+
+Both flows converge to the same Supabase backend, ensuring consistent user sessions and data across platforms.
 
 ## Prerequisites
 
-- Google Cloud Platform project
-- Android Studio (for SHA-1 fingerprints)
+- Google Cloud Platform project with Firebase project
+- Android Studio (for SHA-1 fingerprints)  
 - Supabase project configured
+- `google-services.json` file for Android
 
 ## Step 1: Google Cloud Console Configuration
 
@@ -77,21 +80,31 @@ keytool -keystore /path/to/your/release.keystore -list -v -alias your_alias
    https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/auth/callback
    ```
 
-## Step 3: App Configuration
+## Step 3: Firebase Project Configuration
 
-The app is already configured with:
-- **Client ID:** `1037732404902-adkv5gfn2e03vnr5ml3974jpcin776c6.apps.googleusercontent.com`
-- **Dual-flow detection:** Automatically uses native SDK on Android, web OAuth on browsers
-- **Callback handling:** `/auth/callback` route processes web OAuth returns
+### 3.1 Firebase Authentication Setup
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project (same as Google Cloud project)
+3. Navigate to "Authentication" → "Sign-in method"
+4. Enable **Google** provider
+5. Use the **Web OAuth Client ID** from Step 1.2
+6. Download `google-services.json` and place it in `android/app/`
+
+## Step 4: App Configuration
+
+The app is configured with Firebase Authentication:
+- **Firebase Authentication Plugin:** `@capacitor-firebase/authentication`
+- **Auto-platform detection:** Uses Firebase SDK on native, Supabase OAuth on web
+- **Token exchange:** Firebase ID tokens are exchanged with Supabase backend
 
 ## How It Works
 
-### Native Android Flow
+### Firebase Native Android Flow
 1. User taps "Continue with Google"
-2. Google Sign-In SDK opens → User selects account
-3. App receives ID token directly
+2. Firebase Auth SDK opens → User selects account  
+3. App receives Firebase ID token
 4. Token exchanged with Supabase via `signInWithIdToken()`
-5. User signed in (no browser involved)
+5. User signed in (seamless native experience)
 
 ### Web/PWA Flow  
 1. User clicks "Continue with Google"
@@ -105,7 +118,7 @@ The app is already configured with:
 - Same Supabase sessions and RLS policies
 - Web users can install PWA and get native experience
 
-## Step 4: Build and Test
+## Step 5: Build and Test
 
 1. **Build project:**
    ```bash
@@ -124,10 +137,10 @@ The app is already configured with:
 
 ## Troubleshooting
 
-### Native Android Issues
-- **"Invalid client"**: Check SHA-1 fingerprint and package name
-- **"Sign in failed"**: Verify Android OAuth client configuration
-- **"Network error"**: Ensure Google Play Services updated
+### Firebase Authentication Issues
+- **"Firebase not initialized"**: Ensure `google-services.json` is in `android/app/`
+- **"Auth domain error"**: Check Firebase project configuration
+- **"Invalid client"**: Verify SHA-1 fingerprint and Firebase Auth setup
 
 ### Web/PWA Issues
 - **Redirect loops**: Check Supabase redirect URLs match exactly
@@ -139,15 +152,15 @@ The app is already configured with:
 # Run with live reload and console access
 npx cap run android --livereload
 
-# Check console logs for detailed errors
-# Both flows have extensive logging
+# Check Firebase and Supabase integration logs
+# Detailed logging available in both flows
 ```
 
 ## Testing Checklist
 
-- [ ] Native Android: Tap Google → Account picker → No browser → Signed in
-- [ ] Web browser: Click Google → OAuth popup → Redirect → Signed in  
-- [ ] PWA: Same as web but can install as app
+- [ ] Native Android: Tap Google → Firebase Auth → No browser → Signed in
+- [ ] Web browser: Click Google → OAuth popup → Redirect → Signed in
+- [ ] PWA: Same as web but can install as app  
 - [ ] Same user appears in Supabase regardless of login method
 
-Your dual-flow implementation gives users the best experience on each platform while maintaining a unified backend!
+Your Firebase Authentication implementation provides native experience on Android while maintaining web compatibility and unified Supabase backend!
