@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821994900981",
+    "project_id": "fastnow-126a1",
+    "storage_bucket": "fastnow-126a1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821994900981:android:dbd169549fc406d2d1e4bc",
+        "android_client_info": {
+          "package_name": "com.fastnow.zenith"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDItIBM4uWy_DQHpAVxjN-a5wxX_IX8COs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
