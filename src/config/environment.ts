@@ -150,7 +150,7 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
   displayName: 'fast now - The No-BS Fat Loss Protocol',
   packageName: 'com.fastnow.zenith',
   bundleId: 'com.fastnow.zenith',
-  webUrl: '',
+  webUrl: 'https://go.fastnow.app',
   version: {
     code: 114,
     name: '114',

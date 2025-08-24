@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
+import OAuthCallback from "./pages/OAuthCallback";
 
 // import AdminOverview from "./pages/AdminOverview";
 
@@ -202,6 +203,11 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
             <Route path="/update-password" element={
               <PageErrorBoundary>
                 <UpdatePassword />
+              </PageErrorBoundary>
+            } />
+            <Route path="/oauth/callback" element={
+              <PageErrorBoundary>
+                <OAuthCallback />
               </PageErrorBoundary>
             } />
             <Route path="/" element={

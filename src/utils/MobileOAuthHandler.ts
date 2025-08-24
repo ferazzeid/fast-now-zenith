@@ -39,9 +39,7 @@ export class MobileOAuthHandler {
    * Generate OAuth URL with mobile-specific configuration
    */
   private async generateOAuthUrl(): Promise<string> {
-    const redirectUrl = this.isNativePlatform() 
-      ? 'com.fastnow.zenith://oauth/callback'
-      : `${window.location.origin}/oauth/callback`;
+    const redirectUrl = 'https://go.fastnow.app/oauth/callback';
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
