@@ -15,6 +15,11 @@ const config: CapacitorConfig = {
         androidCustomScheme: 'com.fastnow.zenith'
       }
     },
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: 'YOUR_WEB_CLIENT_ID_HERE.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
+    },
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,

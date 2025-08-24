@@ -10,7 +10,7 @@ interface AuthContextValue {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithGoogleMobile: () => Promise<{ error: any }>;
+  signInWithGoogleNative: () => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
 }
@@ -30,7 +30,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const signUp = useAuthStore(state => state.signUp);
   const signOut = useAuthStore(state => state.signOut);
   const signInWithGoogle = useAuthStore(state => state.signInWithGoogle);
-  const signInWithGoogleMobile = useAuthStore(state => state.signInWithGoogleMobile);
+  const signInWithGoogleNative = useAuthStore(state => state.signInWithGoogleNative);
   const resetPassword = useAuthStore(state => state.resetPassword);
   const updatePassword = useAuthStore(state => state.updatePassword);
   const initialize = useAuthStore(state => state.initialize);
@@ -48,7 +48,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     signUp,
     signOut,
     signInWithGoogle,
-    signInWithGoogleMobile,
+    signInWithGoogleNative,
     resetPassword,
     updatePassword,
   };

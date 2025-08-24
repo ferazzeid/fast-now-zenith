@@ -23,7 +23,7 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithGoogleMobile: () => Promise<{ error: any }>;
+  signInWithGoogleNative: () => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
   setLoading: (loading: boolean) => void;
@@ -167,24 +167,24 @@ export const useAuthStore = create<AuthState>()(
         return { error };
       },
 
-      signInWithGoogleMobile: async () => {
-        authLogger.info('Mobile Google OAuth - using MobileOAuthHandler');
+      signInWithGoogleNative: async () => {
+        authLogger.info('Native Google Sign-In - using GoogleSignInHandler');
         
         try {
-          const { MobileOAuthHandler } = await import('@/utils/MobileOAuthHandler');
-          const handler = new MobileOAuthHandler();
+          const { GoogleSignInHandler } = await import('@/utils/GoogleSignInHandler');
+          const handler = new GoogleSignInHandler();
           
           const result = await handler.signInWithGoogle();
           
           if (result.success) {
-            authLogger.info('Mobile OAuth successful');
+            authLogger.info('Native Google Sign-In successful');
             return { error: null };
           } else {
-            authLogger.error('Mobile OAuth failed:', result.error);
+            authLogger.error('Native Google Sign-In failed:', result.error);
             return { error: { message: result.error } };
           }
         } catch (error) {
-          authLogger.error('Mobile OAuth handler error:', error);
+          authLogger.error('Native Google Sign-In handler error:', error);
           return { error: { message: error instanceof Error ? error.message : 'Unknown error' } };
         }
       },
