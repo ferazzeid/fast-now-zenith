@@ -8,11 +8,18 @@ import android.view.View;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
 
+// Import Firebase Authentication plugin
+import io.capawesome.capacitorjs.plugins.firebase.authentication.CapacitorFirebaseAuthentication;
+
 public class MainActivity extends BridgeActivity {
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Register Firebase Authentication plugin manually
+        this.registerPlugin(CapacitorFirebaseAuthentication.class);
+        
         hideSystemUI();
         configureWebView();
         handleOAuthIntent(getIntent());
