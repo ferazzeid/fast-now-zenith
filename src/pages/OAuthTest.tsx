@@ -30,6 +30,13 @@ export default function OAuthTest() {
   const [testState, setTestState] = useState<TestState>({ isRunning: false, phase: 'idle' });
   const [method, setMethod] = useState<'custom_scheme' | 'app_link'>('custom_scheme');
   
+  // Add debug logging to check if component is rendering
+  React.useEffect(() => {
+    console.log('🧪 OAuthTest component mounted');
+    console.log('🧪 Platform:', Capacitor.getPlatform());
+    console.log('🧪 Is Native:', Capacitor.isNativePlatform());
+  }, []);
+  
   const listenersRef = useRef<Array<() => void>>([]);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
