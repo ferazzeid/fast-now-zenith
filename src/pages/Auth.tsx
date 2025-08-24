@@ -49,20 +49,14 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    console.log('🚀 Google Sign In button clicked', { isNativePlatform });
     setLoading(true);
     
     try {
       if (isNativePlatform) {
-        console.log('📱 Using mobile OAuth flow');
         await signInWithGoogleMobile();
       } else {
-        console.log('🌐 Using web OAuth flow');
-        const result = await signInWithGoogle();
-        console.log('🚀 Web Google Sign In result:', result);
+        await signInWithGoogle();
       }
-    } catch (error) {
-      console.error('🚀 Google Sign In error:', error);
     } finally {
       setLoading(false);
     }
@@ -79,14 +73,6 @@ const Auth = () => {
           <p className="text-muted-foreground">
             Your no-BS weight loss program
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/oauth-test')}
-            className="mt-2"
-          >
-            Debug OAuth Issues
-          </Button>
         </div>
 
         <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
