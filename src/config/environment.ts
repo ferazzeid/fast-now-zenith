@@ -103,11 +103,11 @@ export const getEnvironment = (): AppEnvironment => {
 };
 
 export const DEVELOPMENT_CONFIG: EnvironmentConfig = {
-  appId: 'com.fastnow.zenith.dev',
+  appId: 'com.fastnow.zenith', // Temporarily use production package name for OAuth
   appName: 'fast-now-zenith',
   displayName: 'fast now - The No-BS Fat Loss Protocol',
-  packageName: 'com.fastnow.zenith.dev',
-  bundleId: 'com.fastnow.zenith.dev',
+  packageName: 'com.fastnow.zenith', // Temporarily use production package name for OAuth
+  bundleId: 'com.fastnow.zenith', // Temporarily use production package name for OAuth
   webUrl: '',
   serverUrl: '',
   version: {
