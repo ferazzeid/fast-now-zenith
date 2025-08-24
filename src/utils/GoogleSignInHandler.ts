@@ -139,7 +139,7 @@ export class GoogleSignInHandler {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: 'https://go.fastnow.app/auth/callback',
         },
       });
 

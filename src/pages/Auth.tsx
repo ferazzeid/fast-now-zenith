@@ -191,7 +191,7 @@ const Auth = () => {
             <p className="text-xs text-muted-foreground text-center leading-relaxed">
               By continuing, you agree to our{' '}
               <a
-                href="https://fastnow.app/terms"
+                href="https://go.fastnow.app/terms"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline text-foreground hover:text-foreground"
@@ -199,7 +199,7 @@ const Auth = () => {
                 Terms of Service
               </a>{' '}and{' '}
               <a
-                href="https://fastnow.app/privacy"
+                href="https://go.fastnow.app/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline text-foreground hover:text-foreground"

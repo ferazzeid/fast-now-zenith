@@ -32,13 +32,13 @@ You need **TWO** OAuth clients for the dual-flow approach:
 4. **Authorized JavaScript origins:**
    ```
    https://texnkijwcygodtywgedm.supabase.co
-   https://fastnow.app
+   https://go.fastnow.app
    https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com
    ```
 5. **Authorized redirect URIs:**
    ```
    https://texnkijwcygodtywgedm.supabase.co/auth/v1/callback
-   https://fastnow.app/auth/callback
+   https://go.fastnow.app/auth/callback
    ```
 6. Save and copy the **Client ID**
 
@@ -70,10 +70,10 @@ keytool -keystore /path/to/your/release.keystore -list -v -alias your_alias
 
 ### 2.2 Configure Redirect URLs
 1. Supabase Dashboard → Authentication → URL Configuration
-2. **Site URL:** `https://fastnow.app`
+2. **Site URL:** `https://go.fastnow.app`
 3. **Redirect URLs:** Add these URLs:
    ```
-   https://fastnow.app/auth/callback
+   https://go.fastnow.app/auth/callback
    https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/auth/callback
    ```
 
