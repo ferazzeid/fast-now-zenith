@@ -1,94 +1,153 @@
-# Google Sign-In SDK Setup Instructions
+# Google Sign-In Setup Instructions (Dual-Flow Implementation)
 
-The Google Sign-In SDK has been successfully implemented! Here's what you need to do to complete the setup:
+This guide configures Google Sign-In for both **native Android app** and **web/PWA** platforms using a dual-flow approach.
 
-## ✅ What's Been Implemented
+## Overview
 
-- **Native Google Sign-In Handler**: `GoogleSignInHandler.ts` using `@codetrix-studio/capacitor-google-auth`
-- **Updated Authentication Flow**: All components now use the native SDK instead of browser-based OAuth
-- **Capacitor Configuration**: Google Auth plugin configured in `capacitor.config.ts`
-- **Android Dependencies**: Google Play Services Auth added to `android/app/build.gradle`
-- **Fallback Support**: Web platform still uses standard OAuth flow
+Your app now supports two authentication flows:
+- **Native Android**: Google Sign-In SDK → Direct token exchange with Supabase (no browser)
+- **Web/PWA**: Standard OAuth flow → Supabase → Redirect back to app
 
-## 🔧 Required Configuration Steps
+## Prerequisites
 
-### 1. Update Google Cloud Console
+- Google Cloud Platform project
+- Android Studio (for SHA-1 fingerprints)
+- Supabase project configured
 
-You mentioned you already have an Android OAuth client in Google Cloud Console. Make sure it has:
+## Step 1: Google Cloud Console Configuration
 
-- **Application Type**: Android
-- **Package Name**: `com.fastnow.zenith`
-- **SHA-1 Certificate Fingerprint**: Your debug/release certificate fingerprints
+### 1.1 Navigate to Google Cloud Console
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project
+3. Navigate to "APIs & Services" > "Credentials"
 
-### 2. Get Your Web Client ID
+### 1.2 Create OAuth 2.0 Client IDs
 
-In Google Cloud Console, you also need a **Web** OAuth client (this is different from your Android client):
+You need **TWO** OAuth clients for the dual-flow approach:
 
-1. Go to Google Cloud Console → APIs & Credentials → Credentials
-2. Create a new OAuth 2.0 Client ID with type "Web application"
-3. Copy the Client ID (it should end with `.apps.googleusercontent.com`)
+#### Web OAuth Client (Required for both flows)
+1. Click "Create Credentials" > "OAuth client ID"
+2. Choose **"Web application"**
+3. Name: "FastNow Web OAuth"
+4. **Authorized JavaScript origins:**
+   ```
+   https://texnkijwcygodtywgedm.supabase.co
+   https://fastnow.app
+   https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com
+   ```
+5. **Authorized redirect URIs:**
+   ```
+   https://texnkijwcygodtywgedm.supabase.co/auth/v1/callback
+   https://fastnow.app/auth/callback
+   ```
+6. Save and copy the **Client ID**
 
-### 3. Update Configuration Files
+#### Android OAuth Client (For native SDK)
+1. Click "Create Credentials" > "OAuth client ID"
+2. Choose **"Android"**  
+3. Name: "FastNow Android"
+4. Package name: `com.fastnow.zenith`
+5. **SHA-1 certificate fingerprint:** [Your fingerprint]
 
-Replace the placeholder in these files with your actual Web Client ID:
+### 1.3 Get SHA-1 Fingerprint
 
-**In `capacitor.config.ts`:**
-```typescript
-GoogleAuth: {
-  scopes: ['profile', 'email'],
-  serverClientId: 'YOUR_ACTUAL_WEB_CLIENT_ID.apps.googleusercontent.com', // ← Update this
-  forceCodeForRefreshToken: true,
-},
+**Debug builds:**
+```bash
+keytool -keystore ~/.android/debug.keystore -list -v -alias androiddebugkey -storepass android -keypass android
 ```
 
-**In `src/utils/GoogleSignInHandler.ts`:**
-```typescript
-await GoogleAuth.initialize({
-  clientId: 'YOUR_ACTUAL_WEB_CLIENT_ID', // ← Update this (without .apps.googleusercontent.com)
-  scopes: ['profile', 'email'],
-  grantOfflineAccess: true,
-});
+**Release builds:**
+```bash
+keytool -keystore /path/to/your/release.keystore -list -v -alias your_alias
 ```
 
-### 4. Sync Changes to Native Platform
+## Step 2: Supabase Configuration
 
-After updating the configuration:
+### 2.1 Configure Google Provider
+1. Supabase Dashboard → Authentication → Providers
+2. Enable **Google** provider
+3. Add your **Web OAuth Client ID** and **Client Secret** (from Step 1.2)
 
-1. `git pull` your project from GitHub
-2. `npm install` to ensure dependencies are installed  
-3. `npx cap sync` to sync changes to the native platform
-4. `npx cap run android` to test on Android
+### 2.2 Configure Redirect URLs
+1. Supabase Dashboard → Authentication → URL Configuration
+2. **Site URL:** `https://fastnow.app`
+3. **Redirect URLs:** Add these URLs:
+   ```
+   https://fastnow.app/auth/callback
+   https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/auth/callback
+   ```
 
-## 🎯 How It Works Now
+## Step 3: App Configuration
 
-### Native Platform (Android/iOS)
-1. User taps Google Sign-In button
-2. Native Google Sign-In SDK opens natively (no browser)
-3. User authenticates with Google
-4. Google returns ID token to the app
-5. App exchanges ID token with Supabase using `signInWithIdToken()`
-6. User is logged in - session managed by Supabase
+The app is already configured with:
+- **Client ID:** `1037732404902-adkv5gfn2e03vnr5ml3974jpcin776c6.apps.googleusercontent.com`
+- **Dual-flow detection:** Automatically uses native SDK on Android, web OAuth on browsers
+- **Callback handling:** `/auth/callback` route processes web OAuth returns
 
-### Web Platform  
-1. Falls back to standard Supabase OAuth flow
-2. Opens Google OAuth in browser tab
-3. Redirects back to app after authentication
+## How It Works
 
-## 🔍 Benefits of This Implementation
+### Native Android Flow
+1. User taps "Continue with Google"
+2. Google Sign-In SDK opens → User selects account
+3. App receives ID token directly
+4. Token exchanged with Supabase via `signInWithIdToken()`
+5. User signed in (no browser involved)
 
-- ✅ **Pure Native Experience**: No browser opening on mobile
-- ✅ **No Deep Link Issues**: No custom schemes or redirect handling needed
-- ✅ **Faster Authentication**: Direct token exchange with Supabase
-- ✅ **Better UX**: Native Google Sign-In UI that users expect
-- ✅ **Reliable**: Uses Google's official SDK instead of browser workarounds
+### Web/PWA Flow  
+1. User clicks "Continue with Google"
+2. Redirects to Google OAuth
+3. After consent, Google → Supabase → Your callback URL
+4. `/auth/callback` processes the session
+5. User redirected to main app
 
-## 🐛 Troubleshooting
+### Unified Experience
+- Same user database across platforms
+- Same Supabase sessions and RLS policies
+- Web users can install PWA and get native experience
 
-If you encounter issues:
+## Step 4: Build and Test
 
-1. **"GoogleAuth not available"**: Make sure you ran `npx cap sync`
-2. **"Invalid client ID"**: Verify the Web client ID is correct in both config files
-3. **"SHA-1 mismatch"**: Ensure your Android OAuth client has the correct SHA-1 fingerprints
-4. **Build errors**: Run `npx cap clean` then `npx cap sync`
+1. **Build project:**
+   ```bash
+   npm run build
+   ```
 
-The old `MobileOAuthHandler.ts` can be deleted once you confirm the new implementation works correctly.
+2. **Sync Capacitor:**
+   ```bash
+   npx cap sync android
+   ```
+
+3. **Run on device:**
+   ```bash
+   npx cap run android
+   ```
+
+## Troubleshooting
+
+### Native Android Issues
+- **"Invalid client"**: Check SHA-1 fingerprint and package name
+- **"Sign in failed"**: Verify Android OAuth client configuration
+- **"Network error"**: Ensure Google Play Services updated
+
+### Web/PWA Issues
+- **Redirect loops**: Check Supabase redirect URLs match exactly
+- **"Unauthorized redirect"**: Verify authorized redirect URIs in Google Cloud
+- **Callback errors**: Check `/auth/callback` route is accessible
+
+### Debug Commands
+```bash
+# Run with live reload and console access
+npx cap run android --livereload
+
+# Check console logs for detailed errors
+# Both flows have extensive logging
+```
+
+## Testing Checklist
+
+- [ ] Native Android: Tap Google → Account picker → No browser → Signed in
+- [ ] Web browser: Click Google → OAuth popup → Redirect → Signed in  
+- [ ] PWA: Same as web but can install as app
+- [ ] Same user appears in Supabase regardless of login method
+
+Your dual-flow implementation gives users the best experience on each platform while maintaining a unified backend!

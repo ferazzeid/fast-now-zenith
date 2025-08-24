@@ -17,6 +17,7 @@ import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 import { useProfile } from '@/hooks/useProfile';
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 
@@ -189,22 +190,27 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
         <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
           {!isAuthRoute && <DailyStatsPanel />}
-          <Routes>
-            <Route path="/auth" element={
-              <PageErrorBoundary>
-                <Auth />
-              </PageErrorBoundary>
-            } />
-            <Route path="/reset-password" element={
-              <PageErrorBoundary>
-                <ResetPassword />
-              </PageErrorBoundary>
-            } />
-            <Route path="/update-password" element={
-              <PageErrorBoundary>
-                <UpdatePassword />
-              </PageErrorBoundary>
-            } />
+           <Routes>
+             <Route path="/auth" element={
+               <PageErrorBoundary>
+                 <Auth />
+               </PageErrorBoundary>
+             } />
+             <Route path="/auth/callback" element={
+               <PageErrorBoundary>
+                 <AuthCallback />
+               </PageErrorBoundary>
+             } />
+             <Route path="/reset-password" element={
+               <PageErrorBoundary>
+                 <ResetPassword />
+               </PageErrorBoundary>
+             } />
+             <Route path="/update-password" element={
+               <PageErrorBoundary>
+                 <UpdatePassword />
+               </PageErrorBoundary>
+             } />
             <Route path="/" element={
               <ProtectedRoute>
                 <PageErrorBoundary>

@@ -2,6 +2,28 @@ import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { supabase } from '@/integrations/supabase/client';
 
+// Generate a cryptographically secure nonce for Google Sign-In
+function generateNonce(): string {
+  const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+  let result = '';
+  const cryptoObj = window.crypto || (window as any).msCrypto;
+  
+  if (cryptoObj) {
+    const randomValues = new Uint8Array(32);
+    cryptoObj.getRandomValues(randomValues);
+    randomValues.forEach(value => {
+      result += charset[value % charset.length];
+    });
+  } else {
+    // Fallback for environments without crypto
+    for (let i = 0; i < 32; i++) {
+      result += charset[Math.floor(Math.random() * charset.length)];
+    }
+  }
+  
+  return result;
+}
+
 interface OAuthResult {
   success: boolean;
   error?: string;
@@ -26,7 +48,7 @@ export class GoogleSignInHandler {
 
     try {
       await GoogleAuth.initialize({
-        clientId: 'YOUR_WEB_CLIENT_ID_HERE', // This will be the Web client ID from Google Cloud
+        clientId: '1037732404902-adkv5gfn2e03vnr5ml3974jpcin776c6.apps.googleusercontent.com',
         scopes: ['profile', 'email'],
         grantOfflineAccess: true,
       });
@@ -62,6 +84,10 @@ export class GoogleSignInHandler {
         return await this.signInWithGoogleWeb();
       }
 
+      // Generate nonce for enhanced security
+      const nonce = generateNonce();
+      console.log('🔐 Generated nonce for secure authentication');
+
       // Native platform - use Google Auth plugin
       const googleUser = await GoogleAuth.signIn();
       
@@ -71,10 +97,11 @@ export class GoogleSignInHandler {
 
       console.log('✅ Google Sign-In successful, exchanging token with Supabase');
 
-      // Exchange Google ID token with Supabase
+      // Exchange Google ID token with Supabase using nonce
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: googleUser.authentication.idToken,
+        nonce: nonce,
       });
 
       if (error) {
@@ -112,7 +139,7 @@ export class GoogleSignInHandler {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
