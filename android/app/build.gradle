@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -89,17 +90,3 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-// Apply Google Services plugin for Firebase
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.exists()) {
-        apply plugin: 'com.google.gms.google-services'
-        logger.info("✅ Google Services plugin applied - Firebase Authentication enabled")
-    } else {
-        logger.warn("❌ google-services.json not found - Firebase Authentication will not work on Android")
-        logger.warn("📋 Download google-services.json from Firebase Console and place it in android/app/")
-    }
-} catch(Exception e) {
-    logger.error("❌ Error applying Google Services plugin: ${e.message}")
-}
