@@ -26,10 +26,19 @@ npm install
 npx cap add android
 ```
 
-### 4. Google Play App Signing (Recommended)
-- This project uses Google Play App Signing for production builds
+### 4. Signing Configuration
+**For Development/Testing:**
+- Uses default debug signing (no keystore needed)
+- AAB files will be signed with debug key
+
+**For Production (Google Play App Signing - Recommended):**
+- Google Play handles signing automatically
 - No local keystore configuration required
-- Google handles signing automatically when you upload to Play Console
+- Upload unsigned AAB to Play Console
+
+**For Production (Manual Keystore):**
+- Uncomment and configure keystore.properties
+- Create release keystore: `keytool -genkey -v -keystore release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias`
 
 ### 5. Update Version (Before Each Release)
 Edit `android/app/build.gradle`:
