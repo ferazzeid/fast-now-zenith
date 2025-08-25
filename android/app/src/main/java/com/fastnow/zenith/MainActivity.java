@@ -7,11 +7,11 @@ import android.webkit.WebView;
 import android.view.View;
 import android.view.WindowManager;
 import android.util.Log;
+// Removed unused Firebase imports - now using Supabase directly
 import androidx.annotation.NonNull;
 import com.getcapacitor.BridgeActivity;
 
-// Import Firebase Authentication plugin
-import io.capawesome.capacitorjs.plugins.firebase.authentication.CapacitorFirebaseAuthentication;
+// Removed Firebase Authentication plugin import - now using Supabase directly
 
 // Import Google Sign-In
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -19,27 +19,21 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+// Removed unused Firebase imports - now using Supabase directly
 
-// Import Firebase Auth
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
+// Removed Firebase Auth imports - now using Supabase directly
 
 public class MainActivity extends BridgeActivity {
     
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient mGoogleSignInClient;
-    private FirebaseAuth mAuth;
+    // Removed Firebase Auth - now using Supabase directly
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
+        // Removed Firebase Auth initialization - now using Supabase directly
         
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -49,8 +43,7 @@ public class MainActivity extends BridgeActivity {
         
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         
-        // Register Firebase Authentication plugin manually
-        this.registerPlugin(CapacitorFirebaseAuthentication.class);
+        // Removed Firebase Authentication plugin registration - now using Supabase directly
         
         hideSystemUI();
         configureWebView();
@@ -153,10 +146,10 @@ public class MainActivity extends BridgeActivity {
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                // Google Sign In was successful, authenticate with Firebase
+                // Google Sign In was successful, now handled by Supabase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d("GoogleSignIn", "firebaseAuthWithGoogle:" + account.getId());
-                firebaseAuthWithGoogle(account.getIdToken());
+                Log.d("GoogleSignIn", "Google Sign In successful: " + account.getId());
+                // Token handling now done through Supabase OAuth flow
             } catch (ApiException e) {
                 // Google Sign In failed, update UI appropriately
                 Log.w("GoogleSignIn", "Google sign in failed", e);
@@ -164,21 +157,4 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("GoogleSignIn", "signInWithCredential:success");
-                            // The Capacitor plugin will handle the rest
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w("GoogleSignIn", "signInWithCredential:failure", task.getException());
-                        }
-                    }
-                });
-    }
 }
