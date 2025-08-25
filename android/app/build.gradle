@@ -27,9 +27,9 @@ android {
             keyPassword "123456"
         }
         release {
-            storeFile file("keystore/fastnow-release-key-new.jks")
+            storeFile file("keystore/my-upload-key.keystore")
             storePassword "123456"
-            keyAlias "my-key-alias"
+            keyAlias "upload"
             keyPassword "123456"
         }
     }
