@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Session } from '@supabase/supabase-js';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
-import { checkOAuthRecovery } from '@/utils/oauthRecovery';
 
 // Auth debugging logger
 const authLogger = {
@@ -49,9 +49,6 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Starting auth initialization');
         
         try {
-          // Check for OAuth recovery before setting up listeners
-          await checkOAuthRecovery();
-          
           // Set up auth state listener - simple and reliable
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
@@ -151,42 +148,29 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        // Web: let Supabase handle the redirect in the same window
-        authLogger.info('Initiating web OAuth flow');
+        const isNative = Capacitor.isNativePlatform();
+        authLogger.info(`Initiating ${isNative ? 'native' : 'web'} OAuth flow`);
+
+        const redirectTo = isNative 
+          ? 'com.fastnow.zenith://oauth/callback'
+          : `${window.location.origin}/auth/callback`;
 
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: window.location.origin }
+          options: { redirectTo }
         });
 
         if (error) {
           authLogger.error('Google OAuth initiation failed:', error);
         } else {
-          authLogger.info('Web OAuth redirect initiated');
+          authLogger.info(`${isNative ? 'Native' : 'Web'} OAuth redirect initiated`);
         }
         return { error };
       },
 
       signInWithGoogleNative: async () => {
-        authLogger.info('Native Google Sign-In - using GoogleSignInHandler');
-        
-        try {
-          const { GoogleSignInHandler } = await import('@/utils/GoogleSignInHandler');
-          const handler = new GoogleSignInHandler();
-          
-          const result = await handler.signInWithGoogle();
-          
-          if (result.success) {
-            authLogger.info('Native Google Sign-In successful');
-            return { error: null };
-          } else {
-            authLogger.error('Native Google Sign-In failed:', result.error);
-            return { error: { message: result.error } };
-          }
-        } catch (error) {
-          authLogger.error('Native Google Sign-In handler error:', error);
-          return { error: { message: error instanceof Error ? error.message : 'Unknown error' } };
-        }
+        // Deprecated - use signInWithGoogle instead
+        return get().signInWithGoogle();
       },
 
       resetPassword: async (email: string) => {

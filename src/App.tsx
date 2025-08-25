@@ -47,6 +47,7 @@ import { AuthContextProvider, useAuthContext } from '@/contexts/AuthContext';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useNativeApp } from './hooks/useNativeApp';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
+import { useAuthWithDeepLinks } from '@/hooks/useAuthWithDeepLinks';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -333,7 +334,10 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
   );
 };
 
-const App = () => {
+function App() {
+  // Initialize authentication and deep link handling
+  useAuthWithDeepLinks();
+  
   const { isNativeApp, platform } = useNativeApp();
   const Router = isNativeApp ? MemoryRouter : BrowserRouter;
   

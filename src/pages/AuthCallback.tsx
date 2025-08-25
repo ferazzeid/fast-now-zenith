@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Handles OAuth callback from Supabase for web/PWA Google Sign-In
@@ -17,7 +18,17 @@ const AuthCallback = () => {
       try {
         console.log('🔄 Processing OAuth callback...');
         
-        // Get the session from the URL parameters
+        const isNative = Capacitor.isNativePlatform();
+        
+        if (isNative) {
+          // For native platforms, we should not reach this callback page
+          // OAuth should be handled via deep links
+          console.warn('⚠️ Native platform reached web callback - redirecting to auth');
+          navigate('/auth');
+          return;
+        }
+        
+        // Web platform - get the session from the URL parameters
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
