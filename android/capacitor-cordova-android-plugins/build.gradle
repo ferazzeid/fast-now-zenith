@@ -4,6 +4,10 @@ ext {
 }
 
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
     }
@@ -29,6 +33,13 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    flatDir{
+        dirs 'src/main/libs', 'libs'
+    }
+}
 
 dependencies {
     implementation fileTree(dir: 'src/main/libs', include: ['*.jar'])

@@ -76,13 +76,28 @@ export class GoogleSignInHandler {
         throw new Error('No ID token received from Firebase Authentication');
       }
 
+      // Debug: decode JWT to inspect audience/subject
+      try {
+        const tokenParts = result.credential.idToken.split('.');
+        const payloadJson = JSON.parse(atob(tokenParts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        console.log('🔎 ID Token payload:', {
+          aud: payloadJson.aud,
+          azp: payloadJson.azp,
+          sub: payloadJson.sub,
+          iss: payloadJson.iss,
+          iat: payloadJson.iat,
+          exp: payloadJson.exp,
+        });
+      } catch (e) {
+        console.log('⚠️ Failed to decode ID token payload');
+      }
+
       console.log('✅ Firebase Google Sign-In successful, exchanging token with Supabase');
 
-      // Exchange Firebase ID token with Supabase using nonce
+      // Exchange Firebase ID token with Supabase
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: result.credential.idToken,
-        nonce: nonce,
       });
 
       if (error) {
