@@ -10,6 +10,8 @@ buildscript {
     }
 }
 
+apply from: "variables.gradle"
+
 allprojects {
     repositories {
         google()
@@ -19,12 +21,6 @@ allprojects {
 }
 
 ext {
-    // Android SDK levels
-    minSdkVersion = 23
-    compileSdkVersion = 35
-    targetSdkVersion = 35
-
-    // Library versions
     androidxAppCompatVersion = '1.6.1'
     androidxCoordinatorLayoutVersion = '1.2.0'
     coreSplashScreenVersion = '1.0.1'

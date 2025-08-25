@@ -14,15 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "821994900981-4tmd6b948khapc1oddoovcia8us5niik.apps.googleusercontent.com",
+          "client_id": "821994900981-vd0q3cbi259u2tmp56rf9q9kknj3b59p.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.fastnow.zenith",
-            "certificate_hash": "bad773e8c41a390869e59e3e88d8ebf2b80c4edb"
+            "certificate_hash": "30:28:92:05:5e:61:1a:c0:4b:ea:65:93:1e:4e:54:c6:b3:bb:03:d4"
           }
         },
         {
-          "client_id": "1037732404902-sco7a5a5a9gmnf3274g84ui899mhjqds.apps.googleusercontent.com",
+          "client_id": "821994900981-dft2mo0q6545lif47o8u7j12g1sv4jae.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -35,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1037732404902-sco7a5a5a9gmnf3274g84ui899mhjqds.apps.googleusercontent.com",
+              "client_id": "821994900981-dft2mo0q6545lif47o8u7j12g1sv4jae.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
