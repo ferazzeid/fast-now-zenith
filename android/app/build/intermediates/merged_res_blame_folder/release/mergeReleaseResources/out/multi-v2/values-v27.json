@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.fastnow.zenith.app-mergeReleaseResources-25:/values-v27/values-v27.xml",
+            "outputFile": "com.fastnow.zenith.app-mergeReleaseResources-34:/values-v27/values-v27.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\socia\\.gradle\\caches\\8.11.1\\transforms\\ef234481c09f01fb9f0508a5da2b1126\\transformed\\core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",
+                    "source": "C:\\Users\\socia\\.gradle\\caches\\8.9\\transforms\\9f1482d2197af081e7f7d8e7d5da939b\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",
                     "from": {
                         "startLines": "2,3,4,7",
                         "startColumns": "4,4,4,4",

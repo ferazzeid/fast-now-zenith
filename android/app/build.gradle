@@ -9,8 +9,8 @@ android {
         applicationId "com.fastnow.zenith"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 100201
-        versionName "100.201"
+        versionCode 100204
+        versionName "100.204"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -27,10 +27,10 @@ android {
             keyPassword "123456"
         }
         release {
-            storeFile file("../../fastnow-release-key.jks")
-            storePassword "fastnow123"
-            keyAlias "fastnow-key"
-            keyPassword "fastnow123"
+            storeFile file("keystore/my-upload-key.keystore")
+            storePassword "123456"
+            keyAlias "upload"
+            keyPassword "123456"
         }
     }
     
@@ -58,6 +58,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    implementation project(':capacitor-firebase-authentication')
     
     // Firebase Authentication
     implementation platform('com.google.firebase:firebase-bom:32.7.0')

@@ -1,10 +1,20 @@
 {
     "logs": [
         {
-            "outputFile": "com.fastnow.zenith.app-mergeReleaseResources-25:/values-night-v8/values-night-v8.xml",
+            "outputFile": "com.fastnow.zenith.app-mergeReleaseResources-34:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\socia\\.gradle\\caches\\8.11.1\\transforms\\dda665aa4a1576cfb1759fb2bbcd5279\\transformed\\appcompat-1.7.0\\res\\values-night-v8\\values-night-v8.xml",
+                    "source": "C:\\Users\\socia\\.gradle\\caches\\8.9\\transforms\\9f1482d2197af081e7f7d8e7d5da939b\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-night-v8\\values-night-v8.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "85",
+                        "endOffsets": "136"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\socia\\.gradle\\caches\\8.9\\transforms\\bb3b048024f622b6ef0e02f195bc78d4\\transformed\\appcompat-1.6.1\\res\\values-night-v8\\values-night-v8.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -18,16 +28,6 @@
                         "startOffsets": "141,211,295,379,475,577,679,773",
                         "endColumns": "69,83,83,95,101,101,93,88",
                         "endOffsets": "206,290,374,470,572,674,768,857"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\socia\\.gradle\\caches\\8.11.1\\transforms\\ef234481c09f01fb9f0508a5da2b1126\\transformed\\core-splashscreen-1.0.1\\res\\values-night-v8\\values-night-v8.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "85",
-                        "endOffsets": "136"
                     }
                 }
             ]
