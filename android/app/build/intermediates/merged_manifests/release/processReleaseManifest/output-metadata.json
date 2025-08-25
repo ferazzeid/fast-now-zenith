@@ -11,8 +11,8 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 1,
-      "versionName": "1.0",
+      "versionCode": 100200,
+      "versionName": "100.200",
       "outputFile": "AndroidManifest.xml"
     }
   ],

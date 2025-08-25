@@ -1,22 +1,73 @@
 {
 	"appId": "com.fastnow.zenith",
-	"appName": "Fast Now Zenith",
+	"appName": "fast-now-zenith",
 	"webDir": "dist",
 	"plugins": {
+		"App": {
+			"customSchemes": [
+				"com.fastnow.zenith"
+			]
+		},
 		"SplashScreen": {
-			"launchShowDuration": 2000,
+			"launchShowDuration": 0,
 			"launchAutoHide": true,
-			"backgroundColor": "#000000",
+			"backgroundColor": "#F5F5F5",
 			"androidSplashResourceName": "splash",
 			"androidScaleType": "CENTER_CROP",
-			"showSpinner": false
+			"showSpinner": false,
+			"splashFullScreen": true,
+			"splashImmersive": true
 		},
 		"StatusBar": {
-			"style": "dark"
+			"style": "default",
+			"backgroundColor": "#F5F5F5"
+		},
+		"Keyboard": {
+			"resize": "body",
+			"style": "dark",
+			"resizeOnFullScreen": true
+		},
+		"CapacitorCookies": {
+			"enabled": true
+		},
+		"CapacitorHttp": {
+			"enabled": true
 		}
 	},
+	"server": {
+		"androidScheme": "https"
+	},
 	"android": {
-		"allowMixedContent": true,
-		"captureInput": true
+		"allowMixedContent": false,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": true,
+		"appendUserAgent": "FastNowApp/1.0",
+		"overrideUserAgent": "FastNowApp/1.0 Native Android",
+		"backgroundColor": "#F5F5F5",
+		"useLegacyBridge": false,
+		"flavor": "main",
+		"allowNavigation": [
+			"*"
+		],
+		"mixedContentMode": "never",
+		"fullscreen": false,
+		"hardwareAccelerated": true,
+		"usesCleartextTraffic": true,
+		"versionCode": 1,
+		"versionName": "1.0.0",
+		"minWebViewVersion": 70,
+		"loggingBehavior": "debug",
+		"hideLogs": false,
+		"enableBridgeLogging": true
+	},
+	"ios": {
+		"backgroundColor": "#F5F5F5",
+		"overrideUserAgent": "FastNowApp/1.0 Native iOS",
+		"preferredContentMode": "mobile",
+		"allowsLinkPreview": false,
+		"scrollEnabled": true,
+		"limitsNavigationsToAppBoundDomains": true,
+		"allowsInlineMediaPlayback": true,
+		"suppressesIncrementalRendering": false
 	}
 }

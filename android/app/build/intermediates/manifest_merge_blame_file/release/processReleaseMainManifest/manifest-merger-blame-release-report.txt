@@ -1,154 +1,449 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
 3    package="com.fastnow.zenith"
-4    android:versionCode="1"
-5    android:versionName="1.0" >
+4    android:versionCode="100200"
+5    android:versionName="100.200" >
 6
 7    <uses-sdk
 8        android:minSdkVersion="23"
 9        android:targetSdkVersion="35" />
 10
-11    <!-- Permissions -->
-12
-13    <uses-permission android:name="android.permission.INTERNET" />
-13-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:40:5-67
-13-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:40:22-64
-14
-15    <permission
-15-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\5f51ed623ec66baebfa6a053fe8a8b2a\transformed\core-1.15.0\AndroidManifest.xml:22:5-24:47
-16        android:name="com.fastnow.zenith.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-16-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\5f51ed623ec66baebfa6a053fe8a8b2a\transformed\core-1.15.0\AndroidManifest.xml:23:9-81
-17        android:protectionLevel="signature" />
-17-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\5f51ed623ec66baebfa6a053fe8a8b2a\transformed\core-1.15.0\AndroidManifest.xml:24:9-44
-18
-19    <uses-permission android:name="com.fastnow.zenith.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-19-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\5f51ed623ec66baebfa6a053fe8a8b2a\transformed\core-1.15.0\AndroidManifest.xml:26:5-97
-19-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\5f51ed623ec66baebfa6a053fe8a8b2a\transformed\core-1.15.0\AndroidManifest.xml:26:22-94
-20
-21    <application
-21-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:4:5-36:19
-22        android:allowBackup="true"
-22-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:5:9-35
-23        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-23-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\5f51ed623ec66baebfa6a053fe8a8b2a\transformed\core-1.15.0\AndroidManifest.xml:28:18-86
-24        android:extractNativeLibs="false"
-25        android:icon="@mipmap/ic_launcher"
-25-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:6:9-43
-26        android:label="@string/app_name"
-26-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:7:9-41
-27        android:roundIcon="@mipmap/ic_launcher_round"
-27-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:8:9-54
-28        android:supportsRtl="true"
-28-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:9:9-35
-29        android:theme="@style/AppTheme" >
-29-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:10:9-40
-30        <activity
-30-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:12:9-25:20
-31            android:name="com.fastnow.zenith.MainActivity"
-31-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:14:13-41
-32            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
-32-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:13:13-140
-33            android:exported="true"
-33-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:18:13-36
-34            android:label="@string/title_activity_main"
-34-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:15:13-56
-35            android:launchMode="singleTask"
-35-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:17:13-44
-36            android:theme="@style/AppTheme.NoActionBarLaunch" >
-36-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:16:13-62
-37            <intent-filter>
-37-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:20:13-23:29
-38                <action android:name="android.intent.action.MAIN" />
-38-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:21:17-69
-38-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:21:25-66
-39
-40                <category android:name="android.intent.category.LAUNCHER" />
-40-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:22:17-77
-40-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:22:27-74
-41            </intent-filter>
-42        </activity>
-43
-44        <provider
-45            android:name="androidx.core.content.FileProvider"
-45-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:28:13-62
-46            android:authorities="com.fastnow.zenith.fileprovider"
-46-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:29:13-64
-47            android:exported="false"
-47-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:30:13-37
-48            android:grantUriPermissions="true" >
-48-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:31:13-47
-49            <meta-data
-49-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:32:13-34:64
-50                android:name="android.support.FILE_PROVIDER_PATHS"
-50-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:33:17-67
-51                android:resource="@xml/file_paths" />
-51-->C:\Users\socia\Fast Now to Play Store\android\app\src\main\AndroidManifest.xml:34:17-51
-52        </provider>
-53        <provider
-53-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
-54            android:name="androidx.startup.InitializationProvider"
-54-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
-55            android:authorities="com.fastnow.zenith.androidx-startup"
-55-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
-56            android:exported="false" >
-56-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
-57            <meta-data
-57-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
-58                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-58-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
-59                android:value="androidx.startup" />
-59-->[androidx.emoji2:emoji2:1.3.0] C:\Users\socia\.gradle\caches\8.11.1\transforms\455628e39230ce08b70f281b4ac99c3c\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
-60            <meta-data
-60-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\socia\.gradle\caches\8.11.1\transforms\2086035d7e747a32c2be40e6ed7f404e\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
-61                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-61-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\socia\.gradle\caches\8.11.1\transforms\2086035d7e747a32c2be40e6ed7f404e\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
-62                android:value="androidx.startup" />
-62-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\socia\.gradle\caches\8.11.1\transforms\2086035d7e747a32c2be40e6ed7f404e\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
-63            <meta-data
-63-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
-64                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-64-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
-65                android:value="androidx.startup" />
-65-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
-66        </provider>
-67
-68        <receiver
-68-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
-69            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-69-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
-70            android:directBootAware="false"
-70-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
-71            android:enabled="true"
-71-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
-72            android:exported="true"
-72-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
-73            android:permission="android.permission.DUMP" >
-73-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
-74            <intent-filter>
-74-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
-75                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-75-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
-75-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
-76            </intent-filter>
-77            <intent-filter>
-77-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
-78                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-78-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
-78-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
-79            </intent-filter>
-80            <intent-filter>
-80-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
-81                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-81-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
-81-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
-82            </intent-filter>
-83            <intent-filter>
-83-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
-84                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-84-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
-84-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.11.1\transforms\0f3d68271fd414f74f11a6a9c308b287\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
-85            </intent-filter>
-86        </receiver>
-87    </application>
-88
-89</manifest>
+11    <!-- Support for all device form factors -->
+12    <supports-screens
+12-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:5:5-11:37
+13        android:anyDensity="true"
+13-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:10:9-34
+14        android:largeScreens="true"
+14-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:8:9-36
+15        android:normalScreens="true"
+15-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:7:9-37
+16        android:resizeable="true"
+16-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:11:9-34
+17        android:smallScreens="true"
+17-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:6:9-36
+18        android:xlargeScreens="true" />
+18-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:9:9-37
+19
+20    <!-- Essential features -->
+21    <uses-feature
+21-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:14:5-16:35
+22        android:name="android.software.webview"
+22-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:15:9-48
+23        android:required="true" />
+23-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:16:9-32
+24
+25    <!-- Optional features for maximum device compatibility -->
+26    <uses-feature
+26-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:19:5-21:36
+27        android:name="android.hardware.touchscreen"
+27-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:20:9-52
+28        android:required="false" />
+28-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:21:9-33
+29    <uses-feature
+29-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:22:5-24:36
+30        android:name="android.software.leanback"
+30-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:23:9-49
+31        android:required="false" />
+31-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:24:9-33
+32    <uses-feature
+32-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:25:5-27:36
+33        android:name="android.hardware.type.automotive"
+33-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:26:9-56
+34        android:required="false" />
+34-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:27:9-33
+35    <uses-feature
+35-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:28:5-30:36
+36        android:name="android.hardware.type.television"
+36-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:29:9-56
+37        android:required="false" />
+37-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:30:9-33
+38    <uses-feature
+38-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:31:5-33:36
+39        android:name="android.software.app_widgets"
+39-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:32:9-52
+40        android:required="false" />
+40-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:33:9-33
+41
+42    <!-- Permissions -->
+43    <uses-permission android:name="android.permission.INTERNET" />
+43-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:99:5-67
+43-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:99:22-64
+44    <uses-permission android:name="android.permission.WAKE_LOCK" />
+44-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:100:5-68
+44-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:100:22-65
+45    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+45-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:101:5-79
+45-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:101:22-76
+46    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+46-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:102:5-76
+46-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:102:22-73
+47
+48    <queries>
+48-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-11:15
+49        <intent>
+49-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:9-10:18
+50            <action android:name="android.support.customtabs.action.CustomTabsService" />
+50-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:13-90
+50-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:21-87
+51        </intent>
+52    </queries>
+53
+54    <permission
+54-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.9\transforms\214bb257cb4b1e2489766d8fcb88af03\transformed\core-1.15.0\AndroidManifest.xml:22:5-24:47
+55        android:name="com.fastnow.zenith.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+55-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.9\transforms\214bb257cb4b1e2489766d8fcb88af03\transformed\core-1.15.0\AndroidManifest.xml:23:9-81
+56        android:protectionLevel="signature" />
+56-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.9\transforms\214bb257cb4b1e2489766d8fcb88af03\transformed\core-1.15.0\AndroidManifest.xml:24:9-44
+57
+58    <uses-permission android:name="com.fastnow.zenith.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+58-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.9\transforms\214bb257cb4b1e2489766d8fcb88af03\transformed\core-1.15.0\AndroidManifest.xml:26:5-97
+58-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.9\transforms\214bb257cb4b1e2489766d8fcb88af03\transformed\core-1.15.0\AndroidManifest.xml:26:22-94
+59
+60    <application
+60-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:35:5-96:19
+61        android:allowBackup="true"
+61-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:36:9-35
+62        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+62-->[androidx.core:core:1.15.0] C:\Users\socia\.gradle\caches\8.9\transforms\214bb257cb4b1e2489766d8fcb88af03\transformed\core-1.15.0\AndroidManifest.xml:28:18-86
+63        android:banner="@mipmap/ic_launcher"
+63-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:46:9-45
+64        android:extractNativeLibs="false"
+65        android:hardwareAccelerated="true"
+65-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:42:9-43
+66        android:icon="@mipmap/ic_launcher"
+66-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:37:9-43
+67        android:label="@string/app_name"
+67-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:38:9-41
+68        android:largeHeap="true"
+68-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:43:9-33
+69        android:networkSecurityConfig="@xml/network_security_config"
+69-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:45:9-69
+70        android:requestLegacyExternalStorage="false"
+70-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:47:9-53
+71        android:roundIcon="@mipmap/ic_launcher_round"
+71-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:39:9-54
+72        android:supportsRtl="true"
+72-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:40:9-35
+73        android:theme="@style/AppTheme"
+73-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:41:9-40
+74        android:usesCleartextTraffic="false" >
+74-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:44:9-45
+75
+76        <!-- App Bundle Metadata -->
+77        <meta-data
+77-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:50:9-52:37
+78            android:name="com.google.android.play.billingclient.version"
+78-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:51:13-73
+79            android:value="5.0.0" />
+79-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:52:13-34
+80        <meta-data
+80-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:53:9-55:69
+81            android:name="com.google.android.gms.version"
+81-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:54:13-58
+82            android:value="@integer/google_play_services_version" />
+82-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:55:13-66
+83
+84        <!-- Main Activity with comprehensive device support -->
+85        <activity
+85-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:58:9-85:20
+86            android:name="com.fastnow.zenith.MainActivity"
+86-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:59:13-41
+87            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density|layoutDirection|colorMode"
+87-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:66:13-174
+88            android:exported="true"
+88-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:60:13-36
+89            android:hardwareAccelerated="true"
+89-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:64:13-47
+90            android:label="@string/title_activity_main"
+90-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:62:13-56
+91            android:launchMode="singleTop"
+91-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:61:13-43
+92            android:theme="@style/AppTheme.NoActionBarLaunch"
+92-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:63:13-62
+93            android:windowSoftInputMode="adjustResize" >
+93-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:65:13-55
+94
+95            <!-- Combined launcher intent for all device types -->
+96            <intent-filter>
+96-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:69:13-73:29
+97                <action android:name="android.intent.action.MAIN" />
+97-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:70:17-69
+97-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:70:25-66
+98
+99                <category android:name="android.intent.category.LAUNCHER" />
+99-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:71:17-77
+99-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:71:27-74
+100                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+100-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:72:17-86
+100-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:72:27-83
+101            </intent-filter>
+102
+103            <!-- OAuth redirect intent filters -->
+104            <!-- Custom scheme for fallback -->
+105            <intent-filter android:autoVerify="true" >
+105-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:77:9-82:25
+105-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:77:24-49
+106                <action android:name="android.intent.action.VIEW" />
+106-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:78:11-63
+106-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:78:19-60
+107
+108                <category android:name="android.intent.category.DEFAULT" />
+108-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:79:11-70
+108-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:79:21-67
+109                <category android:name="android.intent.category.BROWSABLE" />
+109-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:80:11-72
+109-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:80:21-69
+110
+111                <data
+111-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:11-101
+112                    android:host="oauth"
+112-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:53-73
+113                    android:path="/callback"
+113-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:74-98
+114                    android:scheme="com.fastnow.zenith" />
+114-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:17-52
+115            </intent-filter>
+116        </activity>
+117
+118        <provider
+118-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:87:9-95:20
+119            android:name="androidx.core.content.FileProvider"
+119-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:88:13-62
+120            android:authorities="com.fastnow.zenith.fileprovider"
+120-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:89:13-66
+121            android:exported="false"
+121-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:90:13-37
+122            android:grantUriPermissions="true" >
+122-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:91:13-47
+123            <meta-data
+123-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:92:13-94:54
+124                android:name="android.support.FILE_PROVIDER_PATHS"
+124-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:93:17-67
+125                android:resource="@xml/file_paths" />
+125-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:94:17-51
+126        </provider>
+127
+128        <activity
+128-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:14:9-18:75
+129            android:name="com.capacitorjs.plugins.browser.BrowserControllerActivity"
+129-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:15:13-85
+130            android:exported="false"
+130-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:16:13-37
+131            android:launchMode="singleTask"
+131-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:17:13-44
+132            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+132-->[:capacitor-browser] C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:18:13-72
+133        <activity
+133-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:29:9-46:20
+134            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+134-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:30:13-80
+135            android:excludeFromRecents="true"
+135-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:31:13-46
+136            android:exported="true"
+136-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:32:13-36
+137            android:launchMode="singleTask"
+137-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:33:13-44
+138            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+138-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:34:13-72
+139            <intent-filter>
+139-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:35:13-45:29
+140                <action android:name="android.intent.action.VIEW" />
+140-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:78:11-63
+140-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:78:19-60
+141
+142                <category android:name="android.intent.category.DEFAULT" />
+142-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:79:11-70
+142-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:79:21-67
+143                <category android:name="android.intent.category.BROWSABLE" />
+143-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:80:11-72
+143-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:80:21-69
+144
+145                <data
+145-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:11-101
+146                    android:host="firebase.auth"
+146-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:53-73
+147                    android:path="/"
+147-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:74-98
+148                    android:scheme="genericidp" />
+148-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:17-52
+149            </intent-filter>
+150        </activity>
+151        <activity
+151-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:47:9-64:20
+152            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+152-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:48:13-79
+153            android:excludeFromRecents="true"
+153-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:49:13-46
+154            android:exported="true"
+154-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:50:13-36
+155            android:launchMode="singleTask"
+155-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:51:13-44
+156            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+156-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:52:13-72
+157            <intent-filter>
+157-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:53:13-63:29
+158                <action android:name="android.intent.action.VIEW" />
+158-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:78:11-63
+158-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:78:19-60
+159
+160                <category android:name="android.intent.category.DEFAULT" />
+160-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:79:11-70
+160-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:79:21-67
+161                <category android:name="android.intent.category.BROWSABLE" />
+161-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:80:11-72
+161-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:80:21-69
+162
+163                <data
+163-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:11-101
+164                    android:host="firebase.auth"
+164-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:53-73
+165                    android:path="/"
+165-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:74-98
+166                    android:scheme="recaptcha" />
+166-->C:\Users\socia\Desktop\newfastnow3\fast-now-zenith-fresh\android\app\src\main\AndroidManifest.xml:81:17-52
+167            </intent-filter>
+168        </activity>
+169
+170        <service
+170-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:66:9-72:19
+171            android:name="com.google.firebase.components.ComponentDiscoveryService"
+171-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:67:13-84
+172            android:directBootAware="true"
+172-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:32:13-43
+173            android:exported="false" >
+173-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:68:13-37
+174            <meta-data
+174-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:69:13-71:85
+175                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+175-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:70:17-109
+176                android:value="com.google.firebase.components.ComponentRegistrar" />
+176-->[com.google.firebase:firebase-auth:22.3.0] C:\Users\socia\.gradle\caches\8.9\transforms\bc0fd608f69405865b545e3705a2d14c\transformed\jetified-firebase-auth-22.3.0\AndroidManifest.xml:71:17-82
+177            <meta-data
+177-->[com.google.firebase:firebase-common-ktx:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\1a7391af42de96d07e0d5e0351a67a87\transformed\jetified-firebase-common-ktx-20.4.2\AndroidManifest.xml:12:13-14:85
+178                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+178-->[com.google.firebase:firebase-common-ktx:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\1a7391af42de96d07e0d5e0351a67a87\transformed\jetified-firebase-common-ktx-20.4.2\AndroidManifest.xml:13:17-116
+179                android:value="com.google.firebase.components.ComponentRegistrar" />
+179-->[com.google.firebase:firebase-common-ktx:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\1a7391af42de96d07e0d5e0351a67a87\transformed\jetified-firebase-common-ktx-20.4.2\AndroidManifest.xml:14:17-82
+180            <meta-data
+180-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:35:13-37:85
+181                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+181-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:36:17-109
+182                android:value="com.google.firebase.components.ComponentRegistrar" />
+182-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:37:17-82
+183        </service>
+184
+185        <activity
+185-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:23:9-27:75
+186            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+186-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:24:13-93
+187            android:excludeFromRecents="true"
+187-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:25:13-46
+188            android:exported="false"
+188-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:26:13-37
+189            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+189-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:27:13-72
+190        <!--
+191            Service handling Google Sign-In user revocation. For apps that do not integrate with
+192            Google Sign-In, this service will never be started.
+193        -->
+194        <service
+194-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:33:9-37:51
+195            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+195-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:34:13-89
+196            android:exported="true"
+196-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:35:13-36
+197            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+197-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:36:13-107
+198            android:visibleToInstantApps="true" />
+198-->[com.google.android.gms:play-services-auth:20.7.0] C:\Users\socia\.gradle\caches\8.9\transforms\ee17b8db384513f677ca1e5fab617707\transformed\jetified-play-services-auth-20.7.0\AndroidManifest.xml:37:13-48
+199
+200        <provider
+200-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:23:9-28:39
+201            android:name="com.google.firebase.provider.FirebaseInitProvider"
+201-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:24:13-77
+202            android:authorities="com.fastnow.zenith.firebaseinitprovider"
+202-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:25:13-72
+203            android:directBootAware="true"
+203-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:26:13-43
+204            android:exported="false"
+204-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:27:13-37
+205            android:initOrder="100" />
+205-->[com.google.firebase:firebase-common:20.4.2] C:\Users\socia\.gradle\caches\8.9\transforms\e5b2c517ecbc2b5b74448525b51a585f\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:28:13-36
+206
+207        <activity
+207-->[com.google.android.gms:play-services-base:18.0.1] C:\Users\socia\.gradle\caches\8.9\transforms\b429800d4ecd8a6550f78aa93cf04d15\transformed\jetified-play-services-base-18.0.1\AndroidManifest.xml:20:9-22:45
+208            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+208-->[com.google.android.gms:play-services-base:18.0.1] C:\Users\socia\.gradle\caches\8.9\transforms\b429800d4ecd8a6550f78aa93cf04d15\transformed\jetified-play-services-base-18.0.1\AndroidManifest.xml:20:19-85
+209            android:exported="false"
+209-->[com.google.android.gms:play-services-base:18.0.1] C:\Users\socia\.gradle\caches\8.9\transforms\b429800d4ecd8a6550f78aa93cf04d15\transformed\jetified-play-services-base-18.0.1\AndroidManifest.xml:22:19-43
+210            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+210-->[com.google.android.gms:play-services-base:18.0.1] C:\Users\socia\.gradle\caches\8.9\transforms\b429800d4ecd8a6550f78aa93cf04d15\transformed\jetified-play-services-base-18.0.1\AndroidManifest.xml:21:19-78
+211
+212        <provider
+212-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+213            android:name="androidx.startup.InitializationProvider"
+213-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:25:13-67
+214            android:authorities="com.fastnow.zenith.androidx-startup"
+214-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:26:13-68
+215            android:exported="false" >
+215-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:27:13-37
+216            <meta-data
+216-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+217                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+217-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:30:17-75
+218                android:value="androidx.startup" />
+218-->[androidx.emoji2:emoji2:1.2.0] C:\Users\socia\.gradle\caches\8.9\transforms\090ce07e4efa029fdc4271658553bc51\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:31:17-49
+219            <meta-data
+219-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\socia\.gradle\caches\8.9\transforms\00e060e70a5e957e5a01deb8b92ed6dc\transformed\jetified-lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
+220                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+220-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\socia\.gradle\caches\8.9\transforms\00e060e70a5e957e5a01deb8b92ed6dc\transformed\jetified-lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
+221                android:value="androidx.startup" />
+221-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\socia\.gradle\caches\8.9\transforms\00e060e70a5e957e5a01deb8b92ed6dc\transformed\jetified-lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
+222            <meta-data
+222-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+223                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+223-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+224                android:value="androidx.startup" />
+224-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+225        </provider>
+226
+227        <receiver
+227-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+228            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+228-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+229            android:directBootAware="false"
+229-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+230            android:enabled="true"
+230-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+231            android:exported="true"
+231-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+232            android:permission="android.permission.DUMP" >
+232-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+233            <intent-filter>
+233-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+234                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+234-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+234-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+235            </intent-filter>
+236            <intent-filter>
+236-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+237                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+237-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+237-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+238            </intent-filter>
+239            <intent-filter>
+239-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+240                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+240-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+240-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+241            </intent-filter>
+242            <intent-filter>
+242-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+243                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+243-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+243-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\socia\.gradle\caches\8.9\transforms\b6dbd5c360994196cbc5abe1dc367211\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+244            </intent-filter>
+245        </receiver>
+246    </application>
+247
+248</manifest>

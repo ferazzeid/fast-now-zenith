@@ -10,17 +10,29 @@
     <meta property="og:title" content="fast now - The No-BS Fat Loss Protocol" />
     <meta property="og:description" content="A beautiful, ceramic-inspired app to support your wellness journey with AI-powered motivation and guidance." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="/icon-512.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <!-- Native App Only - No PWA features -->
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="fast now">
     <meta name="theme-color" content="#8B7355">
+    <meta name="msapplication-TileColor" content="#8B7355">
+    <meta name="msapplication-config" content="/browserconfig.xml">
     
-    <!-- Basic Icon for Native App -->
-    <link rel="icon" type="image/png" href="/favicon.ico">
+    <!-- PWA Icons and Manifest - Local assets for native app -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-512.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="./icon-512.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon.ico">
+    
+    <!-- Dynamic Favicon -->
+    <link id="dynamic-favicon" rel="icon" href="./favicon.ico" type="image/png">
+    <link id="dynamic-shortcut-icon" rel="shortcut icon" href="./favicon.ico" type="image/png">
     <!-- Prevent theme flash -->
     <script>
       (function() {
@@ -39,15 +51,15 @@
       gtag('js', new Date());
       gtag('config', 'GA_MEASUREMENT_ID');
     </script>
-    <script type="module" crossorigin src="/assets/index-CNtalSg2.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-D63tyEUO.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-4JzjGctU.js">
-    <link rel="modulepreload" crossorigin href="/assets/supabase-CG8ZnHQM.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-3dp0dgKp.css">
+    <script type="module" crossorigin src="./assets/index-D6Zlv4TB.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor-D63tyEUO.js">
+    <link rel="modulepreload" crossorigin href="./assets/ui-4JzjGctU.js">
+    <link rel="modulepreload" crossorigin href="./assets/supabase-DmvLFwnu.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-Bg-672oM.css">
   </head>
 
   <body>
-    <div id="root"></div>
-    <!-- No service worker for native app -->
+    <div id="root"></div>
+    <!-- Service worker registration now handled by conditionalPWA.ts -->
   </body>
 </html>
