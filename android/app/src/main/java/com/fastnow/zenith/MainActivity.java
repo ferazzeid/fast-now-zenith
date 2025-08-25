@@ -1,18 +1,15 @@
 package com.fastnow.zenith;
 
-import android.content.Intent;
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.Plugin;
-
-import java.util.ArrayList;
+import io.capawesome.capacitorjs.plugins.firebase.authentication.FirebaseAuthenticationPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Register plugins
-        registerPlugin(io.capawesome.capacitorjs.plugins.firebase.authentication.FirebaseAuthenticationPlugin.class);
+        // Register the Firebase Authentication plugin
+        registerPlugin(FirebaseAuthenticationPlugin.class);
     }
 }
