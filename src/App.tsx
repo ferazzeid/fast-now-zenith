@@ -79,6 +79,9 @@ interface AppContentProps {
 }
 
 const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
+  // Initialize authentication and deep link handling inside Router context
+  useAuthWithDeepLinks();
+  
   // All hooks must be called consistently - no conditional hooks!
   const location = useLocation();
   const { user } = useAuthContext();
@@ -335,9 +338,6 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
 };
 
 function App() {
-  // Initialize authentication and deep link handling
-  useAuthWithDeepLinks();
-  
   const { isNativeApp, platform } = useNativeApp();
   const Router = isNativeApp ? MemoryRouter : BrowserRouter;
   
