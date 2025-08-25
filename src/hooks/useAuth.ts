@@ -1,7 +1,7 @@
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
-import { useAuthCacheManager } from '@/hooks/useAuthCacheManager.tsx';
+import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
 
 
 export const useAuth = () => {
