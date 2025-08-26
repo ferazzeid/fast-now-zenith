@@ -455,23 +455,28 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     try {
       console.log('🍽️ FoodLibrary - Starting delete all foods operation');
       
+      // Optimistic update - clear local state immediately
+      const originalFoods = [...foods];
+      setFoods([]);
+      setShowDeleteAllConfirm(false);
+      
       const { error } = await supabase
         .from('user_foods')
         .delete()
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('🍽️ FoodLibrary - Database deletion failed, rolling back:', error);
+        // Rollback optimistic update on error
+        setFoods(originalFoods);
+        setShowDeleteAllConfirm(true);
+        throw error;
+      }
 
-      console.log('🍽️ FoodLibrary - Database deletion successful, clearing local state');
-      
-      // Immediately clear local state for instant UI feedback
-      setFoods([]);
-      setShowDeleteAllConfirm(false);
+      console.log('🍽️ FoodLibrary - Database deletion successful');
       
       // Also refresh recent foods to clear any cached data
       refreshRecentFoods();
-      
-      console.log('🍽️ FoodLibrary - Local state cleared');
       
       toast({
         title: "All foods removed",
@@ -680,6 +685,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                  collisionPadding={16}
                  className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
                  style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
+                 onCloseAutoFocus={(e) => e.preventDefault()}
                >
                     {isUserFood ? (
                       <>

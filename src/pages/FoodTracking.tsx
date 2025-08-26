@@ -118,7 +118,7 @@ const FoodTracking = () => {
             calories: food.calories,
             carbs: food.carbs,
             serving_size: food.serving_size,
-            consumed: true,
+            consumed: false,
             image_url: food.image_url
           });
           console.log('🍽️ Successfully added food:', food.name);
@@ -157,7 +157,7 @@ const FoodTracking = () => {
       calories: food.calories,
       carbs: food.carbs,
       serving_size: food.serving_size,
-      consumed: true,
+      consumed: false,
       image_url: food.image_url
     });
     

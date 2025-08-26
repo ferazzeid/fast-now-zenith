@@ -199,7 +199,7 @@ export const useDailyFoodTemplate = () => {
         serving_size: template.serving_size,
         image_url: template.image_url,
         user_id: user.id,
-        consumed: true,
+        consumed: false,
         source_date: today
       }));
 
