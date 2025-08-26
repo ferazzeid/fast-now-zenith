@@ -238,6 +238,26 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     ));
 
     try {
+      // First, verify the food exists and belongs to the user
+      const { data: existingFood, error: checkError } = await supabase
+        .from('user_foods')
+        .select('id, name, user_id, is_favorite')
+        .eq('id', foodId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (checkError) {
+        console.error('🍽️ FoodLibrary - Food verification error:', checkError);
+        throw new Error(`Food not found or access denied: ${checkError.message}`);
+      }
+
+      if (!existingFood) {
+        throw new Error('Food item not found in your library');
+      }
+
+      console.log('🍽️ FoodLibrary - Existing food verified:', existingFood);
+
+      // Perform the update
       const { data, error } = await supabase
         .from('user_foods')
         .update({ is_favorite: !currentFavorite })
@@ -247,8 +267,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         .single();
 
       if (error) {
-        console.error('🍽️ FoodLibrary - toggleFavorite error:', error);
+        console.error('🍽️ FoodLibrary - toggleFavorite update error:', error);
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('No data returned from update operation');
       }
 
       console.log('🍽️ FoodLibrary - toggleFavorite success:', data);
@@ -272,12 +296,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       // Provide specific error messages
       let errorMessage = "Failed to update favorite status";
       if (error instanceof Error) {
-        if (error.message.includes('auth') || error.message.includes('permission')) {
+        if (error.message.includes('auth') || error.message.includes('permission') || error.message.includes('access denied')) {
           errorMessage = "Authentication error. Please log in again.";
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = "Network error. Check your connection.";
         } else if (error.message.includes('not found')) {
-          errorMessage = "Food item not found.";
+          errorMessage = "Food item not found in your library.";
+        } else if (error.message.includes('No data returned')) {
+          errorMessage = "Update failed - please try again.";
+        } else {
+          // Include the actual error message for debugging
+          errorMessage = `Failed to update favorite status: ${error.message}`;
         }
       }
       
