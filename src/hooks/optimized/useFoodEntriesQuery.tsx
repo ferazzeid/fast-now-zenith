@@ -42,6 +42,7 @@ interface NewFoodEntry {
   serving_size: number;
   consumed?: boolean;
   image_url?: string;
+  insertAfterIndex?: number;
 }
 
 interface DailyTotals {
@@ -162,7 +163,19 @@ export const useFoodEntriesQuery = () => {
 
       queryClient.setQueryData(
         foodEntriesQueryKey(user?.id || null, today),
-        (old: FoodEntry[] = []) => [optimisticEntry, ...old]
+        (old: FoodEntry[] = []) => {
+          // If insertAfterIndex is specified, insert at that position + 1
+          if (newEntry.insertAfterIndex !== undefined && newEntry.insertAfterIndex >= 0) {
+            const insertIndex = Math.min(newEntry.insertAfterIndex + 1, old.length);
+            return [
+              ...old.slice(0, insertIndex),
+              optimisticEntry,
+              ...old.slice(insertIndex)
+            ];
+          }
+          // Default behavior: insert at the beginning
+          return [optimisticEntry, ...old];
+        }
       );
 
       return { previousEntries, optimisticId: tempId };

@@ -530,13 +530,15 @@ const FoodTracking = () => {
                              <DropdownMenuItem
                                className="py-2.5 px-3"
                                onClick={async () => {
+                                const currentIndex = todayEntries.findIndex(e => e.id === entry.id);
                                 const result = await addFoodEntry({
                                   name: entry.name,
                                   calories: entry.calories,
                                   carbs: entry.carbs,
                                   serving_size: entry.serving_size,
                                   consumed: false,
-                                  image_url: entry.image_url
+                                  image_url: entry.image_url,
+                                  insertAfterIndex: currentIndex
                                 });
                                 
                                 if (!result || 'error' in result) {
