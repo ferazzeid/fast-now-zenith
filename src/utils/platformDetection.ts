@@ -4,16 +4,13 @@ export type PaymentProvider = 'stripe' | 'google_play' | 'apple_app_store';
 export const detectPlatform = (): Platform => {
   if (typeof window === 'undefined') return 'web';
   
-  // Check if running in Capacitor
-  // @ts-ignore - Capacitor types may not be available
-  if (window.Capacitor) {
-    // @ts-ignore
-    const platform = window.Capacitor.getPlatform();
-    return platform === 'ios' ? 'ios' : platform === 'android' ? 'android' : 'web';
+  // For TWA deployment, check if running in Android WebView
+  const userAgent = navigator.userAgent;
+  if (userAgent.includes('wv') && userAgent.includes('Android')) {
+    return 'android'; // TWA on Android
   }
   
   // Fallback detection based on user agent
-  const userAgent = navigator.userAgent;
   if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
     return 'ios';
   } else if (userAgent.includes('Android')) {

@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CriticalErrorBoundary, PageErrorBoundary } from "@/components/enhanced/ComprehensiveErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
@@ -45,7 +45,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { AuthContextProvider, useAuthContext } from '@/contexts/AuthContext';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { useNativeApp } from './hooks/useNativeApp';
+
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
@@ -72,12 +72,8 @@ if (typeof window !== 'undefined') {
   });
 }
 
-interface AppContentProps {
-  isNativeApp: boolean;
-  platform: string;
-}
 
-const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
+const AppContent = () => {
   // All hooks must be called consistently - no conditional hooks!
   const location = useLocation();
   const { user } = useAuthContext();
@@ -92,31 +88,11 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
   // No need for App-level deep link handling
   
   // Simplified startup with clear states
-  const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup(isNativeApp);
+  const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
   
   // Load dynamic assets AFTER startup is complete (deferred, non-blocking)
-  useDeferredAssets(isNativeApp);
+  useDeferredAssets();
 
-  // Native app setup
-  useEffect(() => {
-    // Hide browser UI for native apps
-    if (isNativeApp) {
-      // Hide address bar and browser chrome
-      const metaViewport = document.querySelector('meta[name="viewport"]');
-      if (metaViewport) {
-        metaViewport.setAttribute('content', 
-          'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
-        );
-      }
-      
-      // Add native app class to body
-      document.body.classList.add('native-app', `platform-${platform}`);
-      
-      // Remove any browser-specific styling
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }
-  }, [isNativeApp, platform]);
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -334,17 +310,8 @@ const AppContent = ({ isNativeApp, platform }: AppContentProps) => {
 };
 
 const App = () => {
-  const { isNativeApp, platform } = useNativeApp();
-  const Router = isNativeApp ? MemoryRouter : BrowserRouter;
-  
-  // For native apps, apply minimal styling immediately
-  useEffect(() => {
-    if (isNativeApp && typeof window !== 'undefined') {
-      document.body.classList.add('native-app', `platform-${platform}`);
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }
-  }, [isNativeApp, platform]);
+  // For TWA deployment, always use BrowserRouter
+  const Router = BrowserRouter;
   
   return (
     <CriticalErrorBoundary 
@@ -364,7 +331,7 @@ const App = () => {
                 <SimpleWalkingStatsProvider>
                   <Router>
                     <AsyncErrorBoundary>
-                      <AppContent isNativeApp={isNativeApp} platform={platform} />
+                      <AppContent />
                     </AsyncErrorBoundary>
                   </Router>
                 </SimpleWalkingStatsProvider>

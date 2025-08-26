@@ -12,15 +12,6 @@ export interface EnvironmentConfig {
     code: number;
     name: string;
   };
-  nativeApp: {
-    allowNavigation: string[];
-    fullscreen: boolean;
-    hideLogs: boolean;
-    loggingBehavior: string;
-    immersiveMode: boolean;
-    hardwareAccelerated: boolean;
-    usesCleartextTraffic: boolean;
-  };
   colors: {
     primary: string;
     primaryHover: string;
@@ -52,37 +43,17 @@ export const getEnvironment = (): AppEnvironment => {
       return 'production';
     }
     
-    // Method 2: Check for Capacitor object (native app)
-    if (typeof window !== 'undefined' && (window as any).Capacitor) {
-      console.log('🔥 NATIVE APP DETECTED: Capacitor object');
-      return 'production';
-    }
-    
-    // Method 2b: AAB build detection (critical for production builds)
+    // Method 2: Check for TWA/Android WebView
     if (typeof window !== 'undefined') {
-      const isAABBuild = 
-        document.documentElement.getAttribute('data-build-type') === 'aab' ||
-        window.location.origin.includes('android_asset') ||
-        (window as any).AndroidInterface ||
+      const isTWA = 
         navigator.userAgent.includes('wv') ||
-        window.location.href.includes('android_asset');
+        window.location.href.includes('android_asset') ||
+        (window as any).AndroidInterface;
       
-      if (isAABBuild) {
-        console.log('🔥 AAB BUILD DETECTED: Production mode forced');
+      if (isTWA) {
+        console.log('🔥 TWA BUILD DETECTED: Production mode forced');
         return 'production';
       }
-    }
-    
-    // Method 3: Check for force production flag
-    if (typeof window !== 'undefined' && (window as any).__FORCE_PRODUCTION__) {
-      console.log('🔥 PRODUCTION MODE: force flag');
-      return 'production';
-    }
-    
-    // Method 4: Check for capacitor protocol
-    if (typeof window !== 'undefined' && window.location.protocol === 'capacitor:') {
-      console.log('🔥 NATIVE APP DETECTED: capacitor protocol');
-      return 'production';
     }
     
     // Method 5: Check for HTTPS in non-localhost (usually production)
@@ -113,15 +84,6 @@ export const DEVELOPMENT_CONFIG: EnvironmentConfig = {
   version: {
     code: 1,
     name: '1.0.0',
-  },
-  nativeApp: {
-    allowNavigation: ['*'],
-    fullscreen: false,
-    hideLogs: false,
-    loggingBehavior: 'debug',
-    immersiveMode: false,
-    hardwareAccelerated: true,
-    usesCleartextTraffic: true,
   },
   colors: {
     primary: '220 13% 45%', // Neutral gray - emergency fallback only
@@ -154,24 +116,6 @@ export const PRODUCTION_CONFIG: EnvironmentConfig = {
   version: {
     code: 114,
     name: '114',
-  },
-  nativeApp: {
-    allowNavigation: [
-      'https://accounts.google.com/*',
-      'https://*.google.com/*',
-      'https://oauth2.googleapis.com/*',
-      'https://*.googleusercontent.com/*',
-      'https://oauth.googleusercontent.com/*',
-      'https://appleid.apple.com/*',
-      'https://*.supabase.co/*',
-      'com.fastnow.zenith://*'
-    ],
-    fullscreen: false, // Allow navigation bars for OAuth
-    hideLogs: false, // Keep logs for OAuth debugging
-    loggingBehavior: 'production', // Limited but present
-    immersiveMode: true,
-    hardwareAccelerated: true,
-    usesCleartextTraffic: false,
   },
   colors: {
     primary: '220 13% 45%', // Neutral gray - emergency fallback only

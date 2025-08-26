@@ -7,7 +7,7 @@ import { recordStartupMetric } from '@/utils/startupPerformance';
 
 export type StartupState = 'loading' | 'auth' | 'profile' | 'ready' | 'error';
 
-export const useSimplifiedStartup = (isNativeApp: boolean) => {
+export const useSimplifiedStartup = () => {
   const [state, setState] = useState<StartupState>('loading');
   const [error, setError] = useState<string>('');
   const [retryCount, setRetryCount] = useState(0);
@@ -101,7 +101,6 @@ export const useSimplifiedStartup = (isNativeApp: boolean) => {
     state,
     error,
     isOnline,
-    isNativeApp,
     retry,
     forceRefresh,
     retryCount

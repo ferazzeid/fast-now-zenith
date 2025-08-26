@@ -7,23 +7,19 @@ import { useDynamicHTMLMeta } from './useDynamicHTMLMeta';
 /**
  * Deferred asset loading hook - loads dynamic assets AFTER app is ready
  * This prevents blocking startup with non-critical asset loading
- * Hooks are called unconditionally to obey Rules of Hooks - platform detection handled inside each hook
+ * For TWA deployment, always loads PWA assets
  */
-export const useDeferredAssets = (isNativeApp: boolean) => {
+export const useDeferredAssets = () => {
   
   // Load color theme (deferred)
   useColorTheme();
   
-  // Always call hooks unconditionally - they handle native app detection internally
-  useDynamicFavicon(isNativeApp);
-  useDynamicPWAAssets(isNativeApp);
-  useDynamicHTMLMeta(isNativeApp);
+  // Always load PWA assets for TWA deployment
+  useDynamicFavicon(false);
+  useDynamicPWAAssets(false);
+  useDynamicHTMLMeta(false);
 
   useEffect(() => {
-    if (isNativeApp) {
-      console.log('Native app detected - PWA features disabled');
-    } else {
-      console.log('Web app detected - Dynamic assets loading deferred (non-blocking)');
-    }
-  }, [isNativeApp]);
+    console.log('TWA app - Dynamic assets loading deferred (non-blocking)');
+  }, []);
 };
