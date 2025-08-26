@@ -148,7 +148,7 @@ const Timer = () => {
         const timeToGoal = goalEndTime.getTime() - Date.now();
         
         // CRITICAL FIX: Only set timeout if reasonable and session is current
-        const MAX_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours max
+        const MAX_TIMEOUT = 168 * 60 * 60 * 1000; // 168 hours max (7 days)
         if (timeToGoal > 0 && timeToGoal < MAX_TIMEOUT) {
           console.log(`🎯 Setting goal completion timeout for ${timeToGoal}ms from now`);
           goalTimeout = setTimeout(async () => {
