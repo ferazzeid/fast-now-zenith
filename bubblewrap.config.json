@@ -20,7 +20,7 @@
   },
   "splashScreen": {
     "backgroundColor": "#F5F2EA",
-    "image": "https://go.fastnow.app/icon-512.png"
+    "image": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest"
   },
   "shortcuts": []
 }

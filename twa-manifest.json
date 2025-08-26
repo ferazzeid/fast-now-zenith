@@ -1,6 +1,6 @@
 {
   "packageId": "com.fastnow.zenith",
-  "host": "fastnow.app",
+  "host": "go.fastnow.app",
   "name": "fast now - The No-BS Fat Loss Protocol", 
   "launcherName": "fast now",
   "display": "standalone",
@@ -12,9 +12,9 @@
   "navigationDividerColorDark": "#000000",
   "backgroundColor": "#F5F2EA",
   "enableNotifications": true,
-  "startUrl": "https://fastnow.app/",
-  "iconUrl": "https://fastnow.app/supabase/functions/v1/dynamic-manifest",
-  "maskableIconUrl": "https://fastnow.app/supabase/functions/v1/dynamic-manifest",
+  "startUrl": "https://go.fastnow.app/",
+  "iconUrl": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest",
+  "maskableIconUrl": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "C:\\Users\\socia\\Desktop\\fastnownonative\\android.keystore",
@@ -24,7 +24,7 @@
   "appVersionCode": 100216,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://fastnow.app/supabase/functions/v1/dynamic-manifest",
+  "webManifestUrl": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
@@ -33,7 +33,7 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://fastnow.app/",
+  "fullScopeUrl": "https://go.fastnow.app/",
   "minSdkVersion": 21,
   "orientation": "portrait-primary",
   "fingerprints": [],
