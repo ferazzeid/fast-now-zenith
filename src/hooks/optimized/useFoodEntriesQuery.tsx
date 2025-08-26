@@ -140,13 +140,16 @@ export const useFoodEntriesQuery = () => {
       return data;
     },
     onMutate: async (newEntry) => {
-      // PERFORMANCE: Optimistic update
+      // PERFORMANCE: Optimistic update with stable ID for smoother transitions
       await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
 
       const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
 
+      // Generate a more predictable temporary ID that we can easily track
+      const tempId = `optimistic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
       const optimisticEntry: FoodEntry = {
-        id: `temp-${Date.now()}`,
+        id: tempId,
         user_id: user?.id || '',
         name: newEntry.name,
         calories: newEntry.calories,
@@ -162,14 +165,19 @@ export const useFoodEntriesQuery = () => {
         (old: FoodEntry[] = []) => [optimisticEntry, ...old]
       );
 
-      return { previousEntries };
+      return { previousEntries, optimisticId: tempId };
     },
     onError: (err, newEntry, context) => {
       console.error('🔄 useFoodEntriesQuery: addFoodEntryMutation error:', err);
       console.error('🔄 useFoodEntriesQuery: Failed entry:', newEntry);
       
-      // Rollback on error
-      if (context?.previousEntries) {
+      // Rollback on error - remove the optimistic entry
+      if (context?.optimisticId) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          (old: FoodEntry[] = []) => old.filter(entry => entry.id !== context.optimisticId)
+        );
+      } else if (context?.previousEntries) {
         queryClient.setQueryData(
           foodEntriesQueryKey(user?.id || null, today),
           context.previousEntries
@@ -196,13 +204,18 @@ export const useFoodEntriesQuery = () => {
         variant: "destructive",
       });
     },
-    onSuccess: (data) => {
-      // Replace optimistic update with real data
+    onSuccess: (data, variables, context) => {
+      // Do an in-place replacement to minimize visual disruption
       queryClient.setQueryData(
         foodEntriesQueryKey(user?.id || null, today),
         (old: FoodEntry[] = []) => {
-          const withoutOptimistic = old.filter(entry => !entry.id.startsWith('temp-'));
-          return [data, ...withoutOptimistic];
+          return old.map(entry => {
+            // Replace the optimistic entry with real data in-place
+            if (entry.id === context?.optimisticId) {
+              return data;
+            }
+            return entry;
+          });
         }
       );
       // Invalidate daily totals to recalculate
