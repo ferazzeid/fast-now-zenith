@@ -287,6 +287,8 @@ export const useFoodEntriesQuery = () => {
       return data;
     },
     onMutate: async ({ id, updates }) => {
+      console.log('🔄 updateFoodEntry: Starting optimistic update for:', id, updates);
+      
       // PERFORMANCE: Optimistic update
       await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
 
@@ -302,13 +304,32 @@ export const useFoodEntriesQuery = () => {
           )
       );
 
-      return { previousEntries };
+      return { previousEntries, entryId: id };
     },
-    onSuccess: (data) => {
-      console.log('🍽️ Update successful:', data);
-      // Invalidate both queries to refresh
-      queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+    onSuccess: (data, variables, context) => {
+      console.log('🔄 updateFoodEntry: Success, updating cache in-place for:', context?.entryId);
+      
+      // Do an in-place replacement to minimize visual disruption - same pattern as addFoodEntry
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => {
+          return old.map(entry => {
+            // Replace the entry with real data from server
+            if (entry.id === context?.entryId) {
+              return data;
+            }
+            return entry;
+          });
+        }
+      );
+      
+      // Only invalidate daily totals since that's a derived calculation
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      
+      toast({
+        title: "Food entry updated",
+        description: "Your food entry has been successfully updated.",
+      });
     },
     onError: (error, variables, context) => {
       // Rollback on error
