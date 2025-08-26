@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react';
-import { Capacitor } from '@capacitor/core';
 
 export const useNativeApp = () => {
 
@@ -13,8 +12,10 @@ export const useNativeApp = () => {
     
     const checkNativeApp = () => {
       try {
-        const isNative = Capacitor.isNativePlatform();
-        const currentPlatform = Capacitor.getPlatform();
+        // For TWA deployment, we're always in web context
+        // TWA runs the web app in Chrome, not as a native app
+        const isNative = false;
+        const currentPlatform = 'web';
         
         setIsNativeApp(isNative);
         setPlatform(currentPlatform);
@@ -23,14 +24,9 @@ export const useNativeApp = () => {
         (window as any).__IS_NATIVE_APP__ = isNative;
         (window as any).__PLATFORM__ = currentPlatform;
         
-        // Force production environment for native apps
-        if (isNative && typeof window !== 'undefined') {
-          (window as any).__FORCE_PRODUCTION__ = true;
-        }
-        
         isInitialized.current = true;
       } catch (error) {
-        console.error('Native app detection failed:', error);
+        console.error('Platform detection failed:', error);
         // Fallback to web
         setIsNativeApp(false);
         setPlatform('web');
