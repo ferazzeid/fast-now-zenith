@@ -1009,18 +1009,30 @@ const FoodTracking = () => {
       >
         <FoodLibraryView 
           onSelectFood={async (food: any, consumed = false) => {
-            // Convert food to proper format for addFoodEntry
-            const foodEntry = {
-              name: food.name,
-              calories: food.calories_per_100g || food.calories,
-              carbs: food.carbs_per_100g || food.carbs,
-              serving_size: 100,
-              consumed: consumed,
-              image_url: food.image_url
-            };
-            
-            // React Query handles errors and success automatically
-            await addFoodEntry(foodEntry);
+            try {
+              // Convert food to proper format for addFoodEntry
+              const foodEntry = {
+                name: food.name,
+                calories: food.calories_per_100g || food.calories,
+                carbs: food.carbs_per_100g || food.carbs,
+                serving_size: 100,
+                consumed: consumed,
+                image_url: food.image_url
+              };
+              
+              // Add the food entry
+              await addFoodEntry(foodEntry);
+              
+              // Close modal and switch to Today tab for immediate feedback
+              setShowLibraryView(false);
+              setActiveTab('today');
+              
+              // Force refresh food entries to ensure immediate UI update
+              await refreshFoodEntries();
+            } catch (error) {
+              // Error is already handled by the mutation, just log it
+              console.error('Error adding food from library:', error);
+            }
           }}
           onBack={() => setShowLibraryView(false)} 
         />

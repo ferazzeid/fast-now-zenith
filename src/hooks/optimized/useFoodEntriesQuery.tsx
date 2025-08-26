@@ -238,10 +238,10 @@ export const useFoodEntriesQuery = () => {
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
       
-      // Show success toast for single food entry
+      // Show success toast with specific context
       toast({
         title: "Food Added",
-        description: `Added "${variables.name}" to your plan`,
+        description: `Added "${variables.name}" to Today's Plan`,
       });
     },
   });
