@@ -146,6 +146,44 @@ export const useDailyFoodTemplate = () => {
     }
   }, [user, startLoading, stopLoading]);
 
+  const deleteTemplateFood = useCallback(async (foodId: string) => {
+    if (!user) return { error: { message: 'User not authenticated' } };
+
+    // Find the food to be deleted for optimistic update
+    const foodToDelete = templateFoods.find(f => f.id === foodId);
+    if (!foodToDelete) {
+      return { error: { message: 'Food not found' } };
+    }
+
+    // Optimistic update - remove from local state immediately
+    const previousFoods = [...templateFoods];
+    setTemplateFoods(prev => prev.filter(f => f.id !== foodId));
+
+    try {
+      const { data, error } = await supabase
+        .from('daily_food_templates')
+        .delete()
+        .eq('id', foodId)
+        .eq('user_id', user.id)
+        .select();
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        // Rollback optimistic update
+        setTemplateFoods(previousFoods);
+        return { error: { message: 'Food item not found or already deleted' } };
+      }
+
+      return { error: null, deletedFood: foodToDelete };
+    } catch (error: any) {
+      console.error('Error deleting template food:', error);
+      // Rollback optimistic update
+      setTemplateFoods(previousFoods);
+      return { error };
+    }
+  }, [user, templateFoods]);
+
   const applyTemplate = useCallback(async () => {
     if (!user || templateFoods.length === 0) return { error: { message: 'No template available' } };
 
@@ -202,6 +240,7 @@ export const useDailyFoodTemplate = () => {
     addToTemplate,
     clearTemplate,
     applyTemplate,
-    loadTemplate
+    loadTemplate,
+    deleteTemplateFood
   };
 };

@@ -46,7 +46,11 @@ const FoodTracking = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
-  const [activeTab, setActiveTab] = useState<'today' | 'template'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'template'>(() => {
+    // Persist active tab across page refreshes
+    const savedTab = localStorage.getItem('food-tracking-active-tab');
+    return (savedTab === 'template' || savedTab === 'today') ? savedTab : 'today';
+  });
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
@@ -68,7 +72,8 @@ const FoodTracking = () => {
     addToTemplate,
     clearTemplate,
     applyTemplate,
-    loadTemplate: forceLoadTemplate
+    loadTemplate: forceLoadTemplate,
+    deleteTemplateFood
   } = useDailyFoodTemplate();
   const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
 
@@ -438,8 +443,12 @@ const FoodTracking = () => {
           <Tabs 
             value={activeTab} 
             onValueChange={async (value) => {
-              setActiveTab(value as 'today' | 'template');
-              if (value === 'template') {
+              const newTab = value as 'today' | 'template';
+              setActiveTab(newTab);
+              // Persist tab selection to localStorage
+              localStorage.setItem('food-tracking-active-tab', newTab);
+              
+              if (newTab === 'template') {
                 // Force refresh template data when switching to template tab
                 console.log('🍽️ Switching to template tab, forcing refresh...');
                 await forceLoadTemplate();
@@ -878,54 +887,32 @@ const FoodTracking = () => {
                                    <Plus className="w-4 h-4 mr-2" />
                                    Add to Today
                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={async () => {
-                                     const currentFood = templateFoods.find(f => f.id === foodId);
-                                     if (!currentFood) {
-                                       toast({
-                                         variant: "destructive",
-                                         title: "Error", 
-                                         description: "Food item not found"
-                                       });
-                                       return;
-                                     }
-                                     
-                                     try {
-                                       const { data, error } = await supabase
-                                         .from('daily_food_templates')
-                                         .delete()
-                                         .eq('id', currentFood.id)
-                                         .eq('user_id', user?.id)
-                                         .select();
-                                       
-                                       if (error) {
-                                         throw error;
-                                       }
-                                       
-                                       if (!data || data.length === 0) {
-                                         toast({
-                                           variant: "destructive",
-                                           title: "Error",
-                                           description: "Food item not found or already deleted"
-                                         });
-                                         return;
-                                       }
-                                       
-                                       // Template will refresh automatically
-                                       await refreshFoodEntries();
-                                       
-                                       toast({
-                                         title: "Food Deleted",
-                                         description: `${currentFood.name} removed from template`
-                                       });
-                                     } catch (error) {
-                                       toast({
-                                         variant: "destructive",
-                                         title: "Error",
-                                         description: `Failed to delete food: ${error.message || 'Unknown error'}`
-                                       });
-                                     }
-                                   }}
+                                   <DropdownMenuItem 
+                                     onClick={async () => {
+                                      try {
+                                        const { error, deletedFood } = await deleteTemplateFood(foodId);
+                                        
+                                        if (error) {
+                                          toast({
+                                            variant: "destructive",
+                                            title: "Error",
+                                            description: error.message || "Failed to delete food"
+                                          });
+                                          return;
+                                        }
+                                        
+                                        toast({
+                                          title: "Food Deleted",
+                                          description: `${deletedFood?.name || 'Food item'} removed from template`
+                                        });
+                                      } catch (error) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: "Failed to delete food"
+                                        });
+                                      }
+                                    }}
                                    className="py-2.5 px-3 text-destructive focus:text-destructive"
                                  >
                                    <Trash2 className="w-4 h-4 mr-2" />
