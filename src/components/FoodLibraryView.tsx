@@ -625,7 +625,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                  sideOffset={8}
                  avoidCollisions={true}
                  collisionPadding={16}
-                 className="w-52 z-50 bg-background border border-border shadow-lg"
+                 className="w-52 z-[100] bg-background border border-border shadow-lg"
                >
                     {isUserFood ? (
                       <>

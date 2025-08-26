@@ -1023,10 +1023,6 @@ const FoodTracking = () => {
               // Add the food entry
               await addFoodEntry(foodEntry);
               
-              // Close modal and switch to Today tab for immediate feedback
-              setShowLibraryView(false);
-              setActiveTab('today');
-              
               // Force refresh food entries to ensure immediate UI update
               await refreshFoodEntries();
             } catch (error) {
