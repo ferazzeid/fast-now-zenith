@@ -222,16 +222,85 @@ export const useDailyFoodTemplate = () => {
     loadTemplate();
   }, [loadTemplate]);
 
-  // Add to template (append mode)
+  // Add to template with optional positioning
   const addToTemplate = useCallback(async (foodEntries: {
     name: string;
     calories: number;
     carbs: number;
     serving_size: number;
     image_url?: string;
-  }[]) => {
-    return await saveAsTemplate(foodEntries, true);
-  }, [saveAsTemplate]);
+  }[], insertAfterIndex?: number) => {
+    if (!user) return { error: { message: 'User not authenticated' } };
+
+    startLoading();
+    try {
+      let sortOrder: number;
+      let templateData: any[];
+
+      if (insertAfterIndex !== undefined && insertAfterIndex >= 0) {
+        // Insert at specific position
+        console.log('🍽️ Inserting into template at position:', insertAfterIndex + 1);
+        
+        // First, shift existing items to make room
+        const itemsToShift = templateFoods.filter((_, index) => index > insertAfterIndex);
+        
+        if (itemsToShift.length > 0) {
+          // Update sort_order for items that need to be shifted
+          for (const item of itemsToShift) {
+            const { error: shiftError } = await supabase
+              .from('daily_food_templates')
+              .update({ 
+                sort_order: item.sort_order + foodEntries.length
+              })
+              .eq('id', item.id)
+              .eq('user_id', user.id);
+
+            if (shiftError) {
+              console.error('🍽️ Error shifting template item:', shiftError);
+              throw shiftError;
+            }
+          }
+        }
+
+        // Insert new items at the correct position
+        sortOrder = insertAfterIndex + 1;
+        templateData = foodEntries.map((entry, index) => ({
+          ...entry,
+          user_id: user.id,
+          sort_order: sortOrder + index
+        }));
+      } else {
+        // Append mode (existing behavior)
+        console.log('🍽️ Appending to template');
+        sortOrder = templateFoods.length;
+        templateData = foodEntries.map((entry, index) => ({
+          ...entry,
+          user_id: user.id,
+          sort_order: sortOrder + index
+        }));
+      }
+
+      console.log('🍽️ Inserting template data:', templateData);
+      const { error } = await supabase
+        .from('daily_food_templates')
+        .insert(templateData);
+
+      if (error) {
+        console.error('🍽️ Error inserting template data:', error);
+        throw error;
+      }
+
+      console.log('🍽️ Template item(s) added successfully, reloading...');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await loadTemplate();
+      return { error: null };
+    } catch (error: any) {
+      console.error('🍽️ Error adding to template:', error);
+      return { error };
+    } finally {
+      stopLoading();
+    }
+  }, [user, loadTemplate, startLoading, stopLoading, templateFoods]);
 
   return {
     templateFoods,

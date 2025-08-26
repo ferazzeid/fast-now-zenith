@@ -761,8 +761,9 @@ const FoodTracking = () => {
                     </div>
                     
                     <div className="space-y-1">
-                      {templateFoods.map((food) => {
+                      {templateFoods.map((food, index) => {
                         const foodId = food.id;
+                        const currentIndex = index;
                         return (
                           <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
                             <div className="flex items-center gap-2">
@@ -832,7 +833,7 @@ const FoodTracking = () => {
                                          image_url: currentFood.image_url,
                                        }];
                                        
-                                       const { error } = await addToTemplate(foodsToSave);
+                                        const { error } = await addToTemplate(foodsToSave, currentIndex);
                                        
                                        if (error) {
                                          toast({ 
