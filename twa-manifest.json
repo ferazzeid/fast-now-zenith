@@ -1,45 +1,46 @@
 {
+  "packageId": "com.fastnow.zenith",
+  "host": "go.fastnow.app",
   "name": "FastNow - The No-BS Fat Loss Protocol",
-  "short_name": "FastNow",
-  "description": "Your mindful app with AI-powered motivation",
-  "start_url": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/",
-  "scope": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/",
+  "launcherName": "FastNow",
   "display": "standalone",
+  "themeColor": "#8B7355",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#F5F2EA",
+  "enableNotifications": true,
+  "startUrl": "https://go.fastnow.app/",
+  "iconUrl": "https://go.fastnow.app/icon-512.png",
+  "maskableIconUrl": "https://go.fastnow.app/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\socia\\Desktop\\fastnownonative\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "100216",
+  "appVersionCode": 100216,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://go.fastnow.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://go.fastnow.app/",
+  "minSdkVersion": 21,
   "orientation": "portrait-primary",
-  "theme_color": "#8B7355",
-  "background_color": "#F5F2EA",
-  "categories": ["health", "wellness", "lifestyle"],
-  "lang": "en",
-  "icons": [
-    {
-      "src": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "twa": {
-    "packageId": "com.fastnow.zenith",
-    "applicationId": "com.fastnow.zenith",
-    "versionCode": 1,
-    "versionName": "1.0.0",
-    "enableUrlBarHiding": true,
-    "enableSiteSettingsShortcut": false,
-    "enableNotifications": true,
-    "enableWebapp": true,
-    "disableFirstRunActivity": true,
-    "signing": {
-      "scheme": "HTTPS"
-    },
-    "splashScreen": {
-      "backgroundColor": "#F5F2EA",
-      "image": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/icon-512.png"
-    }
-  }
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "appVersion": "100216"
 }

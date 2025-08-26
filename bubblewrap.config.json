@@ -1,12 +1,12 @@
 {
   "host": {
-    "url": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/"
+    "url": "https://go.fastnow.app/"
   },
   "androidPackage": {
     "applicationId": "com.fastnow.zenith",
     "packageId": "com.fastnow.zenith",
-    "versionCode": 1,
-    "versionName": "1.0.0"
+    "versionCode": 100216,
+    "versionName": "100216"
   },
   "jdkPath": "/usr/lib/jvm/java-17-openjdk",
   "androidSdkPath": "~/Android/Sdk",
@@ -20,7 +20,7 @@
   },
   "splashScreen": {
     "backgroundColor": "#F5F2EA",
-    "image": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/icon-512.png"
+    "image": "https://go.fastnow.app/icon-512.png"
   },
   "shortcuts": []
 }
