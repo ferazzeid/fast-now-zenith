@@ -219,9 +219,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
 
   const toggleFavorite = async (foodId: string, currentFavorite: boolean) => {
-    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { foodId, currentFavorite, userId: user?.id });
+    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { 
+      foodId, 
+      currentFavorite, 
+      user: user ? { id: user.id, email: user.email } : null,
+      userExists: !!user,
+      userId: user?.id 
+    });
     
     if (!user?.id) {
+      console.log('🍽️ FoodLibrary - No user or user.id found:', { user, hasUser: !!user, hasUserId: !!user?.id });
       toast({
         variant: "destructive",
         title: "Authentication Error",
@@ -239,6 +246,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     try {
       // First, verify the food exists and belongs to the user
+      console.log('🍽️ FoodLibrary - Verifying food exists for user:', { foodId, userId: user.id });
       const { data: existingFood, error: checkError } = await supabase
         .from('user_foods')
         .select('id, name, user_id, is_favorite')
@@ -258,6 +266,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       console.log('🍽️ FoodLibrary - Existing food verified:', existingFood);
 
       // Perform the update
+      console.log('🍽️ FoodLibrary - Performing update with:', { 
+        foodId, 
+        userId: user.id, 
+        newFavoriteValue: !currentFavorite 
+      });
+      
       const { data, error } = await supabase
         .from('user_foods')
         .update({ is_favorite: !currentFavorite })
@@ -306,6 +320,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           errorMessage = "Update failed - please try again.";
         } else {
           // Include the actual error message for debugging
+          console.log('🍽️ FoodLibrary - Full error details:', error);
           errorMessage = `Failed to update favorite status: ${error.message}`;
         }
       }
