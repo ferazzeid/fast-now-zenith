@@ -61,6 +61,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
+  const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
   
   // Removed custom visual feedback - using React Query states only
   
@@ -467,6 +469,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       if (error) throw error;
 
       setDefaultFoods(defaultFoods.filter(food => food.id !== foodId));
+      setShowDeleteDefaultFoodConfirm(false);
+      setDefaultFoodToDelete(null);
+      
       toast({
         title: "Default food removed",
         description: "Default food has been removed from the system"
@@ -678,16 +683,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                 Delete
                              </DropdownMenuItem>
                            ) : isAdmin && (
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteDefaultFood(food.id);
-                                  }}
-                                   className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                                 >
-                                   <Trash2 className="w-4 h-4 mr-3" />
-                                   Delete
-                                </DropdownMenuItem>
+                                 <DropdownMenuItem
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     setDefaultFoodToDelete(food as DefaultFood);
+                                     setShowDeleteDefaultFoodConfirm(true);
+                                   }}
+                                    className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-3" />
+                                    Delete Food
+                                 </DropdownMenuItem>
                            )}
                        </>
                     )}
@@ -948,6 +954,30 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Default Food Confirmation Dialog */}
+      <AlertDialog open={showDeleteDefaultFoodConfirm} onOpenChange={setShowDeleteDefaultFoodConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Default Food?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{defaultFoodToDelete?.name}" from the default food system. This action cannot be undone and will affect all users.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteDefaultFoodConfirm(false);
+              setDefaultFoodToDelete(null);
+            }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => defaultFoodToDelete && deleteDefaultFood(defaultFoodToDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Food
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
