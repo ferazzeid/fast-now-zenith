@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
+import { useSessionValidator } from '@/hooks/useSessionValidator';
 
 interface UserFood {
   id: string;
@@ -69,6 +70,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const { user } = useAuth();
   const { toast } = useToast();
   const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
+  const { withValidSession } = useSessionValidator();
 
   useEffect(() => {
     const loadData = async () => {
@@ -219,16 +221,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
 
   const toggleFavorite = async (foodId: string, currentFavorite: boolean) => {
-    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { 
+    console.log('❤️ FoodLibrary - toggleFavorite started:', { 
       foodId, 
-      currentFavorite, 
-      user: user ? { id: user.id, email: user.email } : null,
-      userExists: !!user,
-      userId: user?.id 
+      currentFavorite,
+      user: user ? { id: user.id, email: user.email } : null
     });
-    
+
     if (!user?.id) {
-      console.log('🍽️ FoodLibrary - No user or user.id found:', { user, hasUser: !!user, hasUserId: !!user?.id });
+      console.error('❤️ FoodLibrary - No user found');
       toast({
         variant: "destructive",
         title: "Authentication Error",
@@ -244,92 +244,50 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         : food
     ));
 
-    try {
-      // First, verify the food exists and belongs to the user
-      console.log('🍽️ FoodLibrary - Verifying food exists for user:', { foodId, userId: user.id });
-      const { data: existingFood, error: checkError } = await supabase
-        .from('user_foods')
-        .select('id, name, user_id, is_favorite')
-        .eq('id', foodId)
-        .eq('user_id', user.id)
-        .single();
+    // Use session validator to ensure valid backend auth context
+    const result = await withValidSession(
+      async () => {
+        console.log('❤️ FoodLibrary - Session validated, performing database update');
+        
+        // Update the favorite status
+        const { data, error } = await supabase
+          .from('user_foods')
+          .update({ is_favorite: !currentFavorite })
+          .eq('id', foodId)
+          .eq('user_id', user.id)
+          .select('id, name, is_favorite')
+          .single();
 
-      if (checkError) {
-        console.error('🍽️ FoodLibrary - Food verification error:', checkError);
-        throw new Error(`Food not found or access denied: ${checkError.message}`);
-      }
+        if (error) {
+          console.error('❤️ FoodLibrary - Database update error:', error);
+          throw error;
+        }
 
-      if (!existingFood) {
-        throw new Error('Food item not found in your library');
-      }
+        if (!data) {
+          throw new Error('No data returned from update operation');
+        }
 
-      console.log('🍽️ FoodLibrary - Existing food verified:', existingFood);
+        console.log('❤️ FoodLibrary - Update successful:', data);
+        return data;
+      },
+      `toggleFavorite for food ${foodId}`
+    );
 
-      // Perform the update
-      console.log('🍽️ FoodLibrary - Performing update with:', { 
-        foodId, 
-        userId: user.id, 
-        newFavoriteValue: !currentFavorite 
-      });
-      
-      const { data, error } = await supabase
-        .from('user_foods')
-        .update({ is_favorite: !currentFavorite })
-        .eq('id', foodId)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('🍽️ FoodLibrary - toggleFavorite update error:', error);
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('No data returned from update operation');
-      }
-
-      console.log('🍽️ FoodLibrary - toggleFavorite success:', data);
-      
-      // Show success feedback
+    if (result) {
+      // Success - show feedback
       toast({
         title: !currentFavorite ? "Added to Favorites" : "Removed from Favorites",
-        description: `"${data.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
+        description: `"${result.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
       });
-
-    } catch (error) {
-      console.error('🍽️ FoodLibrary - toggleFavorite failed:', error);
-      
-      // Rollback optimistic update on error
+      console.log('❤️ FoodLibrary - toggleFavorite completed successfully');
+    } else {
+      // Session validation failed - rollback optimistic update
+      console.log('❤️ FoodLibrary - Session validation failed, rolling back optimistic update');
       setFoods(prevFoods => prevFoods.map(food => 
         food.id === foodId 
           ? { ...food, is_favorite: currentFavorite }
           : food
       ));
-      
-      // Provide specific error messages
-      let errorMessage = "Failed to update favorite status";
-      if (error instanceof Error) {
-        if (error.message.includes('auth') || error.message.includes('permission') || error.message.includes('access denied')) {
-          errorMessage = "Authentication error. Please log in again.";
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = "Network error. Check your connection.";
-        } else if (error.message.includes('not found')) {
-          errorMessage = "Food item not found in your library.";
-        } else if (error.message.includes('No data returned')) {
-          errorMessage = "Update failed - please try again.";
-        } else {
-          // Include the actual error message for debugging
-          console.log('🍽️ FoodLibrary - Full error details:', error);
-          errorMessage = `Failed to update favorite status: ${error.message}`;
-        }
-      }
-      
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: errorMessage
-      });
     }
   };
 
