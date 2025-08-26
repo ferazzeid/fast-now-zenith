@@ -202,12 +202,16 @@ export const useFoodEntriesQuery = () => {
       if (err instanceof Error) {
         if (err.message.includes('duplicate')) {
           errorMessage = "This food entry already exists.";
-        } else if (err.message.includes('network')) {
-          errorMessage = "Network error. Check your connection.";
-        } else if (err.message.includes('permission')) {
-          errorMessage = "Permission denied. Please log in again.";
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = "Network error. Check your connection and try again.";
+        } else if (err.message.includes('permission') || err.message.includes('auth')) {
+          errorMessage = "Authentication error. Please log in again.";
+        } else if (err.message.includes('timeout')) {
+          errorMessage = "Request timed out. Please try again.";
+        } else if (err.message.includes('constraint')) {
+          errorMessage = "Data validation error. Please check your input.";
         } else {
-          errorMessage = err.message || "Unknown error occurred.";
+          errorMessage = err.message || "An unexpected error occurred.";
         }
       }
       
@@ -233,6 +237,12 @@ export const useFoodEntriesQuery = () => {
       );
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      
+      // Show success toast for single food entry
+      toast({
+        title: "Food Added",
+        description: `Added "${variables.name}" to your plan`,
+      });
     },
   });
 

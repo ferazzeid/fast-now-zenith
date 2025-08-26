@@ -124,15 +124,7 @@ const FoodTracking = () => {
         }
       }
       
-      // Show appropriate toast based on results
-      if (successCount > 0) {
-        toast({
-          title: "Foods Added",
-          description: successCount === foods.length 
-            ? `Added ${successCount} food${successCount > 1 ? 's' : ''} to your plan`
-            : `Added ${successCount} of ${foods.length} foods to your plan`,
-        });
-      }
+      // Remove manual success toast - let the mutation handle it
       
       // Show error toast for failed items
       if (failedItems.length > 0) {

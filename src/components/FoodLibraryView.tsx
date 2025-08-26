@@ -219,13 +219,30 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
 
   const toggleFavorite = async (foodId: string, currentFavorite: boolean) => {
-    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { foodId, currentFavorite });
+    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { foodId, currentFavorite, userId: user?.id });
+    
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "Please log in to manage favorites"
+      });
+      return;
+    }
+
+    // Optimistic update
+    setFoods(prevFoods => prevFoods.map(food => 
+      food.id === foodId 
+        ? { ...food, is_favorite: !currentFavorite }
+        : food
+    ));
+
     try {
       const { data, error } = await supabase
         .from('user_foods')
         .update({ is_favorite: !currentFavorite })
         .eq('id', foodId)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -235,19 +252,39 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       }
 
       console.log('🍽️ FoodLibrary - toggleFavorite success:', data);
+      
+      // Show success feedback
+      toast({
+        title: !currentFavorite ? "Added to Favorites" : "Removed from Favorites",
+        description: `"${data.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
+      });
 
-      // Use functional state update to avoid stale closure
-      setFoods(prevFoods => prevFoods.map(food => 
-        food.id === foodId 
-          ? { ...food, is_favorite: !currentFavorite }
-          : food
-      ));
     } catch (error) {
       console.error('🍽️ FoodLibrary - toggleFavorite failed:', error);
+      
+      // Rollback optimistic update on error
+      setFoods(prevFoods => prevFoods.map(food => 
+        food.id === foodId 
+          ? { ...food, is_favorite: currentFavorite }
+          : food
+      ));
+      
+      // Provide specific error messages
+      let errorMessage = "Failed to update favorite status";
+      if (error instanceof Error) {
+        if (error.message.includes('auth') || error.message.includes('permission')) {
+          errorMessage = "Authentication error. Please log in again.";
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = "Network error. Check your connection.";
+        } else if (error.message.includes('not found')) {
+          errorMessage = "Food item not found.";
+        }
+      }
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update favorite status"
+        description: errorMessage
       });
     }
   };
