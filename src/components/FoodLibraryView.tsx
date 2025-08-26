@@ -453,6 +453,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     if (!user) return;
     
     try {
+      console.log('🍽️ FoodLibrary - Starting delete all foods operation');
+      
       const { error } = await supabase
         .from('user_foods')
         .delete()
@@ -460,20 +462,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       if (error) throw error;
 
-      // Reload data from server to ensure UI is properly updated
-      await loadUserFoods();
+      console.log('🍽️ FoodLibrary - Database deletion successful, clearing local state');
+      
+      // Immediately clear local state for instant UI feedback
+      setFoods([]);
       setShowDeleteAllConfirm(false);
+      
+      // Also refresh recent foods to clear any cached data
+      refreshRecentFoods();
+      
+      console.log('🍽️ FoodLibrary - Local state cleared');
       
       toast({
         title: "All foods removed",
         description: "All foods have been removed from your library"
       });
     } catch (error) {
-      console.error('Error deleting all foods:', error);
+      console.error('🍽️ FoodLibrary - Error deleting all foods:', error);
       toast({
         title: "Error",
         description: "Failed to remove all foods",
-        variant: "destructive"
+        variant: "destructive" 
       });
     }
   };
@@ -663,13 +672,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-               <DropdownMenuContent 
+              <DropdownMenuContent 
                  align="start" 
                  side="bottom" 
                  sideOffset={8}
                  avoidCollisions={true}
                  collisionPadding={16}
-                 className="w-52 z-[100] bg-background border border-border shadow-lg"
+                 className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
+                 style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                >
                     {isUserFood ? (
                       <>
