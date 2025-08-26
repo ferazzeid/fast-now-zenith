@@ -77,29 +77,9 @@ export function useContentRotation({
       return;
     }
 
-    let variants: ContentVariant[] = [];
-    
-    // Try to use provided rotation data first and filter out empty content, \n characters, and admin logs
-    if (fastingHour.content_rotation_data?.variants?.length) {
-      console.log('Using provided rotation data:', fastingHour.content_rotation_data.variants);
-      variants = fastingHour.content_rotation_data.variants
-        .filter(v => 
-          v.content && 
-          v.content.trim() !== '' && 
-          !v.content.includes('coming soon') &&
-          v.type !== 'admin_personal_log' // Exclude admin logs from rotation
-        )
-        .map(v => ({
-          ...v,
-          content: v.content.replace(/\\n/g, ' ').replace(/\n/g, ' ').trim()
-        }));
-    }
-    
-    // If no valid variants from rotation data, build them
-    if (variants.length === 0) {
-      console.log('Building variants from hour data');
-      variants = buildContentVariants(fastingHour);
-    }
+    // Build variants from individual content fields
+    console.log('Building variants from hour data');
+    const variants = buildContentVariants(fastingHour);
     
     console.log('Final variants for display:', variants);
     
@@ -134,9 +114,7 @@ export function useContentRotation({
       setRotationState(prev => {
         if (!fastingHour) return prev;
         
-        const variants = fastingHour.content_rotation_data?.variants?.length 
-          ? fastingHour.content_rotation_data.variants.filter(v => v.content && !v.content.includes('coming soon'))
-          : buildContentVariants(fastingHour);
+        const variants = buildContentVariants(fastingHour);
           
         const nextIndex = (prev.currentIndex + 1) % variants.length;
         const nextVariant = variants[nextIndex];
@@ -156,9 +134,7 @@ export function useContentRotation({
   const goToNext = useCallback(() => {
     if (!fastingHour) return;
     
-    const variants = fastingHour.content_rotation_data?.variants?.length 
-      ? fastingHour.content_rotation_data.variants
-      : buildContentVariants(fastingHour);
+    const variants = buildContentVariants(fastingHour);
       
     setRotationState(prev => {
       const nextIndex = (prev.currentIndex + 1) % variants.length;
@@ -176,9 +152,7 @@ export function useContentRotation({
   const goToPrevious = useCallback(() => {
     if (!fastingHour) return;
     
-    const variants = fastingHour.content_rotation_data?.variants?.length 
-      ? fastingHour.content_rotation_data.variants
-      : buildContentVariants(fastingHour);
+    const variants = buildContentVariants(fastingHour);
       
     setRotationState(prev => {
       const prevIndex = prev.currentIndex === 0 ? variants.length - 1 : prev.currentIndex - 1;
@@ -196,9 +170,7 @@ export function useContentRotation({
   const goToIndex = useCallback((index: number) => {
     if (!fastingHour) return;
     
-    const variants = fastingHour.content_rotation_data?.variants?.length 
-      ? fastingHour.content_rotation_data.variants
-      : buildContentVariants(fastingHour);
+    const variants = buildContentVariants(fastingHour);
       
     const validIndex = Math.max(0, Math.min(index, variants.length - 1));
     const variant = variants[validIndex];
