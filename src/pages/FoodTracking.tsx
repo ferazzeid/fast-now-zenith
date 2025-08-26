@@ -211,10 +211,22 @@ const FoodTracking = () => {
 
   const handleClearAllEntries = async () => {
     try {
+      // Optimistic update - clear local state immediately
+      const queryClient = (window as any).__REACT_QUERY_CLIENT__;
+      const today = new Date().toISOString().split('T')[0];
+      
+      if (queryClient) {
+        queryClient.setQueryData(['food-entries', user?.id || null, today], []);
+        queryClient.setQueryData(['daily-totals', user?.id || null, today], {
+          totalCalories: 0,
+          totalCarbs: 0
+        });
+      }
+
       // Create proper date range for today
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+      const todayDate = new Date();
+      const startOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+      const endOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1);
       
       const { error } = await supabase
         .from('food_entries')
@@ -225,13 +237,14 @@ const FoodTracking = () => {
       
       if (error) throw error;
       
-      await refreshFoodEntries();
       toast({
         title: "All Foods Cleared",
         description: "All food entries for today have been removed"
       });
     } catch (error) {
       console.error('Error clearing foods:', error);
+      // Refresh on error to restore accurate state
+      await refreshFoodEntries();
       toast({
         variant: "destructive",
         title: "Error",
@@ -321,6 +334,11 @@ const FoodTracking = () => {
       } else {
         console.log('🍽️ Successfully applied template');
         await refreshFoodEntries();
+        
+        // Automatically switch to Today tab to show applied foods
+        setActiveTab('today');
+        localStorage.setItem('food-tracking-active-tab', 'today');
+        
         toast({ 
           title: 'Template Applied', 
           description: 'Your daily template has been applied to today\'s plan' 
