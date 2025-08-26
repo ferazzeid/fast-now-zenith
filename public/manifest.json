@@ -1,7 +1,7 @@
 {
-  "name": "fast now - The No-BS Fat Loss Protocol",
-  "short_name": "fast now",
-  "description": "Your mindful app with AI-powered motivation",
+  "name": "FastNow - The No-BS Fat Loss Protocol",
+  "short_name": "FastNow",
+  "description": "The No-BS Fat Loss Protocol",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F5F2EA",
