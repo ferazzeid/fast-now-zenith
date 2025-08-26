@@ -23,7 +23,7 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithGoogleNative: () => Promise<{ error: any }>;
+  
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
   setLoading: (loading: boolean) => void;
@@ -167,27 +167,6 @@ export const useAuthStore = create<AuthState>()(
         return { error };
       },
 
-      signInWithGoogleNative: async () => {
-        authLogger.info('Native Google Sign-In - using GoogleSignInHandler');
-        
-        try {
-          const { GoogleSignInHandler } = await import('@/utils/GoogleSignInHandler');
-          const handler = new GoogleSignInHandler();
-          
-          const result = await handler.signInWithGoogle();
-          
-          if (result.success) {
-            authLogger.info('Native Google Sign-In successful');
-            return { error: null };
-          } else {
-            authLogger.error('Native Google Sign-In failed:', result.error);
-            return { error: { message: result.error } };
-          }
-        } catch (error) {
-          authLogger.error('Native Google Sign-In handler error:', error);
-          return { error: { message: error instanceof Error ? error.message : 'Unknown error' } };
-        }
-      },
 
       resetPassword: async (email: string) => {
         const redirectUrl = `${window.location.origin}/update-password`;

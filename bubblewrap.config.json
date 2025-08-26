@@ -1,0 +1,26 @@
+{
+  "host": {
+    "url": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/"
+  },
+  "androidPackage": {
+    "applicationId": "com.fastnow.zenith",
+    "packageId": "com.fastnow.zenith",
+    "versionCode": 1,
+    "versionName": "1.0.0"
+  },
+  "jdkPath": "/usr/lib/jvm/java-17-openjdk",
+  "androidSdkPath": "~/Android/Sdk",
+  "enableSiteSettingsShortcut": false,
+  "enableNotifications": true,
+  "enableWebapp": true,
+  "disableFirstRunActivity": true,
+  "enableUrlBarHiding": true,
+  "signing": {
+    "scheme": "HTTPS"
+  },
+  "splashScreen": {
+    "backgroundColor": "#F5F2EA",
+    "image": "https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com/icon-512.png"
+  },
+  "shortcuts": []
+}
