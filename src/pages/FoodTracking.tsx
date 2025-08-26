@@ -214,11 +214,17 @@ const FoodTracking = () => {
 
   const handleClearAllEntries = async () => {
     try {
+      // Create proper date range for today
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+      
       const { error } = await supabase
         .from('food_entries')
         .delete()
         .eq('user_id', user?.id)
-        .gte('created_at', new Date().toISOString().split('T')[0]);
+        .gte('created_at', startOfDay.toISOString())
+        .lt('created_at', endOfDay.toISOString());
       
       if (error) throw error;
       

@@ -377,7 +377,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       if (error) throw error;
 
-      setFoods([]);
+      // Reload data from server to ensure UI is properly updated
+      await loadUserFoods();
       setShowDeleteAllConfirm(false);
       
       toast({
