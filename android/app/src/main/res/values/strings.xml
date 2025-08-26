@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Fast Now Zenith</string>
-    <string name="title_activity_main">Fast Now Zenith</string>
-    <string name="package_name">com.fastnow.zenith</string>
-    <string name="custom_url_scheme">com.fastnow.zenith</string>
-    <string name="default_web_client_id">1037732404902-sco7a5a5a9gmnf3274g84ui899mhjqds.apps.googleusercontent.com</string>
-</resources>

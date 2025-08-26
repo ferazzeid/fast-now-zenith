@@ -1,9 +1,0 @@
-User-agent: *
-Allow: /
-
-# SPA fallback for all routes
-Disallow: /api/
-Disallow: /_next/
-
-# Sitemap (if available)
-Sitemap: https://yourdomain.com/sitemap.xml
