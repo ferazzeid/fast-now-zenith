@@ -5,8 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
-import { FastingHourTooltip } from '@/components/FastingHourTooltip';
-import { useAccess } from '@/hooks/useAccess';
+import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -20,7 +19,6 @@ const MAX_HOUR = 72;
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
   const queryClient = useQueryClient();
-  const { isAdmin } = useAccess();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -87,16 +85,9 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           <div className="space-y-3">
             {/* Display Stage and Encouragement (original two-field system) */}
             <div className="min-h-[80px] relative">
-              {/* Hour Number Indicator with Admin Tooltip */}
-              <div className="absolute bottom-2 right-2 flex items-center gap-2 z-10">
-                <FastingHourTooltip 
-                  hour={selectedHour}
-                  existingLog={selected?.admin_personal_log}
-                  size="sm"
-                />
-                <div className="bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">
-                  {selectedHour}
-                </div>
+              {/* Hour Number Indicator */}
+              <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
+                {selectedHour}
               </div>
 
               <div className="relative pr-10">
@@ -123,6 +114,19 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
         )}
       </div>
 
+      {/* Admin Personal Log Interface */}
+      <AdminPersonalLogInterface
+        key={`admin-log-${selectedHour}-${selected?.admin_personal_log}`} // Force re-render when data changes
+        currentHour={selectedHour}
+        existingLog={selected?.admin_personal_log}
+        onLogSaved={async () => {
+          // Force a complete data refresh to ensure UI updates
+          queryClient.removeQueries({ queryKey: fastingHoursKey });
+          await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+          await queryClient.refetchQueries({ queryKey: fastingHoursKey });
+          console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
+        }}
+      />
     </div>
   );
 };

@@ -32,7 +32,6 @@ import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 
 import { useAccess } from '@/hooks/useAccess';
-import { AdminPersonalLogInterface } from '@/components/AdminPersonalLogInterface';
 
 const Timer = () => {
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
@@ -504,15 +503,6 @@ const Timer = () => {
             onSaveQuote={saveQuoteAsGoal}
           />
         ) : null}
-        {/* Admin Personal Log Input - positioned at bottom for fasting mode */}
-        {isAdmin && currentMode === 'fasting' && fastingSession && (
-          <div className="mt-8 pt-6 border-t border-border">
-            <AdminPersonalLogInterface 
-              currentHour={Math.floor(timeElapsed / 3600)}
-              existingLog=""
-            />
-          </div>
-        )}
       </div>
 
       {/* Fast Selector Modal */}
