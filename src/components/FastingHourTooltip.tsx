@@ -18,7 +18,7 @@ export const FastingHourTooltip: React.FC<FastingHourTooltipProps> = ({
 }) => {
   const { isAdmin } = useAccess();
   const [authorData, setAuthorData] = useState({
-    image: '/src/assets/motivator-placeholder.jpg',
+    image: '/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png',
     name: 'Admin',
     title: 'Personal Experience'
   });
@@ -43,7 +43,7 @@ export const FastingHourTooltip: React.FC<FastingHourTooltipProps> = ({
           }, {} as Record<string, string>);
 
           setAuthorData({
-            image: settingsMap.author_tooltip_image || '/src/assets/motivator-placeholder.jpg',
+            image: settingsMap.author_tooltip_image || '/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png',
             name: settingsMap.author_tooltip_name || 'Admin',
             title: settingsMap.author_tooltip_title || 'Personal Experience'
           });
@@ -83,7 +83,7 @@ export const FastingHourTooltip: React.FC<FastingHourTooltipProps> = ({
           }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = '/src/assets/motivator-placeholder.jpg';
+            target.src = '/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png';
           }}
         />
       </div>
