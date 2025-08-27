@@ -19,6 +19,8 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
+import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { useAccess } from '@/hooks/useAccess';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
 
 
@@ -47,6 +49,7 @@ const Walking = () => {
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
   const { saveQuoteAsGoal } = useMotivators();
+  const { isAdmin } = useAccess();
 
   const isRunning = !!currentSession;
 
@@ -223,6 +226,12 @@ const Walking = () => {
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />
           </div>
+          {/* Admin Insights positioned between title and history button */}
+          {isAdmin && (
+            <div className="absolute right-12 top-0 mr-2">
+              <AuthorTooltip content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!" />
+            </div>
+          )}
           <div className="pl-12 pr-12">
             <h1 className="text-2xl font-bold text-foreground mb-1">
               Walking Timer
