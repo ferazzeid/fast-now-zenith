@@ -181,6 +181,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const handleAddToTemplate = async (food: UserFood | DefaultFood) => {
     if (!user) return;
     
+    if (!canPerformDatabaseOperations) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
     console.log('🍽️ FoodLibrary - handleAddToTemplate called with:', food);
     
     try {
@@ -304,6 +312,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const toggleDefaultFoodFavorite = async (foodId: string, isFavorite: boolean) => {
     if (!user) return;
     
+    if (!canPerformDatabaseOperations) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
     try {
       if (isFavorite) {
         const { error } = await supabase
@@ -343,6 +359,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const updateFood = async (foodId: string, updates: Partial<UserFood>) => {
     console.log('🍽️ FoodLibrary - updateFood called with:', { foodId, updates });
+    
+    if (!canPerformDatabaseOperations) {
+      throw new Error('Database not ready');
+    }
+    
     try {
       const { data, error } = await supabase
         .from('user_foods')
@@ -375,6 +396,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const deleteFood = async (foodId: string) => {
     console.log('🍽️ FoodLibrary - deleteFood called with:', { foodId });
+    
+    if (!canPerformDatabaseOperations) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('user_foods')
@@ -419,6 +449,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const deleteAllUserFoods = async () => {
     if (!user) return;
+    
+    if (!canPerformDatabaseOperations) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
     
     try {
       console.log('🍽️ FoodLibrary - Starting delete all foods operation');
