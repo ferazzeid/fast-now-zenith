@@ -17,6 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
 import { DirectInlineVoiceButton } from '@/components/DirectInlineVoiceButton';
+import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
+import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 
 interface AnalysisResult {
   name?: string;
@@ -364,12 +366,43 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g., Grilled Chicken Breast"
-              className="h-9 pr-8"
+              className="h-9 pr-14"
               required
             />
             <DirectInlineVoiceButton
               onTranscription={setName}
               parseNumbers={false}
+            />
+            <EnhancedVoiceFoodInput
+              onFoodParsed={(result) => {
+                // Populate fields from enhanced voice parsing
+                if (result.foodName && !name) {
+                  setName(result.foodName);
+                }
+                if (result.amount && !servingAmount) {
+                  setServingAmount(result.amount.toString());
+                }
+                if (result.unit && !servingUnit) {
+                  // Make sure the unit is available
+                  const availableUnits = getServingUnitsForUser();
+                  if (availableUnits.some(unit => unit.value === result.unit)) {
+                    setServingUnit(result.unit!);
+                  }
+                }
+                // Auto-populate nutrition if provided
+                if (result.nutrition && !calories && !carbs) {
+                  setCalories(result.nutrition.calories.toString());
+                  setCarbs(result.nutrition.carbs.toString());
+                  
+                  toast({
+                    title: "✨ Smart Voice Complete",
+                    description: `Populated ${result.foodName}${result.amount ? ` (${result.amount}${result.unit})` : ''} with nutrition estimates`,
+                    className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0",
+                    duration: 3000,
+                  });
+                }
+              }}
+              className="!right-8"
             />
           </div>
         </div>

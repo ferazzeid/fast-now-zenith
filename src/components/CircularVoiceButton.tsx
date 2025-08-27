@@ -259,11 +259,28 @@ export const CircularVoiceButton = React.forwardRef<
       }
     } catch (error) {
       console.error('🎤 Transcription error:', error);
+      
+      let errorMessage = "Please try recording again";
+      
+      // Handle specific error cases
+      if (error.message?.includes('limit')) {
+        errorMessage = "Voice feature unavailable. Please try later or upgrade.";
+      } else if (error.message?.includes('access') || error.message?.includes('premium')) {
+        errorMessage = "Voice feature requires premium access";
+      } else if (error.message?.includes('network') || error.message?.includes('connection')) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      
       toast({
-        title: "Failed to Process",
-        description: "Please try recording again",
+        title: "Voice Processing Failed",
+        description: errorMessage,
         variant: "destructive"
       });
+      
+      // Reset recording state on error
+      setIsRecording(false);
+      audioChunksRef.current = [];
+      
     } finally {
       setIsProcessing(false);
     }
