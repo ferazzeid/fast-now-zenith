@@ -1,15 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { PROTECTED_CORS_HEADERS, PROTECTED_OPENAI_CONFIG, resolveOpenAIApiKey } from '../_shared/protected-config.ts';
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: PROTECTED_CORS_HEADERS });
   }
 
   try {
@@ -19,10 +16,14 @@ serve(async (req) => {
       throw new Error('Food name is required');
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    );
+
+    // Resolve OpenAI API key using existing infrastructure
+    const openAIApiKey = await resolveOpenAIApiKey(supabase);
 
     const amountText = amount && unit ? ` for ${amount}${unit}` : '';
     const prompt = `Please estimate the nutritional information for "${foodName}"${amountText}. 
@@ -53,7 +54,7 @@ Guidelines:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
         messages: [
           { 
             role: 'system', 
@@ -108,7 +109,7 @@ Guidelines:
     nutritionData.confidence = Math.max(0, Math.min(1, nutritionData.confidence));
 
     return new Response(JSON.stringify(nutritionData), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...PROTECTED_CORS_HEADERS, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
@@ -123,7 +124,7 @@ Guidelines:
       reasoning: 'Error occurred during estimation'
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...PROTECTED_CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 });
