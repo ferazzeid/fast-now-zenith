@@ -85,17 +85,28 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   }, [contentKey]);
 
   const recomputePosition = () => {
-    if (!triggerRef.current || !tooltipRef.current) return;
+    if (!triggerRef.current) return;
     
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const tooltipWidth = 280;
-    const tooltipHeight = 160;
+    const tooltipHeight = 200; // Slightly larger estimate
     const margin = 16;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     
-    // Since the author insights are in the top-right corner,
-    // always position tooltip to open bottom-left from the trigger
-    setPosition('bottom');
-    setAlignLeft(true);
+    // Calculate available space in all directions
+    const spaceAbove = triggerRect.top;
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    const spaceLeft = triggerRect.left;
+    const spaceRight = viewportWidth - triggerRect.right;
+    
+    // Determine vertical position (prefer bottom if enough space)
+    const shouldPositionBottom = spaceBelow >= tooltipHeight + margin;
+    setPosition(shouldPositionBottom ? 'bottom' : 'top');
+    
+    // Determine horizontal alignment (prefer right-aligned if not enough space on right)
+    const shouldAlignLeft = spaceRight < tooltipWidth + margin && spaceLeft >= tooltipWidth + margin;
+    setAlignLeft(shouldAlignLeft);
   };
 
   const handleToggle = (e: React.MouseEvent) => {

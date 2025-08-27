@@ -47,11 +47,14 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
   }, []);
 
   if (!content?.trim()) {
+    console.log('AdminInsightDisplay: No content provided');
     return null;
   }
 
+  console.log('AdminInsightDisplay: Rendering with content:', content.substring(0, 50) + '...');
+
   return (
-    <div className={cn("mt-4 flex items-start gap-4", className)}>
+    <div className={cn("mt-6 mb-4 flex items-start gap-4 p-4 bg-accent/10 rounded-lg border-l-4 border-accent", className)}>
       {/* Speech Bubble */}
       <div
         className={cn(
@@ -87,7 +90,7 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
 
       {/* Always-visible Content Box */}
       <div className="flex-1 min-w-0">
-        <div className="relative bg-popover border border-border rounded-lg p-4 shadow-lg">
+        <div className="relative bg-card border border-accent/30 rounded-lg p-4 shadow-md">
           {/* Header */}
           <div className="flex items-center space-x-3 mb-3">
             <img
@@ -106,12 +109,12 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
           </div>
           
           {/* Content */}
-          <div className="text-sm text-popover-foreground leading-relaxed">
+          <div className="text-sm text-card-foreground leading-relaxed font-medium">
             {content}
           </div>
 
           {/* Speech bubble arrow pointing to the bubble */}
-          <div className="absolute left-0 top-6 w-3 h-3 bg-popover border-border rotate-45 -ml-1.5 border-l border-t" />
+          <div className="absolute left-0 top-6 w-3 h-3 bg-card border-accent/30 rotate-45 -ml-1.5 border-l border-t" />
         </div>
       </div>
     </div>
