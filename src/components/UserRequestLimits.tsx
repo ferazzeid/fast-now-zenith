@@ -11,7 +11,8 @@ import { Info } from "lucide-react";
 import { useAccess } from '@/hooks/useAccess';
 
 export const UserRequestLimits: React.FC = () => {
-  const [paidUserLimit, setPaidUserLimit] = useState('');
+  const [trialUserLimit, setTrialUserLimit] = useState('');
+  const [premiumUserLimit, setPremiumUserLimit] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { isAdmin } = useAccess();
@@ -27,22 +28,27 @@ export const UserRequestLimits: React.FC = () => {
 
   const loadCurrentLimits = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: settings, error } = await supabase
         .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'monthly_request_limit')
-        .maybeSingle();
+        .select('setting_key, setting_value')
+        .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
 
       if (error) {
         console.error('Error loading request limits:', error);
-        setPaidUserLimit('1000');
+        setTrialUserLimit('50');
+        setPremiumUserLimit('1000');
         return;
       }
 
-      setPaidUserLimit(data?.setting_value || '1000');
+      const trialLimit = settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50';
+      const premiumLimit = settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000';
+      
+      setTrialUserLimit(trialLimit);
+      setPremiumUserLimit(premiumLimit);
     } catch (error) {
       console.error('Error loading request limits:', error);
-      setPaidUserLimit('1000');
+      setTrialUserLimit('50');
+      setPremiumUserLimit('1000');
     } finally {
       setLoading(false);
     }
@@ -50,21 +56,31 @@ export const UserRequestLimits: React.FC = () => {
 
   const saveRequestLimits = async () => {
     try {
-      const { error } = await supabase
-        .from('shared_settings')
-        .upsert({
+      const updates = [
+        {
+          setting_key: 'trial_request_limit',
+          setting_value: trialUserLimit
+        },
+        {
           setting_key: 'monthly_request_limit',
-          setting_value: paidUserLimit
-        }, { onConflict: 'setting_key' });
+          setting_value: premiumUserLimit
+        }
+      ];
 
-      if (error) {
-        console.error('Error saving request limit:', error);
-        throw error;
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('shared_settings')
+          .upsert(update, { onConflict: 'setting_key' });
+
+        if (error) {
+          console.error('Error saving request limit:', error);
+          throw error;
+        }
       }
 
       toast({
         title: "Success",
-        description: "Monthly request limit saved successfully",
+        description: "Request limits saved successfully",
       });
     } catch (error) {
       console.error('Error saving request limits:', error);
@@ -96,33 +112,60 @@ export const UserRequestLimits: React.FC = () => {
       </CardHeader>
       <CardContent>
         <TooltipProvider>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Label htmlFor="paidUserLimit" className="text-xs">Monthly Limit</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-3 h-3 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Monthly AI requests for paid users (free users get 0 requests)
-                  </TooltipContent>
-                </Tooltip>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="trialUserLimit" className="text-xs">Trial User Limit</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      AI requests available during free trial period
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Input
+                  id="trialUserLimit"
+                  type="number"
+                  value={trialUserLimit}
+                  onChange={(e) => setTrialUserLimit(e.target.value)}
+                  placeholder="50"
+                  className="h-8 w-24 text-sm"
+                  aria-label="AI requests for trial users"
+                />
               </div>
-              <Input
-                id="paidUserLimit"
-                type="number"
-                value={paidUserLimit}
-                onChange={(e) => setPaidUserLimit(e.target.value)}
-                placeholder="1000"
-                className="h-8 w-24 text-sm"
-                aria-label="Monthly AI requests for paid users"
-              />
             </div>
 
-            <div className="ml-auto">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="premiumUserLimit" className="text-xs">Premium User Limit</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Monthly AI requests for premium subscribers
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Input
+                  id="premiumUserLimit"
+                  type="number"
+                  value={premiumUserLimit}
+                  onChange={(e) => setPremiumUserLimit(e.target.value)}
+                  placeholder="1000"
+                  className="h-8 w-24 text-sm"
+                  aria-label="Monthly AI requests for premium users"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
               <Button onClick={saveRequestLimits} size="sm" className="h-9 px-4">
-                Save
+                Save Limits
               </Button>
             </div>
           </div>

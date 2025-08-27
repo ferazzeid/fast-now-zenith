@@ -83,24 +83,56 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
-    // 🔒 Get monthly request limit from settings
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'trial' : profile.access_level;
+
+    // Get request limits from settings
     const { data: settings } = await supabase
       .from('shared_settings')
-      .select('setting_value')
-      .eq('setting_key', 'monthly_request_limit')
-      .maybeSingle();
+      .select('setting_key, setting_value')
+      .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
 
-    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    const trialLimit = parseInt(settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50');
+    const premiumLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
     
-    // Free users get 0 requests (only trial users get requests)
-    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
-    
-    if (profile.monthly_ai_requests >= userLimit) {
+    // Check access permissions and limits
+    if (effectiveLevel === 'trial') {
+      if (profile.monthly_ai_requests >= trialLimit) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Your free trial has ended. Upgrade to premium to continue using AI features.',
+            limit_reached: true,
+            current_tier: 'trial'
+          }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    } else if (effectiveLevel === 'premium') {
+      if (profile.monthly_ai_requests >= premiumLimit) {
+        return new Response(
+          JSON.stringify({ 
+            error: `You've used all ${premiumLimit} AI requests this month. Your limit will reset next month.`,
+            limit_reached: true,
+            current_tier: 'premium'
+          }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    } else if (effectiveLevel !== 'admin') {
       return new Response(
         JSON.stringify({ 
-          error: `Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : ''}`,
+          error: 'AI features are only available to premium users. Start your free trial or upgrade to continue.',
           limit_reached: true,
-          current_tier: profile.user_tier
+          current_tier: 'free'
         }),
         { 
           status: 429, 
@@ -108,6 +140,8 @@ serve(async (req) => {
         }
       );
     }
+
+    // Admins have unlimited access (no limit check needed)
 
     // 🔒 PROTECTED: Use standardized API key resolution
     const openaiApiKey = await resolveOpenAIApiKey(

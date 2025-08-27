@@ -8,13 +8,33 @@ interface AIRequestLimitErrorProps {
 }
 
 export const showAIRequestLimitError = (error: any, toast: any, createSubscription: () => void) => {
-  if (error.message?.includes('Monthly request limit') || error.limit_reached) {
-    const currentTier = error.current_tier || 'free_user';
+  if (error.message?.includes('AI features are only available') || 
+      error.message?.includes('free trial has ended') ||
+      error.message?.includes('Monthly request limit') || 
+      error.limit_reached) {
     
-    if (currentTier === 'free_user') {
+    // Handle trial exhausted or no access
+    if (error.message?.includes('only available to premium users') || 
+        error.message?.includes('Start your free trial')) {
       toast({
         title: "AI Features Unavailable",
-        description: "AI features are only available to premium users. Upgrade now to unlock unlimited AI assistance!",
+        description: "AI features are only available to premium users. Start your free trial or upgrade to continue!",
+        variant: "default",
+        action: (
+          <Button 
+            onClick={createSubscription}
+            size="sm"
+            className="ml-2"
+          >
+            Start Trial
+          </Button>
+        ),
+        duration: 8000,
+      });
+    } else if (error.message?.includes('free trial has ended')) {
+      toast({
+        title: "Trial Period Ended",
+        description: "Your free trial has ended. Upgrade to premium to continue using AI features!",
         variant: "default",
         action: (
           <Button 
@@ -28,9 +48,10 @@ export const showAIRequestLimitError = (error: any, toast: any, createSubscripti
         duration: 8000,
       });
     } else {
+      // Handle monthly limit reached for premium users
       toast({
         title: "Monthly Limit Reached",
-        description: "You've reached your monthly AI request limit. Your limit will reset next month.",
+        description: "You've used all your AI requests this month. Your limit will reset next month.",
         variant: "destructive",
         duration: 6000,
       });
