@@ -11,42 +11,26 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FastingTimelineV2 } from '@/components/FastingTimelineV2';
 import { useQueryClient } from '@tanstack/react-query';
-import { useFastingHoursQuery, fastingHoursKey } from '@/hooks/optimized/useFastingHoursQuery';
-interface FastingHour {
+import { useFastingHoursQuery, fastingHoursKey, FastingHour as ImportedFastingHour } from '@/hooks/optimized/useFastingHoursQuery';
+
+// Simplified interface for admin form
+interface AdminFastingHour {
   id?: string;
   hour: number;
   day: number;
-  title: string;
-  body_state: string;
-  encouragement?: string;
-  tips?: string[];
+  stage: string;
+  encouragement: string;
   phase: string;
   difficulty: string;
-  common_feelings?: string[];
-  scientific_info?: string;
   autophagy_milestone?: boolean;
   ketosis_milestone?: boolean;
   fat_burning_milestone?: boolean;
-  // Enhanced fields
-  benefits_challenges?: string;
-  content_snippet?: string;
-  content_rotation_data?: {
-    current_index: number;
-    variants: Array<{
-      type: 'metabolic' | 'physiological' | 'mental' | 'benefits' | 'snippet' | 'stage' | 'encouragement' | 'admin_personal_log';
-      content: string;
-    }>;
-  };
-  metabolic_changes?: string;
-  physiological_effects?: string;
-  mental_emotional_state?: string[];
-  stage?: string;
 }
 
 interface FastingHourEditModalProps {
-  fastingHour?: FastingHour;
+  fastingHour?: ImportedFastingHour;
   isOpen: boolean;
-  onSave: (fastingHour: FastingHour) => void;
+  onSave: (fastingHour: AdminFastingHour) => void;
   onClose: () => void;
 }
 
@@ -56,59 +40,49 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
   onSave,
   onClose
 }) => {
-  const [formData, setFormData] = useState<FastingHour>({
+  const [formData, setFormData] = useState<AdminFastingHour>({
     hour: 1,
     day: 1,
-    title: '',
-    body_state: '',
+    stage: '',
     encouragement: '',
-    tips: [],
     phase: 'preparation',
     difficulty: 'easy',
-    common_feelings: [],
-    scientific_info: '',
     autophagy_milestone: false,
     ketosis_milestone: false,
     fat_burning_milestone: false
   });
-  const [tipsInput, setTipsInput] = useState('');
-  const [feelingsInput, setFeelingsInput] = useState('');
 
   useEffect(() => {
     if (fastingHour) {
-      setFormData(fastingHour);
-      setTipsInput(fastingHour.tips?.join('\n') || '');
-      setFeelingsInput(fastingHour.common_feelings?.join(', ') || '');
+      setFormData({
+        id: fastingHour.id,
+        hour: fastingHour.hour,
+        day: fastingHour.day,
+        stage: fastingHour.stage || '',
+        encouragement: fastingHour.encouragement || '',
+        phase: fastingHour.phase,
+        difficulty: fastingHour.difficulty,
+        autophagy_milestone: fastingHour.autophagy_milestone,
+        ketosis_milestone: fastingHour.ketosis_milestone,
+        fat_burning_milestone: fastingHour.fat_burning_milestone,
+      });
     } else {
       setFormData({
         hour: 1,
         day: 1,
-        title: '',
-        body_state: '',
+        stage: '',
         encouragement: '',
-        tips: [],
         phase: 'preparation',
         difficulty: 'easy',
-        common_feelings: [],
-        scientific_info: '',
         autophagy_milestone: false,
         ketosis_milestone: false,
         fat_burning_milestone: false
       });
-      setTipsInput('');
-      setFeelingsInput('');
     }
   }, [fastingHour, isOpen]);
 
   const handleSave = () => {
-    const tips = tipsInput.split('\n').filter(tip => tip.trim() !== '');
-    const feelings = feelingsInput.split(',').map(f => f.trim()).filter(f => f !== '');
-    
-    onSave({
-      ...formData,
-      tips,
-      common_feelings: feelings
-    });
+    onSave(formData);
   };
 
   if (!isOpen) return null;
@@ -194,60 +168,21 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
           </div>
 
           <div>
-            <label className="text-sm font-medium">Title</label>
+            <label className="text-sm font-medium">Stage</label>
             <Input
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="e.g., Initial Hunger Pangs"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Body State</label>
-            <Textarea
-              value={formData.body_state}
-              onChange={(e) => setFormData(prev => ({ ...prev, body_state: e.target.value }))}
-              placeholder="Describe what's happening in the body..."
-              rows={3}
+              value={formData.stage}
+              onChange={(e) => setFormData(prev => ({ ...prev, stage: e.target.value }))}
+              placeholder="e.g., Glycogen Kickoff"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium">Encouragement</label>
             <Textarea
-              value={formData.encouragement || ''}
+              value={formData.encouragement}
               onChange={(e) => setFormData(prev => ({ ...prev, encouragement: e.target.value }))}
               placeholder="Motivational message for this hour..."
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Tips (one per line)</label>
-            <Textarea
-              value={tipsInput}
-              onChange={(e) => setTipsInput(e.target.value)}
-              placeholder="Drink water&#10;Go for a walk&#10;Practice deep breathing"
               rows={4}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Common Feelings (comma separated)</label>
-            <Input
-              value={feelingsInput}
-              onChange={(e) => setFeelingsInput(e.target.value)}
-              placeholder="hunger, fatigue, clarity"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Scientific Info (optional)</label>
-            <Textarea
-              value={formData.scientific_info || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, scientific_info: e.target.value }))}
-              placeholder="Scientific explanation of what's happening..."
-              rows={3}
             />
           </div>
         </div>
@@ -267,7 +202,7 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
 };
 
 export const AdminTimelineSettings = () => {
-  const [editingHour, setEditingHour] = useState<FastingHour | undefined>();
+  const [editingHour, setEditingHour] = useState<ImportedFastingHour | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -276,7 +211,7 @@ export const AdminTimelineSettings = () => {
   const existingHours = new Set(fastingHours.map(h => h.hour));
   const missingHours = Array.from({ length: 72 }, (_, i) => i + 1).filter(h => !existingHours.has(h));
 
-  const saveFastingHour = async (fastingHour: FastingHour) => {
+  const saveFastingHour = async (fastingHour: AdminFastingHour) => {
     try {
       // Client-side validation: duplicate hour check
       const duplicate = fastingHours.some(h => h.hour === fastingHour.hour && h.id !== fastingHour.id);
@@ -295,17 +230,16 @@ export const AdminTimelineSettings = () => {
           id: fastingHour.id,
           hour: fastingHour.hour,
           day: fastingHour.day,
-          title: fastingHour.title,
-          body_state: fastingHour.body_state,
+          stage: fastingHour.stage,
           encouragement: fastingHour.encouragement,
-          tips: fastingHour.tips,
           phase: fastingHour.phase,
           difficulty: fastingHour.difficulty,
-          common_feelings: fastingHour.common_feelings,
-          scientific_info: fastingHour.scientific_info,
           autophagy_milestone: fastingHour.autophagy_milestone,
           ketosis_milestone: fastingHour.ketosis_milestone,
-          fat_burning_milestone: fastingHour.fat_burning_milestone
+          fat_burning_milestone: fastingHour.fat_burning_milestone,
+          // Required database fields with defaults
+          title: fastingHour.stage || `Hour ${fastingHour.hour}`,
+          body_state: fastingHour.encouragement || 'Details coming soon'
         });
 
       if (error) throw error;
@@ -360,17 +294,16 @@ export const AdminTimelineSettings = () => {
       const rows = missingHours.map((h) => ({
         hour: h,
         day: Math.ceil(h / 24),
-        title: `Hour ${h}`,
-        body_state: "Details coming soon",
+        stage: `Hour ${h}`,
         encouragement: "You're doing great — keep going!",
-        tips: [],
         phase: 'preparation',
         difficulty: 'easy',
-        common_feelings: [],
-        scientific_info: '',
         autophagy_milestone: false,
         ketosis_milestone: false,
-        fat_burning_milestone: false
+        fat_burning_milestone: false,
+        // Required database fields
+        title: `Hour ${h}`,
+        body_state: "Details coming soon"
       }));
 
       const { error } = await supabase.from('fasting_hours').upsert(rows);
@@ -392,7 +325,7 @@ export const AdminTimelineSettings = () => {
     }
   };
 
-  const openEditModal = (fastingHour?: FastingHour) => {
+  const openEditModal = (fastingHour?: ImportedFastingHour) => {
     setEditingHour(fastingHour);
     setIsModalOpen(true);
   };
