@@ -895,9 +895,50 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (!canPerformDatabaseOperations) {
+                      toast({
+                        title: "Please wait",
+                        description: "System is loading, please try again in a moment"
+                      });
+                      return;
+                    }
                     toggleFavorite(food.id, food.is_favorite || false);
                   }}
-                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                  disabled={!canPerformDatabaseOperations}
+                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                  aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart 
+                    className={`w-4 h-4 transition-colors ${
+                      food.is_favorite 
+                        ? 'fill-red-500 text-red-500' 
+                        : 'text-muted-foreground hover:text-red-400'
+                    }`} 
+                  />
+                </Button>
+              </div>
+            )}
+
+            {/* Heart Icon for Suggested tab */}
+            {activeTab === 'suggested' && 'is_favorite' in food && (
+              <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!canPerformDatabaseOperations) {
+                      toast({
+                        title: "Please wait",
+                        description: "System is loading, please try again in a moment"
+                      });
+                      return;
+                    }
+                    toggleDefaultFoodFavorite(food.id, food.is_favorite || false);
+                  }}
+                  disabled={!canPerformDatabaseOperations}
+                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                 >
