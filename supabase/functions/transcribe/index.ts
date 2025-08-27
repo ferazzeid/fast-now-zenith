@@ -74,13 +74,22 @@ serve(async (req) => {
     // Get user profile and check subscription status
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, subscription_status, user_tier')
+      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
       .eq('user_id', userId)
       .single();
 
     if (profileError) {
+      console.error('Profile fetch error:', profileError);
       throw new Error('Failed to fetch user profile');
     }
+
+    console.log('User access level:', profile.access_level, 'AI requests:', profile.monthly_ai_requests);
+
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'free' : profile.access_level;
 
     // Get monthly request limit from settings
     const { data: settings } = await supabase
@@ -91,11 +100,27 @@ serve(async (req) => {
 
     const monthlyLimit = parseInt(settings?.setting_value || '1000');
     
-    // Free users get 0 requests (only trial users get requests)
-    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
-    
-    if (profile.monthly_ai_requests >= userLimit) {
-      throw new Error(`Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : 'Your monthly limit has been reached.'}`);
+    // Check access permissions and limits
+    if (effectiveLevel === 'free') {
+      throw new Error('AI features are only available to premium users. Start your free trial or upgrade to continue.');
+    }
+
+    if (effectiveLevel === 'trial' && isExpired) {
+      throw new Error('Your free trial has ended. Upgrade to premium to continue using AI features.');
+    }
+
+    // Admins have unlimited access
+    if (effectiveLevel === 'admin') {
+      console.log('Admin user - unlimited AI access');
+    } else {
+      // Check monthly limits for trial and premium users
+      if (profile.monthly_ai_requests >= monthlyLimit) {
+        const resetDate = new Date();
+        resetDate.setMonth(resetDate.getMonth() + 1, 1);
+        const resetDateString = resetDate.toLocaleDateString();
+        
+        throw new Error(`You've used all ${monthlyLimit} AI requests this month. Your limit will reset on ${resetDateString}.`);
+      }
     }
 
     // Resolve API key (shared key only)

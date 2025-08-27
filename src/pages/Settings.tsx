@@ -641,11 +641,12 @@ const Settings = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Account Type</span>
                     <span className="text-warm-text font-medium">
-                      {isTrial ? 'Trial User' : 
+                      {access_level === 'admin' ? 'Administrator' :
+                       isTrial ? 'Trial User' : 
                        hasPremiumFeatures ? 'Premium User' : 'Free User'}
                     </span>
                   </div>
-                  {(isTrial || hasPremiumFeatures) && daysRemaining && (
+                  {((isTrial || hasPremiumFeatures) && access_level !== 'admin') && daysRemaining && (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">
                         {isTrial ? 'Trial expires' : 'Premium expires'}
@@ -682,7 +683,7 @@ const Settings = () => {
                       {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
                     </Button>
                   )}
-                  {hasPremiumFeatures && (
+                  {hasPremiumFeatures && access_level !== 'admin' && (
                     <Button
                       onClick={async () => {
                         try {
