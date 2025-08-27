@@ -285,9 +285,9 @@ CONVERSATION CONTEXT AWARENESS:
 - Maintain separate entries when user specifies multiple items
 - Use the conversation memory context to understand what the user is referring to
 
-${conversationMemory || ''}
+${conversationMemory ? `\nCROSS-SESSION CONTEXT:\n${conversationMemory}` : ''}
 
-${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
+${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
 RESPONSE STYLE: 
 - Use natural, flowing conversation 

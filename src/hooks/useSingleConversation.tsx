@@ -34,13 +34,21 @@ export const useSingleConversation = () => {
     }
   };
 
-  // Load the single conversation from database (non-archived)
   const loadConversation = async () => {
-    if (!user || isProcessingMessage) return;
-    
+    if (!user) {
+      console.log('DEBUG: No user, clearing messages');
+      setMessages([]);
+      return;
+    }
+
     console.log('DEBUG: Loading conversation for user:', user.id);
     setLoading(true);
+
     try {
+      // Initialize cross-session context for this user
+      await conversationMemory.initializeWithUser(user.id);
+      
+      // Find the user's single non-archived conversation
       const { data, error } = await supabase
         .from('chat_conversations')
         .select('*')
@@ -121,7 +129,7 @@ export const useSingleConversation = () => {
       if (foodClarification.isModification) {
         console.log('DEBUG: Detected food clarification:', foodClarification);
         // Add memory context to the message
-        message.conversationMemory = conversationMemory.getContextForAI();
+        message.conversationMemory = await conversationMemory.getContextForAI();
         conversationMemory.updateConversationState({ 
           awaitingClarification: false,
           isProcessingFood: true 
@@ -132,8 +140,9 @@ export const useSingleConversation = () => {
       const updatedMessages = [...messages, message];
       setMessages(updatedMessages);
 
-      // Save conversation memory after adding message
+      // Save conversation memory and cross-session learnings after adding message
       saveConversationMemory();
+      await conversationMemory.saveCrossSessionLearnings();
       
       // Serialize messages with timestamps as ISO strings
       const messagesForDb = updatedMessages.map(msg => ({
