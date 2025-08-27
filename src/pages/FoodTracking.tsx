@@ -81,9 +81,7 @@ const FoodTracking = () => {
 
   // Close modals when navigating to auth routes to prevent OAuth interaction errors
   useEffect(() => {
-    console.log('🔍 FoodTracking: Route changed to:', location.pathname);
     if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
-      console.log('🔍 FoodTracking: On auth route, closing all modals');
       setShowLibraryView(false);
       setShowHistory(false);
       setShowAiChat(false);
@@ -91,11 +89,6 @@ const FoodTracking = () => {
       setShowOnboarding(false);
     }
   }, [location.pathname]);
-
-  // Debug logging for modal state
-  useEffect(() => {
-    console.log('🔍 FoodTracking: showLibraryView state changed to:', showLibraryView);
-  }, [showLibraryView]);
 
   const handleVoiceFood = (result: { food: string }) => {
     trackFoodEvent('add', 'voice');
@@ -1052,10 +1045,7 @@ const FoodTracking = () => {
 
       <UniversalModal
         isOpen={showLibraryView}
-        onClose={() => {
-          console.log('🔍 FoodTracking: UniversalModal onClose called');
-          setShowLibraryView(false);
-        }}
+        onClose={() => setShowLibraryView(false)}
         title="" 
         size="xl"
         variant="fullscreen"

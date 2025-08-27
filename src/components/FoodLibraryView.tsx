@@ -58,11 +58,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const location = useLocation();
   const { user, canPerformDatabaseOperations } = useSessionState();
 
-  console.log('🔍 FoodLibraryView: Rendering with location:', location.pathname);
-
   // IMMEDIATE: Don't render anything if on auth routes to prevent interactions
   if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
-    console.log('🔍 FoodLibraryView: On auth route, returning null');
     return null;
   }
 
@@ -918,6 +915,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                        toast({
                          title: "Please wait",
                          description: "System is loading, please try again in a moment"
+                       });
+                       return;
+                     }
+                     // Prevent favoriting recent foods (they have string IDs like "recent-food-name")
+                     if (food.id.startsWith('recent-')) {
+                       toast({
+                         title: "Save to library first",
+                         description: "Please save this food to your library before favoriting it"
                        });
                        return;
                      }
