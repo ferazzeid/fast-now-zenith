@@ -29,7 +29,7 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
-
+import { AuthorTooltip } from '@/components/AuthorTooltip';
 
 import { useAccess } from '@/hooks/useAccess';
 
@@ -375,6 +375,15 @@ const Timer = () => {
           {currentMode === 'fasting' && (
             <div className="absolute right-0 top-0">
               <HistoryButton onClick={() => setShowFastingHistory(true)} title="View fasting history" />
+            </div>
+          )}
+          {/* Admin Insights positioned between title and history button - only for fasting mode */}
+          {isAdmin && currentMode === 'fasting' && (
+            <div className="absolute right-12 top-0 mr-2">
+              <AuthorTooltip 
+                contentKey="fasting_timer_insights"
+                content="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" 
+              />
             </div>
           )}
           <div className="pl-12 pr-12">

@@ -24,6 +24,8 @@ import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
+import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { useAccess } from '@/hooks/useAccess';
 
 
 const Motivators = () => {
@@ -31,6 +33,7 @@ const Motivators = () => {
   const { toast } = useToast();
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
+  const { isAdmin } = useAccess();
   const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
@@ -303,6 +306,15 @@ const Motivators = () => {
             <div className="absolute left-0 top-0">
               <AIVoiceButton />
             </div>
+            {/* Admin Insights positioned between title and left area */}
+            {isAdmin && (
+              <div className="absolute right-0 top-0">
+                <AuthorTooltip 
+                  contentKey="motivators_insights"
+                  content="Setting clear, meaningful goals increases your success rate by 42%. Write specific, measurable goals and visualize achieving them daily. Your mindset shapes your reality!" 
+                />
+              </div>
+            )}
             <div className="pl-12 pr-12">
               <h1 className="text-2xl font-bold text-foreground mb-1">
                 {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}

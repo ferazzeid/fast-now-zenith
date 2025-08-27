@@ -37,6 +37,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
+import { AuthorTooltip } from '@/components/AuthorTooltip';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -64,7 +65,7 @@ const FoodTracking = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { profile, updateProfile } = useProfile();
-  const { hasAccess, hasPremiumFeatures } = useAccess();
+  const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
   const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
@@ -410,6 +411,15 @@ const FoodTracking = () => {
           <div className="absolute right-0 top-0">
             <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
           </div>
+          {/* Admin Insights positioned between title and history button */}
+          {isAdmin && (
+            <div className="absolute right-12 top-0 mr-2">
+              <AuthorTooltip 
+                contentKey="food_tracking_insights"
+                content="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!" 
+              />
+            </div>
+          )}
           <div className="pl-12 pr-12">
             <h1 className="text-2xl font-bold text-foreground mb-1">
               Food Tracking
