@@ -393,7 +393,7 @@ const Settings = () => {
             {/* Header */}
             <div className="mb-2 mt-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
+                <h1 className="text-2xl font-bold text-foreground mb-1">
                   Settings
                 </h1>
                 {(isAdmin || originalIsAdmin) && (

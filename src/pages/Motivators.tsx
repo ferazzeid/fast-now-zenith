@@ -304,7 +304,7 @@ const Motivators = () => {
               <AIVoiceButton />
             </div>
             <div className="pl-12 pr-12">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
+              <h1 className="text-2xl font-bold text-foreground mb-1">
                 {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
               </h1>
               <p className="text-sm text-muted-foreground text-left">
