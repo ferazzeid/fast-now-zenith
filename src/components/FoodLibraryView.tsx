@@ -936,7 +936,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                          if (savedFood) {
                            // Now favorite the saved food
                            await toggleFavorite(savedFood.id, false);
-                           // Refresh the user foods list
+                           // Force re-render by refreshing user foods
                            await loadUserFoods();
                          }
                        } catch (error) {
@@ -949,8 +949,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                        return;
                      }
                      
-                     // Handle user foods: toggle favorite directly
-                     toggleFavorite(food.id, food.is_favorite || false);
+                     // Handle user foods: toggle favorite directly and refresh
+                     await toggleFavorite(food.id, food.is_favorite || false);
+                     // Refresh to ensure UI updates immediately with new sorting
+                     await loadUserFoods();
                    }}
                    disabled={!isInteractionSafe}
                   className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1072,15 +1074,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="my-foods" className="flex items-center gap-2">
                 MyFoods
-                {filteredUserFoods.length > 0 && (
-                  <Trash2 
-                    className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteAllConfirm(true);
-                    }}
-                  />
-                )}
+                 {filteredUserFoods.length > 0 && (
+                   <Trash2 
+                     className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       console.log('🗑️ Delete All button clicked, foods count:', filteredUserFoods.length);
+                       setShowDeleteAllConfirm(true);
+                     }}
+                   />
+                 )}
               </TabsTrigger>
               <TabsTrigger value="suggested">Default</TabsTrigger>
             </TabsList>
@@ -1187,7 +1190,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={deleteAllUserFoods}
+              onClick={() => {
+                console.log('🗑️ Delete All confirmed, calling deleteAllUserFoods');
+                deleteAllUserFoods();
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete All
