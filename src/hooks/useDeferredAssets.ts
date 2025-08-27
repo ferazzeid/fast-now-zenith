@@ -9,17 +9,28 @@ import { useDynamicHTMLMeta } from './useDynamicHTMLMeta';
  * This prevents blocking startup with non-critical asset loading
  * For TWA deployment, always loads PWA assets
  */
-export const useDeferredAssets = () => {
+export const useDeferredAssets = (startupState?: string, isOAuthCompleting?: boolean) => {
   
-  // Load color theme (deferred)
-  useColorTheme();
+  // Only load dynamic assets when startup is complete and not during OAuth
+  const shouldLoadAssets = startupState === 'ready' && !isOAuthCompleting;
   
-  // Always load PWA assets for TWA deployment
-  useDynamicFavicon(false);
-  useDynamicPWAAssets(false);
-  useDynamicHTMLMeta(false);
-
+  // Load color theme (deferred until ready)
+  useColorTheme(shouldLoadAssets);
+  
   useEffect(() => {
-    console.log('TWA app - Dynamic assets loading deferred (non-blocking)');
-  }, []);
+    // Only load PWA assets when app is fully ready
+    if (shouldLoadAssets) {
+      // Add small delay after OAuth to let database connections stabilize
+      const delay = isOAuthCompleting ? 500 : 0;
+      
+      setTimeout(() => {
+        // Always load PWA assets for TWA deployment
+        useDynamicFavicon(false);
+        useDynamicPWAAssets(false);
+        useDynamicHTMLMeta(false);
+        
+        console.log('TWA app - Dynamic assets loaded after startup completion');
+      }, delay);
+    }
+  }, [shouldLoadAssets, isOAuthCompleting]);
 };

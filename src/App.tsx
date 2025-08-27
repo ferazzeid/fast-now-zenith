@@ -89,9 +89,10 @@ const AppContent = () => {
   
   // Simplified startup with clear states
   const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
+  const oauthCompleting = useAuthStore(state => state.oauthCompleting);
   
   // Load dynamic assets AFTER startup is complete (deferred, non-blocking)
-  useDeferredAssets();
+  useDeferredAssets(state, oauthCompleting);
 
 
   // Hide navigation on auth routes

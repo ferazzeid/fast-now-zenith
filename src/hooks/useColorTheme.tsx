@@ -9,11 +9,17 @@ interface ColorSettings {
   ai_color?: string;
 }
 
-export const useColorTheme = () => {
+export const useColorTheme = (shouldLoad: boolean = true) => {
   const [colorSettings, setColorSettings] = useState<ColorSettings>({});
   const [loading, setLoading] = useState(true);
 
   const loadColors = async () => {
+    // Skip loading if we shouldn't load yet (during startup)
+    if (!shouldLoad) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('shared_settings')
@@ -22,6 +28,18 @@ export const useColorTheme = () => {
 
       if (error) {
         console.error('Error loading color settings:', error);
+        // Apply cached colors on error
+        const cachedColors = localStorage.getItem('admin_colors');
+        if (cachedColors) {
+          try {
+            const parsedColors = JSON.parse(cachedColors);
+            console.log('Applying cached colors due to database error');
+            applyColors(parsedColors);
+            setColorSettings(parsedColors);
+          } catch (cacheError) {
+            console.error('Error parsing cached colors:', cacheError);
+          }
+        }
         return;
       }
 
@@ -46,6 +64,18 @@ export const useColorTheme = () => {
       localStorage.setItem('admin_colors', JSON.stringify(settings));
     } catch (error) {
       console.error('Error in loadColors:', error);
+      // Apply cached colors on error
+      const cachedColors = localStorage.getItem('admin_colors');
+      if (cachedColors) {
+        try {
+          const parsedColors = JSON.parse(cachedColors);
+          console.log('Applying cached colors due to network error');
+          applyColors(parsedColors);
+          setColorSettings(parsedColors);
+        } catch (cacheError) {
+          console.error('Error parsing cached colors:', cacheError);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -99,25 +129,27 @@ export const useColorTheme = () => {
 
 
   useEffect(() => {
-    // Always start with neutral defaults to prevent flashing
-    applyNeutralDefaults();
-    
-    // Load fresh colors from database first
-    loadColors().then(() => {
-      // Only apply cached colors if database load fails
-      const cachedColors = localStorage.getItem('admin_colors');
-      if (cachedColors && Object.keys(colorSettings).length === 0) {
-        try {
-          const parsedColors = JSON.parse(cachedColors);
-          console.log('Applying cached colors as fallback');
-          applyColors(parsedColors);
-          setColorSettings(parsedColors);
-        } catch (error) {
-          console.error('Error parsing cached colors:', error);
-        }
+    // Always start with cached colors if available, then neutral defaults
+    const cachedColors = localStorage.getItem('admin_colors');
+    if (cachedColors) {
+      try {
+        const parsedColors = JSON.parse(cachedColors);
+        console.log('Applying cached colors immediately');
+        applyColors(parsedColors);
+        setColorSettings(parsedColors);
+      } catch (error) {
+        console.error('Error parsing cached colors:', error);
+        applyNeutralDefaults();
       }
-    });
-  }, []);
+    } else {
+      applyNeutralDefaults();
+    }
+    
+    // Load fresh colors from database when ready
+    if (shouldLoad) {
+      loadColors();
+    }
+  }, [shouldLoad]);
 
   return { colorSettings, loading, loadColors, applyColors };
 };
