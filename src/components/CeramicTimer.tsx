@@ -112,14 +112,14 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 cy="50"
                 r="45"
                 fill="none"
-                stroke="hsl(var(--primary))"
+                stroke="hsl(var(--accent))"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 className="transition-all duration-1000 ease-out"
                 style={{
-                  filter: isActive ? `drop-shadow(0 0 6px hsl(var(--primary) / 0.4))` : 'none'
+                  filter: isActive ? `drop-shadow(0 0 6px hsl(var(--accent) / 0.4))` : 'none'
                 }}
               />
             )}
@@ -137,7 +137,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
               {/* Fast Type - Above timer */}
               <div className={cn(
                 "text-sm font-medium transition-colors duration-300",
-                isActive ? 'text-primary' : 'text-muted-foreground'
+                isActive ? 'text-foreground' : 'text-muted-foreground'
               )}>
                 {isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
@@ -171,10 +171,6 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 <div className="text-xs text-muted-foreground font-medium">
                   {Math.max(1, Math.round(progress))}%
                 </div>
-              )}
-              
-              {isActive && (
-                <div className="w-2 h-2 bg-primary rounded-full mx-auto mt-2" />
               )}
             </div>
           </div>
