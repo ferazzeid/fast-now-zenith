@@ -1,6 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useAuthStore } from '@/stores/authStore';
+import { useUnifiedSession } from '@/hooks/useUnifiedSession';
 
 interface AuthContextValue {
   user: User | null;
@@ -35,10 +36,13 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const updatePassword = useAuthStore(state => state.updatePassword);
   const initialize = useAuthStore(state => state.initialize);
 
-  // Initialize auth store on mount
+  // Initialize unified session system on mount
+  const unifiedSession = useUnifiedSession();
   React.useEffect(() => {
+    // Initialize both systems (auth store delegates to unified session)
     initialize();
-  }, [initialize]);
+    unifiedSession.initialize();
+  }, [initialize, unifiedSession.initialize]);
 
   const value: AuthContextValue = {
     user,

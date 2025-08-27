@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { checkOAuthRecovery } from '@/utils/oauthRecovery';
+import { useUnifiedSession } from '@/hooks/useUnifiedSession';
 
 // Auth debugging logger
 const authLogger = {
@@ -46,78 +47,30 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        authLogger.info('Starting auth initialization');
+        authLogger.info('Starting auth initialization (delegating to unified session)');
         
-        try {
-          // Check for OAuth recovery before setting up listeners
-          await checkOAuthRecovery();
-          
-          // Set up auth state listener - simple and reliable
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-              authLogger.info(`🔔 Auth state changed: ${event}`, { 
-                hasSession: !!session, 
-                userId: session?.user?.id,
-                email: session?.user?.email 
-              });
-              
-              // Handle session refresh errors
-              if (event === 'TOKEN_REFRESHED' && !session) {
-                authLogger.warn('🔄 Token refresh failed - clearing session');
-                set({
-                  session: null,
-                  user: null,
-                  loading: false,
-                  oauthCompleting: false
-                });
-                return;
-              }
-              
-              // Always update state on auth changes
-              set({
-                session,
-                user: session?.user ?? null,
-                loading: false,
-              });
-
-              // Additional logging for OAuth success detection
-              if (event === 'SIGNED_IN' && session) {
-                authLogger.info('✅ Sign in detected via auth state change');
-                
-                // Clear OAuth completing flag on successful sign in
-                set({ oauthCompleting: false });
-              }
-            }
-          );
-
-          // Get current session - simple, no race conditions
-          const { data: { session }, error } = await supabase.auth.getSession();
-          if (error) {
-            authLogger.error('Error getting session:', error);
-          }
-          
-          authLogger.info('Session initialization complete', { 
-            hasSession: !!session,
-            userId: session?.user?.id 
-          });
-          
-          // Always set loading to false after initialization, regardless of session state
+        // Delegate to unified session manager
+        const unifiedSession = useUnifiedSession.getState();
+        await unifiedSession.initialize();
+        
+        // Set up simple sync with unified session
+        const syncWithUnified = () => {
+          const unified = useUnifiedSession.getState();
           set({
-            session,
-            user: session?.user ?? null,
-            loading: false,
+            session: unified.session,
+            user: unified.user,
+            loading: unified.isAuthLoading,
+            oauthCompleting: false
           });
-
-          // Store subscription for cleanup
-          (window as any).__authSubscription = subscription;
-          (window as any).__authInitialized = true;
-          
-        } catch (error) {
-          authLogger.error('Auth initialization failed:', error);
-          // Graceful degradation - still allow app to work
-          set({ loading: false });
-          (window as any).__authInitialized = true;
-        }
+        };
+        
+        // Initial sync
+        syncWithUnified();
+        
+        // Subscribe to unified session changes
+        const unsubscribe = useUnifiedSession.subscribe(syncWithUnified);
+        (window as any).__authStoreUnsubscribe = unsubscribe;
+        (window as any).__authInitialized = true;
       },
 
       signIn: async (email: string, password: string) => {

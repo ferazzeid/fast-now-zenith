@@ -33,8 +33,7 @@ import { Navigation } from "./components/Navigation";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { SimplifiedStartup } from "./components/SimplifiedStartup";
-import { useSimplifiedStartup } from "./hooks/useSimplifiedStartup";
-import { useDeferredAssets } from "./hooks/useDeferredAssets";
+import { useUnifiedStartup } from "./hooks/useUnifiedStartup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -87,12 +86,10 @@ const AppContent = () => {
   // OAuth is now handled by the MobileOAuthHandler in the Auth page
   // No need for App-level deep link handling
   
-  // Simplified startup with clear states
-  const { state, error, isOnline, retry, forceRefresh } = useSimplifiedStartup();
+  // Unified startup with session management
+  const { readiness, error, retry, isReady } = useUnifiedStartup();
   const oauthCompleting = useAuthStore(state => state.oauthCompleting);
-  
-  // Load dynamic assets AFTER startup is complete (deferred, non-blocking)
-  useDeferredAssets(state, oauthCompleting);
+  const { isOnline } = useConnectionStore();
 
 
   // Hide navigation on auth routes
@@ -152,15 +149,51 @@ const AppContent = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [isOnline]);
   
-  // Wrap everything in SimplifiedStartup
+  // Handle different readiness states
+  if (readiness === 'invalid' && error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 p-6">
+          <h2 className="text-xl font-semibold">Startup Error</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <div className="space-x-2">
+            <button 
+              onClick={retry}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded"
+            >
+              Try Again
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 border rounded"
+            >
+              Force Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (readiness === 'initializing' || readiness === 'authenticated' || readiness === 'database-ready') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-muted-foreground">
+            {readiness === 'initializing' ? 'Starting up...' : 
+             readiness === 'authenticated' ? 'Checking authentication...' : 
+             readiness === 'database-ready' ? 'Loading resources...' : 
+             'Getting ready...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // App is ready to render
   return (
-    <SimplifiedStartup 
-      state={state} 
-      error={error}
-      isOnline={isOnline}
-      onRetry={retry}
-      onForceRefresh={forceRefresh}
-    >
+    <div>
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
@@ -306,7 +339,7 @@ const AppContent = () => {
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
       />
-    </SimplifiedStartup>
+    </div>
   );
 };
 

@@ -24,10 +24,9 @@ import {
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
-import { useSessionValidator } from '@/hooks/useSessionValidator';
+import { useSessionState } from '@/hooks/useUnifiedSession';
 import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
 
 interface UserFood {
@@ -68,10 +67,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   
   // Removed custom visual feedback - using React Query states only
   
-  const { user } = useAuth();
+  const { user, canPerformDatabaseOperations } = useSessionState();
   const { toast } = useToast();
   const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
-  const { withValidSession } = useSessionValidator();
 
   useEffect(() => {
     const loadData = async () => {
@@ -238,6 +236,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       return;
     }
 
+    // Check if we can perform database operations
+    if (!canPerformDatabaseOperations) {
+      console.log('❤️ FoodLibrary - Database not ready, showing loading state');
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+
     // Optimistic update
     setFoods(prevFoods => prevFoods.map(food => 
       food.id === foodId 
@@ -245,50 +253,51 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         : food
     ));
 
-    // Use session validator to ensure valid backend auth context
-    const result = await withValidSession(
-      async () => {
-        console.log('❤️ FoodLibrary - Session validated, performing database update');
-        
-        // Update the favorite status
-        const { data, error } = await supabase
-          .from('user_foods')
-          .update({ is_favorite: !currentFavorite })
-          .eq('id', foodId)
-          .eq('user_id', user.id)
-          .select('id, name, is_favorite')
-          .single();
+    try {
+      console.log('❤️ FoodLibrary - Performing database update');
+      
+      // Update the favorite status - simple, no complex validation
+      const { data, error } = await supabase
+        .from('user_foods')
+        .update({ is_favorite: !currentFavorite })
+        .eq('id', foodId)
+        .eq('user_id', user.id)
+        .select('id, name, is_favorite')
+        .single();
 
-        if (error) {
-          console.error('❤️ FoodLibrary - Database update error:', error);
-          throw error;
-        }
+      if (error) {
+        console.error('❤️ FoodLibrary - Database update error:', error);
+        throw error;
+      }
 
-        if (!data) {
-          throw new Error('No data returned from update operation');
-        }
+      if (!data) {
+        throw new Error('No data returned from update operation');
+      }
 
-        console.log('❤️ FoodLibrary - Update successful:', data);
-        return data;
-      },
-      `toggleFavorite for food ${foodId}`
-    );
-
-    if (result) {
+      console.log('❤️ FoodLibrary - Update successful:', data);
+      
       // Success - show feedback
       toast({
         title: !currentFavorite ? "Added to Favorites" : "Removed from Favorites",
-        description: `"${result.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
+        description: `"${data.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
       });
       console.log('❤️ FoodLibrary - toggleFavorite completed successfully');
-    } else {
-      // Session validation failed - rollback optimistic update
-      console.log('❤️ FoodLibrary - Session validation failed, rolling back optimistic update');
+      
+    } catch (error) {
+      console.error('❤️ FoodLibrary - toggleFavorite failed:', error);
+      
+      // Rollback optimistic update on error
       setFoods(prevFoods => prevFoods.map(food => 
         food.id === foodId 
           ? { ...food, is_favorite: currentFavorite }
           : food
       ));
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update favorite. Please try again."
+      });
     }
   };
 
@@ -486,26 +495,28 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }) => {
-    return withValidSession(async () => {
-      const { data, error } = await supabase
-        .from('user_foods')
-        .insert([{
-          user_id: user!.id,
-          name: food.name,
-          calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
-          carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
-        }]);
+    if (!canPerformDatabaseOperations) {
+      throw new Error('Database not ready');
+    }
+    
+    const { data, error } = await supabase
+      .from('user_foods')
+      .insert([{
+        user_id: user!.id,
+        name: food.name,
+        calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
+        carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
+      }]);
 
-      if (error) throw error;
+    if (error) throw error;
 
-      // Refresh user foods to show the new addition
-      await loadUserFoods();
-      
-      toast({
-        title: "Saved to Library",
-        description: `${food.name} has been added to your food library`
-      });
-    }, 'Save to Library');
+    // Refresh user foods to show the new addition
+    await loadUserFoods();
+    
+    toast({
+      title: "Saved to Library",
+      description: `${food.name} has been added to your food library`
+    });
   };
 
   const deleteRecentFood = async (foodName: string) => {
