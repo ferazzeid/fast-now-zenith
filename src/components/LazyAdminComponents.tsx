@@ -1,6 +1,6 @@
 // Lazy-loaded admin components to reduce initial bundle size
-import { lazy, Suspense } from 'react';
-import { LoadingSpinner } from './LoadingSpinner';
+import { lazy } from 'react';
+import { AdminLoadingWrapper } from './AdminLoadingWrapper';
 
 // Lazy load admin-only components
 const LazySimpleAnalyticsWidget = lazy(() => import('./SimpleAnalyticsWidget').then(m => ({ default: m.SimpleAnalyticsWidget })));
@@ -15,78 +15,80 @@ const LazyPromptManagement = lazy(() => import('./PromptManagement').then(m => (
 const LazyPaymentProviderSettings = lazy(() => import('./PaymentProviderSettings').then(m => ({ default: m.PaymentProviderSettings })));
 const LazyAdminTimelineSettings = lazy(() => import('./AdminTimelineSettings').then(m => ({ default: m.AdminTimelineSettings })));
 
-const AdminComponentWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={
-    <div className="flex items-center justify-center p-6">
-      <LoadingSpinner />
-    </div>
-  }>
+const AdminComponentWrapper = ({ 
+  children, 
+  componentName 
+}: { 
+  children: React.ReactNode; 
+  componentName: string;
+}) => (
+  <AdminLoadingWrapper componentName={componentName}>
     {children}
-  </Suspense>
+  </AdminLoadingWrapper>
 );
 
 export const SimpleAnalyticsWidget = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Analytics Widget">
     <LazySimpleAnalyticsWidget />
   </AdminComponentWrapper>
 );
 
 export const CancellationTracker = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Cancellation Tracker">
     <LazyCancellationTracker />
   </AdminComponentWrapper>
 );
 
 export const AdminTierStats = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Tier Statistics">
     <LazyAdminTierStats />
   </AdminComponentWrapper>
 );
 
 export const OpenAIApiStats = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="API Statistics">
     <LazyOpenAIApiStats />
   </AdminComponentWrapper>
 );
 
 export const UserRequestLimits = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Request Limits">
     <LazyUserRequestLimits />
   </AdminComponentWrapper>
 );
 
 export const AdminSEOSettings = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="SEO Settings">
     <LazyAdminSEOSettings />
   </AdminComponentWrapper>
 );
 
 export const BrandAssetsManager = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Brand Assets">
     <LazyBrandAssetsManager />
   </AdminComponentWrapper>
 );
 
 export const ColorManagement = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Color Management">
     <LazyColorManagement />
   </AdminComponentWrapper>
 );
 
 export const PromptManagement = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Prompt Management">
     <LazyPromptManagement />
   </AdminComponentWrapper>
 );
 
 export const PaymentProviderSettings = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Payment Settings">
     <LazyPaymentProviderSettings />
   </AdminComponentWrapper>
 );
 
 export const AdminTimelineSettings = () => (
-  <AdminComponentWrapper>
+  <AdminComponentWrapper componentName="Timeline Settings">
     <LazyAdminTimelineSettings />
   </AdminComponentWrapper>
 );

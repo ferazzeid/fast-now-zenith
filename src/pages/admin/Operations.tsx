@@ -2,11 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
-import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
-import { CancellationTracker } from "@/components/CancellationTracker";
-import { AdminTierStats } from "@/components/AdminTierStats";
-import { UserRequestLimits } from "@/components/UserRequestLimits";
-import { OpenAIApiStats } from "@/components/OpenAIApiStats";
+import { SimpleAnalyticsWidget, CancellationTracker, AdminTierStats, UserRequestLimits, OpenAIApiStats } from "@/components/LazyAdminComponents";
 import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ClearSubscriptionCacheButton } from "@/components/ClearSubscriptionCacheButton";
+import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 function SharedKeySettings() {
   const [sharedKey, setSharedKey] = useState("");
@@ -83,55 +80,56 @@ export default function AdminOperations() {
   });
 
   return (
-    <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
-      <h1 className="sr-only">Admin Operations</h1>
-      <AdminSubnav />
+    <AdminHealthCheck>
+      <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
+        <h1 className="sr-only">Admin Operations</h1>
+        <AdminSubnav />
 
+        <section aria-label="Real-time analytics">
+          <SimpleAnalyticsWidget />
+        </section>
 
-      <section aria-label="Real-time analytics">
-        <SimpleAnalyticsWidget />
-      </section>
+        <section aria-label="Cancellation tracking">
+          <CancellationTracker />
+        </section>
 
-      <section aria-label="Cancellation tracking">
-        <CancellationTracker />
-      </section>
+        <section aria-label="User request limits">
+          <UserRequestLimits />
+        </section>
 
-      <section aria-label="User request limits">
-        <UserRequestLimits />
-      </section>
+        <section aria-label="User tiers overview">
+          <AdminTierStats />
+        </section>
 
-      <section aria-label="User tiers overview">
-        <AdminTierStats />
-      </section>
+        <section aria-label="OpenAI API statistics">
+          <OpenAIApiStats />
+        </section>
 
-      <section aria-label="OpenAI API statistics">
-        <OpenAIApiStats />
-      </section>
+        <section aria-label="Google Analytics settings">
+          <GoogleAnalyticsSettings />
+        </section>
 
-      <section aria-label="Google Analytics settings">
-        <GoogleAnalyticsSettings />
-      </section>
-
-      <section aria-label="Shared OpenAI key">
-        <SharedKeySettings />
-      </section>
-      
-      <section aria-label="Cache management" className="pb-24">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Cache Management</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Clear subscription cache if users are experiencing incorrect premium access on mobile devices.
-              </p>
-              <ClearSubscriptionCacheButton />
-            </div>
-          </CardContent>
-        </Card>
-        <div className="h-8" />
-      </section>
-    </main>
+        <section aria-label="Shared OpenAI key">
+          <SharedKeySettings />
+        </section>
+        
+        <section aria-label="Cache management" className="pb-24">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Cache Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Clear subscription cache if users are experiencing incorrect premium access on mobile devices.
+                </p>
+                <ClearSubscriptionCacheButton />
+              </div>
+            </CardContent>
+          </Card>
+          <div className="h-8" />
+        </section>
+      </main>
+    </AdminHealthCheck>
   );
 }
