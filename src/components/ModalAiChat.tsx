@@ -53,22 +53,40 @@ export const ModalAiChat = ({
   quickReplies = [],
   onFoodAdd
 }: ModalAiChatProps) => {
-  // Render-level debugging
-  console.log('🎭 ModalAiChat RENDER:', { 
-    isOpen, 
-    title, 
-    context, 
-    proactiveMessage,
-    conversationType 
-  });
+  // CRITICAL: Add immediate debugging that will definitely show
+  if (isOpen) {
+    console.log('🚨 CRITICAL DEBUG - ModalAiChat OPEN:', { 
+      isOpen, 
+      title, 
+      proactiveMessage: proactiveMessage?.substring(0, 50) + '...',
+      hasProactiveMessage: !!proactiveMessage 
+    });
+  }
 
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Initialize with welcome message immediately if modal is open
+    if (isOpen) {
+      console.log('🚨 IMMEDIATE INIT - Creating initial messages');
+      const welcomeMessage = proactiveMessage || 'Hi! How can I help you today?';
+      return [{
+        role: 'assistant' as const,
+        content: welcomeMessage,
+        timestamp: new Date()
+      }];
+    }
+    return [];
+  });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(isOpen);
 
   // Log current messages state on every render
-  console.log('📊 Current messages state:', messages.length, messages);
+  console.log('📊 RENDER STATE:', { 
+    isOpen, 
+    messagesCount: messages.length, 
+    firstMessage: messages[0]?.content?.substring(0, 30) + '...' || 'NONE',
+    isInitialized 
+  });
   
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
