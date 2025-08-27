@@ -57,6 +57,7 @@ const FoodTracking = () => {
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
   const [showConfirmTemplateDialog, setShowConfirmTemplateDialog] = useState(false);
+  const [showApplyTemplateDialog, setShowApplyTemplateDialog] = useState(false);
   const [templateName, setTemplateName] = useState('Daily Plan');
   const [pendingSaveData, setPendingSaveData] = useState<any[]>([]);
 
@@ -354,7 +355,7 @@ const FoodTracking = () => {
         
         toast({ 
           title: 'Template Applied', 
-          description: 'Your daily template has been applied to today\'s plan' 
+          description: 'Your daily template has been added to today\'s plan' 
         });
       }
     } catch (error) {
@@ -365,6 +366,7 @@ const FoodTracking = () => {
         variant: 'destructive'
       });
     }
+    setShowApplyTemplateDialog(false);
   };
 
   const handleClearTemplate = async () => {
@@ -770,7 +772,7 @@ const FoodTracking = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={handleApplyTemplate}
+                          onClick={() => setShowApplyTemplateDialog(true)}
                           className="h-5 w-5 p-0 text-primary hover:text-primary hover:bg-primary/10"
                           aria-label="Apply template to today's plan"
                           title="Apply template to today's plan"
@@ -1205,6 +1207,23 @@ const FoodTracking = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleClearTemplate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Clear Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showApplyTemplateDialog} onOpenChange={setShowApplyTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply Template to Today's Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will add all foods from your daily template to today's plan. Your existing foods will be kept - the template foods will be added alongside them.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApplyTemplate} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              Add Template Foods
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
