@@ -553,22 +553,18 @@ const FoodTracking = () => {
                               <MoreVertical className="w-5 h-5 text-muted-foreground" />
                             </Button>
                           </DropdownMenuTrigger>
-                           <DropdownMenuContent 
-                             align="start" 
-                             side="bottom" 
-                             sideOffset={8}
-                             avoidCollisions={true}
-                             collisionPadding={16}
-                             className="w-52 z-[60] bg-popover border shadow-lg"
-                           >
-                              <DropdownMenuItem onClick={handleUnifiedEntry} className="py-2.5 px-3">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Food
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="py-2.5 px-3">
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit Food
-                              </DropdownMenuItem>
+                            <DropdownMenuContent 
+                              align="start" 
+                              side="bottom" 
+                              sideOffset={8}
+                              avoidCollisions={true}
+                              collisionPadding={16}
+                              className="w-52 z-[60] bg-popover border shadow-lg"
+                            >
+                               <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="py-2.5 px-3">
+                                 <Edit className="w-4 h-4 mr-2" />
+                                 Edit Food
+                               </DropdownMenuItem>
                              <DropdownMenuItem
                                className="py-2.5 px-3"
                                onClick={async () => {
