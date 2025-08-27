@@ -53,9 +53,22 @@ export const ModalAiChat = ({
   quickReplies = [],
   onFoodAdd
 }: ModalAiChatProps) => {
+  // Render-level debugging
+  console.log('🎭 ModalAiChat RENDER:', { 
+    isOpen, 
+    title, 
+    context, 
+    proactiveMessage,
+    conversationType 
+  });
+
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Log current messages state on every render
+  console.log('📊 Current messages state:', messages.length, messages);
   
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
@@ -121,10 +134,14 @@ export const ModalAiChat = ({
       isOpen, 
       context, 
       proactiveMessage, 
-      conversationType 
+      conversationType,
+      isInitialized,
+      currentMessagesLength: messages.length
     });
     
-    if (isOpen) {
+    if (isOpen && !isInitialized) {
+      console.log('🚀 Initializing messages for first time');
+      
       // Initialize messages array
       const initialMessages: Message[] = [];
       
@@ -167,8 +184,19 @@ export const ModalAiChat = ({
         console.log('📝 Added fallback welcome message:', fallbackMsg.content);
       }
       
+      // Ensure we always have at least one message
+      if (initialMessages.length === 0) {
+        console.log('⚠️ No initial messages - adding emergency fallback');
+        initialMessages.push({
+          role: 'assistant',
+          content: 'Hi! How can I help you today?',
+          timestamp: new Date()
+        });
+      }
+      
       console.log('🚀 Setting initial messages:', initialMessages);
       setMessages(initialMessages);
+      setIsInitialized(true);
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
@@ -183,6 +211,7 @@ export const ModalAiChat = ({
       
       // Clear messages and state immediately when modal closes
       setMessages([]);
+      setIsInitialized(false);
       setEditingFoodIndex(null);
       setEditingMotivatorIndex(null);
       setEditingMotivator(false);
@@ -194,7 +223,7 @@ export const ModalAiChat = ({
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
     }
-  }, [isOpen, context, conversationType, proactiveMessage]);
+  }, [isOpen, context, conversationType, proactiveMessage, title, isInitialized, messages.length]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
     console.log('📤 sendToAI called:', { message, fromVoice, isProcessing });
@@ -1385,6 +1414,22 @@ ${args.content}`,
     >
       {/* Messages with better spacing and scrolling */}
       <div className="space-y-6 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
+        {/* Emergency fallback - if modal is open but no messages, show error message */}
+        {isOpen && messages.length === 0 && (
+          <div className="flex justify-start">
+            <Card className="max-w-[85%] p-3 bg-muted">
+              <div className="text-sm whitespace-pre-line text-destructive">
+                ⚠️ System Error: No messages loaded. Please try closing and reopening the chat.
+                
+                Debug info:
+                - Modal open: {isOpen ? 'Yes' : 'No'}
+                - Initialized: {isInitialized ? 'Yes' : 'No'}
+                - Messages count: {messages.length}
+              </div>
+            </Card>
+          </div>
+        )}
+        
         {messages.map((message, index) => (
           <div
             key={index}
