@@ -484,6 +484,38 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
+  const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_foods')
+        .insert([{
+          user_id: user.id,
+          name: food.name,
+          calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
+          carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
+        }]);
+
+      if (error) throw error;
+
+      // Refresh user foods to show the new addition
+      await loadUserFoods();
+      
+      toast({
+        title: "Saved to Library",
+        description: `${food.name} has been added to your food library`
+      });
+    } catch (error) {
+      console.error('Error saving to library:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save food to library",
+        variant: "destructive"
+      });
+    }
+  };
+
   const deleteRecentFood = async (foodName: string) => {
     try {
       // For recent foods, remove all food entries with this name from the user's history
@@ -645,21 +677,40 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                  style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                  onCloseAutoFocus={(e) => e.preventDefault()}
                >
-                    {isUserFood ? (
-                      <>
-                          {/* Only show Edit option for user foods and admin for default foods */}
-                          {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEditModal(true);
-                              }}
-                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                             >
-                               <Edit className="w-4 h-4 mr-3" />
-                               Edit Food
-                            </DropdownMenuItem>
-                          )}
+                     {isUserFood ? (
+                       <>
+                           {/* Show Edit for actual user library foods (not recent foods) */}
+                           {!food.id.startsWith('recent-') && (
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setShowEditModal(true);
+                               }}
+                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                              >
+                                <Edit className="w-4 h-4 mr-3" />
+                                Edit Food
+                             </DropdownMenuItem>
+                           )}
+                           
+                           {/* Show Save to Library for recent foods */}
+                           {food.id.startsWith('recent-') && (
+                             <DropdownMenuItem
+                               onClick={async (e) => {
+                                 e.stopPropagation();
+                                 await saveToLibrary({
+                                   name: food.name,
+                                   calories: food.calories_per_100g,
+                                   carbs: food.carbs_per_100g,
+                                   serving_size: 100
+                                 });
+                               }}
+                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                              >
+                                <Save className="w-4 h-4 mr-3" />
+                                Save to Library
+                             </DropdownMenuItem>
+                           )}
                            <DropdownMenuItem
                               onClick={async (e) => {
                                 e.stopPropagation();
