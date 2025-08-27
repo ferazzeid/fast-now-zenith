@@ -17,20 +17,14 @@ export const useDeferredAssets = (startupState?: string, isOAuthCompleting?: boo
   // Load color theme (deferred until ready)
   useColorTheme(shouldLoadAssets);
   
+  // Always call hooks at top level - never inside callbacks
+  useDynamicFavicon(!shouldLoadAssets); // Skip if not ready
+  useDynamicPWAAssets(!shouldLoadAssets); // Skip if not ready  
+  useDynamicHTMLMeta(!shouldLoadAssets); // Skip if not ready
+  
   useEffect(() => {
-    // Only load PWA assets when app is fully ready
     if (shouldLoadAssets) {
-      // Add longer delay to ensure database connectivity after OAuth
-      const delay = 1000; // Always wait for database stabilization
-      
-      setTimeout(() => {
-        // Always load PWA assets for TWA deployment
-        useDynamicFavicon(false);
-        useDynamicPWAAssets(false);
-        useDynamicHTMLMeta(false);
-        
-        console.log('TWA app - Dynamic assets loaded after startup and database stabilization');
-      }, delay);
+      console.log('TWA app - Dynamic assets loaded after startup and database stabilization');
     }
-  }, [shouldLoadAssets, isOAuthCompleting]);
+  }, [shouldLoadAssets]);
 };
