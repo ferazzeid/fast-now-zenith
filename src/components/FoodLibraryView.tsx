@@ -560,7 +560,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         name: food.name,
         calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
         carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
-      }]);
+      }])
+      .select()
+      .single();
 
     if (error) throw error;
 
@@ -571,6 +573,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       title: "Saved to Library",
       description: `${food.name} has been added to your food library`
     });
+
+    return data; // Return the saved food data
   };
 
   const deleteRecentFood = async (foodName: string) => {
@@ -909,7 +913,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <Button
                   variant="ghost"
                   size="sm"
-                   onClick={(e) => {
+                   onClick={async (e) => {
                      e.stopPropagation();
                      if (!isInteractionSafe) {
                        toast({
@@ -918,14 +922,34 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                        });
                        return;
                      }
-                     // Prevent favoriting recent foods (they have string IDs like "recent-food-name")
+                     
+                     // Handle recent foods: save to library first, then favorite
                      if (food.id.startsWith('recent-')) {
-                       toast({
-                         title: "Save to library first",
-                         description: "Please save this food to your library before favoriting it"
-                       });
+                       try {
+                         const savedFood = await saveToLibrary({
+                           name: food.name,
+                           calories: food.calories_per_100g,
+                           carbs: food.carbs_per_100g,
+                           serving_size: 100
+                         });
+                         
+                         if (savedFood) {
+                           // Now favorite the saved food
+                           await toggleFavorite(savedFood.id, false);
+                           // Refresh the user foods list
+                           await loadUserFoods();
+                         }
+                       } catch (error) {
+                         toast({
+                           title: "Error",
+                           description: "Failed to save and favorite food",
+                           variant: "destructive"
+                         });
+                       }
                        return;
                      }
+                     
+                     // Handle user foods: toggle favorite directly
                      toggleFavorite(food.id, food.is_favorite || false);
                    }}
                    disabled={!isInteractionSafe}
