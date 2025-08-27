@@ -1074,22 +1074,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       <div className="flex-1 px-2 py-4 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
           <div className="mb-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="my-foods" className="flex items-center gap-2">
-                MyFoods
-                 {filteredUserFoods.length > 0 && (
-                   <Trash2 
-                     className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       console.log('🗑️ Delete All button clicked, foods count:', filteredUserFoods.length);
-                       setShowDeleteAllConfirm(true);
-                     }}
-                   />
-                 )}
-              </TabsTrigger>
-              <TabsTrigger value="suggested">Default</TabsTrigger>
-            </TabsList>
+            <div className="flex items-center justify-between mb-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="my-foods">MyFoods</TabsTrigger>
+                <TabsTrigger value="suggested">Default</TabsTrigger>
+              </TabsList>
+              {activeTab === 'my-foods' && filteredUserFoods.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('🗑️ Delete All button clicked, foods count:', filteredUserFoods.length);
+                    setShowDeleteAllConfirm(true);
+                  }}
+                  className="ml-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete All
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* My Foods Tab */}
