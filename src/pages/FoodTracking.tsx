@@ -546,7 +546,7 @@ const FoodTracking = () => {
                              sideOffset={8}
                              avoidCollisions={true}
                              collisionPadding={16}
-                             className="w-52 z-50 bg-background border border-border shadow-lg"
+                             className="w-52 z-[60] bg-popover border shadow-lg"
                            >
                               <DropdownMenuItem onClick={handleUnifiedEntry} className="py-2.5 px-3">
                                 <Plus className="w-4 h-4 mr-2" />
@@ -806,7 +806,7 @@ const FoodTracking = () => {
                                    sideOffset={8}
                                    avoidCollisions={true}
                                    collisionPadding={16}
-                                   className="w-52 z-50 bg-background border border-border shadow-lg"
+                                   className="w-52 z-[60] bg-popover border shadow-lg"
                                  >
                                    <DropdownMenuItem onClick={handleUnifiedEntry} className="py-2.5 px-3">
                                      <Plus className="w-4 h-4 mr-2" />
