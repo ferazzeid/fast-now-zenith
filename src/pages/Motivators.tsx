@@ -426,8 +426,8 @@ const Motivators = () => {
                       >
                         <CardContent className="p-6">
                           <div className="text-center space-y-3">
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                              <Plus className="w-6 h-6 text-primary/60" />
+                            <div className="w-12 h-12 bg-muted-foreground/10 rounded-full flex items-center justify-center mx-auto">
+                              <Plus className="w-6 h-6 text-muted-foreground/60" />
                             </div>
                             <div>
                               <h4 className="font-medium text-muted-foreground/70 mb-1">Create Goal #{goalMotivators.length + index + 1}</h4>

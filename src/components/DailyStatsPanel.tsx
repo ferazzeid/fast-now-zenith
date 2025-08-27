@@ -204,7 +204,7 @@ export const DailyStatsPanel = memo(() => {
 
                   {/* Calories Out */}
                   <StatDisplay
-                    icon={<Activity className="w-4 h-4 text-primary" />}
+                    icon={<Activity className="w-4 h-4 text-muted-foreground" />}
                     label="Calories Out"
                     value={deficitData.totalCaloriesBurned}
                     tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.totalCaloriesBurned)}`}
@@ -217,7 +217,7 @@ export const DailyStatsPanel = memo(() => {
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <Target className="w-4 h-4 text-primary" />
+                      <Target className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
                       <ClickableTooltip content={`Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`}>
                         <Info className="w-4 h-4 text-muted-foreground" />

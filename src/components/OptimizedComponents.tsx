@@ -96,27 +96,27 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
         {/* Additional metrics if available */}
         {fatInGrams !== undefined && thirtyDayProjection !== undefined && deficit > 0 && (
           <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-ceramic-rim/50">
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-1 mb-1">
+                  <Flame className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Today's Fat Loss</span>
+                  <ClickableTooltip content="Fat burned today based on your current calorie deficit">
+                    <Info className="w-3 h-3 text-muted-foreground" />
+                  </ClickableTooltip>
+                </div>
+                <div className="text-sm font-semibold text-muted-foreground">
+                  {Math.round(fatInGrams)}g
+                </div>
+              </div>
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1 mb-1">
-                <Flame className="w-3 h-3 text-primary" />
-                <span className="text-xs text-muted-foreground">Today's Fat Loss</span>
-                <ClickableTooltip content="Fat burned today based on your current calorie deficit">
-                  <Info className="w-3 h-3 text-muted-foreground" />
-                </ClickableTooltip>
-              </div>
-              <div className="text-sm font-semibold text-primary">
-                {Math.round(fatInGrams)}g
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center space-x-1 mb-1">
-                <Calendar className="w-3 h-3 text-primary" />
+                <Calendar className="w-3 h-3 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">30d Projection</span>
                 <ClickableTooltip content="Projected weight loss if you maintain today's deficit for 30 days">
                   <Info className="w-3 h-3 text-muted-foreground" />
                 </ClickableTooltip>
               </div>
-              <div className="text-sm font-semibold text-primary">
+              <div className="text-sm font-semibold text-muted-foreground">
                 {userUnits === 'metric' 
                   ? `${Math.round(thirtyDayProjection / 1000)}kg`
                   : `${Math.round(thirtyDayProjection / 453.592)}lbs`

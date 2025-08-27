@@ -739,6 +739,7 @@ const FoodTracking = () => {
                         <div className="flex items-center space-x-1.5">
                           <Switch 
                             id="activate-daily"
+                            variant="neutral"
                             checked={profile?.enable_daily_reset || false}
                             onCheckedChange={(checked) => {
                               updateProfile({ enable_daily_reset: checked }).then((result) => {

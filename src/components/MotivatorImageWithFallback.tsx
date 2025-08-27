@@ -42,7 +42,7 @@ export const MotivatorImageWithFallback: React.FC<MotivatorImageWithFallbackProp
           style={style}
           onClick={onAddImageClick}
         >
-          <Plus className="w-8 h-8 text-primary" />
+          <Plus className="w-8 h-8 text-muted-foreground" />
           <span className="text-xs text-muted-foreground font-medium">add image</span>
         </div>
       );

@@ -58,7 +58,7 @@ export const FastingSliderHeader: React.FC<FastingSliderHeaderProps> = ({
         {/* Track */}
         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-border" />
         {/* Current dot (center) */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary shadow-sm" aria-label={`Current fasting hour: ${clamp(currentHour)}`} />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-muted-foreground shadow-sm" aria-label={`Current fasting hour: ${clamp(currentHour)}`} />
       </div>
     </div>
   );
