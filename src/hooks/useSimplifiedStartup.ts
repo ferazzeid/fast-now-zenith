@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
-
+import { supabase } from '@/integrations/supabase/client';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useProfile } from '@/hooks/useProfile';
 import { recordStartupMetric } from '@/utils/startupPerformance';
@@ -58,17 +58,49 @@ export const useSimplifiedStartup = () => {
           return; // Still loading, wait
         }
 
-        // Step 2: If authenticated, load profile (non-blocking)
+        // Step 2: If authenticated, ensure database connectivity
         if (user && session) {
           setState('profile');
+          recordStartupMetric('profile');
+
+          // Test database connectivity with retry logic
+          let retries = 3;
+          let dbConnected = false;
           
-          // Load profile but don't block on it
-          if (!profile && !profileLoading) {
+          while (retries > 0 && !dbConnected) {
             try {
-              await loadProfile();
-            } catch (profileError) {
-              // Profile loading failed, but don't block startup
-              console.warn('Profile loading failed (non-blocking):', profileError);
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
+
+              if (error && error.code !== 'PGRST116') { // Not a "not found" error
+                throw error;
+              }
+              
+              dbConnected = true;
+              
+              // Load profile but don't block on it
+              if (!profile && !profileLoading) {
+                try {
+                  await loadProfile();
+                } catch (profileError) {
+                  // Profile loading failed, but don't block startup
+                  console.warn('Profile loading failed (non-blocking):', profileError);
+                }
+              }
+            } catch (error) {
+              console.error(`Database connection attempt failed (${4 - retries}/3):`, error);
+              retries--;
+              if (retries > 0) {
+                // Wait before retry to allow database to stabilize
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } else {
+                setError('Database connection failed');
+                setState('error');
+                return;
+              }
             }
           }
         }

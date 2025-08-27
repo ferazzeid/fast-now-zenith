@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useSessionValidator } from '@/hooks/useSessionValidator';
+import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
 
 interface UserFood {
   id: string;
@@ -485,13 +486,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }) => {
-    if (!user) return;
-    
-    try {
+    return withValidSession(async () => {
       const { data, error } = await supabase
         .from('user_foods')
         .insert([{
-          user_id: user.id,
+          user_id: user!.id,
           name: food.name,
           calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
           carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
@@ -506,14 +505,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         title: "Saved to Library",
         description: `${food.name} has been added to your food library`
       });
-    } catch (error) {
-      console.error('Error saving to library:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save food to library",
-        variant: "destructive"
-      });
-    }
+    }, 'Save to Library');
   };
 
   const deleteRecentFood = async (foodName: string) => {
@@ -906,7 +898,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
+    <DatabaseErrorBoundary onRetry={() => window.location.reload()}>
+      <div className="h-full flex flex-col max-w-7xl mx-auto">
       {/* Header */}
       <div className="px-6 py-6 border-b border-border">
         <div className="flex items-center justify-between">
@@ -1088,6 +1081,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </DatabaseErrorBoundary>
   );
 };

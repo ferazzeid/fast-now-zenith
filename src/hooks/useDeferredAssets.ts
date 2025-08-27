@@ -11,7 +11,7 @@ import { useDynamicHTMLMeta } from './useDynamicHTMLMeta';
  */
 export const useDeferredAssets = (startupState?: string, isOAuthCompleting?: boolean) => {
   
-  // Only load dynamic assets when startup is complete and not during OAuth
+  // Only load dynamic assets when startup is complete, not during OAuth, and database is connected
   const shouldLoadAssets = startupState === 'ready' && !isOAuthCompleting;
   
   // Load color theme (deferred until ready)
@@ -20,8 +20,8 @@ export const useDeferredAssets = (startupState?: string, isOAuthCompleting?: boo
   useEffect(() => {
     // Only load PWA assets when app is fully ready
     if (shouldLoadAssets) {
-      // Add small delay after OAuth to let database connections stabilize
-      const delay = isOAuthCompleting ? 500 : 0;
+      // Add longer delay to ensure database connectivity after OAuth
+      const delay = 1000; // Always wait for database stabilization
       
       setTimeout(() => {
         // Always load PWA assets for TWA deployment
@@ -29,7 +29,7 @@ export const useDeferredAssets = (startupState?: string, isOAuthCompleting?: boo
         useDynamicPWAAssets(false);
         useDynamicHTMLMeta(false);
         
-        console.log('TWA app - Dynamic assets loaded after startup completion');
+        console.log('TWA app - Dynamic assets loaded after startup and database stabilization');
       }, delay);
     }
   }, [shouldLoadAssets, isOAuthCompleting]);
