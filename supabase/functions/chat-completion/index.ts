@@ -38,7 +38,7 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { messages, stream = false, message, conversationHistory } = requestBody;
+    const { messages, stream = false, message, conversationHistory, conversationMemory } = requestBody;
     
     // Handle both ModalAiChat format (messages array) and AiChat format (message + conversationHistory)
     let processedMessages;
@@ -272,6 +272,7 @@ USER PROFILE:
 CRITICAL FOOD PROCESSING RULES:
 - When users mention specific food items with quantities (like "333 milliliters of Diet Pepsi", "two apples", "100g chicken"), IMMEDIATELY call add_multiple_foods function
 - For CLARIFICATIONS or FOLLOW-UPS about recently added foods (like "each yogurt has 150g" or "there are actually two"), understand this as a modification to the previous food entry
+- When processing clarifications, use modify_recent_foods function instead of add_multiple_foods
 - When processing clarifications, maintain the original count but update the nutritional information based on the new details
 - Do NOT ask for confirmation or engage in discussion about adding food
 - Process the food information directly and call the function right away
@@ -282,6 +283,9 @@ CONVERSATION CONTEXT AWARENESS:
 - If user says "each has X grams" or "there are actually Y items", this modifies the previous food entry
 - Always validate nutritional calculations (e.g., 150g × 79cal/100g = 118.5 calories)
 - Maintain separate entries when user specifies multiple items
+- Use the conversation memory context to understand what the user is referring to
+
+${conversationMemory || ''}
 
 ${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
@@ -572,6 +576,40 @@ When explaining app calculations, use the exact formulas and constants above. He
                   }
                 },
                 required: ["foods"]
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "modify_recent_foods",
+              description: "Modify recently added food entries based on user clarifications (e.g., 'each yogurt has 150g', 'there are actually two'). Use this when user provides clarifications about recently added foods.",
+              parameters: {
+                type: "object",
+                properties: {
+                  modifications: {
+                    type: "object",
+                    properties: {
+                      serving_size_each: {
+                        type: "number",
+                        description: "New serving size per item (when user says 'each has X grams')"
+                      },
+                      quantity: {
+                        type: "number",
+                        description: "New quantity of items (when user says 'there are actually X')"
+                      },
+                      serving_size_total: {
+                        type: "number",
+                        description: "Total serving size for all items"
+                      }
+                    }
+                  },
+                  clarification_text: {
+                    type: "string",
+                    description: "The user's clarification message for context"
+                  }
+                },
+                required: ["modifications", "clarification_text"]
               }
             }
           },
@@ -1118,6 +1156,16 @@ When explaining app calculations, use the exact formulas and constants above. He
               functionCall = null;
             } else {
               console.log(`✅ add_multiple_foods has ${functionCall.arguments.foods.length} food items`);
+            }
+          }
+          
+          // Special validation for modify_recent_foods  
+          if (functionCall.name === 'modify_recent_foods') {
+            if (!functionCall.arguments.modifications || typeof functionCall.arguments.modifications !== 'object') {
+              console.error('❌ modify_recent_foods missing modifications object');
+              functionCall = null;
+            } else {
+              console.log('✅ modify_recent_foods validation passed');
             }
           }
         }

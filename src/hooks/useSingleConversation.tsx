@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { conversationMemory } from '@/utils/conversationMemory';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -9,6 +10,7 @@ export interface Message {
   timestamp: Date;
   audioEnabled?: boolean;
   imageUrl?: string;
+  conversationMemory?: string; // For storing memory context
 }
 
 export const useSingleConversation = () => {
@@ -17,6 +19,20 @@ export const useSingleConversation = () => {
   const [isProcessingMessage, setIsProcessingMessage] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Enhanced conversation memory integration
+  const loadConversationMemory = () => {
+    const saved = localStorage.getItem(`conversation_memory_${user?.id}`);
+    if (saved) {
+      conversationMemory.import(saved);
+    }
+  };
+
+  const saveConversationMemory = () => {
+    if (user?.id) {
+      localStorage.setItem(`conversation_memory_${user.id}`, conversationMemory.export());
+    }
+  };
 
   // Load the single conversation from database (non-archived)
   const loadConversation = async () => {
@@ -61,6 +77,8 @@ export const useSingleConversation = () => {
         
         console.log('DEBUG: Loaded', transformedMessages.length, 'messages from database');
         setMessages(transformedMessages);
+        // Load conversation memory after loading messages
+        loadConversationMemory();
       } else {
         console.log('DEBUG: No conversation found, starting fresh');
         // Add a greeting message for new conversations
@@ -70,6 +88,13 @@ export const useSingleConversation = () => {
           timestamp: new Date()
         };
         setMessages([greetingMessage]);
+        // Reset conversation memory for new conversations
+        conversationMemory.updateConversationState({ 
+          currentTopic: 'general',
+          isProcessingFood: false,
+          awaitingClarification: false,
+          sessionType: 'general'
+        });
       }
     } catch (error) {
       console.error('Error loading conversation:', error);
@@ -91,9 +116,24 @@ export const useSingleConversation = () => {
     setIsProcessingMessage(true);
 
     try {
+      // Check if this is a food clarification before processing
+      const foodClarification = conversationMemory.detectFoodClarification(message.content);
+      if (foodClarification.isModification) {
+        console.log('DEBUG: Detected food clarification:', foodClarification);
+        // Add memory context to the message
+        message.conversationMemory = conversationMemory.getContextForAI();
+        conversationMemory.updateConversationState({ 
+          awaitingClarification: false,
+          isProcessingFood: true 
+        });
+      }
+
       // Update local state first for immediate display
       const updatedMessages = [...messages, message];
       setMessages(updatedMessages);
+
+      // Save conversation memory after adding message
+      saveConversationMemory();
       
       // Serialize messages with timestamps as ISO strings
       const messagesForDb = updatedMessages.map(msg => ({
@@ -234,12 +274,32 @@ export const useSingleConversation = () => {
     }
   }, [user?.id]);
 
+  // Enhanced methods for working with conversation memory
+  const addFoodAction = (userMessage: string, foods: any[], type: 'add' | 'modify' | 'delete' = 'add') => {
+    conversationMemory.addFoodAction(userMessage, foods, type);
+    saveConversationMemory();
+  };
+
+  const updateConversationState = (updates: any) => {
+    conversationMemory.updateConversationState(updates);
+    saveConversationMemory();
+  };
+
+  const getConversationContext = () => {
+    return conversationMemory.getContext();
+  };
+
   return {
     messages,
     loading,
     addMessage,
     archiveConversation,
     clearConversation,
-    loadConversation
+    loadConversation,
+    // Enhanced memory methods
+    addFoodAction,
+    updateConversationState,
+    getConversationContext,
+    conversationMemory: conversationMemory.getContextForAI()
   };
 };

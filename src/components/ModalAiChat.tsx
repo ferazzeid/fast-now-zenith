@@ -18,6 +18,8 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
+import { useSingleConversation } from '@/hooks/useSingleConversation';
+import { conversationMemory } from '@/utils/conversationMemory';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 
 interface Message {
@@ -78,6 +80,13 @@ export const ModalAiChat = ({
     applyEditPreview
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
+  
+  // Enhanced conversation memory integration
+  const { 
+    addFoodAction, 
+    updateConversationState, 
+    getConversationContext 
+  } = useSingleConversation();
   
   // Session and profile hooks
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession } = useFastingSession();
@@ -258,6 +267,10 @@ You are a motivational goal creation assistant. Your task is to:
       if (data.functionCall) {
         if (data.functionCall.name === 'add_multiple_foods') {
           const foods = data.functionCall.arguments?.foods || [];
+          
+          // Track in conversation memory
+          addFoodAction(message, foods, 'add');
+          
           setLastFoodSuggestion({
             foods,
             destination: data.functionCall.arguments?.destination || 'today',
@@ -281,7 +294,55 @@ You are a motivational goal creation assistant. Your task is to:
           };
           setMessages(prev => [...prev, foodMessage]);
           return;
-        } else if (data.functionCall.name === 'create_multiple_motivators') {
+        } else if (data.functionCall.name === 'modify_recent_foods') {
+          const modifications = data.functionCall.arguments.modifications || {};
+          const clarificationText = data.functionCall.arguments.clarification_text || '';
+          console.log('🔄 Processing food modification:', modifications, clarificationText);
+
+          // Use conversation memory to process the modification  
+          const context = getConversationContext();
+          const recentAction = context.recentFoodActions[0];
+          
+          if (recentAction) {
+            const modifiedFoods = conversationMemory.processModification(recentAction, modifications, recentAction.foods);
+            console.log('🔄 Modified foods:', modifiedFoods);
+            
+            // Track the modification in memory
+            addFoodAction(clarificationText, modifiedFoods, 'modify');
+            
+            // Present modified foods for review
+            setLastFoodSuggestion({
+              foods: modifiedFoods,
+              destination: 'today',
+              added: false
+            });
+            setSelectedFoodIds(new Set(modifiedFoods.map((_: any, index: number) => index)));
+            
+            const foodSummary = modifiedFoods.map((food: any) => 
+              `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs`
+            ).join('\n');
+            
+            const totalCalories = modifiedFoods.reduce((sum: number, food: any) => sum + food.calories, 0);
+            const totalCarbs = modifiedFoods.reduce((sum: number, food: any) => sum + food.carbs, 0);
+            
+            const modificationMessage: Message = {
+              role: 'assistant',
+              content: `I've updated the foods based on your clarification:\n\n${foodSummary}\n\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nReview the updated items and click "Add Selected Foods" when ready.`,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, modificationMessage]);
+            return;
+          } else {
+            // No recent food action to modify - fallback to regular response
+            const message: Message = {
+              role: 'assistant',
+              content: data.completion || "I don't see any recent food entries to modify. Could you please add some foods first?",
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, message]);
+            return;
+          }
+        }
           setLastMotivatorsSuggestion(data.functionCall.arguments);
           // Don't add any AI message for bulk motivators - just show the interactive UI
           return;
