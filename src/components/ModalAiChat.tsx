@@ -342,7 +342,7 @@ You are a motivational goal creation assistant. Your task is to:
             setMessages(prev => [...prev, message]);
             return;
           }
-        }
+        } else if (data.functionCall.name === 'create_multiple_motivators') {
           setLastMotivatorsSuggestion(data.functionCall.arguments);
           // Don't add any AI message for bulk motivators - just show the interactive UI
           return;
