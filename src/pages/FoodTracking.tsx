@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera, Brain, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { AIVoiceButton } from '@/components/AIVoiceButton';
@@ -38,6 +39,7 @@ import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
 
 const FoodTracking = () => {
+  const location = useLocation();
   const [consumedNow, setConsumedNow] = useState(true);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   
@@ -76,6 +78,17 @@ const FoodTracking = () => {
     deleteTemplateFood
   } = useDailyFoodTemplate();
   const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
+
+  // Close modals when navigating to auth routes to prevent OAuth interaction errors
+  useEffect(() => {
+    if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
+      setShowLibraryView(false);
+      setShowHistory(false);
+      setShowAiChat(false);
+      setShowUnifiedEntry(false);
+      setShowOnboarding(false);
+    }
+  }, [location.pathname]);
 
   const handleVoiceFood = (result: { food: string }) => {
     trackFoodEvent('add', 'voice');

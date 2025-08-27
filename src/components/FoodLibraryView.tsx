@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,7 @@ interface FoodLibraryViewProps {
 }
 
 export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) => {
+  const location = useLocation();
   const [foods, setFoods] = useState<UserFood[]>([]);
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
@@ -68,6 +70,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   // Removed custom visual feedback - using React Query states only
   
   const { user, canPerformDatabaseOperations } = useSessionState();
+
+  // Close modal when navigating to auth routes to prevent OAuth interaction errors
+  useEffect(() => {
+    if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
+      onBack();
+    }
+  }, [location.pathname, onBack]);
+
+  // Prevent interactions during invalid session states
+  const isInteractionSafe = canPerformDatabaseOperations && location.pathname !== '/auth' && location.pathname !== '/auth-callback';
   const { toast } = useToast();
   const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
 
@@ -166,6 +178,14 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const handleQuickSelect = async (food: UserFood | DefaultFood, consumed: boolean = false) => {
+    if (!isInteractionSafe) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
     console.log('🔄 FoodLibrary: Adding food to today:', food.name);
     
     const userFood = 'variations' in food ? food : {
@@ -181,7 +201,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const handleAddToTemplate = async (food: UserFood | DefaultFood) => {
     if (!user) return;
     
-    if (!canPerformDatabaseOperations) {
+    if (!isInteractionSafe) {
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment"
@@ -245,8 +265,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
 
     // Check if we can perform database operations
-    if (!canPerformDatabaseOperations) {
-      console.log('❤️ FoodLibrary - Database not ready, showing loading state');
+    if (!isInteractionSafe) {
+      console.log('❤️ FoodLibrary - Database not ready or unsafe route, showing loading state');
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment"
@@ -312,7 +332,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const toggleDefaultFoodFavorite = async (foodId: string, isFavorite: boolean) => {
     if (!user) return;
     
-    if (!canPerformDatabaseOperations) {
+    if (!isInteractionSafe) {
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment"
@@ -893,18 +913,18 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!canPerformDatabaseOperations) {
-                      toast({
-                        title: "Please wait",
-                        description: "System is loading, please try again in a moment"
-                      });
-                      return;
-                    }
-                    toggleFavorite(food.id, food.is_favorite || false);
-                  }}
-                  disabled={!canPerformDatabaseOperations}
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     if (!isInteractionSafe) {
+                       toast({
+                         title: "Please wait",
+                         description: "System is loading, please try again in a moment"
+                       });
+                       return;
+                     }
+                     toggleFavorite(food.id, food.is_favorite || false);
+                   }}
+                   disabled={!isInteractionSafe}
                   className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
@@ -926,18 +946,18 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!canPerformDatabaseOperations) {
-                      toast({
-                        title: "Please wait",
-                        description: "System is loading, please try again in a moment"
-                      });
-                      return;
-                    }
-                    toggleDefaultFoodFavorite(food.id, food.is_favorite || false);
-                  }}
-                  disabled={!canPerformDatabaseOperations}
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     if (!isInteractionSafe) {
+                       toast({
+                         title: "Please wait",
+                         description: "System is loading, please try again in a moment"
+                       });
+                       return;
+                     }
+                     toggleDefaultFoodFavorite(food.id, food.is_favorite || false);
+                   }}
+                   disabled={!isInteractionSafe}
                   className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
