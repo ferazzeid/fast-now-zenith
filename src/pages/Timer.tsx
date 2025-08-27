@@ -337,12 +337,16 @@ const Timer = () => {
       });
       
       if (result) {
-        // Load the session to get accurate timing
-        await refreshActiveSession();
-        
+        // Calculate elapsed time immediately
         const now = new Date();
         const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
         const elapsedSeconds = Math.floor(timeDiffMs / 1000);
+        
+        // Immediately update the timer display to show correct elapsed time
+        setTimeElapsed(elapsedSeconds);
+        
+        // Load the session to get accurate timing for future updates
+        await refreshActiveSession();
         
         toast({
           title: "Fast started retroactively",
