@@ -100,13 +100,21 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     const spaceLeft = triggerRect.left;
     const spaceRight = viewportWidth - triggerRect.right;
     
-    // Determine vertical position (prefer bottom if enough space)
-    const shouldPositionBottom = spaceBelow >= tooltipHeight + margin;
-    setPosition(shouldPositionBottom ? 'bottom' : 'top');
+    // For tooltips in the top area of the screen, always position to bottom-left
+    const isInTopArea = triggerRect.top < viewportHeight * 0.4; // Top 40% of screen
     
-    // Determine horizontal alignment (align left if not enough space on right)
-    const shouldAlignLeft = spaceRight < tooltipWidth + margin;
-    setAlignLeft(shouldAlignLeft);
+    if (isInTopArea) {
+      // Always position bottom-left for top area tooltips
+      setPosition('bottom');
+      setAlignLeft(true);
+    } else {
+      // For other areas, use smart positioning
+      const shouldPositionBottom = spaceBelow >= tooltipHeight + margin;
+      setPosition(shouldPositionBottom ? 'bottom' : 'top');
+      
+      const shouldAlignLeft = spaceRight < tooltipWidth + margin;
+      setAlignLeft(shouldAlignLeft);
+    }
   };
 
   const handleToggle = (e: React.MouseEvent) => {
