@@ -104,8 +104,8 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     const shouldPositionBottom = spaceBelow >= tooltipHeight + margin;
     setPosition(shouldPositionBottom ? 'bottom' : 'top');
     
-    // Determine horizontal alignment (prefer right-aligned if not enough space on right)
-    const shouldAlignLeft = spaceRight < tooltipWidth + margin && spaceLeft >= tooltipWidth + margin;
+    // Determine horizontal alignment (align left if not enough space on right)
+    const shouldAlignLeft = spaceRight < tooltipWidth + margin;
     setAlignLeft(shouldAlignLeft);
   };
 
