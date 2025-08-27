@@ -540,18 +540,22 @@ const FoodTracking = () => {
                               <MoreVertical className="w-5 h-5 text-muted-foreground" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent 
-                            align="start" 
-                            side="bottom" 
-                            sideOffset={8}
-                            avoidCollisions={true}
-                            collisionPadding={16}
-                            className="w-52 z-50 bg-background border border-border shadow-lg"
-                          >
-                             <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="py-2.5 px-3">
-                               <Edit className="w-4 h-4 mr-2" />
-                               Edit Food
-                             </DropdownMenuItem>
+                           <DropdownMenuContent 
+                             align="start" 
+                             side="bottom" 
+                             sideOffset={8}
+                             avoidCollisions={true}
+                             collisionPadding={16}
+                             className="w-52 z-50 bg-background border border-border shadow-lg"
+                           >
+                              <DropdownMenuItem onClick={handleUnifiedEntry} className="py-2.5 px-3">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Food
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="py-2.5 px-3">
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Food
+                              </DropdownMenuItem>
                              <DropdownMenuItem
                                className="py-2.5 px-3"
                                onClick={async () => {
@@ -585,44 +589,60 @@ const FoodTracking = () => {
                             </DropdownMenuItem>
                              <DropdownMenuItem
                                className="py-2.5 px-3"
-                               onClick={async () => {
-                                try {
-                                  const foodsToSave = [{
-                                    name: entry.name,
-                                    calories: entry.calories,
-                                    carbs: entry.carbs,
-                                    serving_size: entry.serving_size,
-                                    image_url: entry.image_url,
-                                  }];
-                                  
-                                  const { error } = await addToTemplate(foodsToSave);
-                                  
-                                  if (error) {
-                                    toast({ 
-                                      title: 'Error', 
-                                      description: 'Failed to add to template',
-                                      variant: 'destructive'
-                                    });
-                                  } else {
-                                    toast({ 
-                                      title: 'Added to Template', 
-                                      description: `${entry.name} added to your daily template` 
-                                    });
-                                  }
-                                } catch (error) {
-                                  toast({ 
-                                    title: 'Error', 
-                                    description: 'Failed to add to template',
-                                    variant: 'destructive'
-                                  });
-                                }
-                              }}
+                                onClick={async () => {
+                                 try {
+                                   console.log('🍽️ Adding to template:', entry.name);
+                                   const foodsToSave = [{
+                                     name: entry.name,
+                                     calories: entry.calories,
+                                     carbs: entry.carbs,
+                                     serving_size: entry.serving_size,
+                                     image_url: entry.image_url,
+                                   }];
+                                   
+                                   const { error } = await addToTemplate(foodsToSave);
+                                   
+                                   if (error) {
+                                     console.error('🍽️ Error adding to template:', error);
+                                     toast({ 
+                                       title: 'Error', 
+                                       description: `Failed to add to template: ${error.message || 'Unknown error'}`,
+                                       variant: 'destructive'
+                                     });
+                                   } else {
+                                     console.log('🍽️ Successfully added to template');
+                                     toast({ 
+                                       title: 'Added to Template', 
+                                       description: `${entry.name} added to your daily template` 
+                                     });
+                                   }
+                                 } catch (error) {
+                                   console.error('🍽️ Exception adding to template:', error);
+                                   toast({ 
+                                     title: 'Error', 
+                                     description: `Failed to add to template: ${error.message || 'Unknown error'}`,
+                                     variant: 'destructive'
+                                   });
+                                 }
+                               }}
                             >
                               <Plus className="w-4 h-4 mr-2" />
                               Add to Template
                             </DropdownMenuItem>
                              <DropdownMenuItem 
-                               onClick={() => handleDeleteFoodEntry(entry.id)}
+                               onClick={async () => {
+                                 try {
+                                   console.log('🍽️ Deleting food entry:', entry.name);
+                                   await handleDeleteFoodEntry(entry.id);
+                                 } catch (error) {
+                                   console.error('🍽️ Error deleting food entry:', error);
+                                   toast({
+                                     variant: "destructive",
+                                     title: "Error",
+                                     description: `Failed to delete food: ${error.message || 'Unknown error'}`
+                                   });
+                                 }
+                               }}
                                className="py-2.5 px-3 text-destructive focus:text-destructive"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -780,24 +800,28 @@ const FoodTracking = () => {
                                     <MoreVertical className="w-5 h-5 text-muted-foreground" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                  align="start" 
-                                  side="bottom" 
-                                  sideOffset={8}
-                                  avoidCollisions={true}
-                                  collisionPadding={16}
-                                  className="w-52 z-50 bg-background border border-border shadow-lg"
-                                >
-                                  <DropdownMenuItem 
-                                    className="py-2.5 px-3"
-                                    onClick={() => {
-                                     // Create a mock entry for editing template items
-                                     const mockEntry = {
-                                       id: food.id,
-                                       name: food.name,
-                                       calories: food.calories,
-                                       carbs: food.carbs,
-                                       serving_size: food.serving_size,
+                                 <DropdownMenuContent 
+                                   align="start" 
+                                   side="bottom" 
+                                   sideOffset={8}
+                                   avoidCollisions={true}
+                                   collisionPadding={16}
+                                   className="w-52 z-50 bg-background border border-border shadow-lg"
+                                 >
+                                   <DropdownMenuItem onClick={handleUnifiedEntry} className="py-2.5 px-3">
+                                     <Plus className="w-4 h-4 mr-2" />
+                                     Add Food
+                                   </DropdownMenuItem>
+                                   <DropdownMenuItem 
+                                     className="py-2.5 px-3"
+                                     onClick={() => {
+                                      // Create a mock entry for editing template items
+                                      const mockEntry = {
+                                        id: food.id,
+                                        name: food.name,
+                                        calories: food.calories,
+                                        carbs: food.carbs,
+                                        serving_size: food.serving_size,
                                        image_url: food.image_url,
                                        consumed: false,
                                        user_id: user?.id || '',
