@@ -497,7 +497,7 @@ const FoodTracking = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-5 w-5 p-0 hover:bg-primary/10 text-primary"
+                      className="h-5 w-5 p-0 hover:bg-foreground/10 text-foreground"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowSaveTemplateDialog(true);
@@ -773,7 +773,7 @@ const FoodTracking = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowApplyTemplateDialog(true)}
-                          className="h-5 w-5 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                          className="h-5 w-5 p-0 text-foreground hover:text-foreground hover:bg-foreground/10"
                           aria-label="Apply template to today's plan"
                           title="Apply template to today's plan"
                         >
