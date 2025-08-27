@@ -576,10 +576,44 @@ const Settings = () => {
                          )}
                        </div>
                      </div>
-                   )}
-                 </div>
-               </div>
-             </Card>
+                    )}
+                    
+                    {/* Measurement System Selection */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-warm-text">Measurement System</Label>
+                        <ClickableTooltip content="Choose how distances, speeds, and weights are displayed throughout the app">
+                          <Info className="w-4 h-4 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
+                      <Select 
+                        value={profile?.units || 'imperial'} 
+                        onValueChange={async (value: 'metric' | 'imperial') => {
+                          await updateProfile({ units: value });
+                          toast({
+                            title: "Units Updated",
+                            description: `Switched to ${value === 'metric' ? 'metric (km, km/h, kg)' : 'imperial (miles, mph, lbs)'} system`,
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border z-50">
+                          <SelectItem value="imperial">Imperial</SelectItem>
+                          <SelectItem value="metric">Metric</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-2 border border-ceramic-rim">
+                        <div className="space-y-1">
+                          <div><strong>Imperial:</strong> miles, mph, lbs</div>
+                          <div><strong>Metric:</strong> kilometers, km/h, kg</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
 
             {/* Save Settings Button - under Profile */}
             <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full">
@@ -691,49 +725,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Distance & Speed Units Section */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Distance & Speed Units</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label className="text-warm-text">Measurement System</Label>
-                      <p className="text-xs text-muted-foreground">Choose how distances and speeds are displayed</p>
-                    </div>
-                    <Select 
-                      value={profile?.units || 'imperial'} 
-                      onValueChange={async (value: 'metric' | 'imperial') => {
-                        await updateProfile({ units: value });
-                        toast({
-                          title: "Units Updated",
-                          description: `Switched to ${value === 'metric' ? 'metric (km, km/h)' : 'imperial (miles, mph)'} system`,
-                        });
-                      }}
-                    >
-                      <SelectTrigger className="w-32 bg-ceramic-base border-ceramic-rim">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border z-50">
-                        <SelectItem value="imperial">Imperial</SelectItem>
-                        <SelectItem value="metric">Metric</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-rim">
-                    <div className="space-y-1">
-                      <div><strong>Imperial:</strong> miles, mph, lbs</div>
-                      <div><strong>Metric:</strong> kilometers, km/h, kg</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
 
 
             {/* Account Management - moved down (5th priority) */}

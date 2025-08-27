@@ -9,6 +9,7 @@ import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
+import { CalorieBadge } from '@/components/CalorieBadge';
 import { TrialTimerBadge } from '@/components/TrialTimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -229,9 +230,7 @@ export const Navigation = () => {
                   
                   {/* Calorie badge for food ONLY */}
                   {caloriesBadge && label === 'Food' && (
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-accent text-white px-1">
-                      {caloriesBadge}
-                    </span>
+                    <CalorieBadge calories={caloriesBadge} />
                   )}
                   
                   {/* Trial countdown badge ONLY for Settings button */}
