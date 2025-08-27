@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -633,54 +633,58 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
 
-  // Merge recent foods and user foods for MyFoods tab
-  const mergeRecentAndUserFoods = () => {
-    const recentFoodMap = new Map();
-    const userFoodMap = new Map();
-    
-    // Add recent foods to map
-    recentFoods.forEach(food => {
-      recentFoodMap.set(food.name.toLowerCase(), {
-        ...food,
-        is_favorite: false,
-        variations: []
+  // Merge recent foods and user foods for MyFoods tab - wrapped in useMemo for proper re-rendering
+  const filteredUserFoods = useMemo(() => {
+    const mergeRecentAndUserFoods = () => {
+      const recentFoodMap = new Map();
+      const userFoodMap = new Map();
+      
+      // Add recent foods to map
+      recentFoods.forEach(food => {
+        recentFoodMap.set(food.name.toLowerCase(), {
+          ...food,
+          is_favorite: false,
+          variations: []
+        });
       });
-    });
-    
-    // Add user foods to map, overriding recent foods if same name
-    foods.forEach(food => {
-      userFoodMap.set(food.name.toLowerCase(), food);
-    });
-    
-    // Combine both, giving priority to user foods
-    const combinedFoods = Array.from(new Map([
-      ...recentFoodMap,
-      ...userFoodMap
-    ]).values());
-    
-    return combinedFoods;
-  };
+      
+      // Add user foods to map, overriding recent foods if same name
+      foods.forEach(food => {
+        userFoodMap.set(food.name.toLowerCase(), food);
+      });
+      
+      // Combine both, giving priority to user foods
+      const combinedFoods = Array.from(new Map([
+        ...recentFoodMap,
+        ...userFoodMap
+      ]).values());
+      
+      return combinedFoods;
+    };
 
-  const filteredUserFoods = mergeRecentAndUserFoods().filter(food =>
-    food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => {
-    // Favorites first, then alphabetical
-    if (a.is_favorite && !b.is_favorite) return -1;
-    if (!a.is_favorite && b.is_favorite) return 1;
-    return a.name.localeCompare(b.name);
-  });
+    return mergeRecentAndUserFoods().filter(food =>
+      food.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ).sort((a, b) => {
+      // Favorites first, then alphabetical
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [foods, recentFoods, searchTerm]);
 
-  const filteredDefaultFoods = defaultFoods.filter(food =>
-    food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).map(food => ({
-    ...food,
-    is_favorite: defaultFoodFavorites.has(food.id)
-  })).sort((a, b) => {
-    // Favorites first, then alphabetical
-    if (a.is_favorite && !b.is_favorite) return -1;
-    if (!a.is_favorite && b.is_favorite) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const filteredDefaultFoods = useMemo(() => {
+    return defaultFoods.filter(food =>
+      food.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ).map(food => ({
+      ...food,
+      is_favorite: defaultFoodFavorites.has(food.id)
+    })).sort((a, b) => {
+      // Favorites first, then alphabetical
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [defaultFoods, defaultFoodFavorites, searchTerm]);
 
   // Quick access favorites for My Foods
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
@@ -949,10 +953,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                        return;
                      }
                      
-                     // Handle user foods: toggle favorite directly and refresh
+                     // Handle user foods: toggle favorite directly  
+                     // No need to reload since we have optimistic updates
                      await toggleFavorite(food.id, food.is_favorite || false);
-                     // Refresh to ensure UI updates immediately with new sorting
-                     await loadUserFoods();
                    }}
                    disabled={!isInteractionSafe}
                   className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
