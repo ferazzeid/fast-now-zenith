@@ -273,9 +273,6 @@ const WalkingTimerComponent = ({
                     <div className="text-lg font-bold text-foreground">
                       {currentSpeedDisplay.label}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {currentSpeedDisplay.description}
-                    </div>
                   </div>
                   
                   {/* Right side: Set button */}
