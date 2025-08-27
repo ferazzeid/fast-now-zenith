@@ -117,31 +117,58 @@ export const ModalAiChat = ({
   }, [lastFoodSuggestion?.foods]);
 
   useEffect(() => {
+    console.log('🔧 ModalAiChat useEffect triggered:', { 
+      isOpen, 
+      context, 
+      proactiveMessage, 
+      conversationType 
+    });
+    
     if (isOpen) {
-    // Initialize messages array
-    const initialMessages: Message[] = [];
-    
-    // Add context message if provided
-    if (context) {
-      const contextMessage: Message = {
-        role: 'assistant',
-        content: context,
-        timestamp: new Date()
-      };
-      initialMessages.push(contextMessage);
-    }
-    
-    // Add proactive message if provided
-    if (proactiveMessage) {
-      const proactiveMsg: Message = {
-        role: 'assistant',
-        content: proactiveMessage,
-        timestamp: new Date()
-      };
-      initialMessages.push(proactiveMsg);
-    }
-    
-    setMessages(initialMessages);
+      // Initialize messages array
+      const initialMessages: Message[] = [];
+      
+      // Add context message if provided
+      if (context) {
+        const contextMessage: Message = {
+          role: 'assistant',
+          content: context,
+          timestamp: new Date()
+        };
+        initialMessages.push(contextMessage);
+        console.log('📝 Added context message:', contextMessage.content);
+      }
+      
+      // Add proactive message if provided, otherwise add a fallback welcome message
+      if (proactiveMessage) {
+        const proactiveMsg: Message = {
+          role: 'assistant',
+          content: proactiveMessage,
+          timestamp: new Date()
+        };
+        initialMessages.push(proactiveMsg);
+        console.log('📝 Added proactive message:', proactiveMsg.content);
+      } else {
+        // Fallback welcome message based on title
+        let welcomeMessage = 'Hi! How can I help you today?';
+        
+        if (title === 'Food Assistant') {
+          welcomeMessage = 'Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity.';
+        } else if (title === 'Motivator Assistant') {
+          welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
+        }
+        
+        const fallbackMsg: Message = {
+          role: 'assistant',
+          content: welcomeMessage,
+          timestamp: new Date()
+        };
+        initialMessages.push(fallbackMsg);
+        console.log('📝 Added fallback welcome message:', fallbackMsg.content);
+      }
+      
+      console.log('🚀 Setting initial messages:', initialMessages);
+      setMessages(initialMessages);
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
@@ -152,20 +179,20 @@ export const ModalAiChat = ({
         voiceButtonRef.current.cancelRecording();
       }
       
-      // Clear messages when modal closes - but only after a small delay to prevent flickering
-      setTimeout(() => {
-        setMessages([]);
-        setEditingFoodIndex(null);
-        setEditingMotivatorIndex(null);
-        setEditingMotivator(false);
-        setMotivatorEditData({title: '', content: ''});
-        setInlineEditData({});
-        setInlineMotivatorEditData({});
-        setLastFoodSuggestion(null);
-        setLastMotivatorSuggestion(null);
-        setLastMotivatorsSuggestion(null);
-        setSelectedFoodIds(new Set());
-      }, 100);
+      console.log('🔄 Modal closing - clearing state');
+      
+      // Clear messages and state immediately when modal closes
+      setMessages([]);
+      setEditingFoodIndex(null);
+      setEditingMotivatorIndex(null);
+      setEditingMotivator(false);
+      setMotivatorEditData({title: '', content: ''});
+      setInlineEditData({});
+      setInlineMotivatorEditData({});
+      setLastFoodSuggestion(null);
+      setLastMotivatorSuggestion(null);
+      setLastMotivatorsSuggestion(null);
+      setSelectedFoodIds(new Set());
     }
   }, [isOpen, context, conversationType, proactiveMessage]);
 
