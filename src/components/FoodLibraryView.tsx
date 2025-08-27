@@ -77,7 +77,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   // Prevent interactions during invalid session states
   const isInteractionSafe = canPerformDatabaseOperations;
   const { toast } = useToast();
-  const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
 
   useEffect(() => {
     const loadData = async () => {
@@ -505,8 +504,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('🍽️ FoodLibrary - Database deletion successful');
       
-      // Refresh recent foods to clear any cached data
-      refreshRecentFoods();
+      // Refresh user foods to show the new addition
+      await loadUserFoods();
       
       toast({
         title: "All foods removed",
@@ -598,8 +597,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       if (error) throw error;
 
-      // Refresh recent foods to update the list
-      refreshRecentFoods();
+      // Refresh user foods to show the updated library
+      await loadUserFoods();
       
       toast({
         title: "Food removed",
@@ -643,44 +642,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
 
-  // Merge recent foods and user foods for MyFoods tab - wrapped in useMemo for proper re-rendering
+  // Simplified filtering since all recent foods are now auto-saved to library
   const filteredUserFoods = useMemo(() => {
-    const mergeRecentAndUserFoods = () => {
-      const recentFoodMap = new Map();
-      const userFoodMap = new Map();
-      
-      // Add recent foods to map
-      recentFoods.forEach(food => {
-        recentFoodMap.set(food.name.toLowerCase(), {
-          ...food,
-          is_favorite: false,
-          variations: []
-        });
-      });
-      
-      // Add user foods to map, overriding recent foods if same name
-      foods.forEach(food => {
-        userFoodMap.set(food.name.toLowerCase(), food);
-      });
-      
-      // Combine both, giving priority to user foods
-      const combinedFoods = Array.from(new Map([
-        ...recentFoodMap,
-        ...userFoodMap
-      ]).values());
-      
-      return combinedFoods;
-    };
-
-    return mergeRecentAndUserFoods().filter(food =>
+    if (!foods) return [];
+    
+    const filtered = foods.filter(food =>
       food.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ).sort((a, b) => {
-      // Favorites first, then alphabetical
+    );
+    
+    // Sort: favorites first, then by name
+    return filtered.sort((a, b) => {
       if (a.is_favorite && !b.is_favorite) return -1;
       if (!a.is_favorite && b.is_favorite) return 1;
       return a.name.localeCompare(b.name);
     });
-  }, [foods, recentFoods, searchTerm]);
+  }, [foods, searchTerm]);
 
   const filteredDefaultFoods = useMemo(() => {
     return defaultFoods.filter(food =>
@@ -752,40 +728,19 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                  style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                  onCloseAutoFocus={(e) => e.preventDefault()}
                >
-                     {isUserFood ? (
-                       <>
-                           {/* Show Edit for actual user library foods (not recent foods) */}
-                           {!food.id.startsWith('recent-') && (
-                             <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setShowEditModal(true);
-                               }}
-                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                              >
-                                <Edit className="w-4 h-4 mr-3" />
-                                Edit Food
-                             </DropdownMenuItem>
-                           )}
-                           
-                           {/* Show Save to Library for recent foods */}
-                           {food.id.startsWith('recent-') && (
-                             <DropdownMenuItem
-                               onClick={async (e) => {
-                                 e.stopPropagation();
-                                 await saveToLibrary({
-                                   name: food.name,
-                                   calories: food.calories_per_100g,
-                                   carbs: food.carbs_per_100g,
-                                   serving_size: 100
-                                 });
-                               }}
-                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                              >
-                                <Save className="w-4 h-4 mr-3" />
-                                Save to Library
-                             </DropdownMenuItem>
-                           )}
+                      {isUserFood ? (
+                        <>
+                            {/* Edit option for all user library foods */}
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEditModal(true);
+                              }}
+                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                             >
+                               <Edit className="w-4 h-4 mr-3" />
+                               Edit Food
+                            </DropdownMenuItem>
                            <DropdownMenuItem
                               onClick={async (e) => {
                                 e.stopPropagation();
@@ -818,20 +773,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           </DropdownMenuItem>
                        </>
                      ) : (
-                       <>
-                          {/* Edit option for admin on default foods, and for recent foods that aren't ID-based */}
-                          {(isAdmin && !food.id.startsWith('recent-')) && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEditModal(true);
-                              }}
-                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                             >
-                               <Edit className="w-4 h-4 mr-3" />
-                               Edit Food
-                            </DropdownMenuItem>
-                          )}
+                        <>
+                           {/* Edit option for admin on default foods */}
+                           {isAdmin && (
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setShowEditModal(true);
+                               }}
+                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                              >
+                                <Edit className="w-4 h-4 mr-3" />
+                                Edit Food
+                             </DropdownMenuItem>
+                           )}
                            <DropdownMenuItem
                               onClick={async (e) => {
                                 e.stopPropagation();
@@ -852,30 +807,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                               <Save className="w-4 h-4 mr-3" />
                               Add to Template
                            </DropdownMenuItem>
-                           {food.id.startsWith('recent-') ? (
-                             <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 deleteRecentFood(food.name);
-                               }}
-                                className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4 mr-3" />
-                                Delete
-                             </DropdownMenuItem>
-                           ) : isAdmin && (
-                                 <DropdownMenuItem
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     setDefaultFoodToDelete(food as DefaultFood);
-                                     setShowDeleteDefaultFoodConfirm(true);
-                                   }}
-                                    className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-3" />
-                                    Delete Food
-                                 </DropdownMenuItem>
-                           )}
+                            <DropdownMenuItem
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await deleteDefaultFood(food.id);
+                              }}
+                               className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                             >
+                               <Trash2 className="w-4 h-4 mr-3" />
+                               Delete Food
+                            </DropdownMenuItem>
                        </>
                     )}
                 </DropdownMenuContent>
@@ -937,35 +878,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                        return;
                      }
                      
-                      // Handle recent foods: save to library first, then favorite
-                      if (food.id.startsWith('recent-')) {
-                        try {
-                          const savedFood = await saveToLibrary({
-                            name: food.name,
-                            calories: food.calories_per_100g,
-                            carbs: food.carbs_per_100g,
-                            serving_size: 100
-                          }, true); // Silent mode - don't show "Saved to Library" toast
-                         
-                         if (savedFood) {
-                           // Now favorite the saved food
-                           await toggleFavorite(savedFood.id, false);
-                           // Force re-render by refreshing user foods
-                           await loadUserFoods();
-                         }
-                       } catch (error) {
-                         toast({
-                           title: "Error",
-                           description: "Failed to save and favorite food",
-                           variant: "destructive"
-                         });
-                       }
-                       return;
-                     }
-                     
-                     // Handle user foods: toggle favorite directly  
-                     // No need to reload since we have optimistic updates
-                     await toggleFavorite(food.id, food.is_favorite || false);
+                      // All foods in "My Foods" are now proper library foods, so toggle directly
+                      await toggleFavorite(food.id, food.is_favorite || false);
                    }}
                    disabled={!isInteractionSafe}
                   className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
