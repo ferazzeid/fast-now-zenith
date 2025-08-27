@@ -34,7 +34,7 @@ export const StatDisplay = ({
         {icon}
         <span className="text-xs font-medium text-warm-text">{label}</span>
       </div>
-      <div className="text-lg font-bold text-primary">
+      <div className="text-lg font-bold text-muted-foreground">
         {typeof value === 'number' ? Math.round(value).toLocaleString() : value} cal
       </div>
       {subtitle && (
