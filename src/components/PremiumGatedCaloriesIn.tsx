@@ -24,12 +24,12 @@ export const PremiumGatedCaloriesIn = ({ calories, carbs }: PremiumGatedCalories
         </div>
         
         <div className="flex items-center space-x-2 mb-1 pr-6">
-          <Utensils className="w-4 h-4 text-primary" />
+          <Utensils className="w-4 h-4 text-muted-foreground" />
           <span className="text-xs font-medium text-warm-text">Calories In</span>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="text-lg font-bold text-primary">
+          <div className="text-lg font-bold text-muted-foreground">
             {Math.round(calories)} cal
           </div>
           
@@ -37,7 +37,7 @@ export const PremiumGatedCaloriesIn = ({ calories, carbs }: PremiumGatedCalories
           <div className="flex items-center space-x-2">
             <div className="w-px h-6 bg-border"></div>
             <div className="flex items-center space-x-1">
-              <span className="text-sm font-medium text-primary">{Math.round(carbs)}g</span>
+              <span className="text-sm font-medium text-muted-foreground">{Math.round(carbs)}g</span>
               <ClickableTooltip content="Total carbs consumed from food today">
                 <Info className="w-3 h-3 text-muted-foreground" />
               </ClickableTooltip>

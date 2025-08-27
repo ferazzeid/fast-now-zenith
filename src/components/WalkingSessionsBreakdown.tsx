@@ -134,7 +134,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
     return (
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Activity className="w-4 h-4 text-primary" />
+          <Activity className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium text-warm-text">Activity Burn</span>
         </div>
         <div className="text-sm font-bold text-warm-text">
@@ -149,7 +149,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
       {/* Header with breakdown */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Activity className="w-4 h-4 text-primary" />
+          <Activity className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium text-warm-text">Activity Burn</span>
           <ClickableTooltip content="Calories burned from walking and external activities today">
             <Info className="w-4 h-4 text-muted-foreground" />
