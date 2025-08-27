@@ -42,6 +42,68 @@ serve(async (req) => {
     const userId = user.user.id;
     const today = new Date().toISOString().split('T')[0];
 
+    // Get user profile and check subscription status
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      throw new Error('Failed to fetch user profile');
+    }
+
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'trial' : profile.access_level;
+
+    // Get both trial and premium limits from settings
+    const { data: settings } = await supabase
+      .from('shared_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
+
+    const trialLimit = parseInt(settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50');
+    const premiumLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
+
+    // Determine appropriate limit based on user tier
+    let currentLimit: number;
+    let limitType: string;
+
+    if (effectiveLevel === 'admin') {
+      console.log('Admin user - unlimited AI access');
+      currentLimit = Infinity;
+      limitType = 'unlimited';
+    } else if (effectiveLevel === 'premium') {
+      currentLimit = premiumLimit;
+      limitType = 'premium';
+    } else {
+      // Trial users (includes expired premium users)
+      currentLimit = trialLimit;
+      limitType = 'trial';
+    }
+
+    // Check access permissions and limits
+    if (effectiveLevel === 'free') {
+      throw new Error('AI features are only available to premium users. Start your free trial or upgrade to continue.');
+    }
+
+    // Check limits (skip for admin)
+    if (effectiveLevel !== 'admin' && profile.monthly_ai_requests >= currentLimit) {
+      const resetDate = new Date();
+      resetDate.setMonth(resetDate.getMonth() + 1, 1);
+      const resetDateString = resetDate.toLocaleDateString();
+      
+      if (limitType === 'trial') {
+        throw new Error(`You've used all ${currentLimit} trial AI requests this month. Upgrade to premium for ${premiumLimit} monthly requests. Your trial limit will reset on ${resetDateString}.`);
+      } else {
+        throw new Error(`You've used all ${currentLimit} premium AI requests this month. Your limit will reset on ${resetDateString}.`);
+      }
+    }
+
     console.log(`🔧 Executing function: ${functionName}`, functionArgs);
 
     let result;
@@ -302,6 +364,31 @@ serve(async (req) => {
 
       default: {
         throw new Error(`Unknown function: ${functionName}`);
+      }
+    }
+
+    // Increment usage counter for successful AI function execution (skip for admin)
+    if (effectiveLevel !== 'admin') {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ 
+            monthly_ai_requests: profile.monthly_ai_requests + 1 
+          })
+          .eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
+      }
+
+      try {
+        await supabase.rpc('track_usage_event', {
+          _user_id: userId,
+          _event_type: 'ai_function_execution',
+          _requests_count: 1,
+          _subscription_status: profile.subscription_status
+        });
+      } catch (e) {
+        console.warn('Non-blocking: failed to log usage analytics', e);
       }
     }
 
