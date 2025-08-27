@@ -6,6 +6,8 @@ import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
+import { AdminInsightDisplay } from './AdminInsightDisplay';
+import { useAccess } from '@/hooks/useAccess';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -19,6 +21,7 @@ const MAX_HOUR = 72;
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
   const { data: hours, isLoading } = useFastingHoursQuery();
   const queryClient = useQueryClient();
+  const { isAdmin } = useAccess();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -113,6 +116,13 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         )}
       </div>
+
+      {/* Admin Insight Display - Always visible for non-admins when content exists */}
+      {!isAdmin && selected?.admin_personal_log && (
+        <AdminInsightDisplay 
+          content={selected.admin_personal_log}
+        />
+      )}
 
       {/* Admin Personal Log Interface */}
       <AdminPersonalLogInterface
