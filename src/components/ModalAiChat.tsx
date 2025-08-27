@@ -265,7 +265,21 @@ You are a motivational goal creation assistant. Your task is to:
           });
           // Initialize all foods as selected
           setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
-          // Don't add any AI message for food suggestions - just show the interactive UI
+          
+          // Add a chronological message about the food suggestion
+          const foodSummary = foods.map((food: any) => 
+            `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs`
+          ).join('\n');
+          
+          const totalCalories = foods.reduce((sum: number, food: any) => sum + food.calories, 0);
+          const totalCarbs = foods.reduce((sum: number, food: any) => sum + food.carbs, 0);
+          
+          const foodMessage: Message = {
+            role: 'assistant',
+            content: `I've prepared these foods for you:\n\n${foodSummary}\n\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nReview the items above and click "Add Selected Foods" when ready.`,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, foodMessage]);
           return;
         } else if (data.functionCall.name === 'create_multiple_motivators') {
           setLastMotivatorsSuggestion(data.functionCall.arguments);

@@ -37,7 +37,23 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, stream = false } = await req.json();
+    const requestBody = await req.json();
+    const { messages, stream = false, message, conversationHistory } = requestBody;
+    
+    // Handle both ModalAiChat format (messages array) and AiChat format (message + conversationHistory)
+    let processedMessages;
+    if (messages) {
+      // ModalAiChat format
+      processedMessages = messages;
+    } else if (message && conversationHistory) {
+      // AiChat format - convert to messages format
+      processedMessages = [
+        ...conversationHistory,
+        { role: 'user', content: message }
+      ];
+    } else {
+      throw new Error('Invalid request format: expected either messages array or message + conversationHistory');
+    }
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -255,9 +271,17 @@ USER PROFILE:
 
 CRITICAL FOOD PROCESSING RULES:
 - When users mention specific food items with quantities (like "333 milliliters of Diet Pepsi", "two apples", "100g chicken"), IMMEDIATELY call add_multiple_foods function
+- For CLARIFICATIONS or FOLLOW-UPS about recently added foods (like "each yogurt has 150g" or "there are actually two"), understand this as a modification to the previous food entry
+- When processing clarifications, maintain the original count but update the nutritional information based on the new details
 - Do NOT ask for confirmation or engage in discussion about adding food
 - Process the food information directly and call the function right away
 - Only engage in conversation if the user asks questions or needs clarification after processing
+
+CONVERSATION CONTEXT AWARENESS:
+- Pay attention to recent messages for context about food modifications
+- If user says "each has X grams" or "there are actually Y items", this modifies the previous food entry
+- Always validate nutritional calculations (e.g., 150g × 79cal/100g = 118.5 calories)
+- Maintain separate entries when user specifies multiple items
 
 ${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
@@ -280,10 +304,10 @@ When explaining app calculations, use the exact formulas and constants above. He
     
     const systemMessages = [
       { role: 'system', content: enhancedSystemMessage },
-      ...messages.slice(1)
+      ...processedMessages.slice(1)
     ];
 
-    console.log('🤖 Calling OpenAI with messages:', messages.slice(-2)); // Log last 2 messages for debugging
+    console.log('🤖 Calling OpenAI with messages:', processedMessages.slice(-3)); // Log last 3 messages for better context debugging
     
     // Prepare OpenAI request payload
     const requestPayload = {

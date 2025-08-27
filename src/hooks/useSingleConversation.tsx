@@ -63,7 +63,13 @@ export const useSingleConversation = () => {
         setMessages(transformedMessages);
       } else {
         console.log('DEBUG: No conversation found, starting fresh');
-        setMessages([]);
+        // Add a greeting message for new conversations
+        const greetingMessage: Message = {
+          role: 'assistant',
+          content: 'Hello! I\'m your AI assistant. I can help you track food, manage fasting sessions, start walking workouts, and answer questions about your health journey. What would you like to do today?',
+          timestamp: new Date()
+        };
+        setMessages([greetingMessage]);
       }
     } catch (error) {
       console.error('Error loading conversation:', error);
