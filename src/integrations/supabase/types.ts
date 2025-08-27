@@ -287,6 +287,39 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_summaries: {
+        Row: {
+          created_at: string | null
+          date_range_end: string
+          date_range_start: string
+          id: string
+          relevance_score: number | null
+          summary_data: Json
+          summary_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_range_end: string
+          date_range_start: string
+          id?: string
+          relevance_score?: number | null
+          summary_data: Json
+          summary_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_range_end?: string
+          date_range_start?: string
+          id?: string
+          relevance_score?: number | null
+          summary_data?: Json
+          summary_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_activity_overrides: {
         Row: {
           activity_level: string
@@ -1411,6 +1444,45 @@ export type Database = {
           requests_count?: number | null
           subscription_status?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_conversation_context: {
+        Row: {
+          common_foods: Json | null
+          conversation_patterns: Json | null
+          created_at: string | null
+          food_preferences: Json | null
+          frequent_clarifications: string[] | null
+          id: string
+          last_updated: string | null
+          preferred_units: string | null
+          typical_serving_sizes: Json | null
+          user_id: string
+        }
+        Insert: {
+          common_foods?: Json | null
+          conversation_patterns?: Json | null
+          created_at?: string | null
+          food_preferences?: Json | null
+          frequent_clarifications?: string[] | null
+          id?: string
+          last_updated?: string | null
+          preferred_units?: string | null
+          typical_serving_sizes?: Json | null
+          user_id: string
+        }
+        Update: {
+          common_foods?: Json | null
+          conversation_patterns?: Json | null
+          created_at?: string | null
+          food_preferences?: Json | null
+          frequent_clarifications?: string[] | null
+          id?: string
+          last_updated?: string | null
+          preferred_units?: string | null
+          typical_serving_sizes?: Json | null
+          user_id?: string
         }
         Relationships: []
       }
