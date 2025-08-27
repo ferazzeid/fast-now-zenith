@@ -482,12 +482,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       setFoods([]);
       setShowDeleteAllConfirm(false);
       
-      const { error } = await supabase
-        .from('user_foods')
-        .delete()
-        .eq('user_id', user.id);
+      // Delete both user library foods AND all food entries (recent foods)
+      const [userFoodsResult, foodEntriesResult] = await Promise.all([
+        supabase
+          .from('user_foods')
+          .delete()
+          .eq('user_id', user.id),
+        supabase
+          .from('food_entries')
+          .delete()
+          .eq('user_id', user.id)
+      ]);
 
-      if (error) {
+      if (userFoodsResult.error || foodEntriesResult.error) {
+        const error = userFoodsResult.error || foodEntriesResult.error;
         console.error('🍽️ FoodLibrary - Database deletion failed, rolling back:', error);
         // Rollback optimistic update on error
         setFoods(originalFoods);
@@ -497,12 +505,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('🍽️ FoodLibrary - Database deletion successful');
       
-      // Also refresh recent foods to clear any cached data
+      // Refresh recent foods to clear any cached data
       refreshRecentFoods();
       
       toast({
         title: "All foods removed",
-        description: "All foods have been removed from your library"
+        description: "All foods and food entries have been removed from your library"
       });
     } catch (error) {
       console.error('🍽️ FoodLibrary - Error deleting all foods:', error);
@@ -1074,27 +1082,22 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       <div className="flex-1 px-2 py-4 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="my-foods">MyFoods</TabsTrigger>
-                <TabsTrigger value="suggested">Default</TabsTrigger>
-              </TabsList>
-              {activeTab === 'my-foods' && filteredUserFoods.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('🗑️ Delete All button clicked, foods count:', filteredUserFoods.length);
-                    setShowDeleteAllConfirm(true);
-                  }}
-                  className="ml-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete All
-                </Button>
-              )}
-            </div>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="my-foods" className="flex items-center gap-2">
+                MyFoods
+                {filteredUserFoods.length > 0 && (
+                  <Trash2 
+                    className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('🗑️ Delete All button clicked, foods count:', filteredUserFoods.length);
+                      setShowDeleteAllConfirm(true);
+                    }}
+                  />
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="suggested">Default</TabsTrigger>
+            </TabsList>
           </div>
 
           {/* My Foods Tab */}
