@@ -32,6 +32,7 @@ export const AIVoiceButton = () => {
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
+  const [hasWelcomeMessage, setHasWelcomeMessage] = useState(false);
   const { user } = useAuth();
   
   // Import session hooks for function execution
@@ -39,6 +40,44 @@ export const AIVoiceButton = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
+
+  // Add welcome message when modal opens
+  useEffect(() => {
+    if (isOpen && !hasWelcomeMessage) {
+      const currentPath = window.location.pathname;
+      let welcomeMessage = "Hi! I'm your AI assistant. How can I help you today?";
+      
+      // Create page-specific welcome messages
+      switch (currentPath) {
+        case '/walking':
+          welcomeMessage = "Hi! I'm your AI walking assistant. I can help you start/stop walking sessions, track your progress, and answer questions about your fitness goals.";
+          break;
+        case '/timer':
+          welcomeMessage = "Hi! I'm your AI fasting assistant. I can help you manage your fasting sessions, track progress, and provide guidance.";
+          break;
+        case '/food-tracking':
+          welcomeMessage = "Hi! I'm your AI nutrition assistant. I can help you add foods, track calories, and answer nutrition questions.";
+          break;
+        case '/motivators':
+          welcomeMessage = "Hi! I'm your AI motivation assistant. I can help you create, edit, and manage your motivational content.";
+          break;
+        default:
+          welcomeMessage = "Hi! I'm your AI health assistant. I can help you with fasting, walking, nutrition tracking, and motivation.";
+      }
+      
+      setBubbles([{
+        id: 'welcome-' + Date.now(),
+        role: 'assistant',
+        content: welcomeMessage,
+        timestamp: new Date()
+      }]);
+      setHasWelcomeMessage(true);
+    } else if (!isOpen) {
+      // Reset when modal closes
+      setHasWelcomeMessage(false);
+      setBubbles([]);
+    }
+  }, [isOpen, hasWelcomeMessage]);
 
 
   // Close modal on escape key or click outside
