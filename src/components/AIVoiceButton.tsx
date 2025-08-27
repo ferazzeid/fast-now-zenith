@@ -16,6 +16,7 @@ import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
+import { conversationMemory } from '@/utils/conversationMemory';
 
 interface Message {
   id: string;
@@ -187,6 +188,9 @@ export const AIVoiceButton = () => {
               break;
             case 'delete_motivator':
               responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
+              break;
+            case 'modify_recent_foods':
+              responseMessage = await handleModifyRecentFoods(data.functionCall.arguments);
               break;
             default:
               responseMessage = 'I processed your request successfully.';
@@ -495,6 +499,36 @@ export const AIVoiceButton = () => {
     } catch (error) {
       console.error('Error deleting motivator:', error);
       return 'Sorry, I had trouble deleting that motivator.';
+    }
+  };
+
+  const handleModifyRecentFoods = async (args: any): Promise<string> => {
+    try {
+      const modifications = args?.modifications || {};
+      const clarificationText = args?.clarification_text || '';
+      console.log('🔄 Processing food modification:', modifications, clarificationText);
+
+      // Use conversation memory to process the modification
+      const context = conversationMemory.getContext();
+      const recentAction = context.recentFoodActions[0];
+      
+      if (recentAction && pendingFoods.length > 0) {
+        // Process the modification using conversation memory
+        const modifiedFoods = conversationMemory.processModification(recentAction, modifications, pendingFoods);
+        
+        if (modifiedFoods && modifiedFoods.length > 0) {
+          // Update the pending foods with the modified values
+          setPendingFoods(modifiedFoods);
+          
+          const foodNames = modifiedFoods.map(food => food.name).join(', ');
+          return `Updated ${foodNames} successfully.`;
+        }
+      }
+      
+      return 'I couldn\'t find any recent foods to modify. Please try adding foods first.';
+    } catch (error) {
+      console.error('Error modifying foods:', error);
+      return 'Sorry, I had trouble modifying those foods.';
     }
   };
 
