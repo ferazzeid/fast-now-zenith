@@ -528,20 +528,11 @@ export const AIVoiceButton = () => {
 
             {/* Aquarium Container */}
             <div className="aquarium-container relative w-full h-screen flex flex-col">
-              {/* Chat Messages Area */}
+              {/* Content Area */}
               <div className="flex-1 overflow-hidden pt-20 pb-24">
                 <ScrollArea className="h-full">
                   <div className="max-w-full mx-auto space-y-2">
-                    {bubbles.map((bubble, index) => (
-                      <FloatingBubble
-                        key={bubble.id}
-                        content={bubble.content}
-                        role={bubble.role}
-                        index={index}
-                      />
-                    ))}
-                    
-                    {/* Food Preview Section */}
+                    {/* Food Preview Section - Now appears first */}
                     {pendingFoods.length > 0 && (
                       <div className="px-4 space-y-4">
                         <Card className="bg-background/90 backdrop-blur-sm border-border/50">
@@ -697,6 +688,16 @@ export const AIVoiceButton = () => {
                         </Card>
                       </div>
                     )}
+
+                    {/* Chat Messages Area - Now appears after food preview */}
+                    {bubbles.map((bubble, index) => (
+                      <FloatingBubble
+                        key={bubble.id}
+                        content={bubble.content}
+                        role={bubble.role}
+                        index={index}
+                      />
+                    ))}
                     
                     {/* Processing Bubble */}
                     {isProcessing && (

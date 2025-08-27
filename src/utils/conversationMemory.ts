@@ -398,8 +398,8 @@ export class ConversationMemoryManager {
     // Parse specific modifications
     const modifications: any = {};
     
-    // Check for serving size modifications
-    const servingMatch = message.match(/(\d+)g/i);
+    // Check for serving size modifications (handle both "g" and "grams")
+    const servingMatch = message.match(/(\d+)(?:\s*(?:grams?|g))/i);
     if (servingMatch) {
       modifications.serving_size = parseInt(servingMatch[1]);
     }
@@ -410,8 +410,8 @@ export class ConversationMemoryManager {
       modifications.quantity = parseInt(quantityMatch[1]);
     }
 
-    // Check for "each" modifications
-    const eachMatch = message.match(/each.*?(\d+)g/i);
+    // Check for "each" modifications (handle both "g" and "grams")
+    const eachMatch = message.match(/each.*?(\d+)(?:\s*(?:grams?|g))/i);
     if (eachMatch) {
       modifications.serving_size_each = parseInt(eachMatch[1]);
     }
