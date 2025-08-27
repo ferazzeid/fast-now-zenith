@@ -83,18 +83,25 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Rotation controls removed - single content per hour */}
-
+            {/* Display Stage and Encouragement (original two-field system) */}
             <div className="min-h-[80px] relative">
               {/* Hour Number Indicator */}
               <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
                 {selectedHour}
               </div>
 
-              <div className="relative">
+              <div className="relative pr-10">
+                {/* Stage Title */}
+                {selected?.stage && (
+                  <div className="font-semibold text-foreground mb-2 text-sm">
+                    {selected.stage}
+                  </div>
+                )}
+                
+                {/* Encouragement Content */}
                 <div 
-                  key={`${selectedHour}-${rotation.currentType}`}
-                  className="text-sm text-foreground animate-fade-in pr-10"
+                  key={`${selectedHour}-encouragement`}
+                  className="text-sm text-muted-foreground animate-fade-in"
                   style={{
                     animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
                   }}

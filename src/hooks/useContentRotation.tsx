@@ -28,25 +28,17 @@ export function useContentRotation({
     isRotating: autoRotate
   });
 
-  // Get single primary content from fastingHour data with fallback hierarchy
+  // Get the encouragement content (original tooltip from JSON)
   const getPrimaryContent = useCallback((hour: FastingHour): ContentVariant => {
-    console.log('Getting primary content for hour:', hour.hour, hour);
+    console.log('Getting encouragement content for hour:', hour.hour, hour);
     
-    // Fallback hierarchy: physiological_effects -> metabolic_changes -> body_state -> default
-    if (hour.physiological_effects) {
-      return { type: 'physiological', content: hour.physiological_effects };
-    }
-    
-    if (hour.metabolic_changes) {
-      return { type: 'metabolic', content: hour.metabolic_changes };
-    }
-    
-    if (hour.body_state) {
-      return { type: 'physiological', content: hour.body_state };
+    // Use encouragement field (original "tooltip" from JSON)
+    if (hour.encouragement) {
+      return { type: 'encouragement', content: hour.encouragement };
     }
     
     // Final fallback
-    return { type: 'physiological', content: "Information will be available soon." };
+    return { type: 'encouragement', content: "Guidance will be available soon." };
   }, []);
 
   // Update state when fastingHour changes - single content only
