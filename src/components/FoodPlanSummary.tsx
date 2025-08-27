@@ -45,7 +45,7 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
               Calories
             </div>
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">
-              Carbs (g)
+              Carbs
             </div>
           </div>
           
@@ -56,7 +56,7 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
               {Math.round(plannedCalories)}/{dailyCalorieGoal}
             </span>
             <span className="text-xs font-semibold text-center">
-              {Math.round(plannedCarbs)}/{dailyCarbGoal}
+              {Math.round(plannedCarbs)}g/{dailyCarbGoal}g
             </span>
           </div>
           
@@ -67,7 +67,7 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
               {Math.round(consumedCalories)}/{dailyCalorieGoal}
             </span>
             <span className={`text-xs font-bold text-center ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
-              {Math.round(consumedCarbs)}/{dailyCarbGoal}
+              {Math.round(consumedCarbs)}g/{dailyCarbGoal}g
             </span>
           </div>
         </div>
