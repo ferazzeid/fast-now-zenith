@@ -58,8 +58,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const location = useLocation();
   const { user, canPerformDatabaseOperations } = useSessionState();
 
+  console.log('🔍 FoodLibraryView: Rendering with location:', location.pathname);
+
   // IMMEDIATE: Don't render anything if on auth routes to prevent interactions
   if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
+    console.log('🔍 FoodLibraryView: On auth route, returning null');
     return null;
   }
 
