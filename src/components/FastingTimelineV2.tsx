@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from '@/components/ui/button';
-import { Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
+// Removed Button and icon imports - no longer needed for rotation controls
 import { Skeleton } from "@/components/ui/skeleton";
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
@@ -84,40 +83,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         ) : (
           <div className="space-y-3">
-            {rotation.totalVariants > 1 && (
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={rotation.goToPrevious}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={rotation.toggleRotation}
-                  className="h-6 w-6 p-0"
-                >
-                  {rotation.isRotating ? (
-                    <Pause className="h-3 w-3" />
-                  ) : (
-                    <Play className="h-3 w-3" />
-                  )}
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={rotation.goToNext}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
+            {/* Rotation controls removed - single content per hour */}
 
             <div className="min-h-[80px] relative">
               {/* Hour Number Indicator */}
@@ -125,31 +91,17 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
                 {selectedHour}
               </div>
 
-              {rotation.totalVariants > 1 ? (
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-medium text-muted-foreground">
-                      {getContentTypeLabel(rotation.currentType)}
-                    </h4>
-                    <div className="text-xs text-muted-foreground">
-                      {rotation.currentIndex + 1} of {rotation.totalVariants}
-                    </div>
-                  </div>
-                  <div 
-                    key={`${selectedHour}-${rotation.currentIndex}-${rotation.currentType}`}
-                    className="text-sm text-foreground animate-fade-in pr-10"
-                    style={{
-                      animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
-                    }}
-                  >
-                    {rotation.currentContent}
-                  </div>
+              <div className="relative">
+                <div 
+                  key={`${selectedHour}-${rotation.currentType}`}
+                  className="text-sm text-foreground animate-fade-in pr-10"
+                  style={{
+                    animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
+                  }}
+                >
+                  {rotation.currentContent}
                 </div>
-              ) : (
-                <div className="text-sm text-muted-foreground pr-10">
-                  {selected?.physiological_effects || selected?.body_state || "We'll add details for this hour soon."}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         )}
