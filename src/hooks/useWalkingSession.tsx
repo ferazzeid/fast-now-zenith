@@ -516,13 +516,15 @@ export const useWalkingSession = () => {
     });
 
     if (profile?.default_walking_speed != null) {
-      // Always use profile speed when available, regardless of current selectedSpeed
-      console.log('Setting selectedSpeed from profile:', profile.default_walking_speed);
-      setSelectedSpeed(profile.default_walking_speed);
+      // Normalize profile speed to exact option values
+      const profileSpeed = profile.default_walking_speed;
+      const normalizedSpeed = profileSpeed > 3.7 ? 4.3 : 3.1;
+      console.log('Setting selectedSpeed from profile:', { profileSpeed, normalizedSpeed });
+      setSelectedSpeed(normalizedSpeed);
     } else if (selectedSpeed === null) {
       // Only set default if no profile speed and no current speed
-      console.log('Setting default selectedSpeed to 3 (no profile speed available)');
-      setSelectedSpeed(3);
+      console.log('Setting default selectedSpeed to 3.1 (no profile speed available)');
+      setSelectedSpeed(3.1);
     }
   }, [profile?.default_walking_speed, user]); // Add user as dependency to re-run when user changes
 
@@ -600,16 +602,19 @@ export const useWalkingSession = () => {
 
   // Enhanced setSelectedSpeed with immediate optimistic updates like activity override
   const updateSelectedSpeed = useCallback(async (newSpeed: number) => {
+    // Normalize speed to exact option values to prevent display issues
+    const normalizedSpeed = newSpeed > 3.7 ? 4.3 : 3.1;
+    
     // Immediate UI update for optimistic behavior (like activity override)
-    setSelectedSpeed(newSpeed);
+    setSelectedSpeed(normalizedSpeed);
     
     try {
       // Save to user's profile in background
-      const success = await saveSpeedToProfile(newSpeed);
+      const success = await saveSpeedToProfile(normalizedSpeed);
       
       if (success) {
         // Keep the optimistic update - success!
-        console.log('Walking speed saved successfully:', newSpeed);
+        console.log('Walking speed saved successfully:', normalizedSpeed);
       } else {
         // Could show error toast here like activity override does
         console.error('Failed to save walking speed, keeping optimistic update');
@@ -625,7 +630,7 @@ export const useWalkingSession = () => {
   return {
     currentSession,
     loading,
-    selectedSpeed: selectedSpeed || 3, // Ensure we never return null to components
+    selectedSpeed: selectedSpeed ?? 3.1, // Ensure we never return null to components, default to normal speed
     setSelectedSpeed: updateSelectedSpeed, // Use the enhanced version
     updateSelectedSpeed, // Also export directly for explicit use
     isPaused,
