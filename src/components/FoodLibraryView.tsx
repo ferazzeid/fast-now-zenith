@@ -556,7 +556,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }) => {
+  const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }, silent: boolean = false) => {
     if (!canPerformDatabaseOperations) {
       throw new Error('Database not ready');
     }
@@ -577,10 +577,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     // Refresh user foods to show the new addition
     await loadUserFoods();
     
-    toast({
-      title: "Saved to Library",
-      description: `${food.name} has been added to your food library`
-    });
+    if (!silent) {
+      toast({
+        title: "Saved to Library",
+        description: `${food.name} has been added to your food library`
+      });
+    }
 
     return data; // Return the saved food data
   };
@@ -935,15 +937,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                        return;
                      }
                      
-                     // Handle recent foods: save to library first, then favorite
-                     if (food.id.startsWith('recent-')) {
-                       try {
-                         const savedFood = await saveToLibrary({
-                           name: food.name,
-                           calories: food.calories_per_100g,
-                           carbs: food.carbs_per_100g,
-                           serving_size: 100
-                         });
+                      // Handle recent foods: save to library first, then favorite
+                      if (food.id.startsWith('recent-')) {
+                        try {
+                          const savedFood = await saveToLibrary({
+                            name: food.name,
+                            calories: food.calories_per_100g,
+                            carbs: food.carbs_per_100g,
+                            serving_size: 100
+                          }, true); // Silent mode - don't show "Saved to Library" toast
                          
                          if (savedFood) {
                            // Now favorite the saved food
