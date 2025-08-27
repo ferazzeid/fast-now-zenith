@@ -56,6 +56,13 @@ interface FoodLibraryViewProps {
 
 export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) => {
   const location = useLocation();
+  const { user, canPerformDatabaseOperations } = useSessionState();
+
+  // IMMEDIATE: Don't render anything if on auth routes to prevent interactions
+  if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
+    return null;
+  }
+
   const [foods, setFoods] = useState<UserFood[]>([]);
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
@@ -66,20 +73,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
   const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
-  
-  // Removed custom visual feedback - using React Query states only
-  
-  const { user, canPerformDatabaseOperations } = useSessionState();
-
-  // Close modal when navigating to auth routes to prevent OAuth interaction errors
-  useEffect(() => {
-    if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
-      onBack();
-    }
-  }, [location.pathname, onBack]);
 
   // Prevent interactions during invalid session states
-  const isInteractionSafe = canPerformDatabaseOperations && location.pathname !== '/auth' && location.pathname !== '/auth-callback';
+  const isInteractionSafe = canPerformDatabaseOperations;
   const { toast } = useToast();
   const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
 
