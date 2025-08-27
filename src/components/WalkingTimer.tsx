@@ -2,7 +2,7 @@ import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Play, Square, Pause, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp, X, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SpeedSelectionModal } from './SpeedSelectionModal';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
@@ -57,34 +57,19 @@ const WalkingTimerComponent = ({
   const { isAnimationsSuspended } = useAnimationControl();
   const { toast } = useToast();
 
-  // Simplified speed mappings - just Normal and Fast options (no units needed)
-  const SPEED_OPTIONS = useMemo(() => [
-    { displaySpeed: 'normal', storageSpeed: 3.1, label: 'Normal', description: 'Sustainable pace, light-moderate cardio' },
-    { displaySpeed: 'fast', storageSpeed: 4.3, label: 'Fast', description: 'Intense pace, higher calorie burn' }
-  ], []);
-
-  // Find current speed option with improved matching
-  const getCurrentSpeedOption = useCallback((speedMph: number) => {
-    const match = SPEED_OPTIONS.find(option => 
-      Math.abs(option.storageSpeed - speedMph) < 0.3
-    );
-    console.log('Speed matching:', { speedMph, match: match?.displaySpeed, options: SPEED_OPTIONS.map(o => ({ speed: o.storageSpeed, display: o.displaySpeed })) });
-    return match || SPEED_OPTIONS[0]; // Default to normal if no match
-  }, [SPEED_OPTIONS]);
-
-  const handleSpeedChange = useCallback((value: string) => {
-    console.log('Speed change requested:', value);
-    const option = SPEED_OPTIONS.find(opt => opt.displaySpeed === value);
-    if (option) {
-      console.log('Changing speed to:', option.storageSpeed);
-      onSpeedChange(option.storageSpeed);
+  // Simplified speed display logic without console spam
+  const getCurrentSpeedDisplay = useCallback(() => {
+    const normalSpeed = 3.1;
+    const fastSpeed = 4.3;
+    
+    if (Math.abs(selectedSpeed - fastSpeed) < 0.3) {
+      return { label: 'Fast', description: 'Intense pace, higher calorie burn' };
+    } else {
+      return { label: 'Normal', description: 'Sustainable pace, light-moderate cardio' };
     }
-  }, [SPEED_OPTIONS, onSpeedChange]);
+  }, [selectedSpeed]);
 
-  const currentSpeedOption = getCurrentSpeedOption(selectedSpeed);
-  
-  // Use the selected speed to determine the current display value more reliably
-  const currentDisplayValue = currentSpeedOption.displaySpeed;
+  const currentSpeedDisplay = getCurrentSpeedDisplay();
 
 
   return (
@@ -282,26 +267,30 @@ const WalkingTimerComponent = ({
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="flex items-center justify-start">
-                  <Select 
-                    value={currentDisplayValue}
-                    onValueChange={handleSpeedChange}
+                <div className="flex items-center justify-between">
+                  {/* Left side: Current speed display */}
+                  <div className="flex-1">
+                    <div className="text-lg font-bold text-foreground">
+                      {currentSpeedDisplay.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {currentSpeedDisplay.description}
+                    </div>
+                  </div>
+                  
+                  {/* Right side: Set button */}
+                  <SpeedSelectionModal
+                    selectedSpeed={selectedSpeed}
+                    onSpeedChange={onSpeedChange}
                   >
-                    <SelectTrigger className="h-7 w-24 text-sm bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="z-50 bg-ceramic-plate border-ceramic-rim backdrop-blur-sm">
-                      {SPEED_OPTIONS.map((option) => (
-                        <SelectItem 
-                          key={option.displaySpeed} 
-                          value={option.displaySpeed}
-                          className="text-xs hover:bg-ceramic-base focus:bg-ceramic-base"
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="ml-2 h-8 w-16 text-xs"
+                    >
+                      Set
+                    </Button>
+                  </SpeedSelectionModal>
                 </div>
               </Card>
 
