@@ -9,15 +9,16 @@
   "orientation": "portrait-primary",
   "categories": ["health", "wellness", "lifestyle"],
   "lang": "en",
+  "version": "1.0.0",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/supabase/functions/v1/dynamic-manifest?type=icon&size=192",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-512.png", 
+      "src": "/supabase/functions/v1/dynamic-manifest?type=icon&size=512",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"

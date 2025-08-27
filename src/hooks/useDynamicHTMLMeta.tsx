@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useDynamicHTMLMeta = (isNativeApp?: boolean) => {
+export const useDynamicHTMLMeta = (skipUpdate?: boolean) => {
   useEffect(() => {
-    // Skip PWA features in native apps
-    if (isNativeApp) {
+    // Skip PWA features if explicitly requested
+    if (skipUpdate) {
       return;
     }
     const updateHTMLMeta = async () => {

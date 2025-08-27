@@ -17,10 +17,12 @@ export const useDeferredAssets = (startupState?: string, isOAuthCompleting?: boo
   // Load color theme (deferred until ready)
   useColorTheme(shouldLoadAssets);
   
-  // Always call hooks at top level - never inside callbacks
+  // Load dynamic HTML meta immediately for branding
+  useDynamicHTMLMeta(false);
+  
+  // Load other assets when ready
   useDynamicFavicon(!shouldLoadAssets); // Skip if not ready
-  useDynamicPWAAssets(!shouldLoadAssets); // Skip if not ready  
-  useDynamicHTMLMeta(!shouldLoadAssets); // Skip if not ready
+  useDynamicPWAAssets(!shouldLoadAssets); // Skip if not ready
   
   useEffect(() => {
     if (shouldLoadAssets) {
