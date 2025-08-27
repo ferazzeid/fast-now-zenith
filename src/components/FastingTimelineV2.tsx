@@ -117,8 +117,8 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
         )}
       </div>
 
-      {/* Admin Insight Display - Always visible for non-admins when content exists */}
-      {!isAdmin && selected?.admin_personal_log && (
+      {/* Admin Insight Display - Shows how it appears to regular users */}
+      {selected?.admin_personal_log && (
         <AdminInsightDisplay 
           content={selected.admin_personal_log}
         />
