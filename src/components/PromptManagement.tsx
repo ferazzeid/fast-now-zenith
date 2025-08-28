@@ -54,20 +54,7 @@ const STYLE_PRESETS: StylePreset[] = [
 ];
 
 const PROMPT_CONFIGS: PromptConfig[] = [
-  {
-    key: 'ai_food_response_template',
-    title: 'Food Entry Response Format',
-    description: 'Controls how the AI formats responses when presenting food entry details to users.',
-    defaultPrompt: 'I\'ve prepared a food entry for you:\n\n**Food:** {food_name}\n**Portion:** {serving_size}g\n**Calories:** {calories} cal\n**Carbs:** {carbs}g\n\nThis looks good for your nutrition tracking! Would you like me to add this to your food log?',
-    variables: ['{food_name}', '{serving_size}', '{calories}', '{carbs}']
-  },
-  {
-    key: 'ai_food_estimation_prompt',
-    title: 'Nutrition Estimation Guidelines',
-    description: 'Guidelines for the AI when estimating nutritional values for foods.',
-    defaultPrompt: 'When estimating nutrition values, use these guidelines: Provide realistic estimates based on common food databases. For proteins like chicken/fish, estimate ~165-200 calories and 0-2g carbs per 100g. For fruits, estimate 40-80 calories and 10-20g carbs per 100g. For vegetables, estimate 20-50 calories and 3-10g carbs per 100g. Always ask for clarification if the food description is vague.',
-    variables: []
-  },
+  // All food-related prompts removed as they are not used by any edge functions
 ];
 
 export const PromptManagement: React.FC = () => {
