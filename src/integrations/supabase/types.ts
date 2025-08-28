@@ -320,6 +320,48 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_days: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+          usage_limit: number | null
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_days?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_days?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+        }
+        Relationships: []
+      }
       daily_activity_overrides: {
         Row: {
           activity_level: string
@@ -1492,6 +1534,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_coupons: {
+        Row: {
+          coupon_code_id: string
+          days_granted: number
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_code_id: string
+          days_granted: number
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_code_id?: string
+          days_granted?: number
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_coupons_coupon_code_id_fkey"
+            columns: ["coupon_code_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_foods: {
         Row: {
           calories_per_100g: number
@@ -1640,6 +1714,14 @@ export type Database = {
       is_user_admin: {
         Args: { check_user_id: string }
         Returns: boolean
+      }
+      redeem_coupon_code: {
+        Args: { coupon_code: string }
+        Returns: {
+          days_granted: number
+          message: string
+          success: boolean
+        }[]
       }
       test_auth_uid: {
         Args: Record<PropertyKey, never>
