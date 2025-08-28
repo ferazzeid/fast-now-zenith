@@ -118,12 +118,35 @@ export const FloatingVoiceAssistant = () => {
     setIsProcessing(true);
 
     try {
+      // Import conversation memory dynamically  
+      const { conversationMemory } = await import('../utils/conversationMemory');
+      
+      // Initialize conversation memory with user context
+      await conversationMemory.initializeWithUser(user.id);
+      
+      // Check if this message is a response to a pending clarification
+      if (conversationMemory.isResponseToPendingClarification(message)) {
+        console.log('🔍 Detected response to pending clarification');
+        conversationMemory.addToWorkingMemory(
+          'session',
+          `User provided clarification: ${message}`,
+          1.0,
+          30 // 30 minutes TTL
+        );
+      }
+      
+      // Get enhanced context for AI including clarification state
+      const conversationContext = await conversationMemory.getContextForAI();
+      console.log('📝 Conversation context for AI:', conversationContext);
+
       // Get current page context
       const currentPath = window.location.pathname;
       const pageContext = getPageContext(currentPath);
 
-      // Simplified system prompt - let edge function handle detailed knowledge
-      const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
+      // Enhanced system prompt with conversation context
+      const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}
+
+${conversationContext}`;
 
       console.log('🤖 AI Chat: Making streaming request');
 
@@ -145,7 +168,8 @@ export const FloatingVoiceAssistant = () => {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
           ],
-          stream: true
+          stream: true,
+          conversationMemory: conversationContext
         })
       });
 

@@ -29,6 +29,12 @@ export interface ConversationState {
   lastFoodAction?: FoodAction;
   awaitingClarification: boolean;
   sessionType: 'general' | 'food_tracking' | 'fasting' | 'walking';
+  pendingClarification?: {
+    type: 'serving_size' | 'quantity' | 'food_name' | 'general';
+    context: string;
+    relatedFoodAction?: string;
+    timestamp: Date;
+  };
 }
 
 export interface UserPreferences {
@@ -75,12 +81,13 @@ export class ConversationMemoryManager {
   constructor() {
     this.context = {
       recentFoodActions: [],
-      conversationState: {
-        currentTopic: 'general',
-        isProcessingFood: false,
-        awaitingClarification: false,
-        sessionType: 'general'
-      },
+    conversationState: {
+      currentTopic: 'general',
+      isProcessingFood: false,
+      awaitingClarification: false,
+      sessionType: 'general',
+      pendingClarification: undefined
+    },
       userPreferences: {
         preferredUnits: 'imperial',
         commonFoods: [],
@@ -324,6 +331,52 @@ export class ConversationMemoryManager {
     }
   }
 
+  // Add clarification state tracking
+  setPendingClarification(type: 'serving_size' | 'quantity' | 'food_name' | 'general', context: string, relatedFoodAction?: string) {
+    this.context.conversationState.awaitingClarification = true;
+    this.context.conversationState.pendingClarification = {
+      type,
+      context,
+      relatedFoodAction,
+      timestamp: new Date()
+    };
+  }
+
+  // Clear clarification state
+  clearPendingClarification() {
+    this.context.conversationState.awaitingClarification = false;
+    this.context.conversationState.pendingClarification = undefined;
+  }
+
+  // Check if user response matches pending clarification
+  isResponseToPendingClarification(userMessage: string): boolean {
+    if (!this.context.conversationState.pendingClarification) return false;
+    
+    const clarification = this.context.conversationState.pendingClarification;
+    const timeSinceQuestion = Date.now() - clarification.timestamp.getTime();
+    
+    // Timeout after 10 minutes
+    if (timeSinceQuestion > 10 * 60 * 1000) {
+      this.clearPendingClarification();
+      return false;
+    }
+
+    // Pattern matching for direct responses
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Check for serving size responses
+    if (clarification.type === 'serving_size') {
+      return /\d+\s*(grams?|g|oz|ounces?)\s*(per|each|serving)?/i.test(userMessage);
+    }
+    
+    // Check for quantity responses
+    if (clarification.type === 'quantity') {
+      return /\d+|one|two|three|four|five|six|seven|eight|nine|ten/i.test(userMessage);
+    }
+    
+    return false;
+  }
+
   // Add a food action to memory
   addFoodAction(userMessage: string, foods: any[], type: 'add' | 'modify' | 'delete' = 'add') {
     const action: FoodAction = {
@@ -551,6 +604,14 @@ export class ConversationMemoryManager {
       contextStr += '\nCURRENT STATE: Processing food-related conversation\n';
     }
 
+    if (this.context.conversationState.awaitingClarification && this.context.conversationState.pendingClarification) {
+      const clarification = this.context.conversationState.pendingClarification;
+      contextStr += `\nAWAITING CLARIFICATION: ${clarification.type} - "${clarification.context}"\n`;
+      if (clarification.relatedFoodAction) {
+        contextStr += `Related to: ${clarification.relatedFoodAction}\n`;
+      }
+    }
+
     if (workingMemory.length > 0) {
       contextStr += '\nWORKING MEMORY:\n';
       workingMemory.forEach(item => {
@@ -611,7 +672,8 @@ export class ConversationMemoryManager {
         currentTopic: 'general',
         isProcessingFood: false,
         awaitingClarification: false,
-        sessionType: 'general'
+        sessionType: 'general',
+        pendingClarification: undefined
       },
       userPreferences: {
         preferredUnits: preservedUnits,

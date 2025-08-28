@@ -293,8 +293,10 @@ REQUEST HANDLING PATTERN:
 CONVERSATION CONTEXT AWARENESS:
 - Use conversation memory to understand references to previous entries
 - When user provides clarifications (like "each has X grams"), recognize this as a modification to recent food entries
+- If awaiting clarification and user provides direct answer (like "140 grams per serving"), use modify_recent_foods immediately
 - Validate all nutritional calculations and maintain accuracy across entries
 - Process food information directly when quantities are provided - no confirmation needed
+- When asking clarification questions, recognize when the user is providing direct answers to those questions
 
 ${conversationMemory ? `\nCROSS-SESSION CONTEXT:\n${conversationMemory}` : ''}
 
@@ -1286,6 +1288,38 @@ When explaining app calculations, use the exact formulas and constants above. He
       };
       
       console.log('📦 Final formatted result:', formattedResult);
+      
+      // If this is a modify_recent_foods function call, execute it directly
+      if (functionCall && functionCall.name === 'modify_recent_foods') {
+        console.log('🔧 Executing modify_recent_foods function...');
+        try {
+          const modifyResponse = await supabase.functions.invoke('modify-recent-foods', {
+            body: functionCall.arguments,
+            headers: {
+              'Authorization': authHeader
+            }
+          });
+          
+          if (modifyResponse.error) {
+            console.error('❌ modify_recent_foods execution failed:', modifyResponse.error);
+            formattedResult.completion = "I encountered an error while trying to modify your recent foods. Please try again.";
+            formattedResult.functionCall = null;
+          } else {
+            console.log('✅ modify_recent_foods executed successfully');
+            const result = modifyResponse.data;
+            if (result.success) {
+              formattedResult.completion = result.message || "I've updated your recent food entries with the new serving sizes.";
+            } else {
+              formattedResult.completion = result.message || "I couldn't find recent food entries to modify.";
+            }
+            formattedResult.functionCall = null;
+          }
+        } catch (error) {
+          console.error('❌ Error executing modify_recent_foods:', error);
+          formattedResult.completion = "I had trouble modifying your recent foods. Please try again.";
+          formattedResult.functionCall = null;
+        }
+      }
       
       return new Response(
         JSON.stringify(formattedResult),
