@@ -29,6 +29,7 @@ export const FloatingVoiceAssistant = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showInput, setShowInput] = useState(false);
+  const [processingMessageId, setProcessingMessageId] = useState<string | null>(null);
   const [pendingFoods, setPendingFoods] = useState<any[]>([]);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
@@ -72,16 +73,30 @@ export const FloatingVoiceAssistant = () => {
     return newMessage.id;
   };
 
-  const sendToAI = async (message: string, fromVoice = false) => {
-    console.log('🤖 AI Chat: Starting request with message:', message);
+  const updateMessage = (messageId: string, content: string) => {
+    console.log('💬 Updating message:', { messageId, content: content.substring(0, 50) + '...' });
+    
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { ...msg, content } : msg
+    ));
+  };
+
+  const addProcessingMessage = (role: 'user' | 'assistant', initialContent: string) => {
+    const messageId = addMessage(role, initialContent);
+    if (role === 'assistant') {
+      setProcessingMessageId(messageId);
+    }
+    return messageId;
+  };
+
+  const sendToAIOptimistic = async (message: string, fromVoice = false, processingMessageId?: string) => {
+    console.log('🤖 AI Chat: Starting optimistic request with message:', message);
     
     if (!user || isProcessing) {
       console.log('🤖 AI Chat: Blocked - no user or already processing');
       return;
     }
 
-    console.log('🤖 AI Chat: Adding user message to chat');
-    const userMessageId = addMessage('user', message);
     setIsProcessing(true);
 
     try {
@@ -112,90 +127,92 @@ export const FloatingVoiceAssistant = () => {
 
       console.log('🤖 AI Chat: Processing response - completion:', data?.completion, 'functionCall:', data?.functionCall);
 
+      let finalResponse = '';
+
       // Handle function calls first - ACTUALLY EXECUTE THEM
       if (data?.functionCall) {
         console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
         
-        let responseMessage = '';
         try {
           switch (data.functionCall.name) {
             case 'add_multiple_foods':
-              responseMessage = await handleAddMultipleFoods(data.functionCall.arguments);
+              finalResponse = await handleAddMultipleFoods(data.functionCall.arguments);
               break;
             case 'create_motivator':
-              responseMessage = await handleCreateMotivator(data.functionCall.arguments);
+              finalResponse = await handleCreateMotivator(data.functionCall.arguments);
               break;
             case 'create_multiple_motivators':
-              responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
+              finalResponse = await handleCreateMultipleMotivators(data.functionCall.arguments);
               break;
             case 'edit_motivator':
-              responseMessage = await handleEditMotivator(data.functionCall.arguments);
+              finalResponse = await handleEditMotivator(data.functionCall.arguments);
               break;
             case 'delete_motivator':
-              responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
+              finalResponse = await handleDeleteMotivator(data.functionCall.arguments);
               break;
             case 'start_fasting_session':
-              responseMessage = await handleStartFastingSession(data.functionCall.arguments);
+              finalResponse = await handleStartFastingSession(data.functionCall.arguments);
               break;
             case 'stop_fasting_session':
-              responseMessage = await handleStopFastingSession();
+              finalResponse = await handleStopFastingSession();
               break;
             case 'start_walking_session':
-              responseMessage = await handleStartWalkingSession(data.functionCall.arguments);
+              finalResponse = await handleStartWalkingSession(data.functionCall.arguments);
               break;
             case 'stop_walking_session':
-              responseMessage = await handleStopWalkingSession();
+              finalResponse = await handleStopWalkingSession();
               break;
             default:
-              responseMessage = 'I processed your request successfully.';
+              finalResponse = 'I processed your request successfully.';
           }
         } catch (error) {
           console.error('🤖 AI Chat: Function execution error:', error);
-          responseMessage = 'Sorry, I had trouble processing that request. Please try again.';
-        }
-        
-        addMessage('assistant', responseMessage);
-        
-        if (fromVoice) {
-          await playTextAsAudio(responseMessage);
+          finalResponse = 'Sorry, I had trouble processing that request. Please try again.';
         }
       }
       // Handle regular completion responses
       else if (data?.completion && data.completion.trim()) {
-        console.log('🤖 AI Chat: Adding assistant message:', data.completion);
-        addMessage('assistant', data.completion);
-        
-        // Play audio if from voice
-        if (fromVoice) {
-          console.log('🤖 AI Chat: Playing audio response');
-          await playTextAsAudio(data.completion);
-        }
+        console.log('🤖 AI Chat: Using completion response:', data.completion);
+        finalResponse = data.completion;
       }
       // Handle empty responses gracefully
       else {
         console.log('🤖 AI Chat: Empty response received, providing fallback message');
-        const fallbackMessage = 'I heard you, but I\'m not sure how to help with that. Could you try asking differently?';
-        addMessage('assistant', fallbackMessage);
-        
-        if (fromVoice) {
-          await playTextAsAudio(fallbackMessage);
-        }
+        finalResponse = 'I heard you, but I\'m not sure how to help with that. Could you try asking differently?';
+      }
+
+      // Update the processing message with the final response
+      if (processingMessageId && finalResponse) {
+        updateMessage(processingMessageId, finalResponse);
+      } else if (finalResponse) {
+        addMessage('assistant', finalResponse);
+      }
+
+      // Play audio if from voice and we have a response
+      if (fromVoice && finalResponse) {
+        await playTextAsAudio(finalResponse);
       }
       
       console.log('🤖 AI Chat: Successfully processed response');
     } catch (error) {
       console.error('🤖 AI Chat: Error occurred:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
-        variant: "destructive"
-      });
+      
+      // Update processing message with error or show error toast
+      if (processingMessageId) {
+        updateMessage(processingMessageId, 'Sorry, I had trouble processing that request. Please try again.');
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to get AI response. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       console.log('🤖 AI Chat: Finished processing, setting isProcessing to false');
       setIsProcessing(false);
+      setProcessingMessageId(null);
     }
   };
-
   const playTextAsAudio = async (text: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
@@ -233,9 +250,15 @@ export const FloatingVoiceAssistant = () => {
   const handleVoiceTranscription = (transcription: string) => {
     console.log('🎤 FloatingVoiceAssistant: handleVoiceTranscription called with:', transcription);
     if (transcription.trim()) {
-      console.log('🎤 FloatingVoiceAssistant: Opening chat and sending to AI');
+      console.log('🎤 FloatingVoiceAssistant: Opening chat and immediately showing processing state');
       setIsOpen(true); // Show chat when voice message received
-      sendToAI(transcription, true);
+      
+      // Immediately add user message and processing indicator
+      addMessage('user', transcription);
+      const processingId = addProcessingMessage('assistant', '🧠 Processing your request...');
+      
+      // Start AI processing immediately with optimistic updates
+      sendToAIOptimistic(transcription, true, processingId);
     } else {
       console.log('🎤 FloatingVoiceAssistant: Empty transcription, ignoring');
     }
@@ -244,7 +267,13 @@ export const FloatingVoiceAssistant = () => {
   const handleSendMessage = () => {
     if (inputMessage.trim() && !isProcessing) {
       setIsOpen(true); // Show chat when text message sent
-      sendToAI(inputMessage);
+      
+      // Add processing message immediately for text input too
+      const userMessageId = addMessage('user', inputMessage);
+      const processingId = addProcessingMessage('assistant', '🧠 Processing your request...');
+      
+      // Start AI processing with optimistic updates
+      sendToAIOptimistic(inputMessage, false, processingId);
       setInputMessage('');
       setShowInput(false);
     }
