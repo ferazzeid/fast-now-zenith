@@ -330,9 +330,6 @@ const Motivators = () => {
           <div className="space-y-6">
           {/* Header */}
           <div className="mb-4 mt-4 relative">
-            <div className="absolute left-0 top-0">
-              <AIVoiceButton />
-            </div>
             {/* Admin Insights positioned between title and left area */}
             {isAdmin && (
               <div className="absolute right-0 top-0">
