@@ -287,8 +287,8 @@ REQUEST HANDLING PATTERN:
 2. Check available functions for matching capability
 3. If match found: Execute with appropriate parameters immediately
 4. If no match: Explain limitation + suggest alternatives using available functions
-5. For food items with quantities: Use add_multiple_foods function immediately without asking for confirmation
-6. For modifications to recent foods: Use modify_recent_foods function based on conversation context
+5. For food items with quantities: Use add_multiple_foods function immediately without asking for confirmation. CRITICAL: Create separate entries for each individual item mentioned (e.g., "three yogurts" = 3 separate yogurt entries, not 1 combined entry)
+6. For modifications to recent foods: Use modify_recent_foods function based on conversation context. Search today's food entries for partial name matches when user provides clarifications.
 
 CONVERSATION CONTEXT AWARENESS:
 - Use conversation memory to understand references to previous entries
@@ -556,7 +556,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add food entries to the user's food log. Create one entry per food item mentioned. Only create multiple entries when user explicitly mentions multiple items (e.g., 'two apples', 'three bananas'). For singular requests like 'a cucumber' or 'add Greek yogurt', create only ONE entry.",
+              description: "Add food entries to the user's food log. CRITICAL: When user says multiple quantities like 'three Greek yogurts, each 160g' or 'two apples, each 100g', create SEPARATE entries for each item (3 individual Greek yogurt entries of 160g each, not one 480g entry). When user says 'three cucumbers, each 250g' create THREE separate cucumber entries of 250g each. Always respect individual item quantities and create separate database entries for each physical item mentioned.",
               parameters: {
                 type: "object",
                 properties: {
@@ -594,7 +594,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "modify_recent_foods",
-              description: "Modify recently added food entries based on user clarifications (e.g., 'each yogurt has 150g', 'there are actually two'). Use this when user provides clarifications about recently added foods.",
+              description: "Modify recently added food entries based on user clarifications (e.g., 'each yogurt has 160g', 'the Greek yogurts were actually 160g each'). IMPORTANT: Look for food items in today's entries that match the user's clarification. Search for partial name matches (e.g., 'Greek yogurt' matches 'Greek Yogurt, zero fat'). Use this when user provides corrections about food items they just mentioned.",
               parameters: {
                 type: "object",
                 properties: {

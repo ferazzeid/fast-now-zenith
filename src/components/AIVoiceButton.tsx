@@ -155,57 +155,60 @@ export const AIVoiceButton = () => {
 
       if (error) throw error;
 
-      // Handle function calls first - ACTUALLY EXECUTE THEM
-      if (data?.functionCall) {
-        console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
-        
-        let responseMessage = '';
-        try {
-          switch (data.functionCall.name) {
-            case 'add_multiple_foods':
-              responseMessage = await handleAddMultipleFoods(data.functionCall.arguments);
-              break;
-            case 'create_motivator':
-              responseMessage = await handleCreateMotivator(data.functionCall.arguments);
-              break;
-            case 'create_multiple_motivators':
-              responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
-              break;
-            case 'start_fasting_session':
-              responseMessage = await handleStartFastingSession(data.functionCall.arguments);
-              break;
-            case 'stop_fasting_session':
-              responseMessage = await handleStopFastingSession();
-              break;
-            case 'start_walking_session':
-              responseMessage = await handleStartWalkingSession(data.functionCall.arguments);
-              break;
-            case 'stop_walking_session':
-              responseMessage = await handleStopWalkingSession();
-              break;
-            case 'edit_motivator':
-              responseMessage = await handleEditMotivator(data.functionCall.arguments);
-              break;
-            case 'delete_motivator':
-              responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
-              break;
-            case 'modify_recent_foods':
-              responseMessage = await handleModifyRecentFoods(data.functionCall.arguments);
-              break;
-            default:
-              responseMessage = 'I processed your request successfully.';
+        // Handle function calls first - ACTUALLY EXECUTE THEM
+        if (data?.functionCall) {
+          console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
+          
+          let responseMessage = '';
+          try {
+            switch (data.functionCall.name) {
+              case 'add_multiple_foods':
+                responseMessage = await handleAddMultipleFoods(data.functionCall.arguments);
+                break;
+              case 'create_motivator':
+                responseMessage = await handleCreateMotivator(data.functionCall.arguments);
+                break;
+              case 'create_multiple_motivators':
+                responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
+                break;
+              case 'start_fasting_session':
+                responseMessage = await handleStartFastingSession(data.functionCall.arguments);
+                break;
+              case 'stop_fasting_session':
+                responseMessage = await handleStopFastingSession();
+                break;
+              case 'start_walking_session':
+                responseMessage = await handleStartWalkingSession(data.functionCall.arguments);
+                break;
+              case 'stop_walking_session':
+                responseMessage = await handleStopWalkingSession();
+                break;
+              case 'edit_motivator':
+                responseMessage = await handleEditMotivator(data.functionCall.arguments);
+                break;
+              case 'delete_motivator':
+                responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
+                break;
+              case 'modify_recent_foods':
+                responseMessage = await handleModifyRecentFoods(data.functionCall.arguments);
+                break;
+              default:
+                responseMessage = 'I processed your request successfully.';
+            }
+          } catch (error) {
+            console.error('🤖 AI Chat: Function execution error:', error);
+            responseMessage = 'Sorry, I had trouble processing that request. Please try again.';
           }
-        } catch (error) {
-          console.error('🤖 AI Chat: Function execution error:', error);
-          responseMessage = 'Sorry, I had trouble processing that request. Please try again.';
+          
+          // Only add bubble if there's a message to show
+          if (responseMessage && responseMessage.trim()) {
+            addBubble('assistant', responseMessage);
+            
+            if (fromVoice) {
+              await playTextAsAudio(responseMessage);
+            }
+          }
         }
-        
-        addBubble('assistant', responseMessage);
-        
-        if (fromVoice) {
-          await playTextAsAudio(responseMessage);
-        }
-      }
       // Handle regular completion responses
       else if (data?.completion && data.completion.trim()) {
         addBubble('assistant', data.completion);
@@ -502,7 +505,7 @@ export const AIVoiceButton = () => {
     }
   };
 
-  const handleModifyRecentFoods = async (args: any): Promise<string> => {
+  const handleModifyRecentFoods = async (args: any): Promise<string | null> => {
     try {
       const modifications = args?.modifications || {};
       const clarificationText = args?.clarification_text || '';
@@ -525,10 +528,12 @@ export const AIVoiceButton = () => {
         }
       }
       
-      return 'I couldn\'t find any recent foods to modify. Please try adding foods first.';
+      // Return null instead of error message to prevent empty bubbles
+      console.log('No recent foods found to modify');
+      return null;
     } catch (error) {
       console.error('Error modifying foods:', error);
-      return 'Sorry, I had trouble modifying those foods.';
+      return null; // Return null instead of error message
     }
   };
 
