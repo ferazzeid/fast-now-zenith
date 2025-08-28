@@ -142,7 +142,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
               <h3 className="font-medium text-foreground leading-tight">
                 {note.title}
               </h3>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 opacity-100">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { useProfile } from '@/hooks/useProfile';
 
 interface UnifiedMotivatorRotationProps {
   isActive: boolean;
@@ -23,7 +24,29 @@ export const UnifiedMotivatorRotation = ({
   textDurationMs = 4000,
 }: UnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
-  const items = motivators.filter(m => m?.title); // rotate through all with titles; image optional
+  const { profile } = useProfile();
+  
+  // Filter motivators based on user preferences
+  const items = motivators.filter(m => {
+    if (!m?.title) return false;
+    
+    // Always show goals (personal, general, etc.)
+    if (m.category !== 'saved_quote' && m.category !== 'personal_note') {
+      return true;
+    }
+    
+    // Check quotes setting
+    if (m.category === 'saved_quote') {
+      return profile?.enable_quotes_in_animations ?? true;
+    }
+    
+    // Check notes setting  
+    if (m.category === 'personal_note') {
+      return profile?.enable_notes_in_animations ?? true;
+    }
+    
+    return true;
+  });
 
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');

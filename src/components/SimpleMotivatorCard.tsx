@@ -51,7 +51,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                      className="p-2 h-8 w-8 text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

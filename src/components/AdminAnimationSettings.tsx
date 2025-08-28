@@ -13,12 +13,16 @@ export const AdminAnimationSettings = () => {
   const [enableFastingSlideshow, setEnableFastingSlideshow] = useState(true);
   const [enableWalkingSlideshow, setEnableWalkingSlideshow] = useState(true);
   const [enableCeramicAnimations, setEnableCeramicAnimations] = useState(true);
+  const [enableQuotesInAnimations, setEnableQuotesInAnimations] = useState(true);
+  const [enableNotesInAnimations, setEnableNotesInAnimations] = useState(true);
 
   useEffect(() => {
     if (profile) {
       setEnableFastingSlideshow(profile.enable_fasting_slideshow ?? true);
       setEnableWalkingSlideshow(profile.enable_walking_slideshow ?? true);
       setEnableCeramicAnimations(profile.enable_ceramic_animations ?? true);
+      setEnableQuotesInAnimations(profile.enable_quotes_in_animations ?? true);
+      setEnableNotesInAnimations(profile.enable_notes_in_animations ?? true);
     }
   }, [profile]);
 
@@ -101,10 +105,44 @@ export const AdminAnimationSettings = () => {
               }}
             />
           </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Heart className="w-4 h-4 text-primary" />
+              <Label htmlFor="quotes-in-animations" className="text-warm-text">
+                Show Quotes in Timer Animations
+              </Label>
+            </div>
+            <Switch
+              id="quotes-in-animations"
+              checked={enableQuotesInAnimations}
+              onCheckedChange={(checked) => {
+                setEnableQuotesInAnimations(checked);
+                handleAnimationToggle('enable_quotes_in_animations', checked);
+              }}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Heart className="w-4 h-4 text-primary" />
+              <Label htmlFor="notes-in-animations" className="text-warm-text">
+                Show Notes in Timer Animations
+              </Label>
+            </div>
+            <Switch
+              id="notes-in-animations"
+              checked={enableNotesInAnimations}
+              onCheckedChange={(checked) => {
+                setEnableNotesInAnimations(checked);
+                handleAnimationToggle('enable_notes_in_animations', checked);
+              }}
+            />
+          </div>
         </div>
         
         <div className="text-xs text-muted-foreground">
-          Control visual animations and effects throughout the app. Disabling animations can improve performance on slower devices.
+          Control visual animations and effects throughout the app. Disabling animations can improve performance on slower devices. Goals will always appear in timer animations regardless of these settings.
         </div>
       </CardContent>
     </Card>
