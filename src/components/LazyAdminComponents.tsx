@@ -14,6 +14,9 @@ const LazyColorManagement = lazy(() => import('./ColorManagement').then(m => ({ 
 const LazyPromptManagement = lazy(() => import('./PromptManagement').then(m => ({ default: m.PromptManagement })));
 const LazyPaymentProviderSettings = lazy(() => import('./PaymentProviderSettings').then(m => ({ default: m.PaymentProviderSettings })));
 const LazyAdminTimelineSettings = lazy(() => import('./AdminTimelineSettings').then(m => ({ default: m.AdminTimelineSettings })));
+const LazyAdminQuoteSettings = lazy(() => import('./AdminQuoteSettings').then(m => ({ default: m.AdminQuoteSettings })));
+const LazyAppIdentitySettings = lazy(() => import('./AppIdentitySettings').then(m => ({ default: m.AppIdentitySettings })));
+const LazyPWAManagementCard = lazy(() => import('./PWAManagementCard').then(m => ({ default: m.PWAManagementCard })));
 
 const AdminComponentWrapper = ({ 
   children, 
@@ -90,5 +93,23 @@ export const PaymentProviderSettings = () => (
 export const AdminTimelineSettings = () => (
   <AdminComponentWrapper componentName="Timeline Settings">
     <LazyAdminTimelineSettings />
+  </AdminComponentWrapper>
+);
+
+export const AdminQuoteSettings = () => (
+  <AdminComponentWrapper componentName="Quote Settings">
+    <LazyAdminQuoteSettings />
+  </AdminComponentWrapper>
+);
+
+export const AppIdentitySettings = () => (
+  <AdminComponentWrapper componentName="App Identity Settings">
+    <LazyAppIdentitySettings />
+  </AdminComponentWrapper>
+);
+
+export const PWAManagementCard = () => (
+  <AdminComponentWrapper componentName="PWA Management">
+    <LazyPWAManagementCard />
   </AdminComponentWrapper>
 );

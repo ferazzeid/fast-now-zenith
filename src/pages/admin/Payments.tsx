@@ -1,6 +1,6 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
+import { PaymentProviderSettings } from "@/components/LazyAdminComponents";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 export default function AdminPayments() {
