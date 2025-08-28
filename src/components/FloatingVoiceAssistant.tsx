@@ -162,7 +162,14 @@ CLARIFICATION HANDLING:
 - If you detect that the user is answering a previous clarification question, use the modify_recent_foods function immediately
 - Look for direct responses like "150g each", "only 2", "140 grams per serving"
 - When user provides serving sizes or quantities as simple responses, interpret them as answers to recent clarification requests
-- Always include context about which food items when calling modify_recent_foods`;
+- Always include context about which food items when calling modify_recent_foods
+
+AMBIGUITY RESOLUTION:
+- When operations return 0 results or are unclear, ALWAYS ask for clarification
+- For food modifications, if multiple foods match (e.g., "white fish" vs "black fish"), ask "Which food did you mean - the white fish or the black fish?"
+- For serving size changes, if unclear, ask "What serving size did you want for [specific food]?"
+- When editing fails, ask specific clarifying questions instead of giving generic error messages
+- Be proactive in asking for details when user requests are ambiguous`;
 
       console.log('🤖 AI Chat: Making streaming request');
 
@@ -647,7 +654,15 @@ CLARIFICATION HANDLING:
         const foodNames = successful.map(f => f?.name).join(', ');
         return `Successfully updated ${modifiedCount} food${modifiedCount === 1 ? '' : 's'}: ${foodNames}`;
       } else {
-        return 'I found foods but couldn\'t apply the modifications. Please check the food names and try again.';
+        // Ask for clarification when no foods were updated
+        const availableFoodNames = foundFoods.map(food => food.name).join(', ');
+        if (foundFoods.length > 1) {
+          return `I found multiple foods: ${availableFoodNames}. Which specific food did you want to modify?`;
+        } else if (foundFoods.length === 1) {
+          return `I found "${foundFoods[0].name}" but couldn't apply the changes. What specific modification did you want to make?`;
+        } else {
+          return 'I couldn\'t find any recent foods matching your request. Could you be more specific about which food you want to modify?';
+        }
       }
 
     } catch (error) {
@@ -917,7 +932,7 @@ CLARIFICATION HANDLING:
       {isOpen && messages.length > 0 && (
         <div 
           ref={messagesRef}
-          className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 max-h-96 overflow-y-auto space-y-3 pb-4 pr-2 scroll-smooth"
+          className="absolute bottom-28 right-0 w-full max-w-sm md:w-80 max-h-96 overflow-y-auto space-y-3 pb-6 pr-2 scroll-smooth"
         >
           {messages.map((message, index) => (
             <ChatBubble
@@ -934,7 +949,7 @@ CLARIFICATION HANDLING:
 
       {/* Text Input */}
       {showInput && (
-        <div className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 mb-2">
+        <div className="absolute bottom-20 right-0 w-full max-w-sm md:w-80 mb-2">
           <div className="flex gap-2 p-3 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg">
             <Input
               value={inputMessage}
