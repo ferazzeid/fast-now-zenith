@@ -28,9 +28,24 @@ export const UnifiedMotivatorRotation = ({
   
   // Filter motivators based on individual show_in_animations setting
   const items = useMemo(() => {
-    return motivators
+    console.log('🎯 Filtering motivators for animation:', {
+      totalMotivators: motivators.length,
+      motivatorsWithSettings: motivators.map(m => ({
+        id: m.id,
+        title: m.title?.substring(0, 20),
+        show_in_animations: (m as any).show_in_animations,
+        is_active: m.is_active
+      }))
+    });
+    
+    const filtered = motivators
       .filter(item => item.is_active)
-      .filter(item => (item as any).show_in_animations !== false)  // Show if not explicitly set to false
+      .filter(item => {
+        const showInAnimations = (item as any).show_in_animations;
+        const shouldShow = showInAnimations !== false; // Show if true or undefined/null
+        console.log(`🔍 Filtering item ${item.title?.substring(0, 20)}: show_in_animations=${showInAnimations}, shouldShow=${shouldShow}`);
+        return shouldShow;
+      })
       .map(item => ({
         id: item.id,
         title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
@@ -38,6 +53,14 @@ export const UnifiedMotivatorRotation = ({
         imageUrl: item.imageUrl,
         type: 'motivator' as const
       }));
+      
+    console.log('🎯 Filtered result:', {
+      originalCount: motivators.length,
+      filteredCount: filtered.length,
+      filteredItems: filtered.map(f => f.title?.substring(0, 20))
+    });
+    
+    return filtered;
   }, [motivators]);
 
   const [index, setIndex] = useState(0);

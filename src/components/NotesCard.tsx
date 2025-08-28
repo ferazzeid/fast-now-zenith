@@ -170,13 +170,21 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                         size="sm"
                         onClick={async () => {
                           try {
+                            const newValue = !note.show_in_animations;
+                            console.log('🔄 Toggling animation for note:', {
+                              id: note.id,
+                              currentValue: note.show_in_animations,
+                              newValue: newValue,
+                              title: note.title?.substring(0, 30)
+                            });
                             await onUpdate(note.id, { 
                               title: note.title, 
                               content: note.content,
-                              show_in_animations: !note.show_in_animations 
+                              show_in_animations: newValue
                             });
+                            console.log('✅ Toggle note animation successful');
                           } catch (error) {
-                            console.error('Error toggling animation setting:', error);
+                            console.error('❌ Error toggling note animation setting:', error);
                           }
                         }}
                         className="h-8 w-8 p-0"

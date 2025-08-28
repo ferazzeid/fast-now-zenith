@@ -50,18 +50,26 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
             {onToggleAnimation && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await onToggleAnimation(motivator.id, !motivator.show_in_animations);
-                      } catch (error) {
-                        console.error('Error toggling animation setting:', error);
-                      }
-                    }}
-                    className="p-2 h-8 w-8 hover:bg-muted/50"
-                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const newValue = !motivator.show_in_animations;
+                          console.log('🔄 Toggling animation for motivator:', {
+                            id: motivator.id,
+                            currentValue: motivator.show_in_animations,
+                            newValue: newValue,
+                            title: motivator.title?.substring(0, 30)
+                          });
+                          await onToggleAnimation(motivator.id, newValue);
+                          console.log('✅ Toggle animation successful');
+                        } catch (error) {
+                          console.error('❌ Error toggling animation setting:', error);
+                        }
+                      }}
+                      className="p-2 h-8 w-8 hover:bg-muted/50"
+                    >
                     {motivator.show_in_animations !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </Button>
                 </TooltipTrigger>

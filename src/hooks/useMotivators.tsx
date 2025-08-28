@@ -130,6 +130,7 @@ export const useMotivators = () => {
   };
 
   const updateMotivator = async (id: string, updates: Partial<CreateMotivatorData>): Promise<boolean> => {
+    console.log('🔄 Updating motivator in useMotivators:', { id, updates });
     if (!user) return false;
 
     try {
