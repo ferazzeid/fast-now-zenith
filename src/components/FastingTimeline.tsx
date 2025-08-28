@@ -11,6 +11,7 @@ interface FastingHour {
   tips?: string[];
   phase: string;
   difficulty: string;
+  read_more_url?: string;
 }
 
 interface FastingTimelineProps {
@@ -33,7 +34,7 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
     try {
       const { data, error } = await supabase
         .from('fasting_hours')
-        .select('hour, title, body_state, encouragement, tips, phase, difficulty')
+        .select('hour, title, body_state, encouragement, tips, phase, difficulty, read_more_url')
         .lte('hour', 72)
         .order('hour');
 
@@ -171,6 +172,19 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
                             {hourData.difficulty}
                           </span>
                         </div>
+                        
+                        {hourData.read_more_url && (
+                          <div className="mt-2 pt-2 border-t border-border">
+                            <a
+                              href={hourData.read_more_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline"
+                            >
+                              Read more
+                            </a>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <p className="text-xs text-muted-foreground">

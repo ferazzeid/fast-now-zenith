@@ -17,6 +17,7 @@ export interface FastingHour {
   autophagy_milestone?: boolean;
   ketosis_milestone?: boolean;
   fat_burning_milestone?: boolean;
+  read_more_url?: string;
   // Enhanced fields
   benefits_challenges?: string;
   content_snippet?: string;

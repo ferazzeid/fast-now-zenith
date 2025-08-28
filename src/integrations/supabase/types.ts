@@ -509,6 +509,7 @@ export type Database = {
           phase: string
           physiological_effects: string | null
           positive_symptoms: string[] | null
+          read_more_url: string | null
           scientific_info: string | null
           stage: string | null
           tips: string[] | null
@@ -539,6 +540,7 @@ export type Database = {
           phase?: string
           physiological_effects?: string | null
           positive_symptoms?: string[] | null
+          read_more_url?: string | null
           scientific_info?: string | null
           stage?: string | null
           tips?: string[] | null
@@ -569,6 +571,7 @@ export type Database = {
           phase?: string
           physiological_effects?: string | null
           positive_symptoms?: string[] | null
+          read_more_url?: string | null
           scientific_info?: string | null
           stage?: string | null
           tips?: string[] | null

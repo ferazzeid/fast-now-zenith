@@ -113,6 +113,20 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
                 </div>
               </div>
             </div>
+            
+            {/* Read More Link */}
+            {selected?.read_more_url && (
+              <div className="pt-2 border-t border-border/50">
+                <a
+                  href={selected.read_more_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Read more
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>

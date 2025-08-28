@@ -25,6 +25,7 @@ interface AdminFastingHour {
   autophagy_milestone?: boolean;
   ketosis_milestone?: boolean;
   fat_burning_milestone?: boolean;
+  read_more_url?: string;
 }
 
 interface FastingHourEditModalProps {
@@ -49,7 +50,8 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
     difficulty: 'easy',
     autophagy_milestone: false,
     ketosis_milestone: false,
-    fat_burning_milestone: false
+    fat_burning_milestone: false,
+    read_more_url: ''
   });
 
   useEffect(() => {
@@ -65,6 +67,7 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
         autophagy_milestone: fastingHour.autophagy_milestone,
         ketosis_milestone: fastingHour.ketosis_milestone,
         fat_burning_milestone: fastingHour.fat_burning_milestone,
+        read_more_url: fastingHour.read_more_url || ''
       });
     } else {
       setFormData({
@@ -76,7 +79,8 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
         difficulty: 'easy',
         autophagy_milestone: false,
         ketosis_milestone: false,
-        fat_burning_milestone: false
+        fat_burning_milestone: false,
+        read_more_url: ''
       });
     }
   }, [fastingHour, isOpen]);
@@ -185,6 +189,15 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
               rows={4}
             />
           </div>
+
+          <div>
+            <label className="text-sm font-medium">Read More Link (Optional)</label>
+            <Input
+              value={formData.read_more_url || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, read_more_url: e.target.value }))}
+              placeholder="https://example.com/article"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
@@ -237,6 +250,7 @@ export const AdminTimelineSettings = () => {
           autophagy_milestone: fastingHour.autophagy_milestone,
           ketosis_milestone: fastingHour.ketosis_milestone,
           fat_burning_milestone: fastingHour.fat_burning_milestone,
+          read_more_url: fastingHour.read_more_url || null,
           // Required database fields with defaults
           title: fastingHour.stage || `Hour ${fastingHour.hour}`,
           body_state: fastingHour.encouragement || 'Details coming soon'
