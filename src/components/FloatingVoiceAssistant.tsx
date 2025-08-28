@@ -16,6 +16,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAudioManager } from '@/hooks/useAudioManager';
+import { useFoodEditingActions } from '@/hooks/useFoodEditingActions';
+import { conversationMemory } from '@/utils/conversationMemory';
 
 interface Message {
   id: string;
@@ -45,6 +47,7 @@ export const FloatingVoiceAssistant = () => {
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
   const { updateMotivator, deleteMotivator } = useMotivators();
   const { queueTextForAudio, queueStreamingTextForAudio, clearQueue, isProcessing: audioProcessing } = useAudioManager();
+  const { searchFoodsForEdit, editFoodEntry, applyEditPreview, createEditPreview } = useFoodEditingActions();
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
@@ -235,6 +238,9 @@ export const FloatingVoiceAssistant = () => {
                           break;
                         case 'stop_walking_session':
                           finalResponse = await handleStopWalkingSession();
+                          break;
+                        case 'modify_recent_foods':
+                          finalResponse = await handleModifyRecentFoods(functionArgs);
                           break;
                         default:
                           finalResponse = 'I processed your request successfully.';
@@ -471,6 +477,101 @@ export const FloatingVoiceAssistant = () => {
       }
       return newSet;
     });
+  };
+
+  // Enhanced food modification handler
+  const handleModifyRecentFoods = async (args: any): Promise<string> => {
+    try {
+      const modifications = args?.modifications || {};
+      const clarificationText = args?.clarification_text || '';
+      console.log('🔄 Processing food modification:', modifications, clarificationText);
+
+      // First try to modify pending foods if available
+      if (pendingFoods.length > 0) {
+        const context = conversationMemory.getContext();
+        const recentAction = context.recentFoodActions[0];
+        
+        if (recentAction) {
+          const modifiedFoods = conversationMemory.processModification(recentAction, modifications, pendingFoods);
+          
+          if (modifiedFoods && modifiedFoods.length > 0) {
+            setPendingFoods(modifiedFoods);
+            const foodNames = modifiedFoods.map(food => food.name).join(', ');
+            return `Updated ${foodNames} in preview. Please confirm to save the changes.`;
+          }
+        }
+      }
+
+      // If no pending foods, search recent foods in database
+      const searchTerms = ['greek yogurt', 'yogurt', 'cucumber', 'brie', 'feta'];
+      let foundFoods: any[] = [];
+      
+      for (const term of searchTerms) {
+        try {
+          const results = await searchFoodsForEdit(term, 'today');
+          if (results.length > 0) {
+            foundFoods = [...foundFoods, ...results];
+          }
+        } catch (error) {
+          console.log(`No results for ${term}:`, error);
+        }
+      }
+
+      if (foundFoods.length === 0) {
+        return 'I couldn\'t find any recent foods to modify. Please try adding the foods first, then making changes.';
+      }
+
+      // Apply modifications to found foods
+      let modifiedCount = 0;
+      const modificationPromises = foundFoods.map(async (food) => {
+        try {
+          const updates: any = {};
+          
+          // Handle serving size modifications
+          if (modifications.serving_size_each) {
+            updates.serving_size = modifications.serving_size_each;
+          }
+          if (modifications.serving_size) {
+            updates.serving_size = modifications.serving_size;
+          }
+
+          // Recalculate calories and carbs based on new serving size if needed
+          if (updates.serving_size && food.current_values) {
+            const multiplier = updates.serving_size / (food.current_values.serving_size || 100);
+            if (food.current_values.calories) {
+              updates.calories = Math.round(food.current_values.calories * multiplier);
+            }
+            if (food.current_values.carbs) {
+              updates.carbs = Math.round(food.current_values.carbs * multiplier * 10) / 10;
+            }
+          }
+
+          if (Object.keys(updates).length > 0) {
+            await editFoodEntry(food.id, updates);
+            modifiedCount++;
+            return food;
+          }
+        } catch (error) {
+          console.error('Error modifying food:', food.name, error);
+        }
+        return null;
+      });
+
+      const results = await Promise.all(modificationPromises);
+      const successful = results.filter(r => r !== null);
+
+      if (modifiedCount > 0) {
+        await refreshContext(); // Refresh food context after modifications
+        const foodNames = successful.map(f => f?.name).join(', ');
+        return `Successfully updated ${modifiedCount} food${modifiedCount === 1 ? '' : 's'}: ${foodNames}`;
+      } else {
+        return 'I found foods but couldn\'t apply the modifications. Please check the food names and try again.';
+      }
+
+    } catch (error) {
+      console.error('Error modifying foods:', error);
+      return 'Sorry, I had trouble modifying those foods. Please try again or add the foods manually.';
+    }
   };
 
   const handleCreateMotivator = async (args: any): Promise<string> => {

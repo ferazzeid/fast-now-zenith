@@ -509,31 +509,28 @@ export const AIVoiceButton = () => {
     try {
       const modifications = args?.modifications || {};
       const clarificationText = args?.clarification_text || '';
-      console.log('🔄 Processing food modification:', modifications, clarificationText);
+      console.log('🔄 AIVoiceButton - Processing food modification:', modifications, clarificationText);
 
-      // Use conversation memory to process the modification
+      // Use conversation memory to process the modification for pending foods
       const context = conversationMemory.getContext();
       const recentAction = context.recentFoodActions[0];
       
       if (recentAction && pendingFoods.length > 0) {
-        // Process the modification using conversation memory
         const modifiedFoods = conversationMemory.processModification(recentAction, modifications, pendingFoods);
         
         if (modifiedFoods && modifiedFoods.length > 0) {
-          // Update the pending foods with the modified values
           setPendingFoods(modifiedFoods);
-          
           const foodNames = modifiedFoods.map(food => food.name).join(', ');
-          return `Updated ${foodNames} successfully.`;
+          return `Updated ${foodNames} in preview. Please confirm to save the changes.`;
         }
       }
       
-      // Return null instead of error message to prevent empty bubbles
-      console.log('No recent foods found to modify');
-      return null;
+      // If no pending foods, provide helpful feedback
+      console.log('AIVoiceButton: No pending foods to modify');
+      return 'I can help you modify foods, but I need to see them first. Please add some foods and then ask me to modify them.';
     } catch (error) {
-      console.error('Error modifying foods:', error);
-      return null; // Return null instead of error message
+      console.error('AIVoiceButton: Error modifying foods:', error);
+      return 'Sorry, I had trouble modifying those foods. Please try again.';
     }
   };
 
