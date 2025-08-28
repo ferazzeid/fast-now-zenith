@@ -38,6 +38,7 @@ import { trackFoodEvent, trackAIEvent } from '@/utils/analytics';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -404,29 +405,16 @@ const FoodTracking = () => {
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding and History Buttons */}
-        <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <AIVoiceButton />
-          </div>
-          <div className="absolute right-0 top-0">
-            <HistoryButton onClick={() => setShowHistory(true)} title="View food history" />
-          </div>
-          {/* Admin Insights positioned between title and history button */}
-          {isAdmin && (
-            <div className="absolute right-12 top-0 mr-2">
-              <AuthorTooltip 
-                contentKey="food_tracking_insights"
-                content="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!" 
-              />
-            </div>
-          )}
-          <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold text-foreground mb-1">
-              Food Tracking
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">Lock your food intake</p>
-          </div>
-        </div>
+        <ResponsivePageHeader
+          title="Food Tracking"
+          subtitle="Track your food intake"
+          leftButton={<AIVoiceButton />}
+          onHistoryClick={() => setShowHistory(true)}
+          historyTitle="View food history"
+          showAuthorTooltip={isAdmin}
+          authorTooltipContentKey="food_tracking_insights"
+          authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
+        />
 
         {/* Action Buttons */}
         <div className="mb-6 grid grid-cols-2 gap-4">

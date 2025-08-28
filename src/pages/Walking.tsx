@@ -20,6 +20,7 @@ import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { useAccess } from '@/hooks/useAccess';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
 
@@ -219,32 +220,22 @@ const Walking = () => {
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding and History Buttons */}
-        <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <PremiumGatedAIVoiceButton />
+        <ResponsivePageHeader
+          title="Walking Timer"
+          subtitle="Track your walking session"
+          leftButton={<PremiumGatedAIVoiceButton />}
+          onHistoryClick={() => setShowWalkingHistory(true)}
+          historyTitle="View walking history"
+          showAuthorTooltip={isAdmin}
+          authorTooltipContent="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
+        />
+        
+        {/* Only show sync indicator when there's an active session */}
+        {currentSession && (
+          <div className="mt-2 flex justify-end">
+            <OutboxSyncIndicator />
           </div>
-          <div className="absolute right-0 top-0">
-            <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />
-          </div>
-          {/* Admin Insights positioned between title and history button */}
-          {isAdmin && (
-            <div className="absolute right-12 top-0 mr-2">
-              <AuthorTooltip content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!" />
-            </div>
-          )}
-          <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold text-foreground mb-1">
-              Walking Timer
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">Track your walking session</p>
-          </div>
-          {/* Only show sync indicator when there's an active session */}
-          {currentSession && (
-            <div className="mt-2 flex justify-end">
-              <OutboxSyncIndicator />
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Timer Display - No Loading State Blocking */}
         <div className="relative mb-6">

@@ -30,6 +30,7 @@ import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 
 import { useAccess } from '@/hooks/useAccess';
 
@@ -367,34 +368,16 @@ const Timer = () => {
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-24">
         {/* Header with Onboarding Button */}
-        <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <AIVoiceButton />
-          </div>
-          {/* History button - only show for fasting mode */}
-          {currentMode === 'fasting' && (
-            <div className="absolute right-0 top-0">
-              <HistoryButton onClick={() => setShowFastingHistory(true)} title="View fasting history" />
-            </div>
-          )}
-          {/* Admin Insights positioned between title and history button - only for fasting mode */}
-          {isAdmin && currentMode === 'fasting' && (
-            <div className="absolute right-12 top-0 mr-2">
-              <AuthorTooltip 
-                contentKey="fasting_timer_insights"
-                content="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" 
-              />
-            </div>
-          )}
-          <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold text-foreground mb-1">
-              {currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">
-              {currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
-            </p>
-          </div>
-        </div>
+        <ResponsivePageHeader
+          title={currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
+          subtitle={currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
+          leftButton={<AIVoiceButton />}
+          onHistoryClick={currentMode === 'fasting' ? () => setShowFastingHistory(true) : undefined}
+          historyTitle="View fasting history"
+          showAuthorTooltip={isAdmin && currentMode === 'fasting'}
+          authorTooltipContentKey="fasting_timer_insights"
+          authorTooltipContent="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!"
+        />
 
         {/* Timer Display */}
         <div className="relative mb-12 mt-12">
