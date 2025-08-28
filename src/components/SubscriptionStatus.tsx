@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CreditCard, Calendar, ExternalLink, Clock, Crown } from 'lucide-react';
 import { useAccess } from '@/hooks/useAccess';
 
-export const BillingInformation: React.FC = () => {
+export const SubscriptionStatus: React.FC = () => {
   const { 
     hasPremiumFeatures, 
     access_level,
@@ -66,11 +66,11 @@ export const BillingInformation: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CreditCard className="w-5 h-5" />
-          Billing Information
+          <Crown className="w-5 h-5" />
+          Subscription Status
         </CardTitle>
         <CardDescription>
-          Your subscription and billing details
+          Your membership and feature access details
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -90,7 +90,7 @@ export const BillingInformation: React.FC = () => {
           </Badge>
         </div>
 
-        {/* Billing Details */}
+        {/* Subscription Details */}
         {statusInfo.showBilling && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -103,7 +103,7 @@ export const BillingInformation: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <p className="text-sm font-medium">Next Billing Date</p>
+                <p className="text-sm font-medium">Next Renewal</p>
                 <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/30">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{getNextBillingDate()}</span>
@@ -148,7 +148,7 @@ export const BillingInformation: React.FC = () => {
               </div>
             </div>
 
-            {/* Manage Billing */}
+            {/* Manage Subscription */}
             {hasPremiumFeatures && (
               <Button 
                 onClick={openCustomerPortal}
@@ -156,7 +156,7 @@ export const BillingInformation: React.FC = () => {
                 className="w-full flex items-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
-                Manage Billing & Payment Methods
+                Manage Subscription & Payment Methods
               </Button>
             )}
           </div>

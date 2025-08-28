@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Wifi } from 'lucide-react';
+import { Key, Bell, User, Info, Brain, Wifi } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useProfile } from '@/hooks/useProfile';
@@ -18,9 +17,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
-import { CouponCodeInput } from '@/components/CouponCodeInput';
-import { BillingInformation } from '@/components/BillingInformation';
-
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
@@ -47,9 +43,9 @@ const Settings = () => {
   const [manualTdeeOverride, setManualTdeeOverride] = useState('');
   
   const { toast } = useToast();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { isAdmin: accessIsAdmin, originalIsAdmin, hasPremiumFeatures, createSubscription, openCustomerPortal, isTrial, daysRemaining, access_level } = useAccess();
+  const { isAdmin: accessIsAdmin, originalIsAdmin } = useAccess();
   const isWebPlatform = true; // Default to web for now
   const platformName = 'Stripe'; // Default to Stripe for now
   
@@ -299,94 +295,6 @@ const Settings = () => {
     }
   };
 
-  const handleResetAccount = async () => {
-    if (!user) return;
-
-    try {
-      // Delete all user data but keep the account
-      const deleteOperations = [
-        supabase.from('chat_conversations').delete().eq('user_id', user.id),
-        supabase.from('motivators').delete().eq('user_id', user.id),
-        supabase.from('food_entries').delete().eq('user_id', user.id),
-        supabase.from('user_foods').delete().eq('user_id', user.id),
-        supabase.from('fasting_sessions').delete().eq('user_id', user.id),
-        supabase.from('walking_sessions').delete().eq('user_id', user.id),
-        supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
-        supabase.from('daily_activity_overrides').delete().eq('user_id', user.id),
-        supabase.from('daily_food_templates').delete().eq('user_id', user.id),
-        supabase.from('default_food_favorites').delete().eq('user_id', user.id)
-      ];
-
-      await Promise.all(deleteOperations);
-
-      // Reset profile data but keep account settings
-      await supabase
-        .from('profiles')
-        .update({
-          weight: null,
-          height: null,
-          age: null,
-          daily_calorie_goal: null,
-          daily_carb_goal: null,
-          goal_weight: null,
-          onboarding_completed: false
-        })
-        .eq('user_id', user.id);
-
-      toast({
-        title: "Account Reset Complete",
-        description: "All your data has been cleared. You can start fresh!",
-      });
-
-      // Navigate to home to start fresh
-      navigate('/');
-    } catch (error) {
-      console.error('Error resetting account:', error);
-      toast({
-        title: "Error",
-        description: "Failed to reset account. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!user) return;
-
-    try {
-      // Call the delete account edge function
-      const { data, error } = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.scheduled) {
-        toast({
-          title: "Account Deletion Scheduled",
-          description: data.message,
-        });
-      } else {
-        toast({
-          title: "Account Deleted",
-          description: data.message,
-        });
-        // Sign out and redirect
-        await signOut();
-        navigate('/auth');
-      }
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete account. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-24">
@@ -622,111 +530,11 @@ const Settings = () => {
               Save Settings
             </Button>
 
-            {/* Account Section - moved up (2nd priority) */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Email</span>
-                    <span className="text-warm-text font-medium">{user?.email}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Login Method</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Account Type</span>
-                    <span className="text-warm-text font-medium">
-                      {access_level === 'admin' ? 'Administrator' :
-                       isTrial ? 'Trial User' : 
-                       hasPremiumFeatures ? 'Premium User' : 'Free User'}
-                    </span>
-                  </div>
-                  {((isTrial || hasPremiumFeatures) && access_level !== 'admin') && daysRemaining && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
-                        {isTrial ? 'Trial expires' : 'Premium expires'}
-                      </span>
-                      <span className="text-warm-text font-medium">
-                        {new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Member since</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-ceramic-rim space-y-3">
-                  {access_level === 'free' && (
-                    <Button
-                      onClick={async () => {
-                        try {
-                          await createSubscription();
-                          toast({ 
-                            title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
-                            description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
-                          });
-                        } catch {
-                          toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
-                        }
-                      }}
-                      className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
-                    </Button>
-                  )}
-                  {hasPremiumFeatures && access_level !== 'admin' && (
-                    <Button
-                      onClick={async () => {
-                        try {
-                          await openCustomerPortal();
-                          toast({ 
-                            title: "Opening customer portal", 
-                            description: "Manage your subscription...",
-                          });
-                        } catch {
-                          toast({ title: "Error", description: "Failed to open customer portal. Please try again.", variant: "destructive" });
-                        }
-                      }}
-                      variant="outline"
-                      className="w-full bg-ceramic-base border-ceramic-rim justify-start"
-                    >
-                      Manage Subscription
-                    </Button>
-                  )}
-                  <Button
-                    onClick={() => { signOut(); navigate('/auth'); }}
-                    variant="default"
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary-hover justify-start"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </div>
-            </Card>
-
-            {/* Subscription & Billing Section */}
-            <BillingInformation />
-            
-            {/* Coupon Codes Section */}
-            <CouponCodeInput />
-
             {/* Cache Management Section */}
             <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Database className="w-5 h-5 text-primary" />
+                  <Wifi className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-warm-text">Cache Management</h3>
                 </div>
                 <div className="space-y-3">
@@ -742,7 +550,7 @@ const Settings = () => {
             <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Palette className="w-5 h-5 text-primary" />
+                  <Brain className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
                 </div>
                 <div className="flex justify-center">
@@ -750,80 +558,6 @@ const Settings = () => {
                 </div>
               </div>
             </Card>
-
-            {/* Account Management - moved down */}
-            <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account Actions</h3>
-                </div>
-                
-                 <div className="space-y-3">
-                   {/* Reset Account */}
-                   <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10 justify-start"
-                    >
-                      <Archive className="w-4 h-4 mr-2" />
-                      Reset Account Data
-                    </Button>
-                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                       <AlertDialogHeader>
-                         <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
-                         <AlertDialogDescription>
-                           This will permanently delete all your data (food entries, fasting sessions, walking history, motivators, etc.) but keep your account active. You can start fresh with a clean slate.
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
-                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                         <AlertDialogAction
-                           onClick={handleResetAccount}
-                           className="bg-orange-500 hover:bg-orange-600"
-                         >
-                           Reset All Data
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-
-                   {/* Delete Account */}
-                   <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 justify-start"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Account
-                    </Button>
-                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                       <AlertDialogHeader>
-                         <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
-                         <AlertDialogDescription>
-                           This will permanently delete your account and all associated data. This action cannot be undone. If you have an active subscription, it will be canceled.
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
-                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                         <AlertDialogAction
-                           onClick={handleDeleteAccount}
-                           className="bg-destructive hover:bg-destructive/80"
-                         >
-                           Delete Forever
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-                </div>
-              </div>
-            </Card>
-
-
 
             {/* About */}
             <Card className="p-6 bg-card border-ceramic-rim">
@@ -842,43 +576,6 @@ const Settings = () => {
                     <span className="text-muted-foreground">Build</span>
                     <span className="text-warm-text font-medium">Beta</span>
                   </div>
-                </div>
-                
-                
-                 
-                </div>
-              </Card>
-
-            {/* Legal */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Legal</h3>
-                </div>
-                <div className="space-y-4">
-                  <a
-                    href="https://fastnow.app/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-left text-sm text-foreground hover:underline"
-                  >
-                    <div className="flex items-center">
-                      <Shield className="w-4 h-4 mr-2" />
-                      Privacy Policy
-                    </div>
-                  </a>
-                  <a
-                    href="https://fastnow.app/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-left text-sm text-foreground hover:underline"
-                  >
-                    <div className="flex items-center">
-                      <Info className="w-4 h-4 mr-2" />
-                      Terms of Service
-                    </div>
-                  </a>
                 </div>
               </div>
             </Card>
