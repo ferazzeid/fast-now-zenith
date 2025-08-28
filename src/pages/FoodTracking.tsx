@@ -1050,11 +1050,14 @@ const FoodTracking = () => {
                 image_url: food.image_url
               };
               
-              // Add the food entry
+              // Add the food entry (optimistic updates already handle UI refresh)
               await addFoodEntry(foodEntry);
               
-              // Force refresh food entries to ensure immediate UI update
-              await refreshFoodEntries();
+              // Show success feedback
+              toast({
+                title: "Food added",
+                description: `${food.name} added to today's list`,
+              });
             } catch (error) {
               // Error is already handled by the mutation, just log it
               console.error('Error adding food from library:', error);
