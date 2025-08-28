@@ -1,6 +1,6 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { AdminTimelineSettings, AdminQuoteSettings, PromptManagement } from "@/components/LazyAdminComponents";
+import { AdminTimelineSettings, AdminQuoteSettings } from "@/components/LazyAdminComponents";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 export default function AdminContent() {
@@ -18,10 +18,6 @@ export default function AdminContent() {
 
         <section aria-label="Timeline management">
           <AdminTimelineSettings />
-        </section>
-
-        <section aria-label="Prompt management">
-          <PromptManagement />
         </section>
 
         <section aria-label="Quote management" className="pb-24">

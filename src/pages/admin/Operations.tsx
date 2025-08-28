@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
-import { SimpleAnalyticsWidget, CancellationTracker, AdminTierStats, UserRequestLimits, OpenAIApiStats } from "@/components/LazyAdminComponents";
+import { SimpleAnalyticsWidget, CancellationTracker, AdminTierStats, UserRequestLimits } from "@/components/LazyAdminComponents";
 import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,64 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ClearSubscriptionCacheButton } from "@/components/ClearSubscriptionCacheButton";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
-
-function SharedKeySettings() {
-  const [sharedKey, setSharedKey] = useState("");
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'shared_api_key')
-          .maybeSingle();
-        if (!error && data?.setting_value) setSharedKey(data.setting_value);
-      } catch (e) {
-        console.warn('Failed to load shared key');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  const save = async () => {
-    try {
-      const { error } = await supabase
-        .from('shared_settings')
-        .upsert({ setting_key: 'shared_api_key', setting_value: sharedKey });
-      if (error) throw error;
-      toast({ title: 'Saved', description: 'Shared OpenAI API key updated.' });
-    } catch (e: any) {
-      toast({ title: 'Error', description: e.message || 'Failed to save key', variant: 'destructive' });
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Shared OpenAI API Key</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="space-y-1">
-          <Label htmlFor="sharedKey" className="text-sm">Shared Key (used for Paid users in trial or subscribed)</Label>
-          <Input
-            id="sharedKey"
-            type="password"
-            value={sharedKey}
-            onChange={(e) => setSharedKey(e.target.value)}
-            placeholder="sk-..."
-            disabled={loading}
-            className="font-mono"
-          />
-        </div>
-        <Button onClick={save} className="w-full sm:w-auto">Save</Button>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function AdminOperations() {
   usePageSEO({
@@ -101,16 +43,8 @@ export default function AdminOperations() {
           <AdminTierStats />
         </section>
 
-        <section aria-label="OpenAI API statistics">
-          <OpenAIApiStats />
-        </section>
-
         <section aria-label="Google Analytics settings">
           <GoogleAnalyticsSettings />
-        </section>
-
-        <section aria-label="Shared OpenAI key">
-          <SharedKeySettings />
         </section>
         
         <section aria-label="Cache management" className="pb-24">

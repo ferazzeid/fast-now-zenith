@@ -99,6 +99,15 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
+    // Fetch app philosophy/foundation from shared settings
+    const { data: philosophyData } = await supabase
+      .from('shared_settings')
+      .select('setting_value')
+      .eq('setting_key', 'app_philosophy_foundation')
+      .maybeSingle();
+
+    const appPhilosophy = philosophyData?.setting_value || '';
+
     // Check if premium access is expired (except for admins)
     const isExpired = profile.premium_expires_at ? 
       new Date(profile.premium_expires_at) < new Date() : false;
@@ -268,7 +277,7 @@ USER PROFILE:
 - Default walking speed: ${profile.default_walking_speed || 3} mph`;
 
     // Enhanced system message with conversation memory and clarification context
-    const baseSystemMessage = `You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
+    const baseSystemMessage = `${appPhilosophy ? `${appPhilosophy}\n\n` : ''}You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
 
 ${conversationMemory ? `\nCONVERSATION MEMORY AND USER CONTEXT:\n${conversationMemory}` : ''}
 

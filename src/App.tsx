@@ -55,6 +55,7 @@ import { useAuthStore } from '@/stores/authStore';
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
 const AdminOperations = lazy(() => import("./pages/admin/Operations"));
 const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminAI = lazy(() => import("./pages/admin/AI"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 const AdminDev = lazy(() => import("./pages/admin/Dev"));
@@ -281,6 +282,17 @@ const AppContent = () => {
                   <PageErrorBoundary>
                     <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
                       <AdminContent />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/ai" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminAI />
                     </Suspense>
                   </PageErrorBoundary>
                 </AdminProtectedRoute>

@@ -12,18 +12,15 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { 
   AdminTierStats,
   ColorManagement,
-  OpenAIApiStats,
   UserRequestLimits,
   SimpleAnalyticsWidget,
   AdminSEOSettings,
   CancellationTracker,
   BrandAssetsManager,
-  PromptManagement,
   PaymentProviderSettings,
   AdminTimelineSettings
 } from "@/components/LazyAdminComponents";
 import { AdminRoleTester } from '@/components/AdminRoleTester';
-import { AdminFoodChatSettings } from '@/components/AdminFoodChatSettings';
 
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
 
@@ -57,7 +54,6 @@ const AdminOverview = () => {
   const [stripeApiKey, setStripeApiKey] = useState('');
   const [gaTrackingId, setGaTrackingId] = useState('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [imageAnalysisEnabled, setImageAnalysisEnabled] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -82,7 +78,7 @@ const AdminOverview = () => {
       const { data: settingsData, error: settingsError } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['shared_api_key', 'stripe_api_key', 'ga_tracking_id', 'ai_image_analysis_enabled']);
+        .in('setting_key', ['shared_api_key', 'stripe_api_key', 'ga_tracking_id']);
 
       if (settingsError) {
         console.error('Error fetching settings:', settingsError);
@@ -94,8 +90,6 @@ const AdminOverview = () => {
             setStripeApiKey(setting.setting_value || '');
           } else if (setting.setting_key === 'ga_tracking_id') {
             setGaTrackingId(setting.setting_value || '');
-          } else if (setting.setting_key === 'ai_image_analysis_enabled') {
-            setImageAnalysisEnabled(String(setting.setting_value).toLowerCase() === 'true');
           }
         });
       }
@@ -202,21 +196,6 @@ const AdminOverview = () => {
     }
   };
 
-  const saveImageAnalysisFlag = async (enabled: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('shared_settings')
-        .upsert({
-          setting_key: 'ai_image_analysis_enabled',
-          setting_value: enabled ? 'true' : 'false',
-        });
-      if (error) throw error;
-      toast({ title: 'Saved', description: 'Image analysis testing flag updated.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to save setting', variant: 'destructive' });
-    }
-  };
-
   if (loading) {
     return null; // Let ProtectedRoute handle loading
   }
@@ -290,9 +269,6 @@ const AdminOverview = () => {
             </Button>
           </CardContent>
         </Card>
-
-        {/* OpenAI API Statistics */}
-        <OpenAIApiStats />
       </section>
 
       {/* Payment & Analytics Configuration */}
@@ -344,33 +320,18 @@ const AdminOverview = () => {
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-6 mt-6">
-            {/* AI Prompt Configuration */}
-            <PromptManagement />
-
-            {/* Food Chat Settings */}
-            <AdminFoodChatSettings />
-
-            {/* Image Analysis Testing (Admin-only) */}
+            {/* Advanced settings content removed - moved to AI tab */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold">Image Analysis (Admin Testing)</CardTitle>
+                <CardTitle className="text-base">Advanced AI Settings</CardTitle>
                 <CardDescription>
-                  Enable the camera/upload button in AI Chat for admins only. Users will not see this.
+                  Advanced AI configuration options have been moved to the AI tab for better organization.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="text-sm font-medium">Enable admin-only image analysis</div>
-                  <div className="text-xs text-muted-foreground">Toggles `ai_image_analysis_enabled` in shared settings</div>
-                </div>
-                <Switch
-                  checked={imageAnalysisEnabled}
-                  onCheckedChange={(val) => {
-                    setImageAnalysisEnabled(val);
-                    saveImageAnalysisFlag(val);
-                  }}
-                  aria-label="Toggle admin-only image analysis"
-                />
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Visit the AI tab to configure app philosophy, prompt management, food chat settings, and image analysis.
+                </p>
               </CardContent>
             </Card>
           </CollapsibleContent>
