@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { LogOut, Trash2, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Trash2, RotateCcw, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { SimpleSubscriptionStatus } from '@/components/SimpleSubscriptionStatus';
+import { BillingInformation } from '@/components/BillingInformation';
 import { SimpleCouponInput } from '@/components/SimpleCouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -14,20 +13,6 @@ const Account = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate('/auth');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleResetData = async () => {
     if (!user) return;
@@ -122,10 +107,10 @@ const Account = () => {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Subscription Status</CardTitle>
+              <CardTitle className="text-lg">Billing Information</CardTitle>
             </CardHeader>
             <CardContent>
-              <SimpleSubscriptionStatus />
+              <BillingInformation />
             </CardContent>
           </Card>
 
@@ -147,15 +132,6 @@ const Account = () => {
             </CardHeader>
             <CardContent className="px-0 pb-0">
               <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="w-full justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-plate"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </Button>
-                
                 <Button
                   variant="outline"
                   onClick={handleResetData}
