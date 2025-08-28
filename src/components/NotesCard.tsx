@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Trash2, Edit3, Save, X } from "lucide-react";
+import { PremiumGatedCircularVoiceButton } from "@/components/PremiumGatedCircularVoiceButton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +28,12 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
   const [editContent, setEditContent] = useState(note.content);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Sync with prop changes for optimistic updates
+  useEffect(() => {
+    setEditTitle(note.title);
+    setEditContent(note.content);
+  }, [note.title, note.content]);
+
   const handleSave = useCallback(async () => {
     if (!editTitle.trim() || !editContent.trim()) {
       toast({
@@ -42,6 +49,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
         title: editTitle.trim(), 
         content: editContent.trim() 
       });
+      // Exit edit mode after successful save
       setIsEditing(false);
       toast({
         description: "Note updated successfully",
@@ -76,6 +84,12 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
     }
   }, [note.id, onDelete, toast]);
 
+  const handleVoiceTranscription = useCallback((text: string) => {
+    if (text.trim()) {
+      setEditContent(prev => prev + (prev ? '\n' : '') + text.trim());
+    }
+  }, []);
+
   return (
     <Card className="group hover:shadow-md transition-all duration-200">
       <CardContent className="p-4">
@@ -87,12 +101,21 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
               placeholder="Note title..."
               className="font-medium"
             />
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              placeholder="Write your note here..."
-              className="min-h-[120px] resize-none"
-            />
+            <div className="relative">
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                placeholder="Write your note here..."
+                className="min-h-[120px] resize-none pr-12"
+              />
+              <div className="absolute top-2 right-2">
+                <PremiumGatedCircularVoiceButton
+                  onTranscription={handleVoiceTranscription}
+                  size="sm"
+                  isDisabled={isUpdating}
+                />
+              </div>
+            </div>
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"

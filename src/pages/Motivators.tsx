@@ -22,6 +22,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
 import { NotesCard } from '@/components/NotesCard';
+import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -150,6 +151,26 @@ const Motivators = () => {
       toast({
         title: "Error",
         description: "Failed to delete motivator",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleVoiceNoteCreation = async (text) => {
+    if (!text.trim()) return;
+    
+    try {
+      const title = text.length > 50 ? text.substring(0, 50) + '...' : text;
+      await handleCreateMotivator({
+        category: 'personal_note',
+        title: title.trim(),
+        content: text.trim()
+      });
+    } catch (error) {
+      console.error('Error creating voice note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create note via voice",
         variant: "destructive"
       });
     }
@@ -367,23 +388,41 @@ const Motivators = () => {
             </div>
 
             <div className="col-span-1 flex flex-col items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/motivator-ideas')}
-                    variant="action-secondary"
-                    size="action-tall"
-                    className="w-full flex items-center justify-center"
-                    aria-label="Browse motivator ideas"
-                  >
-                    <BookOpen className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Browse professionally designed motivators and add them to your collection</p>
-                </TooltipContent>
-              </Tooltip>
-              <span className="text-xs text-muted-foreground">Goal ideas</span>
+              {activeTab === 'notes' ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full flex items-center justify-center">
+                      <PremiumGatedCircularVoiceButton
+                        onTranscription={handleVoiceNoteCreation}
+                        size="lg"
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create a note using voice input</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => navigate('/motivator-ideas')}
+                      variant="action-secondary"
+                      size="action-tall"
+                      className="w-full flex items-center justify-center"
+                      aria-label="Browse motivator ideas"
+                    >
+                      <BookOpen className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Browse professionally designed motivators and add them to your collection</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {activeTab === 'notes' ? 'Voice Note' : 'Goal ideas'}
+              </span>
             </div>
           </div>
 
