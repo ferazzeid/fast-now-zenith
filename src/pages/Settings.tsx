@@ -18,6 +18,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
+import { CouponCodeInput } from '@/components/CouponCodeInput';
+import { BillingInformation } from '@/components/BillingInformation';
 
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
@@ -704,16 +706,39 @@ const Settings = () => {
                   )}
                   <Button
                     onClick={() => { signOut(); navigate('/auth'); }}
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim justify-start hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                    variant="default"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary-hover justify-start"
                   >
+                    <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
               </div>
             </Card>
 
-            {/* Appearance Section - moved up (3rd priority) */}
+            {/* Subscription & Billing Section */}
+            <BillingInformation />
+            
+            {/* Coupon Codes Section */}
+            <CouponCodeInput />
+
+            {/* Cache Management Section */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Database className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Cache Management</h3>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Clear cached data to refresh your subscription status and app data.
+                  </p>
+                  <ClearCacheButton />
+                </div>
+              </div>
+            </Card>
+
+            {/* Appearance Section */}
             <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -726,21 +751,15 @@ const Settings = () => {
               </div>
             </Card>
 
-
-            {/* Account Management - moved down (5th priority) */}
+            {/* Account Management - moved down */}
             <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <AlertTriangle className="w-5 h-5 text-destructive" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account Management</h3>
+                  <h3 className="text-lg font-semibold text-warm-text">Account Actions</h3>
                 </div>
                 
                  <div className="space-y-3">
-                   {/* Cache clear */}
-                   
-                   {/* Clear Cache */}
-                   <ClearCacheButton />
-                   
                    {/* Reset Account */}
                    <AlertDialog>
                      <AlertDialogTrigger asChild>
@@ -748,6 +767,7 @@ const Settings = () => {
                       variant="outline" 
                       className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10 justify-start"
                     >
+                      <Archive className="w-4 h-4 mr-2" />
                       Reset Account Data
                     </Button>
                      </AlertDialogTrigger>
@@ -777,6 +797,7 @@ const Settings = () => {
                       variant="outline" 
                       className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 justify-start"
                     >
+                      <Trash2 className="w-4 h-4 mr-2" />
                       Delete Account
                     </Button>
                      </AlertDialogTrigger>
