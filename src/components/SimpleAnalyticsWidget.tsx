@@ -29,20 +29,15 @@ export const SimpleAnalyticsWidget = () => {
 
   const fetchAnalyticsData = async () => {
     try {
-      // Check if GA is configured by checking for both service account and property ID
+      // Check if GA is configured by checking for tracking ID
       const { data: gaSettings, error: gaError } = await supabase
         .from('shared_settings')
-        .select('setting_value, setting_key')
-        .in('setting_key', ['google_analytics_service_account', 'google_analytics_property_id']);
+        .select('setting_value')
+        .eq('setting_key', 'ga_tracking_id');
 
-      const serviceAccountSetting = gaSettings?.find(s => s.setting_key === 'google_analytics_service_account');
-      const propertyIdSetting = gaSettings?.find(s => s.setting_key === 'google_analytics_property_id');
-      
       const hasGaConfig = !gaError && 
-        serviceAccountSetting?.setting_value && 
-        serviceAccountSetting.setting_value !== '{}' &&
-        propertyIdSetting?.setting_value &&
-        propertyIdSetting.setting_value !== '';
+        gaSettings?.[0]?.setting_value && 
+        gaSettings[0].setting_value.trim() !== '';
       
       setGaConfigured(!!hasGaConfig);
 
@@ -68,26 +63,9 @@ export const SimpleAnalyticsWidget = () => {
       if (walkingError) console.error('Error fetching walking sessions:', walkingError);
       if (aiError) console.error('Error fetching AI requests:', aiError);
 
+      // Note: Google Analytics data is tracked client-side with ga_tracking_id
+      // Real-time GA data requires GA Reporting API which needs service account setup
       let gaData = { activeUsers: 0, todayUsers: 0, yesterdayUsers: 0 };
-
-      // If GA is configured, try to fetch real data
-      if (hasGaConfig) {
-        try {
-          const { data: analyticsData, error: analyticsError } = await supabase.functions.invoke('google-analytics-data');
-          
-          if (!analyticsError && analyticsData && !analyticsData.error) {
-            gaData = {
-              activeUsers: analyticsData.activeUsers || 0,
-              todayUsers: analyticsData.todayUsers || 0,
-              yesterdayUsers: analyticsData.yesterdayUsers || 0
-            };
-          } else {
-            console.warn('Failed to fetch Google Analytics data:', analyticsError || analyticsData?.error);
-          }
-        } catch (analyticsError) {
-          console.warn('Error calling Google Analytics function:', analyticsError);
-        }
-      }
 
       setData(prev => ({
         ...prev,
@@ -173,7 +151,7 @@ export const SimpleAnalyticsWidget = () => {
         {!gaConfigured && (
           <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
             <p className="text-xs text-yellow-700 dark:text-yellow-300">
-              Configure Google Analytics tracking ID in API Configuration to see real user data
+              Google Analytics tracking ID: {gaConfigured ? 'Configured' : 'Not configured'} - Configure in settings below to track pageviews
             </p>
           </div>
         )}
