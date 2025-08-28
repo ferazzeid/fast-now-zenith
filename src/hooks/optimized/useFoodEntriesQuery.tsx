@@ -481,6 +481,16 @@ export const useFoodEntriesQuery = () => {
     },
   });
 
+  // PERFORMANCE: Clear all entries function for immediate UI update
+  const clearAllEntries = useCallback(() => {
+    // Immediately clear the cache to update UI instantly (like setTemplateFoods([]))
+    queryClient.setQueryData(foodEntriesQueryKey(user?.id || null, today), []);
+    queryClient.setQueryData(dailyTotalsQueryKey(user?.id || null, today), {
+      calories: 0,
+      carbs: 0
+    });
+  }, [queryClient, user?.id, today]);
+
   // PERFORMANCE: Optimized refresh function
   const refreshFoodEntries = useCallback(async () => {
     await queryClient.refetchQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
@@ -500,6 +510,7 @@ export const useFoodEntriesQuery = () => {
     updateFoodEntry: updateFoodEntryMutation.mutateAsync,
     deleteFoodEntry: deleteFoodEntryMutation.mutateAsync,
     toggleConsumption: toggleConsumptionMutation.mutateAsync,
+    clearAllEntries,
     refreshFoodEntries,
     
     // Mutation states

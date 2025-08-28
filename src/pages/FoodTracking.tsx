@@ -68,7 +68,7 @@ const FoodTracking = () => {
   const { profile, updateProfile } = useProfile();
   const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
-  const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, refreshFoodEntries } = useFoodEntriesQuery();
+  const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, clearAllEntries, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { 
     templateFoods, 
@@ -227,17 +227,8 @@ const FoodTracking = () => {
 
   const handleClearAllEntries = async () => {
     try {
-      // Optimistic update - clear local state immediately
-      const queryClient = (window as any).__REACT_QUERY_CLIENT__;
-      const today = new Date().toISOString().split('T')[0];
-      
-      if (queryClient) {
-        queryClient.setQueryData(['food-entries', user?.id || null, today], []);
-        queryClient.setQueryData(['daily-totals', user?.id || null, today], {
-          totalCalories: 0,
-          totalCarbs: 0
-        });
-      }
+      // Clear UI state immediately (like Daily Template)
+      clearAllEntries();
 
       // Create proper date range for today
       const todayDate = new Date();
