@@ -163,82 +163,6 @@ function SharedKeySettings() {
   );
 }
 
-function ImageAnalysisSettings() {
-  const [imageAnalysisEnabled, setImageAnalysisEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    loadImageAnalysisFlag();
-  }, []);
-
-  const loadImageAnalysisFlag = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'enable_image_analysis')
-        .maybeSingle();
-      
-      if (!error && data?.setting_value) {
-        setImageAnalysisEnabled(data.setting_value === 'true');
-      }
-    } catch (error) {
-      console.error('Failed to load image analysis flag:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveImageAnalysisFlag = async (enabled: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('shared_settings')
-        .upsert({ 
-          setting_key: 'enable_image_analysis', 
-          setting_value: enabled.toString() 
-        });
-      
-      if (error) throw error;
-      
-      setImageAnalysisEnabled(enabled);
-      toast({ 
-        title: 'Updated', 
-        description: `Image analysis ${enabled ? 'enabled' : 'disabled'}` 
-      });
-    } catch (error: any) {
-      toast({ 
-        title: 'Error', 
-        description: error.message || 'Failed to update setting', 
-        variant: 'destructive' 
-      });
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Image Analysis Settings</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label htmlFor="imageAnalysis" className="text-sm">Enable Food Image Analysis</Label>
-            <p className="text-xs text-muted-foreground">
-              Allow AI to analyze uploaded food images (admin-only setting)
-            </p>
-          </div>
-          <Switch
-            id="imageAnalysis"
-            checked={imageAnalysisEnabled}
-            onCheckedChange={saveImageAnalysisFlag}
-            disabled={loading}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function AdminAI() {
   usePageSEO({
@@ -270,10 +194,6 @@ export default function AdminAI() {
         </section>
 
 
-        <section aria-label="Image analysis settings" className="pb-24">
-          <ImageAnalysisSettings />
-          <div className="h-8" />
-        </section>
       </main>
     </AdminHealthCheck>
   );
