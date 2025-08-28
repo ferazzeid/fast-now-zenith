@@ -107,93 +107,169 @@ export const FloatingVoiceAssistant = () => {
       // Simplified system prompt - let edge function handle detailed knowledge
       const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
 
-      console.log('🤖 AI Chat: Making Supabase function call');
+      console.log('🤖 AI Chat: Making streaming request');
 
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
+      // Use streaming API with proper auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
+      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/chat-completion', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+        },
+        body: JSON.stringify({
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
-          ]
-        }
+          ],
+          stream: true
+        })
       });
 
-      console.log('🤖 AI Chat: Supabase function response:', { data, error });
-
-      if (error) {
-        console.error('🤖 AI Chat: Supabase function error:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      console.log('🤖 AI Chat: Processing response - completion:', data?.completion, 'functionCall:', data?.functionCall);
+      if (!response.body) {
+        throw new Error('No response body available');
+      }
 
-      let finalResponse = '';
+      console.log('🌊 Processing streaming response...');
 
-      // Handle function calls first - ACTUALLY EXECUTE THEM
-      if (data?.functionCall) {
-        console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
-        
-        try {
-          switch (data.functionCall.name) {
-            case 'add_multiple_foods':
-              finalResponse = await handleAddMultipleFoods(data.functionCall.arguments);
-              break;
-            case 'create_motivator':
-              finalResponse = await handleCreateMotivator(data.functionCall.arguments);
-              break;
-            case 'create_multiple_motivators':
-              finalResponse = await handleCreateMultipleMotivators(data.functionCall.arguments);
-              break;
-            case 'edit_motivator':
-              finalResponse = await handleEditMotivator(data.functionCall.arguments);
-              break;
-            case 'delete_motivator':
-              finalResponse = await handleDeleteMotivator(data.functionCall.arguments);
-              break;
-            case 'start_fasting_session':
-              finalResponse = await handleStartFastingSession(data.functionCall.arguments);
-              break;
-            case 'stop_fasting_session':
-              finalResponse = await handleStopFastingSession();
-              break;
-            case 'start_walking_session':
-              finalResponse = await handleStartWalkingSession(data.functionCall.arguments);
-              break;
-            case 'stop_walking_session':
-              finalResponse = await handleStopWalkingSession();
-              break;
-            default:
-              finalResponse = 'I processed your request successfully.';
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let streamedContent = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            console.log('🌊 Streaming complete');
+            break;
           }
-        } catch (error) {
-          console.error('🤖 AI Chat: Function execution error:', error);
-          finalResponse = 'Sorry, I had trouble processing that request. Please try again.';
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              
+              if (data === '[DONE]') {
+                continue;
+              }
+
+              try {
+                const parsed = JSON.parse(data);
+                
+                if (parsed.type === 'chunk' && parsed.content) {
+                  // Update the processing message with streaming content
+                  streamedContent += parsed.content;
+                  
+                  if (processingMessageId) {
+                    updateMessage(processingMessageId, streamedContent);
+                  }
+                } else if (parsed.type === 'completion' && parsed.done) {
+                  // Handle final completion with function calls
+                  console.log('🤖 AI Chat: Final completion received');
+                  
+                  let finalResponse = '';
+
+                  // Handle function calls first - ACTUALLY EXECUTE THEM
+                  if (parsed.functionCall) {
+                    console.log('🤖 AI Chat: Function call detected:', parsed.functionCall.name);
+                    
+                    try {
+                      // Parse function arguments if it's a string
+                      let functionArgs = parsed.functionCall.arguments;
+                      if (typeof functionArgs === 'string') {
+                        functionArgs = JSON.parse(functionArgs);
+                      }
+
+                      switch (parsed.functionCall.name) {
+                        case 'add_multiple_foods':
+                          finalResponse = await handleAddMultipleFoods(functionArgs);
+                          break;
+                        case 'create_motivator':
+                          finalResponse = await handleCreateMotivator(functionArgs);
+                          break;
+                        case 'create_multiple_motivators':
+                          finalResponse = await handleCreateMultipleMotivators(functionArgs);
+                          break;
+                        case 'edit_motivator':
+                          finalResponse = await handleEditMotivator(functionArgs);
+                          break;
+                        case 'delete_motivator':
+                          finalResponse = await handleDeleteMotivator(functionArgs);
+                          break;
+                        case 'start_fasting_session':
+                          finalResponse = await handleStartFastingSession(functionArgs);
+                          break;
+                        case 'stop_fasting_session':
+                          finalResponse = await handleStopFastingSession();
+                          break;
+                        case 'start_walking_session':
+                          finalResponse = await handleStartWalkingSession(functionArgs);
+                          break;
+                        case 'stop_walking_session':
+                          finalResponse = await handleStopWalkingSession();
+                          break;
+                        default:
+                          finalResponse = 'I processed your request successfully.';
+                      }
+                    } catch (error) {
+                      console.error('🤖 AI Chat: Function execution error:', error);
+                      finalResponse = 'Sorry, I had trouble processing that request. Please try again.';
+                    }
+
+                    // Update message with function result
+                    if (processingMessageId && finalResponse) {
+                      updateMessage(processingMessageId, finalResponse);
+                    }
+                  }
+                  // Handle regular completion responses  
+                  else if (parsed.completion && parsed.completion.trim()) {
+                    console.log('🤖 AI Chat: Using completion response:', parsed.completion);
+                    finalResponse = parsed.completion;
+                    
+                    if (processingMessageId) {
+                      updateMessage(processingMessageId, finalResponse);
+                    }
+                  }
+                  // Handle empty responses gracefully
+                  else if (!streamedContent.trim()) {
+                    console.log('🤖 AI Chat: Empty response received, providing fallback message');
+                    finalResponse = 'I heard you, but I\'m not sure how to help with that. Could you try asking differently?';
+                    
+                    if (processingMessageId) {
+                      updateMessage(processingMessageId, finalResponse);
+                    }
+                  }
+
+                  // Play audio if from voice and we have a response
+                  if (fromVoice && (finalResponse || streamedContent)) {
+                    await playTextAsAudio(finalResponse || streamedContent);
+                  }
+                }
+              } catch (e) {
+                console.error('❌ Error parsing streaming data:', e);
+              }
+            }
+          }
         }
-      }
-      // Handle regular completion responses
-      else if (data?.completion && data.completion.trim()) {
-        console.log('🤖 AI Chat: Using completion response:', data.completion);
-        finalResponse = data.completion;
-      }
-      // Handle empty responses gracefully
-      else {
-        console.log('🤖 AI Chat: Empty response received, providing fallback message');
-        finalResponse = 'I heard you, but I\'m not sure how to help with that. Could you try asking differently?';
-      }
-
-      // Update the processing message with the final response
-      if (processingMessageId && finalResponse) {
-        updateMessage(processingMessageId, finalResponse);
-      } else if (finalResponse) {
-        addMessage('assistant', finalResponse);
-      }
-
-      // Play audio if from voice and we have a response
-      if (fromVoice && finalResponse) {
-        await playTextAsAudio(finalResponse);
+      } finally {
+        reader.releaseLock();
       }
       
-      console.log('🤖 AI Chat: Successfully processed response');
+      console.log('🤖 AI Chat: Successfully processed streaming response');
     } catch (error) {
       console.error('🤖 AI Chat: Error occurred:', error);
       

@@ -1057,8 +1057,101 @@ When explaining app calculations, use the exact formulas and constants above. He
     }
 
     if (stream) {
-      // Return streaming response
-      return new Response(response.body, {
+      // Handle streaming response with proper parsing
+      console.log('🌊 Processing streaming response...');
+      
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body available for streaming');
+      }
+
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      let buffer = '';
+      let completion = '';
+      let functionCall = null;
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              
+              if (done) {
+                // Send final response with complete data
+                const finalData = {
+                  type: 'completion',
+                  completion: completion.trim(),
+                  functionCall: functionCall,
+                  done: true
+                };
+                
+                const finalChunk = `data: ${JSON.stringify(finalData)}\n\n`;
+                controller.enqueue(encoder.encode(finalChunk));
+                controller.close();
+                break;
+              }
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  
+                  if (data === '[DONE]') {
+                    continue;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    const delta = parsed.choices?.[0]?.delta;
+                    
+                    if (delta?.content) {
+                      completion += delta.content;
+                      
+                      // Send streaming chunk
+                      const chunkData = {
+                        type: 'chunk',
+                        content: delta.content,
+                        completion: completion
+                      };
+                      
+                      const chunk = `data: ${JSON.stringify(chunkData)}\n\n`;
+                      controller.enqueue(encoder.encode(chunk));
+                    }
+                    
+                    // Handle function calls in streaming
+                    if (delta?.tool_calls?.[0]) {
+                      const toolCall = delta.tool_calls[0];
+                      if (toolCall.function?.name || toolCall.function?.arguments) {
+                        if (!functionCall) {
+                          functionCall = { name: '', arguments: '' };
+                        }
+                        if (toolCall.function.name) {
+                          functionCall.name = toolCall.function.name;
+                        }
+                        if (toolCall.function.arguments) {
+                          functionCall.arguments += toolCall.function.arguments;
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.error('❌ Error parsing streaming data:', e);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('❌ Streaming error:', error);
+            controller.error(error);
+          }
+        }
+      });
+
+      return new Response(stream, {
         headers: {
           ...corsHeaders,
           'Content-Type': 'text/event-stream',
