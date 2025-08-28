@@ -19,7 +19,7 @@ export const CalorieBadge = ({ calories, className = "" }: CalorieBadgeProps) =>
         ${className}
       `}
     >
-      <span className="text-center">{calories}</span>
+      <span className="text-center">{calories} cal</span>
     </div>
   );
 };
