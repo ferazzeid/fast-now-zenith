@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
+import { NotesCard } from '@/components/NotesCard';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -43,31 +44,36 @@ const Motivators = () => {
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
   // Filter motivators based on active tab
-  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote');
+  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
+  const personalNotes = motivators.filter(m => m.category === 'personal_note');
 
   const handleCreateMotivator = async (motivatorData) => {
     try {
       await createMotivator({
         title: motivatorData.title,
         content: motivatorData.content,
-        category: 'personal',
+        category: motivatorData.category || 'personal',
         imageUrl: motivatorData.imageUrl
       });
       
-      trackMotivatorEvent('create', 'personal');
+      trackMotivatorEvent('create', motivatorData.category || 'personal');
       setShowFormModal(false);
       
       toast({
-        title: "✅ Motivator Created!",
-        description: "Your new motivator has been saved successfully.",
+        title: "✅ Created Successfully!",
+        description: motivatorData.category === 'personal_note' 
+          ? "Your new note has been saved successfully." 
+          : "Your new motivator has been saved successfully.",
       });
       
       refreshMotivators();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create motivator",
+        description: motivatorData.category === 'personal_note' 
+          ? "Failed to create note" 
+          : "Failed to create motivator",
         variant: "destructive"
       });
     }
@@ -317,10 +323,10 @@ const Motivators = () => {
             )}
             <div className="pl-12 pr-12">
               <h1 className="text-2xl font-bold text-foreground mb-1">
-                {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
+                {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
               </h1>
               <p className="text-sm text-muted-foreground text-left">
-                {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
+                {activeTab === 'goals' ? 'Your personal motivators' : activeTab === 'quotes' ? 'Quotes saved from timers' : 'Your personal notes and thoughts'}
               </p>
             </div>
           </div>
@@ -331,20 +337,33 @@ const Motivators = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
-                    onClick={() => setShowFormModal(true)}
+                    onClick={() => {
+                      if (activeTab === 'notes') {
+                        // Create a new note
+                        handleCreateMotivator({
+                          title: 'New Note',
+                          content: 'Write your thoughts here...',
+                          category: 'personal_note'
+                        });
+                      } else {
+                        setShowFormModal(true);
+                      }
+                    }}
                     variant="action-primary"
                     size="action-tall"
                     className="w-full flex items-center justify-center"
-                    aria-label="Create motivator manually"
+                    aria-label={activeTab === 'notes' ? 'Create note' : 'Create motivator manually'}
                   >
                     <Plus className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Create a motivator by typing title, description, and adding images</p>
+                  <p>{activeTab === 'notes' ? 'Create a new note' : 'Create a motivator by typing title, description, and adding images'}</p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-xs text-muted-foreground">Add Goal</span>
+              <span className="text-xs text-muted-foreground">
+                {activeTab === 'notes' ? 'Add Note' : 'Add Goal'}
+              </span>
             </div>
 
             <div className="col-span-1 flex flex-col items-center gap-1">
@@ -371,9 +390,10 @@ const Motivators = () => {
           {/* Tabs */}
           <div className="mb-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="goals">Goals ({goalMotivators.length})</TabsTrigger>
                 <TabsTrigger value="quotes">Quotes ({savedQuotes.length})</TabsTrigger>
+                <TabsTrigger value="notes">Notes ({personalNotes.length})</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -475,6 +495,57 @@ const Motivators = () => {
                         key={motivator.id}
                         motivator={motivator}
                         onDelete={() => handleDeleteMotivator(motivator.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="notes">
+                {personalNotes.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                        <Mic className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-warm-text mb-2">No notes yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Create your first note to capture thoughts and ideas
+                        </p>
+                        <Button 
+                          onClick={() => handleCreateMotivator({
+                            title: 'New Note',
+                            content: 'Write your thoughts here...',
+                            category: 'personal_note'
+                          })} 
+                          variant="action-secondary" 
+                          size="action-secondary"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Note
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {personalNotes.map((note) => (
+                      <NotesCard
+                        key={note.id}
+                        note={{
+                          id: note.id,
+                          title: note.title,
+                          content: note.content
+                        }}
+                        onUpdate={async (id, updates) => {
+                          await updateMotivator(id, updates);
+                          toast({
+                            description: "Note updated successfully",
+                          });
+                          refreshMotivators();
+                        }}
+                        onDelete={handleDeleteMotivator}
                       />
                     ))}
                   </div>
