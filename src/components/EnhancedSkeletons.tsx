@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { LoadingRecovery } from '@/components/LoadingRecovery';
-import { useLoadingManager } from '@/hooks/useLoadingManager';
 import { useEffect, useState } from 'react';
 
 interface SmartSkeletonProps {
@@ -19,7 +18,7 @@ export const SmartSkeleton = ({
   children, 
   className = "" 
 }: SmartSkeletonProps) => {
-  const { loading } = useLoadingManager(loadingKey);
+  const [loading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
   
   useEffect(() => {

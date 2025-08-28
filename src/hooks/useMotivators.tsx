@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
-import { useLoadingManager } from './useLoadingManager';
 import { useMotivatorCache } from './useMotivatorCache';
 
 export interface Motivator {
@@ -26,14 +25,14 @@ export interface CreateMotivatorData {
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
   const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
 
   const loadMotivators = async (forceRefresh = false) => {
     if (!user) {
-      stopLoading();
+      setLoading(false);
       return;
     }
 
@@ -41,11 +40,11 @@ export const useMotivators = () => {
     if (!forceRefresh && cachedMotivators && !shouldFetchMotivators()) {
       console.log('Using cached motivators, skipping API call');
       setMotivators(cachedMotivators);
-      stopLoading();
+      setLoading(false);
       return;
     }
 
-    startLoading();
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('motivators')
@@ -82,7 +81,7 @@ export const useMotivators = () => {
         });
       }
     } finally {
-      stopLoading();
+      setLoading(false);
     }
   };
 
@@ -284,7 +283,7 @@ export const useMotivators = () => {
       // First load cached data if available (instant)
       if (cachedMotivators) {
         setMotivators(cachedMotivators);
-        stopLoading();
+        setLoading(false);
       }
       // Then check if we need fresh data (background)
       loadMotivators();

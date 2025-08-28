@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { OpenAIApiStats, PromptManagement } from "@/components/LazyAdminComponents";
-import { AdminFoodChatSettings } from "@/components/AdminFoodChatSettings";
+import { OpenAIApiStats } from "@/components/OpenAIApiStats";
+import { PromptManagement } from "@/components/PromptManagement";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -269,9 +269,6 @@ export default function AdminAI() {
           <PromptManagement />
         </section>
 
-        <section aria-label="Food chat settings">
-          <AdminFoodChatSettings />
-        </section>
 
         <section aria-label="Image analysis settings" className="pb-24">
           <ImageAnalysisSettings />

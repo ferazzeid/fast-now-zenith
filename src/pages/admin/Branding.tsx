@@ -1,6 +1,10 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { BrandAssetsManager, ColorManagement, AdminSEOSettings, AppIdentitySettings, PWAManagementCard } from "@/components/LazyAdminComponents";
+import BrandAssetsManager from "@/components/BrandAssetsManager";
+import { ColorManagement } from "@/components/ColorManagement";
+import { AdminSEOSettings } from "@/components/AdminSEOSettings";
+import { AppIdentitySettings } from "@/components/AppIdentitySettings";
+import { PWAManagementCard } from "@/components/PWAManagementCard";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 

@@ -1,6 +1,7 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { AdminTimelineSettings, AdminQuoteSettings } from "@/components/LazyAdminComponents";
+import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
+import { AdminQuoteSettings } from "@/components/AdminQuoteSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 export default function AdminContent() {

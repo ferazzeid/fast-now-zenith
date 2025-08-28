@@ -9,17 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { 
-  AdminTierStats,
-  ColorManagement,
-  UserRequestLimits,
-  SimpleAnalyticsWidget,
-  AdminSEOSettings,
-  CancellationTracker,
-  BrandAssetsManager,
-  PaymentProviderSettings,
-  AdminTimelineSettings
-} from "@/components/LazyAdminComponents";
+import { AdminTierStats } from "@/components/AdminTierStats";
+import { ColorManagement } from "@/components/ColorManagement";
+import { UserRequestLimits } from "@/components/UserRequestLimits";
+import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
+import { AdminSEOSettings } from "@/components/AdminSEOSettings";
+import { CancellationTracker } from "@/components/CancellationTracker";
+import BrandAssetsManager from "@/components/BrandAssetsManager";
+import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
+import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
 import { AdminRoleTester } from '@/components/AdminRoleTester';
 
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';

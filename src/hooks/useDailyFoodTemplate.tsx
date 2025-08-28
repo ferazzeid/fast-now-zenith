@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
-import { useLoadingManager } from '@/hooks/useLoadingManager';
 
 interface DailyFoodTemplate {
   id: string;
@@ -28,19 +27,19 @@ interface NewFoodTemplate {
 
 export const useDailyFoodTemplate = () => {
   const [templateFoods, setTemplateFoods] = useState<DailyFoodTemplate[]>([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { executeWithRetry } = useRetryableSupabase();
-  const { loading, startLoading, stopLoading } = useLoadingManager('daily-template');
 
   const loadTemplate = useCallback(async () => {
     console.log('🍽️ loadTemplate called, user:', user?.id);
     if (!user) {
       console.log('🍽️ No user, stopping loading');
-      stopLoading();
+      setLoading(false);
       return;
     }
     
-    startLoading();
+    setLoading(true);
     try {
       console.log('🍽️ Fetching daily food templates for user:', user.id);
       const result = await executeWithRetry(async () => {
@@ -62,9 +61,9 @@ export const useDailyFoodTemplate = () => {
     } catch (error) {
       console.error('🍽️ Error loading daily food template:', error);
     } finally {
-      stopLoading();
+      setLoading(false);
     }
-  }, [user, executeWithRetry, startLoading, stopLoading]);
+  }, [user, executeWithRetry]);
 
   const saveAsTemplate = useCallback(async (foodEntries: Array<{
     name: string;
@@ -75,7 +74,7 @@ export const useDailyFoodTemplate = () => {
   }>, appendMode = false) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    startLoading();
+    setLoading(true);
     try {
       if (!appendMode) {
         console.log('🍽️ Saving template - clearing existing for user:', user.id);
@@ -120,14 +119,14 @@ export const useDailyFoodTemplate = () => {
       console.error('🍽️ Error saving daily template:', error);
       return { error };
     } finally {
-      stopLoading();
+      setLoading(false);
     }
-  }, [user, loadTemplate, startLoading, stopLoading, templateFoods.length]);
+  }, [user, loadTemplate, templateFoods.length]);
 
   const clearTemplate = useCallback(async () => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    startLoading();
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('daily_food_templates')
@@ -142,9 +141,9 @@ export const useDailyFoodTemplate = () => {
       console.error('Error clearing daily template:', error);
       return { error };
     } finally {
-      stopLoading();
+      setLoading(false);
     }
-  }, [user, startLoading, stopLoading]);
+  }, [user]);
 
   const deleteTemplateFood = useCallback(async (foodId: string) => {
     if (!user) return { error: { message: 'User not authenticated' } };
@@ -187,7 +186,7 @@ export const useDailyFoodTemplate = () => {
   const applyTemplate = useCallback(async () => {
     if (!user || templateFoods.length === 0) return { error: { message: 'No template available' } };
 
-    startLoading();
+    setLoading(true);
     try {
       // Get today's date for source tracking
       const today = new Date().toISOString().split('T')[0];
@@ -214,9 +213,9 @@ export const useDailyFoodTemplate = () => {
       console.error('Error applying daily template:', error);
       return { error };
     } finally {
-      stopLoading();
+      setLoading(false);
     }
-  }, [user, templateFoods, startLoading, stopLoading]);
+  }, [user, templateFoods]);
 
   useEffect(() => {
     loadTemplate();
@@ -232,7 +231,7 @@ export const useDailyFoodTemplate = () => {
   }[], insertAfterIndex?: number) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    startLoading();
+    setLoading(true);
     try {
       let sortOrder: number;
       let templateData: any[];
@@ -298,9 +297,9 @@ export const useDailyFoodTemplate = () => {
       console.error('🍽️ Error adding to template:', error);
       return { error };
     } finally {
-      stopLoading();
+      setLoading(false);
     }
-  }, [user, loadTemplate, startLoading, stopLoading, templateFoods]);
+  }, [user, loadTemplate, templateFoods]);
 
   return {
     templateFoods,
