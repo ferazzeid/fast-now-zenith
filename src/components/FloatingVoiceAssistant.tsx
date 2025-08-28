@@ -15,6 +15,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
+import { useAudioManager } from '@/hooks/useAudioManager';
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ export const FloatingVoiceAssistant = () => {
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
   const { updateMotivator, deleteMotivator } = useMotivators();
+  const { queueTextForAudio, queueStreamingTextForAudio, clearQueue, isProcessing: audioProcessing } = useAudioManager();
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
@@ -177,6 +179,18 @@ export const FloatingVoiceAssistant = () => {
                   if (processingMessageId) {
                     updateMessage(processingMessageId, streamedContent);
                   }
+
+                  // Start generating audio for chunks while streaming (Phase 3 improvement)
+                  if (fromVoice && streamedContent.length > 100) {
+                    // Generate audio for chunks of meaningful content
+                    const sentences = streamedContent.match(/[^.!?]*[.!?]/g);
+                    if (sentences && sentences.length > 0) {
+                      const lastSentence = sentences[sentences.length - 1].trim();
+                      if (lastSentence.length > 20) {
+                        queueStreamingTextForAudio(lastSentence);
+                      }
+                    }
+                  }
                 } else if (parsed.type === 'completion' && parsed.done) {
                   // Handle final completion with function calls
                   console.log('🤖 AI Chat: Final completion received');
@@ -254,9 +268,15 @@ export const FloatingVoiceAssistant = () => {
                     }
                   }
 
-                  // Play audio if from voice and we have a response
+                  // Queue remaining audio if from voice and we have a response (Phase 3 improvement)
                   if (fromVoice && (finalResponse || streamedContent)) {
-                    await playTextAsAudio(finalResponse || streamedContent);
+                    const textToQueue = finalResponse || streamedContent;
+                    // Check if we haven't already queued this content
+                    const sentences = textToQueue.match(/[^.!?]*[.!?]/g) || [textToQueue];
+                    const remainingSentences = sentences.slice(-Math.ceil(sentences.length / 2));
+                    if (remainingSentences.length > 0) {
+                      queueTextForAudio(remainingSentences.join(' '));
+                    }
                   }
                 }
               } catch (e) {
@@ -289,21 +309,10 @@ export const FloatingVoiceAssistant = () => {
       setProcessingMessageId(null);
     }
   };
+  // Legacy function maintained for compatibility - now uses audio manager
   const playTextAsAudio = async (text: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text: text.slice(0, 500) } // Limit length
-      });
-
-      if (error) throw error;
-
-      if (data?.audioUrl) {
-        const audio = new Audio(data.audioUrl);
-        audio.play();
-      }
-    } catch (error) {
-      console.error('Text-to-speech error:', error);
-    }
+    console.log('🎵 Legacy playTextAsAudio called, routing to audio manager');
+    queueTextForAudio(text);
   };
 
   const getPageContext = (path: string): string => {
@@ -591,6 +600,7 @@ export const FloatingVoiceAssistant = () => {
     setSelectedFoodIds(new Set());
     setEditingFoodIndex(null);
     setInlineEditData({});
+    clearQueue(); // Clear audio queue when clearing chat
   };
 
   return (
