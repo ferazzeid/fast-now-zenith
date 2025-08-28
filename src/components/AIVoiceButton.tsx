@@ -51,19 +51,19 @@ export const AIVoiceButton = () => {
       // Create page-specific welcome messages
       switch (currentPath) {
         case '/walking':
-          welcomeMessage = "Hi! I'm your AI walking assistant. I can help you start/stop walking sessions, track your progress, and answer questions about your fitness goals.";
+          welcomeMessage = "I can help you start/stop walking sessions, track your progress, and answer questions about your fitness goals.";
           break;
         case '/timer':
-          welcomeMessage = "Hi! I'm your AI fasting assistant. I can help you manage your fasting sessions, track progress, and provide guidance.";
+          welcomeMessage = "I can help you manage your fasting sessions, track progress, and provide guidance.";
           break;
         case '/food-tracking':
-          welcomeMessage = "Hi! I'm your AI nutrition assistant. I can help you add foods, track calories, and answer nutrition questions.";
+          welcomeMessage = "I can help you add foods, track calories, and answer nutrition questions.";
           break;
         case '/motivators':
-          welcomeMessage = "Hi! I'm your AI motivation assistant. I can help you create, edit, and manage your motivational content.";
+          welcomeMessage = "I can help you create, edit, and manage your motivational content.";
           break;
         default:
-          welcomeMessage = "Hi! I'm your AI health assistant. I can help you with fasting, walking, nutrition tracking, and motivation.";
+          welcomeMessage = "I can help you with fasting, walking, nutrition tracking, and motivation.";
       }
       
       setBubbles([{
@@ -280,7 +280,7 @@ export const AIVoiceButton = () => {
     setPendingFoods(foods);
     setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
     
-    return ''; // Return empty to prevent message, we'll show the preview UI
+    return null; // Don't add a message, just show the preview UI
   };
 
   const confirmAddFoods = async () => {

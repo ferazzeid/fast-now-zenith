@@ -37,11 +37,6 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
         )}
       >
         <p className="text-sm leading-relaxed font-medium">{content}</p>
-        <div className={cn(
-          "absolute w-2 h-2 rounded-full",
-          isUser ? "bg-ai -bottom-1 -right-1" : "bg-primary -bottom-1 -left-1",
-          "animate-pulse"
-        )} />
       </div>
     </div>
   );
