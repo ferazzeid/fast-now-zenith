@@ -24,6 +24,8 @@ interface UserProfile {
   enable_food_image_generation?: boolean;
   enable_daily_reset?: boolean;
   enable_ceramic_animations?: boolean;
+  enable_quotes_in_animations?: boolean;
+  enable_notes_in_animations?: boolean;
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
 }
