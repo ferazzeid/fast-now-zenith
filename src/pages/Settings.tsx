@@ -628,66 +628,37 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Account Management Section */}
+            {/* Account Info */}
             <Card className="p-6 bg-card border-ceramic-rim">
-              <CardHeader className="p-0 pb-4">
+              <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Crown className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-lg font-semibold text-warm-text">Account Management</CardTitle>
-                </div>
-                <CardDescription>
-                  Manage your subscription, redeem coupons, and account settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0 space-y-6">
-                {/* Subscription Status */}
-                <SubscriptionStatus />
-                
-                {/* Coupon Code Input */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Key className="w-4 h-4 text-primary" />
-                    <h4 className="font-medium text-warm-text">Redeem Coupon</h4>
-                  </div>
-                  <CouponCodeInput />
+                  <User className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
                 </div>
                 
-                {/* Account Actions */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <SettingsIcon className="w-4 h-4 text-primary" />
-                    <h4 className="font-medium text-warm-text">Account Actions</h4>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-sm font-medium">{user?.email}</p>
                   </div>
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      onClick={handleResetData}
-                      className="w-full flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Reset All Data
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      onClick={handleDeleteAccount}
-                      className="w-full flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete Account
-                    </Button>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Member since</p>
+                    <p className="text-sm font-medium">
+                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                    </p>
                   </div>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/account')}
+                    className="w-full justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-plate"
+                  >
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    Manage Account
+                  </Button>
                 </div>
-              </CardContent>
+              </div>
             </Card>
 
             {/* Appearance Section */}

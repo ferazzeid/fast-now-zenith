@@ -16,6 +16,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 import { useProfile } from '@/hooks/useProfile';
 import Settings from "./pages/Settings";
+import Account from "./pages/Account";
 
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -248,6 +249,13 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <Settings />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/account" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <Account />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
