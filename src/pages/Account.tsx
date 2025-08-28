@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { SubscriptionStatus } from '@/components/SubscriptionStatus';
-import { CouponCodeInput } from '@/components/CouponCodeInput';
+import { SimpleSubscriptionStatus } from '@/components/SimpleSubscriptionStatus';
+import { SimpleCouponInput } from '@/components/SimpleCouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -120,17 +120,23 @@ const Account = () => {
             </div>
           </div>
 
-          {/* Subscription Status */}
-          <SubscriptionStatus />
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Subscription Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SimpleSubscriptionStatus />
+            </CardContent>
+          </Card>
 
           {/* Coupon Code */}
-          <Card className="p-6 bg-card border-ceramic-rim">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <h3 className="text-lg font-semibold text-warm-text">Coupon Code</h3>
-              </div>
-              <CouponCodeInput />
-            </div>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Coupon Codes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SimpleCouponInput />
+            </CardContent>
           </Card>
 
           {/* Account Actions */}

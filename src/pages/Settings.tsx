@@ -47,7 +47,7 @@ const Settings = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { isAdmin: accessIsAdmin, originalIsAdmin } = useAccess();
+  const { isAdmin: accessIsAdmin, originalIsAdmin, ...access } = useAccess();
   const isWebPlatform = true; // Default to web for now
   const platformName = 'Stripe'; // Default to Stripe for now
   
@@ -628,38 +628,74 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Account Info */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
+          {/* Account Information */}
+          <Card className="p-6 bg-card border-ceramic-rim">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Key className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-warm-text">Account</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Email</span>
+                  <span className="text-sm font-medium">{user?.email}</span>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium">{user?.email}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Member Since</span>
+                  <span className="text-sm font-medium">
+                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <div className="flex gap-2">
+                    {accessIsAdmin && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full">
+                        Admin
+                      </span>
+                    )}
+                    {!accessIsAdmin && access.hasPremiumFeatures && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                        Premium
+                      </span>
+                    )}
+                    {access.isTrial && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                        Trial ({access.daysRemaining}d)
+                      </span>
+                    )}
+                    {!accessIsAdmin && !access.hasPremiumFeatures && !access.isTrial && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded-full">
+                        Free
+                      </span>
+                    )}
                   </div>
-                  
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Member since</p>
-                    <p className="text-sm font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                    </p>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
+                </div>
+                
+                <div className="pt-2 space-y-2">
+                  <Button 
                     onClick={() => navigate('/account')}
-                    className="w-full justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-plate"
+                    variant="outline" 
+                    className="w-full"
                   >
-                    <SettingsIcon className="mr-2 h-4 w-4" />
                     Manage Account
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleSignOut}
+                    variant="default"
+                    className="w-full"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
             {/* Appearance Section */}
             <Card className="p-6 bg-card border-ceramic-rim">
