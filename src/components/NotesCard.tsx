@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Trash2, Edit3, Save, X } from "lucide-react";
+import { Trash2, Edit3, Save, X, Eye, EyeOff } from "lucide-react";
 import { PremiumGatedCircularVoiceButton } from "@/components/PremiumGatedCircularVoiceButton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,11 +13,12 @@ interface Note {
   id: string;
   title: string;
   content: string;
+  show_in_animations?: boolean;
 }
 
 interface NotesCardProps {
   note: Note;
-  onUpdate: (id: string, updates: { title: string; content: string }) => Promise<void>;
+  onUpdate: (id: string, updates: { title: string; content: string; show_in_animations?: boolean }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -157,6 +158,34 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Edit note</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            await onUpdate(note.id, { 
+                              title: note.title, 
+                              content: note.content,
+                              show_in_animations: !note.show_in_animations 
+                            });
+                          } catch (error) {
+                            console.error('Error toggling animation setting:', error);
+                          }
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        {note.show_in_animations !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{note.show_in_animations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

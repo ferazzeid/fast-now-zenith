@@ -527,11 +527,18 @@ const Motivators = () => {
                 ) : (
                   <div className="space-y-4">
                     {savedQuotes.map((motivator) => (
-                      <SimpleMotivatorCard
-                        key={motivator.id}
-                        motivator={motivator}
-                        onDelete={() => handleDeleteMotivator(motivator.id)}
-                      />
+                        <SimpleMotivatorCard
+                          key={motivator.id}
+                          motivator={motivator}
+                          onDelete={() => handleDeleteMotivator(motivator.id)}
+                          onToggleAnimation={async (id: string, showInAnimations: boolean) => {
+                            try {
+                              await updateMotivator(id, { show_in_animations: showInAnimations });
+                            } catch (error) {
+                              console.error('Error toggling animation setting:', error);
+                            }
+                          }}
+                        />
                     ))}
                   </div>
                 )}

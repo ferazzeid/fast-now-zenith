@@ -14,6 +14,7 @@ export interface Motivator {
   created_at: string;
   updated_at: string;
   imageUrl?: string;
+  show_in_animations?: boolean;
 }
 
 export interface CreateMotivatorData {
@@ -21,6 +22,7 @@ export interface CreateMotivatorData {
   content: string;
   category: string;
   imageUrl?: string;
+  show_in_animations?: boolean;
 }
 
 export const useMotivators = () => {
@@ -58,7 +60,8 @@ export const useMotivators = () => {
       // Transform data to include imageUrl property with proper fallback
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        imageUrl: item.image_url || item.imageUrl || null // Handle both field names and provide fallback
+        imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
+        show_in_animations: item.show_in_animations ?? true // Default to true if not set
       }));
       
       setMotivators(transformedData);
@@ -97,6 +100,7 @@ export const useMotivators = () => {
           content: motivatorData.content,
           category: motivatorData.category,
           image_url: motivatorData.imageUrl,
+          show_in_animations: motivatorData.show_in_animations ?? true,
           is_active: true
         })
         .select()
@@ -174,6 +178,7 @@ export const useMotivators = () => {
         content: motivator.content,
         category: motivator.category || 'general',
         image_url: motivator.imageUrl,
+        show_in_animations: motivator.show_in_animations ?? true,
         is_active: true
       }));
 
@@ -219,6 +224,7 @@ export const useMotivators = () => {
           title,
           content,
           category: 'saved_quote',
+          show_in_animations: true, // Default to showing saved quotes in animations
           is_active: true
         })
         .select()

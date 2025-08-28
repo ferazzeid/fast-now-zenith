@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useProfile } from '@/hooks/useProfile';
@@ -26,27 +26,19 @@ export const UnifiedMotivatorRotation = ({
   const { motivators } = useMotivators();
   const { profile } = useProfile();
   
-  // Filter motivators based on user preferences
-  const items = motivators.filter(m => {
-    if (!m?.title) return false;
-    
-    // Always show goals (personal, general, etc.)
-    if (m.category !== 'saved_quote' && m.category !== 'personal_note') {
-      return true;
-    }
-    
-    // Check quotes setting
-    if (m.category === 'saved_quote') {
-      return profile?.enable_quotes_in_animations ?? true;
-    }
-    
-    // Check notes setting  
-    if (m.category === 'personal_note') {
-      return profile?.enable_notes_in_animations ?? true;
-    }
-    
-    return true;
-  });
+  // Filter motivators based on individual show_in_animations setting
+  const items = useMemo(() => {
+    return motivators
+      .filter(item => item.is_active)
+      .filter(item => (item as any).show_in_animations !== false)  // Show if not explicitly set to false
+      .map(item => ({
+        id: item.id,
+        title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
+        content: item.content,
+        imageUrl: item.imageUrl,
+        type: 'motivator' as const
+      }));
+  }, [motivators]);
 
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');

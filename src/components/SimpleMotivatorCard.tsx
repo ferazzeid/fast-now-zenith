@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Eye, EyeOff } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
@@ -21,13 +21,16 @@ interface SimpleMotivatorCardProps {
     title: string;
     content?: string;
     category?: string;
+    show_in_animations?: boolean;
   };
   onDelete: () => void;
+  onToggleAnimation?: (id: string, showInAnimations: boolean) => Promise<void>;
 }
 
 export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({ 
   motivator, 
-  onDelete 
+  onDelete,
+  onToggleAnimation
 }) => {
   return (
     <Card className="overflow-hidden relative bg-gray-900 border-gray-700">
@@ -42,8 +45,32 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
             )}
           </div>
           
-          {/* Delete Action - only delete, no edit or add to default */}
-          <div className="flex-shrink-0">
+          {/* Actions - animation toggle and delete */}
+          <div className="flex-shrink-0 flex items-center space-x-1">
+            {onToggleAnimation && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await onToggleAnimation(motivator.id, !motivator.show_in_animations);
+                      } catch (error) {
+                        console.error('Error toggling animation setting:', error);
+                      }
+                    }}
+                    className="p-2 h-8 w-8 hover:bg-muted/50"
+                  >
+                    {motivator.show_in_animations !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{motivator.show_in_animations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            
             <AlertDialog>
               <Tooltip>
                 <TooltipTrigger asChild>

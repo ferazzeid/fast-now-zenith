@@ -912,6 +912,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          show_in_animations: boolean
           title: string
           updated_at: string
           user_id: string
@@ -923,6 +924,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          show_in_animations?: boolean
           title: string
           updated_at?: string
           user_id: string
@@ -934,6 +936,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          show_in_animations?: boolean
           title?: string
           updated_at?: string
           user_id?: string
@@ -1105,8 +1108,6 @@ export type Database = {
           enable_daily_reset: boolean | null
           enable_fasting_slideshow: boolean | null
           enable_food_image_generation: boolean | null
-          enable_notes_in_animations: boolean | null
-          enable_quotes_in_animations: boolean | null
           enable_walking_slideshow: boolean | null
           goal_weight: number | null
           google_play_purchase_token: string | null
@@ -1156,8 +1157,6 @@ export type Database = {
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
           enable_food_image_generation?: boolean | null
-          enable_notes_in_animations?: boolean | null
-          enable_quotes_in_animations?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
@@ -1207,8 +1206,6 @@ export type Database = {
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
           enable_food_image_generation?: boolean | null
-          enable_notes_in_animations?: boolean | null
-          enable_quotes_in_animations?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
