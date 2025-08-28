@@ -42,33 +42,33 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get Stripe key from shared settings or environment variables
-    let stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    try {
-      const supabaseService = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-      );
-      
-      const { data: stripeKeyData } = await supabaseService
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'stripe_secret_key')
-        .single();
-      
-      if (stripeKeyData?.setting_value) {
-        stripeKey = stripeKeyData.setting_value;
-        logStep("Using Stripe key from admin dashboard");
-      } else {
-        logStep("Using Stripe key from environment variables");
-      }
-    } catch (error) {
-      logStep("Could not fetch Stripe key from shared settings, using environment", { error: error.message });
+    // Get Stripe configuration from payment provider configs
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+    
+    const { data: stripeConfig, error: configError } = await supabaseService
+      .from('payment_provider_configs')
+      .select('config_data, is_active')
+      .eq('provider', 'stripe')
+      .single();
+
+    if (configError || !stripeConfig?.is_active) {
+      throw new Error("Stripe payment provider is not configured or active");
     }
 
+    const config = stripeConfig.config_data;
+    const stripeKey = config.secret_key || Deno.env.get("STRIPE_SECRET_KEY");
+    
     if (!stripeKey) {
       throw new Error("No Stripe secret key configured");
     }
+
+    logStep("Using Stripe configuration from admin panel", { 
+      testMode: config.test_mode,
+      hasConfig: !!config
+    });
 
     const stripe = new Stripe(stripeKey, { 
       apiVersion: "2023-10-16" 
@@ -82,27 +82,29 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Create checkout session for $9/month subscription
+    // Get pricing and URL configuration
+    const premiumProduct = config.products?.premium;
+    const successUrl = config.success_url || '/settings?success=true';
+    const cancelUrl = config.cancel_url || '/settings?cancelled=true';
+    const origin = req.headers.get("origin") || 'https://fastnow.app';
+
+    if (!premiumProduct?.price_id) {
+      throw new Error("Premium subscription product is not configured");
+    }
+
+    // Create checkout session using configured premium product
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: "AI Premium Subscription",
-              description: "1,000 AI requests per month - never run out!"
-            },
-            unit_amount: 900, // $9.00 in cents
-            recurring: { interval: "month" },
-          },
+          price: premiumProduct.price_id,
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/settings?success=true`,
-      cancel_url: `${req.headers.get("origin")}/settings?cancelled=true`,
+      success_url: `${origin}${successUrl}`,
+      cancel_url: `${origin}${cancelUrl}`,
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
