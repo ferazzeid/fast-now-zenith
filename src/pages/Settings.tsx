@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, Brain, Wifi } from 'lucide-react';
+import { Key, Bell, User, Info, Brain, Wifi, Crown, Settings as SettingsIcon, LogOut, Trash2, RotateCcw } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
+import { SubscriptionStatus } from '@/components/SubscriptionStatus';
+import { CouponCodeInput } from '@/components/CouponCodeInput';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -295,6 +297,86 @@ const Settings = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleResetData = async () => {
+    if (!user) return;
+    
+    const confirmed = window.confirm(
+      "Are you sure you want to reset all your data? This will clear all your fasting sessions, food entries, walking sessions, and goals. This action cannot be undone."
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      // Clear all user data
+      await Promise.all([
+        supabase.from('fasting_sessions').delete().eq('user_id', user.id),
+        supabase.from('food_entries').delete().eq('user_id', user.id),
+        supabase.from('walking_sessions').delete().eq('user_id', user.id),
+        supabase.from('motivators').delete().eq('user_id', user.id),
+        supabase.from('chat_conversations').delete().eq('user_id', user.id)
+      ]);
+
+      toast({
+        title: "Data Reset Complete",
+        description: "All your data has been cleared successfully.",
+      });
+    } catch (error) {
+      console.error('Error resetting data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset data. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This will permanently delete all your data and cannot be undone. You will be logged out immediately."
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase.functions.invoke('delete-account');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been successfully deleted.",
+      });
+      
+      // Sign out after deletion
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete account. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <div className="max-w-md mx-auto pt-10 pb-24">
@@ -544,6 +626,68 @@ const Settings = () => {
                   <ClearCacheButton />
                 </div>
               </div>
+            </Card>
+
+            {/* Account Management Section */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <CardHeader className="p-0 pb-4">
+                <div className="flex items-center space-x-3">
+                  <Crown className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-lg font-semibold text-warm-text">Account Management</CardTitle>
+                </div>
+                <CardDescription>
+                  Manage your subscription, redeem coupons, and account settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 space-y-6">
+                {/* Subscription Status */}
+                <SubscriptionStatus />
+                
+                {/* Coupon Code Input */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Key className="w-4 h-4 text-primary" />
+                    <h4 className="font-medium text-warm-text">Redeem Coupon</h4>
+                  </div>
+                  <CouponCodeInput />
+                </div>
+                
+                {/* Account Actions */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <SettingsIcon className="w-4 h-4 text-primary" />
+                    <h4 className="font-medium text-warm-text">Account Actions</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={handleResetData}
+                      className="w-full flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset All Data
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={handleDeleteAccount}
+                      className="w-full flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Account
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
 
             {/* Appearance Section */}

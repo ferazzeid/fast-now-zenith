@@ -156,7 +156,7 @@ export const Navigation = () => {
       path: '/motivators',
       isEating: false
     },
-    { icon: User, label: 'Account', path: '/account', isEating: false },
+    { icon: User, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
   const getConnectionStatus = () => {
@@ -181,7 +181,7 @@ export const Navigation = () => {
                   case 'Walk': return 'Track your walking sessions and burn calories';
                   case 'Food': return 'Log your meals and track daily intake';
                   case 'Goals': return 'View and create motivational content';
-                  case 'Account': return 'Manage your account and subscription';
+                  case 'Settings': return 'Manage your profile, preferences and account';
                   default: return label;
                 }
               };
@@ -233,13 +233,13 @@ export const Navigation = () => {
                     <CalorieBadge calories={caloriesBadge} />
                   )}
                   
-                  {/* Trial countdown badge ONLY for Account button */}
-                  {label === 'Account' && inTrial && daysRemaining && (
+                  {/* Trial countdown badge ONLY for Settings button */}
+                  {label === 'Settings' && inTrial && daysRemaining && (
                     <TrialTimerBadge daysRemaining={daysRemaining} />
                   )}
                   
-                  {/* Connection status indicator ONLY for Account button */}
-                  {label === 'Account' && (
+                  {/* Connection status indicator ONLY for Settings button */}
+                  {label === 'Settings' && (
                     <div className="absolute -bottom-1 -right-1">
                       <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${connectionStatus.shouldPulse ? 'animate-pulse' : ''}`} 
                            title={connectionStatus.tooltip} />
