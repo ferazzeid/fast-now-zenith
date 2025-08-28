@@ -125,14 +125,24 @@ export const FloatingVoiceAssistant = () => {
       await conversationMemory.initializeWithUser(user.id);
       
       // Check if this message is a response to a pending clarification
-      if (conversationMemory.isResponseToPendingClarification(message)) {
+      const isResponseToClarification = conversationMemory.isResponseToPendingClarification(message);
+      if (isResponseToClarification) {
         console.log('🔍 Detected response to pending clarification');
+        
+        // Extract modification data from user response
+        const extractedData = conversationMemory.extractModificationFromResponse(message);
+        console.log('📊 Extracted modification data:', extractedData);
+        
+        // Add clarification response to working memory
         conversationMemory.addToWorkingMemory(
           'session',
-          `User provided clarification: ${message}`,
+          `User clarification response: "${message}" → Modifications: ${JSON.stringify(extractedData)}`,
           1.0,
           30 // 30 minutes TTL
         );
+        
+        // Clear the pending clarification since user responded
+        conversationMemory.clearPendingClarification();
       }
       
       // Get enhanced context for AI including clarification state
@@ -143,10 +153,16 @@ export const FloatingVoiceAssistant = () => {
       const currentPath = window.location.pathname;
       const pageContext = getPageContext(currentPath);
 
-      // Enhanced system prompt with conversation context
+      // Enhanced system prompt with conversation context and clarification awareness
       const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}
 
-${conversationContext}`;
+${conversationContext}
+
+CLARIFICATION HANDLING:
+- If you detect that the user is answering a previous clarification question, use the modify_recent_foods function immediately
+- Look for direct responses like "150g each", "only 2", "140 grams per serving"
+- When user provides serving sizes or quantities as simple responses, interpret them as answers to recent clarification requests
+- Always include context about which food items when calling modify_recent_foods`;
 
       console.log('🤖 AI Chat: Making streaming request');
 
@@ -232,10 +248,39 @@ ${conversationContext}`;
                     }
                   }
                 } else if (parsed.type === 'completion' && parsed.done) {
-                  // Handle final completion with function calls
-                  console.log('🤖 AI Chat: Final completion received');
-                  
-                  let finalResponse = '';
+                   // Handle final completion with function calls
+                   console.log('🤖 AI Chat: Final completion received');
+                   
+                   let finalResponse = '';
+
+                   // Save conversation memory with enhanced context tracking
+                   if (parsed.completion && parsed.completion.includes('?')) {
+                     // Check if AI is asking a clarification question
+                     const questionPatterns = [
+                       /serving size/i,
+                       /how many/i,
+                       /confirm/i,
+                       /clarif/i,
+                       /which/i,
+                       /what.*size/i
+                     ];
+                     
+                     if (questionPatterns.some(pattern => pattern.test(parsed.completion))) {
+                       console.log('🤔 AI asking clarification question, setting pending clarification');
+                       const clarificationType = parsed.completion.toLowerCase().includes('serving') ? 'serving_size' :
+                                               parsed.completion.toLowerCase().includes('many') ? 'quantity' :
+                                               'general';
+                       
+                       await conversationMemory.setPendingClarification(
+                         clarificationType,
+                         parsed.completion,
+                         'last_food_action'
+                       );
+                     }
+                   }
+                   
+                   // Save conversation memory after interaction
+                   await conversationMemory.saveCrossSessionLearnings();
 
                   // Handle function calls first - ACTUALLY EXECUTE THEM
                   if (parsed.functionCall) {

@@ -348,7 +348,7 @@ export class ConversationMemoryManager {
     this.context.conversationState.pendingClarification = undefined;
   }
 
-  // Check if user response matches pending clarification
+  // Check if user response matches pending clarification - Enhanced version
   isResponseToPendingClarification(userMessage: string): boolean {
     if (!this.context.conversationState.pendingClarification) return false;
     
@@ -361,20 +361,70 @@ export class ConversationMemoryManager {
       return false;
     }
 
-    // Pattern matching for direct responses
-    const lowerMessage = userMessage.toLowerCase();
+    const lowerMessage = userMessage.toLowerCase().trim();
     
-    // Check for serving size responses
+    // Enhanced pattern matching for direct responses
+    const servingSizePatterns = [
+      /^\d+\s*(?:grams?|g)(?:\s*(?:per|each|serving))?/i,
+      /^(?:it(?:'s)?|they(?:'re)?)\s*\d+\s*(?:grams?|g)/i,
+      /^\d+\s*(?:grams?|g)\s*(?:per|each)$/i,
+      /^(?:about|around|roughly)?\s*\d+\s*(?:grams?|g)/i
+    ];
+    
+    const quantityPatterns = [
+      /^(?:just|only)?\s*\d+$/i,
+      /^(?:there\s+(?:are|were)\s+(?:only\s+)?)?\d+$/i,
+      /^(?:one|two|three|four|five|six|seven|eight|nine|ten)$/i,
+      /^(?:actually\s+)?\d+$/i
+    ];
+    
+    // Check for serving size responses with enhanced patterns
     if (clarification.type === 'serving_size') {
-      return /\d+\s*(grams?|g|oz|ounces?)\s*(per|each|serving)?/i.test(userMessage);
+      return servingSizePatterns.some(pattern => pattern.test(userMessage));
     }
     
-    // Check for quantity responses
+    // Check for quantity responses with enhanced patterns
     if (clarification.type === 'quantity') {
-      return /\d+|one|two|three|four|five|six|seven|eight|nine|ten/i.test(userMessage);
+      return quantityPatterns.some(pattern => pattern.test(userMessage));
+    }
+    
+    // General clarification responses
+    if (clarification.type === 'general') {
+      return lowerMessage.length < 50 && /\d+/.test(userMessage);
     }
     
     return false;
+  }
+
+  // Extract modification data from clarification response
+  extractModificationFromResponse(userMessage: string): any {
+    const modifications: any = {};
+    
+    // Extract serving size (handle various formats)
+    const servingSizeMatch = userMessage.match(/(\d+)\s*(?:grams?|g)/i);
+    if (servingSizeMatch) {
+      modifications.serving_size_each = parseInt(servingSizeMatch[1]);
+    }
+    
+    // Extract quantity
+    const quantityMatch = userMessage.match(/(?:only\s+|just\s+)?(\d+)(?:\s+(?:items?|pieces?))?$/i) ||
+                         userMessage.match(/there\s+(?:are|were)\s+(?:only\s+)?(\d+)/i);
+    if (quantityMatch) {
+      modifications.quantity = parseInt(quantityMatch[1]);
+    }
+    
+    // Handle word numbers
+    const wordNumbers: Record<string, number> = {
+      'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+      'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
+    };
+    
+    const wordMatch = userMessage.toLowerCase().match(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\b/);
+    if (wordMatch && !quantityMatch) {
+      modifications.quantity = wordNumbers[wordMatch[1]];
+    }
+    
+    return modifications;
   }
 
   // Add a food action to memory

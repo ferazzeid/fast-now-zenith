@@ -46,15 +46,15 @@ serve(async (req) => {
     console.log('Modifications:', modifications);
     console.log('Clarification:', clarification_text);
 
-    // Get today's food entries (within last 2 hours to be recent)
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    // Get today's food entries (within last 4 hours to be recent - extended window)
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
     
     const { data: recentEntries, error: entriesError } = await supabase
       .from('food_entries')
       .select('*')
       .eq('user_id', userId)
       .eq('source_date', today)
-      .gte('created_at', twoHoursAgo)
+      .gte('created_at', fourHoursAgo)
       .order('created_at', { ascending: false });
 
     if (entriesError) {
@@ -67,7 +67,7 @@ serve(async (req) => {
     if (!recentEntries || recentEntries.length === 0) {
       return new Response(JSON.stringify({
         success: false,
-        message: "I couldn't find any recent food entries to modify. Food entries are only modifiable within 2 hours of being added."
+        message: "I couldn't find any recent food entries to modify. Food entries are only modifiable within 4 hours of being added."
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -76,26 +76,65 @@ serve(async (req) => {
     // Find foods that match clarification context
     let targetEntries = recentEntries;
     
-    // Try to match foods based on clarification text
+    // Enhanced fuzzy matching for food identification
     if (clarification_text) {
       const lowerClarification = clarification_text.toLowerCase();
       const potentialMatches = recentEntries.filter(entry => {
         const entryName = entry.name.toLowerCase();
         
-        // Check for partial matches
-        if (lowerClarification.includes('yogurt') && entryName.includes('yogurt')) return true;
-        if (lowerClarification.includes('cucumber') && entryName.includes('cucumber')) return true;
-        if (lowerClarification.includes('apple') && entryName.includes('apple')) return true;
-        if (lowerClarification.includes('greek') && entryName.includes('greek')) return true;
+        // Enhanced food type matching with better fuzzy logic
+        const foodTypeMap = {
+          'yogurt': ['yogurt', 'greek', 'plain', 'vanilla'],
+          'cucumber': ['cucumber', 'cuke'],
+          'apple': ['apple', 'apples'],
+          'cheese': ['cheese', 'cheddar', 'feta', 'brie', 'mozzarella'],
+          'chicken': ['chicken', 'breast', 'thigh'],
+          'bread': ['bread', 'slice', 'loaf'],
+          'egg': ['egg', 'eggs'],
+          'milk': ['milk', 'dairy'],
+          'rice': ['rice', 'grain'],
+          'pasta': ['pasta', 'noodle', 'spaghetti']
+        };
         
-        // Check if food name appears in clarification
-        const foodWords = entryName.split(' ');
-        return foodWords.some(word => word.length > 2 && lowerClarification.includes(word));
+        // Check for exact food type matches
+        for (const [type, keywords] of Object.entries(foodTypeMap)) {
+          if (lowerClarification.includes(type)) {
+            if (keywords.some(keyword => entryName.includes(keyword))) {
+              return true;
+            }
+          }
+        }
+        
+        // Check for direct partial matches (minimum 3 characters)
+        const clarificationWords = lowerClarification.split(' ').filter(word => word.length >= 3);
+        const entryWords = entryName.split(' ').filter(word => word.length >= 3);
+        
+        for (const clarWord of clarificationWords) {
+          for (const entryWord of entryWords) {
+            // Exact match
+            if (clarWord === entryWord) return true;
+            // Substring match (one contains the other)
+            if (clarWord.includes(entryWord) || entryWord.includes(clarWord)) return true;
+            // Similar length and similar characters (basic fuzzy)
+            if (Math.abs(clarWord.length - entryWord.length) <= 2) {
+              let matches = 0;
+              const minLength = Math.min(clarWord.length, entryWord.length);
+              for (let i = 0; i < minLength; i++) {
+                if (clarWord[i] === entryWord[i]) matches++;
+              }
+              if (matches / minLength >= 0.7) return true; // 70% character match
+            }
+          }
+        }
+        
+        return false;
       });
       
       if (potentialMatches.length > 0) {
         targetEntries = potentialMatches;
-        console.log(`Matched ${targetEntries.length} entries based on clarification`);
+        console.log(`Matched ${targetEntries.length} entries based on enhanced clarification matching`);
+      } else {
+        console.log('No matches found with enhanced matching, using all recent entries as fallback');
       }
     }
 
@@ -107,7 +146,7 @@ serve(async (req) => {
       const updates: any = {};
       let shouldUpdate = false;
 
-      // Handle serving size modifications
+      // Handle serving size modifications (per item)
       if (modifications.serving_size_each && modifications.serving_size_each !== entry.serving_size) {
         const ratio = modifications.serving_size_each / entry.serving_size;
         updates.serving_size = modifications.serving_size_each;
@@ -115,6 +154,22 @@ serve(async (req) => {
         updates.carbs = Math.round(entry.carbs * ratio * 100) / 100;
         shouldUpdate = true;
         console.log(`Updating ${entry.name}: ${entry.serving_size}g -> ${modifications.serving_size_each}g`);
+      }
+      
+      // Handle overall serving size modifications
+      if (modifications.serving_size && modifications.serving_size !== entry.serving_size) {
+        const ratio = modifications.serving_size / entry.serving_size;
+        updates.serving_size = modifications.serving_size;
+        updates.calories = Math.round(entry.calories * ratio);
+        updates.carbs = Math.round(entry.carbs * ratio * 100) / 100;
+        shouldUpdate = true;
+        console.log(`Updating ${entry.name}: ${entry.serving_size}g -> ${modifications.serving_size}g`);
+      }
+      
+      // Handle quantity modifications (this would need to duplicate/remove entries)
+      if (modifications.quantity && modifications.quantity !== 1) {
+        console.log(`Quantity modification requested for ${entry.name}: ${modifications.quantity} items`);
+        // Note: Quantity modifications are complex and might need separate handling
       }
 
       if (shouldUpdate) {

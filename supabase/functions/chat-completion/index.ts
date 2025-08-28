@@ -267,7 +267,18 @@ USER PROFILE:
 - Activity level: ${profile.activity_level || 'sedentary'}
 - Default walking speed: ${profile.default_walking_speed || 3} mph`;
 
-    const enhancedSystemMessage = `You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
+    // Enhanced system message with conversation memory and clarification context
+    const baseSystemMessage = `You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
+
+${conversationMemory ? `\nCONVERSATION MEMORY AND USER CONTEXT:\n${conversationMemory}` : ''}
+
+IMPORTANT CONVERSATION FLOW HANDLING:
+- If you recently asked a clarification question and the user is providing a direct answer, use the modify_recent_foods function to update their entries
+- Look for patterns like: You ask "What's the serving size?" → User says "150g each" → Execute modification
+- When users provide serving sizes or quantities in response to your questions, automatically apply those changes
+- Pay attention to context clues like "each", "per item", "all of them", "only X items" to determine modification type
+
+CAPABILITIES: You can help users with fasting sessions, walking sessions, food tracking, motivators, and app calculations.`;
 
 CAPABILITY BOUNDARY RULES:
 1. FUNCTION-FIRST PRINCIPLE: Only offer capabilities that exist as available functions. Before responding to any request, check if the required function exists in your available tools.
@@ -298,7 +309,7 @@ CONVERSATION CONTEXT AWARENESS:
 - Process food information directly when quantities are provided - no confirmation needed
 - When asking clarification questions, recognize when the user is providing direct answers to those questions
 
-${conversationMemory ? `\nCROSS-SESSION CONTEXT:\n${conversationMemory}` : ''}
+    const enhancedSystemMessage = `${baseSystemMessage}
 
 ${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
@@ -446,7 +457,41 @@ When explaining app calculations, use the exact formulas and constants above. He
               }
             }
           },
-          // === ADMIN FUNCTIONS ===
+          {
+            type: "function",
+            function: {
+              name: "modify_recent_foods",
+              description: "Modify recent food entries based on user clarifications about serving sizes or quantities",
+              parameters: {
+                type: "object",
+                properties: {
+                  modifications: {
+                    type: "object",
+                    properties: {
+                      serving_size_each: {
+                        type: "number",
+                        description: "New serving size per item in grams"
+                      },
+                      serving_size: {
+                        type: "number", 
+                        description: "New overall serving size in grams"
+                      },
+                      quantity: {
+                        type: "number",
+                        description: "New quantity of items"
+                      }
+                    },
+                    description: "Object containing the modifications to apply"
+                  },
+                  clarification_text: {
+                    type: "string",
+                    description: "Context text to help identify which foods to modify (e.g., 'the Greek yogurt', 'cucumbers')"
+                  }
+                },
+                required: ["modifications"]
+              }
+            }
+          },
           {
             type: "function",
             function: {
