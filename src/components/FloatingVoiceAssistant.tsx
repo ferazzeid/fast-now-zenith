@@ -51,13 +51,26 @@ export const FloatingVoiceAssistant = () => {
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+      const scrollContainer = messagesRef.current;
+      requestAnimationFrame(() => {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      });
     }
   };
 
   useEffect(() => {
     scrollToBottom();
+    // Also scroll with a small delay to account for content rendering
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
   }, [messages]);
+
+  // Ensure scrolling when processing state changes
+  useEffect(() => {
+    if (isProcessing) {
+      scrollToBottom();
+    }
+  }, [isProcessing]);
 
   const addMessage = (role: 'user' | 'assistant', content: string) => {
     console.log('💬 Adding message:', { role, content: content.substring(0, 50) + '...' });
@@ -706,11 +719,136 @@ export const FloatingVoiceAssistant = () => {
 
   return (
     <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
-      {/* Chat Messages */}
-      {isOpen && (messages.length > 0 || pendingFoods.length > 0) && (
+      {/* Sticky Food Preview Section - Fixed at top */}
+      {isOpen && pendingFoods.length > 0 && (
+        <div className="fixed bottom-[380px] right-4 md:right-6 w-full max-w-sm md:w-80 z-[60]">
+          <Card className="bg-background/98 backdrop-blur-md border-border shadow-lg">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-xs">Review Foods ({pendingFoods.length})</h3>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-5 w-5 p-0 text-xs"
+                  onClick={() => {
+                    setPendingFoods([]);
+                    setSelectedFoodIds(new Set());
+                    setEditingFoodIndex(null);
+                    setInlineEditData({});
+                  }}
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {pendingFoods.map((food, index) => (
+                  <div key={index} className="flex items-center gap-2 p-1.5 rounded border border-border/30 text-xs">
+                    <Checkbox
+                      checked={selectedFoodIds.has(index)}
+                      onCheckedChange={() => toggleFoodSelection(index)}
+                      className="shrink-0 h-3 w-3"
+                    />
+                    
+                    {editingFoodIndex === index ? (
+                      <div className="flex-1 grid grid-cols-2 gap-1">
+                        <Input
+                          value={inlineEditData[index]?.name ?? food.name}
+                          onChange={(e) => setInlineEditData(prev => ({
+                            ...prev,
+                            [index]: { ...prev[index], name: e.target.value }
+                          }))}
+                          className="text-xs h-6"
+                        />
+                        <Input
+                          type="number"
+                          value={inlineEditData[index]?.serving_size ?? food.serving_size}
+                          onChange={(e) => setInlineEditData(prev => ({
+                            ...prev,
+                            [index]: { ...prev[index], serving_size: parseFloat(e.target.value) || 0 }
+                          }))}
+                          className="text-xs h-6"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{food.name}</div>
+                        <div className="text-muted-foreground text-xs">
+                          {food.serving_size}g • {Math.round(food.calories)}cal
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-0.5">
+                      {editingFoodIndex === index ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-5 w-5 p-0"
+                            onClick={() => {
+                              if (inlineEditData[index]) {
+                                updatePendingFood(index, inlineEditData[index]);
+                              }
+                              setEditingFoodIndex(null);
+                            }}
+                          >
+                            ✓
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-5 w-5 p-0"
+                            onClick={() => setEditingFoodIndex(null)}
+                          >
+                            ✕
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-5 w-5 p-0"
+                            onClick={() => setEditingFoodIndex(index)}
+                          >
+                            <Edit className="h-2.5 w-2.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-5 w-5 p-0"
+                            onClick={() => removePendingFood(index)}
+                          >
+                            <Trash2 className="h-2.5 w-2.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  onClick={confirmAddFoods}
+                  disabled={selectedFoodIds.size === 0}
+                  className="flex-1 h-7 text-xs"
+                >
+                  Add ({selectedFoodIds.size})
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Chat Messages - Separate container for better scrolling */}
+      {isOpen && messages.length > 0 && (
         <div 
           ref={messagesRef}
-          className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 max-h-96 overflow-y-auto space-y-3 pb-4 pr-2"
+          className="absolute bottom-16 right-0 w-full max-w-sm md:w-80 max-h-96 overflow-y-auto space-y-3 pb-4 pr-2 scroll-smooth"
         >
           {messages.map((message, index) => (
             <ChatBubble
@@ -722,156 +860,6 @@ export const FloatingVoiceAssistant = () => {
               }}
             />
           ))}
-          
-          {/* Food Preview Section */}
-          {pendingFoods.length > 0 && (
-            <div className="px-2 space-y-4">
-              <Card className="bg-background/95 backdrop-blur-sm border-border/50">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-3 text-sm">Review and Add Foods</h3>
-                  <div className="space-y-3">
-                    {pendingFoods.map((food, index) => (
-                      <div key={index} className="flex items-center gap-3 p-2 rounded border border-border/50">
-                        <Checkbox
-                          checked={selectedFoodIds.has(index)}
-                          onCheckedChange={() => toggleFoodSelection(index)}
-                          className="shrink-0"
-                        />
-                        
-                        {editingFoodIndex === index ? (
-                          <div className="flex-1 grid grid-cols-2 gap-2">
-                            <Input
-                              value={inlineEditData[index]?.name ?? food.name}
-                              onChange={(e) => setInlineEditData(prev => ({
-                                ...prev,
-                                [index]: { ...prev[index], name: e.target.value }
-                              }))}
-                              placeholder="Food name"
-                              className="text-xs h-8"
-                            />
-                            <Input
-                              type="number"
-                              value={inlineEditData[index]?.serving_size ?? food.serving_size}
-                              onChange={(e) => setInlineEditData(prev => ({
-                                ...prev,
-                                [index]: { ...prev[index], serving_size: parseFloat(e.target.value) || 0 }
-                              }))}
-                              placeholder="Size (g)"
-                              className="text-xs h-8"
-                            />
-                            <Input
-                              type="number"
-                              value={inlineEditData[index]?.calories ?? food.calories}
-                              onChange={(e) => setInlineEditData(prev => ({
-                                ...prev,
-                                [index]: { ...prev[index], calories: parseFloat(e.target.value) || 0 }
-                              }))}
-                              placeholder="Calories"
-                              className="text-xs h-8"
-                            />
-                            <Input
-                              type="number"
-                              value={inlineEditData[index]?.carbs ?? food.carbs}
-                              onChange={(e) => setInlineEditData(prev => ({
-                                ...prev,
-                                [index]: { ...prev[index], carbs: parseFloat(e.target.value) || 0 }
-                              }))}
-                              placeholder="Carbs (g)"
-                              className="text-xs h-8"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex-1 text-xs">
-                            <div className="font-medium">{food.name}</div>
-                            <div className="text-muted-foreground">
-                              {food.serving_size}g • {food.calories} cal • {food.carbs}g carbs
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-1">
-                          {editingFoodIndex === index ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => {
-                                  if (inlineEditData[index]) {
-                                    updatePendingFood(index, inlineEditData[index]);
-                                  }
-                                  setEditingFoodIndex(null);
-                                }}
-                              >
-                                ✓
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => {
-                                  setEditingFoodIndex(null);
-                                  setInlineEditData(prev => {
-                                    const updated = { ...prev };
-                                    delete updated[index];
-                                    return updated;
-                                  });
-                                }}
-                              >
-                                ✕
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => setEditingFoodIndex(index)}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => removePendingFood(index)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      size="sm"
-                      onClick={confirmAddFoods}
-                      disabled={selectedFoodIds.size === 0}
-                      className="flex-1"
-                    >
-                      Add Selected ({selectedFoodIds.size})
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setPendingFoods([]);
-                        setSelectedFoodIds(new Set());
-                        setEditingFoodIndex(null);
-                        setInlineEditData({});
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
       )}
 
