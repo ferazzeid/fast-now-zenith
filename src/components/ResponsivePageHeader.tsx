@@ -34,13 +34,6 @@ export const ResponsivePageHeader = ({
         </div>
       )}
       
-      {/* History button on left after voice button */}
-      {onHistoryClick && (
-        <div className="absolute left-12 top-0 ml-2">
-          <HistoryButton onClick={onHistoryClick} title={historyTitle} />
-        </div>
-      )}
-      
       {/* Speech bubble always on far right */}
       {showAuthorTooltip && (
         <div className="absolute right-0 top-0">
@@ -52,11 +45,16 @@ export const ResponsivePageHeader = ({
         </div>
       )}
       
-      {/* Title section with padding for both left buttons and right speech bubble */}
-      <div className="pl-20 pr-12">
-        <h1 className="text-2xl font-bold text-foreground mb-1">
-          {title}
-        </h1>
+      {/* Title section with padding for left voice button and right speech bubble */}
+      <div className="pl-12 pr-12">
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-2xl font-bold text-foreground">
+            {title}
+          </h1>
+          {onHistoryClick && (
+            <HistoryButton onClick={onHistoryClick} title={historyTitle} />
+          )}
+        </div>
         <p className="text-sm text-muted-foreground text-left">{subtitle}</p>
       </div>
     </div>
