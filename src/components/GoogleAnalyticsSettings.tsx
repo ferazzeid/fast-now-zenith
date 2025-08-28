@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const GoogleAnalyticsSettings = () => {
-  const [propertyId, setPropertyId] = useState('');
+  const [trackingId, setTrackingId] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -18,11 +18,11 @@ export const GoogleAnalyticsSettings = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .eq('setting_key', 'google_analytics_property_id');
+        .eq('setting_key', 'ga_tracking_id');
 
       if (error) throw error;
-      const propertyIdSetting = data?.[0];
-      setPropertyId(propertyIdSetting?.setting_value || '');
+      const trackingIdSetting = data?.[0];
+      setTrackingId(trackingIdSetting?.setting_value || '');
     } catch (error) {
       console.error('Error loading Google Analytics settings:', error);
       toast({ title: 'Error', description: 'Failed to load settings', variant: 'destructive' });
@@ -36,10 +36,10 @@ export const GoogleAnalyticsSettings = () => {
     try {
       const { error } = await supabase
         .from('shared_settings')
-        .upsert({ setting_key: 'google_analytics_property_id', setting_value: propertyId.trim() });
+        .upsert({ setting_key: 'ga_tracking_id', setting_value: trackingId.trim() });
 
       if (error) throw error;
-      toast({ title: 'Saved', description: 'Google Analytics property ID updated' });
+      toast({ title: 'Saved', description: 'Google Analytics tracking ID updated' });
     } catch (error) {
       console.error('Error saving Google Analytics settings:', error);
       toast({ title: 'Error', description: 'Failed to save settings', variant: 'destructive' });
@@ -59,16 +59,16 @@ export const GoogleAnalyticsSettings = () => {
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2">
-          <Label htmlFor="propertyId" className="sr-only">Property ID</Label>
+          <Label htmlFor="trackingId" className="sr-only">Tracking ID</Label>
           <Input
-            id="propertyId"
-            value={propertyId}
-            onChange={(e) => setPropertyId(e.target.value)}
-            placeholder="GA4 Property ID"
+            id="trackingId"
+            value={trackingId}
+            onChange={(e) => setTrackingId(e.target.value)}
+            placeholder="GA4 Tracking ID (e.g., G-XXXXXXXXXX)"
             disabled={loading}
             className="h-9"
           />
-          <Button onClick={saveSettings} disabled={saving || loading || !propertyId.trim()} className="h-9 px-4">
+          <Button onClick={saveSettings} disabled={saving || loading || !trackingId.trim()} className="h-9 px-4">
             {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
