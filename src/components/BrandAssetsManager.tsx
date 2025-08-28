@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User } from "lucide-react";
+import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User, Trash2 } from "lucide-react";
 import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
 import { AuthorTooltip } from "./AuthorTooltip";
 import { deleteImageFromStorage } from "@/utils/imageUtils";
@@ -227,6 +227,52 @@ const BrandAssetsManager = () => {
       toast({
         title: "Upload failed",
         description: "Failed to upload the author image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAuthorImage = async () => {
+    if (authorData.image === '/src/assets/motivator-placeholder.jpg') {
+      toast({
+        title: "Nothing to remove",
+        description: "Already using the default author image.",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Delete old author image from storage
+      if (authorData.image) {
+        const deleteResult = await deleteImageFromStorage(authorData.image, 'website-images', supabase);
+        if (!deleteResult.success) {
+          console.warn('Failed to delete author image from storage:', deleteResult.error);
+        }
+      }
+
+      // Reset to default placeholder in database
+      await supabase
+        .from('shared_settings')
+        .upsert({ 
+          setting_key: 'author_tooltip_image', 
+          setting_value: '/src/assets/motivator-placeholder.jpg' 
+        }, { onConflict: 'setting_key' });
+
+      // Update local state to default
+      setAuthorData(prev => ({ ...prev, image: '/src/assets/motivator-placeholder.jpg' }));
+      
+      toast({
+        title: "Author image removed",
+        description: "Reset to default placeholder image.",
+      });
+    } catch (error) {
+      console.error('Error removing author image:', error);
+      toast({
+        title: "Remove failed",
+        description: "Failed to remove the author image. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -637,26 +683,39 @@ const BrandAssetsManager = () => {
                   className="w-16 h-16 rounded-full object-cover border-2 border-border"
                 />
               </div>
-              <div className="flex-1">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleAuthorImageSelect(file);
-                  }}
-                  className="hidden"
-                  id="author-image-upload"
-                  disabled={uploading}
-                />
-                <label
-                  htmlFor="author-image-upload"
-                  className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <Upload className="w-4 h-4" />
-                  <span className="text-sm">Upload author image</span>
-                </label>
-                <p className="text-xs text-muted-foreground mt-1">
+              <div className="flex-1 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAuthorImageSelect(file);
+                    }}
+                    className="hidden"
+                    id="author-image-upload"
+                    disabled={uploading}
+                  />
+                  <label
+                    htmlFor="author-image-upload"
+                    className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors flex-1 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span className="text-sm">Upload author image</span>
+                  </label>
+                  {authorData.image !== '/src/assets/motivator-placeholder.jpg' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveAuthorImage}
+                      disabled={uploading}
+                      className="px-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
                   Recommended: Square image, max 5MB
                 </p>
               </div>
