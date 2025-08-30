@@ -142,24 +142,22 @@ const Timer = () => {
       // Then update every second for display
       interval = setInterval(updateTimer, 1000);
 
-      // FIXED: Prevent massive timeout values and validate session before executing
+      // FIXED: Handle both future goals and already-passed goals
       if (fastingSession.goal_duration_seconds) {
         const startTime = new Date(fastingSession.start_time);
         const goalEndTime = new Date(startTime.getTime() + (fastingSession.goal_duration_seconds * 1000));
         const timeToGoal = goalEndTime.getTime() - Date.now();
         
-        // CRITICAL FIX: Only set timeout if reasonable and session is current
-        const MAX_TIMEOUT = 168 * 60 * 60 * 1000; // 168 hours max (7 days)
-        if (timeToGoal > 0 && timeToGoal < MAX_TIMEOUT) {
-          console.log(`🎯 Setting goal completion timeout for ${timeToGoal}ms from now`);
-          goalTimeout = setTimeout(async () => {
-            console.log('🎉 Goal achieved! Auto-completing fasting session...');
-            
-            // CRITICAL: Validate session still exists and user is authenticated
+        // CRITICAL FIX: If goal already passed, complete immediately
+        if (timeToGoal <= 0) {
+          console.log('🎉 Goal already achieved! Auto-completing fasting session immediately...');
+          
+          // Use setTimeout to avoid blocking the render
+          setTimeout(async () => {
             try {
               const { data: { session } } = await supabase.auth.getSession();
               if (!session?.user?.id) {
-                console.warn('⚠️ Goal timeout triggered but user not authenticated, skipping');
+                console.warn('⚠️ Goal completion triggered but user not authenticated, skipping');
                 return;
               }
               
@@ -183,13 +181,50 @@ const Timer = () => {
               });
             } catch (error) {
               console.error('Error auto-completing fasting session:', error);
-              // Don't show error toast to avoid user confusion
             }
-          }, timeToGoal);
-        } else if (timeToGoal >= MAX_TIMEOUT) {
-          console.warn(`⚠️ Skipping goal timeout - duration too long: ${timeToGoal}ms`);
+          }, 100); // Small delay to avoid blocking
         } else {
-          console.log('⚠️ Skipping goal timeout - time already passed');
+          // Goal is in the future - set timeout as before
+          const MAX_TIMEOUT = 168 * 60 * 60 * 1000; // 168 hours max (7 days)
+          if (timeToGoal < MAX_TIMEOUT) {
+            console.log(`🎯 Setting goal completion timeout for ${timeToGoal}ms from now`);
+            goalTimeout = setTimeout(async () => {
+              console.log('🎉 Goal achieved! Auto-completing fasting session...');
+              
+              // CRITICAL: Validate session still exists and user is authenticated
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.user?.id) {
+                  console.warn('⚠️ Goal timeout triggered but user not authenticated, skipping');
+                  return;
+                }
+                
+                // Verify the session is still active before ending
+                const { data: currentFastingSession } = await supabase
+                  .from('fasting_sessions')
+                  .select('id, status')
+                  .eq('id', fastingSession.id)
+                  .eq('status', 'active')
+                  .maybeSingle();
+                
+                if (!currentFastingSession) {
+                  console.warn('⚠️ Session no longer active, skipping auto-completion');
+                  return;
+                }
+                
+                await stableEndSession(fastingSession.id);
+                toast({
+                  title: "🎉 Goal Achieved!",
+                  description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
+                });
+              } catch (error) {
+                console.error('Error auto-completing fasting session:', error);
+                // Don't show error toast to avoid user confusion
+              }
+            }, timeToGoal);
+          } else {
+            console.warn(`⚠️ Skipping goal timeout - duration too long: ${timeToGoal}ms`);
+          }
         }
       }
     } else {
