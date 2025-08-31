@@ -339,7 +339,7 @@ const Motivators = () => {
                 />
               </div>
             )}
-            <div className="pl-12 pr-12">
+            <div className="pl-0 pr-12">
               <h1 className="text-2xl font-bold text-foreground mb-1">
                 {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
               </h1>

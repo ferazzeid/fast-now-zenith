@@ -223,7 +223,6 @@ const Walking = () => {
         <ResponsivePageHeader
           title="Walking Timer"
           subtitle="Track your walking session"
-          leftButton={<PremiumGatedAIVoiceButton />}
           onHistoryClick={() => setShowWalkingHistory(true)}
           historyTitle="View walking history"
           showAuthorTooltip={isAdmin}

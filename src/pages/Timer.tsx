@@ -406,7 +406,6 @@ const Timer = () => {
         <ResponsivePageHeader
           title={currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
           subtitle={currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
-          leftButton={<AIVoiceButton />}
           onHistoryClick={currentMode === 'fasting' ? () => setShowFastingHistory(true) : undefined}
           historyTitle="View fasting history"
           showAuthorTooltip={isAdmin && currentMode === 'fasting'}

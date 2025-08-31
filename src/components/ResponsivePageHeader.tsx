@@ -45,8 +45,8 @@ export const ResponsivePageHeader = ({
         </div>
       )}
       
-      {/* Title section with padding for left voice button and right speech bubble */}
-      <div className="pl-12 pr-12">
+      {/* Title section with conditional padding based on buttons */}
+      <div className={`${leftButton ? 'pl-12' : 'pl-0'} pr-12`}>
         <div className="flex items-center gap-3 mb-1">
           <h1 className="text-2xl font-bold text-foreground">
             {title}
