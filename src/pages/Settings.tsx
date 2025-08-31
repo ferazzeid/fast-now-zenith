@@ -430,15 +430,17 @@ const Settings = () => {
                     <User className="w-5 h-5 text-primary" />
                     <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOnboarding(true)}
-                    className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
-                    title="Setup Profile Walkthrough"
-                  >
-                    <Brain className="w-4 h-4 text-warm-text" />
-                  </Button>
+                  {accessIsAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowOnboarding(true)}
+                      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                      title="Setup Profile Walkthrough"
+                    >
+                      <Brain className="w-4 h-4 text-warm-text" />
+                    </Button>
+                  )}
                 </div>
                 
                 <div className="space-y-8">

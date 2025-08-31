@@ -384,22 +384,8 @@ const Motivators = () => {
               </span>
             </div>
 
-            <div className="col-span-1 flex flex-col items-center gap-1">
-              {activeTab === 'notes' ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="w-full flex items-center justify-center">
-                      <PremiumGatedCircularVoiceButton
-                        onTranscription={handleVoiceNoteCreation}
-                        size="lg"
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Create a note using voice input</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
+            {activeTab !== 'notes' && (
+              <div className="col-span-1 flex flex-col items-center gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -416,11 +402,11 @@ const Motivators = () => {
                     <p>Browse professionally designed motivators and add them to your collection</p>
                   </TooltipContent>
                 </Tooltip>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {activeTab === 'notes' ? 'Voice Note' : 'Goal ideas'}
-              </span>
-            </div>
+                <span className="text-xs text-muted-foreground">
+                  Goal ideas
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Tabs */}

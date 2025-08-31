@@ -187,7 +187,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                             console.error('❌ Error toggling note animation setting:', error);
                           }
                         }}
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 text-white"
                       >
                         {note.show_in_animations !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </Button>

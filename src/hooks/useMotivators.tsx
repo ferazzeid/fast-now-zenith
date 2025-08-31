@@ -111,6 +111,10 @@ export const useMotivators = () => {
       if (data) {
         const transformedData = { ...data, imageUrl: data.image_url };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
+        
+        // Immediately refresh to ensure real-time display
+        await loadMotivators(true);
+        
         toast({
           title: "✨ Motivator Created!",
           description: "Your new motivator has been saved.",
@@ -134,11 +138,14 @@ export const useMotivators = () => {
     if (!user) return false;
 
     try {
-      // Map imageUrl to image_url for database
+      // Map imageUrl to image_url for database and handle show_in_animations
       const dbUpdates: any = { ...updates };
       if (updates.imageUrl !== undefined) {
         dbUpdates.image_url = updates.imageUrl;
         delete dbUpdates.imageUrl;
+      }
+      if (updates.show_in_animations !== undefined) {
+        dbUpdates.show_in_animations = updates.show_in_animations;
       }
 
       const { error } = await supabase
@@ -149,8 +156,9 @@ export const useMotivators = () => {
 
       if (error) throw error;
 
+      // Update local state immediately with optimistic update
       setMotivators(prev => 
-        prev.map(m => m.id === id ? { ...m, ...updates } : m)
+        prev.map(m => m.id === id ? { ...m, ...updates, show_in_animations: updates.show_in_animations ?? m.show_in_animations } : m)
       );
 
       toast({

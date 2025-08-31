@@ -68,7 +68,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                           console.error('❌ Error toggling animation setting:', error);
                         }
                       }}
-                      className="p-2 h-8 w-8 hover:bg-muted/50"
+                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white"
                     >
                     {motivator.show_in_animations !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </Button>
