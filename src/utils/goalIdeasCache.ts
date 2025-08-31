@@ -39,7 +39,7 @@ export const goalIdeasCache = {
     }
   },
 
-  set: (data: AdminGoalIdeas[], genderFilter?: 'male' | 'female'): void => {
+  set: (data: AdminGoalIdea[], genderFilter?: 'male' | 'female'): void => {
     try {
       const cacheData: CachedGoalIdeas = {
         data,

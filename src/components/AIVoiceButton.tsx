@@ -18,6 +18,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { conversationMemory } from '@/utils/conversationMemory';
+import { generateUniqueSlug } from '@/utils/slugUtils';
 
 interface Message {
   id: string;
@@ -376,7 +377,8 @@ export const AIVoiceButton = () => {
         .insert({
           user_id: user!.id,
           title: args.title,
-          content: args.content
+          content: args.content,
+          slug: generateUniqueSlug(args.title)
         });
 
       if (error) throw error;

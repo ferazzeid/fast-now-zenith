@@ -18,6 +18,7 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { useAudioManager } from '@/hooks/useAudioManager';
 import { useFoodEditingActions } from '@/hooks/useFoodEditingActions';
 import { conversationMemory } from '@/utils/conversationMemory';
+import { generateUniqueSlug } from '@/utils/slugUtils';
 
 interface Message {
   id: string;
@@ -678,7 +679,8 @@ AMBIGUITY RESOLUTION:
         .insert({
           user_id: user!.id,
           title: args.title,
-          content: args.content
+          content: args.content,
+          slug: generateUniqueSlug(args.title)
         });
 
       if (error) throw error;
@@ -697,7 +699,8 @@ AMBIGUITY RESOLUTION:
       const motivatorData = motivators.map((motivator: any) => ({
         user_id: user!.id,
         title: motivator.title,
-        content: motivator.content
+        content: motivator.content,
+        slug: generateUniqueSlug(motivator.title)
       }));
 
       const { data, error } = await supabase

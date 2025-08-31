@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
 import { useMotivatorCache } from './useMotivatorCache';
+import { generateUniqueSlug } from '@/utils/slugUtils';
 
 export interface Motivator {
   id: string;
@@ -105,6 +106,7 @@ export const useMotivators = () => {
           image_url: motivatorData.imageUrl,
           link_url: motivatorData.linkUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
+          slug: generateUniqueSlug(motivatorData.title),
           is_active: true
         })
         .select()
@@ -197,6 +199,7 @@ export const useMotivators = () => {
         image_url: motivator.imageUrl,
         link_url: motivator.linkUrl,
         show_in_animations: motivator.show_in_animations ?? true,
+        slug: generateUniqueSlug(motivator.title),
         is_active: true
       }));
 
@@ -242,6 +245,7 @@ export const useMotivators = () => {
           title,
           content,
           category: 'saved_quote',
+          slug: generateUniqueSlug(title),
           show_in_animations: true, // Default to showing saved quotes in animations
           is_active: true
         })
