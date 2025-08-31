@@ -12,19 +12,21 @@ interface InlineActivitySelectorProps {
 }
 
 const ACTIVITY_LEVELS = {
-  sedentary: 'Low',
-  moderately_active: 'Medium', 
-  very_active: 'High'
+  sedentary: 'Sedentary',
+  lightly_active: 'Lightly Active',
+  moderately_active: 'Moderately Active',
+  very_active: 'Very Active'
 };
 
-// Calculate calorie additions above sedentary level (BMR × 1.2)
+// Calculate TDEE using proper multipliers
 const getCalorieAddition = (level: string, bmr: number) => {
   if (bmr === 0) return 0;
   
   const activityMultipliers = {
-    sedentary: 1.2,        // Sedentary baseline
-    moderately_active: 1.55, // Light to moderate exercise
-    very_active: 1.725,    // Regular vigorous exercise
+    sedentary: 1.2,          // Little/no exercise
+    lightly_active: 1.375,   // Light exercise 1-3 days/week
+    moderately_active: 1.55, // Moderate exercise 3-5 days/week
+    very_active: 1.725       // Hard exercise 6-7 days/week
   };
   
   const sedentaryTdee = bmr * 1.2;
