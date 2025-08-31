@@ -59,16 +59,17 @@ export const UnifiedMotivatorRotation = ({
         type: 'quote' as const
       }));
 
-    // Add walking timer quotes (for now, we'll use walking timer quotes in the walking context)
+    // Add walking timer quotes only if enabled
     const walkingQuotes = quoteSettings?.walking_timer_quotes || [];
-    const filteredQuotes = walkingQuotes
-      .map((quote, index) => ({
-        id: `quote-${index}`,
-        title: quote.text,
-        content: quote.text,
-        imageUrl: null,
-        type: 'quote' as const
-      }));
+    const filteredQuotes = (quoteSettings?.walking_timer_quotes_enabled !== false) 
+      ? walkingQuotes.map((quote, index) => ({
+          id: `quote-${index}`,
+          title: quote.text,
+          content: quote.text,
+          imageUrl: null,
+          type: 'quote' as const
+        }))
+      : [];
 
     // TODO: Add notes when they're available from admin system
     // For now, we'll just use motivators and quotes
