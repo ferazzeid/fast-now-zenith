@@ -71,23 +71,23 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <div 
-      className={`max-w-md mx-auto bg-primary text-primary-foreground rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
+      className={`max-w-md mx-auto bg-gray-900 border border-gray-700 rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative">
-        <p className={`${compact ? 'text-sm' : 'text-base'} italic text-primary-foreground leading-relaxed mb-3`}>
+        <p className={`${compact ? 'text-sm' : 'text-base'} italic text-white leading-relaxed mb-3`}>
           "{currentQuote.text}"
         </p>
         {currentQuote.author && (
-          <cite className={`${compact ? 'text-xs' : 'text-sm'} text-primary-foreground/80 not-italic`}>
+          <cite className={`${compact ? 'text-xs' : 'text-sm'} text-gray-200 not-italic`}>
             — {currentQuote.author}
           </cite>
         )}
       </blockquote>
       
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-primary-foreground/20">
-        <div className={`${compact ? 'text-xs' : 'text-sm'} text-primary-foreground/70 flex items-center gap-1`}>
-          <Hand className={`${compact ? 'w-3 h-3' : 'w-4 h-4'}`} />
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-700">
+        <div className={`${compact ? 'text-xs' : 'text-sm'} text-gray-300 flex items-center gap-2`}>
+          <Hand className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
           Tap for another quote
         </div>
         {onSaveQuote && (
@@ -98,9 +98,9 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
               e.stopPropagation();
               handleSaveQuote();
             }}
-            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10`}
+            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-2`}
           >
-            <Bookmark className={`${compact ? 'w-3 h-3 mr-1' : 'w-4 h-4 mr-1.5'}`} />
+            <Bookmark className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
             Save to Goals
           </Button>
         )}
