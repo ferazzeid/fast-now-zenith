@@ -68,14 +68,14 @@ const Auth = () => {
               <img 
                 src={appLogo} 
                 alt="App Logo" 
-                className="w-12 h-12 object-contain"
+                className="w-12 h-12 object-contain rounded-lg"
               />
             )}
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-4xl font-bold text-foreground">
               FastNow
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-foreground/80">
             Your no-BS weight loss program
           </p>
         </div>
