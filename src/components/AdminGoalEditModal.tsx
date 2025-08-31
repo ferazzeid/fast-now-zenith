@@ -17,6 +17,7 @@ interface AdminGoalIdea {
   category: string;
   imageUrl?: string;
   gender?: 'male' | 'female';
+  linkUrl?: string;
 }
 
 interface AdminGoalEditModalProps {
@@ -29,6 +30,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [componentKey, setComponentKey] = useState(0);
@@ -42,6 +44,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
+      setLinkUrl(goal.linkUrl || '');
       setGender(goal.gender || 'male');
       setIsSubmitting(false);
       setInlineError('');
@@ -68,6 +71,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         title: title.trim(),
         description: description.trim(),
         imageUrl: imageUrl || undefined,
+        linkUrl: linkUrl.trim() || undefined,
         gender: gender,
       };
 
@@ -81,6 +85,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         setTitle('');
         setDescription('');
         setImageUrl('');
+        setLinkUrl('');
         setGender('male');
         setIsSubmitting(false);
         setInlineError('');
@@ -189,6 +194,24 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
               <Label htmlFor="female" className="text-warm-text">Female 🔴</Label>
             </div>
           </RadioGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="goal-link" className="text-warm-text font-medium">
+            Read More Link
+          </Label>
+          <Input
+            id="goal-link"
+            value={linkUrl}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            className="bg-ceramic-base border-ceramic-rim"
+            placeholder="https://website.com/detailed-story..."
+            disabled={isSubmitting}
+            type="url"
+          />
+          <p className="text-xs text-muted-foreground">
+            Optional URL to a detailed story or description on your website
+          </p>
         </div>
 
         <div className="space-y-2">

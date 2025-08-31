@@ -10,6 +10,7 @@ export interface AdminGoalIdea {
   category: string;
   imageUrl?: string;
   gender?: 'male' | 'female';
+  linkUrl?: string;
 }
 
 export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {

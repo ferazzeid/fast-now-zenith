@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
-import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
   usePageSEO({
@@ -164,17 +164,36 @@ export default function MotivatorIdeas() {
                               </div>
                             )}
                           </div>
-                          <div className="flex flex-col gap-2 ml-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button size="sm" onClick={() => handleAdd(goal)} className="p-1 h-6 w-6 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground" aria-label="Add to my goals">
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Add this motivator to your goals</p>
-                              </TooltipContent>
-                            </Tooltip>
+                           <div className="flex flex-col gap-2 ml-2">
+                             <Tooltip>
+                               <TooltipTrigger asChild>
+                                 <Button size="sm" onClick={() => handleAdd(goal)} className="p-1 h-6 w-6 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground" aria-label="Add to my goals">
+                                   <Plus className="w-3 h-3" />
+                                 </Button>
+                               </TooltipTrigger>
+                               <TooltipContent>
+                                 <p>Add this motivator to your goals</p>
+                               </TooltipContent>
+                             </Tooltip>
+
+                             {goal.linkUrl && (
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button 
+                                     size="sm" 
+                                     variant="outline" 
+                                     onClick={() => window.open(goal.linkUrl, '_blank', 'noopener,noreferrer')}
+                                     className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
+                                     aria-label="Read full story"
+                                   >
+                                     <ExternalLink className="w-3 h-3" />
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>
+                                   <p>Read full story on website</p>
+                                 </TooltipContent>
+                               </Tooltip>
+                             )}
 
                             {isAdmin && (
                               <Tooltip>

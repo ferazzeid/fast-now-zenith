@@ -1,0 +1,14 @@
+-- Since admin_goal_ideas are stored as JSON in shared_settings, 
+-- no schema change is needed. The link_url field will be part of the JSON structure.
+-- This migration is just a placeholder to acknowledge the data structure change.
+
+-- Example of the updated JSON structure:
+-- {
+--   "id": "uuid",
+--   "title": "Goal title",
+--   "description": "Goal description", 
+--   "category": "personal",
+--   "imageUrl": "https://...",
+--   "gender": "male",
+--   "linkUrl": "https://website.com/detailed-story"
+-- }
