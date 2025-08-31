@@ -65,7 +65,7 @@ export const FastSelector = ({
       hour12: true 
     });
     
-    return `Started on ${dayText} at ${timeText}`;
+    return `Started: ${dayText} at ${timeText}`;
   };
 
   const handleDurationChange = (newDuration: number) => {
@@ -189,8 +189,8 @@ export const FastSelector = ({
               {/* Preview */}
               <div className="p-3 bg-primary/10 rounded-md border border-primary/20">
                 <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-white" />
-                  <span className="text-xs sm:text-sm font-medium text-white">
+                  <Clock className="w-4 h-4 text-foreground" />
+                  <span className="text-xs sm:text-sm font-medium text-foreground">
                     {getPreviewDateTime()}
                   </span>
                 </div>
