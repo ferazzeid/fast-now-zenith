@@ -197,7 +197,10 @@ export const UnifiedMotivatorRotation = ({
           className="absolute inset-0 flex items-center justify-center p-4"
           style={{ zIndex: 15 }}
         >
-          {current.type === 'motivator' ? (
+          {(() => {
+            console.log('🎯 Rendering content:', { type: current.type, title: current.title.substring(0, 30) });
+            return current.type === 'motivator';
+          })() ? (
             /* Goals: Circular centered display with ALL CAPS */
             <div className="w-44 h-44 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-2xl flex items-center justify-center animate-scale-in">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-full" />
