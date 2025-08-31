@@ -310,9 +310,6 @@ const FoodTracking = () => {
           await forceLoadTemplate();
         }
         
-        if (!profile?.enable_daily_reset) {
-          await updateProfile({ enable_daily_reset: true });
-        }
       }
     } catch (error) {
       console.error('🍽️ Exception saving template:', error);
@@ -717,68 +714,47 @@ const FoodTracking = () => {
             </TabsContent>
             
             <TabsContent value="template" className="mt-4">
-              <div className="space-y-4 pb-20">
-                {templateFoods.length > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/50 pb-2">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-1.5">
-                          <Switch 
-                            id="activate-daily"
-                            variant="neutral"
-                            checked={profile?.enable_daily_reset || false}
-                            onCheckedChange={(checked) => {
-                              updateProfile({ enable_daily_reset: checked }).then((result) => {
-                                if (result.error) {
-                                  toast({
-                                    variant: "destructive",
-                                    title: "Error",
-                                    description: "Failed to update daily reset setting"
-                                  });
-                                } else {
-                                  toast({
-                                    title: checked ? "Daily Reset Activated" : "Daily Reset Deactivated",
-                                    description: checked 
-                                      ? "Your template will automatically apply each day at midnight"
-                                      : "Automatic daily reset has been disabled"
-                                  });
-                                }
-                              });
-                            }}
-                            className="scale-75"
-                          />
-                          <Label htmlFor="activate-daily" className="text-xs font-normal">
-                            Auto-apply daily
-                          </Label>
-                          <ClickableTooltip content="When enabled, this template will automatically replace your current food plan every day at midnight">
-                            <Info className="w-3 h-3 text-muted-foreground/70 ml-1" />
-                          </ClickableTooltip>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowApplyTemplateDialog(true)}
-                          className="h-5 w-5 p-0 text-foreground hover:text-foreground hover:bg-foreground/10"
-                          aria-label="Apply template to today's plan"
-                          title="Apply template to today's plan"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowClearTemplateDialog(true)}
-                          className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive mr-1 md:mr-0"
-                          aria-label="Clear template"
-                          title="Clear template"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                <div className="space-y-4 pb-20">
+                 {templateFoods.length > 0 ? (
+                   <>
+                     <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/50 pb-2">
+                       <div className="flex items-center space-x-3">
+                         <div className="flex items-center space-x-1.5">
+                           <Tooltip>
+                             <TooltipTrigger asChild>
+                               <Button
+                                 variant="default"
+                                 size="sm"
+                                 onClick={() => setShowApplyTemplateDialog(true)}
+                                 className="h-8 w-8 p-0 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                                 aria-label="Apply template to today's plan"
+                               >
+                                 <Plus className="w-4 h-4" />
+                               </Button>
+                             </TooltipTrigger>
+                             <TooltipContent>
+                               <p>Apply template to today's plan</p>
+                             </TooltipContent>
+                           </Tooltip>
+                           <Label className="text-xs font-normal">
+                             Apply Template
+                           </Label>
+                         </div>
+                       </div>
+                       
+                       <div className="flex items-center space-x-2">
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => setShowClearTemplateDialog(true)}
+                           className="h-5 w-5 p-0 hover:bg-destructive/10 text-destructive mr-1 md:mr-0"
+                           aria-label="Clear template"
+                           title="Clear template"
+                         >
+                           <Trash2 className="w-3 h-3" />
+                         </Button>
+                       </div>
+                     </div>
                     
                     <div className="space-y-1">
                       {templateFoods.map((food, index) => {
