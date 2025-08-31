@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface FastingHour {
   hour: number;
@@ -25,6 +25,7 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
 }) => {
   const [fastingHours, setFastingHours] = useState<FastingHour[]>([]);
   const [loading, setLoading] = useState(true);
+  const [startIndex, setStartIndex] = useState(0);
 
   useEffect(() => {
     fetchFastingHours();
@@ -58,8 +59,8 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
     );
   }
 
-  const getVisibleHours = () => {
-    // Show hour 0, then first 24 hours, then every 6 hours up to 72
+  const getAllHours = () => {
+    // All hours: 0, 1-24, then every 6 hours up to 72
     const hours = [0];
     for (let i = 1; i <= 24; i++) {
       hours.push(i);
@@ -68,6 +69,33 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
       hours.push(i);
     }
     return hours;
+  };
+
+  const getVisibleHours = () => {
+    const allHours = getAllHours();
+    const maxVisible = 7; // Show 7 hours at a time
+    return allHours.slice(startIndex, startIndex + maxVisible);
+  };
+
+  const canNavigateLeft = () => startIndex > 0;
+  const canNavigateRight = () => {
+    const allHours = getAllHours();
+    const maxVisible = 7;
+    return startIndex + maxVisible < allHours.length;
+  };
+
+  const navigateLeft = () => {
+    if (canNavigateLeft()) {
+      setStartIndex(Math.max(0, startIndex - 3));
+    }
+  };
+
+  const navigateRight = () => {
+    if (canNavigateRight()) {
+      const allHours = getAllHours();
+      const maxVisible = 7;
+      setStartIndex(Math.min(allHours.length - maxVisible, startIndex + 3));
+    }
   };
 
   const getHourData = (hour: number) => {
@@ -103,32 +131,41 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
       </div>
       
       <TooltipProvider delayDuration={0}>
-        <div className="flex flex-wrap justify-center gap-2 max-w-sm mx-auto">
-          {visibleHours.map((hour) => {
-            const hourData = getHourData(hour);
-            const status = getHourStatus(hour);
-            
-            return (
-              <Tooltip key={hour}>
-                <TooltipTrigger asChild>
-                  <button
-                    className={`
-                      flex items-center gap-1 px-2 py-1 rounded-full border-2 text-xs font-medium 
-                      transition-all duration-200 hover:scale-110 active:scale-95
-                      ${getHourStyles(status)}
-                    `}
-                  >
-                    {/* Left arrow - grayed out for hour 0 */}
-                    <span className={`text-xs ${hour === 0 ? 'text-muted-foreground/40' : 'text-current'}`}>
-                      ◀
-                    </span>
-                    <span className="min-w-[16px] text-center">{hour}</span>
-                    {/* Right arrow */}
-                    <span className="text-xs text-current">
-                      ▶
-                    </span>
-                  </button>
-                </TooltipTrigger>
+        <div className="flex items-center justify-center gap-3 max-w-md mx-auto">
+          {/* Left Navigation Arrow */}
+          <button
+            onClick={navigateLeft}
+            disabled={!canNavigateLeft()}
+            className={`
+              p-1 rounded-full transition-all duration-200 
+              ${canNavigateLeft() 
+                ? 'text-primary hover:bg-primary/10 hover:scale-110 active:scale-95' 
+                : 'text-muted-foreground/40 cursor-not-allowed'
+              }
+            `}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          {/* Hour Buttons */}
+          <div className="flex gap-2">
+            {visibleHours.map((hour) => {
+              const hourData = getHourData(hour);
+              const status = getHourStatus(hour);
+              
+              return (
+                <Tooltip key={hour}>
+                  <TooltipTrigger asChild>
+                    <button
+                      className={`
+                        w-8 h-8 rounded-full border-2 text-xs font-medium 
+                        transition-all duration-200 hover:scale-110 active:scale-95
+                        ${getHourStyles(status)}
+                      `}
+                    >
+                      {hour}
+                    </button>
+                  </TooltipTrigger>
                 <TooltipContent 
                   side="top" 
                   className="max-w-xs p-3 text-left"
@@ -204,6 +241,22 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
               </Tooltip>
             );
           })}
+          </div>
+
+          {/* Right Navigation Arrow */}
+          <button
+            onClick={navigateRight}
+            disabled={!canNavigateRight()}
+            className={`
+              p-1 rounded-full transition-all duration-200 
+              ${canNavigateRight() 
+                ? 'text-primary hover:bg-primary/10 hover:scale-110 active:scale-95' 
+                : 'text-muted-foreground/40 cursor-not-allowed'
+              }
+            `}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </TooltipProvider>
       
