@@ -111,16 +111,18 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
         setCarbs(totalCarbs.toString());
       }
       
+      console.log('✅ Food analysis successful:', result);
       toast({ 
         title: 'Analysis complete', 
         description: 'Food detected! Review and adjust if needed.' 
       });
     } catch (e: any) {
-      console.error('Analyze error', e);
-      setError('Failed to analyze image');
+      console.error('❌ Food analysis error:', e);
+      const errorMessage = e?.message || 'Failed to analyze image';
+      setError(errorMessage);
       toast({ 
         title: 'Analysis failed', 
-        description: 'Please try another photo or enter details manually.', 
+        description: 'Modal stays open - try another photo or enter details manually.', 
         variant: 'destructive' 
       });
     } finally {
@@ -248,9 +250,11 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
         image_url: imageUrl
       };
       
+      console.log('💾 Saving food entry:', finalData);
       await onSave(finalData);
       trackFoodEvent('add', imageUrl ? 'image' : 'manual');
       
+      console.log('✅ Food entry saved successfully, closing modal');
       // Reset form
       resetForm();
       onClose();

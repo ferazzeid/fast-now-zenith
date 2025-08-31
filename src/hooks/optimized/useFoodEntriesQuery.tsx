@@ -131,7 +131,7 @@ export const useFoodEntriesQuery = () => {
           calories: newEntry.calories,
           carbs: newEntry.carbs,
           serving_size: newEntry.serving_size,
-          consumed: newEntry.consumed ?? true,
+          consumed: newEntry.consumed ?? false,
           image_url: newEntry.image_url,
         })
         .select()
@@ -156,7 +156,7 @@ export const useFoodEntriesQuery = () => {
         calories: newEntry.calories,
         carbs: newEntry.carbs,
         serving_size: newEntry.serving_size,
-        consumed: newEntry.consumed ?? true,
+        consumed: newEntry.consumed ?? false,
         image_url: newEntry.image_url,
         created_at: new Date().toISOString(),
       };
