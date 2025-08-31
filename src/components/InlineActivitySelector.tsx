@@ -65,7 +65,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
   };
 
   const getCurrentValue = () => {
-    return todayOverride ? todayOverride.activity_level : (profile?.activity_level || 'sedentary');
+    return todayOverride ? todayOverride.activity_level : (profile?.activity_level || 'lightly_active');
   };
 
   const getDisplayLabel = (level: string) => {
