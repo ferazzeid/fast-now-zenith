@@ -182,26 +182,22 @@ export const UnifiedMotivatorRotation = ({
         </div>
       )}
 
-      {/* Text overlay (above progress ring) */}
+      {/* Text overlay with adaptive card layout */}
       {showText && (
         <div
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center p-4"
           style={{ zIndex: 15 }}
         >
-          <div className="relative">
-            {/* Pulsation rings (inspired by Admin Dev 'ring pulse') */}
-            <div className="absolute -inset-6 rounded-full border-2 border-primary/20 animate-pulse pointer-events-none" />
-            <div className="absolute -inset-3 rounded-full border border-primary/30 animate-pulse pointer-events-none" style={{ animationDelay: '0.15s' }} />
-            <div className="absolute -inset-1 rounded-full border border-primary/40 animate-pulse pointer-events-none" style={{ animationDelay: '0.3s' }} />
-
-            {/* Circular blurred background with text */}
-            <div 
-              className="w-44 h-44 rounded-full bg-black/40 text-white backdrop-blur-sm border border-white/10 shadow-lg animate-scale-in flex items-center justify-center px-6 text-center"
-              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
-            >
-              <span className="font-semibold text-sm tracking-wide leading-snug">
-                {current!.title!.toUpperCase()}
-              </span>
+          {/* Adaptive card background */}
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-6 max-w-[280px] w-full animate-scale-in">
+            {/* Subtle glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl" />
+            
+            {/* Text content */}
+            <div className="relative z-10 text-center text-white">
+              <p className="text-base font-medium leading-relaxed break-words" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                {current!.title}
+              </p>
             </div>
           </div>
         </div>

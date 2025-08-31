@@ -28,12 +28,15 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
   const [editTitle, setEditTitle] = useState(note.title);
   const [editContent, setEditContent] = useState(note.content);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [localShowInAnimations, setLocalShowInAnimations] = useState(note.show_in_animations);
+  const [isToggling, setIsToggling] = useState(false);
 
   // Sync with prop changes for optimistic updates
   useEffect(() => {
     setEditTitle(note.title);
     setEditContent(note.content);
-  }, [note.title, note.content]);
+    setLocalShowInAnimations(note.show_in_animations);
+  }, [note.title, note.content, note.show_in_animations]);
 
   const handleSave = useCallback(async () => {
     if (!editTitle.trim() || !editContent.trim()) {
@@ -170,10 +173,13 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                         size="sm"
                         onClick={async () => {
                           try {
-                            const newValue = !note.show_in_animations;
+                            const newValue = !localShowInAnimations;
+                            setLocalShowInAnimations(newValue);
+                            setIsToggling(true);
+                            
                             console.log('🔄 Toggling animation for note:', {
                               id: note.id,
-                              currentValue: note.show_in_animations,
+                              currentValue: localShowInAnimations,
                               newValue: newValue,
                               title: note.title?.substring(0, 30)
                             });
@@ -185,12 +191,16 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                             console.log('✅ Toggle note animation successful');
                           } catch (error) {
                             console.error('❌ Error toggling note animation setting:', error);
+                            setLocalShowInAnimations(localShowInAnimations); // Revert on error
+                          } finally {
+                            setIsToggling(false);
                           }
                         }}
-                        className="h-8 w-8 p-0 text-foreground relative"
+                        disabled={isToggling}
+                        className="h-8 w-8 p-0 text-foreground relative transition-all duration-200"
                       >
-                        <Eye className={`h-4 w-4 ${note.show_in_animations === false ? 'line-through' : ''}`} />
-                        {note.show_in_animations === false && (
+                        <Eye className={`h-4 w-4 ${localShowInAnimations === false ? 'opacity-50' : ''}`} />
+                        {localShowInAnimations === false && (
                           <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-5 h-px bg-foreground rotate-45" />
                           </div>
@@ -198,7 +208,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{note.show_in_animations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                      <p>{localShowInAnimations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

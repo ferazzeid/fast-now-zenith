@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2, Eye, EyeOff } from 'lucide-react';
@@ -32,6 +32,12 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
   onDelete,
   onToggleAnimation
 }) => {
+  const [localShowInAnimations, setLocalShowInAnimations] = useState(motivator.show_in_animations);
+  const [isToggling, setIsToggling] = useState(false);
+
+  useEffect(() => {
+    setLocalShowInAnimations(motivator.show_in_animations);
+  }, [motivator.show_in_animations]);
   return (
     <Card className="overflow-hidden relative bg-gray-900 border-gray-700">
       <CardContent className="p-6">
@@ -55,10 +61,13 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                       size="sm"
                       onClick={async () => {
                         try {
-                          const newValue = !motivator.show_in_animations;
+                          const newValue = !localShowInAnimations;
+                          setLocalShowInAnimations(newValue);
+                          setIsToggling(true);
+                          
                           console.log('🔄 Toggling animation for motivator:', {
                             id: motivator.id,
-                            currentValue: motivator.show_in_animations,
+                            currentValue: localShowInAnimations,
                             newValue: newValue,
                             title: motivator.title?.substring(0, 30)
                           });
@@ -66,12 +75,16 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                           console.log('✅ Toggle animation successful');
                         } catch (error) {
                           console.error('❌ Error toggling animation setting:', error);
+                          setLocalShowInAnimations(localShowInAnimations); // Revert on error
+                        } finally {
+                          setIsToggling(false);
                         }
                       }}
-                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white relative"
+                      disabled={isToggling}
+                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white relative transition-all duration-200"
                     >
-                    <Eye className={`w-4 h-4 ${motivator.show_in_animations === false ? 'line-through' : ''}`} />
-                    {motivator.show_in_animations === false && (
+                    <Eye className={`w-4 h-4 ${localShowInAnimations === false ? 'opacity-50' : ''}`} />
+                    {localShowInAnimations === false && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-5 h-px bg-white rotate-45" />
                       </div>
@@ -79,7 +92,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{motivator.show_in_animations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                  <p>{localShowInAnimations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
                 </TooltipContent>
               </Tooltip>
             )}
