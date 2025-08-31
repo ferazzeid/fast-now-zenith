@@ -1190,7 +1190,7 @@ const FoodTracking = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleApplyTemplate} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Add Template Foods
+              Add to Today
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
