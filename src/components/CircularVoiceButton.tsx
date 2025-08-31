@@ -10,6 +10,7 @@ interface CircularVoiceButtonProps {
   size?: 'sm' | 'md' | 'lg';
   autoStart?: boolean;
   onRecordingStateChange?: (isRecording: boolean) => void;
+  onError?: (error: string) => void;
 }
 
 export const CircularVoiceButton = React.forwardRef<
@@ -20,7 +21,8 @@ export const CircularVoiceButton = React.forwardRef<
   isDisabled = false,
   size = 'md',
   autoStart = false,
-  onRecordingStateChange
+  onRecordingStateChange,
+  onError
 }, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -269,6 +271,8 @@ export const CircularVoiceButton = React.forwardRef<
         errorMessage = "Voice feature requires premium access";
       } else if (error.message?.includes('network') || error.message?.includes('connection')) {
         errorMessage = "Network error. Please check your connection.";
+      } else if (error.message?.includes('AI features are only available')) {
+        errorMessage = "Voice input requires premium access. Upgrade to continue.";
       }
       
       toast({
@@ -276,6 +280,9 @@ export const CircularVoiceButton = React.forwardRef<
         description: errorMessage,
         variant: "destructive"
       });
+      
+      // Notify parent component of error
+      onError?.(errorMessage);
       
       // Reset recording state on error
       setIsRecording(false);
