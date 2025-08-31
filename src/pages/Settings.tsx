@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useProfile } from '@/hooks/useProfile';
@@ -440,7 +441,41 @@ const Settings = () => {
                   </Button>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-8">
+                  
+                  {/* Measurement System Selection - Top */}
+                  <div className="space-y-4 mt-6">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-warm-text">Measurement System</Label>
+                      <ClickableTooltip content="Choose how distances, speeds, and weights are displayed throughout the app">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
+                    <Select 
+                      value={profile?.units || 'imperial'} 
+                      onValueChange={async (value: 'metric' | 'imperial') => {
+                        await updateProfile({ units: value });
+                        toast({
+                          title: "Units Updated",
+                          description: `Switched to ${value === 'metric' ? 'metric (km, km/h, kg)' : 'imperial (miles, mph, lbs)'} system`,
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border z-50">
+                        <SelectItem value="imperial">Imperial</SelectItem>
+                        <SelectItem value="metric">Metric</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-2 border border-ceramic-rim">
+                      <div className="space-y-1">
+                        <div><strong>Imperial:</strong> miles, mph, lbs</div>
+                        <div><strong>Metric:</strong> kilometers, km/h, kg</div>
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
@@ -506,6 +541,27 @@ const Settings = () => {
                     </div>
                   </div>
                   
+                  {/* Activity Level Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
+                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Sedentary' (office work) or 'Lightly Active' (some walking). This is your default setting.">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
+                     <Select value={activityLevel} onValueChange={setActivityLevel}>
+                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
+                         <SelectValue placeholder="Select" />
+                       </SelectTrigger>
+                         <SelectContent>
+                            <SelectItem value="sedentary">Sedentary {getCalorieAddition('sedentary') > 0 ? `(+${getCalorieAddition('sedentary')} cal)` : ''}</SelectItem>
+                            <SelectItem value="lightly_active">Lightly Active (+{getCalorieAddition('lightly_active')} cal)</SelectItem>
+                            <SelectItem value="moderately_active">Moderately Active (+{getCalorieAddition('moderately_active')} cal)</SelectItem>
+                            <SelectItem value="very_active">Very Active (+{getCalorieAddition('very_active')} cal)</SelectItem>
+                         </SelectContent>
+                     </Select>
+                   </div>
+                  
                   {/* Daily Goals Section */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -539,93 +595,42 @@ const Settings = () => {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Activity Level Section */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
-                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Sedentary' (office work) or 'Lightly Active' (some walking). This is your default setting.">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
-                     <Select value={activityLevel} onValueChange={setActivityLevel}>
-                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
-                         <SelectValue placeholder="Select" />
-                       </SelectTrigger>
-                         <SelectContent>
-                            <SelectItem value="sedentary">Sedentary {getCalorieAddition('sedentary') > 0 ? `(+${getCalorieAddition('sedentary')} cal)` : ''}</SelectItem>
-                            <SelectItem value="lightly_active">Lightly Active (+{getCalorieAddition('lightly_active')} cal)</SelectItem>
-                            <SelectItem value="moderately_active">Moderately Active (+{getCalorieAddition('moderately_active')} cal)</SelectItem>
-                            <SelectItem value="very_active">Very Active (+{getCalorieAddition('very_active')} cal)</SelectItem>
-                         </SelectContent>
-                     </Select>
-                   </div>
                    
-                   {/* Manual TDEE Override */}
+                   {/* Manual TDEE Override - Bottom with Separator */}
                    {calculateBMR() > 0 && (
-                     <div className="space-y-2">
-                       <div className="flex items-center gap-2">
-                         <Label htmlFor="manual-tdee" className="text-warm-text">Manual Daily Burn Override (optional)</Label>
-                         <ClickableTooltip content="Override the calculated daily burn if you know your actual TDEE from metabolic testing.">
-                           <Info className="w-4 h-4 text-muted-foreground" />
-                         </ClickableTooltip>
-                       </div>
-                       <div className="flex gap-2">
-                         <Input
-                           id="manual-tdee"
-                           type="number"
-                           placeholder={`${Math.round(calculateBMR() * (1.2 + (getCalorieAddition(activityLevel) / calculateBMR())))} (calculated)`}
-                           value={manualTdeeOverride}
-                           onChange={(e) => setManualTdeeOverride(e.target.value)}
-                           className="bg-ceramic-base border-ceramic-rim flex-1"
-                         />
-                         {manualTdeeOverride && (
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={() => setManualTdeeOverride('')}
-                             className="bg-ceramic-base border-ceramic-rim"
-                           >
-                             Clear
-                           </Button>
-                         )}
+                     <div className="space-y-4 pt-6">
+                       <Separator className="bg-ceramic-rim" />
+                       <div className="space-y-4">
+                         <div className="flex items-center gap-2">
+                           <Label htmlFor="manual-tdee" className="text-warm-text">Manual Daily Burn Override</Label>
+                           <ClickableTooltip content="Override the calculated daily burn if you know your actual TDEE from metabolic testing.">
+                             <Info className="w-4 h-4 text-muted-foreground" />
+                           </ClickableTooltip>
+                         </div>
+                         <div className="flex gap-2">
+                           <Input
+                             id="manual-tdee"
+                             type="number"
+                             placeholder={`${Math.round(calculateBMR() * (1.2 + (getCalorieAddition(activityLevel) / calculateBMR())))} (calculated)`}
+                             value={manualTdeeOverride}
+                             onChange={(e) => setManualTdeeOverride(e.target.value)}
+                             className="bg-ceramic-base border-ceramic-rim flex-1"
+                           />
+                           {manualTdeeOverride && (
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => setManualTdeeOverride('')}
+                               className="bg-ceramic-base border-ceramic-rim"
+                             >
+                               Clear
+                             </Button>
+                           )}
+                         </div>
                        </div>
                      </div>
                     )}
                     
-                    {/* Measurement System Selection */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-warm-text">Measurement System</Label>
-                        <ClickableTooltip content="Choose how distances, speeds, and weights are displayed throughout the app">
-                          <Info className="w-4 h-4 text-muted-foreground" />
-                        </ClickableTooltip>
-                      </div>
-                      <Select 
-                        value={profile?.units || 'imperial'} 
-                        onValueChange={async (value: 'metric' | 'imperial') => {
-                          await updateProfile({ units: value });
-                          toast({
-                            title: "Units Updated",
-                            description: `Switched to ${value === 'metric' ? 'metric (km, km/h, kg)' : 'imperial (miles, mph, lbs)'} system`,
-                          });
-                        }}
-                      >
-                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border z-50">
-                          <SelectItem value="imperial">Imperial</SelectItem>
-                          <SelectItem value="metric">Metric</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-2 border border-ceramic-rim">
-                        <div className="space-y-1">
-                          <div><strong>Imperial:</strong> miles, mph, lbs</div>
-                          <div><strong>Metric:</strong> kilometers, km/h, kg</div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </Card>
