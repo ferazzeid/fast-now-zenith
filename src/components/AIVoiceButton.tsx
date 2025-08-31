@@ -16,6 +16,7 @@ import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { conversationMemory } from '@/utils/conversationMemory';
 
 interface Message {
@@ -41,6 +42,7 @@ export const AIVoiceButton = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
+  const { addFoodEntry } = useFoodEntriesQuery();
 
   // Add welcome message when modal opens
   useEffect(() => {
@@ -300,21 +302,14 @@ export const AIVoiceButton = () => {
 
     try {
       for (const food of selectedFoods) {
-        const { error } = await supabase
-          .from('food_entries')
-          .insert({
-            user_id: user!.id,
-            name: food.name,
-            serving_size: food.serving_size || 100,
-            calories: food.calories || 0,
-            carbs: food.carbs || 0,
-            source_date: new Date().toISOString().split('T')[0]
-          });
-
-        if (error) throw error;
+        await addFoodEntry({
+          name: food.name,
+          serving_size: food.serving_size || 100,
+          calories: food.calories || 0,
+          carbs: food.carbs || 0,
+          consumed: false
+        });
       }
-
-      await refreshContext();
       
       const totalCalories = selectedFoods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
       const foodList = selectedFoods.map((food: any) => `${food.name} (${food.serving_size}g)`).join(', ');
