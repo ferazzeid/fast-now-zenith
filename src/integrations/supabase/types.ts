@@ -1770,6 +1770,10 @@ export type Database = {
         Args: { _platform: string }
         Returns: string
       }
+      get_user_profile_context: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
