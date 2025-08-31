@@ -34,7 +34,7 @@ interface AnalysisResult {
 interface UnifiedFoodEntryProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: any | any[]) => void;
 }
 
 export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryProps) => {
@@ -241,20 +241,24 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
     setSaving(true);
     try {
-      const finalData = {
-        name: name.trim(),
-        serving_size: parseFloat(servingAmount) * quantity,
-        calories: parseFloat(calories) * quantity,
-        carbs: (carbs ? parseFloat(carbs) : 0) * quantity,
-        consumed: false,
-        image_url: imageUrl
-      };
+      // Create separate entries for each quantity
+      const entries = [];
+      for (let i = 0; i < quantity; i++) {
+        entries.push({
+          name: name.trim(),
+          serving_size: parseFloat(servingAmount),
+          calories: parseFloat(calories),
+          carbs: carbs ? parseFloat(carbs) : 0,
+          consumed: false,
+          image_url: imageUrl
+        });
+      }
       
-      console.log('💾 Saving food entry:', finalData);
-      await onSave(finalData);
+      console.log(`💾 Saving ${quantity} food ${quantity === 1 ? 'entry' : 'entries'}:`, entries);
+      await onSave(entries);
       trackFoodEvent('add', imageUrl ? 'image' : 'manual');
       
-      console.log('✅ Food entry saved successfully, closing modal');
+      console.log('✅ Food entries saved successfully, closing modal');
       // Reset form
       resetForm();
       onClose();
@@ -563,21 +567,21 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
           </Button>
         </div>
         
-        {/* Add Button */}
-        <Button 
-          onClick={handleSave} 
-          disabled={saving || !name || !calories || !servingAmount}
-          className="flex-1"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Adding...
-            </>
-          ) : (
-            "Add to Food Plan"
-          )}
-        </Button>
+         {/* Add Button */}
+         <Button 
+           onClick={handleSave} 
+           disabled={saving || !name || !calories || !servingAmount}
+           className="flex-1"
+         >
+           {saving ? (
+             <>
+               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+               Adding...
+             </>
+           ) : (
+             quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"
+           )}
+         </Button>
       </div>
     </UniversalModal>
   );

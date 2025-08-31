@@ -167,30 +167,57 @@ const FoodTracking = () => {
     setShowUnifiedEntry(true);
   };
 
-  const handleSaveUnifiedEntry = async (food: { name: string; calories: number; carbs: number; serving_size: number; image_url?: string }) => {
-    const result = await addFoodEntry({
-      name: food.name,
-      calories: food.calories,
-      carbs: food.carbs,
-      serving_size: food.serving_size,
-      consumed: false,
-      image_url: food.image_url
-    });
+  const handleSaveUnifiedEntry = async (data: any | any[]) => {
+    // Handle both single entry and array of entries
+    const entries = Array.isArray(data) ? data : [data];
     
-    if (!result || 'error' in result) {
+    let successCount = 0;
+    const failedItems: string[] = [];
+    
+    // Process entries sequentially to prevent race conditions
+    for (const food of entries) {
+      try {
+        const result = await addFoodEntry({
+          name: food.name,
+          calories: food.calories,
+          carbs: food.carbs,
+          serving_size: food.serving_size,
+          consumed: false,
+          image_url: food.image_url
+        });
+        
+        if (!result || 'error' in result) {
+          throw new Error('Failed to save food entry');
+        }
+        
+        successCount++;
+      } catch (error) {
+        console.error('Error adding food:', food.name, error);
+        failedItems.push(food.name);
+      }
+    }
+    
+    // Show appropriate success/error messages
+    if (successCount > 0) {
+      const isMultiple = entries.length > 1;
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save food entry"
-      });
-    } else {
-      toast({
-        title: "Food Added",
-        description: `${food.name} has been added to your plan`
+        title: isMultiple ? `${successCount} Foods Added` : "Food Added",
+        description: isMultiple 
+          ? `${successCount} food ${successCount === 1 ? 'item has' : 'items have'} been added to your plan`
+          : `${entries[0].name} has been added to your plan`
       });
       
-      trackFoodEvent('add', food.image_url ? 'image' : 'manual');
+      trackFoodEvent('add', entries[0].image_url ? 'image' : 'manual');
     }
+    
+    if (failedItems.length > 0) {
+      toast({
+        variant: "destructive",
+        title: "Some Foods Failed",
+        description: `Failed to add: ${failedItems.join(', ')}`
+      });
+    }
+    
     setShowUnifiedEntry(false);
   };
 
