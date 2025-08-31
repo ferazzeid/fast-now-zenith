@@ -418,7 +418,7 @@ const FoodTracking = () => {
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-      <div className="max-w-md mx-auto pt-10 pb-24">
+      <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
         {/* Header with Onboarding and History Buttons */}
         <ResponsivePageHeader
           title="Food Tracking"

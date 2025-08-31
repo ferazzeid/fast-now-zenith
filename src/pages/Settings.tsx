@@ -403,7 +403,7 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <div className="max-w-md mx-auto pt-10 pb-24">
+      <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
         <div className="space-y-6">
           <div className="space-y-2">
             {/* Header */}
