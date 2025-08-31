@@ -565,7 +565,8 @@ const Motivators = () => {
                         note={{
                           id: note.id,
                           title: note.title,
-                          content: note.content
+                          content: note.content,
+                          show_in_animations: note.show_in_animations
                         }}
                         onUpdate={async (id, updates) => {
                           await updateMotivator(id, updates);

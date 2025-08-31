@@ -207,13 +207,12 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                           }
                         }}
                         disabled={isToggling}
-                        className="h-8 w-8 p-0 text-foreground relative transition-all duration-200"
+                        className="h-8 w-8 p-0 text-foreground transition-all duration-200"
                       >
-                        <Eye className={`h-4 w-4 ${localShowInAnimations === false ? 'opacity-50' : ''}`} />
-                        {localShowInAnimations === false && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-5 h-px bg-foreground rotate-45" />
-                          </div>
+                        {localShowInAnimations !== false ? (
+                          <Eye className="h-4 w-4" />
+                        ) : (
+                          <EyeOff className="h-4 w-4" />
                         )}
                       </Button>
                     </TooltipTrigger>
