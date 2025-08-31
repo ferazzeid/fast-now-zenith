@@ -63,11 +63,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     return null;
   }
 
-  const [foods, setFoods] = useState<UserFood[]>([]);
+  // Use recent foods hook for "My Foods" tab
+  const { recentFoods, loading: recentFoodsLoading, refreshRecentFoods } = useRecentFoods();
+  
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
@@ -77,19 +79,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   // Prevent interactions during invalid session states
   const isInteractionSafe = canPerformDatabaseOperations;
   const { toast } = useToast();
+  
+  // Combined loading state
+  const loading = recentFoodsLoading || defaultFoodsLoading;
 
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
+      setDefaultFoodsLoading(true);
       try {
         await Promise.all([
-          loadUserFoods(),
           loadDefaultFoods(),
           loadDefaultFoodFavorites(),
           checkAdminRole()
         ]);
       } finally {
-        setLoading(false);
+        setDefaultFoodsLoading(false);
       }
     };
     
@@ -112,28 +116,18 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const loadUserFoods = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_foods')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('is_favorite', { ascending: false })
-        .order('name');
-
-      if (error) throw error;
-      setFoods(data || []);
-    } catch (error) {
-      console.error('Error loading user foods:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load your food library",
-        variant: "destructive"
-      });
-    }
-  };
+  // Convert recent foods to UserFood format for compatibility
+  const foods: UserFood[] = useMemo(() => {
+    return recentFoods.map(food => ({
+      id: food.id,
+      name: food.name,
+      calories_per_100g: food.calories_per_100g,
+      carbs_per_100g: food.carbs_per_100g,
+      is_favorite: false, // Recent foods don't have favorite status from library
+      image_url: food.image_url,
+      variations: []
+    }));
+  }, [recentFoods]);
 
   const loadDefaultFoods = async () => {
     try {
@@ -269,12 +263,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       return;
     }
 
-    // Optimistic update
-    setFoods(prevFoods => prevFoods.map(food => 
-      food.id === foodId 
-        ? { ...food, is_favorite: !currentFavorite }
-        : food
-    ));
+    // Note: Recent foods don't support favorites directly since they come from food_entries
+    // This functionality would need to be implemented via user_foods table if needed
 
     try {
       console.log('❤️ FoodLibrary - Performing database update');
@@ -309,12 +299,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     } catch (error) {
       console.error('❤️ FoodLibrary - toggleFavorite failed:', error);
       
-      // Rollback optimistic update on error
-      setFoods(prevFoods => prevFoods.map(food => 
-        food.id === foodId 
-          ? { ...food, is_favorite: currentFavorite }
-          : food
-      ));
+      // Note: Recent foods don't support rollback since they don't have favorite status
       
       toast({
         variant: "destructive",
@@ -395,12 +380,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('🍽️ FoodLibrary - updateFood success:', data);
 
-      // Use functional state update to avoid stale closure
-      setFoods(prevFoods => prevFoods.map(food => 
-        food.id === foodId 
-          ? { ...food, ...updates }
-          : food
-      ));
+      // Refresh recent foods to show the updated food
+      await refreshRecentFoods();
 
       console.log('🍽️ FoodLibrary - food updated in local state');
     } catch (error) {
@@ -445,8 +426,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('🍽️ FoodLibrary - deleteFood success:', data);
 
-      // Use functional state update to avoid stale closure
-      setFoods(prevFoods => prevFoods.filter(food => food.id !== foodId));
+      // Refresh recent foods to show the updated library
+      await refreshRecentFoods();
       
       toast({
         title: "Food removed",
@@ -476,9 +457,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     try {
       console.log('🍽️ FoodLibrary - Starting delete all foods operation');
       
-      // Optimistic update - clear local state immediately
-      const originalFoods = [...foods];
-      setFoods([]);
+      // Clear confirmation dialog
       setShowDeleteAllConfirm(false);
       
       // Delete both user library foods AND all food entries (recent foods)
@@ -495,17 +474,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       if (userFoodsResult.error || foodEntriesResult.error) {
         const error = userFoodsResult.error || foodEntriesResult.error;
-        console.error('🍽️ FoodLibrary - Database deletion failed, rolling back:', error);
-        // Rollback optimistic update on error
-        setFoods(originalFoods);
+        console.error('🍽️ FoodLibrary - Database deletion failed:', error);
         setShowDeleteAllConfirm(true);
         throw error;
       }
 
       console.log('🍽️ FoodLibrary - Database deletion successful');
       
-      // Refresh user foods to show the new addition
-      await loadUserFoods();
+      // Refresh recent foods to show the updated library
+      await refreshRecentFoods();
       
       toast({
         title: "All foods removed",
@@ -573,8 +550,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
     if (error) throw error;
 
-    // Refresh user foods to show the new addition
-    await loadUserFoods();
+    // Refresh recent foods to show the new addition
+    await refreshRecentFoods();
     
     if (!silent) {
       toast({
@@ -597,8 +574,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       if (error) throw error;
 
-      // Refresh user foods to show the updated library
-      await loadUserFoods();
+      // Refresh recent foods to show the updated library
+      await refreshRecentFoods();
       
       toast({
         title: "Food removed",
@@ -642,7 +619,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
 
-  // Simplified filtering since all recent foods are now auto-saved to library
+  // Filter and sort recent foods by recency
   const filteredUserFoods = useMemo(() => {
     if (!foods) return [];
     
@@ -650,13 +627,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       food.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    // Sort: favorites first, then by name
+    // Sort by last used (most recent first) - this is the key difference from library foods
     return filtered.sort((a, b) => {
-      if (a.is_favorite && !b.is_favorite) return -1;
-      if (!a.is_favorite && b.is_favorite) return 1;
-      return a.name.localeCompare(b.name);
+      const aRecentFood = recentFoods.find(rf => rf.id === a.id);
+      const bRecentFood = recentFoods.find(rf => rf.id === b.id);
+      
+      if (!aRecentFood || !bRecentFood) return 0;
+      
+      return new Date(bRecentFood.last_used).getTime() - new Date(aRecentFood.last_used).getTime();
     });
-  }, [foods, searchTerm]);
+  }, [foods, searchTerm, recentFoods]);
 
   const filteredDefaultFoods = useMemo(() => {
     return defaultFoods.filter(food =>
