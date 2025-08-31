@@ -389,7 +389,7 @@ const Motivators = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <Button
-                      onClick={() => setShowMotivatorIdeasModal(true)}
+                      onClick={() => navigate('/motivator-ideas')}
                       variant="action-secondary"
                       size="action-tall"
                       className="w-full flex items-center justify-center"
