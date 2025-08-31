@@ -120,9 +120,9 @@ export const EnhancedVoiceFoodInput = ({
   };
 
   // Show different icons and styles based on state
-  let IconComponent = Sparkles;
-  let iconClass = "w-3.5 h-3.5";
-  let buttonClass = `absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-full transition-all duration-200 flex items-center justify-center z-10 ${className}`;
+  let IconComponent = Mic;
+  let iconClass = "w-5 h-5";
+  let buttonClass = `w-10 h-10 rounded-full transition-all duration-200 flex items-center justify-center flex-shrink-0 ${className}`;
 
   if (showSuccess) {
     IconComponent = Check;
@@ -130,16 +130,16 @@ export const EnhancedVoiceFoodInput = ({
   } else if (isEstimating) {
     IconComponent = Loader2;
     iconClass += " animate-spin";
-    buttonClass += " bg-primary text-primary-foreground";
+    buttonClass += " bg-ai text-white";
   } else if (isProcessing) {
     IconComponent = Loader2;
     iconClass += " animate-spin";
-    buttonClass += " bg-ai text-ai-foreground";
+    buttonClass += " bg-ai text-white";
   } else if (isRecording) {
     IconComponent = Mic;
     buttonClass += " bg-red-500 text-white animate-pulse";
   } else {
-    buttonClass += " bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-110";
+    buttonClass += " bg-ai hover:bg-ai/90 text-white shadow-lg hover:shadow-xl hover:scale-105";
   }
 
   return (

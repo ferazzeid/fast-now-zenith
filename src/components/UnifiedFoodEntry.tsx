@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -360,18 +360,14 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
           <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
             Food Name <span className="text-red-500">*</span>
           </Label>
-          <div className="relative">
+          <div className="flex gap-2 items-center">
             <Input
               id="food-name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g., Grilled Chicken Breast"
-              className="h-9 pr-14"
+              className="h-9 flex-1"
               required
-            />
-            <DirectInlineVoiceButton
-              onTranscription={setName}
-              parseNumbers={false}
             />
             <EnhancedVoiceFoodInput
               onFoodParsed={(result) => {
@@ -402,7 +398,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   });
                 }
               }}
-              className="!right-8"
             />
           </div>
         </div>
@@ -411,9 +406,21 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
         <div className="space-y-4">
           {/* Connected Amount and Unit fields */}
           <div>
-            <Label className="text-xs font-medium mb-1 block">
-              Amount <span className="text-red-500">*</span>
-            </Label>
+            <div className="flex items-center gap-1 mb-1">
+              <Label className="text-xs font-medium">
+                Amount <span className="text-red-500">*</span>
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-64 text-xs">
+                    <p>We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="flex">
               <div className="relative flex-1">
                 <Input
@@ -510,14 +517,10 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                   value={calories}
                   onChange={(e) => setCalories(e.target.value)}
                   placeholder="0"
-                  className={`text-sm h-9 pr-8 ${
+                  className={`text-sm h-9 ${
                     parseFloat(calories) === 0 && calories !== '' ? 'border-destructive text-destructive' : ''
                   }`}
                   required
-                />
-                <DirectInlineVoiceButton
-                  onTranscription={setCalories}
-                  parseNumbers={true}
                 />
               </div>
               {parseFloat(calories) === 0 && calories !== '' && (
@@ -530,19 +533,13 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
               <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
                 Carbs (g)
               </Label>
-              <div className="relative">
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={carbs}
-                  onChange={(e) => setCarbs(e.target.value)}
-                  className="text-sm h-9 pr-8"
-                />
-                <DirectInlineVoiceButton
-                  onTranscription={setCarbs}
-                  parseNumbers={true}
-                />
-              </div>
+              <Input
+                id="carbs"
+                type="number"
+                value={carbs}
+                onChange={(e) => setCarbs(e.target.value)}
+                className="text-sm h-9"
+              />
             </div>
           </div>
         </div>
