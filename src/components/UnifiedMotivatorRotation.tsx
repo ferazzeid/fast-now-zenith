@@ -21,7 +21,7 @@ export const UnifiedMotivatorRotation = ({
   onModeChange,
   className = '',
   timerDurationMs = 5000,
-  imageLeadMs = 2000,
+  imageLeadMs = 500, // Reduced delay for better synchronization
   textDurationMs = 4000,
 }: UnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
@@ -229,11 +229,20 @@ export const UnifiedMotivatorRotation = ({
               </div>
             </div>
           ) : (
-            /* Quotes/Notes: Adaptive rectangular card with smaller font and full space */
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-6 max-w-md w-full animate-scale-in">
+            /* Quotes/Notes: Adaptive rectangular card with dynamic sizing and font */
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-6 max-w-2xl w-full max-h-[70vh] overflow-hidden animate-scale-in">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl" />
               <div className="relative z-10 text-center text-white">
-                <p className="text-sm font-medium leading-relaxed break-words" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                <p 
+                  className={`font-medium leading-relaxed break-words ${
+                    current.title && current.title.length > 200 
+                      ? 'text-xs' 
+                      : current.title && current.title.length > 120 
+                      ? 'text-sm' 
+                      : 'text-base'
+                  }`} 
+                  style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+                >
                   {current.title}
                 </p>
               </div>
