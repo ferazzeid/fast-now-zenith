@@ -11,6 +11,8 @@ import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
+import SystemGoals from "./pages/SystemGoals";
+import MotivatorDetail from "./pages/MotivatorDetail";
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
@@ -231,20 +233,27 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/motivators" element={
-              <ProtectedRoute>
-                <PageErrorBoundary>
-                  <Motivators />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            } />
-            <Route path="/motivator-ideas" element={
-              <ProtectedRoute>
-                <PageErrorBoundary>
-                  <MotivatorIdeas />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            } />
+             <Route path="/motivators" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <SystemGoals />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/motivators/:slug" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <MotivatorDetail />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/motivator-ideas" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <Motivators />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <PageErrorBoundary>

@@ -957,10 +957,12 @@ export type Database = {
           category: string | null
           content: string
           created_at: string
+          gender: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           is_published: boolean | null
+          is_system_goal: boolean | null
           link_url: string | null
           meta_description: string | null
           meta_title: string | null
@@ -974,10 +976,12 @@ export type Database = {
           category?: string | null
           content: string
           created_at?: string
+          gender?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_published?: boolean | null
+          is_system_goal?: boolean | null
           link_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
@@ -991,10 +995,12 @@ export type Database = {
           category?: string | null
           content?: string
           created_at?: string
+          gender?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_published?: boolean | null
+          is_system_goal?: boolean | null
           link_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
