@@ -187,9 +187,14 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                             console.error('❌ Error toggling note animation setting:', error);
                           }
                         }}
-                        className="h-8 w-8 p-0 text-white"
+                        className="h-8 w-8 p-0 text-foreground relative"
                       >
-                        {note.show_in_animations !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        <Eye className={`h-4 w-4 ${note.show_in_animations === false ? 'line-through' : ''}`} />
+                        {note.show_in_animations === false && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-5 h-px bg-foreground rotate-45" />
+                          </div>
+                        )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>

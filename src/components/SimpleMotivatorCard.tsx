@@ -68,9 +68,14 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                           console.error('❌ Error toggling animation setting:', error);
                         }
                       }}
-                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white"
+                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white relative"
                     >
-                    {motivator.show_in_animations !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    <Eye className={`w-4 h-4 ${motivator.show_in_animations === false ? 'line-through' : ''}`} />
+                    {motivator.show_in_animations === false && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-5 h-px bg-white rotate-45" />
+                      </div>
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
