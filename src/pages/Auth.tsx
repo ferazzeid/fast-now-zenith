@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Loader2, ChevronDown, Mail } from 'lucide-react';
@@ -18,6 +19,7 @@ const Auth = () => {
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
+  const { appLogo } = useAppLogo();
   const navigate = useNavigate();
 
   
@@ -61,9 +63,18 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-8">
         {/* Logo/Brand */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            FastNow
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            {appLogo && (
+              <img 
+                src={appLogo} 
+                alt="App Logo" 
+                className="w-12 h-12 object-contain"
+              />
+            )}
+            <h1 className="text-4xl font-bold text-white">
+              FastNow
+            </h1>
+          </div>
           <p className="text-muted-foreground">
             Your no-BS weight loss program
           </p>
