@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useProfile } from '@/hooks/useProfile';
+import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 
 interface UnifiedMotivatorRotationProps {
   isActive: boolean;
@@ -25,43 +26,51 @@ export const UnifiedMotivatorRotation = ({
 }: UnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
   const { profile } = useProfile();
+  const { quotes: quoteSettings } = useQuoteSettings();
   
-  // Filter motivators based on individual show_in_animations setting
+  // Combine all content types into unified items
   const items = useMemo(() => {
-    console.log('🎯 Filtering motivators for animation:', {
-      totalMotivators: motivators.length,
-      motivatorsWithSettings: motivators.map(m => ({
-        id: m.id,
-        title: m.title?.substring(0, 20),
-        show_in_animations: (m as any).show_in_animations,
-        is_active: m.is_active
-      }))
-    });
+    console.log('🎯 Building unified content list');
     
-    const filtered = motivators
+    // Filter motivators based on individual show_in_animations setting
+    const filteredMotivators = motivators
       .filter(item => item.is_active)
       .filter(item => {
         const showInAnimations = (item as any).show_in_animations;
-        const shouldShow = showInAnimations !== false; // Show if true or undefined/null
-        console.log(`🔍 Filtering item ${item.title?.substring(0, 20)}: show_in_animations=${showInAnimations}, shouldShow=${shouldShow}`);
-        return shouldShow;
+        return showInAnimations !== false; // Show if true or undefined/null
       })
       .map(item => ({
-        id: item.id,
+        id: `motivator-${item.id}`,
         title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
         content: item.content,
         imageUrl: item.imageUrl,
         type: 'motivator' as const
       }));
+
+    // Add walking timer quotes (for now, we'll use walking timer quotes in the walking context)
+    const walkingQuotes = quoteSettings?.walking_timer_quotes || [];
+    const filteredQuotes = walkingQuotes
+      .map((quote, index) => ({
+        id: `quote-${index}`,
+        title: quote.text,
+        content: quote.text,
+        imageUrl: null,
+        type: 'quote' as const
+      }));
+
+    // TODO: Add notes when they're available from admin system
+    // For now, we'll just use motivators and quotes
+    
+    const allItems = [...filteredMotivators, ...filteredQuotes];
       
-    console.log('🎯 Filtered result:', {
-      originalCount: motivators.length,
-      filteredCount: filtered.length,
-      filteredItems: filtered.map(f => f.title?.substring(0, 20))
+    console.log('🎯 Unified content result:', {
+      motivators: filteredMotivators.length,
+      quotes: filteredQuotes.length,
+      total: allItems.length
     });
     
-    return filtered;
-  }, [motivators]);
+    return allItems;
+  }, [motivators, quoteSettings]);
 
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');
@@ -182,24 +191,33 @@ export const UnifiedMotivatorRotation = ({
         </div>
       )}
 
-      {/* Text overlay with adaptive card layout */}
-      {showText && (
+      {/* Content-specific text display */}
+      {showText && current && (
         <div
           className="absolute inset-0 flex items-center justify-center p-4"
           style={{ zIndex: 15 }}
         >
-          {/* Adaptive card background */}
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-6 max-w-[280px] w-full animate-scale-in">
-            {/* Subtle glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl" />
-            
-            {/* Text content */}
-            <div className="relative z-10 text-center text-white">
-              <p className="text-base font-medium leading-relaxed break-words" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
-                {current!.title}
-              </p>
+          {current.type === 'motivator' ? (
+            /* Goals: Circular centered display with ALL CAPS */
+            <div className="w-44 h-44 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-2xl flex items-center justify-center animate-scale-in">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-full" />
+              <div className="relative z-10 text-center text-white px-6">
+                <p className="text-lg font-bold leading-tight break-words uppercase" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                  {current.title}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Quotes/Notes: Adaptive rectangular card with smaller font and full space */
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-6 max-w-md w-full animate-scale-in">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl" />
+              <div className="relative z-10 text-center text-white">
+                <p className="text-sm font-medium leading-relaxed break-words" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                  {current.title}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
