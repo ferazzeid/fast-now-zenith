@@ -960,8 +960,12 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          is_published: boolean | null
           link_url: string | null
+          meta_description: string | null
+          meta_title: string | null
           show_in_animations: boolean
+          slug: string
           title: string
           updated_at: string
           user_id: string
@@ -973,8 +977,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_published?: boolean | null
           link_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
           show_in_animations?: boolean
+          slug: string
           title: string
           updated_at?: string
           user_id: string
@@ -986,8 +994,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_published?: boolean | null
           link_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
           show_in_animations?: boolean
+          slug?: string
           title?: string
           updated_at?: string
           user_id?: string
@@ -1751,6 +1763,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_unique_slug: {
+        Args: { base_slug: string; id_to_exclude?: string; table_name: string }
+        Returns: string
+      }
       get_all_referenced_images: {
         Args: Record<PropertyKey, never>
         Returns: {
