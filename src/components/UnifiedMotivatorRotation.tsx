@@ -33,18 +33,30 @@ export const UnifiedMotivatorRotation = ({
     console.log('🎯 Building unified content list');
     
     // Filter motivators based on individual show_in_animations setting
-    const filteredMotivators = motivators
-      .filter(item => item.is_active)
+    const allMotivators = motivators.filter(item => item.is_active)
       .filter(item => {
         const showInAnimations = (item as any).show_in_animations;
         return showInAnimations !== false; // Show if true or undefined/null
-      })
+      });
+
+    const goalMotivators = allMotivators
+      .filter(item => item.category !== 'saved_quote') // Only actual goals
       .map(item => ({
         id: `motivator-${item.id}`,
         title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
         content: item.content,
         imageUrl: item.imageUrl,
         type: 'motivator' as const
+      }));
+
+    const savedQuotes = allMotivators
+      .filter(item => item.category === 'saved_quote') // Saved quotes from motivators table
+      .map(item => ({
+        id: `saved-quote-${item.id}`,
+        title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
+        content: item.content || item.title,
+        imageUrl: item.imageUrl,
+        type: 'quote' as const
       }));
 
     // Add walking timer quotes (for now, we'll use walking timer quotes in the walking context)
@@ -61,12 +73,14 @@ export const UnifiedMotivatorRotation = ({
     // TODO: Add notes when they're available from admin system
     // For now, we'll just use motivators and quotes
     
-    const allItems = [...filteredMotivators, ...filteredQuotes];
+    const allItems = [...goalMotivators, ...savedQuotes, ...filteredQuotes];
       
     console.log('🎯 Unified content result:', {
-      motivators: filteredMotivators.length,
-      quotes: filteredQuotes.length,
-      total: allItems.length
+      goals: goalMotivators.length,
+      savedQuotes: savedQuotes.length,
+      walkingQuotes: filteredQuotes.length,
+      total: allItems.length,
+      itemDetails: allItems.map(item => ({ type: item.type, title: item.title.substring(0, 30) }))
     });
     
     return allItems;
@@ -198,7 +212,11 @@ export const UnifiedMotivatorRotation = ({
           style={{ zIndex: 15 }}
         >
           {(() => {
-            console.log('🎯 Rendering content:', { type: current.type, title: current.title.substring(0, 30) });
+            console.log('🎯 Rendering content:', { 
+              type: current.type, 
+              title: current.title.substring(0, 30),
+              isMotivator: current.type === 'motivator'
+            });
             return current.type === 'motivator';
           })() ? (
             /* Goals: Circular centered display with ALL CAPS */

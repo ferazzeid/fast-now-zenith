@@ -60,9 +60,10 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                       variant="ghost"
                       size="sm"
                       onClick={async () => {
+                        if (isToggling) return; // Prevent double clicks
+                        
                         try {
                           const newValue = !localShowInAnimations;
-                          setLocalShowInAnimations(newValue);
                           setIsToggling(true);
                           
                           console.log('🔄 Toggling animation for motivator:', {
@@ -71,11 +72,16 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                             newValue: newValue,
                             title: motivator.title?.substring(0, 30)
                           });
+                          
+                          // Optimistically update local state first
+                          setLocalShowInAnimations(newValue);
+                          
                           await onToggleAnimation(motivator.id, newValue);
                           console.log('✅ Toggle animation successful');
                         } catch (error) {
                           console.error('❌ Error toggling animation setting:', error);
-                          setLocalShowInAnimations(localShowInAnimations); // Revert on error
+                          // Revert optimistic update on error
+                          setLocalShowInAnimations(!localShowInAnimations);
                         } finally {
                           setIsToggling(false);
                         }

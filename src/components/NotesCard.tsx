@@ -172,9 +172,10 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                         variant="ghost"
                         size="sm"
                         onClick={async () => {
+                          if (isToggling) return; // Prevent double clicks
+                          
                           try {
                             const newValue = !localShowInAnimations;
-                            setLocalShowInAnimations(newValue);
                             setIsToggling(true);
                             
                             console.log('🔄 Toggling animation for note:', {
@@ -183,6 +184,10 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                               newValue: newValue,
                               title: note.title?.substring(0, 30)
                             });
+                            
+                            // Optimistically update local state first
+                            setLocalShowInAnimations(newValue);
+                            
                             await onUpdate(note.id, { 
                               title: note.title, 
                               content: note.content,
@@ -191,7 +196,12 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                             console.log('✅ Toggle note animation successful');
                           } catch (error) {
                             console.error('❌ Error toggling note animation setting:', error);
-                            setLocalShowInAnimations(localShowInAnimations); // Revert on error
+                            // Revert optimistic update on error
+                            setLocalShowInAnimations(!localShowInAnimations);
+                            toast({
+                              description: "Failed to update animation setting",
+                              variant: "destructive",
+                            });
                           } finally {
                             setIsToggling(false);
                           }
