@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Key, Bell, User, Info, Brain, Wifi, Crown, Settings as SettingsIcon, LogOut, Trash2, RotateCcw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,7 @@ const Settings = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isAdmin: accessIsAdmin, originalIsAdmin, ...access } = useAccess();
   const isWebPlatform = true; // Default to web for now
   const platformName = 'Stripe'; // Default to Stripe for now
@@ -330,6 +332,23 @@ const Settings = () => {
         supabase.from('motivators').delete().eq('user_id', user.id),
         supabase.from('chat_conversations').delete().eq('user_id', user.id)
       ]);
+
+      // Clear React Query cache to ensure UI updates immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['food-entries'] }),
+        queryClient.invalidateQueries({ queryKey: ['daily-totals'] }),
+        queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] }),
+        queryClient.invalidateQueries({ queryKey: ['walking-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['fasting-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['motivators'] }),
+        queryClient.invalidateQueries({ queryKey: ['goals'] }),
+        queryClient.invalidateQueries({ queryKey: ['chat_conversations'] })
+      ]);
+
+      // Also remove cached data entirely for immediate effect
+      queryClient.removeQueries({ queryKey: ['food-entries'] });
+      queryClient.removeQueries({ queryKey: ['daily-totals'] });
+      queryClient.removeQueries({ queryKey: ['daily-deficit-stable'] });
 
       toast({
         title: "Data Reset Complete",

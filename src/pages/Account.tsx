@@ -7,11 +7,13 @@ import { BillingInformation } from '@/components/BillingInformation';
 import { SimpleCouponInput } from '@/components/SimpleCouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Account = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
 
   const handleResetData = async () => {
@@ -32,6 +34,23 @@ const Account = () => {
         supabase.from('motivators').delete().eq('user_id', user.id),
         supabase.from('chat_conversations').delete().eq('user_id', user.id)
       ]);
+
+      // Clear React Query cache to ensure UI updates immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['food-entries'] }),
+        queryClient.invalidateQueries({ queryKey: ['daily-totals'] }),
+        queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] }),
+        queryClient.invalidateQueries({ queryKey: ['walking-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['fasting-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['motivators'] }),
+        queryClient.invalidateQueries({ queryKey: ['goals'] }),
+        queryClient.invalidateQueries({ queryKey: ['chat_conversations'] })
+      ]);
+
+      // Also remove cached data entirely for immediate effect
+      queryClient.removeQueries({ queryKey: ['food-entries'] });
+      queryClient.removeQueries({ queryKey: ['daily-totals'] });
+      queryClient.removeQueries({ queryKey: ['daily-deficit-stable'] });
 
       toast({
         title: "Data Reset Complete",
