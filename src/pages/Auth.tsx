@@ -105,10 +105,10 @@ const Auth = () => {
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-primary font-semibold">
-              <span className="text-sm">🎉 LIMITED TIME OFFER</span>
+              <span className="text-sm">LIMITED TIME OFFER</span>
             </div>
             <p className="text-sm text-foreground/80">
-              Get <span className="font-bold text-primary">90 days FREE</span> when you upgrade to premium
+              Get <span className="font-bold text-primary">90 days FREE</span> access to Premium features
             </p>
             <div className="flex items-center justify-center gap-2 bg-card/50 border border-primary/20 rounded-md px-3 py-2 max-w-xs mx-auto">
               <span className="font-mono font-bold text-primary tracking-wider">fastnow90</span>
@@ -125,7 +125,7 @@ const Auth = () => {
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Apply after signup to unlock premium features
+              Apply in Settings → Account after signup
             </p>
           </div>
         </div>
