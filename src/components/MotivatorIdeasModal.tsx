@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Lightbulb, Plus, ChevronDown, Edit, Trash2 } from 'lucide-react';
+import { Lightbulb, Plus, ChevronDown, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
@@ -9,6 +9,7 @@ import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallb
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,7 +109,17 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
       size="md"
       showCloseButton={true}
     >
-        
+        <ErrorBoundary
+          fallback={
+            <div className="text-center py-8">
+              <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-2" />
+              <p className="text-muted-foreground mb-4">Error loading goal ideas</p>
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                Refresh Page
+              </Button>
+            </div>
+          }
+        >
         <div className="space-y-4 py-2">
           {/* Goal Ideas List */}
           <div className="max-h-96 overflow-y-auto space-y-3">
@@ -285,6 +296,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
             )}
           </div>
         </div>
+        </ErrorBoundary>
     </UniversalModal>
   );
 };

@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
+import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
 import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
@@ -107,7 +108,8 @@ export default function MotivatorIdeas() {
   };
 
   return (
-    <div key={`motivator-ideas-${profile?.sex || 'unknown'}-${Date.now()}`} className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
+    <GoalIdeasErrorBoundary>
+      <div key={`motivator-ideas-${profile?.sex || 'unknown'}-${Date.now()}`} className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
       <header className="flex items-center gap-3 mb-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
           <ArrowLeft className="w-4 h-4" />
@@ -273,5 +275,6 @@ export default function MotivatorIdeas() {
         />
       )}
     </div>
+    </GoalIdeasErrorBoundary>
   );
 }
