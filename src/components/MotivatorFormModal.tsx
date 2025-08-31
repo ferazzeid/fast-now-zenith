@@ -20,6 +20,7 @@ interface Motivator {
   content: string;
   category?: string;
   imageUrl?: string;
+  linkUrl?: string;
 }
 
 interface MotivatorFormModalProps {
@@ -32,6 +33,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [title, setTitle] = useState(motivator?.title || '');
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
+  const [linkUrl, setLinkUrl] = useState(motivator?.linkUrl || '');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [tempMotivatorId, setTempMotivatorId] = useState<string | null>(null);
   
@@ -45,6 +47,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       setTitle(motivator.title || '');
       setContent(motivator.content || '');
       setImageUrl(motivator.imageUrl || '');
+      setLinkUrl(motivator.linkUrl || '');
     }
   }, [motivator]);
 
@@ -64,7 +67,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       id: motivator?.id || tempMotivatorId || '',
       title: title.trim(),
       content: content.trim(),
-      imageUrl: imageUrl || undefined
+      imageUrl: imageUrl || undefined,
+      linkUrl: linkUrl.trim() || undefined
     };
 
     // If we have a temporary motivator, update it instead of creating new
@@ -75,7 +79,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           .update({
             title: motivatorData.title,
             content: motivatorData.content,
-            image_url: motivatorData.imageUrl
+            image_url: motivatorData.imageUrl,
+            link_url: motivatorData.linkUrl
           })
           .eq('id', tempMotivatorId);
         
@@ -214,6 +219,23 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               className="bg-ceramic-base border-ceramic-rim min-h-[40px]"
               placeholder="Optional: Add more details about this motivation..."
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkUrl" className="text-warm-text font-medium">
+              Link URL (Optional)
+            </Label>
+            <Input
+              id="linkUrl"
+              type="url"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              className="bg-ceramic-base border-ceramic-rim"
+              placeholder="https://example.com/more-info"
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional URL to a detailed story or description on your website
+            </p>
           </div>
 
           <div className="space-y-2">
