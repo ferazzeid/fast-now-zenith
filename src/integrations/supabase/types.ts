@@ -185,6 +185,7 @@ export type Database = {
           meta_description: string | null
           meta_keywords: string | null
           published_at: string | null
+          show_author_box: boolean
           slug: string
           status: string
           tags: string[] | null
@@ -202,6 +203,7 @@ export type Database = {
           meta_description?: string | null
           meta_keywords?: string | null
           published_at?: string | null
+          show_author_box?: boolean
           slug: string
           status?: string
           tags?: string[] | null
@@ -219,6 +221,7 @@ export type Database = {
           meta_description?: string | null
           meta_keywords?: string | null
           published_at?: string | null
+          show_author_box?: boolean
           slug?: string
           status?: string
           tags?: string[] | null
@@ -498,6 +501,7 @@ export type Database = {
           is_active: boolean
           page_category: string | null
           question: string
+          show_open_by_default: boolean | null
           updated_at: string
         }
         Insert: {
@@ -510,6 +514,7 @@ export type Database = {
           is_active?: boolean
           page_category?: string | null
           question: string
+          show_open_by_default?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -522,6 +527,7 @@ export type Database = {
           is_active?: boolean
           page_category?: string | null
           question?: string
+          show_open_by_default?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -1023,6 +1029,7 @@ export type Database = {
           created_at: string
           featured_image_url: string | null
           id: string
+          is_indexed: boolean | null
           is_published: boolean
           meta_description: string | null
           meta_title: string | null
@@ -1038,6 +1045,7 @@ export type Database = {
           created_at?: string
           featured_image_url?: string | null
           id?: string
+          is_indexed?: boolean | null
           is_published?: boolean
           meta_description?: string | null
           meta_title?: string | null
@@ -1053,12 +1061,58 @@ export type Database = {
           created_at?: string
           featured_image_url?: string | null
           id?: string
+          is_indexed?: boolean | null
           is_published?: boolean
           meta_description?: string | null
           meta_title?: string | null
           page_key?: string
           subtitle?: string | null
           title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      page_seo_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_dynamic: boolean
+          is_indexed: boolean
+          meta_description: string | null
+          meta_title: string | null
+          page_description: string | null
+          page_path: string
+          page_title: string
+          page_type: string
+          robots_directive: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_dynamic?: boolean
+          is_indexed?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          page_description?: string | null
+          page_path: string
+          page_title: string
+          page_type?: string
+          robots_directive?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_dynamic?: boolean
+          is_indexed?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          page_description?: string | null
+          page_path?: string
+          page_title?: string
+          page_type?: string
+          robots_directive?: string
           updated_at?: string
         }
         Relationships: []
@@ -1701,6 +1755,15 @@ export type Database = {
           image_url: string
           record_count: number
           table_name: string
+        }[]
+      }
+      get_page_seo_settings: {
+        Args: { page_path_param: string }
+        Returns: {
+          is_indexed: boolean
+          meta_description: string
+          meta_title: string
+          robots_directive: string
         }[]
       }
       get_payment_provider_for_platform: {
