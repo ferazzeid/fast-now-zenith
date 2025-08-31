@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,6 +85,10 @@ export const AdminQuoteSettings: React.FC = () => {
   } = useQuoteSettings();
   const [editingQuote, setEditingQuote] = useState<{ quote?: Quote; index?: number; type?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [toggleStates, setToggleStates] = useState({
+    fasting: false,
+    walking: false
+  });
   const { toast } = useToast();
 
   const handleAddQuote = (type: 'fasting_timer_quotes' | 'walking_timer_quotes') => {
@@ -172,11 +177,19 @@ export const AdminQuoteSettings: React.FC = () => {
             <span>Fasting Timer Quotes</span>
             <div className="flex items-center space-x-2">
               <Label htmlFor="fasting-quotes-toggle">Enable</Label>
-              <Switch
-                id="fasting-quotes-toggle"
-                checked={fastingQuotesEnabled}
-                onCheckedChange={(checked) => handleToggleQuoteStatus('fasting_timer_quotes_enabled', checked)}
-              />
+              {toggleStates.fasting ? (
+                <div className="flex items-center">
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Updating...</span>
+                </div>
+              ) : (
+                <Switch
+                  id="fasting-quotes-toggle"
+                  checked={fastingQuotesEnabled}
+                  onCheckedChange={(checked) => handleToggleQuoteStatus('fasting_timer_quotes_enabled', checked)}
+                  disabled={toggleStates.fasting}
+                />
+              )}
             </div>
           </CardTitle>
         </CardHeader>
@@ -226,11 +239,19 @@ export const AdminQuoteSettings: React.FC = () => {
             <span>Walking Timer Quotes</span>
             <div className="flex items-center space-x-2">
               <Label htmlFor="walking-quotes-toggle">Enable</Label>
-              <Switch
-                id="walking-quotes-toggle"
-                checked={walkingQuotesEnabled}
-                onCheckedChange={(checked) => handleToggleQuoteStatus('walking_timer_quotes_enabled', checked)}
-              />
+              {toggleStates.walking ? (
+                <div className="flex items-center">
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Updating...</span>
+                </div>
+              ) : (
+                <Switch
+                  id="walking-quotes-toggle"
+                  checked={walkingQuotesEnabled}
+                  onCheckedChange={(checked) => handleToggleQuoteStatus('walking_timer_quotes_enabled', checked)}
+                  disabled={toggleStates.walking}
+                />
+              )}
             </div>
           </CardTitle>
         </CardHeader>

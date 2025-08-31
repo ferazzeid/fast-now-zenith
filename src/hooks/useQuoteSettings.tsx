@@ -72,10 +72,34 @@ export const useQuoteSettings = () => {
       if (error) throw error;
       return { type, newQuotes } as const;
     },
-    onSuccess: () => {
-      // Ensure the cache stays fresh after mutation
-      queryClient.invalidateQueries({ queryKey: quotesQueryKey });
+    onMutate: async ({ type, newQuotes }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: quotesQueryKey });
+      
+      // Snapshot the previous value
+      const previousQuotes = queryClient.getQueryData<QuoteSettings>(quotesQueryKey);
+      
+      // Optimistically update to the new value
+      if (previousQuotes) {
+        queryClient.setQueryData<QuoteSettings>(quotesQueryKey, {
+          ...previousQuotes,
+          [type]: newQuotes
+        });
+      }
+      
+      // Return a context object with the snapshotted value
+      return { previousQuotes };
     },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousQuotes) {
+        queryClient.setQueryData(quotesQueryKey, context.previousQuotes);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: quotesQueryKey });
+    }
   });
 
   const statusMutation = useMutation({
@@ -96,9 +120,34 @@ export const useQuoteSettings = () => {
       if (error) throw error;
       return { success: true };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: quotesQueryKey });
+    onMutate: async ({ type, enabled }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: quotesQueryKey });
+      
+      // Snapshot the previous value
+      const previousQuotes = queryClient.getQueryData<QuoteSettings>(quotesQueryKey);
+      
+      // Optimistically update to the new value
+      if (previousQuotes) {
+        queryClient.setQueryData<QuoteSettings>(quotesQueryKey, {
+          ...previousQuotes,
+          [type]: enabled
+        });
+      }
+      
+      // Return a context object with the snapshotted value
+      return { previousQuotes };
     },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousQuotes) {
+        queryClient.setQueryData(quotesQueryKey, context.previousQuotes);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: quotesQueryKey });
+    }
   });
 
   const updateQuotes = async (
