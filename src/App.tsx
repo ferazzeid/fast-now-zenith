@@ -254,13 +254,13 @@ const AppContent = () => {
                   </PageErrorBoundary>
                 </ProtectedRoute>
               } />
-              <Route path="/motivator-ideas" element={
-               <ProtectedRoute>
-                 <PageErrorBoundary>
-                   <Motivators />
-                 </PageErrorBoundary>
-               </ProtectedRoute>
-             } />
+               <Route path="/motivator-ideas" element={
+                <ProtectedRoute>
+                  <PageErrorBoundary>
+                    <SystemGoals />
+                  </PageErrorBoundary>
+                </ProtectedRoute>
+              } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
