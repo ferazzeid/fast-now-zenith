@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, X, Edit, Mic } from 'lucide-react';
+import { Send, X, Edit, Mic, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -53,40 +53,12 @@ export const ModalAiChat = ({
   quickReplies = [],
   onFoodAdd
 }: ModalAiChatProps) => {
-  // CRITICAL: Add immediate debugging that will definitely show
-  if (isOpen) {
-    console.log('🚨 CRITICAL DEBUG - ModalAiChat OPEN:', { 
-      isOpen, 
-      title, 
-      proactiveMessage: proactiveMessage?.substring(0, 50) + '...',
-      hasProactiveMessage: !!proactiveMessage 
-    });
-  }
 
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>(() => {
-    // Initialize with welcome message immediately if modal is open
-    if (isOpen) {
-      console.log('🚨 IMMEDIATE INIT - Creating initial messages');
-      const welcomeMessage = proactiveMessage || 'Hi! How can I help you today?';
-      return [{
-        role: 'assistant' as const,
-        content: welcomeMessage,
-        timestamp: new Date()
-      }];
-    }
-    return [];
-  });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(isOpen);
-
-  // Log current messages state on every render
-  console.log('📊 RENDER STATE:', { 
-    isOpen, 
-    messagesCount: messages.length, 
-    firstMessage: messages[0]?.content?.substring(0, 30) + '...' || 'NONE',
-    isInitialized 
-  });
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
@@ -112,8 +84,11 @@ export const ModalAiChat = ({
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
   
-  // Enhanced conversation memory integration
+  // Use persistent conversation hook
   const { 
+    messages,
+    addMessage,
+    loadConversation,
     addFoodAction, 
     updateConversationState, 
     getConversationContext 
@@ -131,12 +106,30 @@ export const ModalAiChat = ({
   const { deficitData } = useDailyDeficitQuery();
   const goalCalculations = useGoalCalculations();
 
+
+  // Smart auto-scrolling that respects user scroll position
   useEffect(() => {
-    // Use setTimeout to ensure the DOM has updated before scrolling
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 100);
-  }, [messages]);
+    if (!isUserScrolling && messages.length > 0) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      });
+    }
+  }, [messages, isUserScrolling]);
+
+  // Handle scroll tracking
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsUserScrolling(!isNearBottom);
+    setShowScrollButton(!isNearBottom && messages.length > 0);
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    setIsUserScrolling(false);
+    setShowScrollButton(false);
+  };
 
   // Auto-scroll to calorie summary when food suggestions appear
   useEffect(() => {
@@ -147,6 +140,7 @@ export const ModalAiChat = ({
     }
   }, [lastFoodSuggestion?.foods]);
 
+  // Load conversation when modal opens, preserve history when it closes
   useEffect(() => {
     console.log('🔧 ModalAiChat useEffect triggered:', { 
       isOpen, 
@@ -158,77 +152,51 @@ export const ModalAiChat = ({
     });
     
     if (isOpen && !isInitialized) {
-      console.log('🚀 Initializing messages for first time');
+      console.log('🚀 Loading conversation for modal');
       
-      // Initialize messages array
-      const initialMessages: Message[] = [];
-      
-      // Add context message if provided
-      if (context) {
-        const contextMessage: Message = {
-          role: 'assistant',
-          content: context,
-          timestamp: new Date()
-        };
-        initialMessages.push(contextMessage);
-        console.log('📝 Added context message:', contextMessage.content);
-      }
-      
-      // Add proactive message if provided, otherwise add a fallback welcome message
-      if (proactiveMessage) {
-        const proactiveMsg: Message = {
-          role: 'assistant',
-          content: proactiveMessage,
-          timestamp: new Date()
-        };
-        initialMessages.push(proactiveMsg);
-        console.log('📝 Added proactive message:', proactiveMsg.content);
-      } else {
-        // Fallback welcome message based on title
-        let welcomeMessage = 'Hi! How can I help you today?';
-        
-        if (title === 'Food Assistant') {
-          welcomeMessage = 'Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity.';
-        } else if (title === 'Motivator Assistant') {
-          welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
+      // Load existing conversation history
+      loadConversation().then(() => {
+        // If we have a proactive message and no existing conversation, add it
+        if (proactiveMessage && messages.length === 0) {
+          const proactiveMsg: Message = {
+            role: 'assistant',
+            content: proactiveMessage,
+            timestamp: new Date()
+          };
+          addMessage(proactiveMsg);
+        } else if (messages.length === 0) {
+          // Add welcome message for new conversations
+          let welcomeMessage = 'Hi! How can I help you today?';
+          
+          if (title === 'Food Assistant') {
+            welcomeMessage = 'Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity.';
+          } else if (title === 'Motivator Assistant') {
+            welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
+          }
+          
+          const welcomeMsg: Message = {
+            role: 'assistant',
+            content: welcomeMessage,
+            timestamp: new Date()
+          };
+          addMessage(welcomeMsg);
         }
-        
-        const fallbackMsg: Message = {
-          role: 'assistant',
-          content: welcomeMessage,
-          timestamp: new Date()
-        };
-        initialMessages.push(fallbackMsg);
-        console.log('📝 Added fallback welcome message:', fallbackMsg.content);
-      }
+      });
       
-      // Ensure we always have at least one message
-      if (initialMessages.length === 0) {
-        console.log('⚠️ No initial messages - adding emergency fallback');
-        initialMessages.push({
-          role: 'assistant',
-          content: 'Hi! How can I help you today?',
-          timestamp: new Date()
-        });
-      }
-      
-      console.log('🚀 Setting initial messages:', initialMessages);
-      setMessages(initialMessages);
       setIsInitialized(true);
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
-    } else if (!isOpen) {
+    } else if (!isOpen && isInitialized) {
       // Cancel any active recording when modal closes (don't process)
       if (voiceButtonRef.current) {
         voiceButtonRef.current.cancelRecording();
       }
       
-      console.log('🔄 Modal closing - clearing state');
+      console.log('🔄 Modal closing - preserving chat history, clearing UI state');
       
-      // Clear messages and state immediately when modal closes
-      setMessages([]);
+      // Only clear UI-specific state, keep chat messages in database
       setIsInitialized(false);
       setEditingFoodIndex(null);
       setEditingMotivatorIndex(null);
@@ -240,8 +208,10 @@ export const ModalAiChat = ({
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
+      setIsUserScrolling(false);
+      setShowScrollButton(false);
     }
-  }, [isOpen, context, conversationType, proactiveMessage, title, isInitialized, messages.length]);
+  }, [isOpen, context, conversationType, proactiveMessage, title, isInitialized]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
     console.log('📤 sendToAI called:', { message, fromVoice, isProcessing });
@@ -366,7 +336,7 @@ You are a motivational goal creation assistant. Your task is to:
             content: `I've prepared these foods for you:\n\n${foodSummary}\n\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nReview the items above and click "Add Selected Foods" when ready.`,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, foodMessage]);
+          addMessage(foodMessage);
           return;
         } else if (data.functionCall.name === 'modify_recent_foods') {
           const modifications = data.functionCall.arguments.modifications || {};
@@ -404,7 +374,7 @@ You are a motivational goal creation assistant. Your task is to:
               content: `I've updated the foods based on your clarification:\n\n${foodSummary}\n\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nReview the updated items and click "Add Selected Foods" when ready.`,
               timestamp: new Date()
             };
-            setMessages(prev => [...prev, modificationMessage]);
+            addMessage(modificationMessage);
             return;
           } else {
             // No recent food action to modify - fallback to regular response
@@ -413,7 +383,7 @@ You are a motivational goal creation assistant. Your task is to:
               content: data.completion || "I don't see any recent food entries to modify. Could you please add some foods first?",
               timestamp: new Date()
             };
-            setMessages(prev => [...prev, message]);
+            addMessage(message);
             return;
           }
         } else if (data.functionCall.name === 'create_multiple_motivators') {
@@ -431,7 +401,7 @@ You are a motivational goal creation assistant. Your task is to:
 ${args.content}`,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, motivatorMessage]);
+          addMessage(motivatorMessage);
           return;
         } else if (data.functionCall.name === 'search_foods_for_edit') {
           // Handle food search for editing
@@ -510,7 +480,7 @@ ${args.content}`,
           content: data.completion,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, aiMessage]);
+        addMessage(aiMessage);
       }
       // If there was a function call but no completion, add a confirmation message
       else if (data.functionCall && (!data.completion || !data.completion.trim())) {
@@ -552,7 +522,7 @@ ${args.content}`,
             content: confirmationMessage,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, aiMessage]);
+          addMessage(aiMessage);
         }
       }
 
@@ -579,7 +549,7 @@ ${args.content}`,
     };
 
     console.log('👤 Adding user voice message to chat');
-    setMessages(prev => [...prev, userMessage]);
+    await addMessage(userMessage);
     await sendToAI(transcription, true);
   };
 
@@ -593,7 +563,7 @@ ${args.content}`,
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    await addMessage(userMessage);
 
     if (!presetMessage) {
       setInputMessage('');
@@ -763,7 +733,7 @@ ${args.content}`,
           content: 'Motivator created successfully! You can now view it in your motivators list.',
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, successMessage]);
+        addMessage(successMessage);
         
         // Clear the suggestion after creating
         setLastMotivatorSuggestion(null);
@@ -891,7 +861,7 @@ ${args.content}`,
           timestamp: new Date()
         };
         
-        setMessages(prev => [...prev, confirmationMessage]);
+        addMessage(confirmationMessage);
         
         // Mark motivators as added but keep them visible
         setLastMotivatorsSuggestion(prev => ({
@@ -928,7 +898,7 @@ ${args.content}`,
           content: `I couldn't find any ${context === 'today' ? "today's entries" : context} matching "${searchTerm}". Try a different search term or check the specific location.`,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, aiMessage]);
+        addMessage(aiMessage);
         return;
       }
 
@@ -942,7 +912,7 @@ ${args.content}`,
         content: `Found ${results.length} food(s) matching "${searchTerm}":\n\n${resultsList}\n\nTell me what you'd like to change. For example: "Change the chicken to 150g" or "Update the banana calories to 120".`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error searching foods:', error);
@@ -979,7 +949,7 @@ ${args.content}`,
         content: `Ready to update ${item.name}: ${changesList}. Please confirm the changes below.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error creating edit preview:', error);
@@ -1005,7 +975,7 @@ ${args.content}`,
         content: `✅ Successfully updated ${preview.name}!`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error applying edit:', error);
@@ -1021,7 +991,7 @@ ${args.content}`,
       content: `Cancelled editing ${preview.name}.`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   // Edit preview manually
@@ -1033,7 +1003,7 @@ ${args.content}`,
       content: `Opening manual editor for ${preview.name}. Tell me what specific changes you'd like to make.`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   // === SESSION MANAGEMENT HANDLERS ===
@@ -1047,14 +1017,14 @@ ${args.content}`,
         content: `✅ Started fasting! Your goal is ${goalHours} hours. I'll be here to support you throughout your journey.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to start fasting session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1073,14 +1043,14 @@ ${args.content}`,
           : `Fast cancelled. No worries - you can start again whenever you're ready.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to ${args.action} fasting session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1094,14 +1064,14 @@ ${args.content}`,
         content: `🚶‍♀️ Started walking at ${speed >= 4 ? 'fast' : 'normal'} pace! Enjoy your walk - I'll track your progress.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to start walking session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1114,14 +1084,14 @@ ${args.content}`,
         content: `🎉 Great walk! Session completed and calories have been logged.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to end walking session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1148,7 +1118,7 @@ ${args.content}`,
       content: status,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   const handleGetCurrentFastDuration = async () => {
@@ -1158,7 +1128,7 @@ ${args.content}`,
         content: "You're not currently fasting. Ready to start when you are!",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1171,7 +1141,7 @@ ${args.content}`,
       content: `🕐 You've been fasting for ${hours} hours and ${minutes} minutes. Keep going strong!`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   const handleGetCurrentWalkDuration = async () => {
@@ -1181,7 +1151,7 @@ ${args.content}`,
         content: "You're not currently walking. Ready for a walk?",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1192,7 +1162,7 @@ ${args.content}`,
       content: `🚶‍♀️ You've been walking for ${duration} minutes. Great job!`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   const handleGetTodayDeficit = async () => {
@@ -1205,7 +1175,7 @@ ${args.content}`,
       content: `📊 Today's progress: ${Math.abs(deficit)} calorie ${deficit >= 0 ? 'deficit' : 'surplus'}. You've consumed ${caloriesIn} calories and burned ${caloriesOut} calories.`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   // === ADMIN HANDLERS ===
@@ -1216,7 +1186,7 @@ ${args.content}`,
         content: "❌ Admin access required for personal logs.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1233,14 +1203,14 @@ ${args.content}`,
         content: `✅ Added personal log for hour ${args.hour}.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to add personal log. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1251,7 +1221,7 @@ ${args.content}`,
         content: "❌ Admin access required for personal logs.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1277,7 +1247,7 @@ ${args.content}`,
             : "No personal logs found.",
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, aiMessage]);
+        addMessage(aiMessage);
         return;
       }
       
@@ -1288,14 +1258,14 @@ ${args.content}`,
         content: logs,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to get personal logs. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1309,14 +1279,14 @@ ${args.content}`,
         content: `✅ Updated your weight to ${args.weight_kg} kg.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to update weight. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1329,14 +1299,14 @@ ${args.content}`,
         content: `✅ Updated your goal weight to ${args.goal_weight_kg} kg.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to update goal weight. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1357,14 +1327,14 @@ ${args.content}`,
         content: `✅ Updated your daily goals: ${messages.join(', ')}.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to update daily goals. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1375,7 +1345,7 @@ ${args.content}`,
         content: "Please set your current weight and goal weight first to get projections.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1390,14 +1360,14 @@ ${args.content}`,
         content: `📈 Weight loss projection: You need to lose ${weightToLose.toFixed(1)} kg (${fatGrams.toFixed(0)}g of fat). At your current deficit rate of ${currentDeficit} calories/day, you'll reach your goal in approximately ${daysToGoal} days.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to calculate projection. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1431,7 +1401,11 @@ ${args.content}`,
       showCloseButton={true}
     >
       {/* Messages with better spacing and scrolling */}
-      <div className="space-y-6 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
+      <div className="relative">
+        <div 
+          className="space-y-6 min-h-[300px] max-h-[400px] overflow-y-auto mb-4" 
+          onScroll={handleScroll}
+        >
         {/* Emergency fallback - if modal is open but no messages, show error message */}
         {isOpen && messages.length === 0 && (
           <div className="flex justify-start">
@@ -1558,21 +1532,15 @@ ${args.content}`,
                       arguments: updatedArgs
                     }));
                     
-                    // Update ALL motivator messages in the chat with the new content
-                    setMessages(prev => prev.map(msg => {
-                      // Find motivator messages that match the current suggestion content
-                      if (msg.role === 'assistant' && 
-                          msg.content.includes(lastMotivatorSuggestion.arguments.title) &&
-                          msg.content.includes(lastMotivatorSuggestion.arguments.content)) {
-                        return {
-                          ...msg,
-                          content: `${updatedTitle}
-
-${updatedContent}`
-                        };
-                      }
-                      return msg;
-                    }));
+                    // For the complex message update, we need to implement this differently
+                    // since we can't directly update message history with addMessage
+                    // We'll add a new updated message instead
+                    const updatedMessage: Message = {
+                      role: 'assistant',
+                      content: `Updated motivator:\n\n${updatedTitle}\n\n${updatedContent}`,
+                      timestamp: new Date()
+                    };
+                    addMessage(updatedMessage);
                     
                     setEditingMotivator(false);
                     setMotivatorEditData({title: '', content: ''});
@@ -1911,7 +1879,20 @@ ${updatedContent}`
           </div>
         )}
         
-        <div ref={messagesEndRef} className="h-4" />
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
+        
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <Button
+            onClick={scrollToBottom}
+            size="sm"
+            variant="secondary"
+            className="absolute bottom-2 right-2 rounded-full h-8 w-8 p-0 shadow-lg"
+          >
+            ↓
+          </Button>
+        )}
       </div>
 
       {/* Voice Input Only - Text input removed per user request */}
