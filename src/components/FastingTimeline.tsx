@@ -131,7 +131,7 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
       </div>
       
       <TooltipProvider delayDuration={0}>
-        <div className="flex items-center justify-center gap-3 max-w-md mx-auto">
+        <div className="flex items-center justify-center gap-2 w-full px-2">
           {/* Left Navigation Arrow */}
           <button
             onClick={navigateLeft}
