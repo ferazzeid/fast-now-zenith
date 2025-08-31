@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Settings, Volume2, VolumeX, RotateCcw, Camera, Image, Archive, MoreVertical, Trash2 } from 'lucide-react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 
@@ -18,14 +18,15 @@ import { useFastingContext } from '@/hooks/useFastingContext';
 import { useWalkingContext } from '@/hooks/useWalkingContext';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useMotivators } from '@/hooks/useMotivators';
-import { useNavigate } from 'react-router-dom';
 import { SimpleImageUpload } from '@/components/SimpleImageUpload';
-import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { useGoalNotification } from '@/hooks/useGoalNotification';
 import { useProfile } from '@/hooks/useProfile';
+import { useNavigate } from 'react-router-dom';
+import { useProfileContext } from '@/hooks/useProfileContext';
 import { useAccess } from '@/hooks/useAccess';
 import { ProfileSystemMessage } from '@/components/ProfileSystemMessage';
 import { GoalSettingNotification } from '@/components/GoalSettingNotification';
-import { useGoalNotification } from '@/hooks/useGoalNotification';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { PremiumGate } from '@/components/PremiumGate';
 
 // Enhanced Message interface to support notifications
@@ -65,6 +66,7 @@ const AiChat = () => {
   const { context: fastingContext, buildContextString: buildFastingContext } = useFastingContext();
   const { context: walkingContext, buildContextString: buildWalkingContext } = useWalkingContext();
   const { context: foodContext, buildContextString: buildFoodContext } = useFoodContext();
+  const { context: profileContext, buildContextString: buildProfileContext } = useProfileContext();
   const { createMotivator } = useMotivators();
   
   const { hasPremiumFeatures, access_level, isAdmin } = useAccess();
@@ -271,8 +273,9 @@ const AiChat = () => {
     setIsProcessing(true);
 
     try {
-      // Build comprehensive context
+      // Build comprehensive context including profile data
       const contextParts = [
+        buildProfileContext(profileContext),
         buildFastingContext(fastingContext),
         buildWalkingContext(walkingContext), 
         buildFoodContext(foodContext)
