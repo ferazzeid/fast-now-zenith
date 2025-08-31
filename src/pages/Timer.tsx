@@ -484,7 +484,7 @@ const Timer = () => {
                           setStopAction('cancel');
                           setShowStopConfirmDialog(true);
                         }}
-                        variant="action-primary"
+                        variant="outline"
                         size="action-main"
                       >
                         <X className="w-5 h-5" />

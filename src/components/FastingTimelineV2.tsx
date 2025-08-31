@@ -88,10 +88,12 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           <div className="space-y-3">
             {/* Display Stage and Encouragement (original two-field system) */}
             <div className="min-h-[80px] relative">
-              {/* Hour Number Indicator */}
-              <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
-                {selectedHour}
-              </div>
+              {/* Hour Number Indicator - Admin Only */}
+              {isAdmin && (
+                <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
+                  {selectedHour}
+                </div>
+              )}
 
               <div className="relative pr-10">
                 {/* Stage Title */}

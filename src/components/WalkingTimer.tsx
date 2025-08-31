@@ -159,7 +159,7 @@ const WalkingTimerComponent = ({
                         });
                       }
                     }}
-                    variant="action-primary"
+                    variant="outline"
                     size="action-secondary"
                     className="flex-1"
                   >
@@ -198,9 +198,9 @@ const WalkingTimerComponent = ({
                           });
                         }
                       }}
-                      variant="action-primary"
+                      variant="outline"
                       size="action-secondary"
-                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="flex-1"
                     >
                       <X className="w-6 h-6" />
                     </Button>
