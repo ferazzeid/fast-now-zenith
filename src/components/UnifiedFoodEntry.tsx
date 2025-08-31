@@ -16,7 +16,7 @@ import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
-import { DirectInlineVoiceButton } from '@/components/DirectInlineVoiceButton';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 
@@ -404,53 +404,26 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
         {/* Amount/Unit fields connected + Calories + Carbs */}
         <div className="space-y-4">
-          {/* Connected Amount and Unit fields */}
+          {/* Amount field */}
           <div>
             <div className="flex items-center gap-1 mb-1">
               <Label className="text-xs font-medium">
-                Amount <span className="text-red-500">*</span>
+                Amount (g) <span className="text-red-500">*</span>
               </Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-3 h-3 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-64 text-xs">
-                    <p>We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <ClickableTooltip content="We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.">
+                <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+              </ClickableTooltip>
             </div>
-            <div className="flex">
-              <div className="relative flex-1">
-                <Input
-                  id="serving-amount"
-                  type="number"
-                  value={servingAmount}
-                  onChange={(e) => setServingAmount(e.target.value)}
-                  className="text-sm h-9 rounded-r-none border-r-0 focus-within:z-10 pr-8"
-                  min="0.1"
-                  step="0.1"
-                  required
-                />
-                <DirectInlineVoiceButton
-                  onTranscription={setServingAmount}
-                  parseNumbers={true}
-                />
-              </div>
-              <Select value={servingUnit} onValueChange={setServingUnit}>
-                <SelectTrigger className="text-sm h-9 rounded-l-none w-24 border-l-0 focus-within:z-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getServingUnitsForUser().map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {getUnitDisplayName(unit.value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Input
+              id="serving-amount"
+              type="number"
+              value={servingAmount}
+              onChange={(e) => setServingAmount(e.target.value)}
+              className="text-sm h-9 w-24"
+              min="0.1"
+              step="0.1"
+              required
+            />
           </div>
 
           {/* Per 100g toggle - above the nutrition row */}
