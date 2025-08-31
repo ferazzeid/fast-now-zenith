@@ -381,8 +381,17 @@ const Timer = () => {
         // Immediately update the timer display to show correct elapsed time
         setTimeElapsed(elapsedSeconds);
         
-        // Load the session to get accurate timing for future updates
+        // Force an immediate refresh of the active session to update `isRunning`
         await refreshActiveSession();
+        
+        // Trigger the timer effect by ensuring the session data is available
+        // This solves the issue where retro fasts need a page refresh
+        setTimeout(() => {
+          // Double-check that the session is loaded and trigger another refresh if needed
+          if (!fastingSession) {
+            refreshActiveSession();
+          }
+        }, 100);
         
         toast({
           title: "Fast started retroactively",

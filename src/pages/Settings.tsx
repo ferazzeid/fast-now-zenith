@@ -640,22 +640,6 @@ const Settings = () => {
               Save Settings
             </Button>
 
-            {/* Cache Management Section */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Wifi className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Cache Management</h3>
-                </div>
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Clear cached data to refresh your subscription status and app data.
-                  </p>
-                  <ClearCacheButton />
-                </div>
-              </div>
-            </Card>
-
           {/* Account Information */}
           <Card className="p-6 bg-card border-ceramic-rim">
             <div className="space-y-4">
