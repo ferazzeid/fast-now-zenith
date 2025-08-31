@@ -178,7 +178,12 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       case 'sex':
         return value.charAt(0).toUpperCase() + value.slice(1);
       case 'activityLevel':
-        const activityLabels = { sedentary: 'Low', moderately_active: 'Medium', very_active: 'High' };
+        const activityLabels = { 
+          sedentary: 'Sedentary', 
+          lightly_active: 'Lightly Active',
+          moderately_active: 'Moderately Active', 
+          very_active: 'Very Active' 
+        };
         return value ? activityLabels[value as keyof typeof activityLabels] || value : 'Not set';
       default:
         return value;
@@ -250,23 +255,119 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         );
 
       case 'activityLevel':
+        const calculateBMR = () => {
+          if (!formData.weight || !formData.height || !formData.age || !formData.sex) return 0;
+          
+          const weightKg = Number(formData.weight);
+          const heightCm = Number(formData.height);
+          const age = Number(formData.age);
+          
+          // Mifflin-St Jeor Equation with sex-specific calculation
+          let bmr: number;
+          if (formData.sex === 'female') {
+            bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * age - 161);
+          } else {
+            bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * age + 5);
+          }
+          return bmr;
+        };
+
+        const getCalorieAddition = (level: string) => {
+          const bmr = calculateBMR();
+          if (bmr === 0) return 0;
+          
+          const activityMultipliers = {
+            sedentary: 1.2,
+            lightly_active: 1.375,
+            moderately_active: 1.55,
+            very_active: 1.725
+          };
+          
+          const sedentaryTdee = bmr * 1.2;
+          const levelTdee = bmr * (activityMultipliers[level as keyof typeof activityMultipliers] || 1.2);
+          
+          return Math.round(levelTdee - sedentaryTdee);
+        };
+
+        const activityOptions = [
+          {
+            value: 'sedentary',
+            title: 'Sedentary',
+            description: 'Office job, minimal walking, mostly sitting',
+            example: 'Desk work, driving, watching TV'
+          },
+          {
+            value: 'lightly_active',
+            title: 'Lightly Active',
+            description: 'Light exercise 1-3 days/week, regular daily activities',
+            example: 'Walking to restaurants, casual strolls, light housework'
+          },
+          {
+            value: 'moderately_active',
+            title: 'Moderately Active',
+            description: 'Moderate exercise 3-5 days/week, active lifestyle',
+            example: 'Gym sessions, cycling, hiking, sports'
+          },
+          {
+            value: 'very_active',
+            title: 'Very Active',
+            description: 'Hard exercise 6-7 days/week, very physically demanding',
+            example: 'Athletic training, physical job, daily intense workouts'
+          }
+        ];
+
         return (
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Activity Level</label>
-              <Select 
-                value={typeof tempValue === 'string' ? tempValue : ''} 
-                onValueChange={setTempValue}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select activity level" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
-                  <SelectItem value="sedentary">Low</SelectItem>
-                  <SelectItem value="moderately_active">Medium</SelectItem>
-                  <SelectItem value="very_active">High</SelectItem>
-                </SelectContent>
-              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the option that best describes your typical weekly activity
+              </p>
+            </div>
+            <div className="space-y-3">
+              {activityOptions.map((option) => {
+                const calorieAddition = getCalorieAddition(option.value);
+                const isSelected = tempValue === option.value;
+                
+                return (
+                  <div
+                    key={option.value}
+                    onClick={() => setTempValue(option.value)}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      isSelected 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">
+                          {option.title}
+                          {calorieAddition > 0 && (
+                            <span className="ml-2 text-primary font-semibold">
+                              +{calorieAddition} cal/day
+                            </span>
+                          )}
+                          {calorieAddition === 0 && (
+                            <span className="ml-2 text-muted-foreground text-xs">
+                              Base Rate
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {option.description}
+                        </div>
+                        <div className="text-xs text-muted-foreground/80 mt-1 italic">
+                          Examples: {option.example}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="w-4 h-4 rounded-full bg-primary flex-shrink-0 mt-0.5" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );

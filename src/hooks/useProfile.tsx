@@ -209,6 +209,7 @@ export const useProfile = () => {
       profile.weight && 
       profile.height && 
       profile.age && 
+      profile.sex &&
       (profile.activity_level || profile['activity-level']) &&
       profile.onboarding_completed); // Must have onboarding completed flag
     
@@ -217,13 +218,14 @@ export const useProfile = () => {
       weight: profile?.weight,
       height: profile?.height,
       age: profile?.age,
+      sex: profile?.sex,
       activity_level: profile?.activity_level,
       onboarding_completed: profile?.onboarding_completed,
       profile: profile
     });
     
     return complete;
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level, profile?.onboarding_completed]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.sex, profile?.activity_level, profile?.onboarding_completed]);
 
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;
@@ -240,11 +242,17 @@ export const useProfile = () => {
       heightCm = profile.height * 2.54; // Convert inches to cm
     }
     
-    // Mifflin-St Jeor Equation (assuming average between male/female)
+    // Mifflin-St Jeor Equation with sex-specific calculation
     // Male: BMR = 10 × weight + 6.25 × height - 5 × age + 5
     // Female: BMR = 10 × weight + 6.25 × height - 5 × age - 161
-    // Average: BMR = 10 × weight + 6.25 × height - 5 × age - 78
-    return Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
+    let bmr: number;
+    if (profile.sex === 'female') {
+      bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 161);
+    } else {
+      // Default to male formula if sex not specified or is male
+      bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
+    }
+    return bmr;
   };
 
   const calculateWalkingCalories = (durationMinutes: number, speedMph: number = 3) => {

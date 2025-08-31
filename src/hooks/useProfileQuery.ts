@@ -126,12 +126,12 @@ export const useProfileQuery = () => {
     const weightKg = profile.weight;
     const heightCm = profile.height;
 
-    // Enhanced Mifflin-St Jeor equation with sex consideration
+    // Mifflin-St Jeor equation with sex-specific calculation
     let bmr: number;
     if (profile.sex === 'female') {
       bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 161);
     } else {
-      // Default to male formula if sex not specified
+      // Default to male formula if sex not specified or is male
       bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
     }
     return bmr;
