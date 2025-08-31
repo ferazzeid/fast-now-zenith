@@ -673,23 +673,12 @@ AMBIGUITY RESOLUTION:
 
   const handleCreateMotivator = async (args: any): Promise<string> => {
     try {
-      // Generate a slug from the title for user-created motivators
-      const baseSlug = args.title
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '-');
-      const uniqueSlug = `${baseSlug}-${Date.now()}`;
-
       const { data, error } = await supabase
         .from('motivators')
         .insert({
           user_id: user!.id,
           title: args.title,
-          content: args.content,
-          category: args.category || 'general',
-          slug: uniqueSlug,
-          is_active: true,
-          is_system_goal: false
+          content: args.content
         });
 
       if (error) throw error;
@@ -705,20 +694,11 @@ AMBIGUITY RESOLUTION:
     if (motivators.length === 0) return 'No motivators to create.';
 
     try {
-      const motivatorData = motivators.map((motivator: any, index: number) => {
-        const baseSlug = motivator.title.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
-        const uniqueSlug = `${baseSlug}-${Date.now()}-${index}`;
-        
-        return {
-          user_id: user!.id,
-          title: motivator.title,
-          content: motivator.content,
-          category: motivator.category || 'general',
-          slug: uniqueSlug,
-          is_active: true,
-          is_system_goal: false
-        };
-      });
+      const motivatorData = motivators.map((motivator: any) => ({
+        user_id: user!.id,
+        title: motivator.title,
+        content: motivator.content
+      }));
 
       const { data, error } = await supabase
         .from('motivators')

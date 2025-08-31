@@ -16,8 +16,6 @@ export interface Motivator {
   imageUrl?: string;
   show_in_animations?: boolean;
   linkUrl?: string;
-  gender?: 'male' | 'female' | 'both';
-  is_system_goal?: boolean;
 }
 
 export interface CreateMotivatorData {
@@ -54,7 +52,7 @@ export const useMotivators = () => {
     try {
       const { data, error } = await supabase
         .from('motivators')
-        .select('*, image_url, link_url, gender, is_system_goal')
+        .select('*, image_url, link_url')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -97,13 +95,6 @@ export const useMotivators = () => {
     if (!user) return null;
 
     try {
-      // Generate a slug from the title for user-created motivators
-      const baseSlug = motivatorData.title
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '-');
-      const uniqueSlug = `${baseSlug}-${Date.now()}`;
-
       const { data, error } = await supabase
         .from('motivators')
         .insert({
@@ -114,9 +105,7 @@ export const useMotivators = () => {
           image_url: motivatorData.imageUrl,
           link_url: motivatorData.linkUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
-          is_active: true,
-          slug: uniqueSlug,
-          is_system_goal: false
+          is_active: true
         })
         .select()
         .single();
@@ -200,27 +189,16 @@ export const useMotivators = () => {
     if (!user || !motivators.length) return [];
 
     try {
-      const motivatorData = motivators.map((motivator, index) => {
-        // Generate a slug from the title for user-created motivators
-        const baseSlug = motivator.title
-          .toLowerCase()
-          .replace(/[^a-zA-Z0-9\s]/g, '')
-          .replace(/\s+/g, '-');
-        const uniqueSlug = `${baseSlug}-${Date.now()}-${index}`;
-        
-        return {
-          user_id: user.id,
-          title: motivator.title,
-          content: motivator.content,
-          category: motivator.category || 'general',
-          image_url: motivator.imageUrl,
-          link_url: motivator.linkUrl,
-          show_in_animations: motivator.show_in_animations ?? true,
-          is_active: true,
-          slug: uniqueSlug,
-          is_system_goal: false
-        };
-      });
+      const motivatorData = motivators.map(motivator => ({
+        user_id: user.id,
+        title: motivator.title,
+        content: motivator.content,
+        category: motivator.category || 'general',
+        image_url: motivator.imageUrl,
+        link_url: motivator.linkUrl,
+        show_in_animations: motivator.show_in_animations ?? true,
+        is_active: true
+      }));
 
       const { data, error } = await supabase
         .from('motivators')
@@ -256,13 +234,6 @@ export const useMotivators = () => {
     try {
       const title = quote.text.length > 50 ? `${quote.text.substring(0, 47)}...` : quote.text;
       const content = `"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`;
-      
-      // Generate a slug from the quote text
-      const baseSlug = title
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '-');
-      const uniqueSlug = `quote-${baseSlug}-${Date.now()}`;
 
       const { data, error } = await supabase
         .from('motivators')
@@ -272,9 +243,7 @@ export const useMotivators = () => {
           content,
           category: 'saved_quote',
           show_in_animations: true, // Default to showing saved quotes in animations
-          is_active: true,
-          slug: uniqueSlug,
-          is_system_goal: false
+          is_active: true
         })
         .select()
         .single();

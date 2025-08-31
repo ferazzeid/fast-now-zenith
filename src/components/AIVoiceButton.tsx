@@ -371,23 +371,12 @@ export const AIVoiceButton = () => {
 
   const handleCreateMotivator = async (args: any): Promise<string> => {
     try {
-      // Generate a slug from the title for user-created motivators
-      const baseSlug = args.title
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '-');
-      const uniqueSlug = `${baseSlug}-${Date.now()}`;
-
       const { data, error } = await supabase
         .from('motivators')
         .insert({
           user_id: user!.id,
           title: args.title,
-          content: args.content,
-          category: args.category || 'general',
-          slug: uniqueSlug,
-          is_active: true,
-          is_system_goal: false
+          content: args.content
         });
 
       if (error) throw error;
