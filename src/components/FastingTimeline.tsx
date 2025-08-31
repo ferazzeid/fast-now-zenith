@@ -59,8 +59,8 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
   }
 
   const getVisibleHours = () => {
-    // Show first 24 hours, then every 6 hours up to 72
-    const hours = [];
+    // Show hour 0, then first 24 hours, then every 6 hours up to 72
+    const hours = [0];
     for (let i = 1; i <= 24; i++) {
       hours.push(i);
     }
@@ -113,12 +113,20 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = ({
                 <TooltipTrigger asChild>
                   <button
                     className={`
-                      w-8 h-8 rounded-full border-2 text-xs font-medium 
+                      flex items-center gap-1 px-2 py-1 rounded-full border-2 text-xs font-medium 
                       transition-all duration-200 hover:scale-110 active:scale-95
                       ${getHourStyles(status)}
                     `}
                   >
-                    {hour}
+                    {/* Left arrow - grayed out for hour 0 */}
+                    <span className={`text-xs ${hour === 0 ? 'text-muted-foreground/40' : 'text-current'}`}>
+                      ◀
+                    </span>
+                    <span className="min-w-[16px] text-center">{hour}</span>
+                    {/* Right arrow */}
+                    <span className="text-xs text-current">
+                      ▶
+                    </span>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent 

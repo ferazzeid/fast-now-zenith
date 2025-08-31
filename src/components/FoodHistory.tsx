@@ -351,11 +351,15 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
                           e.stopPropagation();
                           const result = await copyDayToToday(summary.date);
                           if (result?.success) {
-                            // Trigger refresh in parent component
+                            // Trigger refresh in parent component immediately
                             if (onCopySuccess) {
+                              console.log('Triggering onCopySuccess callback to refresh food entries');
                               onCopySuccess();
                             }
-                            onClose(); // Close the history modal after successful copy
+                            // Small delay to ensure the refresh completes before closing
+                            setTimeout(() => {
+                              onClose(); // Close the history modal after successful copy
+                            }, 100);
                           }
                         }}
                         disabled={copyLoading}
