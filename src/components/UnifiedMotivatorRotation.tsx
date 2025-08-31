@@ -219,33 +219,27 @@ export const UnifiedMotivatorRotation = ({
             });
             return current.type === 'motivator';
           })() ? (
-            /* Goals: Circular centered display with ALL CAPS */
-            <div className="w-44 h-44 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-2xl flex items-center justify-center animate-scale-in">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-full" />
-              <div className="relative z-10 text-center text-white px-6">
-                <p className="text-lg font-bold leading-tight break-words uppercase" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
-                  {current.title}
-                </p>
-              </div>
+            /* Goals: Direct white text on image, no background */
+            <div className="text-center text-white px-6 animate-fade-in">
+              <p className="text-xl font-bold leading-tight break-words uppercase" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}>
+                {current.title}
+              </p>
             </div>
           ) : (
-            /* Quotes/Notes: Adaptive rectangular card with dynamic sizing and font */
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl p-6 max-w-2xl w-full max-h-[70vh] overflow-hidden animate-scale-in">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-2xl" />
-              <div className="relative z-10 text-center text-white">
-                <p 
-                  className={`font-medium leading-relaxed break-words ${
-                    current.title && current.title.length > 200 
-                      ? 'text-xs' 
-                      : current.title && current.title.length > 120 
-                      ? 'text-sm' 
-                      : 'text-base'
-                  }`} 
-                  style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
-                >
-                  {current.title}
-                </p>
-              </div>
+            /* Quotes: Direct text on background, no box */
+            <div className="text-center text-white px-8 max-w-4xl w-full animate-fade-in">
+              <p 
+                className={`font-medium leading-relaxed break-words ${
+                  current.title && current.title.length > 200 
+                    ? 'text-sm' 
+                    : current.title && current.title.length > 120 
+                    ? 'text-base' 
+                    : 'text-lg'
+                }`} 
+                style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}
+              >
+                {current.title}
+              </p>
             </div>
           )}
         </div>
