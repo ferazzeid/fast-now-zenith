@@ -63,7 +63,7 @@ export const useDailyDeficitQuery = () => {
   const today = new Date().toISOString().split('T')[0];
 
   // Create a profile hash for cache invalidation when profile changes
-  const effectiveActivityLevel = todayOverride?.activity_level || profile?.activity_level || 'sedentary';
+  const effectiveActivityLevel = todayOverride?.activity_level || profile?.activity_level || 'lightly_active';
   const profileHash = profile ? 
     `${profile.weight}-${profile.height}-${profile.age}-${effectiveActivityLevel}-${profile.manual_tdee_override || 'auto'}` : 
     'no-profile';
@@ -108,7 +108,7 @@ export const useDailyDeficitQuery = () => {
       };
 
       // Use daily override if available, otherwise use profile activity level
-      const effectiveActivityLevel = todayOverride?.activity_level || profile.activity_level || 'sedentary';
+      const effectiveActivityLevel = todayOverride?.activity_level || profile.activity_level || 'lightly_active';
       const multiplier = activityMultipliers[effectiveActivityLevel as keyof typeof activityMultipliers] || 1.2;
       const tdee = bmr * multiplier;
 
@@ -212,7 +212,7 @@ export const useDailyDeficitQuery = () => {
       caloriesConsumed: 0,
       walkingCalories: 0,
       manualCalories: 0,
-      activityLevel: 'sedentary',
+      activityLevel: 'lightly_active',
     },
     
     // Loading states

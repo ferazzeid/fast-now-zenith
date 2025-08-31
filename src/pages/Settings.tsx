@@ -92,7 +92,7 @@ const Settings = () => {
           setSex(profileData.sex || '');
           setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
-          setActivityLevel(profileData.activity_level || 'sedentary');
+          setActivityLevel(profileData.activity_level || 'lightly_active');
           setManualTdeeOverride(profileData.manual_tdee_override?.toString() || '');
 
           // Check if profile is incomplete and show onboarding
@@ -547,7 +547,7 @@ const Settings = () => {
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
-                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Sedentary' (office work) or 'Lightly Active' (some walking). This is your default setting.">
+                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Lightly Active' (recommended default for daily activities) or 'Sedentary' (office work only). Choose based on your typical weekly activity level.">
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>
                     </div>

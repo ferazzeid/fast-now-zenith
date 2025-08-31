@@ -31,7 +31,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     height: profile?.height ? profile.height.toString() : '',
     age: profile?.age ? profile.age.toString() : '',
     sex: profile?.sex || '',
-    activityLevel: profile?.activity_level || '',
+    activityLevel: profile?.activity_level || 'lightly_active',
   });
 
   // Update form data when profile loads
@@ -42,7 +42,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         height: profile.height ? profile.height.toString() : '',
         age: profile.age ? profile.age.toString() : '',
         sex: profile.sex || '',
-        activityLevel: profile.activity_level || '',
+        activityLevel: profile.activity_level || 'lightly_active',
       });
     }
   }, [profile]);
