@@ -388,7 +388,7 @@ const Motivators = () => {
               <div className="col-span-1 flex flex-col items-center gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                     <Button
+                    <Button
                       onClick={() => navigate('/motivator-ideas')}
                       variant="action-secondary"
                       size="action-tall"

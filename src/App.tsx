@@ -233,34 +233,27 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
-              <Route path="/motivators" element={
-                <ProtectedRoute>
-                  <PageErrorBoundary>
-                    <Motivators />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
-              } />
-              <Route path="/system-goals" element={
-                <ProtectedRoute>
-                  <PageErrorBoundary>
-                    <SystemGoals />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
-              } />
-              <Route path="/motivators/:slug" element={
-                <ProtectedRoute>
-                  <PageErrorBoundary>
-                    <MotivatorDetail />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
-              } />
-               <Route path="/motivator-ideas" element={
-                <ProtectedRoute>
-                  <PageErrorBoundary>
-                    <SystemGoals />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
-              } />
+             <Route path="/motivators" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <SystemGoals />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/motivators/:slug" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <MotivatorDetail />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/motivator-ideas" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <Motivators />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
