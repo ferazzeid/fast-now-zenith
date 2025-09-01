@@ -248,8 +248,8 @@ export const ProgressiveImageUpload = ({
         };
       default:
         return {
-          icon: isMobile ? <Camera className="w-6 h-6" /> : <Upload className="w-6 h-6" />,
-          text: isMobile ? "Take Photo" : "Upload Photo",
+          icon: <Camera className="w-6 h-6" />,
+          text: "Take Photo",
           subtext: "AI will analyze nutrition"
         };
     }
