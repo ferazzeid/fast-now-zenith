@@ -26,17 +26,47 @@ export const CircularVoiceButton = React.forwardRef<
 }, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  // Check microphone permissions on mount
+  useEffect(() => {
+    checkMicrophonePermission();
+  }, []);
 
   // Auto-start recording when autoStart is true
   useEffect(() => {
-    if (autoStart && !isDisabled && !isRecording && !isProcessing) {
+    if (autoStart && !isDisabled && !isRecording && !isProcessing && hasPermission) {
       console.log('🎤 Auto-starting recording...');
       startRecording();
     }
-  }, [autoStart, isDisabled]);
+  }, [autoStart, isDisabled, hasPermission]);
+
+  // Recording timer
+  useEffect(() => {
+    if (isRecording) {
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      setRecordingTime(0);
+    }
+
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, [isRecording]);
 
   // Expose stop recording method via ref
   React.useImperativeHandle(ref, () => ({
@@ -71,6 +101,18 @@ export const CircularVoiceButton = React.forwardRef<
     lg: 'h-6 w-6'
   };
 
+  const checkMicrophonePermission = async () => {
+    try {
+      console.log('🎤 Checking microphone permission...');
+      const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      setHasPermission(result.state === 'granted');
+      console.log('🎤 Permission state:', result.state);
+    } catch (error) {
+      console.log('🎤 Permission check not supported, will check during access');
+      setHasPermission(null); // Unknown, will check during access
+    }
+  };
+
   // Pick a supported mimeType to avoid first-click failures on some browsers (iOS Safari)
   const getSupportedMimeType = () => {
     const candidates = [
@@ -96,6 +138,8 @@ export const CircularVoiceButton = React.forwardRef<
   const startRecording = async () => {
     try {
       console.log('🎤 Starting recording...');
+      setError(null);
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
@@ -107,6 +151,7 @@ export const CircularVoiceButton = React.forwardRef<
       });
       
       console.log('🎤 MediaStream obtained, creating MediaRecorder...');
+      setHasPermission(true);
       const mimeType = getSupportedMimeType();
       console.log('🎤 Selected mimeType:', mimeType || 'default');
       mediaRecorderRef.current = mimeType
@@ -130,18 +175,18 @@ export const CircularVoiceButton = React.forwardRef<
         console.error('🎤 MediaRecorder error:', event);
       };
 
-      // 60 second timeout for voice messages
+      // 90 second timeout for voice messages
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
           console.log('🎤 Recording timeout reached');
           toast({
             title: "⏱️ Recording Timeout",
-            description: "Recording automatically stopped after 60 seconds.",
+            description: "Recording automatically stopped after 90 seconds.",
             variant: "destructive"
           });
           stopAndProcess();
         }
-      }, 60000); // 60 seconds
+      }, 90000); // 90 seconds
 
       mediaRecorderRef.current.start(100); // Request data every 100ms
       setIsRecording(true);
@@ -151,9 +196,19 @@ export const CircularVoiceButton = React.forwardRef<
       
     } catch (error) {
       console.error('🎤 Error starting recording:', error);
+      setHasPermission(false);
+      
+      let errorMsg = "Could not access microphone. Please check permissions.";
+      if (error.name === 'NotAllowedError') {
+        errorMsg = "Microphone access denied. Please enable microphone permissions in your browser settings.";
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = "No microphone found. Please connect a microphone and try again.";
+      }
+      
+      setError(errorMsg);
       toast({
-        title: "Error",
-        description: "Could not access microphone. Please check permissions.",
+        title: "Microphone Error",
+        description: errorMsg,
         variant: "destructive"
       });
     }
@@ -234,9 +289,19 @@ export const CircularVoiceButton = React.forwardRef<
       console.log('🎤 Base64 length:', base64Audio.length);
 
       console.log('🎤 Sending to transcribe function...');
+      
+      // Add timeout for transcription API call (90 seconds)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      
       const { data, error } = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio }
+        body: { audio: base64Audio },
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('🎤 Supabase function error:', error);
@@ -265,7 +330,9 @@ export const CircularVoiceButton = React.forwardRef<
       let errorMessage = "Please try recording again";
       
       // Handle specific error cases
-      if (error.message?.includes('limit')) {
+      if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+        errorMessage = "Voice processing took too long. Please try with a shorter recording.";
+      } else if (error.message?.includes('limit')) {
         errorMessage = "Voice feature unavailable. Please try later or upgrade.";
       } else if (error.message?.includes('access') || error.message?.includes('premium')) {
         errorMessage = "Voice feature requires premium access";
@@ -274,6 +341,8 @@ export const CircularVoiceButton = React.forwardRef<
       } else if (error.message?.includes('AI features are only available')) {
         errorMessage = "Voice input requires premium access. Upgrade to continue.";
       }
+      
+      setError(errorMessage);
       
       toast({
         title: "Voice Processing Failed",
@@ -299,33 +368,134 @@ export const CircularVoiceButton = React.forwardRef<
     if (isRecording) {
       stopAndProcess();
     } else {
+      setError(null);
       startRecording();
     }
   };
 
+  const handleCancel = () => {
+    if (isProcessing) {
+      // Can't cancel processing, but show feedback
+      toast({
+        title: "Processing...",
+        description: "Please wait for voice processing to complete.",
+      });
+      return;
+    }
+    
+    if (isRecording) {
+      cancelRecording();
+    }
+  };
+
+  const getButtonState = () => {
+    if (hasPermission === false) return 'permission-denied';
+    if (error) return 'error';
+    if (isProcessing) return 'processing';
+    if (isRecording) return 'recording';
+    return 'idle';
+  };
+
+  const getButtonIcon = () => {
+    const state = getButtonState();
+    
+    switch (state) {
+      case 'processing':
+        return <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${iconSizes[size]}`} />;
+      case 'recording':
+        return <div className={`${iconSizes[size]} bg-white rounded-full animate-pulse`} />;
+      case 'error':
+        return <span className={`${iconSizes[size]} text-white font-bold text-xs flex items-center justify-center`}>!</span>;
+      case 'permission-denied':
+        return <span className={`${iconSizes[size]} text-white font-bold text-xs flex items-center justify-center`}>🔒</span>;
+      default:
+        return <Mic className={iconSizes[size]} />;
+    }
+  };
+
+  const getButtonColor = () => {
+    const state = getButtonState();
+    
+    switch (state) {
+      case 'recording':
+        return 'bg-red-500 hover:bg-red-600';
+      case 'processing':
+        return 'bg-blue-500 hover:bg-blue-600';
+      case 'error':
+      case 'permission-denied':
+        return 'bg-gray-500 hover:bg-gray-600';
+      default:
+        return 'bg-green-500 hover:bg-green-600';
+    }
+  };
+
+  const getStatusText = () => {
+    const state = getButtonState();
+    
+    switch (state) {
+      case 'recording':
+        return `Recording... ${recordingTime}s`;
+      case 'processing':
+        return 'Processing voice...';
+      case 'error':
+        return 'Error - Tap to retry';
+      case 'permission-denied':
+        return 'Enable microphone access';
+      default:
+        return 'Tap to record';
+    }
+  };
+
   return (
-    <Button
-      onClick={handleClick}
-      disabled={isDisabled || isProcessing}
-      className={`
-        ${sizeClasses[size]} 
-        rounded-full 
-        transition-all 
-        duration-200 
-        ${isRecording 
-          ? 'bg-orange-500 hover:bg-orange-600 recording-pulse' 
-          : 'bg-green-500 hover:bg-green-600'
-        }
-        text-white
-      `}
-    >
-      {isProcessing ? (
-        <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${iconSizes[size]}`} />
-      ) : isRecording ? (
-        <Send className={`${iconSizes[size]}`} />
-      ) : (
-        <Mic className={iconSizes[size]} />
+    <div className="flex flex-col items-center space-y-2">
+      <div className="relative">
+        <Button
+          onClick={handleClick}
+          disabled={isDisabled || (isProcessing && !isRecording)}
+          className={`
+            ${sizeClasses[size]} 
+            rounded-full 
+            transition-all 
+            duration-200 
+            ${getButtonColor()}
+            text-white
+            relative
+          `}
+        >
+          {getButtonIcon()}
+        </Button>
+        
+        {(isRecording || isProcessing) && (
+          <Button
+            onClick={handleCancel}
+            size="sm"
+            variant="destructive"
+            className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 bg-red-500 hover:bg-red-600"
+          >
+            <span className="text-xs font-bold">✕</span>
+          </Button>
+        )}
+      </div>
+      
+      {/* Status text */}
+      <div className="text-xs text-center text-muted-foreground min-h-4">
+        {getStatusText()}
+      </div>
+      
+      {/* Error message with retry */}
+      {error && (
+        <div className="text-xs text-red-500 text-center max-w-32">
+          <p>{error}</p>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => setError(null)} 
+            className="mt-1 h-6 text-xs px-2"
+          >
+            Try Again
+          </Button>
+        </div>
       )}
-    </Button>
+    </div>
   );
 });
