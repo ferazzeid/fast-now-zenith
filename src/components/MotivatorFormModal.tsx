@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
+import { ImageUpload } from '@/components/ImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
@@ -187,7 +187,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="h-9 w-9 p-0 flex items-center justify-center bg-ai hover:bg-ai/90 text-white"
+                  className="h-9 w-9 p-0 flex items-center justify-center rounded-full bg-ai hover:bg-ai/90 text-white"
                 >
                   <Mic className="w-4 h-4" />
                 </Button>
@@ -211,7 +211,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="h-9 w-9 p-0 flex items-center justify-center bg-ai hover:bg-ai/90 text-white"
+                  className="h-9 w-9 p-0 flex items-center justify-center rounded-full bg-ai hover:bg-ai/90 text-white"
                 >
                   <Mic className="w-4 h-4" />
                 </Button>
@@ -246,8 +246,11 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">Image (Optional)</Label>
-            <ProgressiveImageUpload
+            <ImageUpload
+              currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
+              onImageRemove={() => setImageUrl('')}
+              showUploadOptionsWhenImageExists={true}
             />
           </div>
           
