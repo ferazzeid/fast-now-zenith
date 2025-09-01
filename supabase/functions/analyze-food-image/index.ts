@@ -28,32 +28,55 @@ serve(async (req) => {
       throw new Error('No image data or URL provided');
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || (!supabaseServiceKey && !supabaseAnonKey)) {
       throw new Error('Supabase configuration not available');
     }
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Create client for JWT validation (use service role if available, otherwise anon)
+    const authClient = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+      auth: { persistSession: false }
+    });
+
+    // Create data client with service role for database operations
+    const dataClient = supabaseServiceKey ? 
+      createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } }) :
+      authClient;
 
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('Missing authorization header');
       throw new Error('No authorization header provided');
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    console.log('Token extracted, length:', token.length);
+
+    // Validate the JWT token
+    const { data: userData, error: userError } = await authClient.auth.getUser(token);
+    console.log('User auth result:', { 
+      hasUser: !!userData?.user, 
+      error: userError?.message,
+      userId: userData?.user?.id 
+    });
+
     if (userError || !userData.user) {
-      throw new Error('User not authenticated');
+      console.error('User authentication failed:', userError);
+      throw new Error(`User not authenticated: ${userError?.message || 'Invalid token'}`);
     }
 
     const userId = userData.user.id;
 
     // Get user profile and check subscription status
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await dataClient
       .from('profiles')
       .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
       .eq('user_id', userId)
@@ -73,7 +96,7 @@ serve(async (req) => {
       'trial' : profile.access_level;
 
     // Get both trial and premium limits from settings
-    const { data: settings } = await supabase
+    const { data: settings } = await dataClient
       .from('shared_settings')
       .select('setting_key, setting_value')
       .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
@@ -121,7 +144,7 @@ serve(async (req) => {
     
     if (!openaiApiKey) {
       // Get from shared settings
-      const { data: sharedKey } = await supabase
+      const { data: sharedKey } = await dataClient
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'shared_api_key')
@@ -307,7 +330,7 @@ serve(async (req) => {
 
     // Increment usage counter (all users count against limits now)
     try {
-      await supabase
+      await dataClient
         .from('profiles')
         .update({ 
           monthly_ai_requests: profile.monthly_ai_requests + 1 
@@ -318,7 +341,7 @@ serve(async (req) => {
     }
 
     try {
-      await supabase.rpc('track_usage_event', {
+      await dataClient.rpc('track_usage_event', {
         _user_id: userId,
         _event_type: 'food_image_analysis',
         _requests_count: 1,

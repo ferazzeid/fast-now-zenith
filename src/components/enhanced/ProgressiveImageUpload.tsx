@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Camera, Loader2, Image, CheckCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
@@ -114,6 +115,18 @@ export const ProgressiveImageUpload = ({
           className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
         });
 
+        // Debug: Check auth before calling function
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Auth check before analysis:', { 
+          hasUser: !!user, 
+          hasSession: !!session,
+          sessionExpiry: session?.expires_at 
+        });
+
+        if (!session) {
+          throw new Error('Authentication session not found. Please sign in again.');
+        }
+
         // Call analysis
         const { data, error } = await supabase.functions.invoke('analyze-food-image', {
           body: { imageUrl: result.url },
@@ -135,13 +148,35 @@ export const ProgressiveImageUpload = ({
         console.error('Upload or analysis error:', error);
         setInternalState('error');
         
-        const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+        // Enhanced error handling with specific messages
+        let errorMessage = 'Failed to process image';
+        let shouldRetry = false;
+        
+        if (error instanceof Error) {
+          const message = error.message.toLowerCase();
+          if (message.includes('auth') || message.includes('session') || message.includes('token')) {
+            errorMessage = 'Authentication expired. Please refresh the page and try again.';
+            shouldRetry = false;
+          } else if (message.includes('network') || message.includes('fetch')) {
+            errorMessage = 'Network error. Please check your connection and try again.';
+            shouldRetry = true;
+          } else {
+            errorMessage = error.message;
+            shouldRetry = true;
+          }
+        }
+        
         onAnalysisError?.(errorMessage);
         
         toast({
           title: "Error",
           description: errorMessage,
           variant: "destructive",
+          action: shouldRetry ? (
+            <ToastAction altText="Retry upload" onClick={() => handleFileUpload(file)}>
+              Retry
+            </ToastAction>
+          ) : undefined,
         });
       }
     }, 'Image Upload and Analysis');
