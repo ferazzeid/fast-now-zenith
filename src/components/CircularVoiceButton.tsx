@@ -28,7 +28,6 @@ export const CircularVoiceButton = React.forwardRef<
   const [isProcessing, setIsProcessing] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -138,7 +137,6 @@ export const CircularVoiceButton = React.forwardRef<
   const startRecording = async () => {
     try {
       console.log('🎤 Starting recording...');
-      setError(null);
       
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -205,7 +203,6 @@ export const CircularVoiceButton = React.forwardRef<
         errorMsg = "No microphone found. Please connect a microphone and try again.";
       }
       
-      setError(errorMsg);
       toast({
         title: "Microphone Error",
         description: errorMsg,
@@ -342,8 +339,6 @@ export const CircularVoiceButton = React.forwardRef<
         errorMessage = "Voice input requires premium access. Upgrade to continue.";
       }
       
-      setError(errorMessage);
-      
       toast({
         title: "Voice Processing Failed",
         description: errorMessage,
@@ -368,134 +363,31 @@ export const CircularVoiceButton = React.forwardRef<
     if (isRecording) {
       stopAndProcess();
     } else {
-      setError(null);
       startRecording();
     }
   };
 
-  const handleCancel = () => {
-    if (isProcessing) {
-      // Can't cancel processing, but show feedback
-      toast({
-        title: "Processing...",
-        description: "Please wait for voice processing to complete.",
-      });
-      return;
-    }
-    
-    if (isRecording) {
-      cancelRecording();
-    }
-  };
-
-  const getButtonState = () => {
-    if (hasPermission === false) return 'permission-denied';
-    if (error) return 'error';
-    if (isProcessing) return 'processing';
-    if (isRecording) return 'recording';
-    return 'idle';
-  };
-
-  const getButtonIcon = () => {
-    const state = getButtonState();
-    
-    switch (state) {
-      case 'processing':
-        return <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${iconSizes[size]}`} />;
-      case 'recording':
-        return <div className={`${iconSizes[size]} bg-white rounded-full animate-pulse`} />;
-      case 'error':
-        return <span className={`${iconSizes[size]} text-white font-bold text-xs flex items-center justify-center`}>!</span>;
-      case 'permission-denied':
-        return <span className={`${iconSizes[size]} text-white font-bold text-xs flex items-center justify-center`}>🔒</span>;
-      default:
-        return <Mic className={iconSizes[size]} />;
-    }
-  };
-
   const getButtonColor = () => {
-    const state = getButtonState();
-    
-    switch (state) {
-      case 'recording':
-        return 'bg-red-500 hover:bg-red-600';
-      case 'processing':
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'error':
-      case 'permission-denied':
-        return 'bg-gray-500 hover:bg-gray-600';
-      default:
-        return 'bg-green-500 hover:bg-green-600';
-    }
-  };
-
-  const getStatusText = () => {
-    const state = getButtonState();
-    
-    switch (state) {
-      case 'recording':
-        return `Recording... ${recordingTime}s`;
-      case 'processing':
-        return 'Processing voice...';
-      case 'error':
-        return 'Error - Tap to retry';
-      case 'permission-denied':
-        return 'Enable microphone access';
-      default:
-        return 'Tap to record';
-    }
+    if (hasPermission === false) return 'bg-gray-500 hover:bg-gray-600';
+    if (isRecording) return 'bg-red-500 hover:bg-red-600 animate-pulse';
+    return 'bg-green-500 hover:bg-green-600';
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2">
-      <div className="relative">
-        <Button
-          onClick={handleClick}
-          disabled={isDisabled || (isProcessing && !isRecording)}
-          className={`
-            ${sizeClasses[size]} 
-            rounded-full 
-            transition-all 
-            duration-200 
-            ${getButtonColor()}
-            text-white
-            relative
-          `}
-        >
-          {getButtonIcon()}
-        </Button>
-        
-        {(isRecording || isProcessing) && (
-          <Button
-            onClick={handleCancel}
-            size="sm"
-            variant="destructive"
-            className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 bg-red-500 hover:bg-red-600"
-          >
-            <span className="text-xs font-bold">✕</span>
-          </Button>
-        )}
-      </div>
-      
-      {/* Status text */}
-      <div className="text-xs text-center text-muted-foreground min-h-4">
-        {getStatusText()}
-      </div>
-      
-      {/* Error message with retry */}
-      {error && (
-        <div className="text-xs text-red-500 text-center max-w-32">
-          <p>{error}</p>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => setError(null)} 
-            className="mt-1 h-6 text-xs px-2"
-          >
-            Try Again
-          </Button>
-        </div>
-      )}
-    </div>
+    <Button
+      onClick={handleClick}
+      disabled={isDisabled || isProcessing}
+      className={`
+        ${sizeClasses[size]} 
+        rounded-full 
+        transition-all 
+        duration-200 
+        ${getButtonColor()}
+        text-white
+        relative
+      `}
+    >
+      <Mic className={iconSizes[size]} />
+    </Button>
   );
 });

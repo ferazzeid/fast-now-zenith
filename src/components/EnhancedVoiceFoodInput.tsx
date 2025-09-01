@@ -15,21 +15,21 @@ interface EnhancedVoiceFoodInputProps {
       confidence: number; 
     } 
   }) => void;
+  onProcessingStateChange?: (state: 'idle' | 'listening' | 'analyzing') => void;
   className?: string;
 }
 
 export const EnhancedVoiceFoodInput = ({ 
   onFoodParsed, 
+  onProcessingStateChange,
   className = ""
 }: EnhancedVoiceFoodInputProps) => {
-  const [isEstimating, setIsEstimating] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();
 
   const handleVoiceTranscription = async (transcription: string) => {
     console.log('🎯 EnhancedVoiceFoodInput: Received transcription:', transcription);
     
-    setIsEstimating(true);
+    onProcessingStateChange?.('analyzing');
     
     try {
       // Parse the voice input for food information
@@ -63,8 +63,6 @@ export const EnhancedVoiceFoodInput = ({
 
           onFoodParsed(result);
 
-          // Show success feedback
-          setShowSuccess(true);
           toast({
             title: "✓ Food Recognized",
             description: `${parsedResult.foodName}${parsedResult.amount ? ` (${parsedResult.amount}${parsedResult.unit})` : ''}`,
@@ -76,12 +74,10 @@ export const EnhancedVoiceFoodInput = ({
           console.error('Nutrition estimation failed:', nutritionError);
           // Still return the parsed result without nutrition
           onFoodParsed(parsedResult);
-          setShowSuccess(true);
         }
       } else {
         // Fallback: just use the raw transcription
         onFoodParsed({ originalText: transcription, foodName: transcription });
-        setShowSuccess(true);
       }
 
     } catch (error) {
@@ -93,44 +89,24 @@ export const EnhancedVoiceFoodInput = ({
         variant: "destructive"
       });
     } finally {
-      setIsEstimating(false);
-      
-      // Reset success state after showing it
-      if (showSuccess) {
-        setTimeout(() => {
-          setShowSuccess(false);
-        }, 1500);
-      }
+      onProcessingStateChange?.('idle');
+    }
+  };
+
+  const handleRecordingStateChange = (isRecording: boolean) => {
+    if (isRecording) {
+      onProcessingStateChange?.('listening');
     }
   };
 
   return (
     <div className={`relative ${className}`}>
       <PremiumGate feature="Smart Voice Input" showUpgrade={false}>
-        <div className="relative">
-          <CircularVoiceButton
-            onTranscription={handleVoiceTranscription}
-            size="sm"
-          />
-          
-          {/* Show nutrition estimation overlay */}
-          {isEstimating && (
-            <div className="absolute inset-0 bg-ai/90 rounded-full flex items-center justify-center">
-              <div className="text-xs text-white font-medium">
-                Analyzing...
-              </div>
-            </div>
-          )}
-          
-          {/* Show success overlay */}
-          {showSuccess && (
-            <div className="absolute inset-0 bg-green-500 rounded-full flex items-center justify-center">
-              <div className="text-xs text-white font-medium">
-                ✓ Done
-              </div>
-            </div>
-          )}
-        </div>
+        <CircularVoiceButton
+          onTranscription={handleVoiceTranscription}
+          onRecordingStateChange={handleRecordingStateChange}
+          size="sm"
+        />
       </PremiumGate>
     </div>
   );

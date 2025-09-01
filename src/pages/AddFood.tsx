@@ -63,6 +63,9 @@ export default function AddFood() {
   
   // AI estimation loading states
   const [isAiEstimating, setIsAiEstimating] = useState(false);
+  
+  // Voice processing states
+  const [voiceProcessingState, setVoiceProcessingState] = useState<'idle' | 'listening' | 'analyzing'>('idle');
 
   // Set default unit when profile loads
   useEffect(() => {
@@ -396,7 +399,11 @@ export default function AddFood() {
                     id="food-name"
                     value={name}
                     onChange={(e) => handleNameChange(e.target.value)}
-                    placeholder="e.g., Grilled Chicken Breast"
+                    placeholder={
+                      voiceProcessingState === 'listening' ? "Listening..." :
+                      voiceProcessingState === 'analyzing' ? "Analyzing nutrition..." :
+                      "e.g., Grilled Chicken Breast"
+                    }
                     className="h-9 flex-1"
                     required
                   />
@@ -429,6 +436,7 @@ export default function AddFood() {
                         });
                       }
                     }}
+                    onProcessingStateChange={setVoiceProcessingState}
                   />
                 </div>
               </div>
