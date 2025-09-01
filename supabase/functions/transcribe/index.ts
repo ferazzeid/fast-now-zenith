@@ -37,7 +37,28 @@ serve(async (req) => {
   }
 
   try {
-    const { audio } = await req.json();
+    console.log('Transcribe function called, method:', req.method);
+    console.log('Content-Type:', req.headers.get('content-type'));
+    
+    // Get raw body first to debug
+    const bodyText = await req.text();
+    console.log('Raw body length:', bodyText.length);
+    console.log('Raw body preview:', bodyText.substring(0, 100));
+    
+    if (!bodyText || bodyText.trim() === '') {
+      throw new Error('Request body is empty');
+    }
+    
+    let requestData;
+    try {
+      requestData = JSON.parse(bodyText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Body content that failed to parse:', bodyText.substring(0, 500));
+      throw new Error('Invalid JSON in request body');
+    }
+    
+    const { audio } = requestData;
     console.log('Received transcription request, audio data length:', audio?.length || 0);
     
     if (!audio) {
