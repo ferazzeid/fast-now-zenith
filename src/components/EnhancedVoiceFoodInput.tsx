@@ -96,7 +96,15 @@ export const EnhancedVoiceFoodInput = ({
   const handleRecordingStateChange = (isRecording: boolean) => {
     if (isRecording) {
       onProcessingStateChange?.('listening');
+    } else {
+      // Reset to idle when recording stops (but not when processing starts)
+      setTimeout(() => onProcessingStateChange?.('idle'), 100);
     }
+  };
+
+  const handleVoiceError = (error: string) => {
+    // Reset processing state on any voice error
+    onProcessingStateChange?.('idle');
   };
 
   return (
@@ -105,6 +113,7 @@ export const EnhancedVoiceFoodInput = ({
         <CircularVoiceButton
           onTranscription={handleVoiceTranscription}
           onRecordingStateChange={handleRecordingStateChange}
+          onError={handleVoiceError}
           size="sm"
         />
       </PremiumGate>

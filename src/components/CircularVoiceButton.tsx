@@ -244,7 +244,7 @@ export const CircularVoiceButton = React.forwardRef<
       console.log('🎤 Stopping MediaRecorder...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      await new Promise(resolve => setTimeout(resolve, 200)); // Wait for onstop event
+      await new Promise(resolve => setTimeout(resolve, 300)); // Wait longer for onstop event
     }
     
     console.log('🎤 Audio chunks collected:', audioChunksRef.current.length);
@@ -269,8 +269,16 @@ export const CircularVoiceButton = React.forwardRef<
         throw new Error('Audio blob is empty');
       }
 
+      if (audioBlob.size < 100) {
+        throw new Error('Audio recording too short');
+      }
+
       console.log('🎤 Converting to base64...');
       const arrayBuffer = await audioBlob.arrayBuffer();
+      
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error('Audio data is empty after conversion');
+      }
       
       // Process in chunks to prevent memory issues
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -284,6 +292,10 @@ export const CircularVoiceButton = React.forwardRef<
       
       const base64Audio = btoa(binary);
       console.log('🎤 Base64 length:', base64Audio.length);
+
+      if (!base64Audio || base64Audio.length === 0) {
+        throw new Error('Failed to convert audio to base64');
+      }
 
       console.log('🎤 Sending to transcribe function...');
       
@@ -327,7 +339,9 @@ export const CircularVoiceButton = React.forwardRef<
       let errorMessage = "Please try recording again";
       
       // Handle specific error cases
-      if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+      if (error.message?.includes('empty') || error.message?.includes('short')) {
+        errorMessage = "Recording failed. Please try speaking louder and longer.";
+      } else if (error.name === 'AbortError' || error.message?.includes('timeout')) {
         errorMessage = "Voice processing took too long. Please try with a shorter recording.";
       } else if (error.message?.includes('limit')) {
         errorMessage = "Voice feature unavailable. Please try later or upgrade.";
@@ -344,7 +358,6 @@ export const CircularVoiceButton = React.forwardRef<
         description: errorMessage,
         variant: "destructive"
       });
-      
       // Notify parent component of error
       onError?.(errorMessage);
       
