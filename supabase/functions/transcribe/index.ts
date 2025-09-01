@@ -43,9 +43,12 @@ serve(async (req) => {
     // Get raw body first to debug empty requests
     const bodyText = await req.text();
     console.log('Raw body length:', bodyText.length);
+    console.log('Request content-length header:', req.headers.get('content-length'));
+    console.log('Request size info - URL length:', req.url.length);
     
     if (!bodyText || bodyText.trim() === '') {
       console.error('Empty request body received');
+      console.error('Headers received:', Object.fromEntries(req.headers.entries()));
       return new Response(
         JSON.stringify({ 
           error: 'Empty request body', 
