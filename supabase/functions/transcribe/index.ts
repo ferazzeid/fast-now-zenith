@@ -152,13 +152,33 @@ serve(async (req) => {
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header provided');
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ 
+          error: 'No authorization header provided', 
+          details: 'Authentication required' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
     if (userError || !userData.user) {
-      throw new Error('User not authenticated');
+      console.error('User authentication failed:', userError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'User not authenticated', 
+          details: 'Invalid or expired token' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const userId = userData.user.id;
@@ -180,7 +200,16 @@ serve(async (req) => {
 
     if (profileError) {
       console.error('Profile fetch error:', profileError);
-      throw new Error('Failed to fetch user profile');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to fetch user profile', 
+          details: 'Database error' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log('User access level:', profile.access_level, 'AI requests:', profile.monthly_ai_requests);
@@ -219,20 +248,43 @@ serve(async (req) => {
 
     // Check access permissions and limits
     if (effectiveLevel === 'free') {
-      throw new Error('AI features are only available to premium users. Start your free trial or upgrade to continue.');
+      console.error('User access denied - free tier');
+      return new Response(
+        JSON.stringify({ 
+          error: 'AI features are only available to premium users', 
+          details: 'Start your free trial or upgrade to continue' 
+        }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Check limits (skip for admin)
     if (effectiveLevel !== 'admin' && profile.monthly_ai_requests >= currentLimit) {
+      console.error('User request limit exceeded:', profile.monthly_ai_requests, '>=', currentLimit);
       const resetDate = new Date();
       resetDate.setMonth(resetDate.getMonth() + 1, 1);
       const resetDateString = resetDate.toLocaleDateString();
       
+      let errorMessage;
       if (limitType === 'trial') {
-        throw new Error(`You've used all ${currentLimit} trial AI requests this month. Upgrade to premium for ${premiumLimit} monthly requests. Your trial limit will reset on ${resetDateString}.`);
+        errorMessage = `You've used all ${currentLimit} trial AI requests this month. Upgrade to premium for ${premiumLimit} monthly requests. Your trial limit will reset on ${resetDateString}.`;
       } else {
-        throw new Error(`You've used all ${currentLimit} premium AI requests this month. Your limit will reset on ${resetDateString}.`);
+        errorMessage = `You've used all ${currentLimit} premium AI requests this month. Your limit will reset on ${resetDateString}.`;
       }
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'Request limit exceeded', 
+          details: errorMessage 
+        }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Resolve API key (shared key only)
@@ -249,7 +301,17 @@ serve(async (req) => {
     }
 
     if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured. Please contact support.');
+      console.error('OpenAI API key not configured');
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured', 
+          details: 'Please contact support' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Convert base64 to binary with validation
@@ -305,13 +367,24 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
+      console.error('OpenAI API error. Status:', response.status);
       try {
         const errorData = await response.json();
-        if (!isProd) console.error('OpenAI API error:', errorData);
+        console.error('OpenAI API error details:', errorData);
       } catch (_) {
-        if (!isProd) console.error('OpenAI API error: non-JSON body');
+        console.error('OpenAI API error: non-JSON response');
       }
-      throw new Error(`OpenAI API error: ${response.status}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'Transcription service error', 
+          details: `OpenAI API returned status ${response.status}` 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const result = await response.json();
