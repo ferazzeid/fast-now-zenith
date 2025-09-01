@@ -353,7 +353,11 @@ export const CircularVoiceButton = React.forwardRef<
 
       if (error) {
         console.error('🎤 Supabase function error:', error);
-        throw error;
+        console.error('🎤 Error details:', JSON.stringify(error, null, 2));
+        
+        // Try to get more specific error information
+        const errorMessage = error.message || 'Unknown error occurred during transcription';
+        throw new Error(`Transcription failed: ${errorMessage}`);
       }
       console.log('🎤 Transcription response:', data);
 

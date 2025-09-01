@@ -30,9 +30,14 @@ function checkBurstLimit(key: string, limit: number, windowMs: number): boolean 
 }
 
 serve(async (req) => {
+  console.log('🚨 TRANSCRIBE FUNCTION CALLED - TIMESTAMP:', new Date().toISOString());
+  console.log('🚨 Request method:', req.method);
+  console.log('🚨 Request headers:', Object.fromEntries(req.headers.entries()));
+  
   // Handle CORS preflight requests
   const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
+    console.log('🚨 Returning CORS preflight response');
     return new Response(null, { headers: corsHeaders });
   }
 
