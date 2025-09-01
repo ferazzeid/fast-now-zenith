@@ -40,17 +40,108 @@ serve(async (req) => {
     console.log('Transcribe function called, method:', req.method);
     console.log('Content-Type:', req.headers.get('content-type'));
     
-    // Parse request body directly
-    const requestData = await req.json();
-    console.log('Request data keys:', Object.keys(requestData || {}));
+    // Get raw body first to debug empty requests
+    const bodyText = await req.text();
+    console.log('Raw body length:', bodyText.length);
+    
+    if (!bodyText || bodyText.trim() === '') {
+      console.error('Empty request body received');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Empty request body', 
+          details: 'No audio data received' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    let requestData;
+    try {
+      requestData = JSON.parse(bodyText);
+      console.log('Request data parsed successfully, keys:', Object.keys(requestData || {}));
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Body preview:', bodyText.substring(0, 200));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid JSON', 
+          details: 'Request body is not valid JSON' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
     
     const { audio } = requestData;
     console.log('Audio data present:', !!audio);
+    console.log('Audio data type:', typeof audio);
     console.log('Audio data length:', audio?.length || 0);
-    console.log('Received transcription request, audio data length:', audio?.length || 0);
     
+    if (audio && typeof audio === 'string') {
+      console.log('Audio data sample (first 50 chars):', audio.substring(0, 50));
+      console.log('Audio data size in KB:', Math.round(audio.length / 1024));
+    }
+    
+    // Validate audio data
     if (!audio) {
-      throw new Error('No audio data provided');
+      console.error('No audio data provided');
+      return new Response(
+        JSON.stringify({ 
+          error: 'No audio data provided', 
+          details: 'The audio field is missing from the request' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (typeof audio !== 'string') {
+      console.error('Invalid audio data type:', typeof audio);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid audio data type', 
+          details: `Expected string, got ${typeof audio}` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (audio.length === 0) {
+      console.error('Empty audio data');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Empty audio data', 
+          details: 'The audio data string is empty' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (audio.length < 1000) {
+      console.error('Audio data too short:', audio.length);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Audio data too short', 
+          details: `Received ${audio.length} chars, need at least 1000` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Initialize Supabase client
@@ -161,11 +252,40 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured. Please contact support.');
     }
 
-    // Convert base64 to binary
-    const binaryString = atob(audio);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    // Convert base64 to binary with validation
+    let binaryString;
+    let bytes;
+    try {
+      console.log('Converting base64 to binary...');
+      binaryString = atob(audio);
+      console.log('Binary string length:', binaryString.length, 'bytes');
+      
+      if (binaryString.length === 0) {
+        throw new Error('Decoded audio data is empty');
+      }
+      
+      if (binaryString.length < 100) {
+        throw new Error(`Decoded audio data too small: ${binaryString.length} bytes`);
+      }
+      
+      bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      console.log('Audio conversion successful, final size:', bytes.length, 'bytes');
+      
+    } catch (decodeError) {
+      console.error('Base64 decode error:', decodeError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid base64 audio data', 
+          details: `Failed to decode: ${decodeError.message}` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Create form data for OpenAI Whisper API

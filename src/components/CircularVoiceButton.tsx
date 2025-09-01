@@ -298,13 +298,23 @@ export const CircularVoiceButton = React.forwardRef<
       }
 
       console.log('🎤 Sending to transcribe function...');
+      console.log('🎤 Audio data validation - Base64 starts with:', base64Audio.substring(0, 50));
+      console.log('🎤 Audio data validation - Size in KB:', Math.round(base64Audio.length / 1024));
+      
+      // Validate audio data before sending
+      if (base64Audio.length < 1000) { // Minimum reasonable size
+        throw new Error('Audio recording too short or corrupted');
+      }
       
       // Add timeout for transcription API call (90 seconds)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
       
+      const requestPayload = { audio: base64Audio };
+      console.log('🎤 Request payload size:', JSON.stringify(requestPayload).length);
+      
       const { data, error } = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio },
+        body: requestPayload,
         headers: {
           'Content-Type': 'application/json',
         },
