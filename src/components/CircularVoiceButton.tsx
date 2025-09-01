@@ -436,7 +436,7 @@ export const CircularVoiceButton = React.forwardRef<
   const getButtonColor = () => {
     if (hasPermission === false) return 'bg-gray-500 hover:bg-gray-600';
     if (isRecording) return 'bg-red-500 hover:bg-red-600 animate-pulse';
-    return 'bg-green-500 hover:bg-green-600';
+    return 'bg-ai hover:bg-ai/90';
   };
 
   return (

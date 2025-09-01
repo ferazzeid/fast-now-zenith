@@ -497,7 +497,7 @@ export default function AddFood() {
                             size="sm"
                             onClick={handleAiEstimate}
                             disabled={isAiEstimating}
-                            className="h-9 w-9 p-0 flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                            className="h-9 w-9 p-0 flex items-center justify-center bg-ai hover:bg-ai/90 text-white"
                           >
                             {isAiEstimating ? (
                               <Loader2 className="w-4 h-4 animate-spin" />

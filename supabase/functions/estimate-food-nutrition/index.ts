@@ -22,8 +22,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Get OpenAI API key directly from environment
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    // Resolve OpenAI API key using the helper function
+    const openAIApiKey = await resolveOpenAIApiKey(supabase);
     
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
