@@ -328,7 +328,7 @@ export default function AddFood() {
       </div>
 
       {/* Modal-like Container */}
-      <div className="max-w-md mx-auto p-4">
+      <div className="max-w-md mx-auto p-4 pt-20">
         <div className="bg-background rounded-xl shadow-sm border p-6">
           <div className="relative">
             {/* Analysis Results Overlay */}
