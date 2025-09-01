@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useUnifiedSession } from './useUnifiedSession';
 import { useDeferredAssets } from './useDeferredAssets';
 
@@ -16,35 +16,18 @@ export const useUnifiedStartup = () => {
   
   // Initialize auth system on mount
   useEffect(() => {
-    if (unifiedSession.readiness === 'initializing') {
+    if (unifiedSession.readiness === 'loading') {
       unifiedSession.initialize();
     }
   }, []);
   
-  // Load deferred assets when database is ready
-  const shouldLoadAssets = unifiedSession.readiness === 'database-ready' && 
-                          unifiedSession.isDatabaseConnected;
-  
-  useDeferredAssets(shouldLoadAssets ? 'ready' : 'loading', false);
-  
-  // Mark assets as ready when they finish loading
-  useEffect(() => {
-    if (shouldLoadAssets && !unifiedSession.areAssetsLoaded) {
-      // Small delay to let assets initialize
-      const timer = setTimeout(() => {
-        unifiedSession.markAssetsReady();
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [shouldLoadAssets, unifiedSession.areAssetsLoaded]);
+  // Load assets immediately when user is authenticated
+  useDeferredAssets(unifiedSession.readiness === 'ready' ? 'ready' : 'loading', false);
   
   return {
     readiness: unifiedSession.readiness,
     isReady: unifiedSession.isReady(),
     error: unifiedSession.error,
-    retry: unifiedSession.retry,
-    canPerformUserOperations: unifiedSession.canPerformUserOperations(),
-    canPerformDatabaseOperations: unifiedSession.canPerformDatabaseOperations()
+    retry: unifiedSession.retry
   };
 };

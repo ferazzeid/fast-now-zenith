@@ -22,7 +22,7 @@ export const useFastingSession = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canPerformDatabaseOperations } = useSessionState();
+  const { isReady } = useSessionState();
 
   // Load active session on mount with proper user dependency
   const loadActiveSession = useCallback(async () => {
@@ -96,7 +96,7 @@ export const useFastingSession = () => {
       return null;
     }
 
-    if (!canPerformDatabaseOperations) {
+    if (!isReady) {
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment",
@@ -159,12 +159,12 @@ export const useFastingSession = () => {
       } finally {
         setLoading(false);
       }
-  }, [user, toast, canPerformDatabaseOperations]);
+  }, [user, toast, isReady]);
 
   const endFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;
 
-    if (!canPerformDatabaseOperations) {
+    if (!isReady) {
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment",
@@ -213,7 +213,7 @@ export const useFastingSession = () => {
       } finally {
         setLoading(false);
       }
-  }, [user, currentSession, toast, canPerformDatabaseOperations]);
+  }, [user, currentSession, toast, isReady]);
 
   const cancelFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;

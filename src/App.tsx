@@ -42,6 +42,7 @@ import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
 import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
+import { performCompleteAuthCacheReset } from "./utils/cacheUtils";
 import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
@@ -168,10 +169,13 @@ const AppContent = () => {
               Try Again
             </button>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                await performCompleteAuthCacheReset();
+                window.location.reload();
+              }}
               className="px-4 py-2 border rounded"
             >
-              Force Refresh
+              Clear Cache & Refresh
             </button>
           </div>
         </div>
@@ -179,17 +183,12 @@ const AppContent = () => {
     );
   }
 
-  if (readiness === 'initializing' || readiness === 'authenticated' || readiness === 'database-ready') {
+  if (readiness === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">
-            {readiness === 'initializing' ? 'Starting up...' : 
-             readiness === 'authenticated' ? 'Checking authentication...' : 
-             readiness === 'database-ready' ? 'Loading resources...' : 
-             'Getting ready...'}
-          </p>
+          <p className="text-muted-foreground">Starting up...</p>
         </div>
       </div>
     );

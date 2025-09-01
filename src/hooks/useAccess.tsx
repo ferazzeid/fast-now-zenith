@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useState } from 'react';
 
 export interface AccessData {
   access_level: 'free' | 'trial' | 'premium' | 'admin';
@@ -71,6 +71,17 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 
 export const useAccess = () => {
   const { user } = useAuth();
+  
+  // Auto-clear role testing on fresh login to prevent persistence issues
+  React.useEffect(() => {
+    if (user && typeof window !== 'undefined') {
+      const hasRoleTesting = localStorage.getItem('admin_role_testing');
+      if (hasRoleTesting) {
+        console.log('🧹 Auto-clearing role testing on fresh login');
+        localStorage.removeItem('admin_role_testing');
+      }
+    }
+  }, [user?.id]); // Clear when user ID changes (fresh login)
   
   // Internal role testing state with localStorage persistence
   const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | null>(() => {
