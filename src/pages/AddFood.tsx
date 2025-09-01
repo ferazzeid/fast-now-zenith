@@ -311,25 +311,24 @@ export default function AddFood() {
   const availableUnits = getServingUnitsForUser();
 
   return (
-    <div className="min-h-screen bg-muted/10 pb-20">
-      {/* Modal-like Header */}
-      <div className="bg-muted/50 border-b">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-semibold">Add Food</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/food-tracking')}
-            className="p-2"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-background pb-20">
       {/* Modal-like Container */}
       <div className="max-w-md mx-auto p-4 pb-8">
-        <div className="bg-background rounded-xl shadow-sm border p-6">
+        <div className="bg-background rounded-xl shadow-sm border">
+          {/* Header inside the box */}
+          <div className="px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Add Food</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/food-tracking')}
+              className="p-2"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="p-6">
           <div className="relative">
             {/* Analysis Results Overlay */}
             {showAnalysisResults && analysisResult && (
@@ -570,7 +569,7 @@ export default function AddFood() {
                 <Button
                   onClick={handleSave}
                   disabled={saving || !name.trim() || !calories}
-                  className="w-full h-10"
+                  className={`w-full h-10 ${!name.trim() ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-black'}`}
                 >
                   {saving ? (
                     <>
@@ -578,9 +577,10 @@ export default function AddFood() {
                       Adding to Plan...
                     </>
                   ) : (
-                    'Add to Food Plan'
-                  )}
+                     'Add to Food Plan'
+                   )}
                 </Button>
+              </div>
               </div>
             </div>
           </div>
