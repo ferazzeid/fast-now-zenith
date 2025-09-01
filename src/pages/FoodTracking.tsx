@@ -218,7 +218,8 @@ const FoodTracking = () => {
       });
     }
     
-    setShowUnifiedEntry(false);
+    // Don't automatically close the modal - let UnifiedFoodEntry manage its own state
+    // This prevents premature closing during photo analysis workflow
   };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {

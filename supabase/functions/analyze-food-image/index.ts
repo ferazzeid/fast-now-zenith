@@ -233,42 +233,66 @@ serve(async (req) => {
     const analysisResult = data.choices[0].message.content;
     console.log('Analysis result:', analysisResult);
 
-    // Try to parse the JSON response
+    // Try to parse the JSON response with robust handling
     let nutritionData;
     try {
       nutritionData = JSON.parse(analysisResult);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', parseError);
       
-      // Enhanced fallback: handle markdown-wrapped JSON
-      let cleanedResponse = analysisResult;
+      // Enhanced fallback: handle markdown-wrapped JSON and various formats
+      let cleanedResponse = analysisResult.trim();
       
-      // Strip markdown code blocks if present
-      if (analysisResult.includes('```')) {
-        const markdownMatch = analysisResult.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-        if (markdownMatch) {
-          cleanedResponse = markdownMatch[1];
+      // First, try to extract JSON from markdown code blocks
+      if (cleanedResponse.includes('```')) {
+        const markdownPatterns = [
+          /```(?:json)?\s*(\{[\s\S]*?\})\s*```/i,
+          /```(?:json)?\s*(\{[\s\S]*?\})[\s\S]*?```/i,
+          /```[\s\S]*?(\{[\s\S]*?\})\s*```/i
+        ];
+        
+        for (const pattern of markdownPatterns) {
+          const match = cleanedResponse.match(pattern);
+          if (match) {
+            cleanedResponse = match[1].trim();
+            console.log('Extracted JSON from markdown:', cleanedResponse);
+            break;
+          }
         }
       }
       
+      // Try parsing the cleaned response
       try {
         nutritionData = JSON.parse(cleanedResponse);
       } catch (secondParseError) {
-        // Final fallback: extract JSON from the response
-        const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          try {
-            nutritionData = JSON.parse(jsonMatch[0]);
-          } catch (thirdParseError) {
-            console.error('All JSON parsing attempts failed:', { 
-              original: analysisResult, 
-              cleaned: cleanedResponse, 
-              extracted: jsonMatch ? jsonMatch[0] : null 
-            });
-            throw new Error('Failed to extract valid JSON from OpenAI response');
+        console.error('Second parse attempt failed:', secondParseError);
+        
+        // Final fallback: find the first complete JSON object
+        const jsonPatterns = [
+          /\{[^{}]*"name"[^{}]*"calories_per_100g"[\s\S]*?\}/,
+          /\{[\s\S]*?\}/
+        ];
+        
+        for (const pattern of jsonPatterns) {
+          const jsonMatch = cleanedResponse.match(pattern);
+          if (jsonMatch) {
+            try {
+              nutritionData = JSON.parse(jsonMatch[0]);
+              console.log('Successfully parsed with fallback pattern');
+              break;
+            } catch (thirdParseError) {
+              console.error('Pattern match failed:', thirdParseError);
+              continue;
+            }
           }
-        } else {
-          throw new Error('No JSON found in OpenAI response');
+        }
+        
+        if (!nutritionData) {
+          console.error('All JSON parsing attempts failed:', { 
+            original: analysisResult, 
+            cleaned: cleanedResponse
+          });
+          throw new Error('Failed to extract valid JSON from OpenAI response');
         }
       }
     }

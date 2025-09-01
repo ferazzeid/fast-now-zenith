@@ -266,10 +266,17 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
       await onSave(entries);
       trackFoodEvent('add', imageUrl ? 'image' : 'manual');
       
-      console.log('✅ Food entries saved successfully, closing modal');
-      // Reset form
+      console.log('✅ Food entries saved successfully');
+      // Reset form but keep modal open for potential additional entries
       resetForm();
-      onClose();
+      
+      // Show success message
+      toast({
+        title: "Food Added Successfully",
+        description: `${quantity} food ${quantity === 1 ? 'entry' : 'entries'} saved`,
+      });
+      
+      // Modal will close when user explicitly closes it via handleClose
     } catch (error) {
       toast({ 
         title: 'Failed to save food', 
