@@ -7,11 +7,10 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 export interface CachedGoalIdeas {
   data: AdminGoalIdea[];
   timestamp: number;
-  genderFilter?: 'male' | 'female';
 }
 
 export const goalIdeasCache = {
-  get: (genderFilter?: 'male' | 'female'): AdminGoalIdea[] | null => {
+  get: (): AdminGoalIdea[] | null => {
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
@@ -25,12 +24,6 @@ export const goalIdeasCache = {
       }
       
       const parsedCache: CachedGoalIdeas = JSON.parse(cached);
-      
-      // Check if cache matches the current gender filter
-      if (parsedCache.genderFilter !== genderFilter) {
-        return null;
-      }
-      
       return parsedCache.data;
     } catch (error) {
       console.warn('Error reading goal ideas cache:', error);
@@ -39,12 +32,11 @@ export const goalIdeasCache = {
     }
   },
 
-  set: (data: AdminGoalIdea[], genderFilter?: 'male' | 'female'): void => {
+  set: (data: AdminGoalIdea[]): void => {
     try {
       const cacheData: CachedGoalIdeas = {
         data,
-        timestamp: Date.now(),
-        genderFilter
+        timestamp: Date.now()
       };
       
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));

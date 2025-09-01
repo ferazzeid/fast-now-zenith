@@ -16,7 +16,8 @@ interface AdminGoalIdea {
   description: string;
   category: string;
   imageUrl?: string;
-  gender?: 'male' | 'female';
+  maleImageUrl?: string;
+  femaleImageUrl?: string;
   linkUrl?: string;
 }
 
@@ -30,8 +31,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [maleImageUrl, setMaleImageUrl] = useState('');
+  const [femaleImageUrl, setFemaleImageUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
-  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [componentKey, setComponentKey] = useState(0);
   const [inlineError, setInlineError] = useState<string>('');
@@ -44,8 +46,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
+      setMaleImageUrl(goal.maleImageUrl || '');
+      setFemaleImageUrl(goal.femaleImageUrl || '');
       setLinkUrl(goal.linkUrl || '');
-      setGender(goal.gender || 'male');
       setIsSubmitting(false);
       setInlineError('');
       setInlineSuccess('');
@@ -71,8 +74,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         title: title.trim(),
         description: description.trim(),
         imageUrl: imageUrl || undefined,
+        maleImageUrl: maleImageUrl || undefined,
+        femaleImageUrl: femaleImageUrl || undefined,
         linkUrl: linkUrl.trim() || undefined,
-        gender: gender,
       };
 
       console.log('💾 Saving goal data:', updatedGoal);
@@ -85,8 +89,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         setTitle('');
         setDescription('');
         setImageUrl('');
+        setMaleImageUrl('');
+        setFemaleImageUrl('');
         setLinkUrl('');
-        setGender('male');
         setIsSubmitting(false);
         setInlineError('');
         setInlineSuccess('');
@@ -183,17 +188,36 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         </div>
 
         <div className="space-y-2">
-          <Label className="text-warm-text font-medium">Gender</Label>
-          <RadioGroup value={gender} onValueChange={(value: 'male' | 'female') => setGender(value)}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="male" id="male" />
-              <Label htmlFor="male" className="text-warm-text">Male 🔵</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="female" id="female" />
-              <Label htmlFor="female" className="text-warm-text">Female 🔴</Label>
-            </div>
-          </RadioGroup>
+          <Label className="text-warm-text font-medium">General Image (Fallback)</Label>
+          <AdminImageUploadSilent
+            currentImageUrl={imageUrl}
+            onImageUpload={setImageUrl}
+            onImageRemove={() => setImageUrl('')}
+            onError={(error) => setInlineError(error)}
+            onSuccess={(message) => setInlineSuccess(message)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-warm-text font-medium">Male-Specific Image</Label>
+          <AdminImageUploadSilent
+            currentImageUrl={maleImageUrl}
+            onImageUpload={setMaleImageUrl}
+            onImageRemove={() => setMaleImageUrl('')}
+            onError={(error) => setInlineError(error)}
+            onSuccess={(message) => setInlineSuccess(message)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-warm-text font-medium">Female-Specific Image</Label>
+          <AdminImageUploadSilent
+            currentImageUrl={femaleImageUrl}
+            onImageUpload={setFemaleImageUrl}
+            onImageRemove={() => setFemaleImageUrl('')}
+            onError={(error) => setInlineError(error)}
+            onSuccess={(message) => setInlineSuccess(message)}
+          />
         </div>
 
         <div className="space-y-2">
@@ -214,16 +238,6 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-warm-text font-medium">Image</Label>
-          <AdminImageUploadSilent
-            currentImageUrl={imageUrl}
-            onImageUpload={setImageUrl}
-            onImageRemove={() => setImageUrl('')}
-            onError={(error) => setInlineError(error)}
-            onSuccess={(message) => setInlineSuccess(message)}
-          />
-        </div>
       </div>
     </UniversalModal>
   );

@@ -20,9 +20,7 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
   const { profile } = useProfile();
   const { isAdmin } = useAccess();
   
-  // Default to male if user sex is not set
-  const userGender = profile?.sex || 'male';
-  const { goalIdeas, loading } = useAdminGoalIdeas(userGender);
+  const { goalIdeas, loading } = useAdminGoalIdeas();
 
   const filteredGoals = goalIdeas.filter(goal =>
     goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,26 +89,29 @@ export const GoalIdeasLibrary = ({ onSelectGoal, onClose }: GoalIdeasLibraryProp
                 >
                   <div className="flex gap-3">
                     {/* Goal Image - Reduced size for mobile */}
-                    {goal.imageUrl && (
-                      <div className="w-8 h-8 flex-shrink-0">
-                        <MotivatorImageWithFallback
-                          src={goal.imageUrl}
-                          alt={goal.title}
-                          className="w-full h-full object-cover rounded"
-                        />
-                      </div>
-                    )}
+                    {(() => {
+                      const userGender = profile?.sex || 'male';
+                      const selectedImageUrl = userGender === 'female' && goal.femaleImageUrl 
+                        ? goal.femaleImageUrl 
+                        : userGender === 'male' && goal.maleImageUrl 
+                        ? goal.maleImageUrl 
+                        : goal.imageUrl;
+                      return selectedImageUrl ? (
+                        <div className="w-8 h-8 flex-shrink-0">
+                          <MotivatorImageWithFallback
+                            src={selectedImageUrl}
+                            alt={goal.title}
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                      ) : null;
+                    })()}
                     
                     {/* Goal Content - Takes most of the space */}
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex items-start gap-2">
                         <div className="flex items-center gap-1">
                           <h4 className="font-medium text-warm-text text-sm leading-tight">{goal.title}</h4>
-                          {isAdmin && goal.gender && (
-                            <span className="text-xs" title={`${goal.gender} goal`}>
-                              {goal.gender === 'male' ? '🔵' : '🔴'}
-                            </span>
-                          )}
                         </div>
                         <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground flex-shrink-0">
                           {goal.category}

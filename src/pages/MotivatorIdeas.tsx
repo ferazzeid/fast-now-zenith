@@ -29,41 +29,32 @@ export default function MotivatorIdeas() {
   const { profile } = useProfile();
   const { isAdmin } = useAccess();
   
-  // Default to male if user sex is not set
-  const userGender = profile?.sex || 'male';
-  console.log('MotivatorIdeas - User gender for filtering:', userGender, 'Profile sex:', profile?.sex);
-  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas(userGender);
+  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas();
   const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
   const { createMotivator } = useMotivators();
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
-  const [previousSex, setPreviousSex] = useState<string | null>(null);
-
   useEffect(() => {
     console.log('🔄 Refreshing goal ideas on page load...');
     refreshGoalIdeas();
   }, []); // Empty dependency array to run only once on mount
 
-  // Force refresh goals when profile sex actually changes (not on initial load)
-  useEffect(() => {
-    if (profile?.sex) {
-      // Only refresh if the sex has actually changed, not on initial load
-      if (previousSex !== null && previousSex !== profile.sex) {
-        console.log('MotivatorIdeas: Profile sex changed from', previousSex, 'to', profile.sex, '- refreshing goals');
-        refreshGoalIdeas();
-      }
-      setPreviousSex(profile.sex);
-    }
-  }, [profile?.sex, previousSex, forceRefresh]);
-
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
+      // Choose appropriate image based on user gender
+      const userGender = profile?.sex || 'male';
+      const selectedImageUrl = userGender === 'female' && goal.femaleImageUrl 
+        ? goal.femaleImageUrl 
+        : userGender === 'male' && goal.maleImageUrl 
+        ? goal.maleImageUrl 
+        : goal.imageUrl;
+
       await createMotivator({
         title: goal.title,
         content: goal.description || '',
         category: 'personal',
-        imageUrl: goal.imageUrl || undefined,
+        imageUrl: selectedImageUrl || undefined,
       });
       toast({ title: '✅ Added to My Goals', description: 'The motivator was added successfully.' });
     } catch (e) {
@@ -109,7 +100,7 @@ export default function MotivatorIdeas() {
 
   return (
     <GoalIdeasErrorBoundary>
-      <div key={`motivator-ideas-${profile?.sex || 'unknown'}-${Date.now()}`} className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
+      <div className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
       <header className="flex items-center gap-3 mb-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
           <ArrowLeft className="w-4 h-4" />
@@ -147,18 +138,21 @@ export default function MotivatorIdeas() {
                   <CardContent className="p-0">
                     <div className="flex">
                       <div className="w-32 h-32 flex-shrink-0">
-                        <MotivatorImageWithFallback src={goal.imageUrl} alt={goal.title} className="w-full h-full object-cover" />
+                        {(() => {
+                          const userGender = profile?.sex || 'male';
+                          const selectedImageUrl = userGender === 'female' && goal.femaleImageUrl 
+                            ? goal.femaleImageUrl 
+                            : userGender === 'male' && goal.maleImageUrl 
+                            ? goal.maleImageUrl 
+                            : goal.imageUrl;
+                          return <MotivatorImageWithFallback src={selectedImageUrl} alt={goal.title} className="w-full h-full object-cover" />;
+                        })()}
                       </div>
                       <div className="flex-1 p-4 pr-2">
                         <div className="flex items-start justify-between h-full">
                          <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
                               <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
-                              {isAdmin && goal.gender && (
-                                <span className="text-sm" title={`${goal.gender} goal`}>
-                                  {goal.gender === 'male' ? '🔵' : '🔴'}
-                                </span>
-                              )}
                             </div>
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">

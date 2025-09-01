@@ -9,18 +9,19 @@ export interface AdminGoalIdea {
   description: string;
   category: string;
   imageUrl?: string;
-  gender?: 'male' | 'female';
+  maleImageUrl?: string;
+  femaleImageUrl?: string;
   linkUrl?: string;
 }
 
-export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
+export const useAdminGoalIdeas = () => {
   const [goalIdeas, setGoalIdeas] = useState<AdminGoalIdea[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const loadGoalIdeas = async (forceClear: boolean = false) => {
-    console.log('🔄 Loading admin goal ideas with gender filter:', genderFilter, 'Force clear:', forceClear);
+    console.log('🔄 Loading admin goal ideas (unified)', 'Force clear:', forceClear);
     
     // Always clear cache to ensure fresh data
     console.log('🧹 Clearing ALL cache before loading goal ideas');
@@ -52,15 +53,7 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
           const parsedGoalIdeas = JSON.parse(data.setting_value);
           let validIdeas = Array.isArray(parsedGoalIdeas) ? parsedGoalIdeas : [];
           
-          // Apply gender filter if specified
-          if (genderFilter) {
-            console.log('🔍 Filtering ideas by gender:', genderFilter);
-            console.log('📋 All ideas before filtering:', validIdeas.map(i => ({ id: i.id, title: i.title, gender: i.gender })));
-            validIdeas = validIdeas.filter(idea => idea.gender === genderFilter);
-            console.log('✅ Filtered ideas:', validIdeas.map(i => ({ id: i.id, title: i.title, gender: i.gender })));
-          }
-          
-          console.log('✅ Admin Goal Ideas loaded successfully:', validIdeas.length, 'ideas for gender:', genderFilter);
+          console.log('✅ Admin Goal Ideas loaded successfully:', validIdeas.length, 'unified ideas');
           // Create completely new array to force React re-render with timestamp
           setGoalIdeas(validIdeas.map(idea => ({ ...idea, _timestamp: timestamp })));
         } catch (parseError) {
@@ -80,9 +73,9 @@ export const useAdminGoalIdeas = (genderFilter?: 'male' | 'female') => {
   };
 
   useEffect(() => {
-    console.log('🔄 useAdminGoalIdeas useEffect triggered - refreshTrigger:', refreshTrigger, 'genderFilter:', genderFilter);
+    console.log('🔄 useAdminGoalIdeas useEffect triggered - refreshTrigger:', refreshTrigger);
     loadGoalIdeas(true); // Always force clear cache
-  }, [refreshTrigger, genderFilter]);
+  }, [refreshTrigger]);
 
   const forceRefresh = () => {
     console.log('🔄 Force refreshing admin goal ideas...');
