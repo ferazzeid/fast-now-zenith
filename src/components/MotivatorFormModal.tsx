@@ -6,13 +6,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { ImageUpload } from './ImageUpload';
+import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { SimpleVoiceRecorder } from './SimpleVoiceRecorder';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useAccess } from '@/hooks/useAccess';
 
 interface Motivator {
   id?: string;
@@ -39,6 +40,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   
   const { toast } = useToast();
   const { templates, loading: templatesLoading } = useAdminTemplates();
+  const { isAdmin } = useAccess();
   
   const isEditing = !!motivator?.id;
 
@@ -181,19 +183,20 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 Title *
               </Label>
               <PremiumGate feature="Voice Input" showUpgrade={false}>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                  className="h-9 w-9 p-0 flex items-center justify-center bg-ai hover:bg-ai/90 text-white"
                 >
-                  <Mic className="w-3 h-3 mx-auto" />
-                </button>
+                  <Mic className="w-4 h-4" />
+                </Button>
               </PremiumGate>
             </div>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim"
               placeholder="What motivates you to fast?"
             />
           </div>
@@ -204,46 +207,47 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 Description (Optional)
               </Label>
               <PremiumGate feature="Voice Input" showUpgrade={false}>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowVoiceRecorder(true)}
-                  className="w-6 h-6 rounded-full bg-ai hover:bg-ai/90 text-ai-foreground transition-all duration-200"
+                  className="h-9 w-9 p-0 flex items-center justify-center bg-ai hover:bg-ai/90 text-white"
                 >
-                  <Mic className="w-3 h-3 mx-auto" />
-                </button>
+                  <Mic className="w-4 h-4" />
+                </Button>
               </PremiumGate>
             </div>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim min-h-[40px]"
+              className="min-h-[40px]"
               placeholder="Optional: Add more details about this motivation..."
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="linkUrl" className="text-warm-text font-medium">
-              Link URL (Optional)
-            </Label>
-            <Input
-              id="linkUrl"
-              type="url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              className="bg-ceramic-base border-ceramic-rim"
-              placeholder="https://example.com/more-info"
-            />
-            <p className="text-xs text-muted-foreground">
-              Optional URL to a detailed story or description on your website
-            </p>
-          </div>
+          {isAdmin && (
+            <div className="space-y-2">
+              <Label htmlFor="linkUrl" className="text-warm-text font-medium">
+                Link URL (Optional)
+              </Label>
+              <Input
+                id="linkUrl"
+                type="url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://example.com/more-info"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional URL to a detailed story or description on your website
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
-            <ImageUpload
-              currentImageUrl={imageUrl}
+            <Label className="text-warm-text font-medium">Image (Optional)</Label>
+            <ProgressiveImageUpload
               onImageUpload={setImageUrl}
-              onImageRemove={() => setImageUrl('')}
-              showUploadOptionsWhenImageExists={true}
             />
           </div>
           
