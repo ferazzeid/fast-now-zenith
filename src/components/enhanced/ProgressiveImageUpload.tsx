@@ -55,6 +55,16 @@ export const ProgressiveImageUpload = ({
   };
 
   const handleFileUpload = async (file: File) => {
+    // Check authentication first
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to analyze food images",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -75,18 +85,19 @@ export const ProgressiveImageUpload = ({
       return;
     }
 
+    // Check premium access
+    if (!hasPremiumFeatures) {
+      toast({
+        title: "Premium Required",
+        description: "AI food analysis is available for premium users",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Use session guard to protect the upload operation
     await withSessionGuard(async () => {
       try {
-        // Premium users only - cloud storage
-        if (!hasPremiumFeatures) {
-          toast({
-            title: "Premium Required",
-            description: "Image uploads are only available for premium users",
-            variant: "destructive",
-          });
-          return;
-        }
 
         setInternalState('uploading');
         
@@ -115,16 +126,18 @@ export const ProgressiveImageUpload = ({
           className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
         });
 
-        // Debug: Check auth before calling function
+        // Verify authentication before analysis
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Auth check before analysis:', { 
+        console.log('Auth validation before analysis:', { 
           hasUser: !!user, 
           hasSession: !!session,
-          sessionExpiry: session?.expires_at 
+          sessionExpiry: session?.expires_at,
+          userId: user?.id,
+          isExpired: session ? new Date() > new Date(session.expires_at * 1000) : true
         });
 
-        if (!session) {
-          throw new Error('Authentication session not found. Please sign in again.');
+        if (!session || !session.access_token) {
+          throw new Error('Your session has expired. Please sign in again to analyze images.');
         }
 
         // Call analysis

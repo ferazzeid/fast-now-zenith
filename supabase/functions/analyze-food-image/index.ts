@@ -48,29 +48,84 @@ serve(async (req) => {
       createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } }) :
       authClient;
 
-    // Get user from auth header
+    // Enhanced authentication validation
     const authHeader = req.headers.get('Authorization');
+    console.log('=== Authentication Check ===');
     console.log('Auth header present:', !!authHeader);
+    console.log('Auth header format valid:', authHeader?.startsWith('Bearer '));
     
     if (!authHeader) {
       console.error('Missing authorization header');
-      throw new Error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authentication required',
+          details: 'Please sign in to analyze food images',
+          code: 'AUTH_HEADER_MISSING'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
+      console.error('Invalid authorization header format');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid authentication format',
+          details: 'Authorization header must start with "Bearer "',
+          code: 'AUTH_FORMAT_INVALID'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log('Token extracted, length:', token.length);
+    console.log('Token extracted, length:', token.length, 'first 20 chars:', token.substring(0, 20) + '...');
 
-    // Validate the JWT token
+    // Validate the JWT token with detailed error handling
     const { data: userData, error: userError } = await authClient.auth.getUser(token);
-    console.log('User auth result:', { 
+    console.log('JWT Validation result:', { 
       hasUser: !!userData?.user, 
       error: userError?.message,
-      userId: userData?.user?.id 
+      errorCode: userError?.code,
+      userId: userData?.user?.id,
+      userEmail: userData?.user?.email 
     });
 
-    if (userError || !userData.user) {
-      console.error('User authentication failed:', userError);
-      throw new Error(`User not authenticated: ${userError?.message || 'Invalid token'}`);
+    if (userError) {
+      console.error('JWT validation failed:', userError);
+      
+      // Provide specific error messages based on error type
+      let errorMessage = 'Authentication failed';
+      let userFriendlyMessage = 'Please sign in again';
+      
+      if (userError.message?.includes('expired') || userError.code === 'token_expired') {
+        errorMessage = 'Session expired';
+        userFriendlyMessage = 'Your session has expired. Please sign in again.';
+      } else if (userError.message?.includes('invalid') || userError.code === 'invalid_token') {
+        errorMessage = 'Invalid session';
+        userFriendlyMessage = 'Invalid session. Please sign in again.';
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          error: errorMessage,
+          details: userFriendlyMessage,
+          code: userError.code || 'AUTH_VALIDATION_FAILED'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    if (!userData?.user) {
+      console.error('No user found despite successful JWT validation');
+      return new Response(
+        JSON.stringify({ 
+          error: 'User not found',
+          details: 'Valid session but user not found. Please sign in again.',
+          code: 'USER_NOT_FOUND'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
     }
 
     const userId = userData.user.id;
