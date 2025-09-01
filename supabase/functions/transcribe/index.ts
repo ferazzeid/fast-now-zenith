@@ -290,25 +290,35 @@ serve(async (req) => {
       );
     }
 
-    // Resolve API key (shared key only)
-    const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    let OPENAI_API_KEY = clientApiKey;
+    // Resolve API key - check environment first, then shared settings
+    let OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     
     if (!OPENAI_API_KEY) {
+      // Check for client-provided key
+      const clientApiKey = req.headers.get('X-OpenAI-API-Key');
+      if (clientApiKey) {
+        OPENAI_API_KEY = clientApiKey;
+      }
+    }
+    
+    if (!OPENAI_API_KEY) {
+      // Fall back to shared settings
       const { data: sharedKey } = await supabase
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'shared_api_key')
         .maybeSingle();
-      OPENAI_API_KEY = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
+      OPENAI_API_KEY = sharedKey?.setting_value;
     }
 
+    console.log('OpenAI API Key available:', !!OPENAI_API_KEY);
+    
     if (!OPENAI_API_KEY) {
-      console.error('OpenAI API key not configured');
+      console.error('OpenAI API key not configured - env var:', !!Deno.env.get('OPENAI_API_KEY'), 'shared setting checked');
       return new Response(
         JSON.stringify({ 
           error: 'OpenAI API key not configured', 
-          details: 'Please contact support' 
+          details: 'Please configure the OpenAI API key in environment variables or admin settings' 
         }),
         { 
           status: 500, 
