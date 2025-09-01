@@ -313,7 +313,7 @@ export default function AddFood() {
   return (
     <div className="min-h-screen bg-muted/10">
       {/* Modal-like Header */}
-      <div className="sticky top-0 z-40 bg-muted/50 border-b">
+      <div className="sticky top-16 z-40 bg-muted/50 border-b">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-lg font-semibold">Add Food</h1>
           <Button
