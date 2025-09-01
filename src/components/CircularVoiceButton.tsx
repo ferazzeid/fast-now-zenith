@@ -342,23 +342,34 @@ export const CircularVoiceButton = React.forwardRef<
       const requestPayload = { audio: base64Audio };
       console.log('🎤 Request payload size:', JSON.stringify(requestPayload).length);
       
-      const { data, error } = await supabase.functions.invoke('transcribe', {
-        body: requestPayload,
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No authenticated session found');
+      }
+
+      // Use direct fetch instead of supabase.functions.invoke to ensure proper body transmission
+      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/transcribe', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+          'x-client-info': 'supabase-js-web/2.52.0',
         },
+        body: JSON.stringify(requestPayload),
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
-      if (error) {
-        console.error('🎤 Supabase function error:', error);
-        console.error('🎤 Error details:', JSON.stringify(error, null, 2));
-        
-        // Try to get more specific error information
-        const errorMessage = error.message || 'Unknown error occurred during transcription';
-        throw new Error(`Transcription failed: ${errorMessage}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎤 Direct fetch error:', response.status, errorText);
+        throw new Error(`Transcription failed: ${response.status} ${errorText}`);
       }
+
+      const data = await response.json();
       console.log('🎤 Transcription response:', data);
 
       if (data?.text) {

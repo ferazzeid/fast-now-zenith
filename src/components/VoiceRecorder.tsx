@@ -108,17 +108,35 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     setIsProcessing(true);
     try {
       // Convert audio to base64
-      const response = await fetch(audioURL);
-      const audioBlob = await response.blob();
+      const audioResponse = await fetch(audioURL);
+      const audioBlob = await audioResponse.blob();
       const arrayBuffer = await audioBlob.arrayBuffer();
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
-      // Call transcribe function
-      const { data, error } = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio }
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No authenticated session found');
+      }
+
+      // Call transcribe function using direct fetch
+      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+          'x-client-info': 'supabase-js-web/2.52.0',
+        },
+        body: JSON.stringify({ audio: base64Audio }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Transcription failed: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
 
       if (data?.text) {
         onTranscription(data.text);
