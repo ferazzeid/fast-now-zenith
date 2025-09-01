@@ -234,6 +234,18 @@ export const CircularVoiceButton = React.forwardRef<
   const stopAndProcess = async () => {
     console.log('🎤 Stopping and processing recording...');
     
+    // Check if recording was long enough
+    if (recordingTime < 1) {
+      console.error('🎤 Recording too short:', recordingTime, 'seconds');
+      cancelRecording();
+      toast({
+        title: "Recording Too Short",
+        description: "Please record for at least 1 second before stopping.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Clear timeout
     if (mediaRecorderRef.current && (mediaRecorderRef.current as any).timeout) {
       clearTimeout((mediaRecorderRef.current as any).timeout);
@@ -263,21 +275,35 @@ export const CircularVoiceButton = React.forwardRef<
     try {
       console.log('🎤 Creating audio blob...');
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      console.log('🎤 Audio blob created:', audioBlob);
       console.log('🎤 Audio blob size:', audioBlob.size, 'bytes');
-      
+      console.log('🎤 Audio blob type:', audioBlob.type);
+
+      // Validate audio blob immediately after creation
       if (audioBlob.size === 0) {
-        throw new Error('Audio blob is empty');
+        console.error('🎤 Empty audio blob - no audio was recorded');
+        throw new Error('No audio recorded. Please check your microphone and try again.');
       }
 
       if (audioBlob.size < 100) {
-        throw new Error('Audio recording too short');
+        console.error('🎤 Audio blob too small:', audioBlob.size, 'bytes');
+        throw new Error('Recording too short. Please speak for at least 1-2 seconds.');
       }
+
+      console.log('🎤 Audio blob validation passed, converting to ArrayBuffer...');
 
       console.log('🎤 Converting to base64...');
       const arrayBuffer = await audioBlob.arrayBuffer();
+      console.log('🎤 ArrayBuffer size:', arrayBuffer.byteLength, 'bytes');
       
       if (arrayBuffer.byteLength === 0) {
-        throw new Error('Audio data is empty after conversion');
+        console.error('🎤 Empty ArrayBuffer - audio conversion failed');
+        throw new Error('Audio conversion failed. Please try recording again.');
+      }
+      
+      if (arrayBuffer.byteLength < 50) {
+        console.error('🎤 ArrayBuffer too small:', arrayBuffer.byteLength, 'bytes');
+        throw new Error('Audio data corrupted during conversion. Please try again.');
       }
       
       // Process in chunks to prevent memory issues
@@ -301,9 +327,12 @@ export const CircularVoiceButton = React.forwardRef<
       console.log('🎤 Audio data validation - Base64 starts with:', base64Audio.substring(0, 50));
       console.log('🎤 Audio data validation - Size in KB:', Math.round(base64Audio.length / 1024));
       
-      // Validate audio data before sending
-      if (base64Audio.length < 1000) { // Minimum reasonable size
-        throw new Error('Audio recording too short or corrupted');
+      // Validate audio data before sending with better error message
+      if (base64Audio.length < 1000) {
+        console.error('🎤 Base64 too short:', base64Audio.length, 'characters');
+        console.error('🎤 Original blob size:', audioBlob.size, 'bytes');
+        console.error('🎤 ArrayBuffer size:', arrayBuffer.byteLength, 'bytes');
+        throw new Error(`Audio too short to process (${base64Audio.length} chars). Please record for at least 1-2 seconds.`);
       }
       
       // Add timeout for transcription API call (90 seconds)
