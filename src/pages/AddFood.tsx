@@ -313,7 +313,7 @@ export default function AddFood() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Modal-like Container */}
-      <div className="max-w-md mx-auto p-4 pb-8">
+      <div className="max-w-md mx-auto p-4 pt-20 pb-8">
         <div className="bg-background rounded-xl shadow-sm border">
           {/* Header inside the box */}
           <div className="px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
