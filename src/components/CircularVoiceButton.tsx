@@ -313,30 +313,19 @@ export const CircularVoiceButton = React.forwardRef<
       const requestPayload = { audio: base64Audio };
       console.log('🎤 Request payload size:', JSON.stringify(requestPayload).length);
       
-      // Use direct fetch instead of supabase.functions.invoke to handle large request bodies
-      const session = await supabase.auth.getSession();
-      const authToken = session.data.session?.access_token;
-      
-      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/transcribe', {
-        method: 'POST',
+      const { data, error } = await supabase.functions.invoke('transcribe', {
+        body: requestPayload,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
         },
-        body: JSON.stringify(requestPayload),
-        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🎤 HTTP error:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      if (error) {
+        console.error('🎤 Supabase function error:', error);
+        throw error;
       }
-
-      const data = await response.json();
       console.log('🎤 Transcription response:', data);
 
       if (data?.text) {

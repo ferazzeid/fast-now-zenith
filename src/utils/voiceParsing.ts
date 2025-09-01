@@ -77,7 +77,15 @@ export interface FoodParsingResult {
 export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
   if (!text) return { originalText: text };
   
-  const cleaned = text.toLowerCase().trim();
+  // Clean punctuation from the text
+  const cleanedText = text.replace(/[.,!?;:]+\s*$/g, '').trim();
+  const cleaned = cleanedText.toLowerCase().trim();
+  
+  // Helper function to clean and capitalize food names
+  const cleanFoodName = (name: string) => {
+    const trimmed = name.trim().replace(/[.,!?;:]+$/g, '');
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  };
   
   // Common unit patterns
   const unitPatterns = [
@@ -93,6 +101,15 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
     { pattern: /(\d+(?:\.\d+)?)\s*(servings?)\s+(?:of\s+)?(.+)/, unit: 'serving' },
   ];
   
+  // Singular unit patterns (without numbers) - e.g. "piece of bread", "slice of pizza"
+  const singularPatterns = [
+    { pattern: /^(?:a\s+)?piece\s+(?:of\s+)?(.+)$/, unit: 'piece' },
+    { pattern: /^(?:a\s+)?slice\s+(?:of\s+)?(.+)$/, unit: 'slice' },
+    { pattern: /^(?:a\s+)?cup\s+(?:of\s+)?(.+)$/, unit: 'cup' },
+    { pattern: /^(?:a\s+)?serving\s+(?:of\s+)?(.+)$/, unit: 'serving' },
+    { pattern: /^(?:an?\s+)?(.+?)\s+(?:piece|slice)$/, unit: 'piece' },
+  ];
+  
   // Try to match quantity + unit + food patterns
   for (const { pattern, unit } of unitPatterns) {
     const match = cleaned.match(pattern);
@@ -102,8 +119,25 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
       
       if (amount && foodName) {
         return {
-          foodName: foodName.charAt(0).toUpperCase() + foodName.slice(1),
+          foodName: cleanFoodName(foodName),
           amount,
+          unit,
+          originalText: text
+        };
+      }
+    }
+  }
+  
+  // Try to match singular patterns (implies amount = 1)
+  for (const { pattern, unit } of singularPatterns) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      const foodName = match[1]?.trim();
+      
+      if (foodName) {
+        return {
+          foodName: cleanFoodName(foodName),
+          amount: 1,
           unit,
           originalText: text
         };
@@ -119,7 +153,7 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
     
     if (amount && foodName) {
       return {
-        foodName: foodName.charAt(0).toUpperCase() + foodName.slice(1),
+        foodName: cleanFoodName(foodName),
         amount,
         unit: 'g', // Default to grams
         originalText: text
@@ -129,7 +163,7 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
   
   // If no quantity pattern found, treat as just food name
   return {
-    foodName: text.charAt(0).toUpperCase() + text.slice(1),
+    foodName: cleanFoodName(cleanedText),
     originalText: text
   };
 };
