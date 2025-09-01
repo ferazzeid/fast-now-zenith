@@ -246,9 +246,9 @@ serve(async (req) => {
       // First, try to extract JSON from markdown code blocks
       if (cleanedResponse.includes('```')) {
         const markdownPatterns = [
-          /```(?:json)?\s*(\{[\s\S]*?\})\s*```/i,
-          /```(?:json)?\s*(\{[\s\S]*?\})[\s\S]*?```/i,
-          /```[\s\S]*?(\{[\s\S]*?\})\s*```/i
+          /```json\s*\n?\s*(\{[\s\S]*?\})\s*\n?\s*```/i,
+          /```\s*\n?\s*(\{[\s\S]*?\})\s*\n?\s*```/i,
+          /(\{[\s\S]*?\})/i
         ];
         
         for (const pattern of markdownPatterns) {
@@ -264,6 +264,7 @@ serve(async (req) => {
       // Try parsing the cleaned response
       try {
         nutritionData = JSON.parse(cleanedResponse);
+        console.log('Successfully parsed extracted JSON:', nutritionData);
       } catch (secondParseError) {
         console.error('Second parse attempt failed:', secondParseError);
         

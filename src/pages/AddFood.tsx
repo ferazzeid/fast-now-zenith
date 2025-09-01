@@ -311,7 +311,7 @@ export default function AddFood() {
   const availableUnits = getServingUnitsForUser();
 
   return (
-    <div className="min-h-screen bg-muted/10">
+    <div className="min-h-screen bg-muted/10 pb-20">
       {/* Modal-like Header */}
       <div className="bg-muted/50 border-b">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
@@ -328,7 +328,7 @@ export default function AddFood() {
       </div>
 
       {/* Modal-like Container */}
-      <div className="max-w-md mx-auto p-4">
+      <div className="max-w-md mx-auto p-4 pb-8">
         <div className="bg-background rounded-xl shadow-sm border p-6">
           <div className="relative">
             {/* Analysis Results Overlay */}
