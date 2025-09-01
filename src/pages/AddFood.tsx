@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info, ArrowLeft, Save } from 'lucide-react';
+import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -311,281 +311,276 @@ export default function AddFood() {
   const availableUnits = getServingUnitsForUser();
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <div className="min-h-screen bg-muted/10">
+      {/* Modal-like Header */}
+      <div className="sticky top-0 z-50 bg-muted/50 border-b">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/food-tracking')}
-              className="p-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <h1 className="text-lg font-semibold">Add Food</h1>
-          </div>
+          <h1 className="text-lg font-semibold">Add Food</h1>
           <Button
-            onClick={handleSave}
-            disabled={saving || !name.trim() || !calories}
-            className="h-8 px-3"
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/food-tracking')}
+            className="p-2"
           >
-            {saving ? (
-              <>
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                Saving
-              </>
-            ) : (
-              <>
-                <Save className="w-3 h-3 mr-1" />
-                Save
-              </>
-            )}
+            <X className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-md mx-auto p-4 pb-8">
-        <div className="relative">
-          {/* Analysis Results Overlay */}
-          {showAnalysisResults && analysisResult && (
-            <div className="absolute inset-0 z-50 bg-background rounded-lg">
-              <FoodAnalysisResults
-                result={analysisResult}
-                imageUrl={imageUrl || ''}
-                onConfirm={handleAnalysisConfirm}
-                onReject={handleAnalysisReject}
-              />
-            </div>
-          )}
+      {/* Modal-like Container */}
+      <div className="max-w-md mx-auto p-4">
+        <div className="bg-background rounded-xl shadow-sm border p-6">
+          <div className="relative">
+            {/* Analysis Results Overlay */}
+            {showAnalysisResults && analysisResult && (
+              <div className="absolute inset-0 z-50 bg-background rounded-lg">
+                <FoodAnalysisResults
+                  result={analysisResult}
+                  imageUrl={imageUrl || ''}
+                  onConfirm={handleAnalysisConfirm}
+                  onReject={handleAnalysisReject}
+                />
+              </div>
+            )}
 
-          {/* Main Form Content */}
-          <div className={`${showAnalysisResults ? 'opacity-30 pointer-events-none' : ''} transition-opacity duration-200 space-y-6`}>
-            {/* Image section */}
-            {!imageUrl ? (
-              <div>
-                <PremiumGate feature="Image Upload" grayOutForFree={true}>
-                  <ProgressiveImageUpload
-                    onImageUpload={handleImageUpload}
-                    onAnalysisStart={handleAnalysisStart}
-                    onAnalysisComplete={handleAnalysisComplete}
-                    onAnalysisError={handleAnalysisError}
-                    uploadState={uploadState}
+            {/* Main Form Content */}
+            <div className={`${showAnalysisResults ? 'opacity-30 pointer-events-none' : ''} transition-opacity duration-200 space-y-6`}>
+              {/* Image section */}
+              {!imageUrl ? (
+                <div>
+                  <PremiumGate feature="Image Upload" grayOutForFree={true}>
+                    <ProgressiveImageUpload
+                      onImageUpload={handleImageUpload}
+                      onAnalysisStart={handleAnalysisStart}
+                      onAnalysisComplete={handleAnalysisComplete}
+                      onAnalysisError={handleAnalysisError}
+                      uploadState={uploadState}
+                    />
+                  </PremiumGate>
+                </div>
+              ) : (
+                <div className="w-full h-48 relative">
+                  <img
+                    src={imageUrl}
+                    alt={name || "Food"}
+                    className="w-full h-full object-cover rounded-lg"
                   />
-                </PremiumGate>
-              </div>
-            ) : (
-              <div className="w-full h-48 relative">
-                <img
-                  src={imageUrl}
-                  alt={name || "Food"}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetakePhoto}
-                  className="absolute top-2 right-2"
-                >
-                  <RefreshCcw className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-
-            {error && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-sm text-destructive">{error}</p>
-              </div>
-            )}
-
-            {/* Food Name */}
-            <div>
-              <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
-                Food Name <span className="text-red-500">*</span>
-              </Label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="food-name"
-                  value={name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="e.g., Grilled Chicken Breast"
-                  className="h-9 flex-1"
-                  required
-                />
-                <EnhancedVoiceFoodInput
-                  onFoodParsed={(result) => {
-                    // Populate fields from enhanced voice parsing
-                    if (result.foodName && !name) {
-                      setName(result.foodName);
-                    }
-                    if (result.amount && !servingAmount) {
-                      setServingAmount(result.amount.toString());
-                    }
-                    if (result.unit && !servingUnit) {
-                      // Make sure the unit is available
-                      const availableUnits = getServingUnitsForUser();
-                      if (availableUnits.some(unit => unit.value === result.unit)) {
-                        setServingUnit(result.unit!);
-                      }
-                    }
-                    // Auto-populate nutrition if provided
-                    if (result.nutrition && !calories && !carbs) {
-                      setCalories(result.nutrition.calories.toString());
-                      setCarbs(result.nutrition.carbs.toString());
-                      
-                      toast({
-                        title: "✨ Smart Voice Complete",
-                        description: `Populated ${result.foodName}${result.amount ? ` (${result.amount}${result.unit})` : ''} with nutrition estimates`,
-                        className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0",
-                        duration: 3000,
-                      });
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Amount field */}
-            <div>
-              <div className="flex items-center gap-1 mb-1">
-                <Label className="text-xs font-medium">
-                  Amount (g) <span className="text-red-500">*</span>
-                </Label>
-                <ClickableTooltip content="We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.">
-                  <Info className="w-3 h-3 text-muted-foreground cursor-help" />
-                </ClickableTooltip>
-              </div>
-              <Input
-                id="serving-amount"
-                type="number"
-                value={servingAmount}
-                onChange={(e) => setServingAmount(e.target.value)}
-                className="text-sm h-9 w-24"
-                min="0.1"
-                step="0.1"
-                required
-              />
-            </div>
-
-            {/* Per 100g toggle */}
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => setCaloriesContext(caloriesContext === 'per100g' ? 'total' : 'per100g')}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
-              >
-                {caloriesContext === 'per100g' ? (
-                  <>
-                    <ToggleLeft className="w-3 h-3" />
-                    Per 100g
-                  </>
-                ) : (
-                  <>
-                    <ToggleRight className="w-3 h-3" />
-                    Total
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* AI Button + Calories + Carbs row */}
-            <div className="flex gap-2 items-end">
-              {/* AI Estimation Button */}
-              {name.trim() && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleAiEstimate}
-                          disabled={isAiEstimating}
-                          className="h-9 w-9 p-0 flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
-                        >
-                          {isAiEstimating ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </PremiumGate>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>AI estimate nutrition for this food</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetakePhoto}
+                    className="absolute top-2 right-2"
+                  >
+                    <RefreshCcw className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
 
-              {/* Calories */}
-              <div className="flex-1">
-                <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
-                  Calories <span className="text-red-500">*</span>
+              {error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+
+              {/* Food Name */}
+              <div>
+                <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
+                  Food Name <span className="text-red-500">*</span>
                 </Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="food-name"
+                    value={name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="e.g., Grilled Chicken Breast"
+                    className="h-9 flex-1"
+                    required
+                  />
+                  <EnhancedVoiceFoodInput
+                    onFoodParsed={(result) => {
+                      // Populate fields from enhanced voice parsing
+                      if (result.foodName && !name) {
+                        setName(result.foodName);
+                      }
+                      if (result.amount && !servingAmount) {
+                        setServingAmount(result.amount.toString());
+                      }
+                      if (result.unit && !servingUnit) {
+                        // Make sure the unit is available
+                        const availableUnits = getServingUnitsForUser();
+                        if (availableUnits.some(unit => unit.value === result.unit)) {
+                          setServingUnit(result.unit!);
+                        }
+                      }
+                      // Auto-populate nutrition if provided
+                      if (result.nutrition && !calories && !carbs) {
+                        setCalories(result.nutrition.calories.toString());
+                        setCarbs(result.nutrition.carbs.toString());
+                        
+                        toast({
+                          title: "✨ Smart Voice Complete",
+                          description: `Populated ${result.foodName}${result.amount ? ` (${result.amount}${result.unit})` : ''} with nutrition estimates`,
+                          className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0",
+                          duration: 3000,
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Amount field */}
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <Label className="text-xs font-medium">
+                    Amount (g) <span className="text-red-500">*</span>
+                  </Label>
+                  <ClickableTooltip content="We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.">
+                    <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                  </ClickableTooltip>
+                </div>
                 <Input
-                  id="calories"
+                  id="serving-amount"
                   type="number"
-                  value={calories}
-                  onChange={(e) => setCalories(e.target.value)}
-                  placeholder={caloriesContext === 'per100g' ? 'Per 100g' : `Total for ${servingAmount}g`}
-                  className="text-sm h-9"
-                  min="0"
+                  value={servingAmount}
+                  onChange={(e) => setServingAmount(e.target.value)}
+                  className="text-sm h-9 w-24"
+                  min="0.1"
                   step="0.1"
                   required
                 />
               </div>
 
-              {/* Carbs */}
-              <div className="flex-1">
-                <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
-                  Carbs (g)
-                </Label>
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={carbs}
-                  onChange={(e) => setCarbs(e.target.value)}
-                  placeholder={caloriesContext === 'per100g' ? 'Per 100g' : `Total for ${servingAmount}g`}
-                  className="text-sm h-9"
-                  min="0"
-                  step="0.1"
-                />
+              {/* Per 100g toggle */}
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setCaloriesContext(caloriesContext === 'per100g' ? 'total' : 'per100g')}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
+                >
+                  {caloriesContext === 'per100g' ? (
+                    <>
+                      <ToggleLeft className="w-3 h-3" />
+                      Per 100g
+                    </>
+                  ) : (
+                    <>
+                      <ToggleRight className="w-3 h-3" />
+                      Total
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
 
-            {/* Quantity selector */}
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                Quantity
-              </Label>
-              <div className="flex items-center gap-3">
+              {/* AI Button + Calories + Carbs row */}
+              <div className="flex gap-2 items-end">
+                {/* AI Estimation Button */}
+                {name.trim() && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleAiEstimate}
+                            disabled={isAiEstimating}
+                            className="h-9 w-9 p-0 flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                          >
+                            {isAiEstimating ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </PremiumGate>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>AI estimate nutrition for this food</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                {/* Calories */}
+                <div className="flex-1">
+                  <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
+                    Calories <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="calories"
+                    type="number"
+                    value={calories}
+                    onChange={(e) => setCalories(e.target.value)}
+                    placeholder={caloriesContext === 'per100g' ? 'Per 100g' : `Total for ${servingAmount}g`}
+                    className="text-sm h-9"
+                    min="0"
+                    step="0.1"
+                    required
+                  />
+                </div>
+
+                {/* Carbs */}
+                <div className="flex-1">
+                  <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
+                    Carbs (g)
+                  </Label>
+                  <Input
+                    id="carbs"
+                    type="number"
+                    value={carbs}
+                    onChange={(e) => setCarbs(e.target.value)}
+                    placeholder={caloriesContext === 'per100g' ? 'Per 100g' : `Total for ${servingAmount}g`}
+                    className="text-sm h-9"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+
+              {/* Quantity selector */}
+              <div>
+                <Label className="text-xs font-medium mb-1 block">Quantity</Label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </Button>
+                  <span className="font-medium w-8 text-center">{quantity}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Add to Food Plan Button */}
+              <div className="pt-4">
                 <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                  className="h-8 w-8 p-0"
+                  onClick={handleSave}
+                  disabled={saving || !name.trim() || !calories}
+                  className="w-full h-10"
                 >
-                  <Minus className="w-3 h-3" />
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Adding to Plan...
+                    </>
+                  ) : (
+                    'Add to Food Plan'
+                  )}
                 </Button>
-                <span className="text-sm font-medium min-w-[2ch] text-center">{quantity}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(quantity + 1)}
-                  disabled={quantity >= 10}
-                  className="h-8 w-8 p-0"
-                >
-                  <Plus className="w-3 h-3" />
-                </Button>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {quantity > 1 ? `${quantity} identical entries` : '1 entry'}
-                </span>
               </div>
             </div>
           </div>
