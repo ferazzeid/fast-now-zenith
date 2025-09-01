@@ -409,14 +409,14 @@ export default function AddFood() {
                   />
                   <EnhancedVoiceFoodInput
                     onFoodParsed={(result) => {
-                      // Populate fields from enhanced voice parsing
-                      if (result.foodName && !name) {
+                      // Always override existing fields with voice input
+                      if (result.foodName) {
                         setName(result.foodName);
                       }
-                      if (result.amount && !servingAmount) {
+                      if (result.amount) {
                         setServingAmount(result.amount.toString());
                       }
-                      if (result.unit && !servingUnit) {
+                      if (result.unit) {
                         // Make sure the unit is available
                         const availableUnits = getServingUnitsForUser();
                         if (availableUnits.some(unit => unit.value === result.unit)) {
@@ -424,7 +424,7 @@ export default function AddFood() {
                         }
                       }
                       // Auto-populate nutrition if provided
-                      if (result.nutrition && !calories && !carbs) {
+                      if (result.nutrition) {
                         setCalories(result.nutrition.calories.toString());
                         setCarbs(result.nutrition.carbs.toString());
                         

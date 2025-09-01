@@ -58,7 +58,7 @@ Guidelines:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
