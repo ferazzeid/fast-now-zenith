@@ -22,8 +22,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Resolve OpenAI API key using existing infrastructure
-    const openAIApiKey = await resolveOpenAIApiKey(supabase);
+    // Get OpenAI API key directly from environment
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
 
     const amountText = amount && unit ? ` for ${amount}${unit}` : '';
     const prompt = `Please estimate the nutritional information for "${foodName}"${amountText}. 
