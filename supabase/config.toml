@@ -1,5 +1,8 @@
 project_id = "texnkijwcygodtywgedm"
 
+[functions.transcribe]
+verify_jwt = true
+
 [functions.realtime-chat]
 verify_jwt = false
 
