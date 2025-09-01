@@ -296,6 +296,16 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   };
 
   const handleClose = () => {
+    // Prevent closing during analysis process
+    if (analyzing || ['uploading', 'analyzing'].includes(uploadState)) {
+      toast({
+        title: "Analysis in progress",
+        description: "Please wait for the food analysis to complete",
+        variant: "default"
+      });
+      return;
+    }
+    
     resetForm();
     onClose();
   };

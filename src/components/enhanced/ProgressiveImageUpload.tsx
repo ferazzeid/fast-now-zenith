@@ -193,49 +193,42 @@ export const ProgressiveImageUpload = ({
 
   return (
     <div className="space-y-4">
-      {/* Mobile: Camera and Gallery buttons */}
+      {/* Mobile: Camera only */}
       {isMobile ? (
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="outline"
-            onClick={handleCameraCapture}
-            disabled={isProcessing}
-            className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-          >
-            {currentState === 'idle' ? (
-              <>
-                <Camera className="w-6 h-6" />
-                <span className="text-sm">Use camera</span>
-              </>
-            ) : (
-              <>
-                {icon}
-                <span className="text-sm">{text}</span>
-              </>
-            )}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={handleFileSelect}
-            disabled={isProcessing}
-            className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-          >
-            <Image className="w-6 h-6" />
-            <span className="text-sm">Upload photo</span>
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          onClick={handleCameraCapture}
+          disabled={isProcessing}
+          className="w-full h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+        >
+          {currentState === 'idle' ? (
+            <>
+              <Camera className="w-8 h-8" />
+              <span className="text-sm font-medium">Use Camera</span>
+            </>
+          ) : (
+            <>
+              {icon}
+              <span className="text-sm font-medium">{text}</span>
+              {subtext && <span className="text-xs text-muted-foreground">{subtext}</span>}
+            </>
+          )}
+        </Button>
       ) : (
-        /* Desktop: Single upload button with state */
+        /* Desktop: Single upload button with better spacing */
         <Button
           variant="outline"
           onClick={handleFileSelect}
           disabled={isProcessing}
-          className="w-full h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+          className="w-full min-h-[120px] flex-col space-y-3 p-6 bg-ceramic-base border-ceramic-rim"
         >
-          {icon}
-          <span className="text-sm font-medium">{text}</span>
-          <span className="text-xs text-muted-foreground">{subtext}</span>
+          <div className="flex flex-col items-center space-y-3">
+            {icon}
+            <div className="text-center space-y-1">
+              <div className="text-base font-medium">{text}</div>
+              <div className="text-sm text-muted-foreground">{subtext}</div>
+            </div>
+          </div>
         </Button>
       )}
 
