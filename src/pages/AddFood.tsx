@@ -570,7 +570,7 @@ export default function AddFood() {
                 <Button
                   onClick={handleSave}
                   disabled={saving || !name.trim() || !calories}
-                  className={`w-full h-10 ${!name.trim() ? 'bg-muted text-white cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-white'}`}
+                  className={`w-full h-10 !text-white ${!name.trim() ? 'bg-muted cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'}`}
                 >
                   {saving ? (
                     <>
