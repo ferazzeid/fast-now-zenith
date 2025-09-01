@@ -74,11 +74,15 @@ export default function AddFood() {
   }, [profile, servingUnit]);
 
   const handleImageUpload = async (url: string) => {
+    // Image upload successful - immediately show the image
     setImageUrl(url);
     setAnalysisResult(null);
     setError(null);
     setShowAnalysisResults(false);
     setUploadState('uploaded');
+    
+    // Image is now ready for manual food entry regardless of analysis
+    console.log('✅ Image uploaded successfully:', url);
   };
 
   const handleAnalysisStart = () => {

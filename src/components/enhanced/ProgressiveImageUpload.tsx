@@ -59,7 +59,7 @@ export const ProgressiveImageUpload = ({
     if (!user) {
       toast({
         title: "Sign In Required",
-        description: "Please sign in to analyze food images",
+        description: "Please sign in to upload images",
         variant: "destructive",
       });
       return;
@@ -85,23 +85,11 @@ export const ProgressiveImageUpload = ({
       return;
     }
 
-    // Check premium access
-    if (!hasPremiumFeatures) {
-      toast({
-        title: "Premium Required",
-        description: "AI food analysis is available for premium users",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Use session guard to protect the upload operation
+    // Upload the image first (this should always work if user is authenticated)
     await withSessionGuard(async () => {
       try {
-
         setInternalState('uploading');
         
-        // Show immediate feedback
         toast({
           title: "Uploading image...",
           description: "This may take a moment",
@@ -113,86 +101,117 @@ export const ProgressiveImageUpload = ({
           throw new Error(result.error || 'Upload failed');
         }
 
+        // Image upload successful - this is the critical success point
         setInternalState('uploaded');
         onImageUpload(result.url);
         
-        // Start analysis immediately
-        setInternalState('analyzing');
-        onAnalysisStart?.();
-        
         toast({
           title: "✅ Image uploaded",
-          description: "Now analyzing nutritional content...",
+          description: "Image ready! You can now add food details.",
           className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
         });
 
-        // Verify authentication before analysis
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Auth validation before analysis:', { 
-          hasUser: !!user, 
-          hasSession: !!session,
-          sessionExpiry: session?.expires_at,
-          userId: user?.id,
-          isExpired: session ? new Date() > new Date(session.expires_at * 1000) : true
-        });
+        // Only attempt analysis if user has premium features
+        if (hasPremiumFeatures) {
+          // Start analysis as separate optional step
+          setInternalState('analyzing');
+          onAnalysisStart?.();
+          
+          toast({
+            title: "Analyzing nutrition...",
+            description: "This is optional - you can skip and enter manually",
+          });
 
-        if (!session || !session.access_token) {
-          throw new Error('Your session has expired. Please sign in again to analyze images.');
+          try {
+            // Verify authentication before analysis
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session || !session.access_token) {
+              throw new Error('Session expired during analysis');
+            }
+
+            // Call analysis
+            const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+              body: { imageUrl: result.url },
+            });
+            
+            if (error) throw error;
+            
+            setInternalState('analyzed');
+            onAnalysisComplete?.(data);
+            
+            toast({
+              title: "🎉 Analysis complete!",
+              description: "Review the detected food information",
+              className: "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0",
+              duration: 2000,
+            });
+
+          } catch (analysisError) {
+            // Analysis failed, but image is still uploaded - this is OK
+            console.error('Analysis error (but image upload succeeded):', analysisError);
+            
+            // Keep upload state as 'uploaded' - don't change to error
+            setInternalState('uploaded');
+            
+            let errorMessage = 'Analysis failed - you can enter food details manually';
+            
+            if (analysisError instanceof Error) {
+              const message = analysisError.message.toLowerCase();
+              if (message.includes('auth') || message.includes('session') || message.includes('token')) {
+                errorMessage = 'Analysis requires fresh login - enter details manually for now';
+              } else if (message.includes('network') || message.includes('fetch')) {
+                errorMessage = 'Analysis failed due to network - enter details manually';
+              }
+            }
+            
+            onAnalysisError?.(errorMessage);
+            
+            toast({
+              title: "Analysis failed",
+              description: errorMessage,
+              variant: "default", // Not destructive since upload worked
+            });
+          }
+        } else {
+          toast({
+            title: "Premium feature",
+            description: "AI analysis requires premium. You can still add food manually!",
+          });
         }
 
-        // Call analysis
-        const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-          body: { imageUrl: result.url },
-        });
-        
-        if (error) throw error;
-        
-        setInternalState('analyzed');
-        onAnalysisComplete?.(data);
-        
-        toast({
-          title: "🎉 Analysis complete!",
-          description: "Review the detected food information",
-          className: "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0",
-          duration: 2000,
-        });
-
-      } catch (error) {
-        console.error('Upload or analysis error:', error);
+      } catch (uploadError) {
+        // Upload failed - this is the only real error case
+        console.error('Upload error:', uploadError);
         setInternalState('error');
         
-        // Enhanced error handling with specific messages
-        let errorMessage = 'Failed to process image';
-        let shouldRetry = false;
+        let errorMessage = 'Failed to upload image';
         
-        if (error instanceof Error) {
-          const message = error.message.toLowerCase();
+        if (uploadError instanceof Error) {
+          const message = uploadError.message.toLowerCase();
           if (message.includes('auth') || message.includes('session') || message.includes('token')) {
-            errorMessage = 'Authentication expired. Please refresh the page and try again.';
-            shouldRetry = false;
+            errorMessage = 'Authentication error. Please refresh and try again.';
           } else if (message.includes('network') || message.includes('fetch')) {
-            errorMessage = 'Network error. Please check your connection and try again.';
-            shouldRetry = true;
+            errorMessage = 'Network error. Please check your connection.';
           } else {
-            errorMessage = error.message;
-            shouldRetry = true;
+            errorMessage = uploadError.message;
           }
         }
         
         onAnalysisError?.(errorMessage);
         
         toast({
-          title: "Error",
+          title: "Upload failed",
           description: errorMessage,
           variant: "destructive",
-          action: shouldRetry ? (
+          action: (
             <ToastAction altText="Retry upload" onClick={() => handleFileUpload(file)}>
               Retry
             </ToastAction>
-          ) : undefined,
+          ),
         });
       }
-    }, 'Image Upload and Analysis');
+    }, 'Image Upload');
   };
 
   const getStateDisplay = () => {
@@ -206,8 +225,8 @@ export const ProgressiveImageUpload = ({
       case 'uploaded':
         return {
           icon: <CheckCircle className="w-6 h-6 text-green-500" />,
-          text: "Uploaded!",
-          subtext: "Starting analysis..."
+          text: "Image Ready!",
+          subtext: "Add food details below"
         };
       case 'analyzing':
         return {
