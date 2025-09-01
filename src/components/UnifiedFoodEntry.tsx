@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info } from 'lucide-react';
+import { Camera, Loader2, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,8 +64,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const [saving, setSaving] = useState(false);
   const [caloriesContext, setCaloriesContext] = useState<'per100g' | 'total'>('per100g');
   
-  // AI estimation loading states
-  const [isAiEstimating, setIsAiEstimating] = useState(false);
 
   // Set default unit when profile loads
   useEffect(() => {
@@ -138,76 +136,6 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
     });
   };
 
-  const handleAiEstimate = async () => {
-    if (!name || !servingAmount || !servingUnit) {
-      toast({
-        title: "Missing information",
-        description: "Please enter food name, amount, and unit first",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsAiEstimating(true);
-    try {
-      // Get both calories and carbs in one request
-      const { data: result, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            { role: 'system', content: 'You are a nutrition expert. Respond with JSON format: {"calories": number, "carbs": number}. Always provide precise nutritional values for the EXACT amount requested.' },
-            { role: 'user', content: `For exactly ${servingAmount} ${servingUnit} of ${name}, provide the total calories and carbs in grams for that specific amount. Return only valid JSON.` }
-          ]
-        }
-      });
-      
-      if (error) throw new Error(error.message || 'Unknown error from AI service');
-      if (!result) throw new Error('No response from AI service');
-      
-      const response = result.completion || result.response || '';
-      
-      // Try to parse JSON first, fallback to regex
-      try {
-        const parsed = JSON.parse(response);
-        if (typeof parsed.calories === 'number' && typeof parsed.carbs === 'number') {
-          setCalories(parsed.calories.toString());
-          setCarbs(parsed.carbs.toString());
-          toast({
-            title: "Nutrition estimated",
-            description: `AI estimated ${parsed.calories} calories and ${parsed.carbs}g carbs for ${servingAmount} ${servingUnit}`
-          });
-          return;
-        }
-      } catch {
-        // Fallback to regex extraction
-        const caloriesMatch = response.match(/calories["\s:]+(\d+(?:\.\d+)?)/i);
-        const carbsMatch = response.match(/carbs["\s:]+(\d+(?:\.\d+)?)/i);
-        
-        if (caloriesMatch && carbsMatch) {
-          setCalories(caloriesMatch[1]);
-          setCarbs(carbsMatch[1]);
-          toast({
-            title: "Nutrition estimated",
-            description: "AI estimates applied successfully"
-          });
-          return;
-        }
-      }
-      
-      toast({
-        title: "Could not parse AI response", 
-        description: "Please enter manually.",
-        variant: "destructive"
-      });
-    } catch (error) {
-      toast({
-        title: "AI estimation failed",
-        description: `${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
-    } finally {
-      setIsAiEstimating(false);
-    }
-  };
 
   const getSmartDefaultUnit = (foodName: string): string => {
     const nameLower = foodName.toLowerCase();
@@ -404,20 +332,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                       if (availableUnits.some(unit => unit.value === result.unit)) {
                         setServingUnit(result.unit!);
                       }
-                    }
-                    // Auto-populate nutrition if provided
-                    if (result.nutrition && !calories && !carbs) {
-                      setCalories(result.nutrition.calories.toString());
-                      setCarbs(result.nutrition.carbs.toString());
-                      
-                      toast({
-                        title: "✨ Smart Voice Complete",
-                        description: `Populated ${result.foodName}${result.amount ? ` (${result.amount}${result.unit})` : ''} with nutrition estimates`,
-                        className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0",
-                        duration: 3000,
-                      });
-                    }
-                  }}
+                     }
+                   }}
                 />
               </div>
             </div>
@@ -467,37 +383,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                 </button>
               </div>
 
-              {/* AI Button + Calories + Carbs row */}
+              {/* Calories + Carbs row */}
               <div className="flex gap-2 items-end">
-                {/* AI Estimation Button - Only show when food name is provided */}
-                {name.trim() && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAiEstimate}
-                            disabled={isAiEstimating || !name.trim() || !servingAmount.trim()}
-                            className="h-9 w-9 p-0 bg-ai hover:bg-ai/90 text-ai-foreground border-ai flex-shrink-0"
-                          >
-                            {isAiEstimating ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Sparkles className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </PremiumGate>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>AI will estimate both calories and carbs for you</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-
                 {/* Calories */}
                 <div className="flex-1">
                   <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
