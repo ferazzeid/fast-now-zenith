@@ -1,0 +1,274 @@
+import React, { useState, useRef } from 'react';
+import { Upload, Camera, Loader2, Image, CheckCircle, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { uploadImageToCloud } from '@/utils/imageUtils';
+import { useAccess } from '@/hooks/useAccess';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+type UploadState = 'idle' | 'uploading' | 'uploaded' | 'analyzing' | 'analyzed' | 'error';
+
+interface ProgressiveImageUploadProps {
+  onImageUpload: (url: string) => void;
+  onAnalysisStart?: () => void;
+  onAnalysisComplete?: (result: any) => void;
+  onAnalysisError?: (error: string) => void;
+  uploadState?: UploadState;
+}
+
+export const ProgressiveImageUpload = ({ 
+  onImageUpload,
+  onAnalysisStart,
+  onAnalysisComplete,
+  onAnalysisError,
+  uploadState = 'idle'
+}: ProgressiveImageUploadProps) => {
+  const [internalState, setInternalState] = useState<UploadState>('idle');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { hasPremiumFeatures } = useAccess();
+  const { withSessionGuard } = useSessionGuard();
+  const isMobile = useIsMobile();
+
+  // Use external state if provided, otherwise use internal state
+  const currentState = uploadState !== 'idle' ? uploadState : internalState;
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleCameraCapture = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error", 
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "Image size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Use session guard to protect the upload operation
+    await withSessionGuard(async () => {
+      try {
+        // Premium users only - cloud storage
+        if (!hasPremiumFeatures) {
+          toast({
+            title: "Premium Required",
+            description: "Image uploads are only available for premium users",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setInternalState('uploading');
+        
+        // Show immediate feedback
+        toast({
+          title: "Uploading image...",
+          description: "This may take a moment",
+        });
+
+        const result = await uploadImageToCloud(file, user!.id, supabase);
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Upload failed');
+        }
+
+        setInternalState('uploaded');
+        onImageUpload(result.url);
+        
+        // Start analysis immediately
+        setInternalState('analyzing');
+        onAnalysisStart?.();
+        
+        toast({
+          title: "✅ Image uploaded",
+          description: "Now analyzing nutritional content...",
+          className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
+        });
+
+        // Call analysis
+        const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+          body: { imageUrl: result.url },
+        });
+        
+        if (error) throw error;
+        
+        setInternalState('analyzed');
+        onAnalysisComplete?.(data);
+        
+        toast({
+          title: "🎉 Analysis complete!",
+          description: "Review the detected food information",
+          className: "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0",
+          duration: 2000,
+        });
+
+      } catch (error) {
+        console.error('Upload or analysis error:', error);
+        setInternalState('error');
+        
+        const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+        onAnalysisError?.(errorMessage);
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    }, 'Image Upload and Analysis');
+  };
+
+  const getStateDisplay = () => {
+    switch (currentState) {
+      case 'uploading':
+        return {
+          icon: <Loader2 className="w-6 h-6 animate-spin" />,
+          text: "Uploading...",
+          subtext: "Securing your image"
+        };
+      case 'uploaded':
+        return {
+          icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+          text: "Uploaded!",
+          subtext: "Starting analysis..."
+        };
+      case 'analyzing':
+        return {
+          icon: <Sparkles className="w-6 h-6 animate-pulse text-purple-500" />,
+          text: "Analyzing...",
+          subtext: "Detecting nutritional info"
+        };
+      case 'analyzed':
+        return {
+          icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+          text: "Analysis Complete!",
+          subtext: "Review the results below"
+        };
+      case 'error':
+        return {
+          icon: <Upload className="w-6 h-6 text-red-500" />,
+          text: "Try Again",
+          subtext: "Something went wrong"
+        };
+      default:
+        return {
+          icon: isMobile ? <Camera className="w-6 h-6" /> : <Upload className="w-6 h-6" />,
+          text: isMobile ? "Take Photo" : "Upload Photo",
+          subtext: "AI will analyze nutrition"
+        };
+    }
+  };
+
+  const { icon, text, subtext } = getStateDisplay();
+  const isProcessing = ['uploading', 'uploaded', 'analyzing'].includes(currentState);
+
+  return (
+    <div className="space-y-4">
+      {/* Mobile: Camera and Gallery buttons */}
+      {isMobile ? (
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            onClick={handleCameraCapture}
+            disabled={isProcessing}
+            className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+          >
+            {currentState === 'idle' ? (
+              <>
+                <Camera className="w-6 h-6" />
+                <span className="text-sm">Use camera</span>
+              </>
+            ) : (
+              <>
+                {icon}
+                <span className="text-sm">{text}</span>
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleFileSelect}
+            disabled={isProcessing}
+            className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+          >
+            <Image className="w-6 h-6" />
+            <span className="text-sm">Upload photo</span>
+          </Button>
+        </div>
+      ) : (
+        /* Desktop: Single upload button with state */
+        <Button
+          variant="outline"
+          onClick={handleFileSelect}
+          disabled={isProcessing}
+          className="w-full h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+        >
+          {icon}
+          <span className="text-sm font-medium">{text}</span>
+          <span className="text-xs text-muted-foreground">{subtext}</span>
+        </Button>
+      )}
+
+      {/* Progress indicator for processing states */}
+      {isProcessing && (
+        <div className="w-full bg-muted rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-1000 ${
+              currentState === 'uploading' ? 'w-1/3 bg-blue-500' :
+              currentState === 'uploaded' ? 'w-2/3 bg-green-500' :
+              'w-full bg-purple-500'
+            }`} 
+          />
+        </div>
+      )}
+
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+    </div>
+  );
+};

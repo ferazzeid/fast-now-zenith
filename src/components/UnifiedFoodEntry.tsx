@@ -19,6 +19,8 @@ import { trackFoodEvent } from '@/utils/analytics';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
+import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
+import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
 
 interface AnalysisResult {
   name?: string;
@@ -49,6 +51,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAnalysisResults, setShowAnalysisResults] = useState(false);
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'uploaded' | 'analyzing' | 'analyzed' | 'error'>('idle');
   
   // Form state
   const [name, setName] = useState('');
@@ -75,59 +79,63 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
     setImageUrl(url);
     setAnalysisResult(null);
     setError(null);
-    
-    // Always analyze the image for AI-enabled users
-    if (isSubscriptionActive) {
-      await analyzeImage(url);
-    }
+    setShowAnalysisResults(false);
+    setUploadState('uploaded');
   };
 
-  const analyzeImage = async (url: string) => {
-    try {
-      setAnalyzing(true);
-      setError(null);
-      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-        body: { imageUrl: url },
-      });
-      if (error) throw error;
-      
-      const result = data as AnalysisResult;
-      setAnalysisResult(result);
-      
-      // Only populate empty fields - never override manual input
-      if (result.name && !name) setName(result.name);
-      if (result.estimated_serving_size && !servingAmount) {
-        setServingAmount(result.estimated_serving_size.toString());
-      }
-      
-      // Calculate and set nutritional values only if fields are empty
-      if (result.estimated_serving_size && !calories && !carbs) {
-        const caloriesPer100g = result.calories_per_100g || 0;
-        const totalCalories = Math.round((caloriesPer100g * result.estimated_serving_size) / 100);
-        setCalories(totalCalories.toString());
-        
-        const carbsPer100g = result.carbs_per_100g || 0;
-        const totalCarbs = Math.round((carbsPer100g * result.estimated_serving_size) / 100);
-        setCarbs(totalCarbs.toString());
-      }
-      
-      console.log('✅ Food analysis successful:', result);
-      toast({ 
-        title: 'Analysis complete', 
-        description: 'Food detected! Review and adjust if needed.' 
-      });
-    } catch (e: any) {
-      console.error('❌ Food analysis error:', e);
-      const errorMessage = e?.message || 'Failed to analyze image';
-      setError(errorMessage);
-      toast({ 
-        title: 'Analysis failed', 
-        description: 'Modal stays open - try another photo or enter details manually.', 
-        variant: 'destructive' 
-      });
-    } finally {
-      setAnalyzing(false);
+  const handleAnalysisStart = () => {
+    setAnalyzing(true);
+    setUploadState('analyzing');
+    setError(null);
+  };
+
+  const handleAnalysisComplete = (result: AnalysisResult) => {
+    setAnalysisResult(result);
+    setAnalyzing(false);
+    setUploadState('analyzed');
+    setShowAnalysisResults(true);
+  };
+
+  const handleAnalysisError = (errorMessage: string) => {
+    setError(errorMessage);
+    setAnalyzing(false);
+    setUploadState('error');
+  };
+
+  const handleAnalysisConfirm = (result: AnalysisResult) => {
+    // Populate form fields with confirmed analysis results
+    if (result.name) setName(result.name);
+    if (result.estimated_serving_size) {
+      setServingAmount(result.estimated_serving_size.toString());
     }
+    
+    // Calculate and set nutritional values for the detected serving
+    if (result.estimated_serving_size) {
+      const caloriesPer100g = result.calories_per_100g || 0;
+      const totalCalories = Math.round((caloriesPer100g * result.estimated_serving_size) / 100);
+      setCalories(totalCalories.toString());
+      
+      const carbsPer100g = result.carbs_per_100g || 0;
+      const totalCarbs = Math.round((carbsPer100g * result.estimated_serving_size) / 100);
+      setCarbs(totalCarbs.toString());
+    }
+    
+    setShowAnalysisResults(false);
+    console.log('✅ Analysis confirmed, data populated:', result);
+    
+    toast({ 
+      title: '✨ Analysis confirmed', 
+      description: 'Data populated! Review and add to your food list.',
+      className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
+    });
+  };
+
+  const handleAnalysisReject = () => {
+    setShowAnalysisResults(false);
+    toast({ 
+      title: 'Edit mode', 
+      description: 'Fill in the details manually or try another photo.',
+    });
   };
 
   const handleAiEstimate = async () => {
@@ -277,6 +285,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
     setImageUrl(null);
     setAnalysisResult(null);
     setError(null);
+    setShowAnalysisResults(false);
+    setUploadState('idle');
     setName('');
     setServingAmount('100');
     setServingUnit(getDefaultServingSizeUnit());
@@ -294,6 +304,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
     setImageUrl(null);
     setAnalysisResult(null);
     setError(null);
+    setShowAnalysisResults(false);
+    setUploadState('idle');
   };
 
   return (
@@ -302,287 +314,266 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
       onClose={handleClose}
       title="Add Food"
       variant="standard"
-      size="md"
+      size={showAnalysisResults ? "lg" : "md"}
       showCloseButton={true}
     >
-      {/* Image section - camera upload or display */}
-      {!imageUrl ? (
-        <div className="mb-4">
-          <PremiumGate feature="Image Upload" grayOutForFree={true}>
-            <ImageUpload onImageUpload={handleImageUpload} currentImageUrl={imageUrl} bucket="food-images" />
-          </PremiumGate>
+      {/* Show Analysis Results Modal */}
+      {showAnalysisResults && analysisResult && imageUrl ? (
+        <div className="space-y-4">
+          <FoodAnalysisResults
+            result={analysisResult}
+            imageUrl={imageUrl}
+            onConfirm={handleAnalysisConfirm}
+            onReject={handleAnalysisReject}
+          />
         </div>
       ) : (
-        <div className="w-full h-48 mb-4 relative">
-          <img
-            src={imageUrl}
-            alt={name || "Food"}
-            className="w-full h-full object-cover rounded-lg"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRetakePhoto}
-            className="absolute top-2 right-2"
-          >
-            <RefreshCcw className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* Analysis Status */}
-      {analyzing && (
-        <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg mb-4">
-          <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-          <span className="text-sm">Analyzing nutritional information...</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg mb-4">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
-
-      {/* Analysis Results */}
-      {analysisResult && (
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">AI Analysis</span>
-            {analysisResult.confidence && (
-              <Badge variant="default" className="text-xs bg-primary/20 text-primary-foreground">
-                {Math.round(analysisResult.confidence * 100)}% confidence
-              </Badge>
-            )}
-          </div>
-          {analysisResult.description && (
-            <p className="text-xs text-muted-foreground">{analysisResult.description}</p>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {/* Food Name */}
-        <div>
-          <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
-            Food Name <span className="text-red-500">*</span>
-          </Label>
-          <div className="flex gap-2 items-center">
-            <Input
-              id="food-name"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g., Grilled Chicken Breast"
-              className="h-9 flex-1"
-              required
-            />
-            <EnhancedVoiceFoodInput
-              onFoodParsed={(result) => {
-                // Populate fields from enhanced voice parsing
-                if (result.foodName && !name) {
-                  setName(result.foodName);
-                }
-                if (result.amount && !servingAmount) {
-                  setServingAmount(result.amount.toString());
-                }
-                if (result.unit && !servingUnit) {
-                  // Make sure the unit is available
-                  const availableUnits = getServingUnitsForUser();
-                  if (availableUnits.some(unit => unit.value === result.unit)) {
-                    setServingUnit(result.unit!);
-                  }
-                }
-                // Auto-populate nutrition if provided
-                if (result.nutrition && !calories && !carbs) {
-                  setCalories(result.nutrition.calories.toString());
-                  setCarbs(result.nutrition.carbs.toString());
-                  
-                  toast({
-                    title: "✨ Smart Voice Complete",
-                    description: `Populated ${result.foodName}${result.amount ? ` (${result.amount}${result.unit})` : ''} with nutrition estimates`,
-                    className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0",
-                    duration: 3000,
-                  });
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Amount/Unit fields connected + Calories + Carbs */}
-        <div className="space-y-4">
-          {/* Amount field */}
-          <div>
-            <div className="flex items-center gap-1 mb-1">
-              <Label className="text-xs font-medium">
-                Amount (g) <span className="text-red-500">*</span>
-              </Label>
-              <ClickableTooltip content="We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.">
-                <Info className="w-3 h-3 text-muted-foreground cursor-help" />
-              </ClickableTooltip>
+        <>
+          {/* Image section - camera upload or display */}
+          {!imageUrl ? (
+            <div className="mb-4">
+              <PremiumGate feature="Image Upload" grayOutForFree={true}>
+                <ProgressiveImageUpload
+                  onImageUpload={handleImageUpload}
+                  onAnalysisStart={handleAnalysisStart}
+                  onAnalysisComplete={handleAnalysisComplete}
+                  onAnalysisError={handleAnalysisError}
+                  uploadState={uploadState}
+                />
+              </PremiumGate>
             </div>
-            <Input
-              id="serving-amount"
-              type="number"
-              value={servingAmount}
-              onChange={(e) => setServingAmount(e.target.value)}
-              className="text-sm h-9 w-24"
-              min="0.1"
-              step="0.1"
-              required
-            />
-          </div>
+          ) : (
+            <div className="w-full h-48 mb-4 relative">
+              <img
+                src={imageUrl}
+                alt={name || "Food"}
+                className="w-full h-full object-cover rounded-lg"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRetakePhoto}
+                className="absolute top-2 right-2"
+              >
+                <RefreshCcw className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
 
-          {/* Per 100g toggle - above the nutrition row */}
-          <div className="flex justify-center mb-2">
-            <button
-              type="button"
-              onClick={() => setCaloriesContext(caloriesContext === 'per100g' ? 'total' : 'per100g')}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
-            >
-              {caloriesContext === 'per100g' ? (
-                <>
-                  <ToggleLeft className="w-3 h-3" />
-                  Per 100g
-                </>
-              ) : (
-                <>
-                  <ToggleRight className="w-3 h-3" />
-                  Total
-                </>
-              )}
-            </button>
-          </div>
+          {error && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg mb-4">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
 
-          {/* AI Button + Calories + Carbs row */}
-          <div className="flex gap-2 items-end">
-            {/* AI Estimation Button - Only show when food name is provided */}
-            {name.trim() && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <PremiumGate feature="AI Estimation" grayOutForFree={true}>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAiEstimate}
-                        disabled={isAiEstimating || !name.trim() || !servingAmount.trim()}
-                        className="h-9 w-9 p-0 bg-ai hover:bg-ai/90 text-ai-foreground border-ai flex-shrink-0"
-                      >
-                        {isAiEstimating ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </PremiumGate>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>AI will estimate both calories and carbs for you</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
-            {/* Calories */}
-            <div className="flex-1">
-              <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
-                Calories <span className="text-red-500">*</span>
+          <div className="space-y-4">
+            {/* Food Name */}
+            <div>
+              <Label htmlFor="food-name" className="text-sm font-medium mb-1 block">
+                Food Name <span className="text-red-500">*</span>
               </Label>
-              <div className="relative">
+              <div className="flex gap-2 items-center">
                 <Input
-                  id="calories"
+                  id="food-name"
+                  value={name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="e.g., Grilled Chicken Breast"
+                  className="h-9 flex-1"
+                  required
+                />
+                <EnhancedVoiceFoodInput
+                  onFoodParsed={(result) => {
+                    // Populate fields from enhanced voice parsing
+                    if (result.foodName && !name) {
+                      setName(result.foodName);
+                    }
+                    if (result.amount && !servingAmount) {
+                      setServingAmount(result.amount.toString());
+                    }
+                    if (result.unit && !servingUnit) {
+                      // Make sure the unit is available
+                      const availableUnits = getServingUnitsForUser();
+                      if (availableUnits.some(unit => unit.value === result.unit)) {
+                        setServingUnit(result.unit!);
+                      }
+                    }
+                    // Auto-populate nutrition if provided
+                    if (result.nutrition && !calories && !carbs) {
+                      setCalories(result.nutrition.calories.toString());
+                      setCarbs(result.nutrition.carbs.toString());
+                      
+                      toast({
+                        title: "✨ Smart Voice Complete",
+                        description: `Populated ${result.foodName}${result.amount ? ` (${result.amount}${result.unit})` : ''} with nutrition estimates`,
+                        className: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0",
+                        duration: 3000,
+                      });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Amount/Unit fields connected + Calories + Carbs */}
+            <div className="space-y-4">
+              {/* Amount field */}
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <Label className="text-xs font-medium">
+                    Amount (g) <span className="text-red-500">*</span>
+                  </Label>
+                  <ClickableTooltip content="We use grams for precision. While not universal, grams appear on food packaging globally, making accurate tracking possible regardless of your location.">
+                    <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                  </ClickableTooltip>
+                </div>
+                <Input
+                  id="serving-amount"
                   type="number"
-                  value={calories}
-                  onChange={(e) => setCalories(e.target.value)}
-                  placeholder="0"
-                  className={`text-sm h-9 ${
-                    parseFloat(calories) === 0 && calories !== '' ? 'border-destructive text-destructive' : ''
-                  }`}
+                  value={servingAmount}
+                  onChange={(e) => setServingAmount(e.target.value)}
+                  className="text-sm h-9 w-24"
+                  min="0.1"
+                  step="0.1"
                   required
                 />
               </div>
-              {parseFloat(calories) === 0 && calories !== '' && (
-                <p className="text-xs text-destructive mt-1">Unlikely to be zero calories</p>
-              )}
+
+              {/* Per 100g toggle - above the nutrition row */}
+              <div className="flex justify-center mb-2">
+                <button
+                  type="button"
+                  onClick={() => setCaloriesContext(caloriesContext === 'per100g' ? 'total' : 'per100g')}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
+                >
+                  {caloriesContext === 'per100g' ? (
+                    <>
+                      <ToggleLeft className="w-3 h-3" />
+                      Per 100g
+                    </>
+                  ) : (
+                    <>
+                      <ToggleRight className="w-3 h-3" />
+                      Total
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* AI Button + Calories + Carbs row */}
+              <div className="flex gap-2 items-end">
+                {/* AI Estimation Button - Only show when food name is provided */}
+                {name.trim() && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PremiumGate feature="AI Estimation" grayOutForFree={true}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAiEstimate}
+                            disabled={isAiEstimating || !name.trim() || !servingAmount.trim()}
+                            className="h-9 w-9 p-0 bg-ai hover:bg-ai/90 text-ai-foreground border-ai flex-shrink-0"
+                          >
+                            {isAiEstimating ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </PremiumGate>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>AI will estimate both calories and carbs for you</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                {/* Calories */}
+                <div className="flex-1">
+                  <Label htmlFor="calories" className="text-xs font-medium mb-1 block">
+                    Calories <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="calories"
+                      type="number"
+                      value={calories}
+                      onChange={(e) => setCalories(e.target.value)}
+                      placeholder="0"
+                      className={`text-sm h-9 ${
+                        parseFloat(calories) === 0 && calories !== '' ? 'border-destructive text-destructive' : ''
+                      }`}
+                      required
+                    />
+                  </div>
+                  {parseFloat(calories) === 0 && calories !== '' && (
+                    <p className="text-xs text-destructive mt-1">Unlikely to be zero calories</p>
+                  )}
+                </div>
+
+                {/* Carbs */}
+                <div className="flex-1">
+                  <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
+                    Carbs (g)
+                  </Label>
+                  <Input
+                    id="carbs"
+                    type="number"
+                    value={carbs}
+                    onChange={(e) => setCarbs(e.target.value)}
+                    className="text-sm h-9"
+                  />
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* Carbs */}
-            <div className="flex-1">
-              <Label htmlFor="carbs" className="text-xs font-medium mb-1 block">
-                Carbs (g)
-              </Label>
-              <Input
-                id="carbs"
-                type="number"
-                value={carbs}
-                onChange={(e) => setCarbs(e.target.value)}
-                className="text-sm h-9"
-              />
+          {/* Footer - Quantity selector and Add button */}
+          <div className="flex gap-3 pt-4">
+            {/* Quantity selector */}
+            <div className="flex items-center border rounded-md">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+                className="h-8 w-8 p-0 rounded-r-none border-r"
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <div className="px-3 py-1 min-w-[3rem] text-center text-sm font-medium">
+                {quantity}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setQuantity(quantity + 1)}
+                className="h-8 w-8 p-0 rounded-l-none border-l"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
             </div>
+            
+             {/* Add Button */}
+             <Button 
+               onClick={handleSave} 
+               disabled={saving || !name || !calories || !servingAmount}
+               className="flex-1"
+             >
+               {saving ? (
+                 <>
+                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                   Adding...
+                 </>
+               ) : (
+                 quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"
+               )}
+             </Button>
           </div>
-        </div>
-
-        {/* Re-analyze button for photos */}
-        {imageUrl && isSubscriptionActive && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => analyzeImage(imageUrl)}
-              disabled={analyzing}
-              size="sm"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Re-analyze Photo
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Footer - Quantity selector and Add button */}
-      <div className="flex gap-3 pt-4">
-        {/* Quantity selector */}
-        <div className="flex items-center border rounded-md">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1}
-            className="h-8 w-8 p-0 rounded-r-none border-r"
-          >
-            <Minus className="w-4 h-4" />
-          </Button>
-          <div className="px-3 py-1 min-w-[3rem] text-center text-sm font-medium">
-            {quantity}
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setQuantity(quantity + 1)}
-            className="h-8 w-8 p-0 rounded-l-none border-l"
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-        
-         {/* Add Button */}
-         <Button 
-           onClick={handleSave} 
-           disabled={saving || !name || !calories || !servingAmount}
-           className="flex-1"
-         >
-           {saving ? (
-             <>
-               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-               Adding...
-             </>
-           ) : (
-             quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"
-           )}
-         </Button>
-      </div>
+        </>
+      )}
     </UniversalModal>
   );
 };
