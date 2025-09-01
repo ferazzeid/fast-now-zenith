@@ -317,19 +317,10 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
       size={showAnalysisResults ? "lg" : "md"}
       showCloseButton={true}
     >
-      {/* Show Analysis Results Modal */}
-      {showAnalysisResults && analysisResult && imageUrl ? (
-        <div className="space-y-4">
-          <FoodAnalysisResults
-            result={analysisResult}
-            imageUrl={imageUrl}
-            onConfirm={handleAnalysisConfirm}
-            onReject={handleAnalysisReject}
-          />
-        </div>
-      ) : (
-        <>
-          {/* Image section - camera upload or display */}
+      <div className="relative">
+        {/* Main Form Content */}
+        <div className={`${showAnalysisResults ? 'opacity-30 pointer-events-none' : ''} transition-opacity duration-200`}>
+        {/* Image section - camera upload or display */}
           {!imageUrl ? (
             <div className="mb-4">
               <PremiumGate feature="Image Upload" grayOutForFree={true}>
@@ -572,8 +563,22 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                )}
              </Button>
           </div>
-        </>
-      )}
+        </div>
+
+        {/* Analysis Results Overlay */}
+        {showAnalysisResults && analysisResult && imageUrl && (
+          <div className="absolute inset-0 bg-background/95 flex items-center justify-center z-50 rounded-lg">
+            <div className="w-full max-w-md">
+              <FoodAnalysisResults
+                result={analysisResult}
+                imageUrl={imageUrl}
+                onConfirm={handleAnalysisConfirm}
+                onReject={handleAnalysisReject}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </UniversalModal>
   );
 };
