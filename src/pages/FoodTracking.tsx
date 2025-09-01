@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera, Brain, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { AIVoiceButton } from '@/components/AIVoiceButton';
@@ -42,6 +42,7 @@ import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 
 const FoodTracking = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [consumedNow, setConsumedNow] = useState(true);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   
@@ -164,7 +165,7 @@ const FoodTracking = () => {
   };
 
   const handleUnifiedEntry = () => {
-    setShowUnifiedEntry(true);
+    navigate('/add-food');
   };
 
   const handleSaveUnifiedEntry = async (data: any | any[]) => {
