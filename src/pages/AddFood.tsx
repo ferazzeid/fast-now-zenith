@@ -22,7 +22,6 @@ import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
 import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { AuthDebugPanel } from '@/components/debug/AuthDebugPanel';
 
 interface AnalysisResult {
   name?: string;
@@ -334,9 +333,6 @@ export default function AddFood() {
           </div>
           
           <div className="p-6">
-          
-          {/* Temporary debug panel for troubleshooting auth issues */}
-          <AuthDebugPanel />
           
           <div className="relative">
             {/* Analysis Results Overlay */}

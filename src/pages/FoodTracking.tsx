@@ -39,7 +39,6 @@ import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
-import { AuthDebugPanel } from '@/components/debug/AuthDebugPanel';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -433,9 +432,6 @@ const FoodTracking = () => {
           authorTooltipContentKey="food_tracking_insights"
           authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
         />
-
-        {/* Temporary debug panel for troubleshooting auth issues */}
-        <AuthDebugPanel />
 
         {/* Action Buttons */}
         <div className="mb-6 grid grid-cols-2 gap-4">
