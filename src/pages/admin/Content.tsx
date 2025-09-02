@@ -3,11 +3,12 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
 import { AdminQuoteSettings } from "@/components/AdminQuoteSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
+import { AdminGoalManagementSection } from "@/components/AdminGoalManagementSection";
 
 export default function AdminContent() {
   usePageSEO({
-    title: "Admin Content – Timelines & Quotes",
-    description: "Manage content: fasting timelines, prompts, and quotes.",
+    title: "Admin Content – Timelines, Quotes & Goals",
+    description: "Manage content: fasting timelines, prompts, quotes, and goal motivators.",
     canonicalPath: "/admin/content",
   });
 
@@ -21,8 +22,12 @@ export default function AdminContent() {
           <AdminTimelineSettings />
         </section>
 
-        <section aria-label="Quote management" className="pb-24">
+        <section aria-label="Quote management">
           <AdminQuoteSettings />
+        </section>
+
+        <section aria-label="Goal management" className="pb-24">
+          <AdminGoalManagementSection />
           <div className="h-8" />
         </section>
       </main>
