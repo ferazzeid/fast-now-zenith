@@ -134,32 +134,27 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     )}
                   </div>
                 )}
+                
+                {/* Read More Link */}
+                {motivator.linkUrl && (
+                  <div className="mt-3">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(motivator.linkUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                      className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                    >
+                      Read More <ExternalLink className="w-3 h-3 ml-1" />
+                    </Button>
+                  </div>
+                )}
               </div>
               
               {/* Actions */}
               <div className="flex flex-col gap-1 ml-2">
-                {/* External Link Button */}
-                {motivator.linkUrl && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(motivator.linkUrl, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="p-1 h-6 w-6 border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Read more</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <Button
