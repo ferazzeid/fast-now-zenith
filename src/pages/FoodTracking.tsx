@@ -421,20 +421,30 @@ const FoodTracking = () => {
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
-        {/* Header with Onboarding and History Buttons */}
-        <ResponsivePageHeader
-          title="Food Tracking"
-          subtitle="Track your food intake"
-          leftButton={<AIVoiceButton />}
-          onHistoryClick={() => setShowHistory(true)}
-          historyTitle="View food history"
-          showAuthorTooltip={isAdmin}
-          authorTooltipContentKey="food_tracking_insights"
-          authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
-        />
+        {/* Header with left-aligned text and History Button */}
+        <div className="flex flex-col mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-left">Food Tracking</h1>
+              <p className="text-muted-foreground text-left">Track your food intake</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <AuthorTooltip 
+                  contentKey="food_tracking_insights"
+                  content="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
+                />
+              )}
+              <HistoryButton 
+                onClick={() => setShowHistory(true)}
+                title="View food history"
+              />
+            </div>
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="mb-6 grid grid-cols-2 gap-4">
+        {/* Action Buttons - Three Column Layout */}
+        <div className="mb-6 grid grid-cols-3 gap-4">
           <div className="col-span-1 flex flex-col items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -453,6 +463,20 @@ const FoodTracking = () => {
               </TooltipContent>
             </Tooltip>
             <span className="text-xs text-muted-foreground">Add Food</span>
+          </div>
+
+          <div className="col-span-1 flex flex-col items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-full">
+                  <AIVoiceButton />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Use voice to add food with AI assistance</p>
+              </TooltipContent>
+            </Tooltip>
+            <span className="text-xs text-muted-foreground">Voice</span>
           </div>
 
           <div className="col-span-1 flex flex-col items-center gap-1">
