@@ -990,7 +990,6 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_published: boolean | null
-          is_system_goal: boolean | null
           link_url: string | null
           male_image_url: string | null
           meta_description: string | null
@@ -1011,7 +1010,6 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_published?: boolean | null
-          is_system_goal?: boolean | null
           link_url?: string | null
           male_image_url?: string | null
           meta_description?: string | null
@@ -1032,7 +1030,6 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_published?: boolean | null
-          is_system_goal?: boolean | null
           link_url?: string | null
           male_image_url?: string | null
           meta_description?: string | null
@@ -1513,6 +1510,57 @@ export type Database = {
           source_name?: string
           updated_at?: string
           url?: string | null
+        }
+        Relationships: []
+      }
+      system_motivators: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          display_order: number
+          female_image_url: string | null
+          id: string
+          is_active: boolean
+          link_url: string | null
+          male_image_url: string | null
+          meta_description: string | null
+          meta_title: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          display_order?: number
+          female_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          link_url?: string | null
+          male_image_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          display_order?: number
+          female_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          link_url?: string | null
+          male_image_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
