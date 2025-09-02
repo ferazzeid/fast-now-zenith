@@ -55,6 +55,7 @@ export default function MotivatorIdeas() {
         content: goal.description || '',
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
+        linkUrl: goal.linkUrl || undefined,
       });
       toast({ title: '✅ Added to My Goals', description: 'The motivator was added successfully.' });
     } catch (e) {

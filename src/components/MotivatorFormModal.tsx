@@ -226,23 +226,21 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             />
           </div>
 
-          {isAdmin && (
-            <div className="space-y-2">
-              <Label htmlFor="linkUrl" className="text-warm-text font-medium">
-                Link URL (Optional)
-              </Label>
-              <Input
-                id="linkUrl"
-                type="url"
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder="https://example.com/more-info"
-              />
-              <p className="text-xs text-muted-foreground">
-                Optional URL to a detailed story or description on your website
-              </p>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="linkUrl" className="text-warm-text font-medium">
+              Link URL (Optional)
+            </Label>
+            <Input
+              id="linkUrl"
+              type="url"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://example.com/more-info"
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional URL for additional information or resources
+            </p>
+          </div>
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">Image (Optional)</Label>

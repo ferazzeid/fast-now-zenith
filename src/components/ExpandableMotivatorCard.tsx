@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2, Star } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, Star, ExternalLink } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,6 +27,7 @@ interface ExpandableMotivatorCardProps {
     content?: string;
     imageUrl?: string;
     category?: string;
+    linkUrl?: string;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -137,6 +138,28 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               
               {/* Actions */}
               <div className="flex flex-col gap-1 ml-2">
+                {/* External Link Button */}
+                {motivator.linkUrl && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(motivator.linkUrl, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="p-1 h-6 w-6 border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Read more</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <Button
