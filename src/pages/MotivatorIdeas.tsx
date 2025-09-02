@@ -101,14 +101,15 @@ export default function MotivatorIdeas() {
   return (
     <GoalIdeasErrorBoundary>
       <div className="pt-20 pb-20 relative"> {/* Increased spacing from deficit bar */}
+        {/* Enhanced close button - more visible */}
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          onClick={() => navigate('/motivators')}
-          className="absolute right-4 top-4 w-8 h-8 rounded-full hover:bg-muted/80 dark:hover:bg-muted/50 hover:scale-105 transition-all duration-200 p-0 z-20 border border-border/20 bg-card/80 backdrop-blur-sm shadow-sm"
+          onClick={() => navigate('/')}
+          className="absolute right-4 top-4 w-10 h-10 rounded-full bg-background border-2 border-primary/20 hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-105 transition-all duration-200 p-0 z-30 shadow-lg"
           aria-label="Close Goal Ideas"
         >
-          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+          <X className="w-5 h-5" />
         </Button>
         
       <header className="mb-4">
