@@ -115,7 +115,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       variant="standard"
       size="lg"
       showCloseButton={true}
-      contentClassName="max-h-[75vh] overflow-y-auto"
+      contentClassName="max-h-[65vh] overflow-y-auto pb-4"
       footer={
         <>
           <Button
