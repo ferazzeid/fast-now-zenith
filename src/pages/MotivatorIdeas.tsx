@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
 import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
-import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown, ExternalLink } from 'lucide-react';
+import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
   usePageSEO({
@@ -100,11 +100,18 @@ export default function MotivatorIdeas() {
 
   return (
     <GoalIdeasErrorBoundary>
-      <div className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
-      <header className="flex items-center gap-3 mb-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
-          <ArrowLeft className="w-4 h-4" />
+      <div className="pt-20 pb-20 relative"> {/* Increased spacing from deficit bar */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/motivators')}
+          className="absolute right-4 top-4 w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0 z-10"
+          aria-label="Close Goal Ideas"
+        >
+          <X className="w-4 h-4" />
         </Button>
+        
+      <header className="mb-4">
         <h1 className="text-xl font-bold text-warm-text">Goal Ideas</h1>
       </header>
 

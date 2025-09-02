@@ -946,20 +946,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <DatabaseErrorBoundary onRetry={() => window.location.reload()}>
-      <div className="h-full flex flex-col max-w-7xl mx-auto">
+      <div className="h-full flex flex-col max-w-7xl mx-auto relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="absolute right-4 top-4 w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0 z-10"
+          aria-label="Close My Foods"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+        
       {/* Header */}
       <div className="px-6 py-6 border-b border-border">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <h1 className="text-2xl font-bold">My Foods</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
         </div>
         
         {/* Search Bar */}
