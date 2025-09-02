@@ -15,7 +15,7 @@ import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
 import { Quote } from '@/hooks/useQuoteSettings';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
-import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
+
 import { MotivatorIdeasModal } from '@/components/MotivatorIdeasModal';
 import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +45,7 @@ const Motivators = () => {
   const [showQuoteSelectionModal, setShowQuoteSelectionModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [editingNote, setEditingNote] = useState(null);
-  const [showGoalIdeas, setShowGoalIdeas] = useState(false);
+  
   const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
@@ -329,18 +329,6 @@ const Motivators = () => {
     // Don't set showFormModal here since we're using editingMotivator to control the modal
   };
   
-  const handleSelectGoalIdea = async (goal: AdminGoalIdea) => {
-    try {
-      await handleCreateMotivator({
-        title: goal.title,
-        content: goal.description,
-        imageUrl: goal.imageUrl || null
-      });
-      setShowGoalIdeas(false);
-    } catch (error) {
-      console.error('Error creating motivator from goal idea:', error);
-    }
-  };
 
 
   return (
@@ -450,17 +438,6 @@ const Motivators = () => {
             </Tabs>
           </div>
 
-          {/* Goal Ideas Library - Kept for backward compatibility but hidden */}
-          {showGoalIdeas && (
-            <div className="mb-6 bg-card border border-border rounded-lg p-4">
-              <ComponentErrorBoundary>
-                <GoalIdeasLibrary
-                  onSelectGoal={handleSelectGoalIdea}
-                  onClose={() => setShowGoalIdeas(false)}
-                />
-              </ComponentErrorBoundary>
-            </div>
-          )}
 
           {/* Content based on active tab */}
           {loading ? (
@@ -635,7 +612,18 @@ const Motivators = () => {
           <MotivatorIdeasModal
             isOpen={showMotivatorIdeasModal}
             onClose={() => setShowMotivatorIdeasModal(false)}
-            onSelectGoal={handleSelectGoalIdea}
+            onSelectGoal={async (goal: AdminGoalIdea) => {
+              try {
+                await handleCreateMotivator({
+                  title: goal.title,
+                  content: goal.description,
+                  imageUrl: goal.imageUrl || null
+                });
+                setShowMotivatorIdeasModal(false);
+              } catch (error) {
+                console.error('Error creating motivator from goal idea:', error);
+              }
+            }}
             onEditGoal={handleEditGoalIdea}
           />
 

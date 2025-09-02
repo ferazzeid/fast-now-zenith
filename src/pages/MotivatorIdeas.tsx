@@ -105,10 +105,10 @@ export default function MotivatorIdeas() {
           variant="ghost"
           size="sm"
           onClick={() => navigate('/motivators')}
-          className="absolute right-4 top-4 w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0 z-10"
+          className="absolute right-4 top-4 w-8 h-8 rounded-full hover:bg-muted/80 dark:hover:bg-muted/50 hover:scale-105 transition-all duration-200 p-0 z-20 border border-border/20 bg-card/80 backdrop-blur-sm shadow-sm"
           aria-label="Close Goal Ideas"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
         </Button>
         
       <header className="mb-4">
