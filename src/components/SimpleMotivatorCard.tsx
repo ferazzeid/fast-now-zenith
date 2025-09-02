@@ -41,15 +41,21 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
   return (
     <Card className="overflow-hidden relative bg-gray-900 border-gray-700">
       <CardContent className="p-6">
+        <blockquote className="relative mb-4">
+          {motivator.content && (
+            <p className="text-2xl font-bold italic text-white leading-relaxed mb-3">
+              "{motivator.content}"
+            </p>
+          )}
+          {motivator.title && motivator.title !== motivator.content && (
+            <cite className="text-sm text-gray-200 not-italic">
+              — {motivator.title}
+            </cite>
+          )}
+        </blockquote>
         <div className="flex items-start justify-between">
-          {/* Content - only description in larger font */}
-          <div className="flex-1 pr-4">
-            {motivator.content && (
-              <p className="text-lg text-white leading-relaxed whitespace-pre-wrap">
-                {motivator.content}
-              </p>
-            )}
-          </div>
+          {/* Spacer for layout */}
+          <div className="flex-1"></div>
           
           {/* Actions - animation toggle and delete */}
           <div className="flex-shrink-0 flex items-center space-x-1">

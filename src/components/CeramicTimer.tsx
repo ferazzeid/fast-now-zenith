@@ -147,7 +147,7 @@ export const CeramicTimer: React.FC<CeramicTimerProps> = ({
                 className={cn(
                   "font-mono font-bold tracking-wide transition-colors duration-300",
                   "text-4xl", // Fixed size to prevent overflow
-                  isActive ? "text-warm-text" : "text-black"
+                  isActive ? "text-warm-text" : "text-foreground"
                 )}
                 style={{ 
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)',
