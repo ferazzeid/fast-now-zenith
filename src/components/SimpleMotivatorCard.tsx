@@ -43,7 +43,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
       <CardContent className="p-6">
         <blockquote className="relative mb-4">
           {motivator.content && (
-            <p className="text-2xl font-bold italic text-white leading-relaxed mb-3">
+            <p className="text-lg font-bold text-white leading-relaxed mb-3">
               "{motivator.content}"
             </p>
           )}

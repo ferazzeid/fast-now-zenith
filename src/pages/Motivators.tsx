@@ -24,6 +24,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
 import { NotesCard } from '@/components/NotesCard';
+import { NoteFormModal } from '@/components/NoteFormModal';
 import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
@@ -40,8 +41,10 @@ const Motivators = () => {
   const { isAdmin } = useAccess();
   const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
   const [showQuoteSelectionModal, setShowQuoteSelectionModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
+  const [editingNote, setEditingNote] = useState(null);
   const [showGoalIdeas, setShowGoalIdeas] = useState(false);
   const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -390,15 +393,11 @@ const Motivators = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
-                    onClick={() => {
-                      if (activeTab === 'notes') {
-                        // Create a new note
-                        handleCreateMotivator({
-                          title: 'New Note',
-                          content: 'Write your thoughts here...',
-                          category: 'personal_note'
-                        });
-                      } else if (activeTab === 'quotes') {
+                     onClick={() => {
+                       if (activeTab === 'notes') {
+                         // Show note creation modal
+                         setShowNoteModal(true);
+                       } else if (activeTab === 'quotes') {
                         // Show quote selection modal
                         setShowQuoteSelectionModal(true);
                       } else {
@@ -456,29 +455,6 @@ const Motivators = () => {
               </div>
             )}
 
-            {activeTab === 'quotes' && (
-              <div className="col-span-1 flex flex-col items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => setShowFormModal(true)}
-                      variant="action-secondary"
-                      size="action-tall"
-                      className="w-full flex items-center justify-center"
-                      aria-label="Create custom quote"
-                    >
-                      <BookOpen className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Create a custom quote or motivational text</p>
-                  </TooltipContent>
-                </Tooltip>
-                <span className="text-xs text-muted-foreground">
-                  Custom Quote
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Tabs */}
@@ -614,15 +590,11 @@ const Motivators = () => {
                         <p className="text-sm text-muted-foreground mb-4">
                           Create your first note to capture thoughts and ideas
                         </p>
-                        <Button 
-                          onClick={() => handleCreateMotivator({
-                            title: 'New Note',
-                            content: 'Write your thoughts here...',
-                            category: 'personal_note'
-                          })} 
-                          variant="action-secondary" 
-                          size="action-secondary"
-                        >
+                         <Button 
+                           onClick={() => setShowNoteModal(true)} 
+                           variant="action-secondary" 
+                           size="action-secondary"
+                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Add Note
                         </Button>
@@ -685,11 +657,40 @@ const Motivators = () => {
             onEditGoal={handleEditGoalIdea}
           />
 
-          <QuoteSelectionModal
-            isOpen={showQuoteSelectionModal}
-            onClose={() => setShowQuoteSelectionModal(false)}
-            onSelectQuote={handleSelectQuote}
-          />
+           <QuoteSelectionModal
+             isOpen={showQuoteSelectionModal}
+             onClose={() => setShowQuoteSelectionModal(false)}
+             onSelectQuote={handleSelectQuote}
+           />
+
+           <NoteFormModal
+             isOpen={showNoteModal}
+             note={editingNote}
+             onClose={() => {
+               setShowNoteModal(false);
+               setEditingNote(null);
+             }}
+             onSave={async (noteData) => {
+               if (editingNote) {
+                 // Update existing note
+                 await updateMotivator(editingNote.id, {
+                   title: noteData.title,
+                   content: noteData.content
+                 });
+                 toast({
+                   title: "Note Updated",
+                   description: "Your note has been updated successfully.",
+                 });
+               } else {
+                 // Create new note
+                 await handleCreateMotivator({
+                   ...noteData,
+                   category: 'personal_note'
+                 });
+               }
+               refreshMotivators();
+             }}
+           />
 
           {/* Onboarding Modal */}
           <PageOnboardingModal
