@@ -420,7 +420,7 @@ const FoodTracking = () => {
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-      <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
+      <div className="max-w-md mx-auto pt-16 pb-32 safe-bottom">
         {/* Header with left-aligned text and History Button */}
         <div className="flex flex-col mb-6">
           <div className="flex items-center justify-between mb-4">
