@@ -181,6 +181,7 @@ export type Database = {
           created_at: string
           excerpt: string | null
           featured_image: string | null
+          featured_image_alt: string | null
           id: string
           meta_description: string | null
           meta_keywords: string | null
@@ -199,6 +200,7 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           featured_image?: string | null
+          featured_image_alt?: string | null
           id?: string
           meta_description?: string | null
           meta_keywords?: string | null
@@ -217,6 +219,7 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           featured_image?: string | null
+          featured_image_alt?: string | null
           id?: string
           meta_description?: string | null
           meta_keywords?: string | null
@@ -756,6 +759,7 @@ export type Database = {
       }
       feature_screenshots: {
         Row: {
+          alt_text: string | null
           created_at: string
           feature_key: string
           id: string
@@ -764,6 +768,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alt_text?: string | null
           created_at?: string
           feature_key: string
           id?: string
@@ -772,6 +777,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alt_text?: string | null
           created_at?: string
           feature_key?: string
           id?: string
@@ -1452,22 +1458,37 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          about_app_featured_image_alt: string | null
           created_at: string
           id: string
+          protocol_featured_image_alt: string | null
+          protocol_phase1_image_alt: string | null
+          protocol_phase2_image_alt: string | null
+          protocol_phase3_image_alt: string | null
           setting_key: string
           setting_value: Json | null
           updated_at: string
         }
         Insert: {
+          about_app_featured_image_alt?: string | null
           created_at?: string
           id?: string
+          protocol_featured_image_alt?: string | null
+          protocol_phase1_image_alt?: string | null
+          protocol_phase2_image_alt?: string | null
+          protocol_phase3_image_alt?: string | null
           setting_key: string
           setting_value?: Json | null
           updated_at?: string
         }
         Update: {
+          about_app_featured_image_alt?: string | null
           created_at?: string
           id?: string
+          protocol_featured_image_alt?: string | null
+          protocol_phase1_image_alt?: string | null
+          protocol_phase2_image_alt?: string | null
+          protocol_phase3_image_alt?: string | null
           setting_key?: string
           setting_value?: Json | null
           updated_at?: string
