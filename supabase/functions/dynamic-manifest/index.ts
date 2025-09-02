@@ -35,6 +35,72 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    const url = new URL(req.url);
+    const type = url.searchParams.get('type');
+    const size = url.searchParams.get('size');
+
+    // Handle image requests for TWA
+    if (type === 'icon' && size) {
+      const { data: settingsData } = await supabaseClient
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'app_icon_url')
+        .maybeSingle();
+
+      const iconUrl = settingsData?.setting_value;
+      if (iconUrl) {
+        // Fetch the image and return it
+        const imageResponse = await fetch(iconUrl);
+        if (imageResponse.ok) {
+          const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+          return new Response(imageResponse.body, {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': imageResponse.headers.get('Content-Type') || 'image/png',
+              'Cache-Control': 'public, max-age=3600',
+            },
+          });
+        }
+      }
+      
+      // Fallback to default icon
+      const fallbackIconUrl = `https://go.fastnow.app/icon-${size}.png`;
+      const fallbackResponse = await fetch(fallbackIconUrl);
+      if (fallbackResponse.ok) {
+        const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+        return new Response(fallbackResponse.body, {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=3600',
+          },
+        });
+      }
+    }
+
+    if (type === 'splash') {
+      const { data: settingsData } = await supabaseClient
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'app_logo')
+        .maybeSingle();
+
+      const splashUrl = settingsData?.setting_value;
+      if (splashUrl) {
+        const imageResponse = await fetch(splashUrl);
+        if (imageResponse.ok) {
+          const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+          return new Response(imageResponse.body, {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': imageResponse.headers.get('Content-Type') || 'image/png',
+              'Cache-Control': 'public, max-age=3600',
+            },
+          });
+        }
+      }
+    }
+
     // Get app logo and PWA settings from shared_settings
     const { data: settingsData } = await supabaseClient
       .from('shared_settings')
