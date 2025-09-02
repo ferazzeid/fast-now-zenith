@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
+import { CalorieGoalWarning } from '@/components/CalorieGoalWarning';
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
@@ -123,12 +124,23 @@ const Settings = () => {
     fetchUserSettings();
   }, [user, accessIsAdmin]);
 
-  // BMR calculation function
+  // BMR calculation function with proper unit conversion
   const calculateBMR = () => {
     if (!weight || !height || !age || !sex) return 0;
     
-    const weightKg = parseFloat(weight);
-    const heightCm = parseInt(height);
+    // Convert to metric for calculation if needed
+    let weightKg: number;
+    let heightCm: number;
+    
+    if (profile?.units === 'metric') {
+      weightKg = parseFloat(weight);
+      heightCm = parseInt(height);
+    } else {
+      // Imperial: convert pounds to kg, inches to cm
+      weightKg = parseFloat(weight) * 0.453592;
+      heightCm = parseInt(height) * 2.54;
+    }
+    
     const ageNum = parseInt(age);
     
     // Mifflin-St Jeor equation
@@ -177,64 +189,29 @@ const Settings = () => {
     return Math.round(bmr * (multipliers[activityLevel as keyof typeof multipliers] || 1.375));
   };
 
-  // Calculate dynamic calorie goal based on TDEE and target deficit
+  // Calculate dynamic calorie goal based on TDEE and target deficit (no safety floor manipulation)
   const calculateDynamicCalorieGoal = () => {
     const tdee = calculateTDEE();
     const deficit = parseFloat(targetDeficit) || 1000;
     
     if (tdee === 0) return 0;
     
-    let calorieGoal = tdee - deficit;
-    
-    // Apply safety floors
-    const safetyFloor = sex === 'male' ? 1500 : sex === 'female' ? 1200 : 1200;
-    calorieGoal = Math.max(calorieGoal, safetyFloor);
-    
+    const calorieGoal = tdee - deficit;
     return Math.round(calorieGoal);
   };
 
-  // Recalculate and update goals
-  const handleRecalculateGoals = async () => {
+  // Check if calorie goal is below recommended minimums
+  const isLowCalorieGoal = () => {
+    const goal = calculateDynamicCalorieGoal();
+    const safetyFloor = sex === 'male' ? 1500 : sex === 'female' ? 1200 : 1200;
+    return goal > 0 && goal < safetyFloor;
+  };
+
+  // Auto-calculate goals when inputs change (for preview only)
+  const getCalculatedGoals = () => {
     const calculatedCalorieGoal = calculateDynamicCalorieGoal();
     const calculatedCarbGoal = 30; // Fixed carb goal
-    
-    if (calculatedCalorieGoal === 0) {
-      toast({
-        title: "Profile Incomplete",
-        description: "Please fill in your weight, height, age, and sex to calculate goals.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Update the database with calculated goals and target deficit
-    if (user) {
-      const updateData = {
-        daily_calorie_goal: calculatedCalorieGoal,
-        daily_carb_goal: calculatedCarbGoal,
-        target_deficit: parseFloat(targetDeficit) || 1000
-      };
-
-      const result = await updateProfile(updateData);
-      
-      if (result?.error) {
-        toast({
-          title: "Error",
-          description: `Failed to update goals: ${result.error.message}`,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Update local state
-      setDailyCalorieGoal(calculatedCalorieGoal.toString());
-      setDailyCarbGoal(calculatedCarbGoal.toString());
-
-      toast({
-        title: "Goals Recalculated",
-        description: `Calorie goal: ${calculatedCalorieGoal} cal • Carb goal: ${calculatedCarbGoal}g`,
-      });
-    }
+    return { calculatedCalorieGoal, calculatedCarbGoal };
   };
 
   const handleSaveSettings = async () => {
@@ -287,23 +264,25 @@ const Settings = () => {
       }
 
 
-      // Save user preferences to database
-      if (user) {
-        const updateData = {
-          speech_model: speechModel,
-          transcription_model: transcriptionModel,
-          tts_model: ttsModel,
-          tts_voice: ttsVoice,
-          weight: weight ? parseFloat(weight) : null,
-          height: height ? parseInt(height) : null,
-          age: age ? parseInt(age) : null,
-          sex: (sex as 'male' | 'female') || null,
-          daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
-          daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-          activity_level: activityLevel,
-          manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null,
-          target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000
-        };
+        // Save user preferences to database with auto-calculated goals
+        if (user) {
+          const { calculatedCalorieGoal, calculatedCarbGoal } = getCalculatedGoals();
+          
+          const updateData = {
+            speech_model: speechModel,
+            transcription_model: transcriptionModel,
+            tts_model: ttsModel,
+            tts_voice: ttsVoice,
+            weight: weight ? parseFloat(weight) : null,
+            height: height ? parseInt(height) : null,
+            age: age ? parseInt(age) : null,
+            sex: (sex as 'male' | 'female') || null,
+            daily_calorie_goal: calculatedCalorieGoal || (dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null),
+            daily_carb_goal: calculatedCarbGoal || (dailyCarbGoal ? parseInt(dailyCarbGoal) : null),
+            activity_level: activityLevel,
+            manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null,
+            target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000
+          };
         
         console.log('Settings: User ID:', user?.id);
         console.log('Settings: Saving profile data:', updateData);
@@ -648,12 +627,12 @@ const Settings = () => {
                   
                   {/* Dynamic Goals Section */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-warm-text">Dynamic Goals</h4>
-                      <ClickableTooltip content="Goals are calculated based on your target calorie deficit. Calorie goal = TDEE - deficit, with safety floors applied. Carb goal is fixed at 30g.">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
+                     <div className="flex items-center gap-2">
+                       <h4 className="text-sm font-medium text-warm-text">Dynamic Goals</h4>
+                       <ClickableTooltip content="Goals are calculated automatically when you save. Calorie goal = TDEE - deficit. Carb goal is fixed at 30g.">
+                         <Info className="w-4 h-4 text-muted-foreground" />
+                       </ClickableTooltip>
+                     </div>
                     
                     {/* Target Deficit Input */}
                     <div className="space-y-2">
@@ -671,45 +650,38 @@ const Settings = () => {
                       />
                     </div>
 
-                    {/* Calculated Goals Display */}
-                    <div className="bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-rim space-y-3">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Calculated Goals</div>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Calorie Goal</div>
-                          <div className="text-lg font-semibold text-warm-text">
-                            {calculateDynamicCalorieGoal() > 0 ? `${calculateDynamicCalorieGoal()} cal` : '— cal'}
-                          </div>
-                          {calculateDynamicCalorieGoal() > 0 && calculateTDEE() > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              TDEE {calculateTDEE()} - {targetDeficit}
-                              {calculateDynamicCalorieGoal() === (sex === 'male' ? 1500 : 1200) && (
-                                <span className="text-orange-500"> (safety floor)</span>
-                              )}
+                      {/* Calculated Goals Display */}
+                      <div className="bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-rim space-y-3">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Calculated Goals</div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground">Calorie Goal</div>
+                            <div className="text-lg font-semibold text-warm-text">
+                              {calculateDynamicCalorieGoal() > 0 ? `${calculateDynamicCalorieGoal()} cal` : '— cal'}
                             </div>
-                          )}
+                            {calculateDynamicCalorieGoal() > 0 && calculateTDEE() > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                TDEE {calculateTDEE()} - {targetDeficit}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground">Carb Goal</div>
+                            <div className="text-lg font-semibold text-warm-text">30g</div>
+                            <div className="text-xs text-muted-foreground">Fixed</div>
+                          </div>
                         </div>
                         
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Carb Goal</div>
-                          <div className="text-lg font-semibold text-warm-text">30g</div>
-                          <div className="text-xs text-muted-foreground">Fixed</div>
-                        </div>
+                        {/* Calorie Warning */}
+                        {calculateDynamicCalorieGoal() > 0 && isLowCalorieGoal() && (
+                          <CalorieGoalWarning 
+                            calorieGoal={calculateDynamicCalorieGoal()} 
+                            sex={sex} 
+                          />
+                        )}
                       </div>
-                      
-                      {calculateDynamicCalorieGoal() > 0 && (
-                        <Button
-                          onClick={handleRecalculateGoals}
-                          variant="outline"
-                          size="sm"
-                          className="w-full bg-ceramic-base border-ceramic-rim"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Update Goals
-                        </Button>
-                      )}
-                    </div>
                   </div>
                    
                    {/* Manual TDEE Override - Bottom with Separator */}
