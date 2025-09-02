@@ -535,13 +535,13 @@ export const AIVoiceButton = () => {
     <>
       {/* AI Voice Button */}
       <Button
-        variant="ghost"
-        size="sm"
+        variant="action-primary"
+        size="action-tall"
         onClick={() => setIsOpen(true)}
-        className="ai-voice-button w-8 h-8 p-0 rounded-full bg-ai hover:bg-ai/90 hover:scale-110 transition-all duration-200"
+        className="w-full flex items-center justify-center bg-ai hover:bg-ai/90 border-ai hover:border-ai/90 text-white"
         title="AI Voice Assistant"
       >
-        <Mic className="w-4 h-4 text-white" />
+        <Mic className="w-5 h-5" />
       </Button>
 
       {/* Aquarium Glass Overlay - Constrained to app container */}
