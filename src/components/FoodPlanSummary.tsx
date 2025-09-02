@@ -18,10 +18,10 @@ interface FoodPlanSummaryProps {
 export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => {
   const { profile } = useProfile();
 
-  // Calculate planned and consumed totals
-  const plannedCalories = entries.filter(entry => !entry.consumed).reduce((sum, entry) => sum + entry.calories, 0);
+  // Calculate total and consumed totals
+  const totalCalories = entries.reduce((sum, entry) => sum + entry.calories, 0);
   const consumedCalories = entries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.calories, 0);
-  const plannedCarbs = entries.filter(entry => !entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0);
+  const totalCarbs = entries.reduce((sum, entry) => sum + entry.carbs, 0);
   const consumedCarbs = entries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0);
 
   const dailyCalorieGoal = profile?.daily_calorie_goal || 2000;
@@ -53,10 +53,10 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
           <div className="grid grid-cols-3 gap-2 items-center">
             <span className="text-xs text-muted-foreground">Planned:</span>
             <span className="text-xs font-semibold text-center">
-              {Math.round(plannedCalories)}/{dailyCalorieGoal}
+              {Math.round(totalCalories)}
             </span>
             <span className="text-xs font-semibold text-center">
-              {Math.round(plannedCarbs)}g/{dailyCarbGoal}g
+              {Math.round(totalCarbs)}g
             </span>
           </div>
           
