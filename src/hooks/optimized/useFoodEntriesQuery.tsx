@@ -493,6 +493,11 @@ export const useFoodEntriesQuery = () => {
 
   // PERFORMANCE: Optimized refresh function
   const refreshFoodEntries = useCallback(async () => {
+    // Invalidate first to clear any stale cache, then refetch
+    await queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+    await queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+    
+    // Force fresh fetch
     await queryClient.refetchQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
     await queryClient.refetchQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
   }, [queryClient, user?.id, today]);
