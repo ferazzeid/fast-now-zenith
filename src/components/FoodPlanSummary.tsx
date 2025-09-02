@@ -52,10 +52,10 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
           {/* Planned Row */}
           <div className="grid grid-cols-3 gap-2 items-center">
             <span className="text-xs text-muted-foreground">Planned:</span>
-            <span className="text-xs font-semibold text-center">
+            <span className={`text-xs font-semibold text-center ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
               {Math.round(totalCalories)}
             </span>
-            <span className="text-xs font-semibold text-center">
+            <span className={`text-xs font-semibold text-center ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
               {Math.round(totalCarbs)}g
             </span>
           </div>
