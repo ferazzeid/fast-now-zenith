@@ -23,6 +23,7 @@ interface NoteFormModalProps {
 export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalProps) {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   useEffect(() => {
     if (note) {
@@ -87,10 +88,15 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
   };
 
   const handleVoiceTranscription = (transcription: string) => {
+    setIsProcessingVoice(false);
     if (transcription) {
       const newContent = content + (content ? ' ' : '') + transcription;
       setContent(newContent);
     }
+  };
+
+  const handleVoiceStart = () => {
+    setIsProcessingVoice(true);
   };
 
   return (
@@ -106,11 +112,16 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
             <label className="text-sm font-medium text-foreground">
               Content
             </label>
-            <PremiumGatedCircularVoiceButton
-              onTranscription={handleVoiceTranscription}
-              size="sm"
-              isDisabled={isSubmitting}
-            />
+            <div className="flex items-center gap-2">
+              {isProcessingVoice && (
+                <span className="text-xs text-muted-foreground">Processing voice...</span>
+              )}
+              <PremiumGatedCircularVoiceButton
+                onTranscription={handleVoiceTranscription}
+                size="sm"
+                isDisabled={isSubmitting || isProcessingVoice}
+              />
+            </div>
           </div>
           <Textarea
             placeholder="Write your note here..."

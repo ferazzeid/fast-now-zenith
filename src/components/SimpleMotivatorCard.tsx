@@ -93,15 +93,14 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                         }
                       }}
                       disabled={isToggling}
-                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white relative transition-all duration-200"
+                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white transition-all duration-200"
                     >
-                    <Eye className={`w-4 h-4 ${localShowInAnimations === false ? 'opacity-50' : ''}`} />
-                    {localShowInAnimations === false && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-5 h-px bg-white rotate-45" />
-                      </div>
-                    )}
-                  </Button>
+                      {localShowInAnimations ? (
+                        <Eye className="w-4 h-4" />
+                      ) : (
+                        <EyeOff className="w-4 h-4" />
+                      )}
+                    </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{localShowInAnimations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>

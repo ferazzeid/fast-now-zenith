@@ -75,38 +75,20 @@ const Motivators = () => {
       
       trackMotivatorEvent('create', motivatorData.category || 'personal');
       setShowFormModal(false);
+      setShowNoteModal(false);
       
-      // For notes, immediately enter edit mode
-      if (motivatorData.category === 'personal_note' && result) {
-        // Find the newly created note to edit it
-        setTimeout(() => {
-          refreshMotivators();
-          // Since we can't get the ID directly, we'll need to find it after refresh
-          const newNote = motivators.find(m => 
-            m.category === 'personal_note' && 
-            m.title === motivatorData.title && 
-            m.content === motivatorData.content
-          );
-          if (newNote) {
-            setEditingMotivator(newNote);
-          }
-        }, 100);
-        
-        toast({
-          title: "✅ Note Created!",
-          description: "Your new note is ready for editing.",
-        });
-      } else {
-        toast({
-          title: "✅ Created Successfully!",
-          description: motivatorData.category === 'personal_note' 
-            ? "Your new note has been saved successfully." 
-            : "Your new motivator has been saved successfully.",
-        });
-        refreshMotivators();
-      }
+      // Simple success message and refresh
+      toast({
+        title: "✅ Created Successfully!",
+        description: motivatorData.category === 'personal_note' 
+          ? "Your new note has been saved successfully." 
+          : "Your new motivator has been saved successfully.",
+      });
       
-      return result; // Return the result for further processing
+      // Single refresh call
+      refreshMotivators();
+      
+      return result;
     } catch (error) {
       toast({
         title: "Error",
@@ -677,18 +659,14 @@ const Motivators = () => {
                     title: noteData.title,
                     content: noteData.content
                   });
-                  toast({
-                    title: "Note Updated",
-                    description: "Your note has been updated successfully.",
-                  });
+                  // refreshMotivators is called automatically by updateMotivator
                 } else {
-                  // Create new note
+                  // Create new note - handleCreateMotivator already handles refresh
                   await handleCreateMotivator({
                     ...noteData,
                     category: 'personal_note'
                   });
                 }
-                await refreshMotivators();
               }}
            />
 
