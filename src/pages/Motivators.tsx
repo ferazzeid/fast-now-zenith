@@ -7,10 +7,12 @@ import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Sparkles, Target, Mic, BookOpen } from 'lucide-react';
+import { Plus, Sparkles, Target, Mic, BookOpen, FileText } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
+import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
+import { Quote } from '@/hooks/useQuoteSettings';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
@@ -38,6 +40,7 @@ const Motivators = () => {
   const { isAdmin } = useAccess();
   const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showQuoteSelectionModal, setShowQuoteSelectionModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [showGoalIdeas, setShowGoalIdeas] = useState(false);
   const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
@@ -49,9 +52,18 @@ const Motivators = () => {
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
   const personalNotes = motivators.filter(m => m.category === 'personal_note');
 
+  const handleSelectQuote = async (quote: Quote) => {
+    await handleCreateMotivator({
+      title: quote.text.length > 50 ? `${quote.text.substring(0, 50)}...` : quote.text,
+      content: quote.text,
+      category: 'saved_quote',
+      author: quote.author
+    });
+  };
+
   const handleCreateMotivator = async (motivatorData) => {
     try {
-      await createMotivator({
+      const result = await createMotivator({
         title: motivatorData.title,
         content: motivatorData.content,
         category: motivatorData.category || 'personal',
@@ -61,14 +73,37 @@ const Motivators = () => {
       trackMotivatorEvent('create', motivatorData.category || 'personal');
       setShowFormModal(false);
       
-      toast({
-        title: "✅ Created Successfully!",
-        description: motivatorData.category === 'personal_note' 
-          ? "Your new note has been saved successfully." 
-          : "Your new motivator has been saved successfully.",
-      });
+      // For notes, immediately enter edit mode
+      if (motivatorData.category === 'personal_note' && result) {
+        // Find the newly created note to edit it
+        setTimeout(() => {
+          refreshMotivators();
+          // Since we can't get the ID directly, we'll need to find it after refresh
+          const newNote = motivators.find(m => 
+            m.category === 'personal_note' && 
+            m.title === motivatorData.title && 
+            m.content === motivatorData.content
+          );
+          if (newNote) {
+            setEditingMotivator(newNote);
+          }
+        }, 100);
+        
+        toast({
+          title: "✅ Note Created!",
+          description: "Your new note is ready for editing.",
+        });
+      } else {
+        toast({
+          title: "✅ Created Successfully!",
+          description: motivatorData.category === 'personal_note' 
+            ? "Your new note has been saved successfully." 
+            : "Your new motivator has been saved successfully.",
+        });
+        refreshMotivators();
+      }
       
-      refreshMotivators();
+      return result; // Return the result for further processing
     } catch (error) {
       toast({
         title: "Error",
@@ -363,6 +398,9 @@ const Motivators = () => {
                           content: 'Write your thoughts here...',
                           category: 'personal_note'
                         });
+                      } else if (activeTab === 'quotes') {
+                        // Show quote selection modal
+                        setShowQuoteSelectionModal(true);
                       } else {
                         setShowFormModal(true);
                       }
@@ -370,21 +408,31 @@ const Motivators = () => {
                     variant="action-primary"
                     size="action-tall"
                     className="w-full flex items-center justify-center"
-                    aria-label={activeTab === 'notes' ? 'Create note' : 'Create motivator manually'}
+                    aria-label={
+                      activeTab === 'notes' ? 'Create note' : 
+                      activeTab === 'quotes' ? 'Add quote' : 
+                      'Create motivator manually'
+                    }
                   >
                     <Plus className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{activeTab === 'notes' ? 'Create a new note' : 'Create a motivator by typing title, description, and adding images'}</p>
+                  <p>
+                    {activeTab === 'notes' ? 'Create a new note' : 
+                     activeTab === 'quotes' ? 'Select and save a quote from timer collections' :
+                     'Create a motivator by typing title, description, and adding images'}
+                  </p>
                 </TooltipContent>
               </Tooltip>
               <span className="text-xs text-muted-foreground">
-                {activeTab === 'notes' ? 'Add Note' : 'Add Goal'}
+                {activeTab === 'notes' ? 'Add Note' : 
+                 activeTab === 'quotes' ? 'Add Quote' : 
+                 'Add Goal'}
               </span>
             </div>
 
-            {activeTab !== 'notes' && (
+            {activeTab === 'goals' && (
               <div className="col-span-1 flex flex-col items-center gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -403,7 +451,31 @@ const Motivators = () => {
                   </TooltipContent>
                 </Tooltip>
                 <span className="text-xs text-muted-foreground">
-                  Goal ideas
+                  Goal Ideas
+                </span>
+              </div>
+            )}
+
+            {activeTab === 'quotes' && (
+              <div className="col-span-1 flex flex-col items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => setShowFormModal(true)}
+                      variant="action-secondary"
+                      size="action-tall"
+                      className="w-full flex items-center justify-center"
+                      aria-label="Create custom quote"
+                    >
+                      <BookOpen className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create a custom quote or motivational text</p>
+                  </TooltipContent>
+                </Tooltip>
+                <span className="text-xs text-muted-foreground">
+                  Custom Quote
                 </span>
               </div>
             )}
@@ -535,7 +607,7 @@ const Motivators = () => {
                   <Card className="p-6 text-center">
                     <div className="space-y-4">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                        <Mic className="w-8 h-8 text-muted-foreground" />
+                        <FileText className="w-8 h-8 text-muted-foreground" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-warm-text mb-2">No notes yet</h3>
@@ -552,7 +624,7 @@ const Motivators = () => {
                           size="action-secondary"
                         >
                           <Plus className="w-4 h-4 mr-2" />
-                          Create Note
+                          Add Note
                         </Button>
                       </div>
                     </div>
@@ -611,6 +683,12 @@ const Motivators = () => {
             onClose={() => setShowMotivatorIdeasModal(false)}
             onSelectGoal={handleSelectGoalIdea}
             onEditGoal={handleEditGoalIdea}
+          />
+
+          <QuoteSelectionModal
+            isOpen={showQuoteSelectionModal}
+            onClose={() => setShowQuoteSelectionModal(false)}
+            onSelectQuote={handleSelectQuote}
           />
 
           {/* Onboarding Modal */}
