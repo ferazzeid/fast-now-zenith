@@ -1157,6 +1157,7 @@ const FoodTracking = () => {
         onClose={() => setShowAiChat(false)}
         onResult={handleAiChatResult}
         title="Food Assistant"
+        systemPrompt="You are a focused food tracking assistant. You can only help with food operations: adding, editing, and managing food entries."
         proactiveMessage="Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity"
       />
 

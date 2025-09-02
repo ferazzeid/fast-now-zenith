@@ -145,6 +145,7 @@ export const AIVoiceButton = () => {
     try {
       const currentPath = window.location.pathname;
       const pageContext = getPageContext(currentPath);
+      const contextMode = currentPath === '/food-tracking' ? 'food_only' : undefined;
       const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
@@ -152,7 +153,8 @@ export const AIVoiceButton = () => {
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
-          ]
+          ],
+          context: contextMode
         }
       });
 

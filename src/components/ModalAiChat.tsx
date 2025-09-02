@@ -299,7 +299,8 @@ You are a motivational goal creation assistant. Your task is to:
             { role: 'system', content: enhancedSystemPrompt },
             ...conversationHistory,
             { role: 'user', content: message }
-          ]
+          ],
+          context: title === 'Food Assistant' ? 'food_only' : undefined
         }
       });
 

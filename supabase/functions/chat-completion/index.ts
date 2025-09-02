@@ -38,7 +38,7 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { messages, stream = false, message, conversationHistory, conversationMemory } = requestBody;
+    const { messages, stream = false, message, conversationHistory, conversationMemory, context } = requestBody;
     
     // Handle both ModalAiChat format (messages array) and AiChat format (message + conversationHistory)
     let processedMessages;
@@ -316,13 +316,24 @@ When explaining app calculations, use the exact formulas and constants above. He
     ];
 
     console.log('🤖 Calling OpenAI with messages:', processedMessages.slice(-3)); // Log last 3 messages for better context debugging
+    console.log('🔒 Context mode:', context || 'full');
     
-    // Prepare OpenAI request payload
-    const requestPayload = {
-      model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
-      messages: systemMessages,
-      stream: stream,
-      tools: [
+    // Define food-only functions whitelist
+    const foodOnlyFunctions = [
+      'add_multiple_foods',
+      'modify_recent_foods', 
+      'search_foods_for_edit',
+      'edit_food_entry',
+      'edit_library_food',
+      'get_recent_foods',
+      'get_favorite_default_foods',
+      'copy_yesterday_foods',
+      'get_today_food_totals',
+      'get_daily_food_templates'
+    ];
+
+    // All available functions
+    const allFunctions = [
           // === SESSION MANAGEMENT ===
           {
             type: "function",
@@ -986,9 +997,49 @@ When explaining app calculations, use the exact formulas and constants above. He
               }
             }
           }
-        ],
-        tool_choice: "auto"
-      };
+        ];
+
+    // Filter functions based on context
+    const functionsToUse = context === 'food_only' 
+      ? allFunctions.filter(tool => foodOnlyFunctions.includes(tool.function.name))
+      : allFunctions;
+
+    console.log(`🔧 Using ${functionsToUse.length}/${allFunctions.length} functions for context: ${context || 'full'}`);
+    
+    // Update system message for food-only context
+    let contextAwareSystemMessage = enhancedSystemMessage;
+    
+    if (context === 'food_only') {
+      contextAwareSystemMessage = `You are a focused food tracking assistant. You can ONLY help with food-related operations:
+
+FOOD OPERATIONS YOU CAN PERFORM:
+- Add foods to today's log (add_multiple_foods)
+- Edit existing food entries (search_foods_for_edit, edit_food_entry, edit_library_food)
+- Modify recent food entries (modify_recent_foods)
+- Access food data (get_recent_foods, get_favorite_default_foods, copy_yesterday_foods, get_today_food_totals, get_daily_food_templates)
+
+CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "two cucumbers", "three bananas"), create SEPARATE entries for each item.
+
+EDITING/DELETING: When users want to edit/change/delete foods, FIRST use search_foods_for_edit to find the item.
+
+FORMAT RESPONSES: List foods as "Name (Xg) - Y cal, Zg carbs" with totals.
+
+LIMITATIONS: You cannot help with fasting sessions, walking, motivators, or profile updates. Focus only on food tracking operations.
+
+Keep responses brief and action-focused. Always use function calls for food operations.`;
+    }
+    
+    // Prepare OpenAI request payload
+    const requestPayload = {
+      model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
+      messages: [
+        { role: 'system', content: contextAwareSystemMessage },
+        ...processedMessages.slice(1)
+      ],
+      stream: stream,
+      tools: functionsToUse,
+      tool_choice: "auto"
+    };
 
     // Log request payload for debugging
     console.log('🚀 OpenAI Request Payload:', JSON.stringify({
