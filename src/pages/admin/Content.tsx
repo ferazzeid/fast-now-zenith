@@ -13,7 +13,7 @@ export default function AdminContent() {
 
   return (
     <AdminHealthCheck>
-      <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
+      <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)] pb-32" role="main">
         <h1 className="sr-only">Admin Content</h1>
         <AdminSubnav />
 
