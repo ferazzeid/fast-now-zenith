@@ -69,7 +69,10 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
         });
       }
 
+      // Call onSave to update parent state immediately
       onSave(noteData);
+      
+      // Close modal after successful save and state update
       onClose();
     } catch (error) {
       console.error('Error saving note:', error);

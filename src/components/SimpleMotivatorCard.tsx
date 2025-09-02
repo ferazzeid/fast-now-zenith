@@ -42,16 +42,16 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
     <Card className="overflow-hidden relative bg-gray-900 border-gray-700">
       <CardContent className="p-6">
         <blockquote className="relative mb-4">
-          {motivator.content && (
-            <p className="text-lg font-bold text-white leading-relaxed mb-3">
-              "{motivator.content}"
-            </p>
-          )}
-          {motivator.title && motivator.title !== motivator.content && (
-            <cite className="text-sm text-gray-200 not-italic">
-              — {motivator.title}
-            </cite>
-          )}
+           {motivator.content && (
+             <p className="text-lg text-foreground leading-relaxed mb-3">
+               "{motivator.content}"
+             </p>
+           )}
+           {motivator.title && motivator.title !== motivator.content && (
+             <cite className="text-sm text-muted-foreground not-italic">
+               — {motivator.title}
+             </cite>
+           )}
         </blockquote>
         <div className="flex items-start justify-between">
           {/* Spacer for layout */}

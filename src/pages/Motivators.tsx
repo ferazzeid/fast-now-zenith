@@ -670,26 +670,26 @@ const Motivators = () => {
                setShowNoteModal(false);
                setEditingNote(null);
              }}
-             onSave={async (noteData) => {
-               if (editingNote) {
-                 // Update existing note
-                 await updateMotivator(editingNote.id, {
-                   title: noteData.title,
-                   content: noteData.content
-                 });
-                 toast({
-                   title: "Note Updated",
-                   description: "Your note has been updated successfully.",
-                 });
-               } else {
-                 // Create new note
-                 await handleCreateMotivator({
-                   ...noteData,
-                   category: 'personal_note'
-                 });
-               }
-               refreshMotivators();
-             }}
+              onSave={async (noteData) => {
+                if (editingNote) {
+                  // Update existing note
+                  await updateMotivator(editingNote.id, {
+                    title: noteData.title,
+                    content: noteData.content
+                  });
+                  toast({
+                    title: "Note Updated",
+                    description: "Your note has been updated successfully.",
+                  });
+                } else {
+                  // Create new note
+                  await handleCreateMotivator({
+                    ...noteData,
+                    category: 'personal_note'
+                  });
+                }
+                await refreshMotivators();
+              }}
            />
 
           {/* Onboarding Modal */}
