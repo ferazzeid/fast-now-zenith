@@ -230,6 +230,33 @@ export type Database = {
         }
         Relationships: []
       }
+      calculator_settings: {
+        Row: {
+          background_color: string | null
+          background_image_url: string | null
+          calculator_type: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          background_color?: string | null
+          background_image_url?: string | null
+          calculator_type: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          background_color?: string | null
+          background_image_url?: string | null
+          calculator_type?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           archived: boolean
@@ -957,6 +984,7 @@ export type Database = {
           category: string | null
           content: string
           created_at: string
+          female_image_url: string | null
           gender: string | null
           id: string
           image_url: string | null
@@ -964,6 +992,7 @@ export type Database = {
           is_published: boolean | null
           is_system_goal: boolean | null
           link_url: string | null
+          male_image_url: string | null
           meta_description: string | null
           meta_title: string | null
           show_in_animations: boolean
@@ -976,6 +1005,7 @@ export type Database = {
           category?: string | null
           content: string
           created_at?: string
+          female_image_url?: string | null
           gender?: string | null
           id?: string
           image_url?: string | null
@@ -983,6 +1013,7 @@ export type Database = {
           is_published?: boolean | null
           is_system_goal?: boolean | null
           link_url?: string | null
+          male_image_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
           show_in_animations?: boolean
@@ -995,6 +1026,7 @@ export type Database = {
           category?: string | null
           content?: string
           created_at?: string
+          female_image_url?: string | null
           gender?: string | null
           id?: string
           image_url?: string | null
@@ -1002,6 +1034,7 @@ export type Database = {
           is_published?: boolean | null
           is_system_goal?: boolean | null
           link_url?: string | null
+          male_image_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
           show_in_animations?: boolean
@@ -1246,6 +1279,7 @@ export type Database = {
           subscription_product_id: string | null
           subscription_status: string | null
           subscription_tier: string | null
+          target_deficit: number | null
           transcription_model: string | null
           trial_ends_at: string | null
           trial_started_at: string | null
@@ -1295,6 +1329,7 @@ export type Database = {
           subscription_product_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          target_deficit?: number | null
           transcription_model?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
@@ -1344,6 +1379,7 @@ export type Database = {
           subscription_product_id?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          target_deficit?: number | null
           transcription_model?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
