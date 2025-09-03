@@ -39,10 +39,10 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   // Initialize unified session system on mount
   const unifiedSession = useUnifiedSession();
   React.useEffect(() => {
-    // Initialize both systems (auth store delegates to unified session)
+    // Only initialize auth store (it delegates to unified session)
+    // Removed duplicate unifiedSession.initialize() call to prevent conflicts
     initialize();
-    unifiedSession.initialize();
-  }, [initialize, unifiedSession.initialize]);
+  }, [initialize]);
 
   const value: AuthContextValue = {
     user,

@@ -22,6 +22,7 @@ interface UnifiedSessionState {
   
   // State tracking
   isAuthLoading: boolean;
+  isInitializing: boolean;
   
   // Error states
   error: string | null;
@@ -45,15 +46,25 @@ export const useUnifiedSession = create<UnifiedSessionState>()(
       session: null,
       readiness: 'loading',
       isAuthLoading: true,
+      isInitializing: false,
       error: null,
       retryCount: 0,
 
       initialize: async () => {
+        const state = get();
+        
+        // Prevent multiple simultaneous initializations
+        if (state.isInitializing) {
+          console.log('🔄 UnifiedSession: Already initializing, skipping...');
+          return;
+        }
+        
         console.log('🔄 UnifiedSession: Initializing...');
         
         set({ 
           readiness: 'loading', 
           isAuthLoading: true, 
+          isInitializing: true,
           error: null 
         });
 
@@ -138,8 +149,12 @@ export const useUnifiedSession = create<UnifiedSessionState>()(
           set({ 
             readiness: 'invalid', 
             error: error instanceof Error ? error.message : 'Initialization failed',
-            isAuthLoading: false 
+            isAuthLoading: false,
+            isInitializing: false
           });
+        } finally {
+          // Always clear initializing flag
+          set({ isInitializing: false });
         }
       },
 
@@ -158,11 +173,18 @@ export const useUnifiedSession = create<UnifiedSessionState>()(
       },
 
       reset: () => {
+        // Clean up any existing subscription
+        if ((window as any).__unifiedSessionSubscription) {
+          (window as any).__unifiedSessionSubscription.unsubscribe();
+          (window as any).__unifiedSessionSubscription = null;
+        }
+        
         set({
           user: null,
           session: null,
           readiness: 'loading',
           isAuthLoading: true,
+          isInitializing: false,
           error: null,
           retryCount: 0
         });

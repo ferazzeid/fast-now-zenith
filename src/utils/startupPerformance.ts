@@ -64,11 +64,72 @@ export const forceCleanRestart = async () => {
  */
 export const detectStuckLoading = (currentState: string, timeInState: number): boolean => {
   const stuckThresholds = {
-    loading: 8000,  // 8 seconds
-    auth: 5000,     // 5 seconds
-    profile: 3000,  // 3 seconds
+    loading: 10000,  // 10 seconds (increased for mobile)
+    invalid: 8000,   // 8 seconds
+    auth: 6000,      // 6 seconds  
+    profile: 4000,   // 4 seconds
   };
   
-  const threshold = stuckThresholds[currentState as keyof typeof stuckThresholds] || 10000;
+  const threshold = stuckThresholds[currentState as keyof typeof stuckThresholds] || 12000;
   return timeInState > threshold;
+};
+
+/**
+ * Mobile-specific recovery utilities
+ */
+export const MobileRecovery = {
+  /**
+   * Check if we're on a mobile device
+   */
+  isMobile: (): boolean => {
+    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  },
+
+  /**
+   * Clear persisted auth state (more aggressive than normal clear)
+   */
+  clearPersistedAuth: async (): Promise<void> => {
+    try {
+      // Clear all auth-related localStorage keys
+      const authKeys = [
+        'auth-storage',
+        'unified-session-storage',
+        'supabase.auth.token',
+        'sb-auth-token'
+      ];
+      
+      authKeys.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+      
+      console.log('🧹 MobileRecovery: Cleared persisted auth state');
+    } catch (error) {
+      console.error('MobileRecovery: Failed to clear auth state:', error);
+    }
+  },
+
+  /**
+   * Progressive recovery strategy for mobile
+   */
+  progressiveRecovery: async (attempt: number): Promise<void> => {
+    console.log(`📱 MobileRecovery: Attempt ${attempt}/3`);
+    
+    switch (attempt) {
+      case 1:
+        // Light recovery - just clear session cache
+        sessionStorage.clear();
+        break;
+        
+      case 2:
+        // Medium recovery - clear auth state
+        await MobileRecovery.clearPersistedAuth();
+        break;
+        
+      case 3:
+        // Full recovery - nuclear option
+        await forceCleanRestart();
+        break;
+    }
+  }
 };
