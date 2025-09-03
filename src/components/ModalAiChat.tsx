@@ -18,7 +18,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
-import { useSingleConversation } from '@/hooks/useSingleConversation';
+import { useLocalStorageConversation } from '@/hooks/useLocalStorageConversation';
 import { conversationMemory } from '@/utils/conversationMemory';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 
@@ -84,7 +84,7 @@ export const ModalAiChat = ({
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
   
-  // Use persistent conversation hook
+  // Use localStorage-based conversation hook
   const { 
     messages,
     addMessage,
@@ -92,7 +92,7 @@ export const ModalAiChat = ({
     addFoodAction, 
     updateConversationState, 
     getConversationContext 
-  } = useSingleConversation();
+  } = useLocalStorageConversation('food');
   
   // Session and profile hooks
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession } = useFastingSession();
@@ -169,7 +169,7 @@ export const ModalAiChat = ({
           let welcomeMessage = 'Hi! How can I help you today?';
           
           if (title === 'Food Assistant') {
-            welcomeMessage = 'Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity.';
+            welcomeMessage = 'Hi! I can help you add, edit, or delete foods from your log. You can add multiple foods at once, edit existing entries, or remove items. Just tell me what you\'d like to do!';
           } else if (title === 'Motivator Assistant') {
             welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
           }
@@ -1879,9 +1879,10 @@ ${args.content}`,
             </Card>
           </div>
         )}
-        
-          <div ref={messagesEndRef} className="h-4" />
         </div>
+        
+        {/* Messages end ref positioned at the very bottom */}
+        <div ref={messagesEndRef} className="h-20" />
         
         {/* Scroll to bottom button */}
         {showScrollButton && (
