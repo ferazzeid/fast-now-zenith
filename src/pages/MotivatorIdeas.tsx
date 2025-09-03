@@ -168,24 +168,27 @@ export default function MotivatorIdeas() {
                                </TooltipContent>
                              </Tooltip>
 
-                             {goal.linkUrl && (
-                               <Tooltip>
-                                 <TooltipTrigger asChild>
-                                   <Button 
-                                     size="sm" 
-                                     variant="outline" 
-                                     onClick={() => window.open(goal.linkUrl, '_blank', 'noopener,noreferrer')}
-                                     className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
-                                     aria-label="Read full story"
-                                   >
-                                     <ExternalLink className="w-3 h-3" />
-                                   </Button>
-                                 </TooltipTrigger>
-                                 <TooltipContent>
-                                   <p>Read full story on website</p>
-                                 </TooltipContent>
-                               </Tooltip>
-                             )}
+                              {goal.linkUrl && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      onClick={() => {
+                                        console.log('🔗 Opening link:', goal.linkUrl);
+                                        window.open(goal.linkUrl, '_blank', 'noopener,noreferrer');
+                                      }}
+                                      className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
+                                      aria-label="Read full story"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Read full story on website</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
 
                             {isAdmin && (
                               <Tooltip>

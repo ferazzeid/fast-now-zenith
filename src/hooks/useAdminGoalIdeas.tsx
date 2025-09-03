@@ -86,6 +86,7 @@ export const useAdminGoalIdeas = () => {
         const transformedIdeas = (data as unknown as SystemMotivator[]).map(transformToAdminGoalIdea);
         
         console.log('✅ Goal Ideas loaded from system_motivators:', transformedIdeas.length, 'ideas');
+        console.log('🔗 Link URLs:', transformedIdeas.map(idea => ({ title: idea.title, linkUrl: idea.linkUrl })));
         setGoalIdeas(transformedIdeas);
       } else {
         console.log('No system motivators found in database');
