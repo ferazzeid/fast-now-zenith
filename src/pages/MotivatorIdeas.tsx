@@ -38,6 +38,17 @@ export default function MotivatorIdeas() {
     refreshGoalIdeas();
   }, []); // Empty dependency array to run only once on mount
 
+  // Debug log to see what goalIdeas data is actually in the component
+  useEffect(() => {
+    if (goalIdeas && goalIdeas.length > 0) {
+      console.log('🎯 MotivatorIdeas component goalIdeas data:', goalIdeas.map(goal => ({
+        title: goal.title,
+        linkUrl: goal.linkUrl,
+        hasLinkUrl: !!goal.linkUrl
+      })));
+    }
+  }, [goalIdeas]);
+
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
       // Choose appropriate image based on user gender
