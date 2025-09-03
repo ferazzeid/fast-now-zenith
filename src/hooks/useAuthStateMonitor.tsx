@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useUnifiedSession } from './useUnifiedSession';
+import { useAuth } from './useAuth';
 
 /**
  * Continuously monitors auth.uid() in database context to detect synchronization failures
@@ -11,7 +11,7 @@ import { useUnifiedSession } from './useUnifiedSession';
  */
 export const useAuthStateMonitor = () => {
   const { toast } = useToast();
-  const unifiedSession = useUnifiedSession();
+  const { user, loading } = useAuth();
   const monitoringRef = useRef<NodeJS.Timeout | null>(null);
   const failureCountRef = useRef(0);
   const lastRepairRef = useRef(0);
@@ -19,7 +19,7 @@ export const useAuthStateMonitor = () => {
 
   const validateDatabaseAuth = useCallback(async () => {
     // Skip validation during startup phase
-    if (isStartupPhaseRef.current || unifiedSession.readiness !== 'ready') {
+    if (isStartupPhaseRef.current || loading) {
       return { authWorking: true, error: null };
     }
     
@@ -48,7 +48,7 @@ export const useAuthStateMonitor = () => {
       console.error('Auth validation error:', error);
       return { authWorking: false, error };
     }
-  }, [unifiedSession.readiness]);
+  }, [loading]);
 
   const repairAuthState = useCallback(async () => {
     const now = Date.now();
@@ -117,7 +117,7 @@ export const useAuthStateMonitor = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       // Only monitor if user is supposed to be authenticated and system is ready
-      if (!session?.user?.id || unifiedSession.readiness !== 'ready') {
+      if (!session?.user?.id || loading) {
         failureCountRef.current = 0;
         return;
       }
@@ -150,7 +150,7 @@ export const useAuthStateMonitor = () => {
         }
       }
     }, monitorInterval);
-  }, [validateDatabaseAuth, repairAuthState, toast, unifiedSession.readiness]);
+  }, [validateDatabaseAuth, repairAuthState, toast, loading]);
 
   const stopMonitoring = useCallback(() => {
     if (monitoringRef.current) {
@@ -163,7 +163,7 @@ export const useAuthStateMonitor = () => {
   useEffect(() => {
     // Track when startup phase ends
     const checkStartupPhase = () => {
-      if (unifiedSession.readiness === 'ready') {
+      if (!loading) {
         isStartupPhaseRef.current = false;
         // Start monitoring after startup phase ends
         setTimeout(startMonitoring, 3000);
@@ -171,7 +171,7 @@ export const useAuthStateMonitor = () => {
     };
     
     checkStartupPhase();
-  }, [unifiedSession.readiness, startMonitoring]);
+  }, [loading, startMonitoring]);
 
   useEffect(() => {
     // Start monitoring when user signs in

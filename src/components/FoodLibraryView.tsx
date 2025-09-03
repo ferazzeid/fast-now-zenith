@@ -27,7 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
-import { useSessionState } from '@/hooks/useUnifiedSession';
+import { useAuth } from '@/hooks/useAuth';
 import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
 
 interface UserFood {
@@ -56,7 +56,7 @@ interface FoodLibraryViewProps {
 
 export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) => {
   const location = useLocation();
-  const { user, isReady } = useSessionState();
+  const { user, loading } = useAuth();
 
   // IMMEDIATE: Don't render anything if on auth routes to prevent interactions
   if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
@@ -76,12 +76,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
   const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
 
-  // Prevent interactions during invalid session states
-  const isInteractionSafe = isReady;
+  // Prevent interactions during loading states
+  const isInteractionSafe = !loading;
   const { toast } = useToast();
   
   // Combined loading state
-  const loading = recentFoodsLoading || defaultFoodsLoading;
+  const isLoading = recentFoodsLoading || defaultFoodsLoading;
 
   useEffect(() => {
     const loadData = async () => {
@@ -360,7 +360,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const updateFood = async (foodId: string, updates: Partial<UserFood>) => {
     console.log('🍽️ FoodLibrary - updateFood called with:', { foodId, updates });
     
-    if (!isReady) {
+    if (loading) {
       throw new Error('Database not ready');
     }
     
@@ -393,7 +393,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const deleteFood = async (foodId: string) => {
     console.log('🍽️ FoodLibrary - deleteFood called with:', { foodId });
     
-    if (!isReady) {
+    if (loading) {
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment"
@@ -446,7 +446,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const deleteAllUserFoods = async () => {
     if (!user) return;
     
-    if (!isReady) {
+    if (loading) {
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment"
@@ -533,7 +533,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }, silent: boolean = false) => {
-    if (!isReady) {
+    if (loading) {
       throw new Error('Database not ready');
     }
     
@@ -1001,7 +1001,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           <TabsContent value="my-foods" className="flex-1 overflow-y-auto mt-0">
           <div className="space-y-2 mt-1">
             {/* My Foods List */}
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
                  <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
@@ -1043,7 +1043,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           {/* Suggested Foods Tab */}
           <TabsContent value="suggested" className="flex-1 overflow-y-auto mt-0">
           <div className="space-y-2 mt-1">
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">

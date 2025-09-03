@@ -36,7 +36,7 @@ import { Navigation } from "./components/Navigation";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { SimplifiedStartup } from "./components/SimplifiedStartup";
-import { useUnifiedStartup } from "./hooks/useUnifiedStartup";
+import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -91,9 +91,8 @@ const AppContent = () => {
   // OAuth is now handled by the MobileOAuthHandler in the Auth page
   // No need for App-level deep link handling
   
-  // Unified startup with session management
-  const { readiness, error, retry, isReady } = useUnifiedStartup();
-  const oauthCompleting = useAuthStore(state => state.oauthCompleting);
+  // Simple auth state
+  const { loading } = useAuth();
   const { isOnline } = useConnectionStore();
 
 
@@ -154,42 +153,8 @@ const AppContent = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [isOnline]);
   
-  // Handle different readiness states  
-  if (readiness === 'invalid') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4 p-6">
-          <h2 className="text-xl font-semibold">Authentication Required</h2>
-          <p className="text-muted-foreground">{error || 'Please sign in to continue'}</p>
-          <div className="space-x-2">
-            <button 
-              onClick={retry}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded"
-            >
-              Try Again
-            </button>
-            <button 
-              onClick={async () => {
-                await performCompleteAuthCacheReset();
-                window.location.reload();
-              }}
-              className="px-4 py-2 border rounded"
-            >
-              Clear Cache & Refresh
-            </button>
-            <button 
-              onClick={() => window.location.href = '/auth'}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded"
-            >
-              Go to Sign In
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (readiness === 'loading') {
+  // Simple loading state
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">

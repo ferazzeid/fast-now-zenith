@@ -1,4 +1,4 @@
-import { useUnifiedSession } from './useUnifiedSession';
+import { useAuth } from './useAuth';
 import { useAccess } from './useAccess';
 
 /**
@@ -6,13 +6,13 @@ import { useAccess } from './useAccess';
  * without waiting for complex database readiness checks.
  */
 export const useSimpleAuth = () => {
-  const { user, session, isReady } = useUnifiedSession();
+  const { user, session, loading } = useAuth();
   const { isAdmin, access_level, hasAccess } = useAccess();
   
   return {
     user,
     session,
-    isReady,
+    isReady: !loading,
     isAuthenticated: !!user,
     isAdmin,
     accessLevel: access_level,

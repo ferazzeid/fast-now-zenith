@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useSessionState } from '@/hooks/useUnifiedSession';
 import { persistFastingSession, getPersistedFastingSession } from '@/utils/timerPersistence';
 
 export interface FastingSession {
@@ -22,7 +21,6 @@ export const useFastingSession = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { isReady } = useSessionState();
 
   // Load active session on mount with proper user dependency
   const loadActiveSession = useCallback(async () => {
@@ -96,14 +94,6 @@ export const useFastingSession = () => {
       return null;
     }
 
-    if (!isReady) {
-      toast({
-        title: "Please wait",
-        description: "System is loading, please try again in a moment",
-      });
-      return null;
-    }
-
     setLoading(true);
     try {
         // End any existing active sessions first
@@ -159,18 +149,10 @@ export const useFastingSession = () => {
       } finally {
         setLoading(false);
       }
-  }, [user, toast, isReady]);
+  }, [user, toast]);
 
   const endFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;
-
-    if (!isReady) {
-      toast({
-        title: "Please wait",
-        description: "System is loading, please try again in a moment",
-      });
-      return null;
-    }
 
     const targetSessionId = sessionId || currentSession?.id;
     if (!targetSessionId) return null;
@@ -213,7 +195,7 @@ export const useFastingSession = () => {
       } finally {
         setLoading(false);
       }
-  }, [user, currentSession, toast, isReady]);
+  }, [user, currentSession, toast]);
 
   const cancelFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;

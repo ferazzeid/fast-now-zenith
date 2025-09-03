@@ -3,8 +3,6 @@ import { persist } from 'zustand/middleware';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { checkOAuthRecovery } from '@/utils/oauthRecovery';
-import { useUnifiedSession } from '@/hooks/useUnifiedSession';
-
 // Auth debugging logger
 const authLogger = {
   info: (message: string, data?: any) => console.log(`🔐 Auth: ${message}`, data || ''),
@@ -17,6 +15,7 @@ interface AuthState {
   session: Session | null;
   loading: boolean;
   oauthCompleting: boolean;
+  initialized: boolean;
   
   // Actions
   initialize: () => Promise<void>;
@@ -39,38 +38,59 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       loading: true,
       oauthCompleting: false,
+      initialized: false,
 
       initialize: async () => {
         const state = get();
-        if (!state.loading) {
+        if (state.initialized) {
           authLogger.info('Already initialized, skipping');
           return;
         }
 
-        authLogger.info('Starting auth initialization (delegating to unified session)');
+        authLogger.info('Starting auth initialization');
+        set({ initialized: true });
         
-        // Delegate to unified session manager
-        const unifiedSession = useUnifiedSession.getState();
-        await unifiedSession.initialize();
-        
-        // Set up simple sync with unified session
-        const syncWithUnified = () => {
-          const unified = useUnifiedSession.getState();
+        try {
+          // Set up auth state listener
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (event, session) => {
+              authLogger.info(`Auth event: ${event}`, {
+                hasSession: !!session,
+                userId: session?.user?.id
+              });
+              
+              set({
+                session,
+                user: session?.user ?? null,
+                loading: false,
+              });
+            }
+          );
+
+          // Get current session
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            authLogger.error('Error getting session:', error);
+            set({ loading: false });
+            return;
+          }
+
+          // Update initial session state
           set({
-            session: unified.session,
-            user: unified.user,
-            loading: unified.isAuthLoading,
-            oauthCompleting: false
+            session,
+            user: session?.user ?? null,
+            loading: false,
           });
-        };
-        
-        // Initial sync
-        syncWithUnified();
-        
-        // Subscribe to unified session changes
-        const unsubscribe = useUnifiedSession.subscribe(syncWithUnified);
-        (window as any).__authStoreUnsubscribe = unsubscribe;
-        (window as any).__authInitialized = true;
+
+          // Store subscription for cleanup
+          (window as any).__authSubscription = subscription;
+          
+          authLogger.info('Auth initialization complete');
+        } catch (error) {
+          authLogger.error('Auth initialization failed:', error);
+          set({ loading: false });
+        }
       },
 
       signIn: async (email: string, password: string) => {
