@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
-import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
@@ -29,15 +28,14 @@ export default function MotivatorIdeas() {
   const { profile } = useProfile();
   const { isAdmin } = useAccess();
   
-  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas();
-  const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
+  const { goalIdeas, loading, refreshGoalIdeas, updateGoalIdea, removeGoalIdea } = useAdminGoalIdeas();
   const { createMotivator } = useMotivators();
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
   useEffect(() => {
     console.log('🔄 Force refreshing goal ideas on page load...');
-    forceRefresh();
+    refreshGoalIdeas();
   }, []); // Empty dependency array to run only once on mount
 
   const handleAdd = async (goal: AdminGoalIdea) => {
@@ -70,18 +68,11 @@ export default function MotivatorIdeas() {
   const handleSaveEdit = useCallback(async (updatedGoal: AdminGoalIdea) => {
     try {
       console.log('Saving edit with data:', updatedGoal);
-      const success = await updateDefaultGoal(updatedGoal.id, {
-        title: updatedGoal.title,
-        content: updatedGoal.description,
-        imageUrl: updatedGoal.imageUrl,
-      });
+      const success = await updateGoalIdea(updatedGoal.id, updatedGoal);
       if (success) {
         console.log('✅ Update successful, clearing modal...');
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        
-        // Clear editing state first, then refresh
         setEditingGoal(null);
-        setTimeout(() => refreshGoalIdeas(), 200);
       } else {
         throw new Error('Update failed');
       }
@@ -89,14 +80,10 @@ export default function MotivatorIdeas() {
       console.error('Update error:', e);
       toast({ title: 'Error', description: 'Failed to update idea.', variant: 'destructive' });
     }
-  }, [updateDefaultGoal, forceRefresh, toast]);
+  }, [updateGoalIdea, toast]);
 
   const handleDelete = async (goalId: string) => {
-    const ok = await removeFromDefaultGoals(goalId);
-    if (ok) {
-      toast({ title: 'Removed', description: 'Idea removed from defaults.' });
-      refreshGoalIdeas();
-    }
+    await removeGoalIdea(goalId);
   };
 
   return (
@@ -218,7 +205,7 @@ export default function MotivatorIdeas() {
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <AlertDialogTrigger asChild>
-                                      <Button size="sm" variant="ghost" disabled={adminLoading} className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive" aria-label="Delete idea">
+                                      <Button size="sm" variant="ghost" disabled={loading} className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive" aria-label="Delete idea">
                                         <Trash2 className="w-3 h-3" />
                                       </Button>
                                     </AlertDialogTrigger>

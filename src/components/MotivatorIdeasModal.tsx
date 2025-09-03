@@ -4,7 +4,6 @@ import { Lightbulb, Plus, ChevronDown, Edit, Trash2, AlertTriangle } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
-import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,8 +31,7 @@ interface MotivatorIdeasModalProps {
 export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal }: MotivatorIdeasModalProps) => {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { goalIdeas, loading, refreshGoalIdeas } = useAdminGoalIdeas();
-  const { removeFromDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
+  const { goalIdeas, loading, refreshGoalIdeas, removeGoalIdea } = useAdminGoalIdeas();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -62,10 +60,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
   }, [isOpen, refreshGoalIdeas]);
 
   const handleDeleteGoal = async (goalId: string) => {
-    const success = await removeFromDefaultGoals(goalId);
-    if (success) {
-      refreshGoalIdeas();
-    }
+    await removeGoalIdea(goalId);
   };
 
   if (loading) {
@@ -230,7 +225,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                           onClick={(e) => {
                                             e.stopPropagation();
                                           }}
-                                          disabled={adminLoading}
+                                          disabled={loading}
                                           className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive"
                                         >
                                           <Trash2 className="w-3 h-3" />
