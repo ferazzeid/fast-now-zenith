@@ -287,6 +287,12 @@ IMPORTANT CONVERSATION FLOW HANDLING:
 - When users provide serving sizes or quantities in response to your questions, automatically apply those changes
 - Pay attention to context clues like "each", "per item", "all of them", "only X items" to determine modification type
 
+CRITICAL FOOD QUANTITY INTERPRETATION:
+- Weight+Food = Single Serving: "1kg cucumbers", "500g chicken", "200g rice" → ONE entry with that serving size
+- Count+Food = Multiple Items: "3 cucumbers", "two apples", "four yogurts" → Multiple separate entries
+- Count+Weight+Each = Multiple Items: "3 cucumbers, each 250g", "two yogurts, each 160g" → Multiple entries of specified size each
+- When ambiguous, ask for clarification: "Do you mean one 1kg serving of cucumbers, or multiple individual cucumbers totaling 1kg?"
+
 CAPABILITIES: You can help users with fasting sessions, walking sessions, food tracking, motivators, and app calculations.`;
 
     const enhancedSystemMessage = `${baseSystemMessage}
@@ -594,7 +600,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add food entries to the user's food log. CRITICAL: When user says multiple quantities like 'three Greek yogurts, each 160g' or 'two apples, each 100g', create SEPARATE entries for each item (3 individual Greek yogurt entries of 160g each, not one 480g entry). When user says 'three cucumbers, each 250g' create THREE separate cucumber entries of 250g each. Always respect individual item quantities and create separate database entries for each physical item mentioned.",
+              description: "Add food entries to the user's food log. CRITICAL DISTINCTION: (1) EXPLICIT MULTIPLE ITEMS: When user says 'three Greek yogurts, each 160g' or 'two apples, each 100g', create SEPARATE entries for each physical item. (2) SINGLE LARGE SERVINGS: When user says '1kg cucumbers', '500g chicken breast', or '200g rice', create ONE single entry with that total serving size - this is not multiple items but one large portion. RULE: Only create multiple entries when user explicitly mentions count numbers (two, three, four) or plural with individual weights (each X grams). Weight+food combinations (1kg cucumbers, 500g meat) = single serving entry.",
               parameters: {
                 type: "object",
                 properties: {
@@ -1018,7 +1024,10 @@ FOOD OPERATIONS YOU CAN PERFORM:
 - Modify recent food entries (modify_recent_foods)
 - Access food data (get_recent_foods, get_favorite_default_foods, copy_yesterday_foods, get_today_food_totals, get_daily_food_templates)
 
-CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "two cucumbers", "three bananas"), create SEPARATE entries for each item.
+CRITICAL QUANTITY HANDLING: 
+- Weight+Food = Single Serving: "1kg cucumbers", "500g chicken" → ONE entry with that serving size
+- Count+Food = Multiple Items: "two cucumbers", "three bananas" → Multiple separate entries
+- Only create multiple entries when explicit count is mentioned, not for weight specifications
 
 EDITING/DELETING: When users want to edit/change/delete foods, FIRST use search_foods_for_edit to find the item.
 
