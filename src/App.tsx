@@ -154,9 +154,7 @@ const AppContent = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [isOnline]);
   
-  // Handle different readiness states
-  console.log('🔄 App: Current startup state:', { readiness, error, isReady: isReady() });
-  
+  // Handle different readiness states  
   if (readiness === 'invalid') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -191,30 +189,12 @@ const AppContent = () => {
     );
   }
 
-  if (readiness === 'loading' || !isReady()) {
+  if (readiness === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
           <p className="text-muted-foreground">Starting up...</p>
-          <div className="text-xs text-muted-foreground mt-4">
-            <div>Readiness: {readiness}</div>
-            <div>Is Ready: {isReady() ? 'Yes' : 'No'}</div>
-            <div>Has Error: {error ? 'Yes' : 'No'}</div>
-          </div>
-          {/* Add recovery option after timeout */}
-          <div className="mt-6">
-            <button 
-              onClick={async () => {
-                console.log('🔄 Force recovery initiated');
-                await performCompleteAuthCacheReset();
-                window.location.reload();
-              }}
-              className="px-4 py-2 text-sm border rounded hover:bg-muted"
-            >
-              Force Recovery
-            </button>
-          </div>
         </div>
       </div>
     );
