@@ -53,47 +53,97 @@ export const useAdminGoalIdeas = () => {
   const { toast } = useToast();
 
   const loadGoalIdeas = async (forceClear: boolean = false) => {
-    console.log('🔄 Loading admin goal ideas from system_motivators', 'Force clear:', forceClear);
+    console.log('🔄 AGGRESSIVE REFRESH: Loading admin goal ideas from system_motivators');
     
-    // Clear cache to ensure fresh data
-    if (forceClear) {
-      console.log('🧹 Clearing cache before loading goal ideas');
-      queryClient.invalidateQueries({ queryKey: ['admin'] });
-      queryClient.removeQueries({ queryKey: ['admin'] });
-      localStorage.removeItem('goalIdeasCache');
-      localStorage.removeItem('adminGoalIdeas');
-      sessionStorage.removeItem('goalIdeasCache');
-      sessionStorage.removeItem('adminGoalIdeas');
+    // ALWAYS clear ALL caches aggressively
+    console.log('🧹 NUCLEAR CACHE CLEAR: Removing all possible cached data...');
+    
+    // Clear React Query cache
+    queryClient.invalidateQueries();
+    queryClient.clear();
+    
+    // Clear all localStorage entries that might contain cached data
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('goal') || key.includes('motivator') || key.includes('cache') || key.includes('admin'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Also clear sessionStorage
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && (key.includes('goal') || key.includes('motivator') || key.includes('cache') || key.includes('admin'))) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    } catch (e) {
+      console.warn('Cache clearing issue:', e);
     }
     
     try {
-      // Query system_motivators table directly
+      setLoading(true);
+      
+      console.log('📡 Fetching FRESH data from system_motivators table...');
+      
+      // Add timestamp to ensure fresh query
+      const timestamp = Date.now();
       const { data, error } = await supabase
         .from('system_motivators' as any)
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
+      console.log('📊 RAW DATABASE RESPONSE:', { 
+        timestamp,
+        dataLength: data?.length || 0, 
+        error: error?.message || 'none' 
+      });
+
       if (error) {
-        console.error('System Motivators Database error:', error);
+        console.error('❌ System Motivators Database error:', error);
         setGoalIdeas([]);
-        setLoading(false);
         return;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
+        console.log('📋 RAW SYSTEM_MOTIVATORS DATA:');
+        (data as unknown as SystemMotivator[]).forEach((item, index) => {
+          console.log(`${index + 1}. ${item.title}:`, {
+            id: item.id,
+            title: item.title,
+            link_url: item.link_url,
+            male_image_url: item.male_image_url,
+            female_image_url: item.female_image_url,
+            display_order: item.display_order
+          });
+        });
+        
         // Transform system motivators to AdminGoalIdea format
         const transformedIdeas = (data as unknown as SystemMotivator[]).map(transformToAdminGoalIdea);
         
-        console.log('✅ Goal Ideas loaded from system_motivators:', transformedIdeas.length, 'ideas');
-        console.log('🔗 Link URLs:', transformedIdeas.map(idea => ({ title: idea.title, linkUrl: idea.linkUrl })));
+        console.log('✅ TRANSFORMED IDEAS:');
+        transformedIdeas.forEach((idea, index) => {
+          console.log(`${index + 1}. ${idea.title}:`, {
+            id: idea.id,
+            title: idea.title,
+            linkUrl: idea.linkUrl,
+            maleImageUrl: idea.maleImageUrl,
+            femaleImageUrl: idea.femaleImageUrl
+          });
+        });
+        
         setGoalIdeas(transformedIdeas);
+        console.log('🎯 STATE UPDATED with', transformedIdeas.length, 'fresh ideas');
       } else {
-        console.log('No system motivators found in database');
+        console.log('❌ No system motivators found in database');
         setGoalIdeas([]);
       }
     } catch (error) {
-      console.error('Error loading goal ideas from system_motivators:', error);
+      console.error('💥 CRITICAL ERROR loading goal ideas:', error);
       setGoalIdeas([]);
     } finally {
       setLoading(false);
@@ -101,8 +151,8 @@ export const useAdminGoalIdeas = () => {
   };
 
   useEffect(() => {
-    console.log('🔄 useAdminGoalIdeas useEffect triggered - refreshTrigger:', refreshTrigger);
-    loadGoalIdeas(true); // Always force clear cache
+    console.log('🚀 useAdminGoalIdeas useEffect triggered - refreshTrigger:', refreshTrigger);
+    loadGoalIdeas(true); // Always force clear cache and fetch fresh
   }, [refreshTrigger]);
 
   const forceRefresh = () => {
