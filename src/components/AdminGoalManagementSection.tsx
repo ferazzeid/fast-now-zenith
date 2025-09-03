@@ -3,21 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, AlertCircle, Settings } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 import { useSystemMotivators } from '@/hooks/useSystemMotivators';
 import { useAdminGoalIdeas } from '@/hooks/useAdminGoalIdeas';
 
 export const AdminGoalManagementSection: React.FC = () => {
   const { systemMotivators, loading: systemLoading, refetch: refetchSystem } = useSystemMotivators();
-  const { goalIdeas, loading: goalIdeasLoading, refreshGoalIdeas } = useAdminGoalIdeas();
+  const { goalIdeas, loading: goalIdeasLoading, forceRefresh: refreshGoalIdeas } = useAdminGoalIdeas();
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          Unified Goal Management
+          Goal Management
           <Badge variant="outline" className="text-xs">
-            System Motivators Primary Source
+            Unified System Motivators
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -33,13 +33,13 @@ export const AdminGoalManagementSection: React.FC = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-2xl font-bold">{systemMotivators.length}</div>
-                  <p className="text-xs text-muted-foreground">System Motivators (Primary Source)</p>
+                  <p className="text-xs text-muted-foreground">System Motivators (Active)</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-2xl font-bold">{goalIdeas.length}</div>
-                  <p className="text-xs text-muted-foreground">Active Goal Ideas (From System)</p>
+                  <p className="text-xs text-muted-foreground">Available Goal Ideas</p>
                 </CardContent>
               </Card>
             </div>
@@ -52,7 +52,7 @@ export const AdminGoalManagementSection: React.FC = () => {
                 className="flex items-center gap-2"
               >
                 <RefreshCw className={`h-4 w-4 ${systemLoading ? 'animate-spin' : ''}`} />
-                Refresh System Data
+                Refresh System
               </Button>
               <Button 
                 variant="outline"
@@ -60,7 +60,7 @@ export const AdminGoalManagementSection: React.FC = () => {
                 disabled={goalIdeasLoading}
                 className="flex items-center gap-2"
               >
-                <Settings className={`h-4 w-4 ${goalIdeasLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${goalIdeasLoading ? 'animate-spin' : ''}`} />
                 Refresh Goal Ideas
               </Button>
             </div>
@@ -69,12 +69,11 @@ export const AdminGoalManagementSection: React.FC = () => {
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div className="text-sm text-muted-foreground">
-                  <p className="font-medium mb-1">Unified System Status:</p>
+                  <p className="font-medium mb-1">Unified Goal Management:</p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li><strong>✅ Single Source of Truth:</strong> All data comes from system_motivators table</li>
-                    <li><strong>✅ Website Compatible:</strong> Website project reads from same system_motivators table</li>
-                    <li><strong>✅ No Sync Required:</strong> Changes are immediately available everywhere</li>
-                    <li><strong>✅ Better Performance:</strong> Direct SQL queries instead of JSON parsing</li>
+                    <li><strong>Single Source:</strong> All goal ideas now come directly from system_motivators table</li>
+                    <li><strong>Real-time:</strong> Changes are immediately reflected across the app and website</li>
+                    <li><strong>Simplified:</strong> No more synchronization between different data sources</li>
                   </ul>
                 </div>
               </div>
@@ -83,7 +82,7 @@ export const AdminGoalManagementSection: React.FC = () => {
 
           <TabsContent value="system" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">System Motivators (Primary Source)</h3>
+              <h3 className="text-lg font-semibold">System Motivators</h3>
               <Button 
                 onClick={refetchSystem}
                 disabled={systemLoading}
@@ -116,28 +115,20 @@ export const AdminGoalManagementSection: React.FC = () => {
                       <div className="text-sm text-muted-foreground">
                         {motivator.category} • Order: {motivator.display_order}
                         {motivator.slug && (
-                          <span className="ml-2 text-blue-600">• Slug: /{motivator.slug}</span>
+                          <span className="ml-2 text-blue-600">• /{motivator.slug}</span>
                         )}
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      Active
+                    <Badge 
+                      variant={motivator.is_active ? "default" : "secondary"}
+                      className="text-xs"
+                    >
+                      {motivator.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                 ))}
               </div>
             )}
-
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-sm text-blue-700 dark:text-blue-300">
-                <p className="font-medium mb-1">📝 To manage system motivators:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Use the Goal Ideas Library page (/motivator-ideas) for editing</li>
-                  <li>Changes made there directly update the system_motivators table</li>
-                  <li>All updates are immediately visible to both app and website</li>
-                </ul>
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </CardContent>

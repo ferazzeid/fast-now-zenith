@@ -1,51 +1,28 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Link, CheckCircle, RefreshCw, Globe } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useEnhancedAdminGoalManagement } from '@/hooks/useEnhancedAdminGoalManagement';
+import { CheckCircle, Globe } from 'lucide-react';
 import { getDisplayWebsiteUrl } from '@/utils/urlUtils';
 
 export const AdminFixGoalUrls = () => {
-  const [fixing, setFixing] = useState(false);
-  const [fixed, setFixed] = useState(false);
-  const { toast } = useToast();
-  const { fixAllGoalIdeasUrls } = useEnhancedAdminGoalManagement();
-
-  const handleFixUrls = async () => {
-    try {
-      setFixing(true);
-      await fixAllGoalIdeasUrls();
-      setFixed(true);
-      
-      toast({
-        title: "URLs Fixed!",
-        description: "All goal idea URLs have been updated with proper website links.",
-      });
-    } catch (error) {
-      console.error('Error fixing URLs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fix goal idea URLs. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setFixing(false);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Link className="w-5 h-5" />
-          Fix Goal Idea URLs
+          <CheckCircle className="w-5 h-5 text-green-600" />
+          Goal Idea URLs - Unified System
         </CardTitle>
         <CardDescription>
-          Update all goal ideas to have proper website URLs for "Read More" links
+          URL management is now handled automatically through the unified system motivators
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-green-800">
+            <p className="font-medium">Unified System Active</p>
+            <p>All goal ideas now come directly from system_motivators table with proper URL handling.</p>
+          </div>
+        </div>
+
         <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <Globe className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
@@ -54,43 +31,26 @@ export const AdminFixGoalUrls = () => {
           </div>
         </div>
 
-        <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800">
-            <p className="font-medium">Current Issue:</p>
-            <p>Most goal ideas have null linkUrl values or relative URLs, preventing "Read More" links from working properly.</p>
-          </div>
-        </div>
-
-        {fixed && (
-          <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-green-800">
-              <p className="font-medium">Fixed!</p>
-              <p>All goal ideas now have proper website URLs for their "Read More" links.</p>
-            </div>
-          </div>
-        )}
-
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            This will:
+          <p className="text-sm text-muted-foreground font-medium">
+            Benefits of the unified system:
           </p>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Generate proper website URLs from system motivator slugs</li>
-            <li>• Convert relative URLs (/motivators/...) to absolute URLs (https://...)</li>
-            <li>• Enable "Read More" buttons for all applicable goal ideas</li>
+            <li>• Single source of truth: system_motivators table</li>
+            <li>• Automatic URL generation from slugs</li>
+            <li>• Real-time sync between app and website</li>
+            <li>• No more manual URL fixing needed</li>
+            <li>• Consistent data across all platforms</li>
           </ul>
         </div>
 
-        <Button
-          onClick={handleFixUrls}
-          disabled={fixing}
-          className="w-full"
-        >
-          {fixing && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
-          {fixing ? 'Fixing URLs...' : 'Fix All Goal Idea URLs'}
-        </Button>
+        <div className="p-3 bg-muted rounded-lg">
+          <p className="text-sm text-muted-foreground">
+            <strong>Note:</strong> The legacy admin_goal_ideas system has been removed. 
+            All goal management now happens through the system_motivators table, 
+            providing better performance and consistency.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
