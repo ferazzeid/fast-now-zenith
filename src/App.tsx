@@ -155,12 +155,14 @@ const AppContent = () => {
   }, [isOnline]);
   
   // Handle different readiness states
-  if (readiness === 'invalid' && error) {
+  console.log('🔄 App: Current startup state:', { readiness, error, isReady: isReady() });
+  
+  if (readiness === 'invalid') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4 p-6">
-          <h2 className="text-xl font-semibold">Startup Error</h2>
-          <p className="text-muted-foreground">{error}</p>
+          <h2 className="text-xl font-semibold">Authentication Required</h2>
+          <p className="text-muted-foreground">{error || 'Please sign in to continue'}</p>
           <div className="space-x-2">
             <button 
               onClick={retry}
@@ -177,18 +179,42 @@ const AppContent = () => {
             >
               Clear Cache & Refresh
             </button>
+            <button 
+              onClick={() => window.location.href = '/auth'}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded"
+            >
+              Go to Sign In
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (readiness === 'loading') {
+  if (readiness === 'loading' || !isReady()) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
           <p className="text-muted-foreground">Starting up...</p>
+          <div className="text-xs text-muted-foreground mt-4">
+            <div>Readiness: {readiness}</div>
+            <div>Is Ready: {isReady() ? 'Yes' : 'No'}</div>
+            <div>Has Error: {error ? 'Yes' : 'No'}</div>
+          </div>
+          {/* Add recovery option after timeout */}
+          <div className="mt-6">
+            <button 
+              onClick={async () => {
+                console.log('🔄 Force recovery initiated');
+                await performCompleteAuthCacheReset();
+                window.location.reload();
+              }}
+              className="px-4 py-2 text-sm border rounded hover:bg-muted"
+            >
+              Force Recovery
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -109,7 +109,7 @@ export const useUnifiedStartup = () => {
   
   return {
     readiness: unifiedSession.readiness,
-    isReady: unifiedSession.isReady(),
+    isReady: () => unifiedSession.readiness === 'ready' && !!unifiedSession.user,
     error: unifiedSession.error,
     retry: unifiedSession.retry,
     timeInCurrentState,

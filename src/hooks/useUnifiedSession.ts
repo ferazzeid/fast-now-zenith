@@ -192,7 +192,8 @@ export const useUnifiedSession = create<UnifiedSessionState>()(
 
       // Simple state checker
       isReady: () => {
-        return get().readiness === 'ready';
+        const state = get();
+        return state.readiness === 'ready' && !!state.user && !!state.session;
       }
     }),
     {
