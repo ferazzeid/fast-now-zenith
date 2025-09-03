@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { AdminGoalIdea } from './useAdminGoalIdeas';
+import { generateWebsiteUrl, validateAndFixUrl } from '@/utils/urlUtils';
 
 interface Motivator {
   id: string;
@@ -10,6 +11,10 @@ interface Motivator {
   content?: string;
   imageUrl?: string;
   category?: string;
+  slug?: string;
+  linkUrl?: string;
+  male_image_url?: string;
+  female_image_url?: string;
 }
 
 export const useAdminGoalManagement = () => {
@@ -54,7 +59,13 @@ export const useAdminGoalManagement = () => {
         title: motivator.title,
         description: motivator.content || '',
         category: motivator.category || 'personal',
-        imageUrl: motivator.imageUrl
+        imageUrl: motivator.imageUrl,
+        maleImageUrl: motivator.male_image_url,
+        femaleImageUrl: motivator.female_image_url,
+        // Generate proper website URL from slug or provided linkUrl
+        linkUrl: motivator.linkUrl ? 
+          validateAndFixUrl(motivator.linkUrl) : 
+          (motivator.slug ? generateWebsiteUrl(motivator.slug) : null)
       };
 
       const updatedGoals = [...currentGoals, newGoalIdea];
@@ -184,7 +195,13 @@ export const useAdminGoalManagement = () => {
         ...goalIdeas[goalIndex],
         title: updates.title || goalIdeas[goalIndex].title,
         description: updates.content || goalIdeas[goalIndex].description,
-        imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : goalIdeas[goalIndex].imageUrl
+        imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : goalIdeas[goalIndex].imageUrl,
+        maleImageUrl: updates.male_image_url !== undefined ? updates.male_image_url : goalIdeas[goalIndex].maleImageUrl,
+        femaleImageUrl: updates.female_image_url !== undefined ? updates.female_image_url : goalIdeas[goalIndex].femaleImageUrl,
+        // Update linkUrl, generating from slug if needed
+        linkUrl: updates.linkUrl !== undefined ? 
+          validateAndFixUrl(updates.linkUrl) : 
+          (updates.slug ? generateWebsiteUrl(updates.slug) : goalIdeas[goalIndex].linkUrl)
       };
 
       console.log('✏️ Updated goal:', goalIdeas[goalIndex]);

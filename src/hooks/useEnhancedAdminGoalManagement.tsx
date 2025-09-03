@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSystemMotivators } from './useSystemMotivators';
 import { useAdminGoalManagement } from './useAdminGoalManagement';
+import { generateWebsiteUrl, validateAndFixUrl } from '@/utils/urlUtils';
 
 // Enhanced admin goal management that can work with both system_motivators and shared_settings
 export const useEnhancedAdminGoalManagement = () => {
@@ -27,13 +28,13 @@ export const useEnhancedAdminGoalManagement = () => {
         content: systemMotivator.content,
         category: systemMotivator.category || 'personal',
         // Use gender-specific images if available, fall back to generic approach
-        image_url: systemMotivator.male_image_url || systemMotivator.female_image_url || null,
+        imageUrl: systemMotivator.male_image_url || systemMotivator.female_image_url || null,
         male_image_url: systemMotivator.male_image_url,
         female_image_url: systemMotivator.female_image_url,
         slug: systemMotivator.slug,
         meta_title: systemMotivator.meta_title,
         meta_description: systemMotivator.meta_description,
-        link_url: `/motivators/${systemMotivator.slug}` // Auto-generate link
+        linkUrl: generateWebsiteUrl(systemMotivator.slug) // Generate proper website URL
       };
 
       await originalGoalManagement.addToDefaultGoals(motivatorData);
@@ -112,6 +113,75 @@ export const useEnhancedAdminGoalManagement = () => {
     }
   };
 
+  // Fix all existing goal ideas by adding proper website URLs
+  const fixAllGoalIdeasUrls = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current goal ideas
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'admin_goal_ideas')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      let goalIdeas = [];
+      if (data?.setting_value) {
+        goalIdeas = JSON.parse(data.setting_value);
+      }
+
+      if (goalIdeas.length === 0) {
+        console.log('No goal ideas found to fix');
+        return;
+      }
+
+      // Update each goal idea with proper website URL
+      const updatedGoalIdeas = goalIdeas.map((goal: any) => {
+        // Try to find corresponding system motivator by ID to get slug
+        const systemMotivator = systemMotivators.find(sm => sm.id === goal.id);
+        
+        let newLinkUrl = goal.linkUrl;
+        
+        if (systemMotivator?.slug) {
+          // Generate proper website URL from slug
+          newLinkUrl = generateWebsiteUrl(systemMotivator.slug);
+        } else if (goal.linkUrl) {
+          // Fix existing URL if it's relative
+          newLinkUrl = validateAndFixUrl(goal.linkUrl);
+        }
+        
+        return {
+          ...goal,
+          linkUrl: newLinkUrl
+        };
+      });
+
+      // Save back to database
+      const { error: updateError } = await supabase
+        .from('shared_settings')
+        .upsert({
+          setting_key: 'admin_goal_ideas',
+          setting_value: JSON.stringify(updatedGoalIdeas)
+        }, {
+          onConflict: 'setting_key'
+        });
+
+      if (updateError) throw updateError;
+
+      console.log('✅ Successfully fixed all goal idea URLs');
+      
+      // Refresh the system motivators to get fresh data
+      await refetchSystemMotivators();
+    } catch (error) {
+      console.error('Error fixing goal idea URLs:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     // System motivators
     systemMotivators,
@@ -123,6 +193,7 @@ export const useEnhancedAdminGoalManagement = () => {
     ...originalGoalManagement,
     addSystemMotivatorToGoalIdeas,
     syncAllSystemMotivatorsToGoalIdeas,
+    fixAllGoalIdeasUrls,
     
     // Enhanced loading state
     loading: loading || originalGoalManagement.loading,

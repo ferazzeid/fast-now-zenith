@@ -7,6 +7,7 @@ import { RefreshCw, Plus, ArrowLeftRight, AlertCircle } from 'lucide-react';
 import { useSystemMotivators } from '@/hooks/useSystemMotivators';
 import { useEnhancedAdminGoalManagement } from '@/hooks/useEnhancedAdminGoalManagement';
 import { useAdminGoalIdeas } from '@/hooks/useAdminGoalIdeas';
+import { AdminFixGoalUrls } from '@/components/AdminFixGoalUrls';
 import { toast } from 'sonner';
 
 export const AdminGoalManagementSection: React.FC = () => {
@@ -57,10 +58,11 @@ export const AdminGoalManagementSection: React.FC = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="system">System Motivators</TabsTrigger>
             <TabsTrigger value="goal-ideas">Goal Ideas</TabsTrigger>
+            <TabsTrigger value="fix-urls">Fix URLs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -211,6 +213,10 @@ export const AdminGoalManagementSection: React.FC = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="fix-urls" className="space-y-4">
+            <AdminFixGoalUrls />
           </TabsContent>
         </Tabs>
       </CardContent>
