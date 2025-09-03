@@ -36,8 +36,8 @@ export default function MotivatorIdeas() {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
   useEffect(() => {
-    console.log('🔄 Refreshing goal ideas on page load...');
-    refreshGoalIdeas();
+    console.log('🔄 Force refreshing goal ideas on page load...');
+    forceRefresh();
   }, []); // Empty dependency array to run only once on mount
 
   const handleAdd = async (goal: AdminGoalIdea) => {
