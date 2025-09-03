@@ -3,7 +3,7 @@
  */
 
 // Default website base URL - should be configurable
-const DEFAULT_WEBSITE_BASE_URL = 'https://fastnow.zenithins.com';
+const DEFAULT_WEBSITE_BASE_URL = 'https://fastnow.app';
 
 // Get website base URL from environment or use default
 const getWebsiteBaseUrl = (): string => {
