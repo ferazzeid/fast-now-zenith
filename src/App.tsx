@@ -52,6 +52,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
+import { useColorTheme } from '@/hooks/useColorTheme';
 
 
 
@@ -94,6 +95,9 @@ const AppContent = () => {
   // Simple auth state
   const { loading } = useAuth();
   const { isOnline } = useConnectionStore();
+  
+  // Load colors once user is authenticated
+  useColorTheme(!loading && !!user);
 
 
   // Hide navigation on auth routes
