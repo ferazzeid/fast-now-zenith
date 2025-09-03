@@ -44,7 +44,7 @@ serve(async (req) => {
       const { data: settingsData } = await supabaseClient
         .from('shared_settings')
         .select('setting_value')
-        .eq('setting_key', 'app_icon_url')
+        .eq('setting_key', 'app_logo')
         .maybeSingle();
 
       const iconUrl = settingsData?.setting_value;
@@ -105,15 +105,15 @@ serve(async (req) => {
     const { data: settingsData } = await supabaseClient
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['app_logo', 'app_icon_url', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
+      .in('setting_key', ['app_logo', 'app_favicon', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
 
     const settings: Record<string, string> = {};
     settingsData?.forEach(item => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    // Use app_icon_url for PWA icons, fallback to app_logo if not available
-    const appIcon = settings.app_icon_url || settings.app_logo;
+    // Use app_logo for PWA icons, fallback to app_favicon if not available
+    const appIcon = settings.app_logo || settings.app_favicon;
     const appName = settings.pwa_app_name || 'fast now - The No-BS Fat Loss Protocol';
     const shortName = settings.pwa_short_name || 'fast now';
     const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';
