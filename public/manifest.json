@@ -1,7 +1,7 @@
 {
   "name": "FastNow - The No-BS Fat Loss Protocol",
   "short_name": "FastNow",
-  "description": "The No-BS Fat Loss Protocol",
+  "description": "The No-BS Fat Loss Protocol - Intermittent fasting and walking tracker for sustainable weight loss",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F5F2EA",
@@ -19,7 +19,7 @@
     },
     {
       "src": "/icon-512.png",
-      "sizes": "512x512",
+      "sizes": "512x512", 
       "type": "image/png",
       "purpose": "maskable any"
     }
