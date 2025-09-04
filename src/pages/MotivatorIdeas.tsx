@@ -144,7 +144,7 @@ export default function MotivatorIdeas() {
               const shouldShowExpandButton = goal.description && goal.description.length > 50;
 
               return (
-                <Card key={`${goal.id}-${goal.linkUrl || 'no-link'}-${forceRenderKey}`} className="overflow-hidden relative">
+                <Card key={goal.id} className="overflow-hidden relative">
                   <CardContent className="p-0">
                     <div className="flex">
                       <div className="w-32 h-32 flex-shrink-0">
@@ -182,30 +182,27 @@ export default function MotivatorIdeas() {
                                </TooltipContent>
                              </Tooltip>
 
-                               {/* DEBUG: Show linkUrl status */}
-                               {goal.linkUrl && goal.linkUrl.trim() && goal.linkUrl.length > 0 ? (
-                                 <Tooltip>
-                                   <TooltipTrigger asChild>
-                                     <Button 
-                                       size="sm" 
-                                       variant="outline" 
-                                       onClick={() => {
-                                         console.log('🔗 Opening link:', goal.linkUrl);
-                                         window.open(goal.linkUrl, '_blank', 'noopener,noreferrer');
-                                       }}
-                                       className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
-                                       aria-label="Read full story"
-                                     >
-                                       <ExternalLink className="w-3 h-3" />
-                                     </Button>
-                                   </TooltipTrigger>
-                                   <TooltipContent>
-                                     <p>Read full story on website</p>
-                                   </TooltipContent>
-                                 </Tooltip>
-                               ) : (
-                                 <div className="text-xs text-red-500">DEBUG: No link ({goal.linkUrl})</div>
-                               )}
+                              {goal.linkUrl && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      onClick={() => {
+                                        console.log('🔗 Opening link:', goal.linkUrl);
+                                        window.open(goal.linkUrl, '_blank', 'noopener,noreferrer');
+                                      }}
+                                      className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
+                                      aria-label="Read full story"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Read full story on website</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
 
                             {isAdmin && (
                               <Tooltip>

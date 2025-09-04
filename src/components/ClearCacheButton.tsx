@@ -22,6 +22,9 @@ export const ClearCacheButton = () => {
     setIsClearing(true);
     
     try {
+      // Aggressively clear all caches and storage
+      console.log('🧹 Starting aggressive cache clear...');
+      
       // Clear localStorage
       localStorage.clear();
       

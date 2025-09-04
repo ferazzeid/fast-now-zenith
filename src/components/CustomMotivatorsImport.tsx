@@ -28,18 +28,24 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
   const loadPredefinedMotivators = async () => {
     try {
       const { data, error } = await supabase
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'predefined_motivators')
-        .single();
+        .from('system_motivators')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
 
-      const motivatorsList = JSON.parse(data.setting_value || '[]');
+      // Transform system_motivators to match the PredefinedMotivator interface
+      const motivatorsList = (data || []).map((m: any) => ({
+        title: m.title,
+        content: m.content,
+        category: m.category || 'personal',
+        imageUrl: m.male_image_url || m.female_image_url
+      }));
       setMotivators(motivatorsList);
     } catch (error) {
-      console.error('Error loading predefined motivators:', error);
-      // Fallback to empty array if no predefined motivators found
+      console.error('Error loading system motivators:', error);
+      // Fallback to empty array if no system motivators found
       setMotivators([]);
     } finally {
       setLoading(false);
