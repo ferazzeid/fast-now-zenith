@@ -192,12 +192,12 @@ export default function MotivatorIdeas() {
                                   <TooltipTrigger asChild>
                                     <Button 
                                       size="sm" 
-                                      variant="outline" 
+                                      variant="link" 
                                        onClick={() => window.open(goal.linkUrl, '_blank', 'noopener,noreferrer')}
-                                      className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
+                                      className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium" 
                                       aria-label="Read full story"
                                     >
-                                      <ExternalLink className="w-3 h-3" />
+                                      Read More <ExternalLink className="w-3 h-3 ml-1" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>

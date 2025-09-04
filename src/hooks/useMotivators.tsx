@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
 import { useMotivatorCache } from './useMotivatorCache';
 import { generateUniqueSlug } from '@/utils/slugUtils';
+import { validateAndFixUrl } from '@/utils/urlUtils';
 
 export interface Motivator {
   id: string;
@@ -64,7 +65,7 @@ export const useMotivators = () => {
       const transformedData = (data || []).map((item: any) => ({
         ...item,
         imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
-        linkUrl: item.link_url || item.linkUrl || null, // Handle both field names and provide fallback
+        linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
         show_in_animations: item.show_in_animations ?? true // Default to true if not set
       }));
       
