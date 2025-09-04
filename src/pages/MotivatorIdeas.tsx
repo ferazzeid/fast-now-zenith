@@ -76,6 +76,12 @@ export default function MotivatorIdeas() {
   };
 
   const handleEdit = (goal: AdminGoalIdea) => {
+    console.log('🎯 EDIT BUTTON CLICKED - Goal being edited:', {
+      id: goal.id,
+      title: goal.title,
+      linkUrl: goal.linkUrl,
+      fullObject: goal
+    });
     setEditingGoal(goal);
   };
 
