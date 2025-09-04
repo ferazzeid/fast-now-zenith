@@ -42,13 +42,6 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
 
   useEffect(() => {
     if (goal) {
-      console.log('📝 EDIT MODAL - Loading goal data into form:', {
-        goalId: goal.id,
-        title: goal.title,
-        linkUrl: goal.linkUrl,
-        fullGoalObject: goal
-      });
-      console.log('🔗 EDIT MODAL - Link URL being set to:', goal.linkUrl);
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
@@ -59,11 +52,6 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       setInlineError('');
       setInlineSuccess('');
       setComponentKey(prev => prev + 1);
-      
-      // Debug log the actual input value after setting
-      setTimeout(() => {
-        console.log('🔗 EDIT MODAL - Final linkUrl state:', linkUrl);
-      }, 100);
     }
   }, [goal]);
 

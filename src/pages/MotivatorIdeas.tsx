@@ -28,29 +28,15 @@ export default function MotivatorIdeas() {
   const { profile } = useProfile();
   const { isAdmin } = useAccess();
   
-  const { goalIdeas, loading, refreshGoalIdeas, updateGoalIdea, removeGoalIdea } = useAdminGoalIdeas();
+  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh, updateGoalIdea, removeGoalIdea } = useAdminGoalIdeas();
   const { createMotivator } = useMotivators();
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
   const [forceRenderKey, setForceRenderKey] = useState(0);
   useEffect(() => {
-    console.log('🔄 Force refreshing goal ideas on page load...');
     refreshGoalIdeas();
-  }, []); // Empty dependency array to run only once on mount
-
-  // Debug log to see what goalIdeas data is actually in the component
-  useEffect(() => {
-    if (goalIdeas && goalIdeas.length > 0) {
-      console.log('🎯 MotivatorIdeas component goalIdeas data:', goalIdeas.map(goal => ({
-        title: goal.title,
-        linkUrl: goal.linkUrl,
-        hasLinkUrl: !!goal.linkUrl
-      })));
-      // Force re-render when goalIdeas changes to ensure UI updates
-      setForceRenderKey(prev => prev + 1);
-    }
-  }, [goalIdeas]);
+  }, []);
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
@@ -76,28 +62,33 @@ export default function MotivatorIdeas() {
   };
 
   const handleEdit = (goal: AdminGoalIdea) => {
-    console.log('🎯 EDIT BUTTON CLICKED - Goal being edited:', {
-      id: goal.id,
-      title: goal.title,
-      linkUrl: goal.linkUrl,
-      fullObject: goal
-    });
     setEditingGoal(goal);
+  };
+
+  const handleForceRefresh = async () => {
+    // Clear all possible caches
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Force refresh goal ideas with cache bypass
+    await forceRefresh();
+    
+    toast({
+      title: "Data Refreshed",
+      description: "All caches cleared and fresh data loaded.",
+    });
   };
 
   const handleSaveEdit = useCallback(async (updatedGoal: AdminGoalIdea) => {
     try {
-      console.log('Saving edit with data:', updatedGoal);
       const success = await updateGoalIdea(updatedGoal.id, updatedGoal);
       if (success) {
-        console.log('✅ Update successful, clearing modal...');
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
         setEditingGoal(null);
       } else {
         throw new Error('Update failed');
       }
     } catch (e) {
-      console.error('Update error:', e);
       toast({ title: 'Error', description: 'Failed to update idea.', variant: 'destructive' });
     }
   }, [updateGoalIdea, toast]);
@@ -110,19 +101,27 @@ export default function MotivatorIdeas() {
     <GoalIdeasErrorBoundary>
       <div className="pt-20 pb-20 relative"> {/* Increased spacing from deficit bar */}
         
-      <header className="mb-4 relative">
-        <h1 className="text-xl font-bold text-warm-text">Goal Ideas</h1>
-        {/* Simple close button - aligned with Goal Ideas title */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/')}
-          className="absolute right-0 top-0 w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0 z-10"
-          aria-label="Close Goal Ideas"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </header>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold text-foreground">Goal Ideas</h1>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleForceRefresh}
+              className="text-sm"
+            >
+              Force Refresh
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
       <main>
         {loading ? (
@@ -194,10 +193,7 @@ export default function MotivatorIdeas() {
                                     <Button 
                                       size="sm" 
                                       variant="outline" 
-                                      onClick={() => {
-                                        console.log('🔗 Opening link:', goal.linkUrl);
-                                        window.open(goal.linkUrl, '_blank', 'noopener,noreferrer');
-                                      }}
+                                       onClick={() => window.open(goal.linkUrl, '_blank', 'noopener,noreferrer')}
                                       className="p-1 h-6 w-6 rounded-md border-ceramic-rim hover:bg-ceramic-base text-muted-foreground hover:text-warm-text story-link" 
                                       aria-label="Read full story"
                                     >
