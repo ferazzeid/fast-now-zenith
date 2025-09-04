@@ -65,19 +65,6 @@ export default function MotivatorIdeas() {
     setEditingGoal(goal);
   };
 
-  const handleForceRefresh = async () => {
-    // Clear all possible caches
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Force refresh goal ideas with cache bypass
-    await forceRefresh();
-    
-    toast({
-      title: "Data Refreshed",
-      description: "All caches cleared and fresh data loaded.",
-    });
-  };
 
   const handleSaveEdit = useCallback(async (updatedGoal: AdminGoalIdea) => {
     try {
@@ -103,24 +90,14 @@ export default function MotivatorIdeas() {
         
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-foreground">Goal Ideas</h1>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleForceRefresh}
-              className="text-sm"
-            >
-              Force Refresh
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
       <main>
@@ -165,13 +142,30 @@ export default function MotivatorIdeas() {
                       </div>
                       <div className="flex-1 p-4 pr-2">
                         <div className="flex items-start justify-between h-full">
-                         <div className="flex-1 space-y-1">
+                          <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
                               <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
                             </div>
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
                                 {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{goal.description}</p>}
+                              </div>
+                            )}
+                            
+                            {/* Read More Link */}
+                            {goal.linkUrl && (
+                              <div className="mt-3">
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(goal.linkUrl, '_blank', 'noopener,noreferrer');
+                                  }}
+                                  className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                                >
+                                  Read More <ExternalLink className="w-3 h-3 ml-1" />
+                                </Button>
                               </div>
                             )}
                           </div>
@@ -185,26 +179,7 @@ export default function MotivatorIdeas() {
                                <TooltipContent>
                                  <p>Add this motivator to your goals</p>
                                </TooltipContent>
-                             </Tooltip>
-
-                              {goal.linkUrl && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button 
-                                      size="sm" 
-                                      variant="link" 
-                                       onClick={() => window.open(goal.linkUrl, '_blank', 'noopener,noreferrer')}
-                                      className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium" 
-                                      aria-label="Read full story"
-                                    >
-                                      Read More <ExternalLink className="w-3 h-3 ml-1" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Read full story on website</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
+                              </Tooltip>
 
                             {isAdmin && (
                               <Tooltip>
