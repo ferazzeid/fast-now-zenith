@@ -217,7 +217,7 @@ export const ModalAiChat = ({
           let welcomeMessage = 'Hi! How can I help you today?';
           
           if (title === 'Food Assistant') {
-            welcomeMessage = 'Hi! I can help you add foods, edit foods, or delete foods. Just tell me what you\'d like to do!';
+            welcomeMessage = 'Hi! How can I help you today?';
           } else if (title === 'Motivator Assistant') {
             welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
           }
@@ -1951,8 +1951,8 @@ ${args.content}`,
         )}
         </div>
         
-        {/* Messages end ref positioned at the very bottom with extra spacing for voice input */}
-        <div ref={messagesEndRef} className="h-32" />
+        {/* Messages end ref positioned at the very bottom with minimal spacing for voice input */}
+        <div ref={messagesEndRef} className="h-4" />
         
         {/* Scroll to bottom button */}
         {showScrollButton && (
@@ -1969,7 +1969,7 @@ ${args.content}`,
 
       {/* Voice Input Only - Fixed positioning to prevent overlap */}
       {editingFoodIndex === null && (
-        <div className="bg-background border-t border-border pt-8 pb-8 mt-6 space-y-4 sticky bottom-0 z-10">
+        <div className="bg-background border-t border-border pt-3 pb-3 mt-2 space-y-3 sticky bottom-0 z-10">
           {/* Voice Recording */}
           <div className="w-full flex justify-center">
             <PremiumGate feature="Voice Input" grayOutForFree={true}>
