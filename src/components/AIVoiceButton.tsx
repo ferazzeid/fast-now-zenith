@@ -43,7 +43,7 @@ export const AIVoiceButton = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
-  const { addFoodEntry } = useFoodEntriesQuery();
+  const { addFoodEntry, addMultipleFoodEntries } = useFoodEntriesQuery();
 
   // Add welcome message when modal opens
   useEffect(() => {
@@ -304,15 +304,14 @@ export const AIVoiceButton = () => {
     }
 
     try {
-      for (const food of selectedFoods) {
-        await addFoodEntry({
-          name: food.name,
-          serving_size: food.serving_size || 100,
-          calories: food.calories || 0,
-          carbs: food.carbs || 0,
-          consumed: false
-        });
-      }
+      // Use bulk insert for better performance
+      await addMultipleFoodEntries(selectedFoods.map(food => ({
+        name: food.name,
+        serving_size: food.serving_size || 100,
+        calories: food.calories || 0,
+        carbs: food.carbs || 0,
+        consumed: false
+      })));
       
       const totalCalories = selectedFoods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
       const foodList = selectedFoods.map((food: any) => `${food.name} (${food.serving_size}g)`).join(', ');

@@ -118,6 +118,97 @@ export const useFoodEntriesQuery = () => {
     gcTime: 30 * 60 * 1000,
   });
 
+  // PERFORMANCE: Optimistic add multiple food entries mutation (bulk insert)
+  const addMultipleFoodEntriesMutation = useMutation({
+    mutationFn: async (newEntries: NewFoodEntry[]): Promise<FoodEntry[]> => {
+      if (!user) throw new Error('User not authenticated');
+      if (newEntries.length === 0) return [];
+
+      const entriesToInsert = newEntries.map(entry => ({
+        user_id: user.id,
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        consumed: entry.consumed ?? false,
+        image_url: entry.image_url,
+      }));
+
+      const { data, error } = await supabase
+        .from('food_entries')
+        .insert(entriesToInsert)
+        .select();
+
+      if (error) throw error;
+      return data || [];
+    },
+    onMutate: async (newEntries) => {
+      // PERFORMANCE: Optimistic update for multiple entries
+      await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
+
+      // Generate optimistic entries
+      const optimisticEntries: FoodEntry[] = newEntries.map((entry, index) => ({
+        id: `optimistic-bulk-${Date.now()}-${index}`,
+        user_id: user?.id || '',
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        consumed: entry.consumed ?? false,
+        image_url: entry.image_url,
+        created_at: new Date().toISOString(),
+      }));
+
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => [...optimisticEntries, ...old]
+      );
+
+      return { previousEntries, optimisticEntries };
+    },
+    onError: (err, newEntries, context) => {
+      console.error('🔄 useFoodEntriesQuery: addMultipleFoodEntriesMutation error:', err);
+      console.error('🔄 useFoodEntriesQuery: Failed entries:', newEntries);
+      
+      // Revert optimistic update
+      if (context?.previousEntries) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          context.previousEntries
+        );
+      }
+      
+      toast({
+        variant: "destructive",
+        title: "Failed to Add Foods",
+        description: err instanceof Error ? err.message : "An error occurred while adding foods",
+      });
+    },
+    onSuccess: (data, newEntries, context) => {
+      console.log('🔄 addMultipleFoodEntriesMutation: Success, updating cache with real data');
+      
+      // Replace optimistic entries with real data
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => {
+          // Remove optimistic entries and add real ones
+          const withoutOptimistic = old.filter(entry => 
+            !context?.optimisticEntries?.some(opt => opt.id === entry.id)
+          );
+          return [...data, ...withoutOptimistic];
+        }
+      );
+
+      // Show success notification
+      toast({
+        title: "Foods Added Successfully",
+        description: `Added ${data.length} food${data.length === 1 ? '' : 's'} to your log`,
+      });
+    },
+  });
+
   // PERFORMANCE: Optimistic add food entry mutation
   const addFoodEntryMutation = useMutation({
     mutationFn: async (newEntry: NewFoodEntry): Promise<FoodEntry> => {
@@ -512,6 +603,7 @@ export const useFoodEntriesQuery = () => {
     
     // Actions
     addFoodEntry: addFoodEntryMutation.mutateAsync,
+    addMultipleFoodEntries: addMultipleFoodEntriesMutation.mutateAsync,
     updateFoodEntry: updateFoodEntryMutation.mutateAsync,
     deleteFoodEntry: deleteFoodEntryMutation.mutateAsync,
     toggleConsumption: toggleConsumptionMutation.mutateAsync,
@@ -520,6 +612,7 @@ export const useFoodEntriesQuery = () => {
     
     // Mutation states
     isAddingEntry: addFoodEntryMutation.isPending,
+    isAddingMultipleEntries: addMultipleFoodEntriesMutation.isPending,
     isUpdatingEntry: updateFoodEntryMutation.isPending,
     isDeletingEntry: deleteFoodEntryMutation.isPending,
     isTogglingConsumption: toggleConsumptionMutation.isPending,

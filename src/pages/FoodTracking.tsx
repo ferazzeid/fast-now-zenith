@@ -69,7 +69,7 @@ const FoodTracking = () => {
   const { profile, updateProfile } = useProfile();
   const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
-  const { todayEntries, addFoodEntry, deleteFoodEntry, updateFoodEntry, toggleConsumption, clearAllEntries, refreshFoodEntries } = useFoodEntriesQuery();
+  const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, clearAllEntries, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   const { 
     templateFoods, 
@@ -121,43 +121,29 @@ const FoodTracking = () => {
     }
 
     if (foods.length > 0) {
-      console.log('🍽️ Adding foods sequentially to prevent duplicates:', foods);
+      console.log('🍽️ Adding foods in bulk:', foods.length, 'items');
       
-      let successCount = 0;
-      const failedItems: string[] = [];
-      
-      // Process foods sequentially to prevent race conditions
-      for (const food of foods) {
-        try {
-          console.log('🍽️ Processing food:', food.name);
-          await addFoodEntry({
-            name: food.name,
-            calories: food.calories,
-            carbs: food.carbs,
-            serving_size: food.serving_size,
-            consumed: false,
-            image_url: food.image_url
-          });
-          console.log('🍽️ Successfully added food:', food.name);
-          successCount++;
-        } catch (error) {
-          console.error('🍽️ Error adding food:', food.name, error);
-          failedItems.push(food.name);
-        }
-      }
-      
-      // Remove manual success toast - let the mutation handle it
-      
-      // Show error toast for failed items
-      if (failedItems.length > 0) {
+      try {
+        // Use bulk insert for better performance and user experience
+        await addMultipleFoodEntries(foods.map(food => ({
+          name: food.name,
+          calories: food.calories,
+          carbs: food.carbs,
+          serving_size: food.serving_size,
+          consumed: false,
+          image_url: food.image_url
+        })));
+        
+        console.log('🍽️ Successfully added all foods in bulk');
+        trackFoodEvent('add', 'voice');
+      } catch (error) {
+        console.error('🍽️ Error adding foods in bulk:', error);
         toast({
           variant: "destructive",
-          title: "Some Foods Failed",
-          description: `Failed to add: ${failedItems.join(', ')}`,
+          title: "Failed to Add Foods",
+          description: "Please try again or add foods individually.",
         });
       }
-      
-      trackFoodEvent('add', 'voice');
     } else {
       console.warn('🍽️ No foods found in result:', result);
     }
@@ -172,53 +158,30 @@ const FoodTracking = () => {
     // Handle both single entry and array of entries
     const entries = Array.isArray(data) ? data : [data];
     
-    let successCount = 0;
-    const failedItems: string[] = [];
+    console.log('🍽️ Saving entries in bulk:', entries.length, 'items');
     
-    // Process entries sequentially to prevent race conditions
-    for (const food of entries) {
-      try {
-        const result = await addFoodEntry({
-          name: food.name,
-          calories: food.calories,
-          carbs: food.carbs,
-          serving_size: food.serving_size,
-          consumed: false,
-          image_url: food.image_url
-        });
-        
-        if (!result || 'error' in result) {
-          throw new Error('Failed to save food entry');
-        }
-        
-        successCount++;
-      } catch (error) {
-        console.error('Error adding food:', food.name, error);
-        failedItems.push(food.name);
-      }
-    }
-    
-    // Show appropriate success/error messages
-    if (successCount > 0) {
-      const isMultiple = entries.length > 1;
-      toast({
-        title: isMultiple ? `${successCount} Foods Added` : "Food Added",
-        description: isMultiple 
-          ? `${successCount} food ${successCount === 1 ? 'item has' : 'items have'} been added to your plan`
-          : `${entries[0].name} has been added to your plan`
-      });
+    try {
+      // Use bulk insert for better performance
+      await addMultipleFoodEntries(entries.map(food => ({
+        name: food.name,
+        calories: food.calories,
+        carbs: food.carbs,
+        serving_size: food.serving_size,
+        consumed: false,
+        image_url: food.image_url
+      })));
       
-      trackFoodEvent('add', entries[0].image_url ? 'image' : 'manual');
-    }
-    
-    if (failedItems.length > 0) {
+      console.log('🍽️ Successfully saved all entries in bulk');
+      trackFoodEvent('add', 'manual');
+    } catch (error) {
+      console.error('🍽️ Error saving entries in bulk:', error);
       toast({
         variant: "destructive",
-        title: "Some Foods Failed",
-        description: `Failed to add: ${failedItems.join(', ')}`
+        title: "Failed to Save Foods",
+        description: "Please try again or add foods individually.",
       });
     }
-    
+
     // Don't automatically close the modal - let UnifiedFoodEntry manage its own state
     // This prevents premature closing during photo analysis workflow
   };
