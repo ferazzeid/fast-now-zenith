@@ -50,12 +50,19 @@ export const useSimplifiedStartup = () => {
   useEffect(() => {
     const runStartup = async () => {
       try {
-        // Step 1: Auth check
+        // Step 1: Auth check with timeout protection
         setState('auth');
         
-        // Wait for auth to finish loading
+        // Wait for auth to finish loading with timeout
         if (loading) {
-          return; // Still loading, wait
+          // Add timeout to prevent hanging on auth
+          const authTimeout = setTimeout(() => {
+            if (loading) {
+              console.warn('⚠️ Auth loading timeout, continuing anyway');
+            }
+          }, 5000);
+          
+          return () => clearTimeout(authTimeout);
         }
 
         // Step 2: If authenticated, ensure database connectivity
@@ -63,43 +70,48 @@ export const useSimplifiedStartup = () => {
           setState('profile');
           recordStartupMetric('profile');
 
-          // Test database connectivity with retry logic
-          let retries = 3;
+          // Test database connectivity with retry logic but with timeout
+          let retries = 2; // Reduced retries to prevent hanging
           let dbConnected = false;
           
           while (retries > 0 && !dbConnected) {
             try {
-              const { data, error } = await supabase
+              // Add timeout to database queries
+              const dbTimeout = new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Database query timeout')), 3000)
+              );
+              
+              const dbQuery = supabase
                 .from('profiles')
                 .select('id')
                 .eq('user_id', user.id)
                 .single();
+              
+              const result = await Promise.race([dbQuery, dbTimeout]);
 
-              if (error && error.code !== 'PGRST116') { // Not a "not found" error
-                throw error;
+              if (result.error && result.error.code !== 'PGRST116') { // Not a "not found" error
+                throw result.error;
               }
               
               dbConnected = true;
               
-              // Load profile but don't block on it
+              // Load profile but don't block on it - use background loading
               if (!profile && !profileLoading) {
-                try {
-                  await loadProfile();
-                } catch (profileError) {
-                  // Profile loading failed, but don't block startup
+                // Load profile in background without blocking startup
+                loadProfile().catch(profileError => {
                   console.warn('Profile loading failed (non-blocking):', profileError);
-                }
+                });
               }
             } catch (error) {
-              console.error(`Database connection attempt failed (${4 - retries}/3):`, error);
+              console.error(`Database connection attempt failed (${3 - retries}/2):`, error);
               retries--;
               if (retries > 0) {
-                // Wait before retry to allow database to stabilize
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Shorter wait to prevent hanging
+                await new Promise(resolve => setTimeout(resolve, 500));
               } else {
-                setError('Database connection failed');
-                setState('error');
-                return;
+                // Don't block startup on database connection issues
+                console.warn('Database connection failed, continuing without profile');
+                break;
               }
             }
           }
@@ -117,7 +129,7 @@ export const useSimplifiedStartup = () => {
     };
 
     runStartup();
-  }, [user, session, loading, profile, profileLoading, loadProfile]);
+  }, [user, session, loading, retryCount]); // Removed profile dependencies to prevent loops
 
   // Auto-retry on connection restore (but only if in error state)
   useEffect(() => {

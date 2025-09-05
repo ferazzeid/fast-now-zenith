@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { queryClient } from '@/lib/query-client';
+import { useLoadingDebounce } from './useLoadingDebounce';
 
 export interface AdminGoalIdea {
   id: string;
@@ -51,41 +52,37 @@ export const useAdminGoalIdeas = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { startOperation, isLoading: debounceLoading } = useLoadingDebounce({
+    debounceMs: 300,
+    maxConcurrent: 1
+  });
 
   const loadGoalIdeas = async (forceClear: boolean = false) => {
-    console.log('🔄 AGGRESSIVE REFRESH: Loading admin goal ideas from system_motivators');
-    
-    // ALWAYS clear ALL caches aggressively
-    console.log('🧹 NUCLEAR CACHE CLEAR: Removing all possible cached data...');
-    
-    // Clear React Query cache
-    queryClient.invalidateQueries();
-    queryClient.clear();
-    
-    // Clear all localStorage entries that might contain cached data
-    try {
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('goal') || key.includes('motivator') || key.includes('cache') || key.includes('admin'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+    const result = await startOperation('load-admin-goals', async () => {
+      console.log('🔄 Loading admin goal ideas from system_motivators');
       
-      // Also clear sessionStorage
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i);
-        if (key && (key.includes('goal') || key.includes('motivator') || key.includes('cache') || key.includes('admin'))) {
-          sessionStorage.removeItem(key);
+      // Only clear specific admin goal caches, not all caches
+      if (forceClear) {
+        console.log('🧹 Clearing admin goal specific caches...');
+        
+        // Clear only admin goal related React Query cache
+        queryClient.invalidateQueries({ queryKey: ['admin-goals'] });
+        queryClient.invalidateQueries({ queryKey: ['system-motivators'] });
+        
+        // Clear only admin goal specific localStorage entries
+        try {
+          const adminGoalKeys = ['admin-goal-cache', 'admin-goal-timestamp', 'system-motivators-cache'];
+          adminGoalKeys.forEach(key => {
+            localStorage.removeItem(key);
+            sessionStorage.removeItem(key);
+          });
+        } catch (e) {
+          console.warn('Admin goal cache clearing issue:', e);
         }
       }
-    } catch (e) {
-      console.warn('Cache clearing issue:', e);
-    }
-    
-    try {
-      setLoading(true);
+      
+      try {
+        setLoading(true);
       
       console.log('📡 Fetching FRESH data from system_motivators table...');
       
@@ -145,9 +142,12 @@ export const useAdminGoalIdeas = () => {
     } catch (error) {
       console.error('💥 CRITICAL ERROR loading goal ideas:', error);
       setGoalIdeas([]);
-    } finally {
-      setLoading(false);
-    }
+      } finally {
+        setLoading(false);
+      }
+    });
+    
+    return result;
   };
 
   useEffect(() => {
@@ -157,10 +157,14 @@ export const useAdminGoalIdeas = () => {
 
   const forceRefresh = () => {
     console.log('🔄 Force refreshing admin goal ideas from system_motivators...');
-    // Clear all possible caches
-    localStorage.clear();
-    sessionStorage.clear();
-    queryClient.clear();
+    // Clear only admin goal specific caches
+    const adminGoalKeys = ['admin-goal-cache', 'admin-goal-timestamp', 'system-motivators-cache'];
+    adminGoalKeys.forEach(key => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    queryClient.invalidateQueries({ queryKey: ['admin-goals'] });
+    queryClient.invalidateQueries({ queryKey: ['system-motivators'] });
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -245,7 +249,7 @@ export const useAdminGoalIdeas = () => {
 
   return {
     goalIdeas,
-    loading,
+    loading: loading || debounceLoading,
     refreshGoalIdeas: () => loadGoalIdeas(true),
     forceRefresh,
     updateGoalIdea,

@@ -85,8 +85,7 @@ const Motivators = () => {
           : "Your new motivator has been saved successfully.",
       });
       
-      // Single refresh call
-      refreshMotivators();
+      // No need to refresh - useMotivators already handles state updates
       
       return result;
     } catch (error) {
@@ -147,7 +146,7 @@ const Motivators = () => {
           description: "Your changes have been saved.",
         });
         
-        refreshMotivators();
+        // No need to refresh - useMotivators already handles state updates
       }
     } catch (error) {
       toast({

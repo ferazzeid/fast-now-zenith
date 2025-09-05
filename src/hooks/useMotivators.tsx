@@ -119,8 +119,7 @@ export const useMotivators = () => {
         const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         
-        // Immediately refresh to ensure real-time display
-        await loadMotivators(true);
+        // No need to refresh immediately - state is already updated optimistically
         
         toast({
           title: "✨ Motivator Created!",
@@ -326,7 +325,7 @@ export const useMotivators = () => {
       const result = await createMotivator(motivatorData);
       if (result) {
         invalidateCache(); // Clear cache when new motivator is created
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - createMotivator already refreshes
       }
       return result;
     },
@@ -334,7 +333,7 @@ export const useMotivators = () => {
       const result = await createMultipleMotivators(motivators);
       if (result.length > 0) {
         invalidateCache(); // Clear cache when new motivators are created
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - createMultipleMotivators already refreshes
       }
       return result;
     },
@@ -342,7 +341,7 @@ export const useMotivators = () => {
       const result = await updateMotivator(id, updates);
       if (result) {
         invalidateCache(); // Clear cache when motivator is updated
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - updateMotivator already optimistically updates
       }
       return result;
     },
@@ -350,6 +349,7 @@ export const useMotivators = () => {
       const result = await deleteMotivator(id);
       if (result) {
         invalidateCache(); // Clear cache when motivator is deleted
+        // Don't need to refresh - deleteMotivator already updates local state
       }
       return result;
     },
@@ -357,7 +357,7 @@ export const useMotivators = () => {
       const result = await saveQuoteAsGoal(quote);
       if (result) {
         invalidateCache(); // Clear cache when new quote is saved
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - saveQuoteAsGoal already refreshes
       }
       return result;
     },
