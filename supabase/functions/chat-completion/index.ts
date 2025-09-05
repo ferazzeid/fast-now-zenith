@@ -287,11 +287,13 @@ IMPORTANT CONVERSATION FLOW HANDLING:
 - When users provide serving sizes or quantities in response to your questions, automatically apply those changes
 - Pay attention to context clues like "each", "per item", "all of them", "only X items" to determine modification type
 
-CRITICAL FOOD QUANTITY INTERPRETATION:
-- Weight+Food = Single Serving: "1kg cucumbers", "500g chicken", "200g rice" → ONE entry with that serving size
-- Count+Food = Multiple Items: "3 cucumbers", "two apples", "four yogurts" → Multiple separate entries
-- Count+Weight+Each = Multiple Items: "3 cucumbers, each 250g", "two yogurts, each 160g" → Multiple entries of specified size each
-- When ambiguous, ask for clarification: "Do you mean one 1kg serving of cucumbers, or multiple individual cucumbers totaling 1kg?"
+CRITICAL FOOD QUANTITY INTERPRETATION - FOLLOW EXACTLY:
+- Weight+Food = Single Serving: "1kg cucumbers", "500g chicken" → ONE entry with that serving size
+- Count+Food = Multiple Items: "3 cucumbers", "two apples", "four yogurts" → EXACTLY that number of separate entries
+- Count+Weight+Each = Multiple Items: "3 cucumbers, each 250g" → EXACTLY 3 entries, each 250g
+- Mixed Requests: Parse each item independently. "3 yogurts, 1kg cucumbers, 2 apples" = 3+1+2 = 6 total entries
+- NEVER create duplicate entries for the same request. Each mentioned food creates its specified quantity only
+- Validate totals: If user says "3 yogurts, 1kg cucumbers, 3 individual cucumbers", expect EXACTLY 7 entries (3+1+3)
 
 CAPABILITIES: You can help users with fasting sessions, walking sessions, food tracking, motivators, and app calculations.`;
 
@@ -600,7 +602,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add food entries to the user's food log. QUANTITY RULES: (1) COUNT + FOOD = MULTIPLE ENTRIES: '6 eggs', '3 bananas', '5 packages of ham' → Create that EXACT number of separate entries (6 egg entries, 3 banana entries, 5 ham entries). (2) WEIGHT + FOOD = SINGLE ENTRY: '1kg cucumbers', '500g chicken' → Create ONE entry with that total weight. EXAMPLES: '6 eggs, 3 cucumbers, 5 packages ham' = 14 total entries (6+3+5). '1kg cucumbers' = 1 entry with 1000g serving size.",
+              description: "Add food entries to the user's food log. CRITICAL QUANTITY RULES: (1) COUNT + FOOD = MULTIPLE ENTRIES: '3 yogurts', '5 eggs' → Create EXACTLY that number of separate entries. (2) WEIGHT + FOOD = SINGLE ENTRY: '1kg cucumbers', '500g chicken' → Create ONE entry with that serving size. (3) MIXED REQUESTS: '3 yogurts, 1kg cucumbers, 5 individual apples' → 3 yogurt entries + 1 cucumber entry (1000g) + 5 apple entries = 9 total entries. NEVER create duplicates. Each food mentioned should result in the EXACT number specified, no more, no less. Count each request separately and validate totals.",
               parameters: {
                 type: "object",
                 properties: {
@@ -1024,11 +1026,13 @@ FOOD OPERATIONS YOU CAN PERFORM:
 - Modify recent food entries (modify_recent_foods)
 - Access food data (get_recent_foods, get_favorite_default_foods, copy_yesterday_foods, get_today_food_totals, get_daily_food_templates)
 
-CRITICAL QUANTITY HANDLING: 
-- COUNT + FOOD = MULTIPLE ENTRIES: "6 eggs" = 6 separate egg entries, "3 bananas" = 3 separate banana entries, "5 packages ham" = 5 separate ham entries
-- WEIGHT + FOOD = SINGLE ENTRY: "1kg cucumbers" = 1 entry with 1000g serving, "500g chicken" = 1 entry with 500g serving
-- EXAMPLES: "6 eggs, 3 cucumbers, 5 packages" = 14 total entries (6+3+5). "1kg cucumbers, 500g chicken" = 2 total entries
-- ALWAYS count correctly: If user asks for specific numbers, create that EXACT number of entries
+CRITICAL QUANTITY HANDLING - FOLLOW EXACTLY:
+- COUNT + FOOD = MULTIPLE ENTRIES: "3 yogurts" = 3 separate yogurt entries, "5 eggs" = 5 separate egg entries
+- WEIGHT + FOOD = SINGLE ENTRY: "1kg cucumbers" = 1 entry with 1000g serving, "500g chicken" = 1 entry with 500g serving  
+- MIXED REQUESTS: Parse each item independently. "3 yogurts, 1kg cucumbers, 2 apples" = 3+1+2 = 6 total entries
+- NEVER create duplicate entries. Each mentioned food creates its specified quantity ONLY
+- VALIDATE TOTALS: "3 yogurts, 1kg cucumbers, 3 individual cucumbers" = EXACTLY 7 entries (3+1+3), not more
+- COUNT VERIFICATION: Before responding, verify your total matches the sum of all individual quantities requested
 
 EDITING/DELETING: When users want to edit/change/delete foods, FIRST use search_foods_for_edit to find the item.
 
