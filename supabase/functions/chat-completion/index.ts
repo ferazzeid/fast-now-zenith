@@ -600,7 +600,7 @@ When explaining app calculations, use the exact formulas and constants above. He
             type: "function",
             function: {
               name: "add_multiple_foods",
-              description: "Add food entries to the user's food log. CRITICAL DISTINCTION: (1) EXPLICIT MULTIPLE ITEMS: When user says 'three Greek yogurts, each 160g' or 'two apples, each 100g', create SEPARATE entries for each physical item. (2) SINGLE LARGE SERVINGS: When user says '1kg cucumbers', '500g chicken breast', or '200g rice', create ONE single entry with that total serving size - this is not multiple items but one large portion. RULE: Only create multiple entries when user explicitly mentions count numbers (two, three, four) or plural with individual weights (each X grams). Weight+food combinations (1kg cucumbers, 500g meat) = single serving entry.",
+              description: "Add food entries to the user's food log. QUANTITY RULES: (1) COUNT + FOOD = MULTIPLE ENTRIES: '6 eggs', '3 bananas', '5 packages of ham' → Create that EXACT number of separate entries (6 egg entries, 3 banana entries, 5 ham entries). (2) WEIGHT + FOOD = SINGLE ENTRY: '1kg cucumbers', '500g chicken' → Create ONE entry with that total weight. EXAMPLES: '6 eggs, 3 cucumbers, 5 packages ham' = 14 total entries (6+3+5). '1kg cucumbers' = 1 entry with 1000g serving size.",
               parameters: {
                 type: "object",
                 properties: {
@@ -1025,9 +1025,10 @@ FOOD OPERATIONS YOU CAN PERFORM:
 - Access food data (get_recent_foods, get_favorite_default_foods, copy_yesterday_foods, get_today_food_totals, get_daily_food_templates)
 
 CRITICAL QUANTITY HANDLING: 
-- Weight+Food = Single Serving: "1kg cucumbers", "500g chicken" → ONE entry with that serving size
-- Count+Food = Multiple Items: "two cucumbers", "three bananas" → Multiple separate entries
-- Only create multiple entries when explicit count is mentioned, not for weight specifications
+- COUNT + FOOD = MULTIPLE ENTRIES: "6 eggs" = 6 separate egg entries, "3 bananas" = 3 separate banana entries, "5 packages ham" = 5 separate ham entries
+- WEIGHT + FOOD = SINGLE ENTRY: "1kg cucumbers" = 1 entry with 1000g serving, "500g chicken" = 1 entry with 500g serving
+- EXAMPLES: "6 eggs, 3 cucumbers, 5 packages" = 14 total entries (6+3+5). "1kg cucumbers, 500g chicken" = 2 total entries
+- ALWAYS count correctly: If user asks for specific numbers, create that EXACT number of entries
 
 EDITING/DELETING: When users want to edit/change/delete foods, FIRST use search_foods_for_edit to find the item.
 

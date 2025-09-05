@@ -362,38 +362,18 @@ You are a motivational goal creation assistant. Your task is to:
       // Handle function calls for food and motivator suggestions
       if (data.functionCall) {
         if (data.functionCall.name === 'add_multiple_foods') {
-          let newFoods = data.functionCall.arguments?.foods || [];
+          const newFoods = data.functionCall.arguments?.foods || [];
           console.log('📊 New foods received:', newFoods.length, 'items');
           
-          // Validate quantity expectations and CORRECT if wrong
+          // Log expected vs actual for debugging
           const expectedCount = parseExpectedFoodCount(message);
           console.log('📊 Expected food count from user message:', expectedCount);
           console.log('📊 Actual food count received:', newFoods.length);
           
-          // AUTO-CORRECT: If AI returned wrong quantity, fix it client-side
-          if (expectedCount > 0 && newFoods.length !== expectedCount) {
-            console.warn('🔧 FIXING quantity mismatch! Expected:', expectedCount, 'Got:', newFoods.length);
-            
-            if (newFoods.length > 0) {
-              // Use first food as template and create the correct quantity
-              const templateFood = newFoods[0];
-              newFoods = Array.from({ length: expectedCount }, () => ({ ...templateFood }));
-              console.log('✅ Corrected to', newFoods.length, 'items using template:', templateFood.name);
-              
-              // Show correction message
-              const correctionMessage: Message = {
-                role: 'assistant',
-                content: `✅ Corrected: You asked for ${expectedCount} ${templateFood.name}${expectedCount > 1 ? 's' : ''}, creating ${expectedCount} entries as requested.`,
-                timestamp: new Date()
-              };
-              addMessage(correctionMessage);
-            }
-          }
-          
           // Track in conversation memory
           addFoodAction(message, newFoods, 'add');
           
-          // ACCUMULATE foods instead of overwriting (only if not added yet)
+          // ACCUMULATE foods instead of overwriting
           const allFoods = lastFoodSuggestion?.added === false 
             ? [...(lastFoodSuggestion.foods || []), ...newFoods]
             : newFoods;
