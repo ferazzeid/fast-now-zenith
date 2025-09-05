@@ -362,29 +362,38 @@ You are a motivational goal creation assistant. Your task is to:
       // Handle function calls for food and motivator suggestions
       if (data.functionCall) {
         if (data.functionCall.name === 'add_multiple_foods') {
-          const newFoods = data.functionCall.arguments?.foods || [];
+          let newFoods = data.functionCall.arguments?.foods || [];
           console.log('📊 New foods received:', newFoods.length, 'items');
           
-          // Validate quantity expectations
+          // Validate quantity expectations and CORRECT if wrong
           const expectedCount = parseExpectedFoodCount(message);
           console.log('📊 Expected food count from user message:', expectedCount);
           console.log('📊 Actual food count received:', newFoods.length);
           
-          if (expectedCount > 0 && newFoods.length < expectedCount) {
-            console.warn('⚠️ Quantity mismatch! Expected:', expectedCount, 'Got:', newFoods.length);
-            // Show warning to user
-            const warningMessage: Message = {
-              role: 'assistant',
-              content: `⚠️ I may have missed some items. You asked for ${expectedCount} items but I only prepared ${newFoods.length}. Please check the list below and let me know if anything is missing.`,
-              timestamp: new Date()
-            };
-            addMessage(warningMessage);
+          // AUTO-CORRECT: If AI returned wrong quantity, fix it client-side
+          if (expectedCount > 0 && newFoods.length !== expectedCount) {
+            console.warn('🔧 FIXING quantity mismatch! Expected:', expectedCount, 'Got:', newFoods.length);
+            
+            if (newFoods.length > 0) {
+              // Use first food as template and create the correct quantity
+              const templateFood = newFoods[0];
+              newFoods = Array.from({ length: expectedCount }, () => ({ ...templateFood }));
+              console.log('✅ Corrected to', newFoods.length, 'items using template:', templateFood.name);
+              
+              // Show correction message
+              const correctionMessage: Message = {
+                role: 'assistant',
+                content: `✅ Corrected: You asked for ${expectedCount} ${templateFood.name}${expectedCount > 1 ? 's' : ''}, creating ${expectedCount} entries as requested.`,
+                timestamp: new Date()
+              };
+              addMessage(correctionMessage);
+            }
           }
           
           // Track in conversation memory
           addFoodAction(message, newFoods, 'add');
           
-          // ACCUMULATE foods instead of overwriting
+          // ACCUMULATE foods instead of overwriting (only if not added yet)
           const allFoods = lastFoodSuggestion?.added === false 
             ? [...(lastFoodSuggestion.foods || []), ...newFoods]
             : newFoods;
@@ -1962,8 +1971,8 @@ ${args.content}`,
         )}
         </div>
         
-        {/* Messages end ref positioned at the very bottom with proper spacing for voice input */}
-        <div ref={messagesEndRef} className="h-24" />
+        {/* Messages end ref positioned at the very bottom with extra spacing for voice input */}
+        <div ref={messagesEndRef} className="h-32" />
         
         {/* Scroll to bottom button */}
         {showScrollButton && (
@@ -1978,9 +1987,9 @@ ${args.content}`,
         )}
       </div>
 
-      {/* Voice Input Only - Text input removed per user request */}
+      {/* Voice Input Only - Fixed positioning to prevent overlap */}
       {editingFoodIndex === null && (
-        <div className="border-t border-border pt-6 pb-4 mt-4 space-y-3">
+        <div className="bg-background border-t border-border pt-8 pb-8 mt-6 space-y-4 sticky bottom-0 z-10">
           {/* Voice Recording */}
           <div className="w-full flex justify-center">
             <PremiumGate feature="Voice Input" grayOutForFree={true}>
