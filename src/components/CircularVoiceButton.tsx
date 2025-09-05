@@ -333,8 +333,8 @@ export const CircularVoiceButton = React.forwardRef<
       
       // Show immediate feedback that we're processing
       toast({
-        title: "Processing voice...",
-        description: "Converting speech to text",
+        title: "Got it!",
+        description: "Converting your speech...",
         duration: 2000,
         className: "bg-blue-50 border-blue-200"
       });
@@ -453,10 +453,10 @@ export const CircularVoiceButton = React.forwardRef<
   };
 
   const getStatusText = () => {
-    if (isProcessing) return 'Processing...';
+    if (isProcessing) return 'Listening...';
     if (isRecording) return `Recording ${recordingTime}s`;
-    if (hasPermission === false) return 'Mic access needed';
-    return 'Tap to record';
+    if (hasPermission === false) return 'Mic needed';
+    return 'Tap to speak';
   };
 
   return (
@@ -505,7 +505,7 @@ export const CircularVoiceButton = React.forwardRef<
             <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
             <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
-          <span>Transcribing audio...</span>
+          <span>Converting speech...</span>
         </div>
       )}
     </div>

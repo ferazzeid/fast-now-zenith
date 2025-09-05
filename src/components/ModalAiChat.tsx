@@ -58,7 +58,6 @@ export const ModalAiChat = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
@@ -110,36 +109,44 @@ export const ModalAiChat = ({
   const goalCalculations = useGoalCalculations();
 
 
-  // Smart auto-scrolling that respects user scroll position
+  // Force scroll to bottom whenever messages change or modal opens
   useEffect(() => {
-    if (!isUserScrolling && messages.length > 0) {
-      requestAnimationFrame(() => {
+    if (messages.length > 0) {
+      // Use setTimeout to ensure DOM is updated first
+      setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      });
+      }, 100);
     }
-  }, [messages, isUserScrolling]);
+  }, [messages.length, isOpen]);
 
-  // Handle scroll tracking
+  // Scroll to bottom on modal open
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 200);
+    }
+  }, [isOpen]);
+
+  // Handle scroll tracking - simplified
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-    setIsUserScrolling(!isNearBottom);
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
     setShowScrollButton(!isNearBottom && messages.length > 0);
   };
 
   // Scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    setIsUserScrolling(false);
     setShowScrollButton(false);
   };
 
-  // Auto-scroll to calorie summary when food suggestions appear
+  // Auto-scroll to bottom when food suggestions appear
   useEffect(() => {
     if (lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0) {
       setTimeout(() => {
-        calorieSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 200);
     }
   }, [lastFoodSuggestion?.foods]);
 
@@ -211,7 +218,6 @@ export const ModalAiChat = ({
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
-      setIsUserScrolling(false);
       setShowScrollButton(false);
     }
   }, [isOpen, context, conversationType, proactiveMessage, title, isInitialized]);
