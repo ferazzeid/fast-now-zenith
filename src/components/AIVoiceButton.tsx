@@ -60,7 +60,7 @@ export const AIVoiceButton = () => {
           welcomeMessage = "I can help you manage your fasting sessions, track progress, and provide guidance.";
           break;
         case '/food-tracking':
-          welcomeMessage = "I can help you add foods, track calories, and answer nutrition questions.";
+          welcomeMessage = "You can add, edit, and remove foods with this functionality.";
           break;
         case '/motivators':
           welcomeMessage = "I can help you create, edit, and manage your motivational content.";
@@ -751,7 +751,7 @@ export const AIVoiceButton = () => {
               </div>
 
               {/* Voice Button at Bottom */}
-              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 mb-safe-bottom">
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 mb-safe-bottom">
                 <PremiumGatedCircularVoiceButton
                   onTranscription={handleVoiceTranscription}
                   isDisabled={isProcessing}
