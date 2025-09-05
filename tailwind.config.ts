@@ -93,6 +93,12 @@ export default {
 				ai: {
 					DEFAULT: 'hsl(var(--ai))',
 					foreground: 'hsl(var(--ai-foreground))'
+				},
+				'chat-ai': {
+					DEFAULT: 'hsl(var(--chat-ai))'
+				},
+				'chat-user': {
+					DEFAULT: 'hsl(var(--chat-user))'
 				}
 			},
 			borderRadius: {

@@ -7,6 +7,8 @@ interface ColorSettings {
   secondary_color?: string;
   accent_color?: string;
   ai_color?: string;
+  chat_ai_color?: string;
+  chat_user_color?: string;
 }
 
 export const useColorTheme = (shouldLoad: boolean = true) => {
@@ -24,7 +26,7 @@ export const useColorTheme = (shouldLoad: boolean = true) => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color']);
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color', 'chat_ai_color', 'chat_user_color']);
 
       if (error) {
         console.error('Error loading color settings:', error);
@@ -54,6 +56,10 @@ export const useColorTheme = (shouldLoad: boolean = true) => {
           settings.accent_color = setting.setting_value;
         } else if (setting.setting_key === 'brand_ai_color') {
           settings.ai_color = setting.setting_value;
+        } else if (setting.setting_key === 'chat_ai_color') {
+          settings.chat_ai_color = setting.setting_value;
+        } else if (setting.setting_key === 'chat_user_color') {
+          settings.chat_user_color = setting.setting_value;
         }
       });
 
@@ -111,6 +117,16 @@ export const useColorTheme = (shouldLoad: boolean = true) => {
       // The values from database are already in HSL format
       root.style.setProperty('--ai', settings.ai_color);
     }
+
+    if (settings.chat_ai_color) {
+      // The values from database are already in HSL format
+      root.style.setProperty('--chat-ai', settings.chat_ai_color);
+    }
+
+    if (settings.chat_user_color) {
+      // The values from database are already in HSL format
+      root.style.setProperty('--chat-user', settings.chat_user_color);
+    }
   };
 
   // Apply neutral default colors while loading database colors
@@ -125,6 +141,8 @@ export const useColorTheme = (shouldLoad: boolean = true) => {
     root.style.setProperty('--secondary', '220 13% 40%');
     root.style.setProperty('--accent', '220 13% 50%');
     root.style.setProperty('--ai', '220 13% 50%');
+    root.style.setProperty('--chat-ai', '262 83% 58%');
+    root.style.setProperty('--chat-user', '188 94% 43%');
   };
 
 

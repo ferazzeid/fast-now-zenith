@@ -59,8 +59,8 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
         "group relative max-w-xs rounded-2xl px-4 py-3 shadow-lg backdrop-blur-sm",
         "border border-border/50",
         isUser 
-          ? "ml-auto bg-primary text-primary-foreground" 
-          : "mr-auto bg-background/95 text-foreground"
+          ? "ml-auto bg-chat-user/90 border-chat-user/50 text-white" 
+          : "mr-auto bg-chat-ai/90 border-chat-ai/50 text-white"
       )}>
         {/* Dismiss Button */}
         <Button
@@ -82,10 +82,7 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
         </div>
 
         {/* Timestamp */}
-        <div className={cn(
-          "text-xs mt-1 opacity-70",
-          isUser ? "text-primary-foreground/70" : "text-muted-foreground"
-        )}>
+        <div className="text-xs mt-1 opacity-70 text-white/70">
           {message.timestamp.toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
@@ -95,10 +92,10 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
         {/* Bubble Tail */}
         <div className={cn(
           "absolute top-3 w-3 h-3 transform rotate-45",
-          "border-l border-b border-border/50",
+          "border-l border-b",
           isUser 
-            ? "right-[-6px] bg-primary border-primary/50" 
-            : "left-[-6px] bg-background/95"
+            ? "right-[-6px] bg-chat-user border-chat-user/50" 
+            : "left-[-6px] bg-chat-ai border-chat-ai/50"
         )} />
       </div>
     </div>

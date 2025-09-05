@@ -96,8 +96,18 @@ const AppContent = () => {
   const { loading } = useAuth();
   const { isOnline } = useConnectionStore();
   
-  // Load colors once user is authenticated
-  useColorTheme(!loading && !!user);
+  // Load colors once user is authenticated (with debug logging)
+  const { loading: colorLoading } = useColorTheme(!loading && !!user);
+  
+  // Debug: Check if chat colors are applied
+  useEffect(() => {
+    if (!loading && user) {
+      const root = document.documentElement;
+      const chatAi = getComputedStyle(root).getPropertyValue('--chat-ai');
+      const chatUser = getComputedStyle(root).getPropertyValue('--chat-user');
+      console.log('🎨 Chat colors loaded:', { chatAi, chatUser });
+    }
+  }, [loading, user]);
 
 
   // Hide navigation on auth routes

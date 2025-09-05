@@ -214,6 +214,16 @@ export const ColorManagement: React.FC = () => {
       // Reload colors to ensure consistency
       await loadColors();
       
+      // Force immediate application of new colors
+      const root = document.documentElement;
+      root.style.setProperty('--chat-ai', hexToHsl(colors.chatAi));
+      root.style.setProperty('--chat-user', hexToHsl(colors.chatUser));
+      
+      console.log('🎨 Chat colors applied immediately:', {
+        chatAi: hexToHsl(colors.chatAi),
+        chatUser: hexToHsl(colors.chatUser)
+      });
+      
       const platformSuccesses = platformResults.filter(r => r.status === 'fulfilled').length;
       const totalPlatforms = platformResults.length;
       
