@@ -272,6 +272,10 @@ export const CircularVoiceButton = React.forwardRef<
     }
     
     setIsProcessing(true);
+    
+    // Add a small delay to show the processing state
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     try {
       console.log('🎤 Creating audio blob...');
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
@@ -326,6 +330,14 @@ export const CircularVoiceButton = React.forwardRef<
       console.log('🎤 Sending to transcribe function...');
       console.log('🎤 Audio data validation - Base64 starts with:', base64Audio.substring(0, 50));
       console.log('🎤 Audio data validation - Size in KB:', Math.round(base64Audio.length / 1024));
+      
+      // Show immediate feedback that we're processing
+      toast({
+        title: "Processing voice...",
+        description: "Converting speech to text",
+        duration: 2000,
+        className: "bg-blue-50 border-blue-200"
+      });
       
       // Validate audio data before sending with better error message
       if (base64Audio.length < 1000) {
@@ -435,25 +447,67 @@ export const CircularVoiceButton = React.forwardRef<
 
   const getButtonColor = () => {
     if (hasPermission === false) return 'bg-gray-500 hover:bg-gray-600';
+    if (isProcessing) return 'bg-blue-500 hover:bg-blue-600';
     if (isRecording) return 'bg-red-500 hover:bg-red-600 animate-pulse';
     return 'bg-ai hover:bg-ai/90';
   };
 
+  const getStatusText = () => {
+    if (isProcessing) return 'Processing...';
+    if (isRecording) return `Recording ${recordingTime}s`;
+    if (hasPermission === false) return 'Mic access needed';
+    return 'Tap to record';
+  };
+
   return (
-    <Button
-      onClick={handleClick}
-      disabled={isDisabled || isProcessing}
-      className={`
-        ${sizeClasses[size]} 
-        rounded-full 
-        transition-all 
-        duration-200 
-        ${getButtonColor()}
-        text-white
-        relative
-      `}
-    >
-      <Mic className={iconSizes[size]} />
-    </Button>
+    <div className="flex flex-col items-center gap-2">
+      <Button
+        onClick={handleClick}
+        disabled={isDisabled || isProcessing}
+        className={`
+          ${sizeClasses[size]} 
+          rounded-full 
+          transition-all 
+          duration-200 
+          ${getButtonColor()}
+          text-white
+          relative
+        `}
+      >
+        {isProcessing ? (
+          <div className={`${iconSizes[size]} animate-spin rounded-full border-2 border-white border-t-transparent`} />
+        ) : (
+          <Mic className={iconSizes[size]} />
+        )}
+        
+        {/* Recording time indicator */}
+        {isRecording && size !== 'sm' && (
+          <div className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-mono">
+            {recordingTime}
+          </div>
+        )}
+      </Button>
+      
+      {/* Status text - only show for non-sm sizes to avoid clutter */}
+      {size !== 'sm' && (
+        <span className={`text-xs text-muted-foreground transition-opacity duration-200 ${
+          isRecording || isProcessing ? 'opacity-100' : 'opacity-60'
+        }`}>
+          {getStatusText()}
+        </span>
+      )}
+      
+      {/* Processing indicator */}
+      {isProcessing && (
+        <div className="flex items-center gap-2 text-xs text-blue-600">
+          <div className="flex gap-1">
+            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+          <span>Transcribing audio...</span>
+        </div>
+      )}
+    </div>
   );
 });
