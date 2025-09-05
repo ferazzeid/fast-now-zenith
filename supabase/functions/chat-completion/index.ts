@@ -1255,21 +1255,60 @@ Keep responses brief and action-focused. Always use function calls for food oper
       let functionCall = null;
       let completion = '';
       
-      // Method 1: Standard tool_calls format (GPT-4+ with tools)
-      if (result.choices?.[0]?.message?.tool_calls?.[0]) {
+      // Method 1: Standard tool_calls format (GPT-4+ with tools) - ENHANCED for multiple calls
+      if (result.choices?.[0]?.message?.tool_calls?.length > 0) {
         console.log('📞 Processing tool_calls format...');
-        const toolCall = result.choices[0].message.tool_calls[0];
-        if (toolCall.type === 'function') {
-          try {
-            const parsedArgs = JSON.parse(toolCall.function.arguments);
-            functionCall = {
-              name: toolCall.function.name,
-              arguments: parsedArgs
-            };
-            console.log('✅ Successfully parsed tool_calls function:', functionCall);
-          } catch (parseError) {
-            console.error('❌ Failed to parse tool_calls arguments:', parseError);
-            console.error('❌ Raw arguments string:', toolCall.function.arguments);
+        const toolCalls = result.choices[0].message.tool_calls;
+        console.log(`🔧 Found ${toolCalls.length} tool calls`);
+        
+        // Check if we have multiple add_multiple_foods calls to combine
+        const addFoodCalls = toolCalls.filter(call => 
+          call.type === 'function' && call.function.name === 'add_multiple_foods'
+        );
+        
+        if (addFoodCalls.length > 1) {
+          console.log(`🔧 Combining ${addFoodCalls.length} add_multiple_foods calls`);
+          
+          // Combine all foods from multiple calls
+          const allFoods: any[] = [];
+          let destination = 'today';
+          
+          for (const call of addFoodCalls) {
+            try {
+              const parsedArgs = JSON.parse(call.function.arguments);
+              if (parsedArgs.foods && Array.isArray(parsedArgs.foods)) {
+                allFoods.push(...parsedArgs.foods);
+                if (parsedArgs.destination) destination = parsedArgs.destination;
+              }
+            } catch (parseError) {
+              console.error('❌ Failed to parse tool_call arguments:', parseError);
+            }
+          }
+          
+          functionCall = {
+            name: 'add_multiple_foods',
+            arguments: {
+              foods: allFoods,
+              destination: destination
+            }
+          };
+          
+          console.log(`✅ Combined ${addFoodCalls.length} calls into single function with ${allFoods.length} foods`);
+        } else {
+          // Single function call - process normally
+          const toolCall = toolCalls[0];
+          if (toolCall.type === 'function') {
+            try {
+              const parsedArgs = JSON.parse(toolCall.function.arguments);
+              functionCall = {
+                name: toolCall.function.name,
+                arguments: parsedArgs
+              };
+              console.log('✅ Successfully parsed tool_calls function:', functionCall);
+            } catch (parseError) {
+              console.error('❌ Failed to parse tool_calls arguments:', parseError);
+              console.error('❌ Raw arguments string:', toolCall.function.arguments);
+            }
           }
         }
       }

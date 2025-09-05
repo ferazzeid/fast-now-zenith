@@ -63,6 +63,44 @@ export const ModalAiChat = ({
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
   const [lastMotivatorsSuggestion, setLastMotivatorsSuggestion] = useState<any>(null);
+
+  // Helper function to parse expected food count from user message
+  const parseExpectedFoodCount = (message: string): number => {
+    const lowerMessage = message.toLowerCase();
+    let totalCount = 0;
+    
+    // Common number words to digits mapping
+    const numberWords: { [key: string]: number } = {
+      'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+      'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20
+    };
+    
+    // Replace number words with digits
+    let processedMessage = lowerMessage;
+    Object.entries(numberWords).forEach(([word, digit]) => {
+      processedMessage = processedMessage.replace(new RegExp(`\\b${word}\\b`, 'g'), digit.toString());
+    });
+    
+    // Find patterns like "6 eggs", "3 cucumbers", "five bananas"
+    const patterns = [
+      /(\d+)\s+(?:packages?\s+of\s+)?(\w+)/g,  // "6 eggs", "5 packages of ham"
+      /(\d+)\s+(\w+)/g,  // "3 bananas"
+    ];
+    
+    patterns.forEach(pattern => {
+      let match;
+      const regex = new RegExp(pattern.source, 'g');
+      while ((match = regex.exec(processedMessage)) !== null) {
+        const count = parseInt(match[1]);
+        if (!isNaN(count) && count > 0) {
+          totalCount += count;
+          console.log(`📊 Found: ${count} ${match[2]}`);
+        }
+      }
+    });
+    
+    return totalCount;
+  };
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
   const [editingMotivatorIndex, setEditingMotivatorIndex] = useState<number | null>(null);
   const [editingMotivator, setEditingMotivator] = useState(false);
@@ -243,16 +281,20 @@ You are a comprehensive food tracking assistant. Your goals are to:
 FOR ADDING FOODS:
 1. IMMEDIATELY process food information and call add_multiple_foods
 2. Be concise but helpful - when users ask about your reasoning or assumptions, provide brief explanations
-3. CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "two cucumbers", "three bananas", "four apples"), create SEPARATE entries for each item. DO NOT aggregate quantities.
-4. EXAMPLES OF CORRECT BEHAVIOR:
-   - "two cucumbers" → 2 separate cucumber entries (e.g., 150g each)
-   - "three bananas each 120g" → 3 separate banana entries at 120g each
-   - "400g chicken" → 1 chicken entry at 400g
+3. ⚠️ CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "six eggs", "three cucumbers", "five packages of ham"), you MUST create SEPARATE individual entries for each item. This is NON-NEGOTIABLE.
+4. ⚠️ MANDATORY EXAMPLES YOU MUST FOLLOW:
+   - "6 eggs, 3 cucumbers, 3 bananas, 5 packages of ham" → MUST create 17 SEPARATE entries:
+     * 6 individual egg entries (50g each typically)  
+     * 3 individual cucumber entries (150g each typically)
+     * 3 individual banana entries (120g each typically) 
+     * 5 individual ham package entries (100g each typically)
    - "two Greek yogurts" → 2 separate Greek yogurt entries
-   - "200g of rice" → 1 rice entry at 200g
-5. Only aggregate when NO specific count is mentioned and user gives total weight
-6. When making assumptions (like estimating portion sizes), briefly explain your reasoning when asked
-7. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
+   - "five coca zeros" → 5 separate Coca-Cola Zero entries (355ml each)
+   - "400g chicken" → 1 chicken entry at 400g (only when total weight given)
+5. ⚠️ FAILURE CONSEQUENCES: If you create only 4 items when user asks for 17 (like "6 eggs, 3 cucumbers, 3 bananas, 5 packages of ham"), this is a CRITICAL ERROR
+6. Only aggregate when NO specific count is mentioned AND user gives total weight
+7. When making assumptions (like estimating portion sizes), briefly explain your reasoning when asked
+8. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
 
 FOR EDITING/DELETING FOODS:
 1. When users want to edit/change/delete/remove foods, FIRST call search_foods_for_edit to find the item
@@ -320,26 +362,51 @@ You are a motivational goal creation assistant. Your task is to:
       // Handle function calls for food and motivator suggestions
       if (data.functionCall) {
         if (data.functionCall.name === 'add_multiple_foods') {
-          const foods = data.functionCall.arguments?.foods || [];
+          const newFoods = data.functionCall.arguments?.foods || [];
+          console.log('📊 New foods received:', newFoods.length, 'items');
+          
+          // Validate quantity expectations
+          const expectedCount = parseExpectedFoodCount(message);
+          console.log('📊 Expected food count from user message:', expectedCount);
+          console.log('📊 Actual food count received:', newFoods.length);
+          
+          if (expectedCount > 0 && newFoods.length < expectedCount) {
+            console.warn('⚠️ Quantity mismatch! Expected:', expectedCount, 'Got:', newFoods.length);
+            // Show warning to user
+            const warningMessage: Message = {
+              role: 'assistant',
+              content: `⚠️ I may have missed some items. You asked for ${expectedCount} items but I only prepared ${newFoods.length}. Please check the list below and let me know if anything is missing.`,
+              timestamp: new Date()
+            };
+            addMessage(warningMessage);
+          }
           
           // Track in conversation memory
-          addFoodAction(message, foods, 'add');
+          addFoodAction(message, newFoods, 'add');
+          
+          // ACCUMULATE foods instead of overwriting
+          const allFoods = lastFoodSuggestion?.added === false 
+            ? [...(lastFoodSuggestion.foods || []), ...newFoods]
+            : newFoods;
+          
+          console.log('📊 Total accumulated foods:', allFoods.length);
           
           setLastFoodSuggestion({
-            foods,
+            foods: allFoods,
             destination: data.functionCall.arguments?.destination || 'today',
             added: false
           });
-          // Initialize all foods as selected
-          setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
+          
+          // Initialize all foods as selected (including new ones)
+          setSelectedFoodIds(new Set(allFoods.map((_: any, index: number) => index)));
           
           // Add a chronological message about the food suggestion
-          const foodSummary = foods.map((food: any) => 
+          const foodSummary = allFoods.map((food: any) => 
             `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs`
           ).join('\n');
           
-          const totalCalories = foods.reduce((sum: number, food: any) => sum + food.calories, 0);
-          const totalCarbs = foods.reduce((sum: number, food: any) => sum + food.carbs, 0);
+          const totalCalories = allFoods.reduce((sum: number, food: any) => sum + food.calories, 0);
+          const totalCarbs = allFoods.reduce((sum: number, food: any) => sum + food.carbs, 0);
           
           const foodMessage: Message = {
             role: 'assistant',
@@ -1895,8 +1962,8 @@ ${args.content}`,
         )}
         </div>
         
-        {/* Messages end ref positioned at the very bottom */}
-        <div ref={messagesEndRef} className="h-20" />
+        {/* Messages end ref positioned at the very bottom with proper spacing for voice input */}
+        <div ref={messagesEndRef} className="h-24" />
         
         {/* Scroll to bottom button */}
         {showScrollButton && (
@@ -1913,7 +1980,7 @@ ${args.content}`,
 
       {/* Voice Input Only - Text input removed per user request */}
       {editingFoodIndex === null && (
-        <div className="border-t border-border pt-4 mt-4 space-y-3">
+        <div className="border-t border-border pt-6 pb-4 mt-4 space-y-3">
           {/* Voice Recording */}
           <div className="w-full flex justify-center">
             <PremiumGate feature="Voice Input" grayOutForFree={true}>
