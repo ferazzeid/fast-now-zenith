@@ -172,7 +172,7 @@ export const ModalAiChat = ({
           let welcomeMessage = 'Hi! How can I help you today?';
           
           if (title === 'Food Assistant') {
-            welcomeMessage = 'Hi! I can help you add, edit, or delete foods from your log. You can add multiple foods at once, edit existing entries, or remove items. Just tell me what you\'d like to do!';
+            welcomeMessage = 'Hi! I can help you add foods, edit foods, or delete foods. Just tell me what you\'d like to do!';
           } else if (title === 'Motivator Assistant') {
             welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
           }

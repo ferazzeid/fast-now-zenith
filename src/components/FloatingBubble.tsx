@@ -32,8 +32,8 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
           "max-w-[85%] p-4 rounded-2xl shadow-lg relative",
           "border",
           isUser ? 
-            "bg-ai/90 border-ai/50 text-white rounded-tr-sm" :
-            "bg-primary/90 border-primary/50 text-white rounded-tl-sm"
+            "bg-chat-user/90 border-chat-user/50 text-white rounded-tr-sm" :
+            "bg-chat-ai/90 border-chat-ai/50 text-white rounded-tl-sm"
         )}
       >
         <p className="text-sm leading-relaxed font-medium">{content}</p>
