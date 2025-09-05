@@ -3,8 +3,8 @@
 
 import { openDB, IDBPDatabase } from 'idb';
 
-export type EntityType = 'walking_session' | 'fasting_session' | 'food_entry';
-export type ActionType = 'start' | 'pause' | 'resume' | 'end' | 'cancel' | 'update_speed' | 'create' | 'update' | 'delete' | 'toggle_consumed';
+export type EntityType = 'walking_session' | 'fasting_session' | 'food_entry' | 'ai_chat';
+export type ActionType = 'start' | 'pause' | 'resume' | 'end' | 'cancel' | 'update_speed' | 'create' | 'update' | 'delete' | 'toggle_consumed' | 'process_message';
 
 export interface OutboxOperation {
   id: string;

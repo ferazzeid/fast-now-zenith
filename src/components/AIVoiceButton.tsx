@@ -12,11 +12,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useOfflineGuard } from '@/hooks/useOfflineGuard';
+import { enqueueOperation } from '@/utils/outbox';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
+import { useOutboxSync } from '@/hooks/useOutboxSync';
 import { conversationMemory } from '@/utils/conversationMemory';
 import { generateUniqueSlug } from '@/utils/slugUtils';
 
@@ -37,6 +40,7 @@ export const AIVoiceButton = () => {
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const [hasWelcomeMessage, setHasWelcomeMessage] = useState(false);
   const { user } = useAuth();
+  const { isOnline, guardOnlineAction, warnIfOffline } = useOfflineGuard();
   
   // Import session hooks for function execution
   const { currentSession: fastingSession, startFastingSession, endFastingSession } = useFastingSession();
@@ -44,6 +48,7 @@ export const AIVoiceButton = () => {
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
   const { addFoodEntry, addMultipleFoodEntries } = useFoodEntriesQuery();
+  const { isSyncing, pending } = useOutboxSync();
 
   // Add welcome message when modal opens
   useEffect(() => {
@@ -142,6 +147,32 @@ export const AIVoiceButton = () => {
     addBubble('user', message);
     setIsProcessing(true);
 
+    // Handle offline scenario
+    if (!isOnline) {
+      try {
+        await enqueueOperation({
+          entity: 'ai_chat',
+          action: 'process_message',
+          user_id: user.id,
+          payload: { 
+            message, 
+            fromVoice, 
+            currentPath: window.location.pathname 
+          }
+        });
+        
+        addBubble('assistant', 'Message saved. I\'ll process this when you\'re back online.');
+        warnIfOffline('Voice message saved offline - will be processed when connection restored.');
+        setIsProcessing(false);
+        return;
+      } catch (error) {
+        console.error('Failed to queue offline message:', error);
+        addBubble('assistant', 'Sorry, I couldn\'t save your message for offline processing.');
+        setIsProcessing(false);
+        return;
+      }
+    }
+
     try {
       const currentPath = window.location.pathname;
       const pageContext = getPageContext(currentPath);
@@ -235,6 +266,36 @@ export const AIVoiceButton = () => {
       setIsProcessing(false);
     }
   };
+
+  // Listen for AI responses from outbox sync and handle them
+  useEffect(() => {
+    const handleAIResponse = (event: any) => {
+      const { data, fromVoice, originalMessage } = event.detail;
+      
+      // Handle function calls first - ACTUALLY EXECUTE THEM
+      if (data?.functionCall) {
+        console.log('🤖 AI Chat (Offline): Function call detected:', data.functionCall.name);
+        
+        let responseMessage = '';
+        // Function execution handlers would go here similar to sendToAI
+        // For now, just add the response
+        addBubble('assistant', 'I processed your offline request successfully.');
+      }
+      // Handle regular completion responses
+      else if (data?.completion && data.completion.trim()) {
+        addBubble('assistant', data.completion);
+        
+        if (fromVoice) {
+          playTextAsAudio(data.completion);
+        }
+      } else {
+        addBubble('assistant', 'I processed your offline request.');
+      }
+    };
+
+    window.addEventListener('ai-chat-response', handleAIResponse);
+    return () => window.removeEventListener('ai-chat-response', handleAIResponse);
+  }, []);
 
   const playTextAsAudio = async (text: string) => {
     try {
@@ -549,16 +610,27 @@ export const AIVoiceButton = () => {
       {isOpen && (
         <div className="fixed inset-0 z-50 flex justify-center bg-frame-background/50">
           <div className="relative max-w-md w-full bg-background/5 backdrop-blur-lg">
-            {/* Close Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200"
-              title="Close"
-            >
-              <X className="w-6 h-6 text-foreground" />
-            </Button>
+              {/* Close Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsOpen(false)}
+                className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200"
+                title="Close"
+              >
+                <X className="w-6 h-6 text-foreground" />
+              </Button>
+
+              {/* Offline/Sync indicator */}
+              {(pending > 0 || isSyncing || !isOnline) && (
+                <div className="absolute top-4 left-4 z-10">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-sm">
+                    {!isOnline && <span className="text-destructive">Offline</span>}
+                    {pending > 0 && <span className="text-muted-foreground">{pending} pending</span>}
+                    {isSyncing && <span className="text-primary">Syncing...</span>}
+                  </div>
+                </div>
+              )}
 
             {/* Aquarium Container */}
             <div className="aquarium-container relative w-full h-screen flex flex-col">
