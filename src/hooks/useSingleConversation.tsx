@@ -17,10 +17,12 @@ export const useSingleConversation = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [isProcessingMessage, setIsProcessingMessage] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'offline' | 'error'>('saved');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Enhanced conversation memory integration
+  // Enhanced conversation memory integration with localStorage backup
   const loadConversationMemory = () => {
     const saved = localStorage.getItem(`conversation_memory_${user?.id}`);
     if (saved) {
@@ -31,6 +33,107 @@ export const useSingleConversation = () => {
   const saveConversationMemory = () => {
     if (user?.id) {
       localStorage.setItem(`conversation_memory_${user.id}`, conversationMemory.export());
+    }
+  };
+
+  // Connection monitoring
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setSaveStatus('saved');
+      // Attempt to sync any offline changes
+      if (messages.length > 0) {
+        retryPendingSaves();
+      }
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      setSaveStatus('offline');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [messages]);
+
+  // Retry pending saves when connection is restored
+  const retryPendingSaves = async () => {
+    if (!user || !isOnline) return;
+    
+    try {
+      setSaveStatus('saving');
+      await saveToDatabase(messages);
+      setSaveStatus('saved');
+    } catch (error) {
+      console.error('Error retrying save:', error);
+      setSaveStatus('error');
+    }
+  };
+
+  // Save messages to database with error handling
+  const saveToDatabase = async (messagesToSave: Message[]) => {
+    if (!user) return;
+
+    // Save to localStorage as backup
+    const messagesForStorage = messagesToSave.map(msg => ({
+      ...msg,
+      timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : msg.timestamp.toISOString()
+    }));
+    localStorage.setItem(`conversation_backup_${user.id}`, JSON.stringify(messagesForStorage));
+
+    // Serialize messages for database
+    const messagesForDb = messagesToSave.map(msg => ({
+      ...msg,
+      timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : msg.timestamp.toISOString()
+    }));
+
+    console.log('DEBUG: Saving to database, total messages:', messagesForDb.length);
+
+    // Check if conversation exists
+    const { data: conversations, error: queryError } = await supabase
+      .from('chat_conversations')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('archived', false)
+      .order('last_message_at', { ascending: false })
+      .limit(1);
+
+    if (queryError) throw queryError;
+
+    const existingConversation = conversations && conversations.length > 0 ? conversations[0] : null;
+
+    if (existingConversation) {
+      console.log('DEBUG: Updating existing conversation:', existingConversation.id);
+      const { error } = await supabase
+        .from('chat_conversations')
+        .update({
+          messages: JSON.stringify(messagesForDb),
+          last_message_at: new Date().toISOString()
+        })
+        .eq('id', existingConversation.id);
+
+      if (error) throw error;
+    } else {
+      console.log('DEBUG: Creating new conversation');
+      const title = messagesToSave.length > 0 
+        ? messagesToSave[0].content.slice(0, 50) + (messagesToSave[0].content.length > 50 ? '...' : '')
+        : 'New Conversation';
+      
+      const { error } = await supabase
+        .from('chat_conversations')
+        .insert({
+          user_id: user.id,
+          title,
+          messages: JSON.stringify(messagesForDb),
+          last_message_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
     }
   };
 
@@ -88,7 +191,40 @@ export const useSingleConversation = () => {
         // Load conversation memory after loading messages
         loadConversationMemory();
       } else {
-        console.log('DEBUG: No conversation found, starting fresh');
+        console.log('DEBUG: No conversation found, checking localStorage backup');
+        
+        // Try to restore from localStorage backup
+        const backupKey = `conversation_backup_${user.id}`;
+        const backup = localStorage.getItem(backupKey);
+        
+        if (backup) {
+          try {
+            const backupMessages = JSON.parse(backup);
+            const transformedMessages = backupMessages.map((msg: any) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            }));
+            console.log('DEBUG: Restored', transformedMessages.length, 'messages from localStorage backup');
+            setMessages(transformedMessages);
+            
+            // Try to save backup to database
+            if (isOnline) {
+              try {
+                await saveToDatabase(transformedMessages);
+                localStorage.removeItem(backupKey); // Clear backup after successful sync
+                console.log('DEBUG: Backup synced to database successfully');
+              } catch (error) {
+                console.error('Error syncing backup to database:', error);
+              }
+            }
+            loadConversationMemory();
+            return;
+          } catch (error) {
+            console.error('Error parsing backup messages:', error);
+          }
+        }
+        
+        console.log('DEBUG: Starting fresh conversation');
         // Add a greeting message for new conversations
         const greetingMessage: Message = {
           role: 'assistant',
@@ -116,12 +252,13 @@ export const useSingleConversation = () => {
     }
   };
 
-  // Add message to the conversation
+  // Add message to the conversation with robust error handling
   const addMessage = async (message: Message) => {
     if (!user) return false;
 
     console.log('DEBUG: addMessage called with:', message);
     setIsProcessingMessage(true);
+    setSaveStatus('saving');
 
     try {
       // Check if this is a food clarification before processing
@@ -140,65 +277,34 @@ export const useSingleConversation = () => {
       const updatedMessages = [...messages, message];
       setMessages(updatedMessages);
 
-      // Save conversation memory and cross-session learnings after adding message
+      // Save conversation memory and cross-session learnings
       saveConversationMemory();
       await conversationMemory.saveCrossSessionLearnings();
-      
-      // Serialize messages with timestamps as ISO strings
-      const messagesForDb = updatedMessages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp.toISOString()
-      }));
 
-      console.log('DEBUG: Saving to database, total messages:', messagesForDb.length);
-
-      // Check if conversation exists - get the most recent one
-      const { data: conversations, error: queryError } = await supabase
-        .from('chat_conversations')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('archived', false)
-        .order('last_message_at', { ascending: false })
-        .limit(1);
-
-      console.log('DEBUG: Existing conversation query result:', { conversations, queryError });
-
-      const existingConversation = conversations && conversations.length > 0 ? conversations[0] : null;
-
-      if (existingConversation) {
-        console.log('DEBUG: Updating existing conversation:', existingConversation.id);
-        // Update existing conversation
-        const { error } = await supabase
-          .from('chat_conversations')
-          .update({
-            messages: JSON.stringify(messagesForDb),
-            last_message_at: new Date().toISOString()
-          })
-          .eq('id', existingConversation.id);
-
-        if (error) throw error;
-      } else {
-        console.log('DEBUG: Creating new conversation');
-        // Create new conversation
-        const title = message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '');
-        
-        const { error } = await supabase
-          .from('chat_conversations')
-          .insert({
-            user_id: user.id,
-            title,
-            messages: JSON.stringify(messagesForDb),
-            last_message_at: new Date().toISOString()
+      if (isOnline) {
+        try {
+          await saveToDatabase(updatedMessages);
+          setSaveStatus('saved');
+          console.log('DEBUG: Message saved successfully to database');
+        } catch (error) {
+          console.error('Error saving to database:', error);
+          setSaveStatus('error');
+          // Still keep local state and localStorage backup
+          toast({
+            title: "Warning", 
+            description: "Message saved locally, will sync when connection is restored",
+            variant: "default",
           });
-
-        if (error) throw error;
+        }
+      } else {
+        setSaveStatus('offline');
+        console.log('DEBUG: Offline - message saved to localStorage backup');
       }
 
-      console.log('DEBUG: Message saved successfully, local state updated');
       return true;
     } catch (error) {
       console.error('Error adding message:', error);
-      // If database save fails, still keep the local state for better UX
+      setSaveStatus('error');
       toast({
         title: "Error",
         description: "Failed to save message",
@@ -298,6 +404,52 @@ export const useSingleConversation = () => {
     return conversationMemory.getContext();
   };
 
+  // Export/Import for manual backup
+  const exportConversation = () => {
+    return JSON.stringify({
+      messages: messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp.toISOString()
+      })),
+      conversationMemory: conversationMemory.export(),
+      exportedAt: new Date().toISOString()
+    });
+  };
+
+  const importConversation = async (jsonData: string) => {
+    try {
+      const data = JSON.parse(jsonData);
+      const importedMessages = data.messages.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+      
+      setMessages(importedMessages);
+      
+      if (data.conversationMemory) {
+        conversationMemory.import(data.conversationMemory);
+        saveConversationMemory();
+      }
+      
+      // Save to database
+      if (isOnline) {
+        await saveToDatabase(importedMessages);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Conversation imported successfully",
+      });
+    } catch (error) {
+      console.error('Error importing conversation:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to import conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     messages,
     loading,
@@ -309,6 +461,11 @@ export const useSingleConversation = () => {
     addFoodAction,
     updateConversationState,
     getConversationContext,
-    conversationMemory: conversationMemory.getContextForAI()
+    conversationMemory: conversationMemory.getContextForAI(),
+    // Persistence status and utilities
+    saveStatus,
+    isOnline,
+    exportConversation,
+    importConversation
   };
 };

@@ -18,9 +18,10 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
-import { useLocalStorageConversation } from '@/hooks/useLocalStorageConversation';
+import { useSingleConversation } from '@/hooks/useSingleConversation';
 import { conversationMemory } from '@/utils/conversationMemory';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
+import { ChatSaveStatus } from '@/components/ChatSaveStatus';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -84,15 +85,17 @@ export const ModalAiChat = ({
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
   
-  // Use localStorage-based conversation hook
+  // Use database-backed conversation hook for persistence
   const { 
     messages,
     addMessage,
     loadConversation,
     addFoodAction, 
     updateConversationState, 
-    getConversationContext 
-  } = useLocalStorageConversation('food');
+    getConversationContext,
+    saveStatus,
+    isOnline
+  } = useSingleConversation();
   
   // Session and profile hooks
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession } = useFastingSession();
@@ -1396,7 +1399,12 @@ ${args.content}`,
     <UniversalModal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title={
+        <div className="flex items-center justify-between w-full">
+          <span>{title}</span>
+          <ChatSaveStatus status={saveStatus} isOnline={isOnline} className="ml-2" />
+        </div>
+      }
       variant="standard"
       size="sm"
       showCloseButton={true}

@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 interface UniversalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: string | React.ReactNode;
   description?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   variant?: 'standard' | 'fullscreen';
