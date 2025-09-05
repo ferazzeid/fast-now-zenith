@@ -12,13 +12,13 @@
   "version": "1.0.0",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
       "sizes": "512x512", 
       "type": "image/png",
       "purpose": "maskable any"
