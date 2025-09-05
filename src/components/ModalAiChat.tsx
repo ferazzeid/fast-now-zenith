@@ -18,7 +18,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
-import { useSingleConversation } from '@/hooks/useSingleConversation';
+import { useLocalStorageChat } from '@/hooks/useLocalStorageChat';
 import { conversationMemory } from '@/utils/conversationMemory';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 import { ChatSaveStatus } from '@/components/ChatSaveStatus';
@@ -85,7 +85,7 @@ export const ModalAiChat = ({
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
   
-  // Use database-backed conversation hook for persistence
+  // Use localStorage-backed conversation hook for persistence
   const { 
     messages,
     addMessage,
@@ -95,7 +95,7 @@ export const ModalAiChat = ({
     getConversationContext,
     saveStatus,
     isOnline
-  } = useSingleConversation();
+  } = useLocalStorageChat();
   
   // Session and profile hooks
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession } = useFastingSession();

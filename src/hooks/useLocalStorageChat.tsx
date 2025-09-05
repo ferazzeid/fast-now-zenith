@@ -1,57 +1,23 @@
-// DEPRECATED: This hook has been replaced by useSingleConversation
-// 
-// The localStorage-only approach caused chat history to be lost and
-// created a split system where modal chats and main page chats were
-// stored separately. 
-//
-// All conversation handling now uses useSingleConversation which:
-// - Stores conversations in the Supabase database for persistence
-// - Maintains localStorage backup for offline scenarios  
-// - Provides connection monitoring and retry logic
-// - Supports manual backup/restore functionality
-//
-// This file is kept for reference only and should not be used.
-
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { conversationMemory } from '@/utils/conversationMemory';
 
-export interface Message {
+interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  audioEnabled?: boolean;
-  imageUrl?: string;
-  conversationMemory?: string;
 }
 
-const MAX_MESSAGES = 50; // Keep last 50 messages max
+const MAX_MESSAGES = 100; // Keep last 100 messages max
 
-export const useLocalStorageConversation = (conversationType: string = 'food') => {
+export const useLocalStorageChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  // Get storage key for this conversation type
+  // Get storage key for this user
   const getStorageKey = () => {
     if (!user?.id) return null;
-    return `conversation_${conversationType}_${user.id}`;
-  };
-
-  // Load conversation memory
-  const loadConversationMemory = () => {
-    if (!user?.id) return;
-    const saved = localStorage.getItem(`conversation_memory_${user.id}`);
-    if (saved) {
-      conversationMemory.import(saved);
-    }
-  };
-
-  // Save conversation memory
-  const saveConversationMemory = () => {
-    if (user?.id) {
-      localStorage.setItem(`conversation_memory_${user.id}`, conversationMemory.export());
-    }
+    return `modal_chat_${user.id}`;
   };
 
   // Load messages from localStorage
@@ -62,12 +28,9 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
       return;
     }
 
-    setLoading(true);
-    
     try {
       // Initialize conversation memory
       await conversationMemory.initializeWithUser(user!.id);
-      loadConversationMemory();
 
       const stored = localStorage.getItem(storageKey);
       if (stored) {
@@ -81,29 +44,11 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
         setMessages(transformedMessages);
       } else {
         console.log('DEBUG: No stored conversation, starting fresh');
-        // Add greeting message for food assistant
-        const greetingMessage: Message = {
-          role: 'assistant',
-          content: 'Hi! I can help you add, edit, or delete foods from your log. Just tell me what you\'d like to do - like "add chicken breast 200g" or "edit my last meal".',
-          timestamp: new Date()
-        };
-        
-        const newMessages = [greetingMessage];
-        setMessages(newMessages);
-        saveMessages(newMessages);
-        
-        // Initialize conversation memory
-        conversationMemory.updateConversationState({ 
-          currentTopic: 'food_tracking',
-          isProcessingFood: false,
-          awaitingClarification: false,
-          sessionType: 'food_tracking'
-        });
+        setMessages([]);
       }
     } catch (error) {
       console.error('Error loading conversation:', error);
-    } finally {
-      setLoading(false);
+      setMessages([]);
     }
   };
 
@@ -136,8 +81,6 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
       const foodClarification = conversationMemory.detectFoodClarification(message.content);
       if (foodClarification.isModification) {
         console.log('DEBUG: Detected food clarification:', foodClarification);
-        // Add memory context to the message
-        message.conversationMemory = await conversationMemory.getContextForAI();
         conversationMemory.updateConversationState({ 
           awaitingClarification: false,
           isProcessingFood: true 
@@ -148,10 +91,6 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
       const updatedMessages = [...messages, message];
       setMessages(updatedMessages);
       saveMessages(updatedMessages);
-
-      // Save conversation memory
-      saveConversationMemory();
-      await conversationMemory.saveCrossSessionLearnings();
 
       return true;
     } catch (error) {
@@ -170,16 +109,11 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
     
     // Reset conversation memory
     conversationMemory.updateConversationState({ 
-      currentTopic: 'food_tracking',
+      currentTopic: 'general',
       isProcessingFood: false,
       awaitingClarification: false,
-      sessionType: 'food_tracking'
+      sessionType: 'general'
     });
-  };
-
-  // Archive conversation (for compatibility - just clears it)
-  const archiveConversation = async () => {
-    await clearConversation();
   };
 
   // Load conversation when user changes
@@ -194,12 +128,10 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
   // Enhanced methods for working with conversation memory
   const addFoodAction = (userMessage: string, foods: any[], type: 'add' | 'modify' | 'delete' = 'add') => {
     conversationMemory.addFoodAction(userMessage, foods, type);
-    saveConversationMemory();
   };
 
   const updateConversationState = (updates: any) => {
     conversationMemory.updateConversationState(updates);
-    saveConversationMemory();
   };
 
   const getConversationContext = () => {
@@ -208,15 +140,16 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
 
   return {
     messages,
-    loading,
+    loading: false, // localStorage is synchronous
     addMessage,
-    archiveConversation,
-    clearConversation,
     loadConversation,
+    clearConversation,
     // Enhanced memory methods
     addFoodAction,
     updateConversationState,
     getConversationContext,
-    conversationMemory: conversationMemory.getContextForAI()
+    // Compatibility properties
+    saveStatus: 'saved' as const, // Always saved in localStorage
+    isOnline: true // Not relevant for localStorage
   };
 };
