@@ -118,33 +118,43 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 export const useAccess = () => {
   const { user } = useAuth();
   
-  // Auto-clear role testing on fresh login to prevent persistence issues
+  // Auto-clear role testing only on fresh login, not on every page navigation
   React.useEffect(() => {
     if (user && typeof window !== 'undefined') {
-      const hasRoleTesting = localStorage.getItem('admin_role_testing');
-      if (hasRoleTesting) {
-        console.log('🧹 Auto-clearing role testing on fresh login');
-        localStorage.removeItem('admin_role_testing');
+      const sessionKey = `role_testing_cleared_${user.id}`;
+      const alreadyCleared = sessionStorage.getItem(sessionKey);
+      
+      if (!alreadyCleared) {
+        const hasRoleTesting = localStorage.getItem('admin_role_testing');
+        if (hasRoleTesting) {
+          console.log('🧹 Auto-clearing role testing on fresh login');
+          localStorage.removeItem('admin_role_testing');
+        }
+        sessionStorage.setItem(sessionKey, 'true');
       }
     }
-  }, [user?.id]); // Clear when user ID changes (fresh login)
+  }, [user?.id]); // Only clear once per browser session per user
   
   // Internal role testing state with localStorage persistence
   const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('admin_role_testing');
+      console.log('🔍 Loading role testing from localStorage:', stored);
       return stored ? (stored as 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only') : null;
     }
     return null;
   });
   
   const setTestRole = (role: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null) => {
+    console.log('🔧 Setting test role:', role);
     setTestRoleState(role);
     if (typeof window !== 'undefined') {
       if (role) {
         localStorage.setItem('admin_role_testing', role);
+        console.log('💾 Saved to localStorage:', role);
       } else {
         localStorage.removeItem('admin_role_testing');
+        console.log('🗑️ Removed from localStorage');
       }
     }
   };
