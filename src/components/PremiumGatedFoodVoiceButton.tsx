@@ -33,7 +33,7 @@ export const PremiumGatedFoodVoiceButton = () => {
       variant="action-primary"
       size="action-tall"
       onClick={handleClick}
-      className={`w-full flex items-center justify-center ${!hasAccess ? 'opacity-50' : ''}`}
+      className={`w-full flex items-center justify-center bg-ai hover:bg-ai/90 text-ai-foreground ${!hasAccess ? 'opacity-50' : ''}`}
       title={hasAccess ? "AI Voice Assistant" : "AI Voice Assistant (Premium Feature)"}
       aria-label={hasAccess ? "AI voice input" : "AI voice input - premium feature"}
     >
