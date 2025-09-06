@@ -20,6 +20,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useOutboxSync } from '@/hooks/useOutboxSync';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { conversationMemory } from '@/utils/conversationMemory';
 import { generateUniqueSlug } from '@/utils/slugUtils';
 
@@ -49,6 +50,7 @@ export const AIVoiceButton = () => {
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
   const { addFoodEntry, addMultipleFoodEntries } = useFoodEntriesQuery();
   const { isSyncing, pending } = useOutboxSync();
+  const isMobile = useIsMobile();
 
   // Add welcome message when modal opens
   useEffect(() => {
@@ -822,7 +824,7 @@ export const AIVoiceButton = () => {
               </div>
 
               {/* Voice Button at Bottom */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 mb-safe-bottom">
+              <div className={`absolute left-1/2 transform -translate-x-1/2 ${isMobile ? 'bottom-8 pb-safe mb-4' : 'bottom-4'}`}>
                 <PremiumGatedCircularVoiceButton
                   onTranscription={handleVoiceTranscription}
                   isDisabled={isProcessing}

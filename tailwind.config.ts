@@ -22,6 +22,12 @@ export default {
 				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
 				mono: ['Inter', 'ui-monospace', 'SFMono-Regular', 'monospace'],
 			},
+			spacing: {
+				'safe': 'env(safe-area-inset-bottom)',
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
