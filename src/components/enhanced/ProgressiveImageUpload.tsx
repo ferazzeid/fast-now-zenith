@@ -32,7 +32,14 @@ export const ProgressiveImageUpload = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasPremiumFeatures } = useAccess();
+  const { hasPremiumFeatures, hasAIAccess, access_level, testRole, isTestingMode } = useAccess();
+  
+  // Use test role if in testing mode, otherwise use actual access level
+  const effectiveLevel = isTestingMode ? testRole : access_level;
+  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasAIAccess;
+  
+  // Check if user has access to AI analysis features
+  const canUseAIAnalysis = effectiveLevel === 'admin' || effectiveHasAIAccess;
   const { withSessionGuard } = useSessionGuard();
   const isMobile = useIsMobile();
 
@@ -111,8 +118,8 @@ export const ProgressiveImageUpload = ({
           className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
         });
 
-        // Only attempt analysis if user has premium features
-        if (hasPremiumFeatures) {
+        // Only attempt analysis if user has AI access
+        if (canUseAIAnalysis) {
           // Start analysis as separate optional step
           setInternalState('analyzing');
           onAnalysisStart?.();
@@ -250,7 +257,7 @@ export const ProgressiveImageUpload = ({
         return {
           icon: <Camera className="w-6 h-6" />,
           text: "Take Photo",
-          subtext: "AI will analyze nutrition"
+          subtext: canUseAIAnalysis ? "AI will analyze nutrition" : "Manual entry required"
         };
     }
   };
