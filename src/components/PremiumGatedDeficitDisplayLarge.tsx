@@ -22,8 +22,13 @@ export const PremiumGatedDeficitDisplayLarge = ({
   thirtyDayProjection, 
   userUnits 
 }: PremiumGatedDeficitDisplayLargeProps) => {
-  const { hasPremiumFeatures, isAdmin } = useAccess();
-  const hasAccess = isAdmin || hasPremiumFeatures;
+  const { hasFoodAccess, access_level, testRole, isTestingMode } = useAccess();
+  
+  // Use test role if in testing mode, otherwise use actual access level
+  const effectiveLevel = isTestingMode ? testRole : access_level;
+  const effectiveHasFoodAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_food_only' || testRole === 'free_full') : hasFoodAccess;
+  
+  const hasAccess = effectiveLevel === 'admin' || effectiveHasFoodAccess;
 
   // For free users, show locked state with upgrade prompt
   if (!hasAccess) {
