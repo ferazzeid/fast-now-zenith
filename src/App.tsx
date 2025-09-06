@@ -48,6 +48,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { AuthContextProvider, useAuthContext } from '@/contexts/AuthContext';
 import { useConnectionStore } from '@/stores/connectionStore';
+import { MobileStartupManager } from '@/components/MobileStartupManager';
 
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
@@ -85,29 +86,8 @@ const AppContent = () => {
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Get auth store methods
-  const setOAuthCompleting = useAuthStore(state => state.setOAuthCompleting);
-  const forceAuthRefresh = useAuthStore(state => state.forceRefresh);
-  
-  // OAuth is now handled by the MobileOAuthHandler in the Auth page
-  // No need for App-level deep link handling
-  
-  // Simple auth state
-  const { loading } = useAuth();
-  const { isOnline } = useConnectionStore();
-  
-  // Load colors once user is authenticated (with debug logging)
-  const { loading: colorLoading } = useColorTheme(!loading && !!user);
-  
-  // Debug: Check if chat colors are applied
-  useEffect(() => {
-    if (!loading && user) {
-      const root = document.documentElement;
-      const chatAi = getComputedStyle(root).getPropertyValue('--chat-ai');
-      const chatUser = getComputedStyle(root).getPropertyValue('--chat-user');
-      console.log('🎨 Chat colors loaded:', { chatAi, chatUser });
-    }
-  }, [loading, user]);
+  // Load colors once user is authenticated
+  const { loading: colorLoading } = useColorTheme(!!user);
 
 
   // Hide navigation on auth routes
@@ -132,52 +112,20 @@ const AppContent = () => {
     trackPageView(location.pathname);
   }, [location.pathname]);
 
-  // Show onboarding if user is authenticated and profile is incomplete
+  // Show onboarding if user is authenticated and profile is incomplete (non-blocking)
   useEffect(() => {
-    // Only check onboarding for authenticated users with loaded profile data
     if (user && profile !== null) {
       const profileComplete = isProfileComplete();
-      console.log('Profile onboarding check:', {
-        user: !!user,
-        // profile omitted for security
-        profileComplete,
-        weight: profile?.weight,
-        height: profile?.height,
-        age: profile?.age
-      });
       setShowOnboarding(!profileComplete);
     } else {
-      // User not authenticated or profile not loaded yet - don't show onboarding
       setShowOnboarding(false);
     }
   }, [user, profile, isProfileComplete]);
 
-  // Handle browser back/forward navigation when offline
+  // Track page views on route changes
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      // When offline, ensure we stay within the SPA
-      if (!isOnline) {
-        // Let React Router handle the navigation naturally
-        // The service worker will serve the cached index.html
-        console.log('Offline navigation detected, using cached app shell');
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [isOnline]);
-  
-  // Simple loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">Starting up...</p>
-        </div>
-      </div>
-    );
-  }
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   // App is ready to render
   return (
@@ -377,9 +325,11 @@ const App = () => {
               <AuthContextProvider>
                 <SimpleWalkingStatsProvider>
                   <Router>
-                    <AsyncErrorBoundary>
-                      <AppContent />
-                    </AsyncErrorBoundary>
+                    <MobileStartupManager>
+                      <AsyncErrorBoundary>
+                        <AppContent />
+                      </AsyncErrorBoundary>
+                    </MobileStartupManager>
                   </Router>
                 </SimpleWalkingStatsProvider>
               </AuthContextProvider>

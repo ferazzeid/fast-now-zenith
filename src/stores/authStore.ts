@@ -50,43 +50,78 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Starting auth initialization');
         set({ initialized: true });
         
+        // Mobile-specific timeout handling
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const timeout = isMobile ? 10000 : 5000; // Longer timeout for mobile
+        
         try {
-          // Set up auth state listener
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-              authLogger.info(`Auth event: ${event}`, {
-                hasSession: !!session,
-                userId: session?.user?.id
-              });
+          // Add timeout wrapper for mobile
+          const initWithTimeout = new Promise<void>((resolve, reject) => {
+            const timer = setTimeout(() => {
+              reject(new Error(`Auth initialization timeout after ${timeout}ms`));
+            }, timeout);
+            
+            const initAuth = async () => {
+              // Set up auth state listener
+              const { data: { subscription } } = supabase.auth.onAuthStateChange(
+                async (event, session) => {
+                  authLogger.info(`Auth event: ${event}`, {
+                    hasSession: !!session,
+                    userId: session?.user?.id
+                  });
+                  
+                  set({
+                    session,
+                    user: session?.user ?? null,
+                    loading: false,
+                  });
+                }
+              );
+
+              // Get current session with mobile retry
+              let sessionResult;
+              let retries = isMobile ? 3 : 1;
               
+              while (retries > 0) {
+                try {
+                  sessionResult = await supabase.auth.getSession();
+                  break;
+                } catch (err) {
+                  retries--;
+                  if (retries === 0) throw err;
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+              
+              const { data: { session }, error } = sessionResult;
+              
+              if (error) {
+                authLogger.error('Error getting session:', error);
+                set({ loading: false });
+                clearTimeout(timer);
+                resolve();
+                return;
+              }
+
+              // Update initial session state
               set({
                 session,
                 user: session?.user ?? null,
                 loading: false,
               });
-            }
-          );
 
-          // Get current session
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            authLogger.error('Error getting session:', error);
-            set({ loading: false });
-            return;
-          }
-
-          // Update initial session state
-          set({
-            session,
-            user: session?.user ?? null,
-            loading: false,
+              // Store subscription for cleanup
+              (window as any).__authSubscription = subscription;
+              
+              authLogger.info('Auth initialization complete');
+              clearTimeout(timer);
+              resolve();
+            };
+            
+            initAuth().catch(reject);
           });
-
-          // Store subscription for cleanup
-          (window as any).__authSubscription = subscription;
           
-          authLogger.info('Auth initialization complete');
+          await initWithTimeout;
         } catch (error) {
           authLogger.error('Auth initialization failed:', error);
           set({ loading: false });
