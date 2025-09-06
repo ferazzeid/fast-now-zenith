@@ -13,7 +13,7 @@ export const useDynamicPWAAssets = (isNativeApp?: boolean) => {
         const { data: settingsData } = await supabase
           .from('shared_settings')
           .select('setting_key, setting_value')
-          .in('setting_key', ['app_logo', 'app_favicon']);
+          .in('setting_key', ['app_logo', 'app_favicon', 'home_screen_icon']);
 
         const settings: Record<string, string> = {};
         settingsData?.forEach(item => {
@@ -35,12 +35,13 @@ export const useDynamicPWAAssets = (isNativeApp?: boolean) => {
           }
         }
 
-        // Update apple touch icons dynamically
-        if (settings.app_logo) {
+        // Update apple touch icons dynamically - prioritize home screen icon
+        const homeScreenIconUrl = settings.home_screen_icon || settings.app_logo;
+        if (homeScreenIconUrl) {
           const appleTouchIcons = document.querySelectorAll('link[rel="apple-touch-icon"]');
           appleTouchIcons.forEach((icon: any) => {
-            icon.href = settings.app_logo;
-            console.log('Updated apple touch icon to:', settings.app_logo);
+            icon.href = homeScreenIconUrl;
+            console.log('Updated apple touch icon to:', homeScreenIconUrl);
           });
         }
 

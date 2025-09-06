@@ -17,6 +17,8 @@ const BrandAssetsManager = () => {
   const [currentAppIcon, setCurrentAppIcon] = useState<string>('');
   const [currentFavicon, setCurrentFavicon] = useState<string>('');
   const [currentLogo, setCurrentLogo] = useState<string>('');
+  const [homeScreenIcon, setHomeScreenIcon] = useState<File | null>(null);
+  const [currentHomeScreenIcon, setCurrentHomeScreenIcon] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   
@@ -42,7 +44,7 @@ const BrandAssetsManager = () => {
       const { data: settingsData, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['app_logo', 'app_favicon', 'app_icon_url']);
+        .in('setting_key', ['app_logo', 'app_favicon', 'app_icon_url', 'home_screen_icon']);
 
       if (error) {
         console.error('Error fetching brand assets:', error);
@@ -57,6 +59,8 @@ const BrandAssetsManager = () => {
             setCurrentLogo(setting.setting_value || '');
           } else if (setting.setting_key === 'app_icon_url') {
             setCurrentAppIcon(setting.setting_value || '');
+          } else if (setting.setting_key === 'home_screen_icon') {
+            setCurrentHomeScreenIcon(setting.setting_value || '');
           }
         });
       }
@@ -94,7 +98,7 @@ const BrandAssetsManager = () => {
     }
   };
 
-  const handleFileSelect = (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+  const handleFileSelect = (file: File, type: 'appIcon' | 'favicon' | 'logo' | 'homeScreenIcon') => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -115,20 +119,31 @@ const BrandAssetsManager = () => {
       return;
     }
 
+    // For home screen icon, recommend JPG with white background
+    if (type === 'homeScreenIcon') {
+      toast({
+        title: "Tip",
+        description: "For best results on mobile home screens, use a JPG with white background (not transparent)",
+      });
+    }
+
     if (type === 'appIcon') {
       setAppIcon(file);
     } else if (type === 'favicon') {
       setFavicon(file);
+    } else if (type === 'homeScreenIcon') {
+      setHomeScreenIcon(file);
     } else {
       setLogo(file);
     }
   };
 
-  const uploadAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+  const uploadAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo' | 'homeScreenIcon') => {
     // Delete old asset first (non-blocking)
     let oldImageUrl = '';
     if (type === 'appIcon') oldImageUrl = currentAppIcon;
     else if (type === 'favicon') oldImageUrl = currentFavicon;
+    else if (type === 'homeScreenIcon') oldImageUrl = currentHomeScreenIcon;
     else oldImageUrl = currentLogo;
     
     if (oldImageUrl) {
@@ -382,7 +397,7 @@ const BrandAssetsManager = () => {
     console.log('Manifest and PWA cache updated');
   };
 
-  const saveAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+  const saveAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo' | 'homeScreenIcon') => {
     if (!file) {
       toast({
         title: "No file selected",
@@ -402,6 +417,7 @@ const BrandAssetsManager = () => {
       let dbKey = '';
       if (type === 'appIcon') dbKey = 'app_icon_url';
       else if (type === 'favicon') dbKey = 'app_favicon';
+      else if (type === 'homeScreenIcon') dbKey = 'home_screen_icon';
       else dbKey = 'app_logo';
       
       // Save to database with conflict resolution
@@ -442,6 +458,9 @@ const BrandAssetsManager = () => {
       } else if (type === 'favicon') {
         setCurrentFavicon(assetUrl);
         setFavicon(null);
+      } else if (type === 'homeScreenIcon') {
+        setCurrentHomeScreenIcon(assetUrl);
+        setHomeScreenIcon(null);
       } else {
         setCurrentLogo(assetUrl);
         setLogo(null);
@@ -452,7 +471,8 @@ const BrandAssetsManager = () => {
       const messages = {
         appIcon: "App icon updated successfully! This will be used for PWA installation and home screen icons.",
         favicon: "Favicon uploaded successfully! The new favicon will appear on browser tabs.",
-        logo: "Logo updated successfully! This will be used for app branding and headers."
+        logo: "Logo updated successfully! This will be used for app branding and headers.",
+        homeScreenIcon: "Home screen icon updated successfully! This will be used specifically for Android and iOS home screens with proper background."
       };
 
       toast({
@@ -654,6 +674,74 @@ const BrandAssetsManager = () => {
             <Button 
               onClick={() => saveAsset(logo!, 'logo')} 
               disabled={!logo || uploading}
+              className="flex-1 sm:flex-none"
+            >
+              {uploading ? "Uploading..." : "Save"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Home Screen Icon Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Smartphone className="w-4 h-4" />
+            Home Screen Icon · 192x192/512x512
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Special icon for Android and iOS home screens (JPG with white background recommended to avoid black background)</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {currentHomeScreenIcon && (
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+              <img 
+                src={currentHomeScreenIcon} 
+                alt="Current home screen icon" 
+                className="w-12 h-12 object-contain rounded"
+                style={{ backgroundColor: 'white' }}
+              />
+              <span className="text-sm text-muted-foreground">Current home screen icon</span>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="home-screen-icon-upload" className="text-sm font-medium">
+              Select Home Screen Icon (JPG with white background recommended)
+            </Label>
+            <div className="flex items-center gap-3">
+              <input
+                id="home-screen-icon-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0], 'homeScreenIcon')}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('home-screen-icon-upload')?.click()}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Choose File
+              </Button>
+              {homeScreenIcon && (
+                <span className="text-sm text-muted-foreground">
+                  {homeScreenIcon.name}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-sm text-amber-800">
+              <strong>Tip:</strong> This icon will only be used for Android and iOS home screens. Use a JPG with a white background to prevent the black background issue on mobile devices. Your transparent PNG logo will continue to be used everywhere else.
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => saveAsset(homeScreenIcon!, 'homeScreenIcon')} 
+              disabled={!homeScreenIcon || uploading}
               className="flex-1 sm:flex-none"
             >
               {uploading ? "Uploading..." : "Save"}

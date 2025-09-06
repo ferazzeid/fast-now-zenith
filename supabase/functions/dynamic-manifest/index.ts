@@ -43,11 +43,16 @@ serve(async (req) => {
     if (type === 'icon' && size) {
       const { data: settingsData } = await supabaseClient
         .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'app_logo')
-        .maybeSingle();
+        .select('setting_key, setting_value')
+        .in('setting_key', ['home_screen_icon', 'app_logo']);
 
-      const iconUrl = settingsData?.setting_value;
+      const settings: Record<string, string> = {};
+      settingsData?.forEach(item => {
+        settings[item.setting_key] = item.setting_value;
+      });
+
+      // Prioritize home screen icon for TWA, fallback to app logo
+      const iconUrl = settings.home_screen_icon || settings.app_logo;
       if (iconUrl) {
         // Fetch the image and return it
         const imageResponse = await fetch(iconUrl);
@@ -81,11 +86,16 @@ serve(async (req) => {
     if (type === 'splash') {
       const { data: settingsData } = await supabaseClient
         .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'app_logo')
-        .maybeSingle();
+        .select('setting_key, setting_value')
+        .in('setting_key', ['home_screen_icon', 'app_logo']);
 
-      const splashUrl = settingsData?.setting_value;
+      const settings: Record<string, string> = {};
+      settingsData?.forEach(item => {
+        settings[item.setting_key] = item.setting_value;
+      });
+
+      // Prioritize home screen icon for splash, fallback to app logo
+      const splashUrl = settings.home_screen_icon || settings.app_logo;
       if (splashUrl) {
         const imageResponse = await fetch(splashUrl);
         if (imageResponse.ok) {
@@ -105,15 +115,15 @@ serve(async (req) => {
     const { data: settingsData } = await supabaseClient
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['app_logo', 'app_favicon', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
+      .in('setting_key', ['app_logo', 'app_favicon', 'home_screen_icon', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
 
     const settings: Record<string, string> = {};
     settingsData?.forEach(item => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    // Use app_logo for PWA icons, fallback to app_favicon if not available
-    const appIcon = settings.app_logo || settings.app_favicon;
+    // Use home_screen_icon for PWA icons, fallback to app_logo, then app_favicon
+    const appIcon = settings.home_screen_icon || settings.app_logo || settings.app_favicon;
     const appName = settings.pwa_app_name || 'fast now - The No-BS Fat Loss Protocol';
     const shortName = settings.pwa_short_name || 'fast now';
     const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';
