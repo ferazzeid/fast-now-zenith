@@ -4,7 +4,7 @@ import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { Button } from '@/components/ui/button';
 import { Lock, Mic } from 'lucide-react';
 import { useAccess } from '@/hooks/useAccess';
-import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
+import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
 export const PremiumGatedAIVoiceButton = () => {
@@ -24,11 +24,7 @@ export const PremiumGatedAIVoiceButton = () => {
         variant="ghost"
         size="sm"
         onClick={() => {
-          showAIRequestLimitError(
-            { current_tier: 'free', limit_reached: true }, 
-            toast, 
-            createSubscription
-          );
+          showAIAccessError(toast, createSubscription);
         }}
         className="ai-voice-button w-8 h-8 p-0 rounded-full bg-ai hover:bg-ai/90 hover:scale-110 transition-all duration-200 opacity-50"
         title="AI Voice Assistant (Premium Feature)"

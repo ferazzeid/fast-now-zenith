@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Lock, Mic } from 'lucide-react';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
-import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
+import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
 interface PremiumGatedCircularVoiceButtonProps {
@@ -41,11 +41,7 @@ export const PremiumGatedCircularVoiceButton = (props: PremiumGatedCircularVoice
     return (
       <Button
         onClick={() => {
-          showAIRequestLimitError(
-            { current_tier: 'free', limit_reached: true }, 
-            toast, 
-            createSubscription
-          );
+          showAIAccessError(toast, createSubscription);
         }}
         disabled={props.isDisabled}
         className={`

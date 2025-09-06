@@ -4,7 +4,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
 
-import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
+import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
 interface PremiumGatedVoiceButtonProps {
@@ -29,12 +29,8 @@ export const PremiumGatedVoiceButton = (props: PremiumGatedVoiceButtonProps) => 
     ? { 
         ...props, 
         onTranscription: () => {
-          showAIRequestLimitError(
-            { current_tier: 'free', limit_reached: true }, 
-            toast, 
-            createSubscription
-          );
-        }, 
+          showAIAccessError(toast, createSubscription);
+        },
         isDisabled: false  // Allow clicking to show upgrade prompt
       }
     : props;

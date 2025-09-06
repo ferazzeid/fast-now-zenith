@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Lock, Mic } from 'lucide-react';
 import { useAccess } from '@/hooks/useAccess';
-import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
+import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
 export const PremiumGatedFoodVoiceButton = () => {
@@ -18,11 +18,7 @@ export const PremiumGatedFoodVoiceButton = () => {
 
   const handleClick = () => {
     if (!hasAccess) {
-      showAIRequestLimitError(
-        { current_tier: 'free', limit_reached: true }, 
-        toast, 
-        createSubscription
-      );
+      showAIAccessError(toast, createSubscription);
     }
     // For users with access, the actual voice functionality would be handled here
     // This is a simplified version - the real implementation would integrate with voice recording

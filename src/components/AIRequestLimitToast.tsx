@@ -61,6 +61,24 @@ export const showAIRequestLimitError = (error: any, toast: any, createSubscripti
   return false;
 };
 
+export const showAIAccessError = (toast: any, createSubscription: () => void) => {
+  toast({
+    title: "AI Features Require Premium",
+    description: "AI voice features are only available to premium users. Upgrade now to unlock AI-powered functionality!",
+    variant: "default",
+    action: (
+      <Button 
+        onClick={createSubscription}
+        size="sm"
+        className="ml-2"
+      >
+        Upgrade Now
+      </Button>
+    ),
+    duration: 8000,
+  });
+};
+
 export const showFoodTrackingLimitError = (toast: any, createSubscription: () => void) => {
   toast({
     title: "Food Tracking Unavailable",

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Lock } from 'lucide-react';
 import { useAccess } from '@/hooks/useAccess';
-import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
+import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
 
@@ -28,11 +28,7 @@ export const PremiumGatedAddFoodVoiceButton = ({
     return (
       <button
         onClick={() => {
-          showAIRequestLimitError(
-            { current_tier: 'free', limit_reached: true }, 
-            toast, 
-            createSubscription
-          );
+          showAIAccessError(toast, createSubscription);
         }}
         className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center opacity-50"
         title="AI Voice Assistant (Premium Feature)"

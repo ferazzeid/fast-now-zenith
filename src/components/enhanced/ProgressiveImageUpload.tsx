@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Camera, Loader2, Image, CheckCircle, Sparkles } from 'lucide-react';
+import { Upload, Camera, Loader2, Image, CheckCircle, Sparkles, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -255,9 +255,14 @@ export const ProgressiveImageUpload = ({
         };
       default:
         return {
-          icon: <Camera className="w-6 h-6" />,
+          icon: canUseAIAnalysis ? <Camera className="w-6 h-6" /> : (
+            <div className="relative">
+              <Camera className="w-6 h-6" />
+              <Lock className="w-3 h-3 absolute -top-1 -right-1 bg-background rounded-full p-0.5" />
+            </div>
+          ),
           text: "Take Photo",
-          subtext: canUseAIAnalysis ? "AI will analyze nutrition" : "Manual entry required"
+          subtext: "AI will analyze nutrition"
         };
     }
   };
