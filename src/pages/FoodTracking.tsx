@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera, Brain, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
+import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -432,7 +432,7 @@ const FoodTracking = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="w-full">
-                  <AIVoiceButton />
+                  <PremiumGatedAIVoiceButton />
                 </div>
               </TooltipTrigger>
               <TooltipContent>

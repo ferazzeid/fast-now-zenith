@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History, X, CheckCircle } from 'lucide-react';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
+import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';

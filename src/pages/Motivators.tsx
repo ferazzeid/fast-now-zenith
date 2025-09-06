@@ -1,6 +1,6 @@
 import React, { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
+import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
