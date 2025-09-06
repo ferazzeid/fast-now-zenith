@@ -21,15 +21,15 @@ export const PremiumGatedFoodNavigation = ({
   className = '', 
   onClick 
 }: PremiumGatedFoodNavigationProps) => {
-  const { access_level, hasPremiumFeatures, createSubscription, testRole, isTestingMode } = useAccess();
+  const { access_level, hasFoodAccess, createSubscription, testRole, isTestingMode } = useAccess();
   const { toast } = useToast();
   
   // Use test role if in testing mode, otherwise use actual access level
   const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
+  const effectiveHasFoodAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasFoodAccess;
   
   // Check if user has access to food tracking
-  const hasAccess = effectiveLevel === 'admin' || effectiveHasPremiumFeatures;
+  const hasAccess = effectiveLevel === 'admin' || effectiveHasFoodAccess;
   
   const handleClick = (e: React.MouseEvent) => {
     if (!hasAccess) {

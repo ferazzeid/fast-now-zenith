@@ -8,15 +8,15 @@ import { showAIRequestLimitError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
 export const PremiumGatedAIVoiceButton = () => {
-  const { access_level, hasPremiumFeatures, createSubscription, testRole, isTestingMode } = useAccess();
+  const { access_level, hasAIAccess, createSubscription, testRole, isTestingMode } = useAccess();
   const { toast } = useToast();
   
   // Use test role if in testing mode, otherwise use actual access level
   const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
+  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasAIAccess;
 
   // Check if user has access to AI voice features
-  const hasAccess = effectiveLevel === 'admin' || effectiveHasPremiumFeatures;
+  const hasAccess = effectiveLevel === 'admin' || effectiveHasAIAccess;
 
   if (!hasAccess) {
     return (

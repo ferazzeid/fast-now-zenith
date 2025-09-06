@@ -11,8 +11,8 @@ interface PremiumGatedCaloriesInProps {
 }
 
 export const PremiumGatedCaloriesIn = ({ calories, carbs }: PremiumGatedCaloriesInProps) => {
-  const { isAdmin, hasPremiumFeatures } = useAccess();
-  const hasAccess = isAdmin || hasPremiumFeatures;
+  const { isAdmin, hasFoodAccess } = useAccess();
+  const hasAccess = isAdmin || hasFoodAccess;
   
   return (
     <PremiumGate feature="Food Tracking" grayOutForFree={true} showUpgrade={false}>

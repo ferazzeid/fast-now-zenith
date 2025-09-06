@@ -19,7 +19,7 @@ import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
 import { AdminRoleTester } from '@/components/AdminRoleTester';
-
+import { AdminAppModeSwitcher } from '@/components/AdminAppModeSwitcher';
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
 
 
@@ -205,6 +205,11 @@ const AdminOverview = () => {
           Admin Dashboard
         </h1>
       </div>
+      
+      {/* App Mode Settings - Global Control */}
+      <section aria-label="App access mode settings">
+        <AdminAppModeSwitcher />
+      </section>
       
       {/* Role Testing Section */}
       <section aria-label="Role testing">

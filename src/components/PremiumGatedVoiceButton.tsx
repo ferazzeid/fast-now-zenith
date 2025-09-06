@@ -14,15 +14,15 @@ interface PremiumGatedVoiceButtonProps {
 }
 
 export const PremiumGatedVoiceButton = (props: PremiumGatedVoiceButtonProps) => {
-  const { access_level, hasPremiumFeatures, createSubscription, testRole, isTestingMode } = useAccess();
+  const { access_level, hasAIAccess, createSubscription, testRole, isTestingMode } = useAccess();
   const { toast } = useToast();
   
   // Use test role if in testing mode, otherwise use actual access level
   const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
+  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasAIAccess;
 
   // Check if user has access to the feature
-  const hasAccess = effectiveLevel === 'admin' || effectiveHasPremiumFeatures;
+  const hasAccess = effectiveLevel === 'admin' || effectiveHasAIAccess;
 
   // If no access and free user, show upgrade prompt instead of functioning
   const disabledProps = !hasAccess && effectiveLevel === 'free' 
