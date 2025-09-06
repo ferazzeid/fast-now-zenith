@@ -255,14 +255,9 @@ export const ProgressiveImageUpload = ({
         };
       default:
         return {
-          icon: canUseAIAnalysis ? <Camera className="w-6 h-6" /> : (
-            <div className="relative">
-              <Camera className="w-6 h-6" />
-              <Lock className="w-3 h-3 absolute -top-1 -right-1 bg-background rounded-full p-0.5" />
-            </div>
-          ),
+          icon: <Camera className="w-6 h-6" />,
           text: "Take Photo",
-          subtext: "AI will analyze nutrition"
+          subtext: canUseAIAnalysis ? "AI will analyze nutrition" : "AI will analyze nutrition (Premium only)"
         };
     }
   };
