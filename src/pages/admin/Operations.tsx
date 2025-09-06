@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ClearSubscriptionCacheButton } from "@/components/ClearSubscriptionCacheButton";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
+import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -29,6 +30,10 @@ export default function AdminOperations() {
       <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
         <h1 className="sr-only">Admin Operations</h1>
         <AdminSubnav />
+
+        <section aria-label="App mode settings">
+          <AdminAppModeSwitcher />
+        </section>
 
         <section aria-label="Real-time analytics">
           <SimpleAnalyticsWidget />
