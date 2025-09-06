@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
-import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
+import { PremiumGatedAddFoodVoiceButton } from '@/components/PremiumGatedAddFoodVoiceButton';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
 import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
@@ -407,7 +407,7 @@ export default function AddFood() {
                     className="h-9 flex-1"
                     required
                   />
-                  <EnhancedVoiceFoodInput
+                  <PremiumGatedAddFoodVoiceButton
                     onFoodParsed={(result) => {
                       // Just populate basic food information from voice
                       if (result.foodName) {
