@@ -20,8 +20,8 @@ export interface AccessData {
   daysRemaining: number | null;
   globalAccessMode: string;
   // Role testing properties
-  testRole?: 'admin' | 'paid_user' | 'free_user' | null;
-  setTestRole?: (role: 'admin' | 'paid_user' | 'free_user' | null) => void;
+  testRole?: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null;
+  setTestRole?: (role: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null) => void;
   isTestingMode?: boolean;
 }
 
@@ -130,15 +130,15 @@ export const useAccess = () => {
   }, [user?.id]); // Clear when user ID changes (fresh login)
   
   // Internal role testing state with localStorage persistence
-  const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | null>(() => {
+  const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('admin_role_testing');
-      return stored ? (stored as 'admin' | 'paid_user' | 'free_user') : null;
+      return stored ? (stored as 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only') : null;
     }
     return null;
   });
   
-  const setTestRole = (role: 'admin' | 'paid_user' | 'free_user' | null) => {
+  const setTestRole = (role: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null) => {
     setTestRoleState(role);
     if (typeof window !== 'undefined') {
       if (role) {
@@ -193,11 +193,13 @@ export const useAccess = () => {
   // Apply role testing override if active
   if (isTestingMode && testRole) {
     const testAccessLevel = testRole === 'admin' ? 'admin' : 
-                           testRole === 'paid_user' ? 'premium' : 'free';
+                           testRole === 'paid_user' ? 'premium' : 
+                           testRole === 'free_full' ? 'free_full' :
+                           testRole === 'free_food_only' ? 'free_food_only' : 'free';
     
-    const testHasPremiumFeatures = testAccessLevel !== 'free';
-    const testHasFoodAccess = testAccessLevel !== 'free';
-    const testHasAIAccess = testAccessLevel !== 'free';
+    const testHasPremiumFeatures = testRole === 'admin' || testRole === 'paid_user';
+    const testHasFoodAccess = testRole !== 'free_user';
+    const testHasAIAccess = testRole === 'admin' || testRole === 'paid_user' || testRole === 'free_full';
     
     return {
       ...actualData,
@@ -209,10 +211,10 @@ export const useAccess = () => {
       isAdmin: testAccessLevel === 'admin',
       originalIsAdmin: actualData.isAdmin, // CRITICAL: Preserve original admin status
       isTrial: false,
-      isPremium: testAccessLevel === 'premium',
-      isFree: testAccessLevel === 'free',
-      isFreeFull: false,
-      isFreeFood: false,
+      isPremium: testRole === 'paid_user',
+      isFree: testRole === 'free_user',
+      isFreeFull: testRole === 'free_full',
+      isFreeFood: testRole === 'free_food_only',
       // Role testing functions
       setTestRole,
       testRole,
