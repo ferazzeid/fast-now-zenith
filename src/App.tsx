@@ -79,8 +79,14 @@ const AppContent = () => {
   const location = useLocation();
   const user = useAuthStore(state => state.user);
   const loading = useAuthStore(state => state.loading);
+  const initialize = useAuthStore(state => state.initialize);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Initialize auth system on app startup
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
   
   // Load colors once user is authenticated
   const { loading: colorLoading } = useColorTheme(!!user);
