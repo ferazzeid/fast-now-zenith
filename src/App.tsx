@@ -35,8 +35,6 @@ import { Navigation } from "./components/Navigation";
 
 
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { SimplifiedStartup } from "./components/SimplifiedStartup";
-import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
@@ -46,13 +44,10 @@ import { performCompleteAuthCacheReset } from "./utils/cacheUtils";
 import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
-import { AuthContextProvider, useAuthContext } from '@/contexts/AuthContext';
-import { useConnectionStore } from '@/stores/connectionStore';
-import { MobileStartupManager } from '@/components/MobileStartupManager';
+import { useAuthStore } from '@/stores/authStore';
 
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthStore } from '@/stores/authStore';
 import { useColorTheme } from '@/hooks/useColorTheme';
 
 
@@ -82,7 +77,8 @@ if (typeof window !== 'undefined') {
 const AppContent = () => {
   // All hooks must be called consistently - no conditional hooks!
   const location = useLocation();
-  const { user } = useAuthContext();
+  const user = useAuthStore(state => state.user);
+  const loading = useAuthStore(state => state.loading);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
@@ -322,17 +318,13 @@ const App = () => {
             <Sonner />
             
             <ThemeProvider>
-              <AuthContextProvider>
-                <SimpleWalkingStatsProvider>
-                  <Router>
-                    <MobileStartupManager>
-                      <AsyncErrorBoundary>
-                        <AppContent />
-                      </AsyncErrorBoundary>
-                    </MobileStartupManager>
-                  </Router>
-                </SimpleWalkingStatsProvider>
-              </AuthContextProvider>
+              <SimpleWalkingStatsProvider>
+                <Router>
+                  <AsyncErrorBoundary>
+                    <AppContent />
+                  </AsyncErrorBoundary>
+                </Router>
+              </SimpleWalkingStatsProvider>
             </ThemeProvider>
           </TooltipProvider>
         </HookConsistencyBoundary>

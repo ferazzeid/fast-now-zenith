@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface AuthenticatedAppProps {
@@ -13,7 +13,8 @@ interface AuthenticatedAppProps {
  * Prevents React #300 errors by providing consistent auth context
  */
 export const AuthenticatedApp = ({ children, fallback }: AuthenticatedAppProps) => {
-  const { user, loading } = useAuthContext();
+  const user = useAuthStore(state => state.user);
+  const loading = useAuthStore(state => state.loading);
 
   // Always render in the same pattern to maintain hook consistency
   if (loading) {
@@ -36,7 +37,8 @@ interface PublicAppProps {
  * Still provides stable hook patterns
  */
 export const PublicApp = ({ children }: PublicAppProps) => {
-  const { user, loading } = useAuthContext();
+  const user = useAuthStore(state => state.user);
+  const loading = useAuthStore(state => state.loading);
 
   // Always render consistently 
   if (loading) {

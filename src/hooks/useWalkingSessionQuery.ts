@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
 
 export interface WalkingSession {
@@ -26,7 +26,7 @@ const walkingSessionsQueryKey = (userId: string | null) => ['walking-sessions', 
 const activeSessionQueryKey = (userId: string | null) => ['active-walking-session', userId];
 
 export const useWalkingSessionQuery = () => {
-  const { user } = useAuthContext();
+  const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
