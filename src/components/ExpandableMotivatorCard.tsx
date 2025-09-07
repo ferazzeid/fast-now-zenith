@@ -135,10 +135,21 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     ) : (
                       <p className="line-clamp-2">{motivator.content}</p>
                     )}
+                    {shouldShowExpandButton && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsExpanded(!isExpanded);
+                        }}
+                        className={`text-primary hover:text-primary/80 text-xs font-medium mt-1 block ${
+                          isSavedQuote ? 'text-blue-400 hover:text-blue-300' : ''
+                        }`}
+                      >
+                        {isExpanded ? 'Show Less' : 'Read More'}
+                      </button>
+                    )}
                   </div>
                 )}
-                
-                {/* Read More link removed - content displayed in-place via expand/collapse */}
               </div>
               
               {/* Actions */}

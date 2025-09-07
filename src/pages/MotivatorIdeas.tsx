@@ -174,10 +174,16 @@ export default function MotivatorIdeas() {
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
                                 {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{excerpt}</p>}
+                                {shouldShowExpandButton && (
+                                  <button
+                                    onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                                    className="text-primary hover:text-primary/80 text-xs font-medium mt-1 block"
+                                  >
+                                    {isExpanded ? 'Show Less' : 'Read More'}
+                                  </button>
+                                )}
                               </div>
                             )}
-                            
-                            {/* Read More link removed - content displayed in-place via expand/collapse */}
                           </div>
                            <div className="flex flex-col gap-2 ml-2">
                              <Tooltip>
