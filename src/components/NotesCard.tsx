@@ -173,7 +173,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                           if (isToggling) return; // Prevent double clicks
                           
                           setIsToggling(true);
-                          const newValue = !(note.show_in_animations !== false);
+                          const newValue = !note.show_in_animations;
                           
                           try {
                             await onUpdate(note.id, { 
@@ -192,8 +192,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                               variant: "destructive",
                             });
                           } finally {
-                            // Add a small delay to prevent rapid clicking
-                            setTimeout(() => setIsToggling(false), 300);
+                            setIsToggling(false);
                           }
                         }}
                         disabled={isToggling}
@@ -201,7 +200,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       >
                         {isToggling ? (
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : note.show_in_animations !== false ? (
+                        ) : note.show_in_animations ? (
                           <Eye className="h-4 w-4" />
                         ) : (
                           <EyeOff className="h-4 w-4" />
@@ -209,7 +208,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{note.show_in_animations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                      <p>{note.show_in_animations ? 'Hide from timer animations' : 'Show in timer animations'}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
