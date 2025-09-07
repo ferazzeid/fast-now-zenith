@@ -655,8 +655,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       food.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    // Sort by last used (most recent first) - this is the key difference from library foods
+    // Sort favorites first, then by recency (most recent first)
     return filtered.sort((a, b) => {
+      // Favorites first
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      
+      // If both are favorites or both are not favorites, sort by recency
       const aRecentFood = recentFoods.find(rf => rf.id === a.id);
       const bRecentFood = recentFoods.find(rf => rf.id === b.id);
       
