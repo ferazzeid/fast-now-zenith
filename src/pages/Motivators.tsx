@@ -326,14 +326,12 @@ const Motivators = () => {
           {/* Header */}
           <div className="mb-4 mt-4 relative">
             {/* Admin Insights positioned between title and left area */}
-            {isAdmin && (
-              <div className="absolute right-0 top-0">
-                <AuthorTooltip 
-                  contentKey="motivators_insights"
-                  content="Setting clear, meaningful goals increases your success rate by 42%. Write specific, measurable goals and visualize achieving them daily. Your mindset shapes your reality!" 
-                />
-              </div>
-            )}
+            <div className="absolute right-0 top-0">
+              <AuthorTooltip 
+                contentKey="motivators_insights"
+                content="Setting clear, meaningful goals increases your success rate by 42%. Write specific, measurable goals and visualize achieving them daily. Your mindset shapes your reality!" 
+              />
+            </div>
             <div className="pl-0 pr-12">
               <h1 className="text-2xl font-bold text-foreground mb-1">
                 {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
