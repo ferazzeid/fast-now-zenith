@@ -205,8 +205,14 @@ export type Database = {
           author: string
           categories: string[] | null
           content: string
+          content_ar: string | null
+          content_de: string | null
+          content_ru: string | null
           created_at: string
           excerpt: string | null
+          excerpt_ar: string | null
+          excerpt_de: string | null
+          excerpt_ru: string | null
           featured_image: string | null
           featured_image_alt: string | null
           id: string
@@ -218,14 +224,23 @@ export type Database = {
           status: string
           tags: string[] | null
           title: string
+          title_ar: string | null
+          title_de: string | null
+          title_ru: string | null
           updated_at: string
         }
         Insert: {
           author?: string
           categories?: string[] | null
           content: string
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           excerpt?: string | null
+          excerpt_ar?: string | null
+          excerpt_de?: string | null
+          excerpt_ru?: string | null
           featured_image?: string | null
           featured_image_alt?: string | null
           id?: string
@@ -237,14 +252,23 @@ export type Database = {
           status?: string
           tags?: string[] | null
           title: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Update: {
           author?: string
           categories?: string[] | null
           content?: string
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           excerpt?: string | null
+          excerpt_ar?: string | null
+          excerpt_de?: string | null
+          excerpt_ru?: string | null
           featured_image?: string | null
           featured_image_alt?: string | null
           id?: string
@@ -256,6 +280,9 @@ export type Database = {
           status?: string
           tags?: string[] | null
           title?: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -550,6 +577,9 @@ export type Database = {
       faqs: {
         Row: {
           answer: string
+          answer_ar: string | null
+          answer_de: string | null
+          answer_ru: string | null
           created_at: string
           display_order: number
           id: string
@@ -558,11 +588,17 @@ export type Database = {
           is_active: boolean
           page_category: string | null
           question: string
+          question_ar: string | null
+          question_de: string | null
+          question_ru: string | null
           show_open_by_default: boolean | null
           updated_at: string
         }
         Insert: {
           answer: string
+          answer_ar?: string | null
+          answer_de?: string | null
+          answer_ru?: string | null
           created_at?: string
           display_order?: number
           id?: string
@@ -571,11 +607,17 @@ export type Database = {
           is_active?: boolean
           page_category?: string | null
           question: string
+          question_ar?: string | null
+          question_de?: string | null
+          question_ru?: string | null
           show_open_by_default?: boolean | null
           updated_at?: string
         }
         Update: {
           answer?: string
+          answer_ar?: string | null
+          answer_de?: string | null
+          answer_ru?: string | null
           created_at?: string
           display_order?: number
           id?: string
@@ -584,6 +626,9 @@ export type Database = {
           is_active?: boolean
           page_category?: string | null
           question?: string
+          question_ar?: string | null
+          question_de?: string | null
+          question_ru?: string | null
           show_open_by_default?: boolean | null
           updated_at?: string
         }
@@ -726,8 +771,14 @@ export type Database = {
           author: string
           categories: string[] | null
           content: string
+          content_ar: string | null
+          content_de: string | null
+          content_ru: string | null
           created_at: string
           excerpt: string | null
+          excerpt_ar: string | null
+          excerpt_de: string | null
+          excerpt_ru: string | null
           featured_image: string | null
           hour: number
           how_youre_feeling: string | null
@@ -739,6 +790,9 @@ export type Database = {
           status: string
           tags: string[] | null
           title: string
+          title_ar: string | null
+          title_de: string | null
+          title_ru: string | null
           updated_at: string
           whats_happening: string | null
         }
@@ -746,8 +800,14 @@ export type Database = {
           author?: string
           categories?: string[] | null
           content: string
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           excerpt?: string | null
+          excerpt_ar?: string | null
+          excerpt_de?: string | null
+          excerpt_ru?: string | null
           featured_image?: string | null
           hour: number
           how_youre_feeling?: string | null
@@ -759,6 +819,9 @@ export type Database = {
           status?: string
           tags?: string[] | null
           title: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
           whats_happening?: string | null
         }
@@ -766,8 +829,14 @@ export type Database = {
           author?: string
           categories?: string[] | null
           content?: string
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           excerpt?: string | null
+          excerpt_ar?: string | null
+          excerpt_de?: string | null
+          excerpt_ru?: string | null
           featured_image?: string | null
           hour?: number
           how_youre_feeling?: string | null
@@ -779,6 +848,9 @@ export type Database = {
           status?: string
           tags?: string[] | null
           title?: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
           whats_happening?: string | null
         }
@@ -1110,48 +1182,75 @@ export type Database = {
           button_text: string | null
           button_url: string | null
           content: string | null
+          content_ar: string | null
+          content_de: string | null
+          content_ru: string | null
           created_at: string
           featured_image_url: string | null
           id: string
           is_indexed: boolean | null
           is_published: boolean
           meta_description: string | null
+          meta_description_ar: string | null
+          meta_description_de: string | null
+          meta_description_ru: string | null
           meta_title: string | null
           page_key: string
           subtitle: string | null
           title: string | null
+          title_ar: string | null
+          title_de: string | null
+          title_ru: string | null
           updated_at: string
         }
         Insert: {
           button_text?: string | null
           button_url?: string | null
           content?: string | null
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           featured_image_url?: string | null
           id?: string
           is_indexed?: boolean | null
           is_published?: boolean
           meta_description?: string | null
+          meta_description_ar?: string | null
+          meta_description_de?: string | null
+          meta_description_ru?: string | null
           meta_title?: string | null
           page_key: string
           subtitle?: string | null
           title?: string | null
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Update: {
           button_text?: string | null
           button_url?: string | null
           content?: string | null
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           featured_image_url?: string | null
           id?: string
           is_indexed?: boolean | null
           is_published?: boolean
           meta_description?: string | null
+          meta_description_ar?: string | null
+          meta_description_de?: string | null
+          meta_description_ru?: string | null
           meta_title?: string | null
           page_key?: string
           subtitle?: string | null
           title?: string | null
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1565,6 +1664,9 @@ export type Database = {
         Row: {
           category: string | null
           content: string
+          content_ar: string | null
+          content_de: string | null
+          content_ru: string | null
           created_at: string
           display_order: number
           female_image_url: string | null
@@ -1576,11 +1678,17 @@ export type Database = {
           meta_title: string | null
           slug: string
           title: string
+          title_ar: string | null
+          title_de: string | null
+          title_ru: string | null
           updated_at: string
         }
         Insert: {
           category?: string | null
           content: string
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           display_order?: number
           female_image_url?: string | null
@@ -1592,11 +1700,17 @@ export type Database = {
           meta_title?: string | null
           slug: string
           title: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Update: {
           category?: string | null
           content?: string
+          content_ar?: string | null
+          content_de?: string | null
+          content_ru?: string | null
           created_at?: string
           display_order?: number
           female_image_url?: string | null
@@ -1608,6 +1722,9 @@ export type Database = {
           meta_title?: string | null
           slug?: string
           title?: string
+          title_ar?: string | null
+          title_de?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1672,6 +1789,69 @@ export type Database = {
           created_at?: string
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      translation_status: {
+        Row: {
+          created_at: string
+          field_name: string
+          id: string
+          language_code: string
+          record_id: string
+          table_name: string
+          translated_at: string | null
+          translation_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_name: string
+          id?: string
+          language_code: string
+          record_id: string
+          table_name: string
+          translated_at?: string | null
+          translation_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_name?: string
+          id?: string
+          language_code?: string
+          record_id?: string
+          table_name?: string
+          translated_at?: string | null
+          translation_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ui_translations: {
+        Row: {
+          created_at: string | null
+          id: string
+          language_code: string
+          translated_text: string
+          translation_key: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          language_code: string
+          translated_text: string
+          translation_key: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          language_code?: string
+          translated_text?: string
+          translation_key?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
