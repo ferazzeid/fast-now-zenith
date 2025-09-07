@@ -1100,7 +1100,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           show_in_animations: boolean
-          slug: string | null
+          slug: string
           title: string
           updated_at: string
           user_id: string
@@ -1120,7 +1120,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           show_in_animations?: boolean
-          slug?: string | null
+          slug: string
           title: string
           updated_at?: string
           user_id: string
@@ -1140,7 +1140,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           show_in_animations?: boolean
-          slug?: string | null
+          slug?: string
           title?: string
           updated_at?: string
           user_id?: string

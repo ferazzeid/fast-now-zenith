@@ -117,7 +117,7 @@ export const useMotivators = () => {
           image_url: motivatorData.imageUrl,
           link_url: motivatorData.linkUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
-          slug: null, // Remove slug generation for personal motivators
+          slug: generateUniqueSlug(motivatorData.title),
           is_active: true
         })
         .select()
@@ -209,7 +209,7 @@ export const useMotivators = () => {
         image_url: motivator.imageUrl,
         link_url: motivator.linkUrl,
         show_in_animations: motivator.show_in_animations ?? true,
-        slug: null, // Remove slug generation for personal motivators
+        slug: generateUniqueSlug(motivator.title),
         is_active: true
       }));
 
@@ -255,7 +255,7 @@ export const useMotivators = () => {
           title,
           content,
           category: 'saved_quote',
-          slug: null, // Remove slug generation for personal motivators
+          slug: generateUniqueSlug(title),
           show_in_animations: true, // Default to showing saved quotes in animations
           is_active: true
         })

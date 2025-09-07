@@ -2,15 +2,13 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2, Star } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, Star, BookOpen } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { ContentModal } from '@/components/ContentModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,14 +41,10 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   onDelete 
 }) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
-  const [showContentModal, setShowContentModal] = useState(false);
-  const [contentModalData, setContentModalData] = useState<any>(null);
-  const [contentLoading, setContentLoading] = useState(false);
   const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
   
@@ -95,40 +89,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     const success = await addToDefaultGoals(motivator);
     if (success) {
       setIsInDefaultGoals(true);
-    }
-  };
-
-  const handleReadMore = async () => {
-    if (!motivator.slug) return;
-    
-    setContentLoading(true);
-    setShowContentModal(true);
-    
-    try {
-      const { data, error } = await supabase
-        .from('system_motivators' as any)
-        .select('*')
-        .eq('slug', motivator.slug)
-        .single();
-
-      if (error) throw error;
-
-      setContentModalData({
-        id: (data as any).id,
-        title: (data as any).title,
-        content: (data as any).content,
-        created_at: (data as any).created_at
-      });
-    } catch (error) {
-      console.error('Error fetching content:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load content.",
-        variant: "destructive"
-      });
-      setShowContentModal(false);
-    } finally {
-      setContentLoading(false);
     }
   };
 
@@ -178,19 +138,20 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   </div>
                 )}
                 
-                {/* Read More Button */}
-                {motivator.slug && (
+                {/* Read More Link */}
+                {motivator.linkUrl && (
                   <div className="mt-3">
                     <Button
                       variant="link"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleReadMore();
+                        // Navigate to content page using React Router
+                        navigate(`/content/${motivator.slug || motivator.id}`);
                       }}
                       className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                     >
-                      Read More
+                      Read More <BookOpen className="w-3 h-3 ml-1" />
                     </Button>
                   </div>
                 )}

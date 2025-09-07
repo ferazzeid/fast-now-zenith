@@ -14,8 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
 import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
-import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown } from 'lucide-react';
-import { ContentModal } from '@/components/ContentModal';
+import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
   usePageSEO({
@@ -35,9 +34,6 @@ export default function MotivatorIdeas() {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
   const [forceRenderKey, setForceRenderKey] = useState(0);
-  const [showContentModal, setShowContentModal] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<any>(null);
-  const [contentLoading, setContentLoading] = useState(false);
   useEffect(() => {
     refreshGoalIdeas();
   }, []);
@@ -106,44 +102,6 @@ export default function MotivatorIdeas() {
 
   const handleDelete = async (goalId: string) => {
     await removeGoalIdea(goalId);
-  };
-
-  const handleReadMore = async (goal: AdminGoalIdea) => {
-    if (!goal.slug) return;
-    
-    setContentLoading(true);
-    setShowContentModal(true);
-    
-    try {
-      // Fetch content from system_motivators table
-      const { data, error } = await supabase
-        .from('system_motivators')
-        .select('*')
-        .eq('slug', goal.slug)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setSelectedContent({
-          id: data.id,
-          title: data.title,
-          content: data.content,
-          external_url: data.link_url,
-          created_at: data.created_at
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching content:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load content. Please try again."
-      });
-      setShowContentModal(false);
-    } finally {
-      setContentLoading(false);
-    }
   };
 
   return (
@@ -220,7 +178,7 @@ export default function MotivatorIdeas() {
                               </div>
                             )}
                             
-                            {/* Read More Button */}
+                            {/* Read More Link */}
                             {goal.slug && (
                               <div className="mt-3">
                                 <Button
@@ -228,11 +186,11 @@ export default function MotivatorIdeas() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleReadMore(goal);
+                                    navigate(`/content/${goal.slug}`);
                                   }}
                                   className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                                 >
-                                  Read More
+                                  Read More <ExternalLink className="w-3 h-3 ml-1" />
                                 </Button>
                               </div>
                             )}
@@ -326,16 +284,6 @@ export default function MotivatorIdeas() {
           onClose={() => setEditingGoal(null)}
         />
       )}
-
-      <ContentModal
-        isOpen={showContentModal}
-        onClose={() => {
-          setShowContentModal(false);
-          setSelectedContent(null);
-        }}
-        contentItem={selectedContent}
-        loading={contentLoading}
-      />
     </div>
     </GoalIdeasErrorBoundary>
   );

@@ -11,7 +11,7 @@ import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
-
+import Content from "./pages/Content";
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
@@ -182,6 +182,13 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <MotivatorIdeas />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/content/:slug" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <Content />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
