@@ -112,7 +112,8 @@ export const useMotivators = () => {
           category: motivatorData.category,
           image_url: motivatorData.imageUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
-          is_active: true
+          is_active: true,
+          slug: null
         })
         .select()
         .single();
@@ -198,7 +199,8 @@ export const useMotivators = () => {
         category: motivator.category || 'general',
         image_url: motivator.imageUrl,
         show_in_animations: motivator.show_in_animations ?? true,
-        is_active: true
+        is_active: true,
+        slug: null
       }));
 
       const { data, error } = await supabase
@@ -244,7 +246,8 @@ export const useMotivators = () => {
           content,
           category: 'saved_quote',
           show_in_animations: true, // Default to showing saved quotes in animations
-          is_active: true
+          is_active: true,
+          slug: null
         })
         .select()
         .single();
