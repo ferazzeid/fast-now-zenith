@@ -30,6 +30,7 @@ export interface FastingHour {
   mental_emotional_state?: string[];
   stage?: string;
   admin_personal_log?: string;
+  slug?: string;
 }
 
 export interface ContentVariant {

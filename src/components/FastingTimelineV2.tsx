@@ -8,7 +8,6 @@ import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 import { AdminInsightDisplay } from './AdminInsightDisplay';
 import { useAccess } from '@/hooks/useAccess';
-import { ContentViewerModal } from '@/components/ContentViewerModal';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -26,8 +25,6 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showContentViewer, setShowContentViewer] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     if (!hasUserInteracted) {
@@ -124,11 +121,8 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
               <div className="pt-2 border-t border-border/50">
                 <button
                   onClick={() => {
-                    setSelectedContent({
-                      url: selected.read_more_url!,
-                      title: selected.title
-                    });
-                    setShowContentViewer(true);
+                    // Navigate to content page instead of modal
+                    window.location.href = `/content/${selected.slug || selected.hour}`;
                   }}
                   className="text-xs text-primary hover:underline cursor-pointer"
                 >
@@ -160,19 +154,6 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
         }}
        />
-
-      {/* Content Viewer Modal */}
-      {selectedContent && (
-        <ContentViewerModal
-          isOpen={showContentViewer}
-          onClose={() => {
-            setShowContentViewer(false);
-            setSelectedContent(null);
-          }}
-          url={selectedContent.url}
-          title={selectedContent.title}
-        />
-      )}
     </div>
   );
 };

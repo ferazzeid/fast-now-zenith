@@ -8,7 +8,6 @@ import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ContentViewerModal } from '@/components/ContentViewerModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +28,7 @@ interface ExpandableMotivatorCardProps {
     imageUrl?: string;
     category?: string;
     linkUrl?: string;
+    slug?: string;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -145,7 +145,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setShowContentViewer(true);
+                        // Navigate to content page instead of modal
+                        window.location.href = `/content/${motivator.slug || motivator.id}`;
                       }}
                       className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                     >
@@ -278,16 +279,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           </div>
         )}
       </CardContent>
-      
-      {/* Content Viewer Modal */}
-      {motivator.linkUrl && (
-        <ContentViewerModal
-          isOpen={showContentViewer}
-          onClose={() => setShowContentViewer(false)}
-          url={motivator.linkUrl}
-          title={motivator.title}
-        />
-      )}
     </Card>
   );
 });
