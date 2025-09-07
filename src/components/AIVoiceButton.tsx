@@ -192,10 +192,12 @@ export const AIVoiceButton = () => {
       });
 
       if (error) throw error;
+      
+      console.log('🤖 AI Chat response data:', data);
 
         // Handle function calls first - ACTUALLY EXECUTE THEM
         if (data?.functionCall) {
-          console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
+          console.log('🤖 AI Chat: Function call detected:', data.functionCall.name, 'with args:', data.functionCall.arguments);
           
           let responseMessage = '';
           try {
@@ -245,6 +247,11 @@ export const AIVoiceButton = () => {
             if (fromVoice) {
               await playTextAsAudio(responseMessage);
             }
+          }
+          
+          // Debug: If no function matched, log what we got
+          if (!responseMessage || responseMessage === 'I processed your request successfully.') {
+            console.log('🤖 AI Chat: Unknown function or no response:', data.functionCall);
           }
         }
       // Handle regular completion responses
