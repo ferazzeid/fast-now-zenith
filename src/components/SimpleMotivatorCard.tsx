@@ -93,7 +93,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                         }
                       }}
                       disabled={isToggling}
-                      className="p-2 h-8 w-8 hover:bg-muted/50 text-white transition-all duration-200"
+                      className="p-2 h-8 w-8 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
                     >
                       {localShowInAnimations ? (
                         <Eye className="w-4 h-4" />
