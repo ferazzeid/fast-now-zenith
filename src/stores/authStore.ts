@@ -178,32 +178,43 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         authLogger.info('Signing out');
         
-        const { error } = await supabase.auth.signOut();
-        if (!error) {
-          set({ 
-            user: null, 
-            session: null,
+        // Always clear local state first
+        set({ 
+          user: null, 
+          session: null,
+          loading: false,
+        });
+        
+        // Clear all authentication caches
+        if (typeof window !== 'undefined') {
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('cache_profile_') || 
+                key.startsWith('dedupe_profile_') ||
+                key.startsWith('cache_access_') ||
+                key.startsWith('dedupe_access_') ||
+                key.startsWith('sb-texnkijwcygodtywgedm-auth-token')) {
+              localStorage.removeItem(key);
+            }
           });
-          
-          // Clear all authentication caches on sign out
-          if (typeof window !== 'undefined') {
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-              if (key.startsWith('cache_profile_') || 
-                  key.startsWith('dedupe_profile_') ||
-                  key.startsWith('cache_access_') ||
-                  key.startsWith('dedupe_access_')) {
-                localStorage.removeItem(key);
-              }
-            });
-          }
-          
-          authLogger.info('Sign out successful');
-        } else {
-          authLogger.error('Sign out failed:', error);
         }
         
-        return { error };
+        try {
+          const { error } = await supabase.auth.signOut();
+          
+          if (error && !error.message?.includes('Session not found')) {
+            // Only log actual errors, not "session not found" which is expected
+            authLogger.warn('Sign out server error (but local state cleared):', error);
+            return { error: null }; // Return success since local state is cleared
+          }
+          
+          authLogger.info('Sign out completed successfully');
+          return { error: null };
+        } catch (err) {
+          // Even if server sign out fails, we've cleared local state
+          authLogger.warn('Sign out server error (but local state cleared):', err);
+          return { error: null };
+        }
       },
 
 
