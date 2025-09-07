@@ -825,7 +825,7 @@ export const AIVoiceButton = () => {
 
               {/* Voice Button at Bottom */}
               <div className={`absolute left-1/2 transform -translate-x-1/2 ${isMobile ? 'bottom-8 pb-safe mb-4' : 'bottom-4'}`}>
-                <PremiumGatedCircularVoiceButton
+                <CircularVoiceButton
                   onTranscription={handleVoiceTranscription}
                   isDisabled={isProcessing}
                   size="lg"
