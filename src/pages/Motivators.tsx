@@ -545,10 +545,13 @@ const Motivators = () => {
                         }}
                         onUpdate={async (id, updates) => {
                           await updateMotivator(id, updates);
-                          toast({
-                            description: "Note updated successfully",
-                          });
-                          refreshMotivators();
+                          // Don't call refreshMotivators() here - let optimistic updates handle UI
+                          // Only show toast for non-animation updates to avoid double toasts
+                          if (!updates.hasOwnProperty('show_in_animations')) {
+                            toast({
+                              description: "Note updated successfully",
+                            });
+                          }
                         }}
                         onDelete={handleDeleteMotivator}
                       />

@@ -193,8 +193,8 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                               description: `Note ${newValue ? 'will show' : 'hidden from'} in timer animations`,
                             });
                           } catch (error) {
-                            // Rollback on error
-                            setLocalShowInAnimations(!newValue);
+                            // Rollback on error - restore original state
+                            setLocalShowInAnimations(!localShowInAnimations);
                             console.error('Failed to update animation setting:', error);
                             toast({
                               description: "Failed to update animation setting",
