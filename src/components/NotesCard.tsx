@@ -29,12 +29,16 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
   const [editContent, setEditContent] = useState(note.content);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  
+  // Local state for optimistic updates
+  const [localShowInAnimations, setLocalShowInAnimations] = useState(note.show_in_animations || false);
 
   // Sync with prop changes
   useEffect(() => {
     setEditTitle(note.title);
     setEditContent(note.content);
-  }, [note.title, note.content]);
+    setLocalShowInAnimations(note.show_in_animations || false);
+  }, [note.title, note.content, note.show_in_animations]);
 
   const handleSave = useCallback(async () => {
     if (!editTitle.trim() || !editContent.trim()) {
@@ -172,8 +176,11 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                         onClick={async () => {
                           if (isToggling) return; // Prevent double clicks
                           
+                          const newValue = !localShowInAnimations;
+                          
+                          // Optimistic update - update UI immediately
+                          setLocalShowInAnimations(newValue);
                           setIsToggling(true);
-                          const newValue = !note.show_in_animations;
                           
                           try {
                             await onUpdate(note.id, { 
@@ -186,6 +193,8 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                               description: `Note ${newValue ? 'will show' : 'hidden from'} in timer animations`,
                             });
                           } catch (error) {
+                            // Rollback on error
+                            setLocalShowInAnimations(!newValue);
                             console.error('Failed to update animation setting:', error);
                             toast({
                               description: "Failed to update animation setting",
@@ -200,7 +209,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       >
                         {isToggling ? (
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : note.show_in_animations ? (
+                        ) : localShowInAnimations ? (
                           <Eye className="h-4 w-4" />
                         ) : (
                           <EyeOff className="h-4 w-4" />
@@ -208,7 +217,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{note.show_in_animations ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                      <p>{localShowInAnimations ? 'Hide from timer animations' : 'Show in timer animations'}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
