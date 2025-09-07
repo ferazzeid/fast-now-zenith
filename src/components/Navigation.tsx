@@ -159,13 +159,6 @@ export const Navigation = () => {
     { icon: User, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
-  const getConnectionStatus = () => {
-    if (!isOnline) return { color: 'bg-red-500', tooltip: 'Offline - Changes will sync when connected', shouldPulse: false };
-    return { color: 'bg-green-500', tooltip: 'Connected', shouldPulse: false };
-  };
-
-  const connectionStatus = getConnectionStatus();
-
   return (
     <TooltipProvider>
       <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -236,14 +229,6 @@ export const Navigation = () => {
                   {/* Trial countdown badge ONLY for Settings button */}
                   {label === 'Settings' && inTrial && daysRemaining && (
                     <TrialTimerBadge daysRemaining={daysRemaining} />
-                  )}
-                  
-                  {/* Connection status indicator ONLY for Settings button */}
-                  {label === 'Settings' && (
-                    <div className="absolute -bottom-1 -right-1">
-                      <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${connectionStatus.shouldPulse ? 'animate-pulse' : ''}`} 
-                           title={connectionStatus.tooltip} />
-                    </div>
                   )}
                 </Link>
               );
