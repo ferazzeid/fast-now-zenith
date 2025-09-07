@@ -129,7 +129,13 @@ export default function MotivatorIdeas() {
           <section className="space-y-3" aria-label="Motivator ideas list">
             {goalIdeas.map((goal) => {
               const isExpanded = expandedGoal === goal.id;
-              const shouldShowExpandButton = goal.description && goal.description.length > 50;
+              
+              // Create excerpt from full description (first 150 characters)
+              const excerpt = goal.description && goal.description.length > 150 
+                ? goal.description.substring(0, 150) + '...' 
+                : goal.description;
+              
+              const shouldShowExpandButton = goal.description && goal.description.length > 150;
 
               return (
                 <Card key={goal.id} className="overflow-hidden relative">
@@ -154,7 +160,7 @@ export default function MotivatorIdeas() {
                             </div>
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
-                                {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{goal.description}</p>}
+                                {isExpanded ? <p className="whitespace-pre-wrap">{excerpt}</p> : <p className="line-clamp-2">{excerpt}</p>}
                               </div>
                             )}
                             
