@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 // Enhanced loading screen with timeout and mobile optimization
 export const EnhancedLoadingScreen = ({ 
@@ -14,6 +15,7 @@ export const EnhancedLoadingScreen = ({
   showSkeleton?: boolean;
 }) => {
   const [timeoutReached, setTimeoutReached] = React.useState(false);
+  const { appLogo } = useAppLogo();
   
   React.useEffect(() => {
     // Set timeout for mobile loading issues
@@ -29,6 +31,13 @@ export const EnhancedLoadingScreen = ({
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6 text-center">
           <div className="space-y-4">
+            {appLogo && (
+              <img 
+                src={appLogo} 
+                alt="App Logo" 
+                className="w-12 h-12 object-contain rounded-lg mx-auto"
+              />
+            )}
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto animate-spin"></div>
             <p className="text-muted-foreground text-sm">Taking longer than expected...</p>
             <Button 
@@ -49,6 +58,13 @@ export const EnhancedLoadingScreen = ({
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-4">
+          {appLogo && (
+            <img 
+              src={appLogo} 
+              alt="App Logo" 
+              className="w-12 h-12 object-contain rounded-lg mx-auto"
+            />
+          )}
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto animate-spin"></div>
           <p className="text-muted-foreground text-sm">{message}</p>
         </div>

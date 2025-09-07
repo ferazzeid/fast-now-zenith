@@ -1,4 +1,5 @@
 import { EnhancedLoadingScreen, SmartInlineLoading } from './enhanced/SmartLoadingStates';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 export const LoadingSpinner = ({ 
   fullScreen = true, 
@@ -9,8 +10,19 @@ export const LoadingSpinner = ({
   text?: string;
   subText?: string;
 }) => {
+  const { appLogo } = useAppLogo();
+  
   const content = (
     <div className="text-center space-y-4">
+      {/* App Logo */}
+      {appLogo && (
+        <img 
+          src={appLogo} 
+          alt="App Logo" 
+          className="w-16 h-16 object-contain rounded-lg mx-auto"
+        />
+      )}
+      
       {/* Enhanced animated spinner */}
       <div className="relative w-16 h-16 mx-auto">
         <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
