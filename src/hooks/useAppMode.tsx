@@ -22,7 +22,7 @@ export const useAppMode = () => {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const shouldShowCoupons = appMode === 'trial_premium';
+  const shouldShowCoupons = appMode === 'coupon_premium';
   const shouldShowPremiumUpgrade = appMode !== 'free_full';
   
   return {

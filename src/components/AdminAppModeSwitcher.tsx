@@ -24,6 +24,13 @@ const appModeOptions: AppModeOption[] = [
     features: ['7-day free trial', 'Premium subscription required', 'Limited free tier']
   },
   {
+    value: 'coupon_premium',
+    label: 'Coupon-Based Premium',
+    description: 'Free app with coupon codes for premium access',
+    icon: <Users className="w-4 h-4" />,
+    features: ['Coupon codes for premium', 'Login page promotion banner', 'Free base app']
+  },
+  {
     value: 'free_full',
     label: 'Completely Free',
     description: 'Everything free including AI and full food tracking',
