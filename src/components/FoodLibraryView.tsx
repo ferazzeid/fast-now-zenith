@@ -75,6 +75,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
   const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
+  
+  // Track optimistic favorite updates for immediate UI feedback
+  const [optimisticFavorites, setOptimisticFavorites] = useState<Map<string, boolean>>(new Map());
 
   // Prevent interactions during loading states
   const isInteractionSafe = !loading;
@@ -102,6 +105,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   }, [user]);
 
+  // Clear optimistic favorites when recentFoods updates (after successful server sync)
+  useEffect(() => {
+    if (!recentFoodsLoading && recentFoods.length > 0) {
+      setOptimisticFavorites(new Map());
+    }
+  }, [recentFoods, recentFoodsLoading]);
+
   const checkAdminRole = async () => {
     if (!user) return;
     
@@ -123,11 +133,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       name: food.name,
       calories_per_100g: food.calories_per_100g,
       carbs_per_100g: food.carbs_per_100g,
-      is_favorite: (food as any).is_favorite || false, // Handle case where is_favorite may not exist
+      // Apply optimistic favorite updates if they exist, otherwise use server data
+      is_favorite: optimisticFavorites.has(food.id) ? optimisticFavorites.get(food.id)! : (food as any).is_favorite || false, // Handle case where is_favorite may not exist
       image_url: food.image_url,
       variations: []
     }));
-  }, [recentFoods]);
+  }, [recentFoods, optimisticFavorites]);
 
   const loadDefaultFoods = async () => {
     try {
@@ -263,6 +274,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       return;
     }
 
+    // Optimistic update - update local state immediately
+    setOptimisticFavorites(prev => {
+      const newMap = new Map(prev);
+      newMap.set(foodId, !currentFavorite);
+      return newMap;
+    });
+
     try {
       console.log('❤️ FoodLibrary - Performing database update');
       
@@ -333,6 +351,13 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       
     } catch (error) {
       console.error('❤️ FoodLibrary - toggleFavorite failed:', error);
+      
+      // Rollback optimistic update on error
+      setOptimisticFavorites(prev => {
+        const newMap = new Map(prev);
+        newMap.set(foodId, currentFavorite); // Restore original state
+        return newMap;
+      });
       
       toast({
         variant: "destructive",
