@@ -31,13 +31,13 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
   const [isToggling, setIsToggling] = useState(false);
   
   // Local state for optimistic updates
-  const [localShowInAnimations, setLocalShowInAnimations] = useState(note.show_in_animations || false);
+  const [localShowInAnimations, setLocalShowInAnimations] = useState(note.show_in_animations !== false);
 
   // Sync with prop changes
   useEffect(() => {
     setEditTitle(note.title);
     setEditContent(note.content);
-    setLocalShowInAnimations(note.show_in_animations || false);
+    setLocalShowInAnimations(note.show_in_animations !== false);
   }, [note.title, note.content, note.show_in_animations]);
 
   const handleSave = useCallback(async () => {
@@ -217,7 +217,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{localShowInAnimations ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                      <p>{localShowInAnimations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
