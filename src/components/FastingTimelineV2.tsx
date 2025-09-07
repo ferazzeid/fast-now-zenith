@@ -8,6 +8,7 @@ import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 import { AdminInsightDisplay } from './AdminInsightDisplay';
 import { useAccess } from '@/hooks/useAccess';
+import { useNavigate } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -19,6 +20,7 @@ interface FastingTimelineV2Props {
 const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
+  const navigate = useNavigate();
   const { data: hours, isLoading } = useFastingHoursQuery();
   const queryClient = useQueryClient();
   const { isAdmin } = useAccess();
@@ -121,8 +123,8 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
               <div className="pt-2 border-t border-border/50">
                 <button
                   onClick={() => {
-                    // Navigate to content page instead of modal
-                    window.location.href = `/content/${selected.slug || selected.hour}`;
+                    // Navigate to content page using React Router
+                    navigate(`/content/fasting-hour-${selected.hour}`);
                   }}
                   className="text-xs text-primary hover:underline cursor-pointer"
                 >

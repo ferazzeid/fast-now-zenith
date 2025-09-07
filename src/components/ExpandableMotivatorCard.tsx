@@ -8,6 +8,7 @@ import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,11 +40,11 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   onEdit, 
   onDelete 
 }) => {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
-  const [showContentViewer, setShowContentViewer] = useState(false);
   const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
   
@@ -145,8 +146,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Navigate to content page instead of modal
-                        window.location.href = `/content/${motivator.slug || motivator.id}`;
+                        // Navigate to content page using React Router
+                        navigate(`/content/${motivator.slug || motivator.id}`);
                       }}
                       className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                     >
