@@ -105,12 +105,17 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   }, [user]);
 
-  // Clear optimistic favorites when recentFoods updates (after successful server sync)
+  // Clear optimistic favorites with timeout-based fallback
   useEffect(() => {
-    if (!recentFoodsLoading && recentFoods.length > 0) {
-      setOptimisticFavorites(new Map());
+    // Only clear if we have actual server data that conflicts with optimistic updates
+    if (!recentFoodsLoading && optimisticFavorites.size > 0) {
+      const timer = setTimeout(() => {
+        setOptimisticFavorites(new Map());
+      }, 5000); // Clear after 5 seconds as fallback
+      
+      return () => clearTimeout(timer);
     }
-  }, [recentFoods, recentFoodsLoading]);
+  }, [recentFoodsLoading, optimisticFavorites.size]);
 
   const checkAdminRole = async () => {
     if (!user) return;
@@ -339,8 +344,12 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('❤️ FoodLibrary - Update successful:', updatedData);
       
-      // Force refresh recent foods to show updated favorite status
-      await refreshRecentFoods();
+      // Clear the optimistic update since server confirmed the change
+      setOptimisticFavorites(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(foodId);
+        return newMap;
+      });
       
       // Success - show feedback
       toast({
