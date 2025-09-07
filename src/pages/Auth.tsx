@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppLogo } from '@/hooks/useAppLogo';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Loader2, ChevronDown, Mail, Copy, Check } from 'lucide-react';
+import { Loader2, ChevronDown, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
@@ -19,7 +19,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [copied, setCopied] = useState(false);
+  
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
   const { appLogo } = useAppLogo();
   const { toast } = useToast();
@@ -61,23 +61,6 @@ const Auth = () => {
     }
   };
 
-  const copyPromoCode = async () => {
-    try {
-      await navigator.clipboard.writeText('fastnow90');
-      setCopied(true);
-      toast({
-        title: "Promo code copied!",
-        description: "fastnow90 has been copied to your clipboard"
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast({
-        title: "Copy failed",
-        description: "Please manually copy: fastnow90",
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-accent/10 flex items-center justify-center p-4">
@@ -101,34 +84,6 @@ const Auth = () => {
           </p>
         </div>
 
-        {/* Promotion Banner */}
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2 text-primary font-semibold">
-              <span className="text-sm">LIMITED TIME OFFER</span>
-            </div>
-            <p className="text-sm text-foreground/80">
-              Get <span className="font-bold text-primary">90 days FREE</span> access to Premium features
-            </p>
-            <div className="flex items-center justify-center gap-2 bg-card/50 border border-primary/20 rounded-md px-3 py-2 max-w-xs mx-auto">
-              <span className="font-mono font-bold text-primary tracking-wider">fastnow90</span>
-              <button
-                onClick={copyPromoCode}
-                className="p-1 hover:bg-primary/10 rounded transition-colors"
-                title="Copy promo code"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-600" />
-                ) : (
-                  <Copy className="w-4 h-4 text-primary" />
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Apply in Settings → Account after signup
-            </p>
-          </div>
-        </div>
 
         <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
           <CardContent className="space-y-6 pt-6">
