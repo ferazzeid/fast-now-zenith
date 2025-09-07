@@ -2,12 +2,13 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2, Star, ExternalLink } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, Star, BookOpen } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ContentViewerModal } from '@/components/ContentViewerModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
+  const [showContentViewer, setShowContentViewer] = useState(false);
   const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
   
@@ -143,11 +145,11 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(motivator.linkUrl, '_blank', 'noopener,noreferrer');
+                        setShowContentViewer(true);
                       }}
                       className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                     >
-                      Read More <ExternalLink className="w-3 h-3 ml-1" />
+                      Read More <BookOpen className="w-3 h-3 ml-1" />
                     </Button>
                   </div>
                 )}
@@ -276,6 +278,16 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           </div>
         )}
       </CardContent>
+      
+      {/* Content Viewer Modal */}
+      {motivator.linkUrl && (
+        <ContentViewerModal
+          isOpen={showContentViewer}
+          onClose={() => setShowContentViewer(false)}
+          url={motivator.linkUrl}
+          title={motivator.title}
+        />
+      )}
     </Card>
   );
 });

@@ -8,6 +8,7 @@ import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 import { AdminInsightDisplay } from './AdminInsightDisplay';
 import { useAccess } from '@/hooks/useAccess';
+import { ContentViewerModal } from '@/components/ContentViewerModal';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -25,6 +26,8 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showContentViewer, setShowContentViewer] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     if (!hasUserInteracted) {
@@ -119,14 +122,18 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
             {/* Read More Link */}
             {selected?.read_more_url && (
               <div className="pt-2 border-t border-border/50">
-                <a
-                  href={selected.read_more_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-primary hover:underline"
+                <button
+                  onClick={() => {
+                    setSelectedContent({
+                      url: selected.read_more_url!,
+                      title: selected.title
+                    });
+                    setShowContentViewer(true);
+                  }}
+                  className="text-xs text-primary hover:underline cursor-pointer"
                 >
                   Read more
-                </a>
+                </button>
               </div>
             )}
           </div>
@@ -152,7 +159,20 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           await queryClient.refetchQueries({ queryKey: fastingHoursKey });
           console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
         }}
-      />
+       />
+
+      {/* Content Viewer Modal */}
+      {selectedContent && (
+        <ContentViewerModal
+          isOpen={showContentViewer}
+          onClose={() => {
+            setShowContentViewer(false);
+            setSelectedContent(null);
+          }}
+          url={selectedContent.url}
+          title={selectedContent.title}
+        />
+      )}
     </div>
   );
 };
