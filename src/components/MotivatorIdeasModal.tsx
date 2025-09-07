@@ -209,7 +209,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                        }}
                                        className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                                      >
-                                       Read Full Article
+                                       Read More
                                      </Button>
                                    </div>
                                  )}
