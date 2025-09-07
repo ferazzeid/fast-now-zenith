@@ -197,7 +197,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                           }
                         }}
                         disabled={isToggling}
-                        className="h-8 w-8 p-0 text-foreground transition-all duration-200"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-all duration-200"
                       >
                         {isToggling ? (
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />

@@ -29,7 +29,7 @@ export default function MotivatorIdeas() {
   const { isAdmin } = useAccess();
   
   const { goalIdeas, loading, refreshGoalIdeas, forceRefresh, updateGoalIdea, removeGoalIdea } = useAdminGoalIdeas();
-  const { createMotivator } = useMotivators();
+  const { createMotivator, refreshMotivators } = useMotivators();
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
@@ -50,9 +50,14 @@ export default function MotivatorIdeas() {
         ? goal.maleImageUrl 
         : goal.imageUrl;
 
+      // Create excerpt from description (first 150 characters)
+      const excerpt = goal.description && goal.description.length > 150 
+        ? goal.description.substring(0, 150) + '...' 
+        : goal.description || '';
+
       const result = await createMotivator({
         title: goal.title,
-        content: goal.description || '',
+        content: excerpt,
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
         linkUrl: goal.linkUrl || undefined,
@@ -60,12 +65,15 @@ export default function MotivatorIdeas() {
       
       console.log('✅ Goal created successfully:', result);
       
+      // Refresh motivators cache to ensure immediate availability
+      await refreshMotivators();
+      
       toast({ 
         title: '✅ Added to My Goals', 
         description: 'The motivator was added successfully.' 
       });
       
-      // Navigate back to motivators page
+      // Navigate back to motivators page with refreshed data
       navigate('/motivators');
     } catch (e) {
       console.error('❌ Error adding goal:', e);
