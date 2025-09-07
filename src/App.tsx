@@ -30,6 +30,7 @@ import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
 import AddFood from "./pages/AddFood";
+import MyFoods from "./pages/MyFoods";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 
@@ -212,6 +213,13 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <AddFood />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/my-foods" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <MyFoods />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />

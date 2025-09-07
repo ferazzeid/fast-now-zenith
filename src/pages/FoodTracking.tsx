@@ -13,11 +13,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { FoodLibraryView } from '@/components/FoodLibraryView';
-import { Badge } from '@/components/ui/badge';
-import { useUserLibraryIndex } from '@/hooks/useUserLibraryIndex';
-
-
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
@@ -46,7 +41,7 @@ const FoodTracking = () => {
   const [consumedNow, setConsumedNow] = useState(true);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   
-  const [showLibraryView, setShowLibraryView] = useState(false);
+  
   const [showHistory, setShowHistory] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
@@ -81,12 +76,10 @@ const FoodTracking = () => {
     loadTemplate: forceLoadTemplate,
     deleteTemplateFood
   } = useDailyFoodTemplate();
-  const { isInLibrary, addLocal: addLibraryLocal } = useUserLibraryIndex();
 
   // Close modals when navigating to auth routes to prevent OAuth interaction errors
   useEffect(() => {
     if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
-      setShowLibraryView(false);
       setShowHistory(false);
       setShowAiChat(false);
       setShowUnifiedEntry(false);
@@ -447,7 +440,7 @@ const FoodTracking = () => {
                   variant="action-secondary"
                   size="action-tall"
                   className="w-full flex items-center justify-center"
-                  onClick={() => setShowLibraryView(true)}
+                  onClick={() => navigate('/my-foods')}
                   aria-label="Browse food library"
                 >
                   <BookOpen className="w-5 h-5" />
@@ -682,9 +675,6 @@ const FoodTracking = () => {
                             }`}>
                               {entry.name}
                             </h3>
-                            {isInLibrary(entry.name) && (
-                              <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
-                            )}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className={`font-medium ${
@@ -973,9 +963,6 @@ const FoodTracking = () => {
                                   <h3 className="text-sm font-semibold truncate max-w-[180px] text-foreground">
                                     {food.name}
                                   </h3>
-                                  {isInLibrary(food.name) && (
-                                    <div className="w-2 h-2 bg-green-500 rounded-full shrink-0" title="Saved to library" />
-                                  )}
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                   <span className="font-medium">
@@ -1020,42 +1007,6 @@ const FoodTracking = () => {
         <FoodHistory onClose={() => setShowHistory(false)} onCopySuccess={refreshFoodEntries} />
       </UniversalModal>
 
-      <UniversalModal
-        isOpen={showLibraryView}
-        onClose={() => setShowLibraryView(false)}
-        title="" 
-        size="xl"
-        variant="fullscreen"
-      >
-        <FoodLibraryView
-          onSelectFood={async (food: any, consumed = false) => {
-            try {
-              // Convert food to proper format for addFoodEntry
-              const foodEntry = {
-                name: food.name,
-                calories: food.calories_per_100g || food.calories,
-                carbs: food.carbs_per_100g || food.carbs,
-                serving_size: 100,
-                consumed: consumed,
-                image_url: food.image_url
-              };
-              
-              // Add the food entry (optimistic updates already handle UI refresh)
-              await addFoodEntry(foodEntry);
-              
-              // Show success feedback
-              toast({
-                title: "Food added",
-                description: `${food.name} added to today's list`,
-              });
-            } catch (error) {
-              // Error is already handled by the mutation, just log it
-              console.error('Error adding food from library:', error);
-            }
-          }}
-          onBack={() => setShowLibraryView(false)} 
-        />
-      </UniversalModal>
 
       {editingEntry && (
         <EditFoodEntryModal
