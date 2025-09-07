@@ -14,8 +14,8 @@ interface WalkingSession {
   id: string;
   start_time: string;
   end_time: string | null;
-  distance: number;
-  calories_burned: number;
+  distance: number | null;
+  calories_burned: number | null;
   status: string;
   average_speed?: number;
   steps_count?: number;
@@ -242,14 +242,18 @@ const WalkingHistory = () => {
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="text-xs text-muted-foreground">Distance</p>
-                        <p className="font-medium">{session.distance.toFixed(2)} km</p>
+                        <p className="font-medium">
+                          {session.distance ? session.distance.toFixed(2) : 'N/A'} km
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="text-xs text-muted-foreground">Calories</p>
-                        <p className="font-medium">{Math.round(session.calories_burned)}</p>
+                        <p className="font-medium">
+                          {session.calories_burned ? Math.round(session.calories_burned) : 'N/A'}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
