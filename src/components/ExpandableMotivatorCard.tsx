@@ -52,7 +52,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     content: string;
     external_url?: string;
   } | null>(null);
-  const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
+  const { addToDefaultGoals, removeFromDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -93,10 +93,17 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     setCurrentImageUrl(motivator.imageUrl || '');
   }, [motivator.imageUrl]);
 
-  const handleAddToDefaultGoals = async () => {
-    const success = await addToDefaultGoals(motivator);
-    if (success) {
-      setIsInDefaultGoals(true);
+  const handleToggleDefaultGoals = async () => {
+    if (isInDefaultGoals) {
+      const success = await removeFromDefaultGoals(motivator.id);
+      if (success) {
+        setIsInDefaultGoals(false);
+      }
+    } else {
+      const success = await addToDefaultGoals(motivator);
+      if (success) {
+        setIsInDefaultGoals(true);
+      }
     }
   };
 
@@ -252,8 +259,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   </TooltipContent>
                 </Tooltip>
 
-                {/* Admin: Add to Default Goals Button */}
-                {isAdmin && !isInDefaultGoals && (
+                {/* Admin: Toggle Default Goals Button */}
+                {isAdmin && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -261,30 +268,24 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                         variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAddToDefaultGoals();
+                          handleToggleDefaultGoals();
                         }}
                         disabled={adminLoading}
-                        className="p-1 h-6 w-6 hover:bg-yellow-500/10 hover:text-yellow-600"
+                        className={`p-1 h-6 w-6 ${
+                          isInDefaultGoals 
+                            ? 'hover:bg-red-500/10 hover:text-red-600' 
+                            : 'hover:bg-yellow-500/10 hover:text-yellow-600'
+                        }`}
                       >
-                        <Star className="w-3 h-3" />
+                        <Star className={`w-3 h-3 ${
+                          isInDefaultGoals 
+                            ? 'text-yellow-500 fill-yellow-500' 
+                            : ''
+                        }`} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Add to default goals (Admin)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-
-                {/* Show badge if in default goals */}
-                {isAdmin && isInDefaultGoals && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-1 h-6 w-6 flex items-center justify-center">
-                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>In default goals</p>
+                      <p>{isInDefaultGoals ? 'Remove from default goals' : 'Add to default goals'} (Admin)</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
