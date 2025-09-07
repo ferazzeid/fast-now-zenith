@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
-import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
 
 interface Motivator {
@@ -179,7 +179,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="title" className="text-warm-text font-medium">
                 Title *
               </Label>
-              <PremiumGatedCircularVoiceButton
+              <CircularVoiceButton
                 onTranscription={handleVoiceTranscription}
                 size="sm"
               />
@@ -197,7 +197,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="content" className="text-warm-text font-medium">
                 Description (Optional)
               </Label>
-              <PremiumGatedCircularVoiceButton
+              <CircularVoiceButton
                 onTranscription={handleVoiceTranscription}
                 size="sm"
               />
