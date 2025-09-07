@@ -186,18 +186,14 @@ export const useAuth = () => {
       
       const result = await storeSignOut();
       
-      if (result?.error) {
-        toast({
-          title: "Sign Out Failed",
-          description: result.error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Signed Out",
-          description: "You have been successfully signed out.",
-        });
-      }
+      // Always show success since the authStore handles errors gracefully
+      // and clears local state regardless of server response
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+      
+      return result;
     };
 
     // Always allow sign out, even offline
