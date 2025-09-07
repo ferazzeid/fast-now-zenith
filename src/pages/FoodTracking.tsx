@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera, Brain, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
-import { PremiumGatedFoodVoiceButton } from '@/components/PremiumGatedFoodVoiceButton';
+import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -16,7 +16,6 @@ import { Switch } from '@/components/ui/switch';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
-import { ModalAiChat } from '@/components/ModalAiChat';
 import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
@@ -44,7 +43,6 @@ const FoodTracking = () => {
   
   const [showHistory, setShowHistory] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showAiChat, setShowAiChat] = useState(false);
   const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'template'>(() => {
     // Persist active tab across page refreshes
@@ -81,67 +79,11 @@ const FoodTracking = () => {
   useEffect(() => {
     if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
       setShowHistory(false);
-      setShowAiChat(false);
       setShowUnifiedEntry(false);
       setShowOnboarding(false);
     }
   }, [location.pathname]);
 
-  const handleVoiceFood = (result: { food: string }) => {
-    trackFoodEvent('add', 'voice');
-    console.log('Voice result:', result);
-    setShowAiChat(true);
-  };
-
-  const handleAiChatResult = async (result: any) => {
-    console.log('🍽️ handleAiChatResult called with:', result);
-    
-    // Handle both old format (result.foodEntries) and new format (result.arguments.foods)
-    let foods: any[] = [];
-    
-    if (result.foodEntries && Array.isArray(result.foodEntries)) {
-      // Old format
-      foods = result.foodEntries;
-      console.log('🍽️ Using old format (foodEntries):', foods);
-    } else if (result.arguments?.foods && Array.isArray(result.arguments.foods)) {
-      // New format from function calls
-      foods = result.arguments.foods;
-      console.log('🍽️ Using new format (arguments.foods):', foods);
-    } else if (result.name === 'add_multiple_foods' && result.arguments?.foods) {
-      // Function call format
-      foods = result.arguments.foods;
-      console.log('🍽️ Using function call format:', foods);
-    }
-
-    if (foods.length > 0) {
-      console.log('🍽️ Adding foods in bulk:', foods.length, 'items');
-      
-      try {
-        // Use bulk insert for better performance and user experience
-        await addMultipleFoodEntries(foods.map(food => ({
-          name: food.name,
-          calories: food.calories,
-          carbs: food.carbs,
-          serving_size: food.serving_size,
-          consumed: false,
-          image_url: food.image_url
-        })));
-        
-        console.log('🍽️ Successfully added all foods in bulk');
-        trackFoodEvent('add', 'voice');
-      } catch (error) {
-        console.error('🍽️ Error adding foods in bulk:', error);
-        toast({
-          variant: "destructive",
-          title: "Failed to Add Foods",
-          description: "Please try again or add foods individually.",
-        });
-      }
-    } else {
-      console.warn('🍽️ No foods found in result:', result);
-    }
-    setShowAiChat(false);
-  };
 
   const handleUnifiedEntry = () => {
     navigate('/add-food');
@@ -424,7 +366,7 @@ const FoodTracking = () => {
           <div className="col-span-1 flex flex-col items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <PremiumGatedFoodVoiceButton onVoiceClick={() => setShowAiChat(true)} />
+                <AIVoiceButton />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Use voice to add food with AI assistance</p>
@@ -1064,16 +1006,7 @@ const FoodTracking = () => {
         />
       )}
 
-      <ModalAiChat
-        isOpen={showAiChat}
-        onClose={() => setShowAiChat(false)}
-        onResult={handleAiChatResult}
-        title="Food Assistant"
-        systemPrompt="You are a focused food tracking assistant. You can only help with food operations: adding, editing, and managing food entries."
-        proactiveMessage="Hi! What food would you like to add? You can add multiple at once - just tell me the name and the quantity"
-      />
-
-        {/* Unified Food Entry Modal */}
+      {/* Unified Food Entry Modal */}
         <UnifiedFoodEntry
           isOpen={showUnifiedEntry}
           onClose={() => setShowUnifiedEntry(false)}
