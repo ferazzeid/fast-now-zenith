@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Utensils, Calendar, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Utensils, Calendar, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -208,16 +208,16 @@ const FoodHistory = () => {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold">Food History</h1>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate('/food-tracking')}
-              className="w-8 h-8"
+              className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </Button>
-            <h1 className="text-2xl font-bold">Food History</h1>
           </div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -244,30 +244,35 @@ const FoodHistory = () => {
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-16 pb-32">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/food-tracking')}
-            className="w-8 h-8"
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </Button>
-          <div className="flex-1">
+          <div className="flex-1 text-center">
             <h1 className="text-2xl font-bold">Food History</h1>
           </div>
-          {dailySummaries.length > 0 && (
+          <div className="w-8"></div> {/* Spacer for centering */}
+        </div>
+
+        {/* Delete All Button - positioned below the header */}
+        {dailySummaries.length > 0 && (
+          <div className="mb-4">
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setShowDeleteAllDialog(true)}
-              className="w-8 h-8 text-destructive hover:bg-destructive/10"
-              title="Delete all history"
+              className="text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete All History
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {dailySummaries.length === 0 ? (
           <div className="text-center py-12">

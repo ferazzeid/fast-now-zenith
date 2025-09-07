@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, Edit, Clock, MapPin, Zap, Footprints } from 'lucide-react';
+import { X, Trash2, Edit, Clock, MapPin, Zap, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -130,16 +130,16 @@ const WalkingHistory = () => {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold">Walking History</h1>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate('/walking')}
-              className="w-8 h-8"
+              className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </Button>
-            <h1 className="text-2xl font-bold">Walking History</h1>
           </div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -156,16 +156,16 @@ const WalkingHistory = () => {
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-16 pb-32">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Walking History</h1>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/walking')}
-            className="w-8 h-8"
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </Button>
-          <h1 className="text-2xl font-bold">Walking History</h1>
         </div>
 
         {sessions.length === 0 ? (

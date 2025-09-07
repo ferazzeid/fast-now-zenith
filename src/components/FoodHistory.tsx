@@ -350,20 +350,11 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
                         onClick={async (e) => {
                           e.stopPropagation();
                           const result = await copyDayToToday(summary.date);
-                          if (result?.success) {
-                            // Wait a moment for database transaction to complete
-                            await new Promise(resolve => setTimeout(resolve, 200));
-                            
-                            // Trigger refresh in parent component
-                            if (onCopySuccess) {
-                              console.log('Triggering onCopySuccess callback to refresh food entries');
-                              await onCopySuccess();
-                            }
-                            
-                            // Additional delay to ensure UI updates before closing
-                            setTimeout(() => {
-                              onClose(); // Close the history modal after successful copy
-                            }, 300);
+                          if (result?.success && onCopySuccess) {
+                            // Trigger immediate refresh in parent component
+                            console.log('Triggering onCopySuccess callback to refresh food entries');
+                            await onCopySuccess();
+                            onClose(); // Close the history modal after successful copy
                           }
                         }}
                         disabled={copyLoading}
