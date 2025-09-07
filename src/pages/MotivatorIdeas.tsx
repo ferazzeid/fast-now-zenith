@@ -174,7 +174,7 @@ export default function MotivatorIdeas() {
                             </div>
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
-                                {isExpanded ? <p className="whitespace-pre-wrap">{excerpt}</p> : <p className="line-clamp-2">{excerpt}</p>}
+                                {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{excerpt}</p>}
                               </div>
                             )}
                             
