@@ -103,8 +103,6 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
       variant="standard"
       size="full"
       showCloseButton={true}
-      className="w-[95vw] max-w-4xl mx-auto"
-      contentClassName="max-h-[85vh]"
     >
         <ErrorBoundary
           fallback={
@@ -131,7 +129,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                 const shouldShowExpandButton = goal.description && goal.description.length > 50;
                 
                 return (
-                  <Card key={`goal-${goal.id}`} className="overflow-hidden transition-all duration-200 hover:shadow-md">
+                  <Card key={goal.id} className="overflow-hidden border border-ceramic-rim">
                     <CardContent className="p-0">
                       <div className="flex min-h-[128px]">
                         {/* Image */}
@@ -148,7 +146,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                           <div className="flex-1 space-y-2">
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-warm-text line-clamp-1 text-base">
+                                <h3 className="font-semibold text-warm-text text-base leading-tight">
                                   {goal.title}
                                 </h3>
                                 
@@ -174,7 +172,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                         onSelectGoal(goal);
                                         onClose();
                                       }}
-                                      className="h-8 w-8 p-0 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                                      className="h-8 w-8 p-0 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground"
                                     >
                                       <Plus className="w-4 h-4" />
                                     </Button>
@@ -267,9 +265,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                     className="h-6 w-6 p-0 rounded-full hover:bg-muted/20 text-muted-foreground"
                                   >
                                     <ChevronDown 
-                                      className={`w-3 h-3 transition-transform duration-200 ${
-                                        isExpanded ? 'rotate-180' : ''
-                                      }`} 
+                                      className={`w-3 h-3 ${isExpanded ? 'rotate-180' : ''}`} 
                                     />
                                   </Button>
                                 </TooltipTrigger>

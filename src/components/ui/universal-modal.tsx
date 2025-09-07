@@ -46,7 +46,7 @@ const sizeClasses = {
   md: 'max-w-lg', 
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
-  full: 'max-w-[95vw] max-h-[95vh]'
+  full: 'w-[95vw] max-w-6xl mx-auto'
 };
 
 export const UniversalModal = ({
