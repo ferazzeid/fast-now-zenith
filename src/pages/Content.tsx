@@ -87,7 +87,18 @@ const Content = () => {
   }, [slug, navigate, toast]);
 
   const handleClose = () => {
-    navigate(-1); // Go back to previous page
+    // Try multiple navigation strategies for reliability
+    try {
+      if (window.history.length > 1) {
+        navigate(-1); // Go back to previous page
+      } else {
+        navigate('/motivators'); // Fallback to motivators page
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Final fallback
+      navigate('/motivators');
+    }
   };
 
   const handleOpenExternal = () => {
@@ -123,8 +134,8 @@ const Content = () => {
   return (
     <div className="min-h-screen bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Modal-like Container */}
-      <div className="max-w-2xl mx-auto pt-20 px-4 pb-32">
-        <div className="bg-background rounded-xl shadow-lg border overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="max-w-2xl mx-auto pt-20 px-4 pb-40">
+        <div className="bg-background rounded-xl shadow-lg border overflow-hidden flex flex-col max-h-[85vh]">
           
           {/* Header */}
           <div className="flex-shrink-0 px-6 py-4 border-b">
@@ -159,8 +170,8 @@ const Content = () => {
             
             {/* Optional External Link */}
             {contentItem.external_url && (
-              <div className="flex-shrink-0 px-6 py-3 border-t bg-muted/5">
-                <p className="text-xs text-muted-foreground mb-2">Want to read more?</p>
+              <div className="flex-shrink-0 px-6 py-4 border-t bg-muted/5">
+                <p className="text-xs text-muted-foreground mb-3">Want to read more?</p>
                 <Button 
                   onClick={handleOpenExternal} 
                   variant="outline" 
