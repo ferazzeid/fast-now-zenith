@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
@@ -51,15 +53,31 @@ const MyFoods = () => {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-20">
       <SEOManager />
       
-      <div className="max-w-md mx-auto pt-16 pb-32 safe-bottom">
-        <div className="mt-6">
-          <FoodLibraryView
-            onSelectFood={handleSelectFood}
-            onBack={handleBack}
-          />
+      {/* Modal-like Container */}
+      <div className="max-w-md mx-auto p-4 pt-20 pb-8">
+        <div className="bg-background rounded-xl shadow-sm border">
+          {/* Header inside the box */}
+          <div className="px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
+            <h1 className="text-lg font-semibold">My Foods</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="p-2"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="p-6">
+            <FoodLibraryView
+              onSelectFood={handleSelectFood}
+              onBack={handleBack}
+            />
+          </div>
         </div>
       </div>
     </div>

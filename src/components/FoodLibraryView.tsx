@@ -946,25 +946,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   return (
     <DatabaseErrorBoundary onRetry={() => window.location.reload()}>
-      <div className="h-full flex flex-col max-w-7xl mx-auto relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="absolute right-4 top-4 w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0 z-10"
-          aria-label="Close My Foods"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-        
-      {/* Header */}
-      <div className="px-6 py-6 border-b border-border">
-        <div className="flex items-center">
-          <h1 className="text-2xl font-bold">My Foods</h1>
-        </div>
-        
+      <div className="h-full flex flex-col">
         {/* Search Bar */}
-        <div className="relative mt-4">
+        <div className="relative mb-4">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
           <Input
             placeholder="Search foods..."
@@ -973,11 +957,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             className="pl-10"
           />
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="flex-1 px-2 py-4 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
           <div className="mb-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="my-foods" className="flex items-center gap-2">
