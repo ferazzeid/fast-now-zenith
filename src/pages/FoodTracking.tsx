@@ -424,7 +424,7 @@ const FoodTracking = () => {
           <div className="col-span-1 flex flex-col items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <PremiumGatedFoodVoiceButton />
+                <PremiumGatedFoodVoiceButton onVoiceClick={() => setShowAiChat(true)} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Use voice to add food with AI assistance</p>

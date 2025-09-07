@@ -5,7 +5,11 @@ import { useAccess } from '@/hooks/useAccess';
 import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { useToast } from '@/hooks/use-toast';
 
-export const PremiumGatedFoodVoiceButton = () => {
+interface PremiumGatedFoodVoiceButtonProps {
+  onVoiceClick?: () => void;
+}
+
+export const PremiumGatedFoodVoiceButton = ({ onVoiceClick }: PremiumGatedFoodVoiceButtonProps) => {
   const { access_level, hasAIAccess, createSubscription, testRole, isTestingMode } = useAccess();
   const { toast } = useToast();
   
@@ -19,9 +23,13 @@ export const PremiumGatedFoodVoiceButton = () => {
   const handleClick = () => {
     if (!hasAccess) {
       showAIAccessError(toast, createSubscription);
+      return;
     }
-    // For users with access, the actual voice functionality would be handled here
-    // This is a simplified version - the real implementation would integrate with voice recording
+    
+    // For users with access, trigger the voice functionality
+    if (onVoiceClick) {
+      onVoiceClick();
+    }
   };
 
   return (

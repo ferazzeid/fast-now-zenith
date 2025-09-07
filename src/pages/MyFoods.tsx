@@ -1,11 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { SEOManager } from '@/components/SEOManager';
 
 const MyFoods = () => {
@@ -58,22 +55,6 @@ const MyFoods = () => {
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-16 pb-32 safe-bottom">
-        <ResponsivePageHeader
-          title="My Foods"
-          subtitle="Browse and select from your saved food library"
-          leftButton={
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleBack}
-              className="shrink-0"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          }
-        />
-
         <div className="mt-6">
           <FoodLibraryView
             onSelectFood={handleSelectFood}
