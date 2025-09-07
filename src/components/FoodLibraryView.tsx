@@ -133,7 +133,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   // Convert recent foods to UserFood format for compatibility
   const foods: UserFood[] = useMemo(() => {
-    return recentFoods.map(food => ({
+    console.log('🔥 FOODS MEMO - Raw recentFoods:', recentFoods.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
+    console.log('🔥 FOODS MEMO - Current optimisticFavorites:', Array.from(optimisticFavorites.entries()));
+    
+    const result = recentFoods.map(food => ({
       id: food.id,
       name: food.name,
       calories_per_100g: food.calories_per_100g,
@@ -143,6 +146,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       image_url: food.image_url,
       variations: []
     }));
+    
+    console.log('🔥 FOODS MEMO - Final foods for UI:', result.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
+    return result;
   }, [recentFoods, optimisticFavorites]);
 
   const loadDefaultFoods = async () => {

@@ -28,9 +28,33 @@ export const useRecentFoods = () => {
   }>) => {
     if (!user?.id || foodsToSave.length === 0) return;
 
+    console.log('🔥 RECENT FOODS - Auto-saving foods to library:', foodsToSave.map(f => f.name));
+
     try {
+      // Check for existing foods first to prevent duplicates
+      const { data: existingFoods, error: checkError } = await supabase
+        .from('user_foods')
+        .select('name')
+        .eq('user_id', user.id)
+        .in('name', foodsToSave.map(f => f.name));
+
+      if (checkError) throw checkError;
+
+      const existingFoodNames = new Set(existingFoods?.map(f => f.name.toLowerCase()) || []);
+      const newFoods = foodsToSave.filter(food => 
+        !existingFoodNames.has(food.name.toLowerCase())
+      );
+
+      console.log('🔥 RECENT FOODS - Existing foods found:', existingFoods?.length || 0);
+      console.log('🔥 RECENT FOODS - New foods to insert:', newFoods.length);
+
+      if (newFoods.length === 0) {
+        console.log('🔥 RECENT FOODS - All foods already exist in library, skipping insert');
+        return;
+      }
+
       // Prepare foods for bulk insert
-      const foodsForInsert = foodsToSave.map(food => ({
+      const foodsForInsert = newFoods.map(food => ({
         user_id: user.id,
         name: food.name,
         calories_per_100g: food.calories_per_100g,
@@ -45,13 +69,15 @@ export const useRecentFoods = () => {
 
       if (error) throw error;
 
+      console.log('🔥 RECENT FOODS - Successfully inserted new foods:', foodsForInsert.length);
+
       // Update library index with new foods
       foodsForInsert.forEach(food => {
         libraryIndex.addLocal(food.name);
       });
 
     } catch (error) {
-      console.error('Error auto-saving foods to library:', error);
+      console.error('🔥 RECENT FOODS - Error auto-saving foods to library:', error);
     }
   }, [user?.id, libraryIndex]);
 
@@ -113,17 +139,32 @@ export const useRecentFoods = () => {
       }
 
       // Now get the foods from the user's library (which now includes auto-saved foods)
+      // Use DISTINCT ON to get only one record per food name (the most recent)
       const { data: libraryFoods, error: libraryError } = await supabase
         .from('user_foods')
         .select('*')
         .eq('user_id', user.id)
         .in('name', recentFoodsArray.map(f => f.name))
-        .order('updated_at', { ascending: false });
+        .order('name, updated_at', { ascending: false });
 
       if (libraryError) throw libraryError;
 
+      console.log('🔥 RECENT FOODS - Raw library foods from DB:', libraryFoods?.length || 0);
+
+      // Deduplicate by name (keep the most recent updated_at)
+      const deduplicatedFoodMap = new Map<string, any>();
+      libraryFoods?.forEach(food => {
+        const key = food.name.toLowerCase();
+        if (!deduplicatedFoodMap.has(key)) {
+          deduplicatedFoodMap.set(key, food);
+        }
+      });
+
+      const deduplicatedFoods = Array.from(deduplicatedFoodMap.values());
+      console.log('🔥 RECENT FOODS - Deduplicated library foods:', deduplicatedFoods.length);
+
       // Convert to RecentFood format and add usage data
-      const recentArray: RecentFood[] = libraryFoods?.map(food => ({
+      const recentArray: RecentFood[] = deduplicatedFoods?.map(food => ({
         id: food.id, // Use actual library food ID instead of recent- prefix
         name: food.name,
         calories_per_100g: food.calories_per_100g,
@@ -133,6 +174,8 @@ export const useRecentFoods = () => {
         usage_count: 1,
         is_favorite: food.is_favorite || false
       })).slice(0, 20) || [];
+
+      console.log('🔥 RECENT FOODS - Final recent foods array:', recentArray.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
 
       setRecentFoods(recentArray);
     } catch (error) {
