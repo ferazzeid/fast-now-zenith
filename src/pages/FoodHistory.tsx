@@ -1,163 +1,210 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Utensils, Calendar, Trash2, Copy, Edit } from 'lucide-react';
+import { ArrowLeft, Utensils, Calendar, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
-import { CopyYesterdayButton } from '@/components/CopyYesterdayButton';
 import { useToast } from '@/hooks/use-toast';
+import { useCopyHistoricalDay } from '@/hooks/useCopyHistoricalDay';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOManager } from '@/components/SEOManager';
 
-interface FoodEntry {
-  id: string;
-  name: string;
-  calories: number;
-  carbs: number;
-  serving_size: number;
-  consumed: boolean;
-  created_at: string;
-  image_url?: string;
+interface DailySummary {
+  date: string;
+  totalCalories: number;
+  totalCarbs: number;
+  entryCount: number;
+  entries: Array<{
+    id: string;
+    name: string;
+    calories: number;
+    carbs: number;
+    serving_size: number;
+    created_at: string;
+  }>;
 }
 
 const FoodHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const { copyDayToToday, loading: copyLoading } = useCopyHistoricalDay();
+  const [dailySummaries, setDailySummaries] = useState<DailySummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAll, setShowAll] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingEntry, setEditingEntry] = useState<FoodEntry | null>(null);
-  const [hasMore, setHasMore] = useState(false);
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [deletingDayDate, setDeletingDayDate] = useState<string | null>(null);
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+
+  const ITEMS_PER_PAGE = 7; // Show 7 days at a time
 
   useEffect(() => {
     if (user) {
-      fetchFoodHistory();
+      loadFoodHistory();
     }
-  }, [user, showAll]);
+  }, [user]);
 
-  const fetchFoodHistory = async () => {
+  const loadFoodHistory = async (offsetValue = 0, append = false) => {
     if (!user) return;
-    
+
+    setLoading(true);
     try {
-      setLoading(true);
-      const limit = showAll ? 100 : 20;
+      // Calculate yesterday's end to exclude today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const yesterdayEnd = new Date(today.getTime() - 1); // End of yesterday
       
-      const { data, error } = await supabase
+      // Get only consumed food entries from previous days (exclude today)
+      const { data: entries, error } = await supabase
         .from('food_entries')
         .select('*')
         .eq('user_id', user.id)
+        .eq('consumed', true) // Only consumed items
+        .lt('created_at', yesterdayEnd.toISOString()) // Exclude today
         .order('created_at', { ascending: false })
-        .limit(limit);
+        .range(offsetValue * 50, (offsetValue + 1) * 50 - 1);
 
       if (error) throw error;
 
-      setEntries(data || []);
+      // Group entries by date
+      const grouped = new Map<string, DailySummary>();
       
-      if (!showAll && data && data.length >= 20) {
-        const { count } = await supabase
-          .from('food_entries')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+      entries?.forEach(entry => {
+        const date = new Date(entry.created_at).toDateString();
         
-        setHasMore((count || 0) > 20);
+        if (!grouped.has(date)) {
+          grouped.set(date, {
+            date,
+            totalCalories: 0,
+            totalCarbs: 0,
+            entryCount: 0,
+            entries: []
+          });
+        }
+        
+        const summary = grouped.get(date)!;
+        summary.totalCalories += entry.calories || 0;
+        summary.totalCarbs += entry.carbs || 0;
+        summary.entryCount += 1;
+        summary.entries.push({
+          id: entry.id,
+          name: entry.name,
+          calories: entry.calories || 0,
+          carbs: entry.carbs || 0,
+          serving_size: entry.serving_size || 100,
+          created_at: entry.created_at
+        });
+      });
+
+      // Convert to array and sort by date
+      const summaries = Array.from(grouped.values())
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, ITEMS_PER_PAGE);
+
+      if (append) {
+        setDailySummaries(prev => [...prev, ...summaries]);
       } else {
-        setHasMore(false);
+        setDailySummaries(summaries);
       }
+
+      setHasMore(entries?.length === 50);
     } catch (error) {
-      console.error('Error fetching food history:', error);
+      console.error('Error loading food history:', error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to load food history"
+        description: "Failed to load food history",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteEntry = async (entryId: string) => {
-    if (!user) return;
+  const loadMore = () => {
+    const newOffset = offset + 1;
+    setOffset(newOffset);
+    loadFoodHistory(newOffset, true);
+  };
 
+  const toggleDayExpansion = (date: string) => {
+    setExpandedDays(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(date)) {
+        newSet.delete(date);
+      } else {
+        newSet.add(date);
+      }
+      return newSet;
+    });
+  };
+
+  const deleteEntireDay = async (date: string) => {
     try {
+      const summary = dailySummaries.find(s => s.date === date);
+      if (!summary) return;
+
+      // Delete all entries for this day
+      const entryIds = summary.entries.map(entry => entry.id);
       const { error } = await supabase
         .from('food_entries')
         .delete()
-        .eq('id', entryId)
+        .in('id', entryIds);
+
+      if (error) throw error;
+
+      // Update local state
+      setDailySummaries(prev => prev.filter(s => s.date !== date));
+
+      toast({
+        title: "Day deleted",
+        description: "All food entries for this day have been removed"
+      });
+    } catch (error) {
+      console.error('Error deleting day:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete food entries",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingDayDate(null);
+    }
+  };
+
+  const deleteAllHistory = async () => {
+    if (!user) return;
+    
+    try {
+      // Delete all food entries for this user
+      const { error } = await supabase
+        .from('food_entries')
+        .delete()
         .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setEntries(entries.filter(entry => entry.id !== entryId));
+      // Clear local state
+      setDailySummaries([]);
+
       toast({
-        title: "Food Entry Deleted",
-        description: "Food entry has been removed from your history"
+        title: "History deleted",
+        description: "All food history has been permanently removed"
       });
     } catch (error) {
-      console.error('Error deleting food entry:', error);
+      console.error('Error deleting all history:', error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to delete food entry"
+        description: "Failed to delete food history",
+        variant: "destructive"
       });
     } finally {
-      setDeletingId(null);
+      setShowDeleteAllDialog(false);
     }
   };
 
-  const handleCopyEntry = async (entry: FoodEntry) => {
-    try {
-      const { error } = await supabase
-        .from('food_entries')
-        .insert([{
-          user_id: user?.id,
-          name: entry.name,
-          calories: entry.calories,
-          carbs: entry.carbs,
-          serving_size: entry.serving_size,
-          consumed: false,
-          image_url: entry.image_url
-        }]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Food Copied",
-        description: `${entry.name} has been added to today's plan`
-      });
-    } catch (error) {
-      console.error('Error copying food entry:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to copy food entry"
-      });
-    }
-  };
-
-  const groupEntriesByDate = (entries: FoodEntry[]) => {
-    const groups: { [key: string]: FoodEntry[] } = {};
-    
-    entries.forEach(entry => {
-      const date = new Date(entry.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(entry);
-    });
-    
-    return groups;
-  };
-
-  if (loading) {
+  if (loading && dailySummaries.length === 0) {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
@@ -174,15 +221,23 @@ const FoodHistory = () => {
           </div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
+              <Card key={i} className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-4 bg-muted animate-pulse rounded w-24" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-6" />
+                </div>
+                <div className="flex gap-3">
+                  <div className="h-3 bg-muted animate-pulse rounded w-16" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-20" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-12" />
+                </div>
+              </Card>
             ))}
           </div>
         </div>
       </div>
     );
   }
-
-  const groupedEntries = groupEntriesByDate(entries);
 
   return (
     <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
@@ -201,14 +256,20 @@ const FoodHistory = () => {
           <div className="flex-1">
             <h1 className="text-2xl font-bold">Food History</h1>
           </div>
+          {dailySummaries.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDeleteAllDialog(true)}
+              className="w-8 h-8 text-destructive hover:bg-destructive/10"
+              title="Delete all history"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
-        {/* Copy Yesterday Button */}
-        <div className="mb-6">
-          <CopyYesterdayButton />
-        </div>
-
-        {entries.length === 0 ? (
+        {dailySummaries.length === 0 ? (
           <div className="text-center py-12">
             <Utensils className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Food Entries Yet</h3>
@@ -220,135 +281,147 @@ const FoodHistory = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedEntries).map(([date, dayEntries]) => (
-              <div key={date}>
-                <div className="flex items-center gap-2 mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <h2 className="font-semibold text-sm">{date}</h2>
-                  <div className="flex-1 border-t border-border" />
-                </div>
+          <div className="space-y-4">
+            {dailySummaries.map((summary) => (
+              <Card key={summary.date} className="overflow-hidden">
+                <CardHeader 
+                  className="py-3 cursor-pointer hover:bg-muted/20 transition-colors"
+                  onClick={() => toggleDayExpansion(summary.date)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <h3 className="font-medium text-sm">
+                        {new Date(summary.date).toLocaleDateString('en-US', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </h3>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="text-xs text-muted-foreground">
+                        {summary.totalCalories} cal • {summary.entryCount} items
+                      </div>
+                      {expandedDays.has(summary.date) ? (
+                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
                 
-                <div className="space-y-2 ml-6">
-                  {dayEntries.map((entry) => (
-                    <Card key={entry.id} className="overflow-hidden">
-                      <CardContent className="p-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-medium text-sm truncate">{entry.name}</h3>
-                              {entry.consumed && (
-                                <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                  Consumed
-                                </span>
-                              )}
+                {expandedDays.has(summary.date) && (
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 mb-4">
+                      {summary.entries.map((entry) => (
+                        <div key={entry.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
+                          <div className="flex-1">
+                            <div className="font-medium">{entry.name}</div>
+                            <div className="text-muted-foreground">
+                              {entry.calories} cal • {entry.carbs}g carbs • {entry.serving_size}g
                             </div>
-                            <div className="flex gap-4 text-xs text-muted-foreground">
-                              <span>{entry.calories} cal</span>
-                              <span>{entry.carbs}g carbs</span>
-                              <span>{entry.serving_size}g</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(entry.created_at).toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                          <div className="flex gap-1 ml-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-7 h-7"
-                              onClick={() => handleCopyEntry(entry)}
-                              title="Copy to today"
-                            >
-                              <Copy className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-7 h-7"
-                              onClick={() => setEditingEntry(entry)}
-                              title="Edit entry"
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-7 h-7 text-destructive hover:text-destructive"
-                              onClick={() => setDeletingId(entry.id)}
-                              title="Delete entry"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                      ))}
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const result = await copyDayToToday(summary.date);
+                          if (result?.success) {
+                            toast({
+                              title: "Day copied",
+                              description: `${result.count} food items copied to today's plan`
+                            });
+                          }
+                        }}
+                        disabled={copyLoading}
+                        className="h-7 px-2 text-xs"
+                      >
+                        Copy to Today
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingDayDate(summary.date);
+                        }}
+                        className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                        title="Delete entire day"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
             ))}
 
-            {/* Load More / Show Less */}
-            {hasMore && !showAll && (
+            {/* Load More */}
+            {hasMore && (
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => setShowAll(true)}
+                onClick={loadMore}
+                disabled={loading}
               >
-                Load More Entries
-              </Button>
-            )}
-
-            {showAll && entries.length > 20 && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setShowAll(false)}
-              >
-                Show Less
+                {loading ? 'Loading...' : 'Load More'}
               </Button>
             )}
           </div>
         )}
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
+        {/* Delete Day Confirmation Dialog */}
+        <AlertDialog open={!!deletingDayDate} onOpenChange={() => setDeletingDayDate(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Food Entry</AlertDialogTitle>
+              <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this food entry? This action cannot be undone.
+                Are you sure you want to delete all food entries for {deletingDayDate ? new Date(deletingDayDate).toLocaleDateString() : ''}? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => deletingId && handleDeleteEntry(deletingId)}
+                onClick={() => deletingDayDate && deleteEntireDay(deletingDayDate)}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
+                Delete Day
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Edit Food Entry Modal */}
-        {editingEntry && (
-          <EditFoodEntryModal
-            entry={editingEntry}
-            onClose={() => setEditingEntry(null)}
-            onUpdate={async (updatedEntry) => {
-              setEntries(entries.map(e => 
-                e.id === updatedEntry.id ? { ...e, ...updatedEntry } : e
-              ));
-              setEditingEntry(null);
-            }}
-          />
-        )}
+        {/* Delete All History Confirmation Dialog */}
+        <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete All Food History</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete ALL food history? This will permanently remove all food entries from all days. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={deleteAllHistory}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete All History
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -420,12 +420,12 @@ const Timer = () => {
           subtitle={currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
           onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : undefined}
           historyTitle="View fasting history"
-          showAuthorTooltip={isAdmin && currentMode === 'fasting'}
-          authorTooltipContentKey="fasting_timer_insights"
-          authorTooltipContent="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!"
+          showAuthorTooltip={isAdmin}
+          authorTooltipContentKey={currentMode === 'fasting' ? "fasting_timer_insights" : undefined}
+          authorTooltipContent={currentMode === 'fasting' ? "Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" : undefined}
         />
 
-        {/* Admin Personal Insight for Fasting */}
+        {/* Admin Personal Insight for Fasting only */}
         {isAdmin && currentMode === 'fasting' && (
           <AdminInsightDisplay content="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" />
         )}

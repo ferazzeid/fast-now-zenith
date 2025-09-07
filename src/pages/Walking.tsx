@@ -229,6 +229,7 @@ const Walking = () => {
           onHistoryClick={() => navigate('/walking-history')}
           historyTitle="View walking history"
           showAuthorTooltip={isAdmin}
+          authorTooltipContentKey="walking_timer_insights"
           authorTooltipContent="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
         />
 
