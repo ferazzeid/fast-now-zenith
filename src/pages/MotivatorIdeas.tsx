@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
 import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
+import { MotivatorContentModal } from '@/components/MotivatorContentModal';
 import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
@@ -34,6 +35,13 @@ export default function MotivatorIdeas() {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
   const [forceRenderKey, setForceRenderKey] = useState(0);
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<{
+    id: string;
+    title: string;
+    content: string;
+    external_url?: string;
+  } | null>(null);
   useEffect(() => {
     refreshGoalIdeas();
   }, []);
@@ -181,17 +189,23 @@ export default function MotivatorIdeas() {
                             {/* Read More Link */}
                             {goal.slug && (
                               <div className="mt-3">
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/content/${goal.slug}`);
-                                  }}
-                                  className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
-                                >
-                                  Read More <ExternalLink className="w-3 h-3 ml-1" />
-                                </Button>
+                                 <Button
+                                   variant="link"
+                                   size="sm"
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     setSelectedContent({
+                                       id: goal.id,
+                                       title: goal.title,
+                                       content: goal.description,
+                                       external_url: goal.linkUrl
+                                     });
+                                     setShowContentModal(true);
+                                   }}
+                                   className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                                 >
+                                   Read More <ExternalLink className="w-3 h-3 ml-1" />
+                                 </Button>
                               </div>
                             )}
                           </div>
@@ -284,6 +298,12 @@ export default function MotivatorIdeas() {
           onClose={() => setEditingGoal(null)}
         />
       )}
+
+      <MotivatorContentModal
+        isOpen={showContentModal}
+        onClose={() => setShowContentModal(false)}
+        content={selectedContent}
+      />
     </div>
     </GoalIdeasErrorBoundary>
   );
