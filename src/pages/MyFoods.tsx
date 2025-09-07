@@ -56,29 +56,24 @@ const MyFoods = () => {
     <div className="min-h-screen bg-background pb-20">
       <SEOManager />
       
-      {/* Modal-like Container */}
-      <div className="max-w-md mx-auto p-4 pt-20 pb-8">
-        <div className="bg-background rounded-xl shadow-sm border">
-          {/* Header inside the box */}
-          <div className="px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
-            <h1 className="text-lg font-semibold">My Foods</h1>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="p-2"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="p-6">
-            <FoodLibraryView
-              onSelectFood={handleSelectFood}
-              onBack={handleBack}
-            />
-          </div>
+      {/* Full Width Container */}
+      <div className="max-w-md mx-auto px-4 pt-20 pb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-lg font-semibold">My Foods</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="p-2"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
+        
+        <FoodLibraryView
+          onSelectFood={handleSelectFood}
+          onBack={handleBack}
+        />
       </div>
     </div>
   );

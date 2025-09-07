@@ -197,7 +197,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
             <Card className="p-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span className="text-xs font-medium text-green-700 dark:text-green-300">
                     Active Session
                   </span>
