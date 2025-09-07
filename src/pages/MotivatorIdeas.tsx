@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
 import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
+import { MotivatorContentModal } from '@/components/MotivatorContentModal';
 import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
@@ -33,6 +34,7 @@ export default function MotivatorIdeas() {
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
+  const [showContentModal, setShowContentModal] = useState<AdminGoalIdea | null>(null);
   const [forceRenderKey, setForceRenderKey] = useState(0);
   useEffect(() => {
     refreshGoalIdeas();
@@ -176,10 +178,10 @@ export default function MotivatorIdeas() {
                                 {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{excerpt}</p>}
                                 {shouldShowExpandButton && (
                                   <button
-                                    onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                                    onClick={() => setShowContentModal(goal)}
                                     className="text-primary hover:text-primary/80 text-xs font-medium mt-1 block"
                                   >
-                                    {isExpanded ? 'Show Less' : 'Read More'}
+                                    Read More
                                   </button>
                                 )}
                               </div>
@@ -272,6 +274,26 @@ export default function MotivatorIdeas() {
           goal={editingGoal}
           onSave={handleSaveEdit}
           onClose={() => setEditingGoal(null)}
+        />
+      )}
+
+      {showContentModal && (
+        <MotivatorContentModal
+          isOpen={!!showContentModal}
+          onClose={() => setShowContentModal(null)}
+          motivator={{
+            title: showContentModal.title,
+            content: showContentModal.description,
+            imageUrl: (() => {
+              const userGender = profile?.sex || 'male';
+              return userGender === 'female' && showContentModal.femaleImageUrl 
+                ? showContentModal.femaleImageUrl 
+                : userGender === 'male' && showContentModal.maleImageUrl 
+                ? showContentModal.maleImageUrl 
+                : showContentModal.imageUrl;
+            })(),
+            category: showContentModal.category
+          }}
         />
       )}
     </div>
