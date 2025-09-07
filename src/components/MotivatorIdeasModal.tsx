@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ContentModal } from '@/components/ContentModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,9 @@ interface MotivatorIdeasModalProps {
 export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal }: MotivatorIdeasModalProps) => {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
+  const [contentLoading, setContentLoading] = useState(false);
   const { goalIdeas, loading, refreshGoalIdeas, removeGoalIdea } = useAdminGoalIdeas();
   const { user } = useAuth();
 
@@ -52,15 +56,47 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
     checkAdminRole();
   }, [user]);
 
-  // Refresh list every time the modal opens to show latest changes
   useEffect(() => {
     if (isOpen) {
       refreshGoalIdeas();
     }
   }, [isOpen, refreshGoalIdeas]);
 
-  const handleDeleteGoal = async (goalId: string) => {
+  const handleDelete = async (goalId: string) => {
     await removeGoalIdea(goalId);
+  };
+
+  const handleReadMore = async (goal: AdminGoalIdea) => {
+    if (!goal.slug) return;
+    
+    setContentLoading(true);
+    setShowContentModal(true);
+    
+    try {
+      // Fetch content from system_motivators table
+      const { data, error } = await supabase
+        .from('system_motivators')
+        .select('*')
+        .eq('slug', goal.slug)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setSelectedContent({
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          external_url: data.link_url,
+          created_at: data.created_at
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching content:', error);
+      setShowContentModal(false);
+    } finally {
+      setContentLoading(false);
+    }
   };
 
   if (loading) {
@@ -96,27 +132,22 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
   }
 
   return (
-    <UniversalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Motivator Ideas"
-      variant="standard"
-      size="full"
-      showCloseButton={true}
-    >
-        <ErrorBoundary
-          fallback={
-            <div className="text-center py-8">
-              <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-2" />
-              <p className="text-muted-foreground mb-4">Error loading goal ideas</p>
-              <Button onClick={() => window.location.reload()} variant="outline" size="sm">
-                Refresh Page
-              </Button>
-            </div>
-          }
-        >
-        <div className="space-y-4 py-2">
-          {/* Goal Ideas List */}
+    <>
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Motivator Ideas"
+        variant="standard"
+        size="md"
+        showCloseButton={true}
+      >
+        <ErrorBoundary>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <Lightbulb className="w-4 h-4 text-primary" />
+            <p className="text-sm text-muted-foreground">Choose a motivator to add to your goals</p>
+          </div>
+          
           <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-2">
             {goalIdeas.length === 0 ? (
               <div className="text-center py-8">
@@ -165,132 +196,154 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                      )}
                                    </div>
                                  )}
-                              </div>
-                              
-                              {/* Action Buttons */}
-                              <div className="flex flex-col gap-1.5 flex-shrink-0">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onSelectGoal(goal);
-                                        onClose();
-                                      }}
-                                      className="h-8 w-8 p-0 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Add this motivator to your goals</p>
-                                  </TooltipContent>
-                                </Tooltip>
+                                 
+                                 {/* Read More Button */}
+                                 {goal.slug && (
+                                   <div className="mt-2">
+                                     <Button
+                                       variant="link"
+                                       size="sm"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handleReadMore(goal);
+                                       }}
+                                       className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                                     >
+                                       Read Full Article
+                                     </Button>
+                                   </div>
+                                 )}
+                               </div>
+                               
+                               {/* Action Buttons */}
+                               <div className="flex flex-col gap-1.5 flex-shrink-0">
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <Button
+                                       size="sm"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         onSelectGoal(goal);
+                                         onClose();
+                                       }}
+                                       className="h-8 w-8 p-0 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground"
+                                     >
+                                       <Plus className="w-4 h-4" />
+                                     </Button>
+                                   </TooltipTrigger>
+                                   <TooltipContent>
+                                     <p>Add this motivator to your goals</p>
+                                   </TooltipContent>
+                                 </Tooltip>
 
-                                {/* Admin Edit Button */}
-                                {isAdmin && onEditGoal && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          onEditGoal(goal);
-                                        }}
-                                        className="h-8 w-8 p-0 rounded-md hover:bg-ceramic-base text-muted-foreground hover:text-warm-text"
-                                      >
-                                        <Edit className="w-4 h-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Edit this idea (Admin)</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
+                                 {/* Admin Edit Button */}
+                                 {isAdmin && onEditGoal && (
+                                   <Tooltip>
+                                     <TooltipTrigger asChild>
+                                       <Button
+                                         size="sm"
+                                         variant="ghost"
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           onEditGoal(goal);
+                                         }}
+                                         className="h-8 w-8 p-0 rounded-md hover:bg-ceramic-base text-muted-foreground hover:text-warm-text"
+                                       >
+                                         <Edit className="w-4 h-4" />
+                                       </Button>
+                                     </TooltipTrigger>
+                                     <TooltipContent>
+                                       <p>Edit this idea (Admin)</p>
+                                     </TooltipContent>
+                                   </Tooltip>
+                                 )}
 
-                                {/* Admin Delete Button */}
-                                {isAdmin && (
-                                  <AlertDialog>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <AlertDialogTrigger asChild>
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                            }}
-                                            disabled={loading}
-                                            className="h-8 w-8 p-0 rounded-md hover:bg-destructive/10 hover:text-destructive"
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Remove from default goals (Admin)</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Remove Default Goal</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to remove "{goal.title}" from the default goal ideas? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => handleDeleteGoal(goal.id)}
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                        >
-                                          Remove
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Expand button at bottom */}
-                          {shouldShowExpandButton && (
-                            <div className="flex justify-end pt-2">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setExpandedGoal(isExpanded ? null : goal.id);
-                                    }}
-                                    className="h-6 w-6 p-0 rounded-full hover:bg-muted/20 text-muted-foreground"
-                                  >
-                                    <ChevronDown 
-                                      className={`w-3 h-3 ${isExpanded ? 'rotate-180' : ''}`} 
-                                    />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
-        </div>
-        </ErrorBoundary>
-    </UniversalModal>
-  );
-};
+                                 {/* Admin Delete Button */}
+                                 {isAdmin && (
+                                   <AlertDialog>
+                                     <Tooltip>
+                                       <TooltipTrigger asChild>
+                                         <AlertDialogTrigger asChild>
+                                           <Button
+                                             size="sm"
+                                             variant="ghost"
+                                             disabled={loading}
+                                             className="h-8 w-8 p-0 rounded-md hover:bg-destructive/10 hover:text-destructive"
+                                           >
+                                             <Trash2 className="w-4 h-4" />
+                                           </Button>
+                                         </AlertDialogTrigger>
+                                       </TooltipTrigger>
+                                       <TooltipContent>
+                                         <p>Remove from default goals (Admin)</p>
+                                       </TooltipContent>
+                                     </Tooltip>
+                                     <AlertDialogContent>
+                                       <AlertDialogHeader>
+                                         <AlertDialogTitle>Remove Default Goal</AlertDialogTitle>
+                                         <AlertDialogDescription>
+                                           Are you sure you want to remove "{goal.title}" from the default goal ideas? This action cannot be undone.
+                                         </AlertDialogDescription>
+                                       </AlertDialogHeader>
+                                       <AlertDialogFooter>
+                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                         <AlertDialogAction
+                                           onClick={() => handleDelete(goal.id)}
+                                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                         >
+                                           Remove
+                                         </AlertDialogAction>
+                                       </AlertDialogFooter>
+                                     </AlertDialogContent>
+                                   </AlertDialog>
+                                 )}
+                               </div>
+                             </div>
+                           </div>
+                           
+                           {/* Expand button at bottom */}
+                           {shouldShowExpandButton && (
+                             <div className="flex justify-end pt-2">
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                                     className="h-6 w-6 p-0 rounded-full hover:bg-muted/20 text-muted-foreground"
+                                   >
+                                     <ChevronDown 
+                                       className={`w-3 h-3 ${isExpanded ? 'rotate-180' : ''}`} 
+                                     />
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>
+                                   <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
+                                 </TooltipContent>
+                               </Tooltip>
+                             </div>
+                           )}
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
+                 );
+               })
+             )}
+           </div>
+         </div>
+         </ErrorBoundary>
+       </UniversalModal>
+       
+       <ContentModal
+         isOpen={showContentModal}
+         onClose={() => {
+           setShowContentModal(false);
+           setSelectedContent(null);
+         }}
+         contentItem={selectedContent}
+         loading={contentLoading}
+       />
+     </>
+   );
+ };
