@@ -68,7 +68,7 @@ export const AIVoiceButton = () => {
           welcomeMessage = "I can help you manage your fasting sessions, track progress, and provide guidance.";
           break;
         case '/food-tracking':
-          welcomeMessage = "You can add, edit, and remove foods with this functionality.";
+          welcomeMessage = "I can help you add food to your daily plan. Just tell me what you ate!";
           break;
         case '/motivators':
           welcomeMessage = "I can help you create, edit, and manage your motivational content.";

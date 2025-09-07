@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
-import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';

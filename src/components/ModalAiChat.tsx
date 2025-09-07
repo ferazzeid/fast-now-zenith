@@ -217,7 +217,7 @@ export const ModalAiChat = ({
           let welcomeMessage = 'Hi! How can I help you today?';
           
           if (title === 'Food Assistant') {
-            welcomeMessage = 'You can add, edit, and remove foods with this functionality.';
+            welcomeMessage = 'I can help you add food to your daily plan. Just tell me what you ate!';
           } else if (title === 'Motivator Assistant') {
             welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
           }

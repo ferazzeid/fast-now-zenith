@@ -1,6 +1,5 @@
 import React, { useState, memo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -13,7 +12,6 @@ import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
 import { Quote } from '@/hooks/useQuoteSettings';
-import { ModalAiChat } from '@/components/ModalAiChat';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 
 
@@ -25,7 +23,6 @@ import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
 import { NotesCard } from '@/components/NotesCard';
 import { NoteFormModal } from '@/components/NoteFormModal';
-import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
