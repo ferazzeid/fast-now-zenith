@@ -123,7 +123,7 @@ const Content = () => {
   return (
     <div className="min-h-screen bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Modal-like Container */}
-      <div className="max-w-2xl mx-auto pt-8 px-4 pb-32">
+      <div className="max-w-2xl mx-auto pt-20 px-4 pb-32">
         <div className="bg-background rounded-xl shadow-lg border overflow-hidden flex flex-col max-h-[90vh]">
           
           {/* Header */}
@@ -151,23 +151,24 @@ const Content = () => {
                   <FileText className="w-4 h-4" />
                   <span className="text-xs">Article Content</span>
                 </div>
-                <div className="whitespace-pre-wrap">
+                <div className="whitespace-pre-wrap text-base leading-7">
                   {contentItem.content}
                 </div>
               </div>
             </ScrollArea>
             
-            {/* External Link Button */}
+            {/* Optional External Link */}
             {contentItem.external_url && (
-              <div className="flex-shrink-0 px-6 py-4 border-t">
+              <div className="flex-shrink-0 px-6 py-3 border-t bg-muted/5">
+                <p className="text-xs text-muted-foreground mb-2">Want to read more?</p>
                 <Button 
                   onClick={handleOpenExternal} 
-                  variant="default" 
+                  variant="outline" 
                   size="sm"
                   className="w-full"
                 >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Read Full Article on Original Site
+                  <ExternalLink className="w-3 h-3 mr-2" />
+                  Visit Original Source
                 </Button>
               </div>
             )}
