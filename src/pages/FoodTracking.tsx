@@ -334,7 +334,7 @@ const FoodTracking = () => {
                 />
               )}
               <HistoryButton 
-                onClick={() => setShowHistory(true)}
+                onClick={() => navigate('/food-history')}
                 title="View food history"
               />
             </div>

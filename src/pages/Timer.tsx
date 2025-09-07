@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History, X, CheckCircle } from 'lucide-react';
 import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
@@ -35,6 +36,7 @@ import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { useAccess } from '@/hooks/useAccess';
 
 const Timer = () => {
+  const navigate = useNavigate();
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(60 * 60 * 60); // 60 hours default (water fast)
   const [fastType, setFastType] = useState<'longterm'>('longterm');
@@ -415,7 +417,7 @@ const Timer = () => {
         <ResponsivePageHeader
           title={currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
           subtitle={currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
-          onHistoryClick={currentMode === 'fasting' ? () => setShowFastingHistory(true) : undefined}
+          onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : undefined}
           historyTitle="View fasting history"
           showAuthorTooltip={isAdmin && currentMode === 'fasting'}
           authorTooltipContentKey="fasting_timer_insights"
@@ -552,11 +554,6 @@ const Timer = () => {
         currentDuration={formatTimeFasting(timeElapsed)}
         actionType={stopAction}
       />
-
-      {/* Fasting History Modal */}
-      {showFastingHistory && (
-        <FastingHistory onClose={() => setShowFastingHistory(false)} />
-      )}
 
       {/* Onboarding Modal */}
       <PageOnboardingModal

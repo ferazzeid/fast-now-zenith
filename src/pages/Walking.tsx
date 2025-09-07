@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
@@ -26,6 +27,7 @@ import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
 
 
 const Walking = () => {
+  const navigate = useNavigate();
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -223,7 +225,7 @@ const Walking = () => {
         <ResponsivePageHeader
           title="Walking Timer"
           subtitle="Track your walking session"
-          onHistoryClick={() => setShowWalkingHistory(true)}
+          onHistoryClick={() => navigate('/walking-history')}
           historyTitle="View walking history"
           showAuthorTooltip={isAdmin}
           authorTooltipContent="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"

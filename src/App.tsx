@@ -31,6 +31,9 @@ import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
 import AddFood from "./pages/AddFood";
 import MyFoods from "./pages/MyFoods";
+import WalkingHistory from "./pages/WalkingHistory";
+import FoodHistory from "./pages/FoodHistory";
+import FastingHistory from "./pages/FastingHistory";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
 
@@ -220,6 +223,27 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <MyFoods />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/walking-history" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <WalkingHistory />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/food-history" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <FoodHistory />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/fasting-history" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <FastingHistory />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
