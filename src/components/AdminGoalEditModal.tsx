@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { AdminImageUploadSilent } from './AdminImageUploadSilent';
 import { useToast } from '@/hooks/use-toast';
+import { useAccess } from '@/hooks/useAccess';
 import { Save } from 'lucide-react';
 
 interface AdminGoalIdea {
@@ -39,6 +40,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [inlineError, setInlineError] = useState<string>('');
   const [inlineSuccess, setInlineSuccess] = useState<string>('');
   const { toast } = useToast();
+  const { isAdmin } = useAccess();
 
   useEffect(() => {
     if (goal) {
@@ -220,23 +222,25 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="goal-link" className="text-warm-text font-medium">
-            Read More Link
-          </Label>
-          <Input
-            id="goal-link"
-            value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            className="bg-ceramic-base border-ceramic-rim"
-            placeholder="https://website.com/detailed-story..."
-            disabled={isSubmitting}
-            type="url"
-          />
-          <p className="text-xs text-muted-foreground">
-            Optional URL to a detailed story or description on your website
-          </p>
-        </div>
+        {isAdmin && (
+          <div className="space-y-2">
+            <Label htmlFor="goal-link" className="text-warm-text font-medium">
+              Read More Link
+            </Label>
+            <Input
+              id="goal-link"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              className="bg-ceramic-base border-ceramic-rim"
+              placeholder="https://website.com/detailed-story..."
+              disabled={isSubmitting}
+              type="url"
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional URL to a detailed story or description on your website
+            </p>
+          </div>
+        )}
 
       </div>
     </UniversalModal>

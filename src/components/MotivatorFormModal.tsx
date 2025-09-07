@@ -11,8 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
-import { SimpleVoiceRecorder } from './SimpleVoiceRecorder';
-import { PremiumGate } from '@/components/PremiumGate';
+import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
 
 interface Motivator {
@@ -35,7 +34,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
   const [linkUrl, setLinkUrl] = useState(motivator?.linkUrl || '');
-  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [tempMotivatorId, setTempMotivatorId] = useState<string | null>(null);
   
   const { toast } = useToast();
@@ -105,7 +103,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     } else {
       setContent(transcription);
     }
-    setShowVoiceRecorder(false);
   };
 
   const useTemplate = (template: any) => {
@@ -182,16 +179,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="title" className="text-warm-text font-medium">
                 Title *
               </Label>
-              <PremiumGate feature="Voice Input" showUpgrade={false}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowVoiceRecorder(true)}
-                  className="h-9 w-9 p-0 flex items-center justify-center rounded-full bg-ai hover:bg-ai/90 text-white"
-                >
-                  <Mic className="w-4 h-4" />
-                </Button>
-              </PremiumGate>
+              <PremiumGatedCircularVoiceButton
+                onTranscription={handleVoiceTranscription}
+                size="sm"
+              />
             </div>
             <Input
               id="title"
@@ -206,16 +197,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               <Label htmlFor="content" className="text-warm-text font-medium">
                 Description (Optional)
               </Label>
-              <PremiumGate feature="Voice Input" showUpgrade={false}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowVoiceRecorder(true)}
-                  className="h-9 w-9 p-0 flex items-center justify-center rounded-full bg-ai hover:bg-ai/90 text-white"
-                >
-                  <Mic className="w-4 h-4" />
-                </Button>
-              </PremiumGate>
+              <PremiumGatedCircularVoiceButton
+                onTranscription={handleVoiceTranscription}
+                size="sm"
+              />
             </div>
             <Textarea
               id="content"
@@ -226,21 +211,23 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="linkUrl" className="text-warm-text font-medium">
-              Link URL (Optional)
-            </Label>
-            <Input
-              id="linkUrl"
-              type="url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="https://example.com/more-info"
-            />
-            <p className="text-xs text-muted-foreground">
-              Optional URL for additional information or resources
-            </p>
-          </div>
+          {isAdmin && (
+            <div className="space-y-2">
+              <Label htmlFor="linkUrl" className="text-warm-text font-medium">
+                Link URL (Optional)
+              </Label>
+              <Input
+                id="linkUrl"
+                type="url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://example.com/more-info"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional URL for additional information or resources
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">Image (Optional)</Label>
@@ -256,35 +243,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <div className="h-2" />
         </div>
 
-        {/* Voice Recorder Modal */}
-        {showVoiceRecorder && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
-            <div className="bg-ceramic-plate rounded-2xl p-6 w-full max-w-sm">
-              <div className="text-center mb-4">
-                <h4 className="font-semibold text-warm-text mb-2">Voice Input</h4>
-                <p className="text-sm text-muted-foreground">
-                  Speak your motivator title or description
-                </p>
-              </div>
-              
-              <div className="space-y-4">
-                <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                  <SimpleVoiceRecorder
-                    onTranscription={handleVoiceTranscription}
-                  />
-                </PremiumGate>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => setShowVoiceRecorder(false)}
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
 
     </UniversalModal>
   );
