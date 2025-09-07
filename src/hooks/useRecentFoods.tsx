@@ -11,6 +11,7 @@ interface RecentFood {
   image_url?: string;
   last_used: string;
   usage_count: number;
+  is_favorite: boolean;
 }
 
 export const useRecentFoods = () => {
@@ -129,7 +130,8 @@ export const useRecentFoods = () => {
         carbs_per_100g: food.carbs_per_100g,
         image_url: food.image_url,
         last_used: foodMap.get(food.name.toLowerCase())?.last_used || food.updated_at,
-        usage_count: 1
+        usage_count: 1,
+        is_favorite: food.is_favorite || false
       })).slice(0, 20) || [];
 
       setRecentFoods(recentArray);

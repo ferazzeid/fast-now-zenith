@@ -139,7 +139,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       calories_per_100g: food.calories_per_100g,
       carbs_per_100g: food.carbs_per_100g,
       // Apply optimistic favorite updates if they exist, otherwise use server data
-      is_favorite: optimisticFavorites.has(food.id) ? optimisticFavorites.get(food.id)! : (food as any).is_favorite || false, // Handle case where is_favorite may not exist
+      is_favorite: optimisticFavorites.has(food.id) ? optimisticFavorites.get(food.id)! : food.is_favorite,
       image_url: food.image_url,
       variations: []
     }));
@@ -280,9 +280,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
 
     // Optimistic update - update local state immediately
+    console.log('❤️ HEART CLICK - Before optimistic update:', { foodId, currentFavorite, optimisticFavorites: Array.from(optimisticFavorites.entries()) });
     setOptimisticFavorites(prev => {
       const newMap = new Map(prev);
       newMap.set(foodId, !currentFavorite);
+      console.log('❤️ HEART CLICK - After optimistic update:', { foodId, newValue: !currentFavorite, newOptimisticFavorites: Array.from(newMap.entries()) });
       return newMap;
     });
 
