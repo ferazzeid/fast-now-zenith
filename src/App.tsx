@@ -11,7 +11,7 @@ import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
-// Content page removed - URLs no longer needed
+import Content from "./pages/Content";
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
@@ -185,7 +185,13 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            {/* Content route removed - URLs no longer needed */}
+            <Route path="/content/:slug" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <Content />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <PageErrorBoundary>

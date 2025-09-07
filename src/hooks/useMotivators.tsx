@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
 import { useMotivatorCache } from './useMotivatorCache';
-// URLs and slugs removed - no longer needed
+import { generateUniqueSlug } from '@/utils/slugUtils';
+import { validateAndFixUrl } from '@/utils/urlUtils';
 
 export interface Motivator {
   id: string;
@@ -16,6 +17,7 @@ export interface Motivator {
   updated_at: string;
   imageUrl?: string;
   show_in_animations?: boolean;
+  linkUrl?: string;
 }
 
 export interface CreateMotivatorData {
@@ -24,6 +26,7 @@ export interface CreateMotivatorData {
   category: string;
   imageUrl?: string;
   show_in_animations?: boolean;
+  linkUrl?: string;
 }
 
 export const useMotivators = () => {
@@ -51,7 +54,7 @@ export const useMotivators = () => {
     try {
       const { data, error } = await supabase
         .from('motivators')
-        .select('*, image_url')
+        .select('*, image_url, link_url')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -62,10 +65,11 @@ export const useMotivators = () => {
         error: error ? 'present' : 'none'
       });
       
-      // Transform data to include imageUrl property with proper fallback
+      // Transform data to include imageUrl and linkUrl properties with proper fallback
       const transformedData = (data || []).map((item: any) => ({
         ...item,
         imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
+        linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
         show_in_animations: item.show_in_animations ?? true // Default to true if not set
       }));
       
@@ -111,9 +115,10 @@ export const useMotivators = () => {
           content: motivatorData.content,
           category: motivatorData.category,
           image_url: motivatorData.imageUrl,
+          link_url: motivatorData.linkUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
-          is_active: true,
-          slug: null
+          slug: generateUniqueSlug(motivatorData.title),
+          is_active: true
         })
         .select()
         .single();
@@ -121,7 +126,7 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        const transformedData = { ...data, imageUrl: data.image_url };
+        const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         
         // No need to refresh immediately - state is already updated optimistically
@@ -149,11 +154,15 @@ export const useMotivators = () => {
     if (!user) return false;
 
     try {
-      // Map imageUrl to image_url for database and handle show_in_animations
+      // Map imageUrl to image_url and linkUrl to link_url for database and handle show_in_animations
       const dbUpdates: any = { ...updates };
       if (updates.imageUrl !== undefined) {
         dbUpdates.image_url = updates.imageUrl;
         delete dbUpdates.imageUrl;
+      }
+      if (updates.linkUrl !== undefined) {
+        dbUpdates.link_url = updates.linkUrl;
+        delete dbUpdates.linkUrl;
       }
       if (updates.show_in_animations !== undefined) {
         dbUpdates.show_in_animations = updates.show_in_animations;
@@ -198,9 +207,10 @@ export const useMotivators = () => {
         content: motivator.content,
         category: motivator.category || 'general',
         image_url: motivator.imageUrl,
+        link_url: motivator.linkUrl,
         show_in_animations: motivator.show_in_animations ?? true,
-        is_active: true,
-        slug: null
+        slug: generateUniqueSlug(motivator.title),
+        is_active: true
       }));
 
       const { data, error } = await supabase
@@ -211,7 +221,7 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url }));
+        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url, linkUrl: item.link_url }));
         setMotivators(prev => [...transformedData as Motivator[], ...prev]);
         toast({
           title: "✨ Motivators Created!",
@@ -245,9 +255,9 @@ export const useMotivators = () => {
           title,
           content,
           category: 'saved_quote',
+          slug: generateUniqueSlug(title),
           show_in_animations: true, // Default to showing saved quotes in animations
-          is_active: true,
-          slug: null
+          is_active: true
         })
         .select()
         .single();
@@ -255,7 +265,7 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        const transformedData = { ...data, imageUrl: data.image_url };
+        const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         toast({
           title: "📝 Quote Saved!",

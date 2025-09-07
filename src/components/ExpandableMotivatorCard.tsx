@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2, Star, BookOpen } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
-import { MotivatorContentModal } from '@/components/MotivatorContentModal';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,7 +42,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 }) => {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showContentModal, setShowContentModal] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
@@ -137,19 +135,24 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     ) : (
                       <p className="line-clamp-2">{motivator.content}</p>
                     )}
-                    {shouldShowExpandButton && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowContentModal(true);
-                        }}
-                        className={`text-primary hover:text-primary/80 text-xs font-medium mt-1 block ${
-                          isSavedQuote ? 'text-blue-400 hover:text-blue-300' : ''
-                        }`}
-                      >
-                        Read More
-                      </button>
-                    )}
+                  </div>
+                )}
+                
+                {/* Read More Link */}
+                {motivator.linkUrl && (
+                  <div className="mt-3">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Navigate to content page using React Router
+                        navigate(`/content/${motivator.slug || motivator.id}`);
+                      }}
+                      className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                    >
+                      Read More <BookOpen className="w-3 h-3 ml-1" />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -277,12 +280,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           </div>
         )}
       </CardContent>
-      
-      <MotivatorContentModal
-        isOpen={showContentModal}
-        onClose={() => setShowContentModal(false)}
-        motivator={motivator}
-      />
     </Card>
   );
 });

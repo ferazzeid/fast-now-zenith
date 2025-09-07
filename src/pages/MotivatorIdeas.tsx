@@ -14,7 +14,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
 import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
-import { MotivatorContentModal } from '@/components/MotivatorContentModal';
 import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
@@ -34,7 +33,6 @@ export default function MotivatorIdeas() {
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
-  const [showContentModal, setShowContentModal] = useState<AdminGoalIdea | null>(null);
   const [forceRenderKey, setForceRenderKey] = useState(0);
   useEffect(() => {
     refreshGoalIdeas();
@@ -62,6 +60,7 @@ export default function MotivatorIdeas() {
         content: excerpt,
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
+        linkUrl: goal.linkUrl || undefined,
       });
       
       console.log('✅ Goal created successfully:', result);
@@ -176,14 +175,23 @@ export default function MotivatorIdeas() {
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
                                 {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{excerpt}</p>}
-                                {shouldShowExpandButton && (
-                                  <button
-                                    onClick={() => setShowContentModal(goal)}
-                                    className="text-primary hover:text-primary/80 text-xs font-medium mt-1 block"
-                                  >
-                                    Read More
-                                  </button>
-                                )}
+                              </div>
+                            )}
+                            
+                            {/* Read More Link */}
+                            {goal.slug && (
+                              <div className="mt-3">
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/content/${goal.slug}`);
+                                  }}
+                                  className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                                >
+                                  Read More <ExternalLink className="w-3 h-3 ml-1" />
+                                </Button>
                               </div>
                             )}
                           </div>
@@ -274,26 +282,6 @@ export default function MotivatorIdeas() {
           goal={editingGoal}
           onSave={handleSaveEdit}
           onClose={() => setEditingGoal(null)}
-        />
-      )}
-
-      {showContentModal && (
-        <MotivatorContentModal
-          isOpen={!!showContentModal}
-          onClose={() => setShowContentModal(null)}
-          motivator={{
-            title: showContentModal.title,
-            content: showContentModal.description,
-            imageUrl: (() => {
-              const userGender = profile?.sex || 'male';
-              return userGender === 'female' && showContentModal.femaleImageUrl 
-                ? showContentModal.femaleImageUrl 
-                : userGender === 'male' && showContentModal.maleImageUrl 
-                ? showContentModal.maleImageUrl 
-                : showContentModal.imageUrl;
-            })(),
-            category: showContentModal.category
-          }}
         />
       )}
     </div>
