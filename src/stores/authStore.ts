@@ -48,83 +48,66 @@ export const useAuthStore = create<AuthState>()(
         }
 
         authLogger.info('Starting auth initialization');
-        set({ initialized: true });
-        
-        // Mobile-specific timeout handling
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const timeout = isMobile ? 10000 : 5000; // Longer timeout for mobile
+        set({ initialized: true, loading: true });
         
         try {
-          // Add timeout wrapper for mobile
-          const initWithTimeout = new Promise<void>((resolve, reject) => {
-            const timer = setTimeout(() => {
-              reject(new Error(`Auth initialization timeout after ${timeout}ms`));
-            }, timeout);
-            
-            const initAuth = async () => {
-              // Set up auth state listener
-              const { data: { subscription } } = supabase.auth.onAuthStateChange(
-                async (event, session) => {
-                  authLogger.info(`Auth event: ${event}`, {
-                    hasSession: !!session,
-                    userId: session?.user?.id
-                  });
-                  
-                  set({
-                    session,
-                    user: session?.user ?? null,
-                    loading: false,
-                  });
-                }
-              );
-
-              // Get current session with mobile retry
-              let sessionResult;
-              let retries = isMobile ? 3 : 1;
+          // Set up auth state listener first
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (event, session) => {
+              authLogger.info(`Auth event: ${event}`, {
+                hasSession: !!session,
+                userId: session?.user?.id
+              });
               
-              while (retries > 0) {
-                try {
-                  sessionResult = await supabase.auth.getSession();
-                  break;
-                } catch (err) {
-                  retries--;
-                  if (retries === 0) throw err;
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-              }
-              
-              const { data: { session }, error } = sessionResult;
-              
-              if (error) {
-                authLogger.error('Error getting session:', error);
-                set({ loading: false });
-                clearTimeout(timer);
-                resolve();
+              // Handle token refresh errors by clearing invalid sessions
+              if (event === 'TOKEN_REFRESHED' && !session) {
+                authLogger.warn('Token refresh failed, clearing session');
+                localStorage.removeItem('sb-texnkijwcygodtywgedm-auth-token');
+                set({
+                  session: null,
+                  user: null,
+                  loading: false,
+                });
                 return;
               }
-
-              // Update initial session state
+              
               set({
                 session,
                 user: session?.user ?? null,
                 loading: false,
               });
+            }
+          );
 
-              // Store subscription for cleanup
-              (window as any).__authSubscription = subscription;
-              
-              authLogger.info('Auth initialization complete');
-              clearTimeout(timer);
-              resolve();
-            };
-            
-            initAuth().catch(reject);
-          });
+          // Get current session
+          const { data: { session }, error } = await supabase.auth.getSession();
           
-          await initWithTimeout;
+          if (error) {
+            authLogger.error('Error getting session:', error);
+            // Clear any stored tokens that might be causing issues
+            localStorage.removeItem('sb-texnkijwcygodtywgedm-auth-token');
+            set({ 
+              session: null, 
+              user: null, 
+              loading: false 
+            });
+          } else {
+            // Update initial session state
+            set({
+              session,
+              user: session?.user ?? null,
+              loading: false,
+            });
+          }
+
+          // Store subscription for cleanup
+          (window as any).__authSubscription = subscription;
+          authLogger.info('Auth initialization complete', { hasSession: !!session });
+          
         } catch (error) {
           authLogger.error('Auth initialization failed:', error);
-          set({ loading: false });
+          // Always ensure loading is set to false even on error
+          set({ loading: false, session: null, user: null });
         }
       },
 
