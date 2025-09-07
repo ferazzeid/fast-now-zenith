@@ -126,7 +126,13 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
             ) : (
               goalIdeas.map((goal) => {
                 const isExpanded = expandedGoal === goal.id;
-                const shouldShowExpandButton = goal.description && goal.description.length > 50;
+                
+                // Create excerpt from full description (first 150 characters)
+                const excerpt = goal.description && goal.description.length > 150 
+                  ? goal.description.substring(0, 150) + '...' 
+                  : goal.description;
+                
+                const shouldShowExpandButton = goal.description && goal.description.length > 150;
                 
                 return (
                   <Card key={goal.id} className="overflow-hidden border border-ceramic-rim">
@@ -150,15 +156,15 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                   {goal.title}
                                 </h3>
                                 
-                                {goal.description && (
-                                  <div className="text-sm text-muted-foreground mt-1">
-                                    {isExpanded ? (
-                                      <p className="whitespace-pre-wrap leading-relaxed">{goal.description}</p>
-                                    ) : (
-                                      <p className="line-clamp-2 leading-relaxed">{goal.description}</p>
-                                    )}
-                                  </div>
-                                )}
+                                 {goal.description && (
+                                   <div className="text-sm text-muted-foreground mt-1">
+                                     {isExpanded ? (
+                                       <p className="whitespace-pre-wrap leading-relaxed">{goal.description}</p>
+                                     ) : (
+                                       <p className="line-clamp-2 leading-relaxed">{excerpt}</p>
+                                     )}
+                                   </div>
+                                 )}
                               </div>
                               
                               {/* Action Buttons */}
