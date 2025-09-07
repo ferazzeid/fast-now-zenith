@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
+import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -116,7 +116,7 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
               {isProcessingVoice && (
                 <span className="text-xs text-muted-foreground">Processing voice...</span>
               )}
-              <PremiumGatedCircularVoiceButton
+              <CircularVoiceButton
                 onTranscription={handleVoiceTranscription}
                 size="sm"
                 isDisabled={isSubmitting || isProcessingVoice}

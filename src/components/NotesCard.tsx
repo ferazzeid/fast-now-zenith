@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Trash2, Edit3, Save, X, Eye, EyeOff } from "lucide-react";
-import { PremiumGatedCircularVoiceButton } from "@/components/PremiumGatedCircularVoiceButton";
+import { CircularVoiceButton } from "@/components/CircularVoiceButton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -115,7 +115,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                 className="min-h-[120px] resize-none pr-12"
               />
               <div className="absolute top-2 right-2">
-                <PremiumGatedCircularVoiceButton
+                <CircularVoiceButton
                   onTranscription={handleVoiceTranscription}
                   size="sm"
                   isDisabled={isUpdating}
