@@ -99,6 +99,7 @@ export const useQuoteSettings = () => {
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: quotesQueryKey });
+      console.log('📝 Quotes: Mutation settled, cache invalidated');
     }
   });
 
@@ -147,6 +148,7 @@ export const useQuoteSettings = () => {
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: quotesQueryKey });
+      console.log('📝 Quote Status: Mutation settled, cache invalidated');
     }
   });
 
@@ -154,11 +156,13 @@ export const useQuoteSettings = () => {
     type: 'fasting_timer_quotes' | 'walking_timer_quotes',
     newQuotes: Quote[]
   ) => {
+    console.log('📝 Quotes: Starting update for', type, 'with', newQuotes.length, 'quotes');
     try {
       await mutation.mutateAsync({ type, newQuotes });
+      console.log('📝 Quotes: Update successful');
       return { success: true };
     } catch (error) {
-      console.error('Error updating quotes:', error);
+      console.error('📝 Quotes: Update failed:', error);
       return { success: false, error } as const;
     }
   };

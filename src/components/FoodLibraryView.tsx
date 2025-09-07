@@ -123,7 +123,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       name: food.name,
       calories_per_100g: food.calories_per_100g,
       carbs_per_100g: food.carbs_per_100g,
-      is_favorite: false, // Recent foods don't have favorite status from library
+      is_favorite: (food as any).is_favorite || false, // Handle case where is_favorite may not exist
       image_url: food.image_url,
       variations: []
     }));
@@ -263,43 +263,76 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       return;
     }
 
-    // Note: Recent foods don't support favorites directly since they come from food_entries
-    // This functionality would need to be implemented via user_foods table if needed
-
     try {
       console.log('❤️ FoodLibrary - Performing database update');
       
-      // Update the favorite status - simple, no complex validation
-      const { data, error } = await supabase
+      // For recent foods (from food_entries), we need to find or create the corresponding user_food
+      const foodName = foods.find(f => f.id === foodId)?.name;
+      if (!foodName) {
+        throw new Error('Food not found in recent foods');
+      }
+
+      // First, try to find existing user_food record
+      let { data: existingUserFood, error: findError } = await supabase
         .from('user_foods')
-        .update({ is_favorite: !currentFavorite })
-        .eq('id', foodId)
+        .select('id, is_favorite')
         .eq('user_id', user.id)
-        .select('id, name, is_favorite')
-        .single();
+        .eq('name', foodName)
+        .maybeSingle();
 
-      if (error) {
-        console.error('❤️ FoodLibrary - Database update error:', error);
-        throw error;
+      if (findError) {
+        console.error('❤️ FoodLibrary - Error finding user food:', findError);
       }
 
-      if (!data) {
-        throw new Error('No data returned from update operation');
+      let updatedData;
+      
+      if (existingUserFood) {
+        // Update existing user_food record
+        const { data, error } = await supabase
+          .from('user_foods')
+          .update({ is_favorite: !currentFavorite })
+          .eq('id', existingUserFood.id)
+          .select('id, name, is_favorite')
+          .single();
+
+        if (error) throw error;
+        updatedData = data;
+      } else {
+        // Create new user_food record with favorite status
+        const recentFood = recentFoods.find(f => f.id === foodId);
+        if (!recentFood) throw new Error('Recent food data not found');
+
+        const { data, error } = await supabase
+          .from('user_foods')
+          .insert({
+            user_id: user.id,
+            name: recentFood.name,
+            calories_per_100g: recentFood.calories_per_100g,
+            carbs_per_100g: recentFood.carbs_per_100g,
+            is_favorite: !currentFavorite,
+            image_url: recentFood.image_url
+          })
+          .select('id, name, is_favorite')
+          .single();
+
+        if (error) throw error;
+        updatedData = data;
       }
 
-      console.log('❤️ FoodLibrary - Update successful:', data);
+      console.log('❤️ FoodLibrary - Update successful:', updatedData);
+      
+      // Force refresh recent foods to show updated favorite status
+      await refreshRecentFoods();
       
       // Success - show feedback
       toast({
         title: !currentFavorite ? "Added to Favorites" : "Removed from Favorites",
-        description: `"${data.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
+        description: `"${updatedData.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
       });
       console.log('❤️ FoodLibrary - toggleFavorite completed successfully');
       
     } catch (error) {
       console.error('❤️ FoodLibrary - toggleFavorite failed:', error);
-      
-      // Note: Recent foods don't support rollback since they don't have favorite status
       
       toast({
         variant: "destructive",

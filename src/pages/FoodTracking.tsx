@@ -33,6 +33,7 @@ import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { FoodPlanSummary } from '@/components/FoodPlanSummary';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
+import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -340,6 +341,11 @@ const FoodTracking = () => {
             </div>
           </div>
         </div>
+
+        {/* Admin Personal Insight */}
+        {isAdmin && (
+          <AdminInsightDisplay content="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!" />
+        )}
 
         {/* Action Buttons - Three Column Layout */}
         <div className="mb-6 grid grid-cols-3 gap-4">

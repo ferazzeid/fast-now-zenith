@@ -34,6 +34,7 @@ import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 
 import { useAccess } from '@/hooks/useAccess';
+import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
 
 const Timer = () => {
   const navigate = useNavigate();
@@ -423,6 +424,11 @@ const Timer = () => {
           authorTooltipContentKey="fasting_timer_insights"
           authorTooltipContent="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!"
         />
+
+        {/* Admin Personal Insight for Fasting */}
+        {isAdmin && currentMode === 'fasting' && (
+          <AdminInsightDisplay content="Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" />
+        )}
 
         {/* Timer Display */}
         <div className="relative mb-12 mt-12">

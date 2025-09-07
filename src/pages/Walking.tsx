@@ -24,6 +24,7 @@ import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { useAccess } from '@/hooks/useAccess';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
+import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
 
 
 const Walking = () => {
@@ -230,6 +231,11 @@ const Walking = () => {
           showAuthorTooltip={isAdmin}
           authorTooltipContent="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
         />
+
+        {/* Admin Personal Insight */}
+        {isAdmin && (
+          <AdminInsightDisplay content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!" />
+        )}
         
         {/* Only show sync indicator when there's an active session */}
         {currentSession && (
