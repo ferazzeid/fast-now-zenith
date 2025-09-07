@@ -328,10 +328,10 @@ const FoodTracking = () => {
           variant: 'destructive'
         });
       } else {
-        console.log('🍽️ Successfully applied template');
-        await refreshFoodEntries();
+        console.log('🍽️ Successfully applied template with optimistic update');
         
-        // Automatically switch to Today tab to show applied foods
+        // No need to refresh since optimistic update already shows the data
+        // Just switch to Today tab to show applied foods
         setActiveTab('today');
         localStorage.setItem('food-tracking-active-tab', 'today');
         

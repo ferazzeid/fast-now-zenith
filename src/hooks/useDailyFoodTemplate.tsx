@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DailyFoodTemplate {
   id: string;
@@ -30,6 +31,7 @@ export const useDailyFoodTemplate = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { executeWithRetry } = useRetryableSupabase();
+  const queryClient = useQueryClient();
 
   const loadTemplate = useCallback(async () => {
     console.log('🍽️ loadTemplate called, user:', user?.id);
@@ -188,9 +190,11 @@ export const useDailyFoodTemplate = () => {
 
     setLoading(true);
     try {
-      // Get today's date for source tracking
+      // Get today's date for query key alignment
       const today = new Date().toISOString().split('T')[0];
+      const foodEntriesQueryKey = ['food-entries', user.id, today];
 
+      // Prepare food entries for insertion
       const foodEntries = templateFoods.map(template => ({
         name: template.name,
         calories: template.calories,
@@ -202,20 +206,71 @@ export const useDailyFoodTemplate = () => {
         source_date: today
       }));
 
-      const { error } = await supabase
+      // OPTIMISTIC UPDATE: Add template foods to cache immediately
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey);
+      
+      // Generate optimistic entries with temporary IDs
+      const optimisticEntries = templateFoods.map((template, index) => ({
+        id: `template-optimistic-${Date.now()}-${index}`,
+        user_id: user.id,
+        name: template.name,
+        calories: template.calories,
+        carbs: template.carbs,
+        serving_size: template.serving_size,
+        consumed: false,
+        image_url: template.image_url,
+        created_at: new Date().toISOString(),
+      }));
+
+      // Update cache optimistically
+      queryClient.setQueryData(
+        foodEntriesQueryKey,
+        (old: any[] = []) => [...optimisticEntries, ...old]
+      );
+
+      console.log('🍽️ Applied optimistic update for template:', optimisticEntries.length, 'items');
+
+      // Insert into database
+      const { data, error } = await supabase
         .from('food_entries')
-        .insert(foodEntries);
+        .insert(foodEntries)
+        .select();
 
       if (error) throw error;
 
+      // Replace optimistic entries with real data
+      queryClient.setQueryData(
+        foodEntriesQueryKey,
+        (old: any[] = []) => {
+          const withoutOptimistic = old.filter(entry => 
+            !optimisticEntries.some(opt => opt.id === entry.id)
+          );
+          return [...(data || []), ...withoutOptimistic];
+        }
+      );
+
+      // Invalidate daily totals to recalculate
+      queryClient.invalidateQueries({ queryKey: ['daily-totals', user.id, today] });
+
+      console.log('🍽️ Successfully applied template and updated cache with real data');
       return { error: null };
     } catch (error: any) {
       console.error('Error applying daily template:', error);
+      
+      // Rollback optimistic update on error
+      const today = new Date().toISOString().split('T')[0];
+      const foodEntriesQueryKey = ['food-entries', user.id, today];
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey);
+      
+      if (previousEntries) {
+        queryClient.setQueryData(foodEntriesQueryKey, previousEntries);
+      }
+      
       return { error };
     } finally {
       setLoading(false);
     }
-  }, [user, templateFoods]);
+  }, [user, templateFoods, queryClient]);
 
   useEffect(() => {
     loadTemplate();
