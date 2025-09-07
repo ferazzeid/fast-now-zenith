@@ -488,24 +488,12 @@ export const CircularVoiceButton = React.forwardRef<
         )}
       </Button>
       
-      {/* Status text - only show for non-sm sizes to avoid clutter */}
-      {size !== 'sm' && (
-        <span className={`text-xs text-muted-foreground transition-opacity duration-200 ${
-          isRecording || isProcessing ? 'opacity-100' : 'opacity-60'
-        }`}>
-          {getStatusText()}
-        </span>
-      )}
-      
-      {/* Processing indicator */}
-      {isProcessing && (
-        <div className="flex items-center gap-2 text-xs text-blue-600">
-          <div className="flex gap-1">
-            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-          </div>
-          <span>Converting speech...</span>
+      {/* Animated dots when processing or recording */}
+      {size !== 'sm' && (isProcessing || isRecording) && (
+        <div className="flex gap-1 mt-1">
+          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce"></div>
         </div>
       )}
     </div>

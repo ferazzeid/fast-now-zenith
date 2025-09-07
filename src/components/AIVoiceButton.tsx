@@ -29,6 +29,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isSuccess?: boolean;
 }
 
 export const AIVoiceButton = () => {
@@ -127,12 +128,13 @@ export const AIVoiceButton = () => {
     };
   }, [isOpen]);
 
-  const addBubble = (role: 'user' | 'assistant', content: string) => {
+  const addBubble = (role: 'user' | 'assistant', content: string, isSuccess?: boolean) => {
     const newBubble: Message = {
       id: Date.now().toString() + Math.random(),
       role,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isSuccess
     };
     
     setBubbles(prev => [...prev, newBubble]);
@@ -389,7 +391,7 @@ export const AIVoiceButton = () => {
       setPendingFoods([]);
       setSelectedFoodIds(new Set());
       
-      addBubble('assistant', `Added ${foodList} - ${totalCalories} calories total`);
+      addBubble('assistant', `Added ${foodList} - ${totalCalories} calories total`, true);
       
       toast({
         title: "Foods added successfully",
@@ -811,6 +813,7 @@ export const AIVoiceButton = () => {
                         content={bubble.content}
                         role={bubble.role}
                         index={index}
+                        isSuccess={bubble.isSuccess}
                       />
                     ))}
                     
