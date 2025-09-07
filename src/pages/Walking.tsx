@@ -228,15 +228,11 @@ const Walking = () => {
           subtitle="Track your walking session"
           onHistoryClick={() => navigate('/walking-history')}
           historyTitle="View walking history"
-          showAuthorTooltip={isAdmin}
+          showAuthorTooltip={true}
           authorTooltipContentKey="walking_timer_insights"
           authorTooltipContent="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
         />
 
-        {/* Admin Personal Insight */}
-        {isAdmin && (
-          <AdminInsightDisplay content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!" />
-        )}
         
         {/* Only show sync indicator when there's an active session */}
         {currentSession && (

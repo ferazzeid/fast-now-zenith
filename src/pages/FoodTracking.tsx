@@ -326,15 +326,11 @@ const FoodTracking = () => {
           subtitle="Track your food intake"
           onHistoryClick={() => navigate('/food-history')}
           historyTitle="View food history"
-          showAuthorTooltip={isAdmin}
+          showAuthorTooltip={true}
           authorTooltipContentKey="food_tracking_insights"
           authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
         />
 
-        {/* Admin Personal Insight */}
-        {isAdmin && (
-          <AdminInsightDisplay content="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!" />
-        )}
 
         {/* Action Buttons - Three Column Layout */}
         <div className="mb-6 grid grid-cols-3 gap-4">
