@@ -13,6 +13,7 @@ export interface AdminGoalIdea {
   maleImageUrl?: string;
   femaleImageUrl?: string;
   linkUrl?: string;
+  slug?: string;
 }
 
 // System motivator type (temporary until types are regenerated)
@@ -44,6 +45,7 @@ const transformToAdminGoalIdea = (systemMotivator: SystemMotivator): AdminGoalId
     maleImageUrl: systemMotivator.male_image_url || undefined,
     femaleImageUrl: systemMotivator.female_image_url || undefined,
     linkUrl: systemMotivator.link_url || undefined,
+    slug: systemMotivator.slug,
   };
 };
 

@@ -159,14 +159,14 @@ export default function MotivatorIdeas() {
                             )}
                             
                             {/* Read More Link */}
-                            {goal.linkUrl && (
+                            {goal.slug && (
                               <div className="mt-3">
                                 <Button
                                   variant="link"
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    window.open(goal.linkUrl, '_blank', 'noopener,noreferrer');
+                                    navigate(`/content/${goal.slug}`);
                                   }}
                                   className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                                 >
