@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2, Star, BookOpen } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
-import { useAuth } from '@/hooks/useAuth';
+import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MotivatorContentModal } from '@/components/MotivatorContentModal';
@@ -43,7 +43,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
-  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
   const [showContentModal, setShowContentModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{
@@ -53,40 +53,24 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     external_url?: string;
   } | null>(null);
   const { addToDefaultGoals, removeFromDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
-  const { user } = useAuth();
+  const { originalIsAdmin, isAdmin, isTestingMode } = useAccess();
   const { toast } = useToast();
   
+  // Show admin features only when actually in admin mode
+  const showAdminFeatures = originalIsAdmin && (!isTestingMode || isAdmin);
+  
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
-
-  // Check admin role
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase.rpc('is_current_user_admin');
-        
-        if (error) throw error;
-        setIsAdmin(data || false);
-      } catch (error) {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [user]);
 
   // Check if motivator is in default goals
   useEffect(() => {
     const checkDefaultGoals = async () => {
-      if (!isAdmin) return;
+      if (!showAdminFeatures) return;
       const inDefaults = await checkIfInDefaultGoals(motivator.id);
       setIsInDefaultGoals(inDefaults);
     };
 
     checkDefaultGoals();
-  }, [isAdmin, motivator.id, checkIfInDefaultGoals]);
+  }, [showAdminFeatures, motivator.id, checkIfInDefaultGoals]);
 
   // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
@@ -260,7 +244,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                 </Tooltip>
 
                 {/* Admin: Toggle Default Goals Button */}
-                {isAdmin && (
+                {showAdminFeatures && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
