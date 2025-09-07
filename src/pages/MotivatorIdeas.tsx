@@ -40,6 +40,8 @@ export default function MotivatorIdeas() {
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
+      console.log('🎯 Adding goal from Goal Ideas:', goal.title);
+      
       // Choose appropriate image based on user gender
       const userGender = profile?.sex || 'male';
       const selectedImageUrl = userGender === 'female' && goal.femaleImageUrl 
@@ -48,13 +50,16 @@ export default function MotivatorIdeas() {
         ? goal.maleImageUrl 
         : goal.imageUrl;
 
-      await createMotivator({
+      const result = await createMotivator({
         title: goal.title,
         content: goal.description || '',
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
         linkUrl: goal.linkUrl || undefined,
       });
+      
+      console.log('✅ Goal created successfully:', result);
+      
       toast({ 
         title: '✅ Added to My Goals', 
         description: 'The motivator was added successfully.' 
@@ -63,6 +68,7 @@ export default function MotivatorIdeas() {
       // Navigate back to motivators page
       navigate('/motivators');
     } catch (e) {
+      console.error('❌ Error adding goal:', e);
       toast({ title: 'Error', description: 'Failed to add motivator.', variant: 'destructive' });
     }
   };

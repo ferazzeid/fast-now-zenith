@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 
@@ -39,6 +39,13 @@ const Motivators = () => {
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
   const { isAdmin } = useAccess();
+  
+  // Add useEffect to refresh data when component mounts
+  useEffect(() => {
+    console.log('🎯 Motivators page mounted, triggering refresh');
+    refreshMotivators();
+  }, []);
+  
   const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);

@@ -59,7 +59,11 @@ export const useMotivators = () => {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('📊 RAW DATABASE RESPONSE:', {
+        timestamp: Date.now(),
+        dataLength: (data || []).length,
+        error: error ? 'present' : 'none'
+      });
       
       // Transform data to include imageUrl and linkUrl properties with proper fallback
       const transformedData = (data || []).map((item: any) => ({
@@ -68,6 +72,12 @@ export const useMotivators = () => {
         linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
         show_in_animations: item.show_in_animations ?? true // Default to true if not set
       }));
+      
+      console.log('🎯 TRANSFORMED MOTIVATORS:', transformedData.map(m => ({ 
+        id: m.id, 
+        title: m.title, 
+        category: m.category 
+      })));
       
       setMotivators(transformedData);
       // Cache the fresh data
@@ -308,13 +318,25 @@ export const useMotivators = () => {
   // Load cached motivators immediately on mount, then check for fresh data
   useEffect(() => {
     if (user) {
+      console.log('🔄 useMotivators useEffect triggered, user:', user.id);
+      console.log('📊 Current cached motivators:', cachedMotivators?.length || 0);
+      
       // First load cached data if available (instant)
-      if (cachedMotivators) {
+      if (cachedMotivators && cachedMotivators.length > 0) {
+        console.log('📦 Loading cached motivators immediately');
         setMotivators(cachedMotivators);
         setLoading(false);
+      } else {
+        console.log('📦 No cached motivators, starting fresh load');
+        setLoading(true);
       }
-      // Then check if we need fresh data (background)
-      loadMotivators();
+      
+      // Always check for fresh data (background)
+      loadMotivators(false);
+    } else {
+      console.log('❌ No user, clearing motivators');
+      setMotivators([]);
+      setLoading(false);
     }
   }, [user?.id]); // Only depend on user.id to avoid unnecessary re-runs
 
@@ -361,6 +383,9 @@ export const useMotivators = () => {
       }
       return result;
     },
-    refreshMotivators: () => loadMotivators(true) // Always force refresh when manually called
+    refreshMotivators: () => {
+      console.log('🔄 Manual refresh triggered');
+      return loadMotivators(true); // Always force refresh when manually called
+    }
   };
 };
