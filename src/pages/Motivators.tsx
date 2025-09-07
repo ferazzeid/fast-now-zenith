@@ -405,7 +405,7 @@ const Motivators = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      onClick={() => navigate('/motivator-ideas')}
+                      onClick={() => setShowMotivatorIdeasModal(true)}
                       variant="action-secondary"
                       size="action-tall"
                       className="w-full flex items-center justify-center"

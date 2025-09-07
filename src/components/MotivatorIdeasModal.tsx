@@ -101,7 +101,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
       onClose={onClose}
       title="Motivator Ideas"
       variant="standard"
-      size="md"
+      size="lg"
       showCloseButton={true}
     >
         <ErrorBoundary
