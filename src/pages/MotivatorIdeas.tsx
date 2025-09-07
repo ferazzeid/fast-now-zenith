@@ -55,7 +55,13 @@ export default function MotivatorIdeas() {
         imageUrl: selectedImageUrl || undefined,
         linkUrl: goal.linkUrl || undefined,
       });
-      toast({ title: '✅ Added to My Goals', description: 'The motivator was added successfully.' });
+      toast({ 
+        title: '✅ Added to My Goals', 
+        description: 'The motivator was added successfully.' 
+      });
+      
+      // Navigate back to motivators page
+      navigate('/motivators');
     } catch (e) {
       toast({ title: 'Error', description: 'Failed to add motivator.', variant: 'destructive' });
     }

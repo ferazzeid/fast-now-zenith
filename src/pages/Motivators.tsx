@@ -16,8 +16,8 @@ import { Quote } from '@/hooks/useQuoteSettings';
 import { ModalAiChat } from '@/components/ModalAiChat';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 
-import { MotivatorIdeasModal } from '@/components/MotivatorIdeasModal';
-import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
+
+
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -46,7 +46,7 @@ const Motivators = () => {
   const [editingMotivator, setEditingMotivator] = useState(null);
   const [editingNote, setEditingNote] = useState(null);
   
-  const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
+  
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
@@ -127,8 +127,8 @@ const Motivators = () => {
             description: "The goal idea has been updated successfully.",
           });
           
-          // Re-open the ideas modal to show updated content
-          setShowMotivatorIdeasModal(true);
+          // Navigate back to ideas page to show updated content
+          navigate('/motivator-ideas');
         }
       } else {
         // Update regular motivator
@@ -315,18 +315,6 @@ const Motivators = () => {
     }
   };
 
-  const handleEditGoalIdea = (goal: AdminGoalIdea) => {
-    // Edit the actual goal idea (admin functionality)
-    const motivatorData = {
-      id: goal.id, // Include the ID for editing
-      title: goal.title,
-      content: goal.description || '',
-      imageUrl: goal.imageUrl
-    };
-    setEditingMotivator(motivatorData);
-    setShowMotivatorIdeasModal(false);
-    // Don't set showFormModal here since we're using editingMotivator to control the modal
-  };
   
 
 
@@ -404,13 +392,13 @@ const Motivators = () => {
               <div className="col-span-1 flex flex-col items-center gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => setShowMotivatorIdeasModal(true)}
-                      variant="action-secondary"
-                      size="action-tall"
-                      className="w-full flex items-center justify-center"
-                      aria-label="Browse motivator ideas"
-                    >
+                     <Button
+                       onClick={() => navigate('/motivator-ideas')}
+                       variant="action-secondary"
+                       size="action-tall"
+                       className="w-full flex items-center justify-center"
+                       aria-label="Browse motivator ideas"
+                     >
                       <BookOpen className="w-5 h-5" />
                     </Button>
                   </TooltipTrigger>
@@ -607,24 +595,6 @@ const Motivators = () => {
           )}
 
 
-          {/* Motivator Ideas Modal */}
-          <MotivatorIdeasModal
-            isOpen={showMotivatorIdeasModal}
-            onClose={() => setShowMotivatorIdeasModal(false)}
-            onSelectGoal={async (goal: AdminGoalIdea) => {
-              try {
-                await handleCreateMotivator({
-                  title: goal.title,
-                  content: goal.description,
-                  imageUrl: goal.imageUrl || null
-                });
-                setShowMotivatorIdeasModal(false);
-              } catch (error) {
-                console.error('Error creating motivator from goal idea:', error);
-              }
-            }}
-            onEditGoal={handleEditGoalIdea}
-          />
 
            <QuoteSelectionModal
              isOpen={showQuoteSelectionModal}
