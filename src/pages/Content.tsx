@@ -135,7 +135,7 @@ const Content = () => {
     <div className="min-h-screen bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Modal-like Container */}
       <div className="max-w-2xl mx-auto pt-20 px-4 pb-40">
-        <div className="bg-background rounded-xl shadow-lg border overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="bg-background rounded-xl shadow-lg border overflow-hidden flex flex-col">
           
           {/* Header */}
           <div className="flex-shrink-0 px-6 py-4 border-b">

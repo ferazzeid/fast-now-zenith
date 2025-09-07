@@ -173,9 +173,9 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                           if (isToggling) return; // Prevent double clicks
                           
                           setIsToggling(true);
+                          const newValue = !(note.show_in_animations !== false);
+                          
                           try {
-                            const newValue = note.show_in_animations !== false ? false : true;
-                            
                             await onUpdate(note.id, { 
                               title: note.title, 
                               content: note.content,
@@ -186,12 +186,14 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                               description: `Note ${newValue ? 'will show' : 'hidden from'} in timer animations`,
                             });
                           } catch (error) {
+                            console.error('Failed to update animation setting:', error);
                             toast({
                               description: "Failed to update animation setting",
                               variant: "destructive",
                             });
                           } finally {
-                            setIsToggling(false);
+                            // Add a small delay to prevent rapid clicking
+                            setTimeout(() => setIsToggling(false), 300);
                           }
                         }}
                         disabled={isToggling}

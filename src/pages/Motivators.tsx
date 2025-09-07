@@ -441,26 +441,7 @@ const Motivators = () => {
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="goals">
-                {goalMotivators.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                        <Target className="w-8 h-8 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-warm-text mb-2">No goals yet</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Create your first goal to stay inspired during your fasting journey
-                        </p>
-                        <Button onClick={() => setShowFormModal(true)} variant="action-secondary" size="action-secondary">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Goal
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     {goalMotivators.map((motivator) => (
                       <ExpandableMotivatorCard
                         key={motivator.id}
@@ -491,7 +472,6 @@ const Motivators = () => {
                       </Card>
                     ))}
                   </div>
-                )}
               </TabsContent>
 
               <TabsContent value="quotes">
