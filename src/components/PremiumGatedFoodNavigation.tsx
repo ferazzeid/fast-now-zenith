@@ -26,7 +26,7 @@ export const PremiumGatedFoodNavigation = ({
   
   // Use test role if in testing mode, otherwise use actual access level
   const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasFoodAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasFoodAccess;
+  const effectiveHasFoodAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full' || testRole === 'free_food_only') : hasFoodAccess;
   
   // Check if user has access to food tracking
   const hasAccess = effectiveLevel === 'admin' || effectiveHasFoodAccess;

@@ -36,7 +36,7 @@ export const ProgressiveImageUpload = ({
   
   // Use test role if in testing mode, otherwise use actual access level
   const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasAIAccess;
+  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full') : hasAIAccess;
   
   // Check if user has access to AI analysis features
   const canUseAIAnalysis = effectiveLevel === 'admin' || effectiveHasAIAccess;
