@@ -68,6 +68,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
+  const [myFoodFavorites, setMyFoodFavorites] = useState<Set<string>>(new Set()); // Same pattern as defaultFoodFavorites
   const [searchTerm, setSearchTerm] = useState('');
   const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -76,8 +77,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
   const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
   
-  // Track optimistic favorite updates for immediate UI feedback
-  const [optimisticFavorites, setOptimisticFavorites] = useState<Map<string, boolean>>(new Map());
+  // Remove complex optimistic favorites - use simple state like Default tab
 
   // Prevent interactions during loading states
   const isInteractionSafe = !loading;
@@ -93,6 +93,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         await Promise.all([
           loadDefaultFoods(),
           loadDefaultFoodFavorites(),
+          loadMyFoodFavorites(), // Load my food favorites like default food favorites
           checkAdminRole()
         ]);
       } finally {
@@ -105,17 +106,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   }, [user]);
 
-  // Clear optimistic favorites with timeout-based fallback
-  useEffect(() => {
-    // Only clear if we have actual server data that conflicts with optimistic updates
-    if (!recentFoodsLoading && optimisticFavorites.size > 0) {
-      const timer = setTimeout(() => {
-        setOptimisticFavorites(new Map());
-      }, 5000); // Clear after 5 seconds as fallback
-      
-      return () => clearTimeout(timer);
-    }
-  }, [recentFoodsLoading, optimisticFavorites.size]);
+  // Remove optimistic update timeout - not needed with simple state pattern
 
   const checkAdminRole = async () => {
     if (!user) return;
@@ -134,22 +125,22 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   // Convert recent foods to UserFood format for compatibility
   const foods: UserFood[] = useMemo(() => {
     console.log('🔥 FOODS MEMO - Raw recentFoods:', recentFoods.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
-    console.log('🔥 FOODS MEMO - Current optimisticFavorites:', Array.from(optimisticFavorites.entries()));
+    console.log('🔥 FOODS MEMO - myFoodFavorites Set:', Array.from(myFoodFavorites));
     
     const result = recentFoods.map(food => ({
       id: food.id,
       name: food.name,
       calories_per_100g: food.calories_per_100g,
       carbs_per_100g: food.carbs_per_100g,
-      // Apply optimistic favorite updates if they exist, otherwise use server data
-      is_favorite: optimisticFavorites.has(food.id) ? optimisticFavorites.get(food.id)! : food.is_favorite,
+      // Use myFoodFavorites Set as source of truth (same pattern as defaultFoodFavorites)
+      is_favorite: myFoodFavorites.has(food.id),
       image_url: food.image_url,
       variations: []
     }));
     
     console.log('🔥 FOODS MEMO - Final foods for UI:', result.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
     return result;
-  }, [recentFoods, optimisticFavorites]);
+  }, [recentFoods, myFoodFavorites]); // Use myFoodFavorites instead of optimisticFavorites
 
   const loadDefaultFoods = async () => {
     try {
@@ -167,6 +158,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         description: "Failed to load suggested foods",
         variant: "destructive"
       });
+    }
+  };
+
+  const loadMyFoodFavorites = async () => {
+    if (!user) return;
+    
+    console.log('🔥 MY FOOD FAVORITES - Loading favorites from database');
+    try {
+      const { data, error } = await supabase
+        .from('user_foods')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_favorite', true);
+
+      if (error) throw error;
+      
+      const favoriteIds = new Set(data?.map(food => food.id) || []);
+      console.log('🔥 MY FOOD FAVORITES - Loaded favorite IDs:', Array.from(favoriteIds));
+      setMyFoodFavorites(favoriteIds);
+    } catch (error) {
+      console.error('🔥 MY FOOD FAVORITES - Error loading favorites:', error);
     }
   };
 
@@ -285,96 +297,37 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       return;
     }
 
-    // Optimistic update - update local state immediately
-    console.log('❤️ HEART CLICK - Before optimistic update:', { foodId, currentFavorite, optimisticFavorites: Array.from(optimisticFavorites.entries()) });
-    setOptimisticFavorites(prev => {
-      const newMap = new Map(prev);
-      newMap.set(foodId, !currentFavorite);
-      console.log('❤️ HEART CLICK - After optimistic update:', { foodId, newValue: !currentFavorite, newOptimisticFavorites: Array.from(newMap.entries()) });
-      return newMap;
-    });
+    console.log('❤️ MY FOODS FAVORITE - Toggling favorite:', { foodId, currentFavorite });
 
     try {
-      console.log('❤️ FoodLibrary - Performing database update');
-      
-      // For recent foods (from food_entries), we need to find or create the corresponding user_food
-      const foodName = foods.find(f => f.id === foodId)?.name;
-      if (!foodName) {
-        throw new Error('Food not found in recent foods');
-      }
-
-      // First, try to find existing user_food record
-      let { data: existingUserFood, error: findError } = await supabase
+      // Update database
+      const { data, error } = await supabase
         .from('user_foods')
-        .select('id, is_favorite')
+        .update({ is_favorite: !currentFavorite })
+        .eq('id', foodId)
         .eq('user_id', user.id)
-        .eq('name', foodName)
-        .maybeSingle();
+        .select('id, name, is_favorite')
+        .single();
 
-      if (findError) {
-        console.error('❤️ FoodLibrary - Error finding user food:', findError);
-      }
+      if (error) throw error;
 
-      let updatedData;
-      
-      if (existingUserFood) {
-        // Update existing user_food record
-        const { data, error } = await supabase
-          .from('user_foods')
-          .update({ is_favorite: !currentFavorite })
-          .eq('id', existingUserFood.id)
-          .select('id, name, is_favorite')
-          .single();
-
-        if (error) throw error;
-        updatedData = data;
-      } else {
-        // Create new user_food record with favorite status
-        const recentFood = recentFoods.find(f => f.id === foodId);
-        if (!recentFood) throw new Error('Recent food data not found');
-
-        const { data, error } = await supabase
-          .from('user_foods')
-          .insert({
-            user_id: user.id,
-            name: recentFood.name,
-            calories_per_100g: recentFood.calories_per_100g,
-            carbs_per_100g: recentFood.carbs_per_100g,
-            is_favorite: !currentFavorite,
-            image_url: recentFood.image_url
-          })
-          .select('id, name, is_favorite')
-          .single();
-
-        if (error) throw error;
-        updatedData = data;
-      }
-
-      console.log('❤️ FoodLibrary - Update successful:', updatedData);
-      
-      // Clear the optimistic update since server confirmed the change
-      setOptimisticFavorites(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(foodId);
-        return newMap;
+      // Update local state immediately (same pattern as toggleDefaultFoodFavorite)
+      setMyFoodFavorites(prev => {
+        const newSet = new Set(prev);
+        if (currentFavorite) {
+          newSet.delete(foodId);
+          console.log('❤️ MY FOODS FAVORITE - Removed from favorites:', foodId);
+        } else {
+          newSet.add(foodId);
+          console.log('❤️ MY FOODS FAVORITE - Added to favorites:', foodId);
+        }
+        return newSet;
       });
-      
-      // Success - show feedback
-      toast({
-        title: !currentFavorite ? "Added to Favorites" : "Removed from Favorites",
-        description: `"${updatedData.name}" ${!currentFavorite ? 'added to' : 'removed from'} your favorites`,
-      });
-      console.log('❤️ FoodLibrary - toggleFavorite completed successfully');
+
+      console.log('❤️ MY FOODS FAVORITE - Update successful:', data);
       
     } catch (error) {
-      console.error('❤️ FoodLibrary - toggleFavorite failed:', error);
-      
-      // Rollback optimistic update on error
-      setOptimisticFavorites(prev => {
-        const newMap = new Map(prev);
-        newMap.set(foodId, currentFavorite); // Restore original state
-        return newMap;
-      });
+      console.error('❤️ MY FOODS FAVORITE - Update failed:', error);
       
       toast({
         variant: "destructive",
