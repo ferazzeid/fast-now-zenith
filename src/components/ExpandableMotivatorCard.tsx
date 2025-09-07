@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MotivatorContentModal } from '@/components/MotivatorContentModal';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   } | null>(null);
   const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { user } = useAuth();
+  const { toast } = useToast();
   
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
 
@@ -95,6 +97,73 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     const success = await addToDefaultGoals(motivator);
     if (success) {
       setIsInDefaultGoals(true);
+    }
+  };
+
+  const handleReadMore = async () => {
+    try {
+      // First try to find the full content by slug in system_motivators
+      if (motivator.slug) {
+        const { data: systemData, error } = await supabase
+          .from('system_motivators')
+          .select('*')
+          .eq('slug', motivator.slug)
+          .single();
+
+        if (systemData && !error) {
+          setSelectedContent({
+            id: systemData.id,
+            title: systemData.title,
+            content: systemData.content,
+            external_url: systemData.link_url
+          });
+          setShowContentModal(true);
+          return;
+        }
+      }
+
+      // If no slug or not found in system_motivators, try to extract slug from linkUrl
+      if (motivator.linkUrl) {
+        // Extract slug from URL like "/content/autophagy-clean-up"
+        const urlParts = motivator.linkUrl.split('/');
+        const slug = urlParts[urlParts.length - 1];
+
+        if (slug) {
+          const { data: systemData, error } = await supabase
+            .from('system_motivators')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+
+          if (systemData && !error) {
+            setSelectedContent({
+              id: systemData.id,
+              title: systemData.title,
+              content: systemData.content,
+              external_url: systemData.link_url
+            });
+            setShowContentModal(true);
+            return;
+          }
+        }
+      }
+
+      // Fallback: use the motivator's own content (which might be an excerpt)
+      setSelectedContent({
+        id: motivator.id,
+        title: motivator.title,
+        content: motivator.content || '',
+        external_url: motivator.linkUrl
+      });
+      setShowContentModal(true);
+
+    } catch (error) {
+      console.error('Error fetching full content:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load full content. Please try again."
+      });
     }
   };
 
@@ -152,13 +221,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedContent({
-                          id: motivator.id,
-                          title: motivator.title,
-                          content: motivator.content || '',
-                          external_url: motivator.linkUrl
-                        });
-                        setShowContentModal(true);
+                        handleReadMore();
                       }}
                       className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
                     >
