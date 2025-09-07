@@ -129,18 +129,18 @@ export const useColorTheme = (shouldLoad: boolean = true) => {
     }
   };
 
-  // Apply neutral default colors while loading database colors
+  // Apply brand default colors while loading database colors
   const applyNeutralDefaults = () => {
     const root = document.documentElement;
     
-    // Use neutral colors as emergency fallbacks only
-    root.style.setProperty('--primary', '220 13% 45%');
-    root.style.setProperty('--ring', '220 13% 45%');
-    root.style.setProperty('--primary-glow', '220 13% 55%');
-    root.style.setProperty('--primary-hover', '220 13% 40%');
+    // Use same brand colors as CSS defaults
+    root.style.setProperty('--primary', '220 85% 50%');
+    root.style.setProperty('--ring', '220 85% 50%');
+    root.style.setProperty('--primary-glow', '220 85% 60%');
+    root.style.setProperty('--primary-hover', '220 85% 40%');
     root.style.setProperty('--secondary', '220 13% 40%');
     root.style.setProperty('--accent', '220 13% 50%');
-    root.style.setProperty('--ai', '220 13% 50%');
+    root.style.setProperty('--ai', '48 96% 53%');
     root.style.setProperty('--chat-ai', '262 83% 58%');
     root.style.setProperty('--chat-user', '188 94% 43%');
   };

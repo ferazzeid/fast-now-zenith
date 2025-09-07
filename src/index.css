@@ -103,10 +103,10 @@ All colors MUST be HSL.
     --popover: 0 0% 98%;
     --popover-foreground: 0 0% 15%;
 
-    --primary: 0 0% 50%;
+    --primary: 220 85% 50%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 0 0% 60%;
-    --primary-hover: 0 0% 40%;
+    --primary-glow: 220 85% 60%;
+    --primary-hover: 220 85% 40%;
 
     --secondary: 0 0% 90%;
     --secondary-foreground: 0 0% 15%;
@@ -134,7 +134,7 @@ All colors MUST be HSL.
 
     --border: 0 0% 85%;
     --input: 0 0% 92%;
-    --ring: 0 0% 50%;
+    --ring: 220 85% 50%;
 
     /* Ceramic plate colors - Light Mode (neutral with subtle warmth) */
     --ceramic-light: 220 15% 95%;
@@ -182,10 +182,10 @@ All colors MUST be HSL.
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 88%;
 
-    --primary: 0 0% 50%;
+    --primary: 220 85% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 0 0% 60%;
-    --primary-hover: 0 0% 40%;
+    --primary-glow: 220 85% 60%;
+    --primary-hover: 220 85% 40%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 88%;
@@ -207,7 +207,7 @@ All colors MUST be HSL.
 
     --border: 0 0% 20%;
     --input: 0 0% 15%;
-    --ring: 0 0% 50%;
+    --ring: 220 85% 50%;
 
     /* Dark ceramic colors (brightened for visibility) */
     --ceramic-light: 220 8% 30%;
