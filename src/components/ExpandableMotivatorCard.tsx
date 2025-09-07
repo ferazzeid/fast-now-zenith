@@ -138,23 +138,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   </div>
                 )}
                 
-                {/* Read More Link */}
-                {motivator.linkUrl && (
-                  <div className="mt-3">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Navigate to content page using React Router
-                        navigate(`/content/${motivator.slug || motivator.id}`);
-                      }}
-                      className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
-                    >
-                      Read More <BookOpen className="w-3 h-3 ml-1" />
-                    </Button>
-                  </div>
-                )}
+                {/* Read More link removed - content displayed in-place via expand/collapse */}
               </div>
               
               {/* Actions */}

@@ -60,7 +60,6 @@ export default function MotivatorIdeas() {
         content: excerpt,
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
-        linkUrl: goal.linkUrl || undefined,
       });
       
       console.log('✅ Goal created successfully:', result);
@@ -178,22 +177,7 @@ export default function MotivatorIdeas() {
                               </div>
                             )}
                             
-                            {/* Read More Link */}
-                            {goal.slug && (
-                              <div className="mt-3">
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/content/${goal.slug}`);
-                                  }}
-                                  className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
-                                >
-                                  Read More <ExternalLink className="w-3 h-3 ml-1" />
-                                </Button>
-                              </div>
-                            )}
+                            {/* Read More link removed - content displayed in-place via expand/collapse */}
                           </div>
                            <div className="flex flex-col gap-2 ml-2">
                              <Tooltip>
