@@ -28,6 +28,7 @@ import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { useAccess } from '@/hooks/useAccess';
+import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 
 
 const Motivators = () => {
@@ -36,6 +37,7 @@ const Motivators = () => {
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
   const { isAdmin } = useAccess();
+  const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
   
   // Add useEffect to refresh data when component mounts
   useEffect(() => {
@@ -330,13 +332,15 @@ const Motivators = () => {
           {/* Header */}
           <div className="mb-4 mt-4 relative">
             {/* Admin Insights positioned between title and left area */}
-            <div className="absolute right-0 top-0">
-              <AuthorTooltip 
-                contentKey="motivators_insights"
-                content="Setting clear, meaningful goals increases your success rate by 42%. Write specific, measurable goals and visualize achieving them daily. Your mindset shapes your reality!" 
-              />
-            </div>
-            <div className="pl-0 pr-12">
+            {isAuthorTooltipEnabled && (
+              <div className="absolute right-0 top-0">
+                <AuthorTooltip 
+                  contentKey="motivators_insights"
+                  content="Setting clear, meaningful goals increases your success rate by 42%. Write specific, measurable goals and visualize achieving them daily. Your mindset shapes your reality!" 
+                />
+              </div>
+            )}
+            <div className={`pl-0 ${isAuthorTooltipEnabled ? 'pr-12' : 'pr-0'}`}>
               <h1 className="text-2xl font-bold text-foreground mb-1">
                 {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
               </h1>

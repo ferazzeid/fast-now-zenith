@@ -1,5 +1,6 @@
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { HistoryButton } from '@/components/HistoryButton';
+import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 import { ReactNode } from 'react';
 
 interface ResponsivePageHeaderProps {
@@ -25,6 +26,7 @@ export const ResponsivePageHeader = ({
   authorTooltipContentKey,
   className = ""
 }: ResponsivePageHeaderProps) => {
+  const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
   return (
     <div className={`mb-4 mt-4 relative ${className}`}>
       {/* Left button (AIVoiceButton) */}
@@ -35,7 +37,7 @@ export const ResponsivePageHeader = ({
       )}
       
       {/* Speech bubble always on far right */}
-      {showAuthorTooltip && (
+      {showAuthorTooltip && isAuthorTooltipEnabled && (
         <div className="absolute right-0 top-0">
           <AuthorTooltip 
             contentKey={authorTooltipContentKey}
