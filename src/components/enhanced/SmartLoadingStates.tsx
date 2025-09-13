@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppLogo } from '@/hooks/useAppLogo';
+import { stuckLoadingDetector } from '@/utils/stuckLoadingDetector';
 
 // Enhanced loading screen with timeout and mobile optimization
 export const EnhancedLoadingScreen = ({ 
@@ -18,13 +19,19 @@ export const EnhancedLoadingScreen = ({
   const { appLogo } = useAppLogo();
   
   React.useEffect(() => {
+    // Start the stuck loading detector
+    stuckLoadingDetector.startLoadingTimer(message);
+    
     // Set timeout for mobile loading issues
     const timer = setTimeout(() => {
       setTimeoutReached(true);
     }, 8000); // 8 seconds timeout
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => {
+      clearTimeout(timer);
+      stuckLoadingDetector.stopLoadingTimer();
+    };
+  }, [message]);
 
   if (timeoutReached) {
     return (

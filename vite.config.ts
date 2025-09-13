@@ -2,12 +2,13 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import type { PluginOption } from "vite";
+import { swVersionPlugin } from "./scripts/sw-version-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const isProduction = mode === 'production' || process.env.NODE_ENV === 'production';
   
-  const plugins: PluginOption[] = [react()];
+  const plugins: PluginOption[] = [react(), swVersionPlugin()];
   
   if (mode === 'development') {
     try {
