@@ -50,6 +50,12 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Starting auth initialization');
         set({ initialized: true, loading: true });
         
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          authLogger.warn('Auth initialization timeout - forcing loading: false');
+          set({ loading: false, session: null, user: null });
+        }, 10000); // 10 second timeout
+        
         try {
           // Set up auth state listener first
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -76,11 +82,15 @@ export const useAuthStore = create<AuthState>()(
                 user: session?.user ?? null,
                 loading: false,
               });
+              clearTimeout(timeoutId); // Clear timeout on success
             }
           );
 
-          // Get current session
-          const { data: { session }, error } = await supabase.auth.getSession();
+          // Get current session with timeout protection
+          const sessionPromise = supabase.auth.getSession();
+          const { data: { session }, error } = await sessionPromise;
+          
+          clearTimeout(timeoutId); // Clear timeout on completion
           
           if (error) {
             authLogger.error('Error getting session:', error);
@@ -105,6 +115,7 @@ export const useAuthStore = create<AuthState>()(
           authLogger.info('Auth initialization complete', { hasSession: !!session });
           
         } catch (error) {
+          clearTimeout(timeoutId); // Clear timeout on error
           authLogger.error('Auth initialization failed:', error);
           // Always ensure loading is set to false even on error
           set({ loading: false, session: null, user: null });

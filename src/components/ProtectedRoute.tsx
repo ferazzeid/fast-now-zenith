@@ -13,6 +13,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [showRecovery, setShowRecovery] = useState(false);
 
   useEffect(() => {
     // Simple redirect logic - if not loading and no user, redirect to auth
@@ -20,6 +21,31 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       navigate('/auth', { replace: true });
     }
   }, [user, loading, navigate]);
+
+  // Add emergency timeout for stuck loading states
+  useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        console.warn('ProtectedRoute: Loading timeout reached, showing recovery');
+        setShowRecovery(true);
+      }, 15000); // 15 second emergency timeout
+      
+      return () => clearTimeout(timeout);
+    } else {
+      setShowRecovery(false);
+    }
+  }, [loading]);
+
+  // Show recovery screen if loading is stuck
+  if (showRecovery && loading) {
+    return (
+      <LoadingRecovery 
+        onRetry={() => window.location.reload()}
+        message="Authentication is taking longer than expected"
+        showError={true}
+      />
+    );
+  }
 
   // Show loading while authenticating
   if (loading) {

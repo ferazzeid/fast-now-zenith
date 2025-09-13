@@ -275,18 +275,9 @@ export const ProgressiveImageUpload = ({
           disabled={isProcessing}
           className="w-full h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
         >
-          {currentState === 'idle' ? (
-            <>
-              <Camera className="w-8 h-8" />
-              <span className="text-sm font-medium">Use Camera</span>
-            </>
-          ) : (
-            <>
-              {icon}
-              <span className="text-sm font-medium">{text}</span>
-              {subtext && <span className="text-xs text-muted-foreground">{subtext}</span>}
-            </>
-          )}
+          {icon}
+          <span className="text-sm font-medium">{text}</span>
+          {subtext && <span className="text-xs text-muted-foreground">{subtext}</span>}
         </Button>
       ) : (
         /* Desktop: Single upload button with better spacing */
