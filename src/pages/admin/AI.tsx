@@ -189,7 +189,7 @@ export default function AdminAI() {
           <OpenAIApiStats />
         </section>
 
-        <section aria-label="AI prompt management">
+        <section aria-label="AI prompt management" className="pb-24">
           <PromptManagement />
         </section>
 
