@@ -19,11 +19,11 @@ Create a `.env` file in the project root based on `.env.example`:
 cp .env.example .env
 ```
 
-Set the following variables:
+Set the following variables (used by the Supabase client in `src/integrations/supabase/client.ts`):
 
-- `VITE_SUPABASE_PROJECT_ID` – Supabase project identifier
-- `VITE_SUPABASE_PUBLISHABLE_KEY` – Supabase public API key
 - `VITE_SUPABASE_URL` – Supabase instance URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY` – Supabase public API key
+- `VITE_SUPABASE_PROJECT_ID` – Supabase project identifier
 
 ## Building the Android AAB
 
