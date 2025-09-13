@@ -15,17 +15,7 @@ export const LoadingSpinner = ({
   showLogo?: boolean;
 }) => {
   const { appLogo } = useAppLogo();
-  const [dots, setDots] = useState('');
   const [showTimeout, setShowTimeout] = useState(false);
-
-  // Animate the dots
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '' : prev + '.');
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Show timeout after 15 seconds
   useEffect(() => {
@@ -43,18 +33,25 @@ export const LoadingSpinner = ({
   };
 
   const content = (
-    <div className="space-y-4 text-center">
-      {showLogo && appLogo && (
-        <img 
-          src={appLogo} 
-          alt="App Logo" 
-          className="w-12 h-12 object-contain rounded-lg mx-auto"
-        />
-      )}
-      
-      {showLogo && !appLogo && (
-        <div className="w-12 h-12 bg-primary/10 rounded-lg mx-auto flex items-center justify-center">
-          <span className="text-primary font-bold text-xl">F</span>
+    <div className="space-y-6 text-center">
+      {showLogo && (
+        <div className="flex justify-center">
+          {appLogo ? (
+            <img 
+              src={appLogo} 
+              alt="App Logo" 
+              className="w-16 h-16 object-contain rounded-lg"
+              onError={() => {
+                // Hide broken images gracefully
+                const target = event?.target as HTMLImageElement;
+                if (target) target.style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+              <span className="text-primary font-bold text-2xl">F</span>
+            </div>
+          )}
         </div>
       )}
       
@@ -62,20 +59,20 @@ export const LoadingSpinner = ({
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
       
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">
-          {text}{dots}
+      <div className="space-y-2">
+        <p className="text-lg font-medium text-foreground">
+          {text}
         </p>
         {subText && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {subText}
           </p>
         )}
       </div>
 
       {showTimeout && (
-        <div className="space-y-3 pt-4 border-t">
-          <p className="text-xs text-muted-foreground">
+        <div className="space-y-3 pt-6 border-t border-border">
+          <p className="text-sm text-muted-foreground">
             Taking longer than expected?
           </p>
           <Button 
@@ -85,7 +82,7 @@ export const LoadingSpinner = ({
             className="gap-2"
           >
             <RefreshCw className="w-4 h-4" />
-            Retry
+            Retry Connection
           </Button>
         </div>
       )}
