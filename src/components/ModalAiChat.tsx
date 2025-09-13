@@ -22,6 +22,7 @@ import { useLocalStorageChat } from '@/hooks/useLocalStorageChat';
 import { conversationMemory } from '@/utils/conversationMemory';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 import { ChatSaveStatus } from '@/components/ChatSaveStatus';
+import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -108,6 +109,7 @@ export const ModalAiChat = ({
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const [inlineMotivatorEditData, setInlineMotivatorEditData] = useState<{[key: number]: any}>({});
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
+  const [showFoodSelectionModal, setShowFoodSelectionModal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
@@ -763,7 +765,9 @@ ${args.content}`,
       
       toast({
         title: "Foods added successfully",
-        description: `Added ${selectedFoods.length} foods to your ${destination}`,
+        description: selectedFoods.map(food => 
+          `✓ ${food.name} (${food.serving_size}g, ${food.calories} cal)`
+        ).join('\n'),
         className: "bg-card border border-border text-foreground",
       });
       
@@ -1774,171 +1778,25 @@ ${args.content}`,
         )}
 
         {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
-          <div className="space-y-2">
-            {/* Total summary - compact single line */}
-            <Card ref={calorieSummaryRef} className="p-3 bg-muted/50">
-              <div className="text-sm font-medium">
-                Selected: {Array.from(selectedFoodIds).reduce((sum: number, index) => {
-                  const food = lastFoodSuggestion.foods[index];
-                  return sum + (food?.calories || 0);
-                }, 0)} calories, {Math.round(Array.from(selectedFoodIds).reduce((sum: number, index) => {
-                  const food = lastFoodSuggestion.foods[index];
-                  return sum + (food?.carbs || 0);
-                }, 0))}g carbs
-                {lastFoodSuggestion.added && (
-                  <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
+          <div className="flex justify-start">
+            <Card className="max-w-[85%] p-3 bg-muted">
+              <div className="text-sm">
+                🍽️ I found {lastFoodSuggestion.foods.length} food item{lastFoodSuggestion.foods.length !== 1 ? 's' : ''} for you
+                {lastFoodSuggestion.added ? (
+                  <span className="block text-green-600 text-xs mt-2">✅ Added to your log</span>
+                ) : (
+                  <div className="mt-3">
+                    <Button
+                      size="sm"
+                      onClick={() => setShowFoodSelectionModal(true)}
+                      className="w-full"
+                    >
+                      Review Foods
+                    </Button>
+                  </div>
                 )}
               </div>
             </Card>
-            
-            {lastFoodSuggestion.foods.map((food: any, index: number) => (
-              <Card key={index} className="p-3 bg-background border">
-                {editingFoodIndex === index ? (
-                  // Inline editing mode
-                  <div className="space-y-2">
-                    <Input
-                      value={inlineEditData[index]?.name || ''}
-                      onChange={(e) => setInlineEditData(prev => ({
-                        ...prev,
-                        [index]: { ...prev[index], name: e.target.value }
-                      }))}
-                      placeholder="Food name"
-                      className="h-8 text-sm"
-                    />
-                    <div className="grid grid-cols-3 gap-1">
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Weight (g)</div>
-                        <Input
-                          type="number"
-                          value={inlineEditData[index]?.portion || ''}
-                          onChange={(e) => setInlineEditData(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], portion: e.target.value }
-                          }))}
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Calories</div>
-                        <Input
-                          type="number"
-                          value={inlineEditData[index]?.calories || ''}
-                          onChange={(e) => setInlineEditData(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], calories: e.target.value }
-                          }))}
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Carbs (g)</div>
-                        <Input
-                          type="number"
-                          value={inlineEditData[index]?.carbs || ''}
-                          onChange={(e) => setInlineEditData(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], carbs: e.target.value }
-                          }))}
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        onClick={() => handleSaveInlineEdit(index)}
-                        className="h-8 px-3 text-sm flex-1"
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCancelInlineEdit(index)}
-                        className="h-8 px-3 text-sm flex-1"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  // Display mode
-                  <div className="flex items-center gap-2">
-                    {!lastFoodSuggestion.added && (
-                      <Checkbox
-                        checked={selectedFoodIds.has(index)}
-                        onCheckedChange={(checked) => {
-                          const newSelected = new Set(selectedFoodIds);
-                          if (checked) {
-                            newSelected.add(index);
-                          } else {
-                            newSelected.delete(index);
-                          }
-                          setSelectedFoodIds(newSelected);
-                        }}
-                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{food.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {food.serving_size}g • {food.calories} cal • {Math.round(food.carbs)}g carbs
-                      </div>
-                    </div>
-                    {!lastFoodSuggestion.added && (
-                      <div className="flex gap-1 shrink-0">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => handleInlineEdit(index)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => handleRemoveFood(index)}
-                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-            ))}
-            
-            {/* Sticky action bar with divider */}
-            {!lastFoodSuggestion.added && (
-              <div className="sticky bottom-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-t pt-3 pb-2 px-1 mt-3">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs text-muted-foreground">Add to</span>
-                  <div className="flex gap-1">
-                    {(['today','template','library'] as const).map(dest => (
-                      <Button
-                        key={dest}
-                        size="sm"
-                        variant={ (lastFoodSuggestion.destination || 'today') === dest ? 'default' : 'outline' }
-                        className="h-7 px-2 text-xs"
-                        onClick={() => setLastFoodSuggestion((prev:any) => ({...prev, destination: dest}))}
-                      >
-                        {dest.charAt(0).toUpperCase() + dest.slice(1)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={handleAddAllFoods}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  disabled={isProcessing || selectedFoodIds.size === 0}
-                >
-                  {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''}`}
-                </Button>
-              </div>
-            )}
           </div>
         )}
         
@@ -1978,6 +1836,34 @@ ${args.content}`,
           </div>
         </div>
       )}
+      
+      {/* Food Selection Modal */}
+      <FoodSelectionModal
+        isOpen={showFoodSelectionModal}
+        onClose={() => setShowFoodSelectionModal(false)}
+        foodSuggestion={lastFoodSuggestion}
+        selectedFoodIds={selectedFoodIds}
+        onSelectionChange={setSelectedFoodIds}
+        onFoodUpdate={(index, updates) => {
+          if (lastFoodSuggestion?.foods) {
+            const updatedFoods = [...lastFoodSuggestion.foods];
+            updatedFoods[index] = { ...updatedFoods[index], ...updates };
+            setLastFoodSuggestion(prev => ({
+              ...prev,
+              foods: updatedFoods
+            }));
+          }
+        }}
+        onFoodRemove={handleRemoveFood}
+        onDestinationChange={(destination) => {
+          setLastFoodSuggestion((prev: any) => ({...prev, destination}));
+        }}
+        onAddFoods={async () => {
+          await handleAddAllFoods();
+          setShowFoodSelectionModal(false);
+        }}
+        isProcessing={isProcessing}
+      />
     </UniversalModal>
   );
 };
