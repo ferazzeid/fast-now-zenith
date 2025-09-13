@@ -11,6 +11,20 @@ Fast Now is a comprehensive nutrition and meal tracking application that helps y
 - **Progress Insights**: Track your nutritional goals and progress over time
 - **Cross-Platform**: Available on web, iOS, and Android
 
+## Environment Variables
+
+Create a `.env` file in the project root based on `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Set the following variables:
+
+- `VITE_SUPABASE_PROJECT_ID` – Supabase project identifier
+- `VITE_SUPABASE_PUBLISHABLE_KEY` – Supabase public API key
+- `VITE_SUPABASE_URL` – Supabase instance URL
+
 ## Building the Android AAB
 
 To build the Android App Bundle (AAB) from a fresh git clone:

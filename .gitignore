@@ -33,3 +33,6 @@ android.keystore
 app/build/
 build/
 .gradle/
+
+# Environment variables
+.env
