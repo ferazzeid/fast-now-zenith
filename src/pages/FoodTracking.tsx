@@ -24,7 +24,7 @@ import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent } from '@/utils/analytics';
-import { FoodPlanSummary } from '@/components/FoodPlanSummary';
+import { CompactFoodSummary } from '@/components/CompactFoodSummary';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 
 const FoodTracking = () => {
@@ -218,18 +218,16 @@ const FoodTracking = () => {
           </div>
         </div>
 
-        {/* Daily Summary */}
-        <div className="mb-6">
-          <ComponentErrorBoundary>
-            <FoodPlanSummary 
-              entries={todayEntries}
-            />
-          </ComponentErrorBoundary>
-        </div>
-
-        {/* Today Section Header */}
+        {/* Today Section Header with Inline Summary */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Today</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">Today</h2>
+            {todayEntries.length > 0 && (
+              <ComponentErrorBoundary>
+                <CompactFoodSummary entries={todayEntries} />
+              </ComponentErrorBoundary>
+            )}
+          </div>
           {todayEntries.length > 0 && (
             <Button
               variant="ghost"
