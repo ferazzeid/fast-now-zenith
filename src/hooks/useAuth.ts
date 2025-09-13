@@ -164,11 +164,8 @@ export const useAuth = () => {
 
   const signOut = async () => {
     const operation = async () => {
-      // Clear all caches before signing out
-      clearAllAuthCaches();
-      
       const result = await authState.signOut();
-      
+
       if (result?.error) {
         toast({
           title: "Sign Out Failed",
@@ -176,6 +173,8 @@ export const useAuth = () => {
           variant: "destructive",
         });
       } else {
+        // Clear all caches only after a successful sign out
+        clearAllAuthCaches();
         toast({
           title: "Signed Out",
           description: "You have been successfully signed out.",
