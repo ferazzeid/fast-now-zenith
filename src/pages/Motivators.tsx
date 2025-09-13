@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Plus, Sparkles, Target, Mic, BookOpen, FileText } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
+import { useSystemMotivators } from '@/hooks/useSystemMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
 import { Quote } from '@/hooks/useQuoteSettings';
@@ -36,6 +37,7 @@ const Motivators = () => {
   const { toast } = useToast();
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
+  const { systemMotivators, loading: systemLoading } = useSystemMotivators();
   const { isAdmin } = useAccess();
   const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
   
@@ -56,8 +58,25 @@ const Motivators = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
+  // Transform system motivators to match user motivator format
+  const transformedSystemMotivators = systemMotivators.map(sm => ({
+    id: sm.id,
+    user_id: '', // System motivators don't have user_id
+    title: sm.title,
+    content: sm.content,
+    category: sm.category || 'system',
+    is_active: sm.is_active,
+    created_at: sm.created_at,
+    updated_at: sm.updated_at,
+    imageUrl: sm.male_image_url || sm.female_image_url, // Use available image
+    linkUrl: `/content/${sm.slug}`, // Create proper link URL for system motivators
+    slug: sm.slug,
+    _isSystemMotivator: true // Flag to identify system motivators
+  }));
+
   // Filter motivators based on active tab
-  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
+  const userGoalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
+  const goalMotivators = [...transformedSystemMotivators, ...userGoalMotivators]; // Combine system and user motivators
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
   const personalNotes = motivators.filter(m => m.category === 'personal_note');
 
@@ -433,7 +452,7 @@ const Motivators = () => {
 
 
           {/* Content based on active tab */}
-          {loading ? (
+          {(loading || systemLoading) ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <MotivatorSkeleton key={i} />
@@ -444,12 +463,12 @@ const Motivators = () => {
               <TabsContent value="goals">
                 <div className="space-y-4">
                     {goalMotivators.map((motivator) => (
-                      <ExpandableMotivatorCard
-                        key={motivator.id}
-                        motivator={motivator}
-                        onEdit={() => handleEditMotivator(motivator)}
-                        onDelete={() => handleDeleteMotivator(motivator.id)}
-                      />
+                  <ExpandableMotivatorCard
+                    key={motivator.id}
+                    motivator={motivator}
+                    onEdit={() => handleEditMotivator(motivator)}
+                    onDelete={() => (motivator as any)._isSystemMotivator ? () => {} : () => handleDeleteMotivator(motivator.id)}
+                  />
                     ))}
                     
                     {/* Placeholder cards to encourage creating up to 3 goals */}

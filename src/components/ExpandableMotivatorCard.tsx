@@ -31,6 +31,7 @@ interface ExpandableMotivatorCardProps {
     category?: string;
     linkUrl?: string;
     slug?: string;
+    _isSystemMotivator?: boolean;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -160,6 +161,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 
   // Special styling for saved quotes
   const isSavedQuote = motivator.category === 'saved_quote';
+  const isSystemMotivator = motivator._isSystemMotivator;
   
   return (
     <Card className={`overflow-hidden relative ${isSavedQuote ? 'bg-gray-900 border-gray-700' : ''}`}>
@@ -224,27 +226,29 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               
               {/* Actions */}
               <div className="flex flex-col gap-1 ml-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                     <Button
-                       size="sm"
-                       variant="ghost"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         onEdit();
-                       }}
-                       className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
-                     >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit this motivator</p>
-                  </TooltipContent>
-                </Tooltip>
+                {!isSystemMotivator && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                       <Button
+                         size="sm"
+                         variant="ghost"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           onEdit();
+                         }}
+                         className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
+                       >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit this motivator</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 {/* Admin: Toggle Default Goals Button */}
-                {showAdminFeatures && (
+                {!isSystemMotivator && showAdminFeatures && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -274,41 +278,43 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   </Tooltip>
                 )}
                 
-                <AlertDialog>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </AlertDialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={onDelete}>
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {!isSystemMotivator && (
+                  <AlertDialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete this motivator</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={onDelete}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
             </div>
           </div>
