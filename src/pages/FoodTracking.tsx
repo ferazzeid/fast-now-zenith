@@ -222,11 +222,9 @@ const FoodTracking = () => {
         <div className="bg-muted p-3 rounded-md mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {todayEntries.length > 0 && (
-                <ComponentErrorBoundary>
-                  <CompactFoodSummary entries={todayEntries} />
-                </ComponentErrorBoundary>
-              )}
+              <ComponentErrorBoundary>
+                <CompactFoodSummary entries={todayEntries} />
+              </ComponentErrorBoundary>
             </div>
             {todayEntries.length > 0 && (
               <Button
