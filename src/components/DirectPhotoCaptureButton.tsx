@@ -124,11 +124,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
           setCaptureState('analyzing');
-          
-          toast({
-            title: "Analyzing nutrition...",
-            description: "Detecting food and nutritional content",
-          });
 
           try {
             const { data, error } = await supabase.functions.invoke('analyze-food-image', {
@@ -266,7 +261,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       toast({
         title: "✓ Food Added",
         description: `${selectedFoods.length} food${selectedFoods.length > 1 ? 's' : ''} added to your log`,
-        className: "bg-green-600 text-white border-0",
       });
     }
   };

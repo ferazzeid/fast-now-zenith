@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Switch } from '@/components/ui/switch';
+import React from 'react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -17,22 +16,6 @@ interface CompactFoodSummaryProps {
 
 export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries }) => {
   const { profile } = useProfile();
-  const [showCarbs, setShowCarbs] = useState(false);
-
-  // Load preference from localStorage
-  useEffect(() => {
-    const savedPreference = localStorage.getItem('compact-food-summary-mode');
-    if (savedPreference === 'carbs') {
-      setShowCarbs(true);
-    }
-  }, []);
-
-  // Save preference to localStorage
-  const toggleView = () => {
-    const newShowCarbs = !showCarbs;
-    setShowCarbs(newShowCarbs);
-    localStorage.setItem('compact-food-summary-mode', newShowCarbs ? 'carbs' : 'calories');
-  };
 
   // Calculate totals
   const totalCalories = entries.reduce((sum, entry) => sum + entry.calories, 0);
@@ -50,68 +33,38 @@ export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries 
     return 'text-foreground';
   };
 
-  if (showCarbs) {
-    return (
-      <div className="flex items-center gap-3 text-sm">
-        <ClickableTooltip content="Carbs planned for today">
-          <span className={`text-muted-foreground/80 ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
-            {Math.round(totalCarbs)}g
-          </span>
-        </ClickableTooltip>
-        <span className="text-muted-foreground/60">|</span>
-        <ClickableTooltip content="Carbs eaten so far">
-          <span className={`font-medium ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
-            {Math.round(consumedCarbs)}g
-          </span>
-        </ClickableTooltip>
-        <span className="text-muted-foreground/60">|</span>
-        <ClickableTooltip content="Daily carb goal">
-          <span className="text-muted-foreground/70">
-            {Math.round(dailyCarbGoal)}g
-          </span>
-        </ClickableTooltip>
-        
-        <div className="flex items-center gap-2 ml-3">
-          <span className="text-xs text-muted-foreground">Carbs</span>
-          <Switch
-            checked={!showCarbs}
-            onCheckedChange={(checked) => toggleView()}
-            aria-label="Switch between calories and carbs view"
-          />
-          <span className="text-xs text-muted-foreground">Calories</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <ClickableTooltip content="Calories planned for today">
-        <span className={`text-muted-foreground/80 ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
-          {Math.round(totalCalories)}
-        </span>
-      </ClickableTooltip>
-      <span className="text-muted-foreground/60">|</span>
-      <ClickableTooltip content="Calories eaten so far">
-        <span className={`font-medium ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
-          {Math.round(consumedCalories)}
-        </span>
-      </ClickableTooltip>
-      <span className="text-muted-foreground/60">|</span>
-      <ClickableTooltip content="Daily calorie goal">
-        <span className="text-muted-foreground/70">
-          {Math.round(dailyCalorieGoal)}
-        </span>
-      </ClickableTooltip>
-      
-      <div className="flex items-center gap-2 ml-3">
-        <span className="text-xs text-muted-foreground">Carbs</span>
-        <Switch
-          checked={!showCarbs}
-          onCheckedChange={(checked) => toggleView()}
-          aria-label="Switch between calories and carbs view"
-        />
-        <span className="text-xs text-muted-foreground">Calories</span>
+    <div className="flex items-center gap-4 text-sm">
+      {/* Calories Section */}
+      <div className="flex items-center gap-2">
+        <ClickableTooltip content={`Calories planned: ${Math.round(totalCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
+          <span className={`text-muted-foreground/80 ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
+            {Math.round(totalCalories)}
+          </span>
+        </ClickableTooltip>
+        <span className="text-muted-foreground/60">|</span>
+        <ClickableTooltip content={`Calories eaten: ${Math.round(consumedCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
+          <span className={`font-medium ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
+            {Math.round(consumedCalories)}
+          </span>
+        </ClickableTooltip>
+        <span className="text-xs text-muted-foreground">cal</span>
+      </div>
+
+      {/* Carbs Section */}
+      <div className="flex items-center gap-2">
+        <ClickableTooltip content={`Carbs planned: ${Math.round(totalCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
+          <span className={`text-muted-foreground/80 ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
+            {Math.round(totalCarbs)}
+          </span>
+        </ClickableTooltip>
+        <span className="text-muted-foreground/60">|</span>
+        <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
+          <span className={`font-medium ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
+            {Math.round(consumedCarbs)}
+          </span>
+        </ClickableTooltip>
+        <span className="text-xs text-muted-foreground">carbs</span>
       </div>
     </div>
   );
