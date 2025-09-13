@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Zap, Clock, Shield, Users, Sparkles } from 'lucide-react';
+import { Settings, Zap, Clock, Shield, Sparkles } from 'lucide-react';
 
 interface AppModeOption {
   value: string;
@@ -22,13 +22,6 @@ const appModeOptions: AppModeOption[] = [
     description: '7-day trial, then free (limited) or $9/month premium',
     icon: <Clock className="w-4 h-4" />,
     features: ['7-day free trial', 'Premium subscription required', 'Limited free tier']
-  },
-  {
-    value: 'coupon_premium',
-    label: 'Coupon-Based Premium',
-    description: 'Free app with coupon codes for premium access',
-    icon: <Users className="w-4 h-4" />,
-    features: ['Coupon codes for premium', 'Login page promotion banner', 'Free base app']
   },
   {
     value: 'free_full',

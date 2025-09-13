@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppLogo } from '@/hooks/useAppLogo';
-import { useAppMode } from '@/hooks/useAppMode';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Loader2, ChevronDown, Mail } from 'lucide-react';
@@ -23,7 +22,6 @@ const Auth = () => {
   
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
   const { appLogo } = useAppLogo();
-  const { shouldShowCoupons } = useAppMode();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -101,50 +99,6 @@ const Auth = () => {
             Your no-BS weight loss program
           </p>
         </div>
-
-        {/* Conditional Promotion Banner - Only shown in trial_premium mode */}
-        {shouldShowCoupons && (
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
-            <div className="text-center space-y-2">
-              <div className="flex items-center justify-center gap-2 text-primary font-semibold">
-                <span className="text-sm">LIMITED TIME OFFER</span>
-              </div>
-              <p className="text-sm text-foreground/80">
-                Get <span className="font-bold text-primary">90 days FREE</span> access to Premium features
-              </p>
-              <div className="flex items-center justify-center gap-2 bg-card/50 border border-primary/20 rounded-md px-3 py-2 max-w-xs mx-auto">
-                <span className="font-mono font-bold text-primary tracking-wider">fastnow90</span>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText('fastnow90').then(() => {
-                      toast({
-                        title: "Promo code copied!",
-                        description: "fastnow90 has been copied to your clipboard"
-                      });
-                    }).catch(() => {
-                      toast({
-                        title: "Copy failed", 
-                        description: "Please manually copy: fastnow90",
-                        variant: "destructive"
-                      });
-                    });
-                  }}
-                  className="p-1 hover:bg-primary/10 rounded transition-colors"
-                  title="Copy promo code"
-                >
-                  <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Apply in Settings → Account after signup
-              </p>
-            </div>
-          </div>
-        )}
-
 
         <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
           <CardContent className="space-y-6 pt-6">

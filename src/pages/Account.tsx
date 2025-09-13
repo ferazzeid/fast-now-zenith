@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { BillingInformation } from '@/components/BillingInformation';
-import { SimpleCouponInput } from '@/components/SimpleCouponInput';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -130,16 +129,6 @@ const Account = () => {
             </CardHeader>
             <CardContent>
               <BillingInformation />
-            </CardContent>
-          </Card>
-
-          {/* Coupon Code */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Coupon Codes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SimpleCouponInput />
             </CardContent>
           </Card>
 

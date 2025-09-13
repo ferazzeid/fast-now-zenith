@@ -15,7 +15,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { SubscriptionStatus } from '@/components/SubscriptionStatus';
-import { CouponCodeInput } from '@/components/CouponCodeInput';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';

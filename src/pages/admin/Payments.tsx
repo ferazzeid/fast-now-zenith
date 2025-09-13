@@ -2,7 +2,6 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
-import { AdminCouponManagement } from "@/components/AdminCouponManagement";
 
 export default function AdminPayments() {
   usePageSEO({
@@ -17,9 +16,8 @@ export default function AdminPayments() {
         <h1 className="sr-only">Admin Payments</h1>
         <AdminSubnav />
 
-        <section aria-label="Payment provider settings" className="space-y-8 pb-24">
+        <section aria-label="Payment provider settings" className="pb-24">
           <PaymentProviderSettings />
-          <AdminCouponManagement />
         </section>
       </main>
     </AdminHealthCheck>
