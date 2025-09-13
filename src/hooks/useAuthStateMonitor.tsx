@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useConnectionStore } from '@/stores/connectionStore';
 
 /**
  * Continuously monitors auth.uid() in database context to detect synchronization failures
@@ -11,27 +12,44 @@ export const useAuthStateMonitor = () => {
   const monitoringRef = useRef<NodeJS.Timeout | null>(null);
   const failureCountRef = useRef(0);
   const lastRepairRef = useRef(0);
+  const isOnlineRef = useRef(useConnectionStore.getState().isOnline);
+
+  // Keep track of online status without re-creating interval callbacks
+  useEffect(() => {
+    return useConnectionStore.subscribe(state => {
+      isOnlineRef.current = state.isOnline;
+    });
+  }, []);
 
   const validateDatabaseAuth = useCallback(async () => {
     try {
       // Test auth.uid() in database context
       const { data, error } = await supabase.rpc('is_current_user_admin');
-      
+
       if (error) {
         // Check if it's an auth.uid() = NULL error
-        if (error.message?.includes('permission denied') || 
+        if (error.message?.includes('permission denied') ||
             error.message?.includes('insufficient_privilege') ||
             error.message?.includes('new row violates')) {
-          return { authWorking: false, error };
+          return { authWorking: false, error, networkError: false };
+        }
+        // Detect network errors separately
+        if (error.message?.toLowerCase().includes('failed to fetch') ||
+            error.message?.toLowerCase().includes('network')) {
+          return { authWorking: false, error, networkError: true };
         }
         // Other errors might not be auth-related
-        return { authWorking: true, error: null };
+        return { authWorking: true, error: null, networkError: false };
       }
-      
-      return { authWorking: true, error: null };
-    } catch (error) {
+
+      return { authWorking: true, error: null, networkError: false };
+    } catch (error: any) {
       console.error('Auth validation error:', error);
-      return { authWorking: false, error };
+      const message = error?.message?.toLowerCase() || '';
+      const isNetworkError = message.includes('failed to fetch') ||
+        message.includes('network') ||
+        message.includes('timeout');
+      return { authWorking: false, error, networkError: isNetworkError };
     }
   }, []);
 
@@ -83,34 +101,41 @@ export const useAuthStateMonitor = () => {
     }
     
     console.log('🔍 Starting auth state monitoring...');
-    
+
     monitoringRef.current = setInterval(async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       // Only monitor if user is supposed to be authenticated
       if (!session?.user?.id) {
         failureCountRef.current = 0;
         return;
       }
-      
+
+      // Skip validation when offline
+      if (!isOnlineRef.current) {
+        return;
+      }
+
       const validation = await validateDatabaseAuth();
-      
+
       if (!validation.authWorking) {
-        failureCountRef.current++;
-        console.warn(`⚠️ Auth sync failure detected (${failureCountRef.current}/3)`);
-        
-        // Try repair after 2 consecutive failures
-        if (failureCountRef.current >= 2) {
-          const repaired = await repairAuthState();
-          if (!repaired && failureCountRef.current >= 3) {
-            // Force logout after 3 failures and failed repair
-            console.error('❌ Auth state unrecoverable, forcing logout');
-            await supabase.auth.signOut();
-            toast({
-              title: "Authentication Error",
-              description: "Session synchronization failed. Please sign in again.",
-              variant: "destructive",
-            });
+        if (!validation.networkError) {
+          failureCountRef.current++;
+          console.warn(`⚠️ Auth sync failure detected (${failureCountRef.current}/3)`);
+
+          // Try repair after 2 consecutive failures
+          if (failureCountRef.current >= 2) {
+            const repaired = await repairAuthState();
+            if (!repaired && failureCountRef.current >= 3) {
+              // Force logout after 3 failures and failed repair
+              console.error('❌ Auth state unrecoverable, forcing logout');
+              await supabase.auth.signOut();
+              toast({
+                title: "Authentication Error",
+                description: "Session synchronization failed. Please sign in again.",
+                variant: "destructive",
+              });
+            }
           }
         }
       } else {
