@@ -58,29 +58,10 @@ const Motivators = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
-  // Transform system motivators to match user motivator format
-  const transformedSystemMotivators = systemMotivators.map(sm => ({
-    id: sm.id,
-    user_id: '', // System motivators don't have user_id
-    title: sm.title,
-    content: sm.content,
-    excerpt: sm.excerpt, // Include excerpt for display logic
-    category: sm.category || 'system',
-    is_active: sm.is_active,
-    created_at: sm.created_at,
-    updated_at: sm.updated_at,
-    imageUrl: sm.male_image_url || sm.female_image_url, // Use available image
-    linkUrl: `/content/${sm.slug}`, // Create proper link URL for system motivators
-    slug: sm.slug,
-    _isSystemMotivator: true // Flag to identify system motivators
-  }));
-
-  // Filter motivators based on active tab
-  const userGoalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
-  const goalMotivators = [...transformedSystemMotivators, ...userGoalMotivators]; // Combine system and user motivators
+  // Filter motivators based on active tab - only show user's personal goals
+  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
   const personalNotes = motivators.filter(m => m.category === 'personal_note');
-
   const handleSelectQuote = async (quote: Quote) => {
     await handleCreateMotivator({
       title: quote.text.length > 50 ? `${quote.text.substring(0, 50)}...` : quote.text,

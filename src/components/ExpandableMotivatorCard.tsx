@@ -32,7 +32,6 @@ interface ExpandableMotivatorCardProps {
     category?: string;
     linkUrl?: string;
     slug?: string;
-    _isSystemMotivator?: boolean;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -63,7 +62,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
 
-  // Check if motivator is in default goals
+  // Check if motivator is in default goals (admin feature for user motivators)
   useEffect(() => {
     const checkDefaultGoals = async () => {
       if (!showAdminFeatures) return;
@@ -162,15 +161,9 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 
   // Special styling for saved quotes
   const isSavedQuote = motivator.category === 'saved_quote';
-  const isSystemMotivator = motivator._isSystemMotivator;
   
-  // Determine what content to display in the card
-  const displayContent = isSystemMotivator 
-    ? (motivator.excerpt || motivator.content) // Use excerpt for system motivators, fallback to content
-    : motivator.content; // Use full content for user motivators
-    
-  // Show "Read More" button only for system motivators that have linkUrl
-  const showReadMoreButton = isSystemMotivator && motivator.linkUrl;
+  // All motivators in this component are user motivators, so use full content
+  const displayContent = motivator.content;
   
   return (
     <Card className={`overflow-hidden relative ${isSavedQuote ? 'bg-gray-900 border-gray-700' : ''}`}>
@@ -204,126 +197,95 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     {motivator.title}
                   </h3>
                 </div>
-                
-                {displayContent && (
-                  <div className={`text-sm ${isSavedQuote ? 'text-gray-200' : 'text-muted-foreground'}`}>
-                    {isExpanded ? (
-                      <p className="whitespace-pre-wrap">{displayContent}</p>
-                    ) : (
-                      <p className="line-clamp-2">{displayContent}</p>
-                    )}
-                  </div>
-                )}
-                
-                {/* Read More Link - Only for system motivators */}
-                {showReadMoreButton && (
-                  <div className="mt-3">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleReadMore();
-                      }}
-                      className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
-                    >
-                      Read More <BookOpen className="w-3 h-3 ml-1" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              {/* Actions */}
-              <div className="flex flex-col gap-1 ml-2">
-                {!isSystemMotivator && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Button
-                         size="sm"
-                         variant="ghost"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           onEdit();
-                         }}
-                         className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
-                       >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Edit this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-
-                {/* Admin: Toggle Default Goals Button */}
-                {!isSystemMotivator && showAdminFeatures && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+               </div>
+               
+               {/* Actions */}
+               <div className="flex flex-col gap-1 ml-2">
+                 <Tooltip>
+                   <TooltipTrigger asChild>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleDefaultGoals();
+                          onEdit();
                         }}
-                        disabled={adminLoading}
-                        className={`p-1 h-6 w-6 ${
-                          isInDefaultGoals 
-                            ? 'hover:bg-red-500/10 hover:text-red-600' 
-                            : 'hover:bg-yellow-500/10 hover:text-yellow-600'
-                        }`}
+                        className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
                       >
-                        <Star className={`w-3 h-3 ${
-                          isInDefaultGoals 
-                            ? 'text-yellow-500 fill-yellow-500' 
-                            : ''
-                        }`} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{isInDefaultGoals ? 'Remove from default goals' : 'Add to default goals'} (Admin)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                
-                {!isSystemMotivator && (
+                       <Edit className="w-3 h-3" />
+                     </Button>
+                   </TooltipTrigger>
+                   <TooltipContent>
+                     <p>Edit this motivator</p>
+                   </TooltipContent>
+                 </Tooltip>
+
+                 {/* Admin: Toggle Default Goals Button */}
+                 {showAdminFeatures && (
+                   <Tooltip>
+                     <TooltipTrigger asChild>
+                       <Button
+                         size="sm"
+                         variant="ghost"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleToggleDefaultGoals();
+                         }}
+                         disabled={adminLoading}
+                         className={`p-1 h-6 w-6 ${
+                           isInDefaultGoals 
+                             ? 'hover:bg-red-500/10 hover:text-red-600' 
+                             : 'hover:bg-yellow-500/10 hover:text-yellow-600'
+                         }`}
+                       >
+                         <Star className={`w-3 h-3 ${
+                           isInDefaultGoals 
+                             ? 'text-yellow-500 fill-yellow-500' 
+                             : ''
+                         }`} />
+                       </Button>
+                     </TooltipTrigger>
+                     <TooltipContent>
+                       <p>{isInDefaultGoals ? 'Remove from default goals' : 'Add to default goals'} (Admin)</p>
+                     </TooltipContent>
+                   </Tooltip>
+                 )}
+                  
                   <AlertDialog>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Delete this motivator</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={onDelete}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
+                          <Button
+                             size="sm" 
+                             variant="ghost" 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                             }}
+                             className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                           >
+                             <Trash2 className="w-3 h-3" />
+                           </Button>
+                         </AlertDialogTrigger>
+                       </TooltipTrigger>
+                       <TooltipContent>
+                         <p>Delete this motivator</p>
+                       </TooltipContent>
+                     </Tooltip>
+                     <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                         <AlertDialogAction onClick={onDelete}>
+                           Delete
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
               </div>
             </div>
           </div>
