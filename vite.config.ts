@@ -48,5 +48,8 @@ export default defineConfig(async ({ mode }) => {
       // Ensure environment detection works
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || mode),
     },
+    test: {
+      environment: 'jsdom',
+    },
   };
 });

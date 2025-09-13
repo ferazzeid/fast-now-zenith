@@ -2,50 +2,17 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Clock } from 'lucide-react';
-import { useAccess } from '@/hooks/useAccess';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 export const SimpleSubscriptionStatus: React.FC = () => {
-  const { 
-    hasPremiumFeatures, 
+  const {
+    hasPremiumFeatures,
     access_level,
     isTrial,
     daysRemaining,
-    openCustomerPortal 
-  } = useAccess();
-
-  const getStatusInfo = () => {
-    if (access_level === 'admin') {
-      return {
-        status: 'Admin Account',
-        description: 'Full access to all features',
-        variant: 'default' as const
-      };
-    }
-    
-    if (hasPremiumFeatures) {
-      return {
-        status: 'Premium Active',
-        description: 'All features unlocked',
-        variant: 'default' as const
-      };
-    }
-    
-    if (isTrial) {
-      return {
-        status: 'Free Trial',
-        description: `${daysRemaining} days remaining`,
-        variant: 'secondary' as const
-      };
-    }
-    
-    return {
-      status: 'Free Account',
-      description: 'Limited features',
-      variant: 'outline' as const
-    };
-  };
-
-  const statusInfo = getStatusInfo();
+    openCustomerPortal,
+    statusInfo
+  } = useSubscriptionStatus();
 
   return (
     <div className="space-y-4">
