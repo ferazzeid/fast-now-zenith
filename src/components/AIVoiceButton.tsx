@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { FloatingBubble } from '@/components/FloatingBubble';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ScrollArea } from '@/components/ui/scroll-area';
