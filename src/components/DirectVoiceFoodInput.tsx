@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { ListeningAnimation } from '@/components/ListeningAnimation';
 import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 
 interface DirectVoiceFoodInputProps {
   onFoodAdded?: (foods: any[]) => void;
@@ -33,13 +32,117 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
   const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Check microphone permissions on mount
+  React.useEffect(() => {
+    checkMicrophonePermission();
+  }, []);
+
+  const checkMicrophonePermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setHasPermission(true);
+    } catch (error) {
+      console.error('Microphone permission denied:', error);
+      setHasPermission(false);
+    }
+  };
+
+  const startRecording = async () => {
+    if (!hasPermission) {
+      toast({
+        title: "Microphone Access Required",
+        description: "Please allow microphone access to use voice input.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        processRecording();
+      };
+
+      mediaRecorderRef.current.start();
+      setVoiceState('listening');
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Recording Error",
+        description: "Could not start voice recording. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream?.getTracks().forEach(track => track.stop());
+      setVoiceState('processing');
+    }
+  };
+
+  const processRecording = async () => {
+    if (audioChunksRef.current.length === 0) {
+      setVoiceState('idle');
+      return;
+    }
+
+    try {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Audio = (reader.result as string).split(',')[1];
+        
+        // Send to transcription service
+        const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke('transcribe', {
+          body: { audio: base64Audio }
+        });
+
+        if (transcriptionError) throw transcriptionError;
+
+        const transcription = transcriptionData?.text;
+        if (!transcription) {
+          throw new Error('No transcription received');
+        }
+
+        // Process transcription for food items
+        await handleVoiceTranscription(transcription);
+      };
+      
+      reader.readAsDataURL(audioBlob);
+    } catch (error) {
+      console.error('❌ Processing error:', error);
+      toast({
+        title: "Processing Failed",
+        description: "Could not process voice input. Please try again.",
+        variant: "destructive"
+      });
+      setVoiceState('idle');
+    }
+  };
+
   const handleVoiceTranscription = async (transcription: string) => {
     console.log('🎯 DirectVoiceFoodInput: Received transcription:', transcription);
-    
-    setVoiceState('processing');
     
     try {
       // Call AI to process the voice input for foods
@@ -97,19 +200,6 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
     } finally {
       setVoiceState('idle');
     }
-  };
-
-  const handleRecordingStateChange = (isRecording: boolean) => {
-    setVoiceState(isRecording ? 'listening' : 'idle');
-  };
-
-  const handleVoiceError = (error: string) => {
-    setVoiceState('idle');
-    toast({
-      title: "Voice Error",
-      description: error,
-      variant: "destructive"
-    });
   };
 
   const handleFoodModalClose = () => {
@@ -200,7 +290,20 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
 
   const handleButtonClick = () => {
     if (voiceState === 'idle') {
-      setVoiceState('listening');
+      startRecording();
+    } else if (voiceState === 'listening') {
+      stopRecording();
+    }
+  };
+
+  const getButtonColor = () => {
+    switch (voiceState) {
+      case 'listening':
+        return 'bg-red-500 hover:bg-red-600';
+      case 'processing':
+        return 'bg-yellow-500 hover:bg-yellow-600';
+      default:
+        return 'bg-primary hover:bg-primary/90';
     }
   };
 
@@ -208,30 +311,20 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
     <>
       <PremiumGate feature="AI Voice Input" showUpgrade={false}>
         <Button 
-          variant="action-primary"
+          variant="outline"
           size="action-tall"
-          className="w-full flex items-center justify-center"
-          disabled={voiceState !== 'idle'}
+          className={cn(
+            "w-full flex items-center justify-center transition-colors border-0",
+            getButtonColor(),
+            voiceState === 'listening' && "animate-pulse",
+            "text-white"
+          )}
           onClick={handleButtonClick}
           aria-label="Add food with voice"
         >
           <Mic className="w-5 h-5" />
         </Button>
-        
-        {/* Hidden CircularVoiceButton to handle actual voice recording */}
-        <div className="hidden">
-          <CircularVoiceButton
-            onTranscription={handleVoiceTranscription}
-            onRecordingStateChange={handleRecordingStateChange}
-            onError={handleVoiceError}
-            autoStart={voiceState === 'listening'}
-            size="sm"
-          />
-        </div>
       </PremiumGate>
-
-      {/* Listening/Processing Animation Overlay */}
-      <ListeningAnimation state={voiceState} size="lg" />
 
       {/* Food Selection Modal */}
       <FoodSelectionModal
