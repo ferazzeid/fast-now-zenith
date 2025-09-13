@@ -54,22 +54,22 @@ export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries 
   if (showCarbs) {
     return (
       <div className="flex items-center gap-2 text-sm">
-        <ClickableTooltip content="Carbs eaten today">
-          <span className={`font-medium ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
-            {Math.round(consumedCarbs)}g
+        <ClickableTooltip content="Carbs planned for today">
+          <span className={`text-muted-foreground/80 ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
+            {Math.round(totalCarbs)}g
           </span>
         </ClickableTooltip>
         <span className="text-muted-foreground/60">/</span>
-        <ClickableTooltip content="Total carbs planned for today">
-          <span className={`font-medium ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
-            {Math.round(totalCarbs)}g
+        <ClickableTooltip content="Carbs eaten so far">
+          <span className={`font-medium ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
+            {Math.round(consumedCarbs)}g
           </span>
         </ClickableTooltip>
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleView}
-          className="p-1 h-6 w-6 hover:bg-accent/50"
+          className="p-1 h-6 w-6 hover:bg-accent/50 ml-1"
           aria-label="Switch to calories view"
         >
           <ToggleRight className="w-4 h-4 text-muted-foreground" />
@@ -80,22 +80,22 @@ export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries 
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <ClickableTooltip content="Calories eaten today">
-        <span className={`font-medium ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
-          {Math.round(consumedCalories)}
+      <ClickableTooltip content="Calories planned for today">
+        <span className={`text-muted-foreground/80 ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
+          {Math.round(totalCalories)}
         </span>
       </ClickableTooltip>
       <span className="text-muted-foreground/60">/</span>
-      <ClickableTooltip content="Total calories planned for today">
-        <span className={`font-medium ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
-          {Math.round(totalCalories)}
+      <ClickableTooltip content="Calories eaten so far">
+        <span className={`font-medium ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
+          {Math.round(consumedCalories)}
         </span>
       </ClickableTooltip>
       <Button
         variant="ghost"
         size="sm"
         onClick={toggleView}
-        className="p-1 h-6 w-6 hover:bg-accent/50"
+        className="p-1 h-6 w-6 hover:bg-accent/50 ml-1"
         aria-label="Switch to carbs view"
       >
         <ToggleLeft className="w-4 h-4 text-muted-foreground" />
