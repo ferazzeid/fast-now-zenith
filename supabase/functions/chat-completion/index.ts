@@ -295,6 +295,15 @@ CRITICAL FOOD QUANTITY INTERPRETATION - FOLLOW EXACTLY:
 - NEVER create duplicate entries for the same request. Each mentioned food creates its specified quantity only
 - Validate totals: If user says "3 yogurts, 1kg cucumbers, 3 individual cucumbers", expect EXACTLY 7 entries (3+1+3)
 
+NUTRITION ESTIMATION REQUIREMENTS:
+- Use USDA nutrition database knowledge for accurate calorie and carb values
+- Base calculations on per-100g values, then scale by serving size
+- Common foods: Apple (52 cal/100g, 14g carbs), Chicken breast (165 cal/100g, 0g carbs), Greek yogurt (100 cal/100g, 6g carbs)
+- NEVER use 0 calories unless food truly has none (water, black coffee, plain tea)
+- NEVER use 0 carbs unless food is zero-carb (meat, fish, oils, eggs)
+- For processed foods, estimate based on similar products and ingredients
+- When unsure, err on the side of slightly higher estimates rather than underestimating
+
 CAPABILITIES: You can help users with fasting sessions, walking sessions, food tracking, motivators, and app calculations.`;
 
     const enhancedSystemMessage = `${baseSystemMessage}
@@ -598,44 +607,44 @@ When explaining app calculations, use the exact formulas and constants above. He
             }
           },
           // === FOOD FUNCTIONS ===
-          {
-            type: "function",
-            function: {
-              name: "add_multiple_foods",
-              description: "Add food entries to the user's food log. CRITICAL QUANTITY RULES: (1) COUNT + FOOD = MULTIPLE ENTRIES: '3 yogurts', '5 eggs' → Create EXACTLY that number of separate entries. (2) WEIGHT + FOOD = SINGLE ENTRY: '1kg cucumbers', '500g chicken' → Create ONE entry with that serving size. (3) MIXED REQUESTS: '3 yogurts, 1kg cucumbers, 5 individual apples' → 3 yogurt entries + 1 cucumber entry (1000g) + 5 apple entries = 9 total entries. NEVER create duplicates. Each food mentioned should result in the EXACT number specified, no more, no less. Count each request separately and validate totals.",
-              parameters: {
-                type: "object",
-                properties: {
-                  foods: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: {
-                          type: "string",
-                          description: "Name of the food item"
-                        },
-                        serving_size: {
-                          type: "number",
-                          description: "Serving size in grams"
-                        },
-                        calories: {
-                          type: "number",
-                          description: "Number of calories in this serving"
-                        },
-                        carbs: {
-                          type: "number",
-                          description: "Number of carbs in grams in this serving"
-                        }
-                      },
-                      required: ["name", "serving_size", "calories", "carbs"]
-                    }
-                  }
-                },
-                required: ["foods"]
-              }
-            }
-          },
+           {
+             type: "function",
+             function: {
+               name: "add_multiple_foods",
+               description: "Add food entries to the user's food log with ACCURATE NUTRITION ESTIMATION. CRITICAL QUANTITY RULES: (1) COUNT + FOOD = MULTIPLE ENTRIES: '3 yogurts', '5 eggs' → Create EXACTLY that number of separate entries. (2) WEIGHT + FOOD = SINGLE ENTRY: '1kg cucumbers', '500g chicken' → Create ONE entry with that serving size. (3) MIXED REQUESTS: '3 yogurts, 1kg cucumbers, 5 individual apples' → 3 yogurt entries + 1 cucumber entry (1000g) + 5 apple entries = 9 total entries. NEVER create duplicates. Each food mentioned should result in the EXACT number specified, no more, no less. Count each request separately and validate totals. NUTRITION ACCURACY: You MUST provide realistic, non-zero calories and carbs. Use USDA database knowledge, standard portion sizes, and food composition data. Example: 100g apple = ~52 cal, 14g carbs; 100g chicken breast = ~165 cal, 0g carbs; 100g Greek yogurt = ~100 cal, 6g carbs. Scale proportionally by serving size. NEVER use 0 calories or 0 carbs unless the food truly has none.",
+               parameters: {
+                 type: "object",
+                 properties: {
+                   foods: {
+                     type: "array",
+                     items: {
+                       type: "object",
+                       properties: {
+                         name: {
+                           type: "string",
+                           description: "Name of the food item"
+                         },
+                         serving_size: {
+                           type: "number",
+                           description: "Serving size in grams"
+                         },
+                         calories: {
+                           type: "number",
+                           description: "Number of calories in this serving - MUST be realistic and non-zero for foods with calories"
+                         },
+                         carbs: {
+                           type: "number",
+                           description: "Number of carbs in grams in this serving - MUST be realistic, use 0 only for zero-carb foods like meat/oil"
+                         }
+                       },
+                       required: ["name", "serving_size", "calories", "carbs"]
+                     }
+                   }
+                 },
+                 required: ["foods"]
+               }
+             }
+           },
           {
             type: "function",
             function: {
@@ -1391,6 +1400,49 @@ Keep responses brief and action-focused. Always use function calls for food oper
               functionCall = null;
             } else {
               console.log(`✅ add_multiple_foods has ${functionCall.arguments.foods.length} food items`);
+              
+              // Validate nutrition values for each food
+              let nutritionValid = true;
+              const invalidFoods: string[] = [];
+              
+              for (const food of functionCall.arguments.foods) {
+                if (!food.name || !food.serving_size || food.calories === undefined || food.carbs === undefined) {
+                  nutritionValid = false;
+                  invalidFoods.push(`${food.name || 'unnamed'} (missing required fields)`);
+                  continue;
+                }
+                
+                // Check for unrealistic zero values (except for zero-carb foods)
+                if (food.calories === 0 && food.serving_size > 0) {
+                  // Allow zero calories only for water, black coffee, tea
+                  const zeroCalAllowed = /^(water|black coffee|tea|plain tea|unsweetened tea|black tea|green tea)$/i.test(food.name);
+                  if (!zeroCalAllowed) {
+                    nutritionValid = false;
+                    invalidFoods.push(`${food.name} (unrealistic 0 calories)`);
+                  }
+                }
+                
+                if (food.carbs === 0 && food.serving_size > 0) {
+                  // Allow zero carbs for meats, fish, oils, eggs, cheese
+                  const zeroCarbAllowed = /^.*(meat|beef|pork|chicken|fish|salmon|tuna|oil|egg|cheese|butter).*$/i.test(food.name);
+                  if (!zeroCarbAllowed && food.calories > 0) {
+                    console.warn(`⚠️ Potential zero carbs for ${food.name} - this may be correct for pure protein/fat foods`);
+                  }
+                }
+                
+                // Check for unrealistically low values
+                if (food.serving_size >= 100 && food.calories < 10 && food.calories > 0) {
+                  nutritionValid = false;
+                  invalidFoods.push(`${food.name} (unrealistically low calories for serving size)`);
+                }
+              }
+              
+              if (!nutritionValid) {
+                console.error(`❌ Nutrition validation failed for foods: ${invalidFoods.join(', ')}`);
+                functionCall = null;
+              } else {
+                console.log('✅ Nutrition validation passed for all foods');
+              }
             }
           }
           
