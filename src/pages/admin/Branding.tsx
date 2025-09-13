@@ -2,7 +2,7 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { ColorManagement } from "@/components/ColorManagement";
-import { AdminSEOSettings } from "@/components/AdminSEOSettings";
+
 import { AppIdentitySettings } from "@/components/AppIdentitySettings";
 import { PWAManagementCard } from "@/components/PWAManagementCard";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
@@ -10,8 +10,8 @@ import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 export default function AdminBranding() {
   usePageSEO({
-    title: "Admin Branding – Logos, Colors & SEO",
-    description: "Manage brand assets, color themes, and SEO settings.",
+    title: "Admin Branding – Logos, Colors & Design",
+    description: "Manage brand assets, color themes, and visual identity.",
     canonicalPath: "/admin/branding",
   });
 
@@ -33,13 +33,8 @@ export default function AdminBranding() {
           <PWAManagementCard />
         </section>
 
-        <section aria-label="Color management">
+        <section aria-label="Color management" className="pb-24">
           <ColorManagement />
-        </section>
-
-        <section aria-label="SEO settings" className="pb-24">
-          <AdminSEOSettings />
-          <div className="h-8" />
         </section>
       </main>
     </AdminHealthCheck>

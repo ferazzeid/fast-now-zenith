@@ -9,11 +9,12 @@ import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
+import { AdminSEOSettings } from "@/components/AdminSEOSettings";
 
 export default function AdminOperations() {
   usePageSEO({
-    title: "Admin Operations – Engagement & Monitoring",
-    description: "Monitor engagement, usage, and manage operational thresholds.",
+    title: "Admin Operations – Engagement, SEO & Monitoring",
+    description: "Monitor engagement, manage SEO indexing, and operational thresholds.",
     canonicalPath: "/admin/operations",
   });
 
@@ -41,6 +42,10 @@ export default function AdminOperations() {
 
         <section aria-label="User tiers overview">
           <AdminTierStats />
+        </section>
+
+        <section aria-label="SEO indexing settings">
+          <AdminSEOSettings />
         </section>
 
         <section aria-label="Google Analytics settings" className="pb-24">

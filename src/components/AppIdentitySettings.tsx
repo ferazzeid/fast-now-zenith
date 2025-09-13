@@ -286,14 +286,10 @@ export default config;`;
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="identity" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="identity" className="flex items-center gap-1">
               <Smartphone className="w-4 h-4" />
               Identity
-            </TabsTrigger>
-            <TabsTrigger value="assets" className="flex items-center gap-1">
-              <Palette className="w-4 h-4" />
-              Assets
             </TabsTrigger>
             <TabsTrigger value="pwa" className="flex items-center gap-1">
               <Globe className="w-4 h-4" />
@@ -347,14 +343,6 @@ export default config;`;
             </div>
           </TabsContent>
 
-          <TabsContent value="assets" className="space-y-6 mt-6">
-            <div className="p-4 border border-border rounded-lg bg-muted/20">
-              <p className="text-sm text-muted-foreground">
-                🔄 <strong>Note:</strong> Asset uploads have been moved to the dedicated "Brand Assets" section below to avoid conflicts. 
-                Use the Brand Assets Manager below for uploading your app icon, favicon, and logo.
-              </p>
-            </div>
-          </TabsContent>
 
           <TabsContent value="pwa" className="space-y-4 mt-6">
             <div className="space-y-2">
