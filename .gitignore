@@ -33,3 +33,8 @@ android.keystore
 app/build/
 build/
 .gradle/
+
+# Prevent accidental command artifacts
+/tatus
+/tatus --porcelain
+/h origin tech-upgrade-2025
