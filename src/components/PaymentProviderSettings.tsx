@@ -337,7 +337,7 @@ export const PaymentProviderSettings = () => {
                   <p className="text-sm font-medium text-blue-900 mb-2">Setup Instructions:</p>
                   <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
                     <li>Go to your Stripe Dashboard → Webhooks</li>
-                    <li>Add endpoint: <code className="bg-blue-100 px-1 rounded text-xs">https://texnkijwcygodtywgedm.supabase.co/functions/v1/stripe-webhook</code></li>
+                    <li>Add endpoint: <code className="bg-blue-100 px-1 rounded text-xs">{import.meta.env.VITE_SUPABASE_URL || "https://texnkijwcygodtywgedm.supabase.co"}/functions/v1/stripe-webhook</code></li>
                     <li>Select events: customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.payment_succeeded</li>
                     <li>Copy the signing secret (whsec_...) and paste it above</li>
                     <li>Test the webhook to ensure it's working properly</li>

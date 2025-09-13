@@ -41,7 +41,7 @@ export const CircularVoiceButton = React.forwardRef<
   // Auto-start recording when autoStart is true
   useEffect(() => {
     if (autoStart && !isDisabled && !isRecording && !isProcessing && hasPermission) {
-      console.log('🎤 Auto-starting recording...');
+      if (import.meta.env.DEV) console.log('🎤 Auto-starting recording...');
       startRecording();
     }
   }, [autoStart, isDisabled, hasPermission]);
@@ -71,13 +71,13 @@ export const CircularVoiceButton = React.forwardRef<
   React.useImperativeHandle(ref, () => ({
     stopRecording: () => {
       if (isRecording) {
-        console.log('🎤 Stopping recording via ref...');
+        if (import.meta.env.DEV) console.log('🎤 Stopping recording via ref...');
         stopAndProcess();
       }
     },
     cancelRecording: () => {
       if (isRecording) {
-        console.log('🎤 Canceling recording via ref...');
+        if (import.meta.env.DEV) console.log('🎤 Canceling recording via ref...');
         cancelRecording();
       }
     }
@@ -102,12 +102,12 @@ export const CircularVoiceButton = React.forwardRef<
 
   const checkMicrophonePermission = async () => {
     try {
-      console.log('🎤 Checking microphone permission...');
+      if (import.meta.env.DEV) console.log('🎤 Checking microphone permission...');
       const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
       setHasPermission(result.state === 'granted');
-      console.log('🎤 Permission state:', result.state);
+      if (import.meta.env.DEV) console.log('🎤 Permission state:', result.state);
     } catch (error) {
-      console.log('🎤 Permission check not supported, will check during access');
+      if (import.meta.env.DEV) console.log('🎤 Permission check not supported, will check during access');
       setHasPermission(null); // Unknown, will check during access
     }
   };
@@ -129,14 +129,14 @@ export const CircularVoiceButton = React.forwardRef<
         }
       }
     } catch (e) {
-      console.warn('🎤 mimeType detection failed, using default');
+      if (import.meta.env.DEV) console.warn('🎤 mimeType detection failed, using default');
     }
     return undefined;
   };
 
   const startRecording = async () => {
     try {
-      console.log('🎤 Starting recording...');
+      if (import.meta.env.DEV) console.log('🎤 Starting recording...');
       
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -148,17 +148,17 @@ export const CircularVoiceButton = React.forwardRef<
         }
       });
       
-      console.log('🎤 MediaStream obtained, creating MediaRecorder...');
+      if (import.meta.env.DEV) console.log('🎤 MediaStream obtained, creating MediaRecorder...');
       setHasPermission(true);
       const mimeType = getSupportedMimeType();
-      console.log('🎤 Selected mimeType:', mimeType || 'default');
+      if (import.meta.env.DEV) console.log('🎤 Selected mimeType:', mimeType || 'default');
       mediaRecorderRef.current = mimeType
         ? new MediaRecorder(stream, { mimeType })
         : new MediaRecorder(stream);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        console.log('🎤 Audio data available, size:', event.data.size);
+        if (import.meta.env.DEV) console.log('🎤 Audio data available, size:', event.data.size);
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
@@ -360,12 +360,13 @@ export const CircularVoiceButton = React.forwardRef<
       }
 
       // Use direct fetch instead of supabase.functions.invoke to ensure proper body transmission
-      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/transcribe', {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://texnkijwcygodtywgedm.supabase.co";
+      const response = await fetch(`${supabaseUrl}/functions/v1/transcribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
           'x-client-info': 'supabase-js-web/2.52.0',
         },
         body: JSON.stringify(requestPayload),

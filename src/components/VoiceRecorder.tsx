@@ -120,12 +120,13 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       }
 
       // Call transcribe function using direct fetch
-      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/transcribe', {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://texnkijwcygodtywgedm.supabase.co";
+      const response = await fetch(`${supabaseUrl}/functions/v1/transcribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
           'x-client-info': 'supabase-js-web/2.52.0',
         },
         body: JSON.stringify({ audio: base64Audio }),

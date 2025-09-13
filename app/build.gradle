@@ -20,15 +20,11 @@ plugins {
     id 'com.android.application'
 }
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-
 def twaManifest = [
-    applicationId: 'com.fastnow.zenith',
+    applicationId: 'app.fastnow.go.twa',
     hostName: 'go.fastnow.app', // The domain being opened in the TWA.
-    launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
-    name: 'FastNow', // The application name.
+    launchUrl: 'echo "/" | npx @bubblewrap/cli init --manifest=https://go.fastnow.app/manifest.json', // The start path for the TWA. Must be relative to the domain.
+    name: 'FastNow - The No-BS Fat Loss Protocol', // The application name.
     launcherName: 'FastNow', // The name shown on the Android Launcher.
     themeColor: '#8B7355', // The color used for the status bar.
     themeColorDark: '#000000', // The color used for the dark status bar.
@@ -56,22 +52,13 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "com.fastnow.zenith"
-    
-    signingConfigs {
-        release {
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-        }
-    }
+    namespace "app.fastnow.go.twa"
     defaultConfig {
-        applicationId "com.fastnow.zenith"
+        applicationId "app.fastnow.go.twa"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 100216
-        versionName "100216"
+        versionCode 1
+        versionName "1"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -89,7 +76,7 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'https://go.fastnow.app/supabase/functions/v1/dynamic-manifest'
+            resValue "string", "webManifestUrl", 'https://go.fastnow.app/manifest.json'
         
 
         
@@ -166,7 +153,6 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            signingConfig signingConfigs.release
         }
     }
     compileOptions {
@@ -221,6 +207,8 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    
+        implementation 'com.google.androidbrowserhelper:billing:1.1.0'
     
         implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
     

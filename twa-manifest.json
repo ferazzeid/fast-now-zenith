@@ -1,8 +1,8 @@
 {
-  "packageId": "com.fastnow.zenith",
+  "packageId": "app.fastnow.go.twa",
   "host": "go.fastnow.app",
-  "name": "fast now - The No-BS Fat Loss Protocol", 
-  "launcherName": "fast now",
+  "name": "FastNow - The No-BS Fat Loss Protocol",
+  "launcherName": "FastNow",
   "display": "standalone",
   "themeColor": "#8B7355",
   "themeColorDark": "#000000",
@@ -12,21 +12,25 @@
   "navigationDividerColorDark": "#000000",
   "backgroundColor": "#F5F2EA",
   "enableNotifications": true,
-  "startUrl": "https://go.fastnow.app/",
-  "iconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
-  "maskableIconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
+  "startUrl": "echo \"/\" | npx @bubblewrap/cli init --manifest=https://go.fastnow.app/manifest.json",
+  "iconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
+  "maskableIconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "C:\\Users\\socia\\Desktop\\fastnownonative\\android.keystore",
+    "path": "C:\\Users\\socia\\Desktop\\NewFastNow25\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "100216",
-  "appVersionCode": 100216,
+  "appVersionName": "1",
+  "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
+  "webManifestUrl": "https://go.fastnow.app/manifest.json",
   "fallbackType": "customtabs",
-  "features": {},
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
   "alphaDependencies": {
     "enabled": false
   },
@@ -42,5 +46,5 @@
   "protocolHandlers": [],
   "fileHandlers": [],
   "launchHandlerClientMode": "",
-  "appVersion": "100216"
+  "appVersion": "1"
 }

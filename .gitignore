@@ -34,6 +34,12 @@ app/build/
 build/
 .gradle/
 
+# Environment files - NEVER commit these!
+.env
+.env.local
+.env.production
+.env.development
+
 # Prevent accidental command artifacts
 /tatus
 /tatus --porcelain
