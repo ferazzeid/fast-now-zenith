@@ -11,6 +11,16 @@ Fast Now is a comprehensive nutrition and meal tracking application that helps y
 - **Progress Insights**: Track your nutritional goals and progress over time
 - **Cross-Platform**: Available on web, iOS, and Android
 
+## Testing
+
+Run the unit tests with:
+
+```bash
+npm test
+```
+
+Contributions are encouraged! Feel free to submit pull requests with tests.
+
 ## Building the Android AAB
 
 To build the Android App Bundle (AAB) from a fresh git clone:
