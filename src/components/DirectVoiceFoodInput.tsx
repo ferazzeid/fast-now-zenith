@@ -330,11 +330,11 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
   const getButtonStyles = () => {
     switch (voiceState) {
       case 'listening':
-        return 'bg-red-500 hover:bg-red-600 text-white animate-pulse';
+        return 'animate-pulse';
       case 'processing':
-        return 'bg-ai hover:bg-ai/90 text-white';
+        return '';
       default:
-        return hasAccess ? 'bg-ai hover:bg-ai/90 text-ai-foreground' : 'bg-ai/50 text-ai-foreground opacity-50';
+        return hasAccess ? '' : 'opacity-50';
     }
   };
 
