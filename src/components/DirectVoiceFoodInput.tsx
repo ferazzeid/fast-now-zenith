@@ -341,12 +341,12 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
 
   return (
     <>
-      <div className="relative">
+      <div className="relative w-full h-full">
         <Button 
           variant="action-secondary"
           size="action-tall"
           className={cn(
-            "w-full flex items-center justify-center transition-colors",
+            "w-full h-full flex items-center justify-center transition-colors",
             voiceState === 'processing' 
               ? 'bg-ai hover:bg-ai/90 text-white'
               : hasAccess 
