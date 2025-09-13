@@ -51,9 +51,6 @@ const MyFoods = () => {
         title: "Food added",
         description: `${food.name} added to today's list`,
       });
-
-      // Navigate back to food tracking page
-      navigate('/food-tracking');
     } catch (error) {
       // Error is already handled by the mutation, just log it
       console.error('Error adding food from library:', error);

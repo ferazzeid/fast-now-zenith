@@ -238,8 +238,7 @@ const FoodTracking = () => {
               className="text-destructive hover:text-destructive/80"
               onClick={() => setShowClearAllDialog(true)}
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear All
+              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>
